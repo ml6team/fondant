@@ -1,0 +1,5 @@
+CairoSVG==2.5.2
+Pillow==9.3.0
+pyvips==2.2.1
+tqdm==4.64.1
+

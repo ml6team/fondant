@@ -1,0 +1,48 @@
+name: image_conversion_component
+description: A component that takes a data manifest as input and converts image formats to 'jpeg' 
+  which is a preferred format for subsequent preprocessing and training steps
+inputs:
+  - name: run_id
+    description: The run id of the pipeline
+    type: String
+  - name: artifact_bucket
+    description: The GCS bucket used to store the artifact
+    type: String
+  - name: component_name
+    description: the name of the component (used to create gcs artefact path)
+    type: String
+  - name: project_id
+    description: The id of the gcp-project
+    type: String
+  - name: svg_image_width
+    description: The desired width to scale the converted SVG image to
+    type: Integer
+  - name: svg_image_height
+    description: The desired height to scale the converted SVG image to
+    type: Integer
+  - name: file_extensions
+    description: A list containing the image formats to convert
+    type: JsonArray
+  - name: data_manifest_path
+    description: The previous component manifest path
+    type: String
+
+outputs:
+  - name: data_manifest_path_image_conversion_component
+    description: Path to the local file containing the gcs path where the output has been stored
+
+implementation:
+  container:
+    image: europe-west1-docker.pkg.dev/storied-landing-366912/storied-landing-366912-default-repository/mlpipelines/kubeflow/components/image_conversion_component:latest
+    command: [
+      python3, main.py,
+      --run-id,                                             { inputValue: run_id },
+      --artifact-bucket,                                    { inputValue: artifact_bucket },
+      --component-name,                                     { inputValue: component_name },
+      --project-id,                                         { inputValue: project_id },
+      --file-extensions,                                    { inputValue: file_extensions },
+      --svg-image-width,                                    { inputValue: svg_image_width },
+      --svg-image-height,                                   { inputValue: svg_image_height },
+      --data-manifest-path,                                 { inputPath: data_manifest_path },
+      --data-manifest-path-image-conversion-component,      { outputPath: data_manifest_path_image_conversion_component },
+    ]

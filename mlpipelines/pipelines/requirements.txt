@@ -1,0 +1,3 @@
+google-api-core==2.8.1
+kfp==1.8.14
+kubernetes==18.20.0
