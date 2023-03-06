@@ -1,3 +1,54 @@
+[tool.poetry]
+name = "Express"
+version = "0.1.dev0"
+description = "Express - Composable pipelines for foundation model finetuning"
+readme = "README.md"
+keywords = ["data", "machine learning", "finetuning", "foundation models"]
+license = "Apache-2.0"
+authors = [
+    "Simon Slangen <simon.slangen@ml6.eu>",
+    "Philippe Moussalli <philippe.moussalli@ml6.eu>",
+    "Robbe Sneyders <robbe.sneyders@ml6.eu>",
+    "Georges Lorré <georges.lorré@ml6.eu>",
+    "Niels Rogge <niels.rogge@ml6.eu>",
+]
+maintainers = [
+    "Philippe Moussalli <philippe.moussalli@ml6.eu>",
+    "Robbe Sneyders <robbe.sneyders@ml6.eu>",
+    "Georges Lorré <georges.lorré@ml6.eu>",
+    "Niels Rogge <niels.rogge@ml6.eu>",
+]
+repository = "https://github.com/ml6-team/express"
+include = ["*.txt", "*.rst", "*.md"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.group.test.dependencies]
+bandit = { version = "^1.7.4", extras = ["toml"] }
+liccheck = "^0.7.3"
+pylint = "^2.5.3"
+
 [tool.bandit]
-exclude_dirs = ["*/notebooks/*",
-                "*/mlpipelines/components/sd_finetuning_component/src/train_text_to_image.py"]
+exclude_dirs = ["*/mlpipelines/components/sd_finetuning_component/src/train_text_to_image.py"]
+
+[build-system]
+requires = ["poetry-core>=1.2.0"]
+build-backend = "poetry.core.masonry.api"
