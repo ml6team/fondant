@@ -1,0 +1,40 @@
+{
+    "dataset_id":"123456789",
+    "index": {
+        "location": "gs://express/clip/run456/output_index",
+        "type": "parquet",
+        "extensions": ["parquet"],
+        "n_files": 1,
+        "n_items": 1091
+    },
+    "data_sources": {
+        "image_metadata": {
+            "location": "gs://express/express_loader/run123/image_metadata",
+            "type": "parquet",
+            "extensions": ["parquet"],
+            "n_files": 6,
+            "n_items": 1234
+        },
+        "images": {
+            "location": "gs://express/express_loader/run123/images",
+            "type": "blob",
+            "extensions": ["svg", "png", "jpg"],
+            "n_files": 1122,
+            "n_items": 1122
+        },
+        "clip_embeddings": {
+            "location": "gs://express/clip/run456/clip_embeddings",
+            "type": "blob",
+            "extensions": ["npy"],
+            "n_files": 1091,
+            "n_items": 1091
+        }
+    },
+    "metadata":{
+        "branch":"",
+        "commit_hash":"",
+        "creation_date":"",
+        "run_id":"run789",
+        "n_items": 998
+    }
+}

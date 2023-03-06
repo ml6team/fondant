@@ -1,0 +1,5 @@
+clip-retrieval==2.34.2
+numpy>=1.19.5,<2
+pandas==1.3.5
+tqdm==4.64.1
+Pillow==9.3.0

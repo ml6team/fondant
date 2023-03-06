@@ -1,0 +1,58 @@
+name: clip_retrieval_component
+description: A component that takes a dataset manifest and returns an output data manifest with an extended dataset
+  by retrieving similar images from the laion dataset using different retrieval strategies (knn, centroid)
+inputs:
+  - name: run_id
+    description: The run id of the pipeline
+    type: String
+  - name: artifact_bucket
+    description: The GCS bucket used to store the artifact
+    type: String
+  - name: component_name
+    description: the name of the component (used to create gcs artefact path)
+    type: String
+  - name: project_id
+    description: The id of the gcp-project
+    type: String
+  - name: laion_index_url
+    description: contains the indices of the metadata. Those indices need to be transformed in case you decide to use only a subset of the dataset
+    type: String
+  - name: laion_metadata_url
+    description: url to the metadata of laion dataset metadata (arrow format). It can either contain a subset of the laion 5b metadata (e.g. laion-en) or all of the metadata
+    type: String
+  - name: nb_images_knn
+    description: The number of images to return via the knn strategy (per image)
+    type: Integer
+  - name: nb_images_centroid
+    description: The number of images to return via the centroid strategy
+    type: Integer
+  - name: data_manifest_path
+    description: The previous component manifest path
+    type: String
+
+outputs:
+  - name: data_manifest_path_clip_retrieval_component
+    description: Path to the local file containing the gcs path where the output has been stored
+  - name: parquet_path_clip_centroid_retrieval
+    description: The path to the parquet file containing the urls from centroid retrieval
+  - name: parquet_path_clip_knn_retrieval
+    description: The path to the parquet file containing the urls from knn retrieval
+
+implementation:
+  container:
+    image: europe-west1-docker.pkg.dev/storied-landing-366912/storied-landing-366912-default-repository/mlpipelines/kubeflow/components/clip_retrieval_component:latest
+    command: [
+      python3, main.py,
+      --run-id,                                      { inputValue: run_id },
+      --artifact-bucket,                             { inputValue: artifact_bucket },
+      --component-name,                              { inputValue: component_name },
+      --project-id,                                  { inputValue: project_id, },
+      --laion-index-url,                             { inputValue: laion_index_url },
+      --laion-metadata-url,                          { inputValue: laion_metadata_url },
+      --nb-images-knn,                               { inputValue: nb_images_knn },
+      --nb-images-centroid,                          { inputValue: nb_images_centroid },
+      --data-manifest-path,                          { inputPath: data_manifest_path },
+      --data-manifest-path-clip-retrieval-component, { outputPath: data_manifest_path_clip_retrieval_component },
+      --parquet-path-clip-centroid-retrieval,        { outputPath: parquet_path_clip_centroid_retrieval },
+      --parquet-path-clip-knn-retrieval,             { outputPath: parquet_path_clip_knn_retrieval },
+    ]

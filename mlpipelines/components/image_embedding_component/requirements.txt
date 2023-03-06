@@ -1,0 +1,9 @@
+fairscale==0.4.4
+ftfy==6.1.1
+Pillow==9.3.0
+regex==2022.10.31
+torchvision==0.13.0
+transformers==4.15.0
+tqdm==4.64.1
+
+

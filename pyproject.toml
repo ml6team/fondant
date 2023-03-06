@@ -1,0 +1,3 @@
+[tool.bandit]
+exclude_dirs = ["*/notebooks/*",
+                "*/mlpipelines/components/sd_finetuning_component/src/train_text_to_image.py"]
