@@ -4,9 +4,7 @@ import logging
 
 import torch
 
-from .logger import get_logger
-
-logger = get_logger(name=__name__, level=logging.INFO)
+LOGGER = logging.getLogger(__name__)
 
 
 def parse_kfp_list(kfp_parsed_string: str) -> list:
@@ -27,12 +25,12 @@ def parse_kfp_list(kfp_parsed_string: str) -> list:
 def get_cuda_availability():
     """Function that checks if a cuda device is available"""
     cuda_available = torch.cuda.is_available()
-    logger.info("CUDA device availability:%s", cuda_available)
+    LOGGER.info("CUDA device availability:%s", cuda_available)
 
     if cuda_available:
-        logger.info(torch.cuda.get_device_name(0))
-        logger.info("CUDA device: %s", torch.cuda.get_device_name(0))
-        logger.info("Num of GPUs: %s", torch.cuda.device_count())
-        logger.info("Memory Usage:")
-        logger.info("Allocated: %s GB", round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1))
-        logger.info("Cached: %s GB", round(torch.cuda.memory_reserved(0) / 1024 ** 3, 1))
+        LOGGER.info(torch.cuda.get_device_name(0))
+        LOGGER.info("CUDA device: %s", torch.cuda.get_device_name(0))
+        LOGGER.info("Num of GPUs: %s", torch.cuda.device_count())
+        LOGGER.info("Memory Usage:")
+        LOGGER.info("Allocated: %s GB", round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1))
+        LOGGER.info("Cached: %s GB", round(torch.cuda.memory_reserved(0) / 1024 ** 3, 1))

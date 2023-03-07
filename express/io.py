@@ -5,10 +5,7 @@ import pathlib
 import logging
 import os
 
-# pylint: disable=import-error
-from .logger import get_logger
-
-LOGGER = get_logger(name=__name__, level=logging.INFO)
+LOGGER = logging.getLogger(__name__)
 
 
 def get_file_extension(file_url: str) -> str:

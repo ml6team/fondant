@@ -1,20 +1,21 @@
-"""Logger module"""
+"""Utils file with useful methods."""
 
-import sys
 import logging
+import sys
+import os
+
+LOG_LEVEL = os.environ.get("LOG_LEVEL", default="INFO")
 
 
-def get_logger(name: str, level) -> logging.Logger:
-    """Return logger for calling module
-    Args:
-        name (str): the logger name
-        level ([type]): the logger level
-    Returns:
-        logging.Logger: the logger instance
-    """
-    logger = logging.getLogger(name)
+def configure_logging() -> None:
+    """Configure the root logger based on config settings"""
+    logger = logging.getLogger()
+    # set loglevel
+    level = logging.getLevelName(LOG_LEVEL)
+
     logger.setLevel(level)
+    # logging stdout handler
     handler = logging.StreamHandler(stream=sys.stdout)
-    handler.setFormatter(logging.Formatter(fmt='[%(asctime)s] | %(levelname)s] %(message)s'))
+    handler.setFormatter(
+        logging.Formatter(fmt='[%(asctime)s | %(name)s | %(levelname)s] %(message)s'))
     logger.addHandler(handler)
-    return logger

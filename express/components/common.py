@@ -4,11 +4,19 @@ and give them to the actual core of the component.
 """
 import argparse
 import json
+import os
+import importlib
+from datetime import datetime
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, Optional, TypeVar, Generic, Union, Tuple
+from typing import Dict, Optional, TypeVar, Generic, Union
 
-from helpers.manifest_helpers import DataManifest, DataSource, Metadata
+from .helpers.manifest_helpers import DataManifest, DataSource, Metadata
+from .helpers.storage.storage_interface import StorageHandlerModule
+
+# pylint: disable=no-member
+STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[os.environ.get('CLOUD_ENV', 'GCP')]
+STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
 
 TIndex = TypeVar('TIndex')
 TData = TypeVar('TData')
@@ -20,9 +28,10 @@ class ExpressDataset(ABC, Generic[TIndex, TData]):
     It can be extended to create a draft for a new (output) dataset.
 
     Args:
-        manifest (DataManifest): A manifest that describes the different data sources comprising the Dataset, as well
-            as their locations.
+        manifest (DataManifest): A manifest that describes the different data sources comprising
+        the Dataset, as well as their locations.
     """
+
     def __init__(self, manifest: DataManifest):
         self.manifest = manifest
         self._index_data = self.load_index()
@@ -38,7 +47,6 @@ class ExpressDataset(ABC, Generic[TIndex, TData]):
         """
         Loads the index data.
         """
-        pass
 
     def load(self, data_source: str, for_index: Optional[TIndex] = None) -> TData:
         """
@@ -46,8 +54,9 @@ class ExpressDataset(ABC, Generic[TIndex, TData]):
 
         Args:
             data_source (str): A named data source from the input manifest.
-            for_index (Optional[TIndex]): Pass in an index to filter the data on. By default, the original
-                Dataset index is used. This argument can be used to use a different index instead.
+            for_index (Optional[TIndex]): Pass in an index to filter the data on. By default, the
+             original Dataset index is used. This argument can be used to use a different
+              index instead.
 
         Returns:
             TData: Data of type TData
@@ -59,12 +68,13 @@ class ExpressDataset(ABC, Generic[TIndex, TData]):
             for_index = self._index_data
         return self._load_data_source(self.manifest.data_sources[data_source], for_index)
 
+    @staticmethod
     @abstractmethod
-    def _load_data_source(self, data_source: DataSource, for_index: Optional[TIndex]) -> TData:
+    def _load_data_source(data_source: DataSource, for_index: Optional[TIndex]) -> TData:
         """
         Load data from a (possibly remote) path.
-        This method can be subclassed to present data in a specific way. For example, as a local dataframe, a lazy
-        access method, or a distributed set of data.
+        This method can be subclassed to present data in a specific way. For example, as a local
+         dataframe, a lazy access method, or a distributed set of data.
 
         Args:
             data_source (DataSource): The DataSource to load the data from.
@@ -73,47 +83,51 @@ class ExpressDataset(ABC, Generic[TIndex, TData]):
         Returns:
             TData: Data of type TData
         """
-        pass
 
     # TODO should we keep track of both input and output in the manifests?
 
 
 class ExpressDatasetDraft(ABC, Generic[TIndex, TData]):
     """
-    Draft of an `ExpressDataset`, tracking both preexisting data sources and local data that still needs to be
-    uploaded.
+    Draft of an `ExpressDataset`, tracking both preexisting data sources and local data that still
+    needs to be uploaded.
 
     Args:
-        index (Union[DataSource, TIndex]): Index of the output dataset. Needs to be present if no `extending_dataset` is set.
-        data_sources (Dict[str, Union[DataSource, TData]]): Named preexisting data sources or local data to be uploaded.
-            Each data source should have data available for each item in the shared index.
-        extending_dataset (ExpressDataset[TIndex, TData]): Existing dataset to extend, which will take over both its index and
-            all data sources. Needs to be present if no `index` is set.
+        index (Union[DataSource, TIndex]): Index of the output dataset. Needs to be present if no
+         `extending_dataset` is set.
+        data_sources (Dict[str, Union[DataSource, TData]]): Named preexisting data sources or local
+         data to be uploaded. Each data source should have data available for each item in
+         the shared index.
+        extending_dataset (ExpressDataset[TIndex, TData]): Existing dataset to extend, which will
+        take over both its index an all data sources. Needs to be present if no `index` is set.
     """
+
     def __init__(self,
                  index: Optional[Union[DataSource, TIndex]] = None,
                  data_sources: Dict[str, Union[DataSource, TData]] = None,
                  extending_dataset: Optional[ExpressDataset[TIndex, TData]] = None):
         self.index = index
         self.data_sources = data_sources or dict()
-        if not ((extending_dataset is None) ^ (index is None)):
-            raise ValueError("A dataset draft needs to have a single valid index. Either pass an index "
-                             "or a pre-existing dataset to extend. Additional data sources can be added "
-                             "to an extending dataset draft after it's been constructed.")
+        if not (extending_dataset is None) ^ (index is None):
+            raise ValueError(
+                "A dataset draft needs to have a single valid index. Either pass an index "
+                "or a pre-existing dataset to extend. Additional data sources can be added "
+                "to an extending dataset draft after it's been constructed.")
         if extending_dataset is not None:
             if index is not None:
-                raise ValueError("A dataset draft needs to have a valid index. Either pass an index or a "
-                                 "pre-existing dataset to extend. Not both. Additional data sources can be "
-                                 "added to an extending dataset draft after it's been constructed.")
+                raise ValueError(
+                    "A dataset draft needs to have a valid index. Either pass an index or a "
+                    "pre-existing dataset to extend. Not both. Additional data sources can be "
+                    "added to an extending dataset draft after it's been constructed.")
             self.index = extending_dataset.manifest.index
-            for name, ds in extending_dataset.manifest.associated_data.items():
-                self.with_data_source(name, ds, replace_ok=False)
+            for name, dataset in extending_dataset.manifest.associated_data.items():
+                self.with_data_source(name, dataset, replace_ok=False)
 
     @classmethod
     def extend(cls, dataset: ExpressDataset[TIndex, TData]) -> 'ExpressDatasetDraft[TIndex, TData]':
         """
-        Creates a new Express Dataset draft extending the given dataset, which will take over both its index and
-            all data sources.
+        Creates a new Express Dataset draft extending the given dataset, which will take over both
+         its index and all data sources.
         """
         return cls(extending_dataset=dataset)
 
@@ -134,9 +148,10 @@ class ExpressDatasetDraft(ABC, Generic[TIndex, TData]):
 
         Args:
             name (str): Name of the data source.
-            data (Union[TData, DataSource]): Local data of type `TData`, or a preexisting `DataSource`.
-            replace_ok (bool): Default=False. Whether to replace a preexisting Data Source of the same name, if such a
-                Data Source exists.
+            data (Union[TData, DataSource]): Local data of type `TData`, or a preexisting
+             `DataSource`.
+            replace_ok (bool): Default=False. Whether to replace a preexisting Data Source of the
+            same name, if such a Data Source exists.
 
         Returns:
             ExpressDatasetDraft[TIndex, TData]: self, for easier chaining
@@ -150,37 +165,38 @@ class ExpressDatasetDraft(ABC, Generic[TIndex, TData]):
         return self
 
 
+# pylint: disable=too-few-public-methods
 class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
     """
     Abstract mixin class to read from and write to Express Datasets.
-    Can be subclassed to deal with a specific type of parsed data representations, like reading to a Pandas DataFrame
-    or a Spark RDD.
+    Can be subclassed to deal with a specific type of parsed data representations, like reading to a
+     Pandas DataFrame or a Spark RDD.
     """
 
     @staticmethod
-    def _path_for_upload(metadata: Metadata, name: str) -> Tuple[str, str]:
+    def _path_for_upload(metadata: Metadata, name: str) -> str:
         """
         Constructs a remote path for new data sources.
 
         Args:
             metadata (MetaData): Component metadata, which is used to construct the base path.
             name (str): The name of the data source that's being created.
-
         Returns:
-            str: Relative path, inside the artifact bucket.
-            str: Fully qualified path.
+            str: the destination blob path (indicating a folder) where to upload the file/folder.
         """
-        artifact_bucket_blob_path = f"custom_artifact/{metadata.run_id}/{metadata.component_name}/{name}"
-        fully_qualified_blob_path = f"gs://{metadata.artifact_bucket}/{artifact_bucket_blob_path}"
-        return artifact_bucket_blob_path, fully_qualified_blob_path
+        artifact_bucket_blob_path = \
+            f"custom_artifact/{metadata.run_id}/{metadata.component_name}/{name}"
+        destination_path = STORAGE_HANDLER.construct_blob_path(
+            metadata.artifact_bucket, artifact_bucket_blob_path)
+        return destination_path
 
     @classmethod
     @abstractmethod
     def _load_dataset(cls, input_manifest: DataManifest) -> ExpressDataset[TIndex, TData]:
         """
-        Parses a manifest to an ExpressDataset of a specific type, for downstream use by transform components.
+        Parses a manifest to an ExpressDataset of a specific type, for downstream use by transform
+        components.
         """
-        pass
 
     @classmethod
     @abstractmethod
@@ -195,7 +211,6 @@ class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
         Returns:
             DataSource: DataSource for the newly uploaded index data
         """
-        pass
 
     @classmethod
     @abstractmethod
@@ -211,28 +226,64 @@ class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
         Returns:
             DataSource: DataSource for the newly uploaded data source
         """
-        pass
+
+    @classmethod
+    def _create_metadata(cls, metadata_args: dict) -> Metadata:
+        """
+        Create the manifest metadata
+        Args:
+            metadata_args (dict): a dictionary containing metadata information
+
+        Returns:
+            Metadata: the initial metadata
+        """
+
+        initial_metadata = Metadata()
+        return cls._update_metadata(initial_metadata, metadata_args)
+
+    @classmethod
+    def _update_metadata(cls,
+                         metadata: Metadata,
+                         metadata_args: Optional[Dict[str, Union[str, int, float, bool]]]) \
+            -> Metadata:
+        """
+        Update the manifest metadata
+        Args:
+            metadata (metadata): the previous component metadata
+            metadata_args (dict): a dictionary containing metadata information related to the
+            current component
+        Returns:
+            Metadata: the initial metadata
+        """
+        metadata_dict = metadata.to_dict()
+        for metadata_key, metadata_value in metadata_args.items():
+            metadata_dict[metadata_key] = metadata_value
+        metadata_dict["branch"] = ""  # TODO: Fill from docker build env var
+        metadata_dict["commit_hash"] = ""  # TODO: Fill from docker build env var
+        metadata_dict["creation_date"] = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+
+        return Metadata.from_dict(metadata_dict)
 
     @classmethod
     def _create_output_dataset(cls, draft: ExpressDatasetDraft[TIndex, TData],
                                metadata: Metadata, save_path: str) -> DataManifest:
         """
-        Processes a dataset draft of a specific type, uploading all local data to storage and composing the output
-        manifest.
+        Processes a dataset draft of a specific type, uploading all local data to storage and
+        composing the output manifest.
         """
         if isinstance(draft.index, DataSource):
             index = draft.index
         else:
-            artifact_bucket_blob_path, fully_qualified_blob_path = cls._path_for_upload(metadata, "index")
-            index = cls._upload_index(draft.index, fully_qualified_blob_path)
+            remote_path = cls._path_for_upload(metadata, "index")
+            index = cls._upload_index(draft.index, remote_path)
 
         data_sources = dict()
-        for name, ds in draft.data_sources.items():
-            if isinstance(ds, DataSource):
-                data_sources[name] = ds
+        for name, dataset in draft.data_sources.items():
+            if isinstance(dataset, DataSource):
+                data_sources[name] = dataset
             else:
-                artifact_bucket_blob_path, fully_qualified_blob_path = cls._path_for_upload(metadata, name)
-                data_sources[name] = cls._upload_data_source(name, ds, fully_qualified_blob_path)
+                remote_path = cls._path_for_upload(metadata, name)
+                data_sources[name] = cls._upload_data_source(name, dataset, remote_path)
         manifest = DataManifest(
             index=index,
             data_sources=data_sources,
@@ -246,8 +297,8 @@ class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
 class ExpressTransformComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
     """
     An abstract component that facilitates end-to-end transformation of Express Datasets.
-    It can be subclassed or used with a mixin to support reading and writing of a specific data type, and to implement
-    specific dataset transformations.
+    It can be subclassed or used with a mixin to support reading and writing of a specific data
+     type, and to implement specific dataset transformations.
     """
 
     @classmethod
@@ -259,8 +310,10 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
             DataManifest: the output manifest
         """
         args = cls._parse_args()
-        input_dataset = cls._load_dataset(input_manifest=DataManifest.from_path(args.input_manifest))
-        output_dataset_draft = cls.transform(data=input_dataset, extra_args=json.loads(args.extra_arguments))
+        input_dataset = cls._load_dataset(
+            input_manifest=DataManifest.from_path(args.input_manifest))
+        output_dataset_draft = cls.transform(data=input_dataset,
+                                             extra_args=json.loads(args.extra_args))
         output_manifest = cls._create_output_dataset(
             draft=output_dataset_draft,
             metadata=json.loads(args.metadata),
@@ -294,31 +347,36 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
 
     @classmethod
     @abstractmethod
-    def transform(cls, data: ExpressDataset[TIndex, TData], extra_args: Optional[Dict] = None) \
+    def transform(cls, data: ExpressDataset[TIndex, TData],
+                  extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None) \
             -> ExpressDatasetDraft[TIndex, TData]:
         """
         Applies transformations to the input dataset and creates a draft for a new dataset.
-        The recommended pattern for a transform is to extend the input dataset with a filtered index, and/or with
-        additional data sources.
-        If the transform generated data that is independent of the input data, or if the output size is significantly
-        smaller than the input size, it can be beneficial to create a draft for a completely new dataset.
+        The recommended pattern for a transform is to extend the input dataset with a filtered index
+        , and/or with additional data sources.
+        If the transform generated data that is independent of the input data, or if the output size
+         is significantly smaller than the input size, it can be beneficial to create a draft for
+          a completely new dataset.
 
         Args:
-            data (ExpressDataset[TIndex, TData]): express dataset providing access to data of a given type
-            extra_args (Optional[Dict]): an optional dictionary of additional arguments passed in by the pipeline run
+            data (ExpressDataset[TIndex, TData]): express dataset providing access to data of a
+             given type
+            extra_args (Optional[Dict[str, Union[str, int, float, bool]]]): an optional dictionary
+             of additional arguments passed in by the pipeline run
 
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this transform completes.
-                Can be created by calling `extend` on an existing dataset, or by directly calling the constructor.
+            ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this
+             transform completes. Can be created by calling `extend` on an existing dataset, or by
+              directly calling the constructor.
         """
-        pass
 
 
 class ExpressLoaderComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
     """
     An abstract component that facilitates creation of a new Express Dataset.
-    This will commonly be the first component in an Express Pipeline. It can be subclassed or used with a mixin to
-    support loading of a specific data type, and to implement specific dataset loaders.
+    This will commonly be the first component in an Express Pipeline. It can be subclassed or used
+     with a mixin to support loading of a specific data type, and to implement specific dataset
+      loaders.
     """
 
     @classmethod
@@ -330,8 +388,14 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
             DataManifest: the output manifest
         """
         args = cls._parse_args()
-        output_dataset_draft = cls.load(extra_args=json.loads(args.extra_arguments))
-        output_manifest = cls._create_output_dataset(draft=output_dataset_draft, save_path=args.output_manifest)
+        output_dataset_draft = cls.load(extra_args=json.loads(args.extra_args))
+        metadata = cls._create_metadata(metadata_args=json.loads(args.metadata_args))
+        # Create metadata
+        output_manifest = cls._create_output_dataset(
+            draft=output_dataset_draft,
+            save_path=args.output_manifest,
+            metadata=metadata
+        )
         return output_manifest
 
     @classmethod
@@ -340,6 +404,10 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
         Parse component arguments
         """
         parser = argparse.ArgumentParser()
+        parser.add_argument('--metadata-args',
+                            type=str,
+                            required=False,
+                            help='Metadata arguments, passed as a json dict string')
         parser.add_argument('--extra-args',
                             type=str,
                             required=False,
@@ -352,14 +420,16 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
 
     @classmethod
     @abstractmethod
-    def load(cls, extra_args: Optional[Dict] = None) -> ExpressDatasetDraft[TIndex, TData]:
+    def load(cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None) -> \
+            ExpressDatasetDraft[TIndex, TData]:
         """
         Loads data from an arbitrary source to create a draft for a new dataset.
 
         Args:
-            extra_args (Optional[Dict]): an optional dictionary of additional arguments passed in by the pipeline run
+            extra_args (Optional[Dict[str, Union[str, int, float, bool]]): an optional dictionary
+             of additional arguments passed in by the pipeline run
 
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this loader completes.
+            ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this
+             loader completes.
         """
-        pass

@@ -23,7 +23,7 @@ Those helper functions can be used when creating components.
 
 The `express.components` module contains component base classes which you can overwrite to create components. Each of these component classes always have 2 variants; a loader and a transform version.
 
-- PyArrow: `PyArrowTransformComponent`, `PyArrowLoaderComponent`
+- Pandas: `PandasTransformComponent`, `PandasLoaderComponent`
 
 ## Using KubeFlow on GCP
 
@@ -162,30 +162,25 @@ The below example uses the PyArrow base classes.
 #### I. Subclass one of the TransformComponent/LoaderComponent base classes and implement the transform method.
 
 ```python
-import pyarrow as pa
-from pyarrow.dataset import Scanner
+from express_components.pandas_components import PandasTransformComponent, PandasDataset, PandasDatasetDraft
 
-from express_components.pyarrow_components import PyArrowTransformComponent, PyArrowDataset, PyArrowDatasetDraft
-
-class MyFirstTransform(PyArrowTransformComponent):
+class MyFirstTransform(PandasTransformComponent):
     @classmethod
-    def transform(cls, data: PyArrowDataset, extra_args: Optional[Dict] = None) -> PyArrowDatasetDraft:
+    def transform(cls, data: PandasDataset, extra_args: Optional[Dict] = None) -> PandasDatasetDraft:
         
         # Reading data
-        index: List[str] = data.load_index()
-        my_data: Scanner = data.load("my_data_source")
+        index: pd.Series = data.load_index()
+        my_data: pd.DataFrame = data.load("my_data_source")
+        
+        # filter index 
+        index = index.filter(items:<list of ids to filter>)
         
         # Transforming data
-        table: pa.Table = my_data.to_table()
-        df: pd.DataFrame = table.to_pandas()
-        # ...
-        transformed_table = pa.Table.from_pandas(df)
-        
-        # Returning output.
+        my_data = my_data.apply(<transformation_function>)
+       
         return data.extend() \
-            .with_index(in) \
-            .with_data_source("my_transformed_data_source", \
-                              Scanner.from_batches(table.to_batches())
+            .with_index(index) \
+            .with_data_source("my_transformed_data_source", my_data)
 ```
 
 #### II. Implement Docker entrypoint
