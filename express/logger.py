@@ -10,10 +10,11 @@ LOG_LEVEL = os.environ.get("LOG_LEVEL", default="INFO")
 def configure_logging() -> None:
     """Configure the root logger based on config settings"""
     logger = logging.getLogger()
+
     # set loglevel
     level = logging.getLevelName(LOG_LEVEL)
-
     logger.setLevel(level)
+
     # logging stdout handler
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.setFormatter(

@@ -132,5 +132,5 @@ class StorageHandler(StorageHandlerInterface):
             str: the path where the file was copied to
         """
         self.copy_files([source_file], destination)
-        file_name = io_helpers.get_file_name(source_file, return_extension=True)
+        file_name = io.get_file_name(source_file, return_extension=True)
         return os.path.join(destination, file_name)

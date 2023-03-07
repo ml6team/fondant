@@ -1,4 +1,5 @@
 """Pandas single component module """
+
 import os
 import importlib
 import tempfile
