@@ -22,8 +22,6 @@ In short, the pipeline first loads in a reference (seed) dataset containing cura
 steps to ensure that they are of good quality (e.g. single component, clean-cut). Finally, the remaining images
 are then captioned using a captioning model to generate image/caption pairs for Stable Diffusion finetuning.
 
-<img alt="knn" height="600" src="assets/dataset_creation_pipeline.png" width="192" style="display: block; margin: 0 auto"/>
-
 ### Pipeline steps
 
 The pipeline consists of the following components:
