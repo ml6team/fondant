@@ -10,7 +10,7 @@ from kubernetes import client as k8s_client
 from config.general_config import GeneralConfig, KubeflowConfig
 from config.dataset_creation_config import DatasetLoaderConfig, ImageFilterConfig, \
     ImageConversionConfig, ImageEmbeddingConfig, ImageCaptionConfig, ClipRetrievalConfig, \
-    ClipDownloaderConfig, ImageClassifierConfig
+    ClipDownloaderConfig
 from helpers.upload import compile_and_upload_pipeline
 
 logging.basicConfig(level=logging.INFO)
@@ -62,8 +62,6 @@ def sd_dataset_creator_pipeline(
         timeout: int = ClipDownloaderConfig.TIMEOUT,
         min_image_size: int = ClipDownloaderConfig.MIN_IMAGE_SIZE,
         max_image_area: int = ClipDownloaderConfig.MAX_IMAGE_AREA,
-        clean_cut_classifier_path: str = ImageClassifierConfig.CLEAN_CUT_CLASSIFIER_PATH,
-        batch_size_clean_cut: int = ImageClassifierConfig.BATCH_SIZE_CLEAN_CUT,
         min_length: int = ImageCaptionConfig.MIN_LENGTH,
         max_length: int = ImageCaptionConfig.MAX_LENGTH,
         blip_batch_size: int = ImageCaptionConfig.BATCH_SIZE,
@@ -104,9 +102,6 @@ def sd_dataset_creator_pipeline(
             min_image_size (int): minimum size of the image to download
             (considers the min of width and height)
             max_image_area (int): The maximum area (nr of pixels) of the images to download
-        # Dataset classifier component
-            clean_cut_classifier_path (str): the path to the trained clean cut classifier
-            batch_size_clean_cut (int): the batch size to pass to the clean cut classifier
         # Dataset caption component
             min_length (str): The minimum caption length to generate
             max_length (str): the maximum caption length to generate
@@ -210,22 +205,6 @@ def sd_dataset_creator_pipeline(
                         (effect='NoSchedule', key='reserved-pool', operator='Equal',
                          value='true'))
 
-    image_classifier_task = image_classifier_component(
-        run_id=run_id,
-        artifact_bucket=artifact_bucket,
-        component_name=image_classifier_component.__name__,
-        project_id=project_id,
-        clean_cut_classifier_path=clean_cut_classifier_path,
-        batch_size_clean_cut=batch_size_clean_cut,
-        data_manifest_path=clip_downloader_task.outputs[
-            'data_manifest_path_clip_downloader_component']) \
-        .set_display_name('Classify Images') \
-        .set_gpu_limit(1) \
-        .add_node_selector_constraint('node_pool', 'classifier-pool') \
-        .add_toleration(k8s_client.V1Toleration
-                        (effect='NoSchedule', key='reserved-pool', operator='Equal',
-                         value='true'))
-
     image_caption_task = image_caption_component(
         run_id=run_id,
         artifact_bucket=artifact_bucket,
@@ -235,8 +214,8 @@ def sd_dataset_creator_pipeline(
         max_length=max_length,
         batch_size=blip_batch_size,
         beams=beams,
-        data_manifest_path=image_classifier_task.outputs[
-            'data_manifest_path_image_classifier_component']) \
+        data_manifest_path=clip_downloader_task.outputs[
+            'data_manifest_path_clip_downloader_component']) \
         .set_display_name('Caption Images') \
         .set_gpu_limit(1) \
         .add_node_selector_constraint('node_pool', 'model-inference-pool') \

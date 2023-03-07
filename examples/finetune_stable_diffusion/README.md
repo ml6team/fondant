@@ -69,19 +69,7 @@ for efficient and fast image download (multi-thread approach). The images are al
 on size
 and area), resized and converted during download.
 
-[**7) Image classifier component:**](components/image_classifier_component) This
-component implements two different classifiers to filter out
-the retrieved images:
-
-* _Single component classifier:_ uses classical computer vision algorithm implementation (
-  flood-fill, edge detection)
-  to ensure that the component we extracted are a single component.
-
-
-* _Clean-cut classifier_: uses a pre-trained ML classifier that is trained to identify clean cut
-  images.
-
-[**8) Image caption component:**](components/image_caption_component) This component
+[**7) Image caption component:**](components/image_caption_component) This component
 uses a captioning
 model ([BLIP](https://github.com/salesforce/BLIP))
 to caption the final filtered images for training.

@@ -96,18 +96,6 @@ class ClipDownloaderConfig(KubeflowConfig):
 
 
 @dataclass
-class ImageClassifierConfig(KubeflowConfig):
-    """
-    Configs for the image classifier component
-    Params:
-        CLEAN_CUT_CLASSIFIER_PATH (str): the path to the trained clean cut classifier
-        BATCH_SIZE_CLEAN_CUT (int): the batch size to pass to the clean cut classifier
-    """
-    CLEAN_CUT_CLASSIFIER_PATH = "gs://express-models/ccf-classifier-v0.1"
-    BATCH_SIZE_CLEAN_CUT = 10
-
-
-@dataclass
 class ImageCaptionConfig(KubeflowConfig):
     """
     Configs for dataset image converter component
