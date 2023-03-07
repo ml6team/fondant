@@ -8,15 +8,15 @@ import os
 logger = logging.getLogger(__name__)
 
 
-def get_file_extension(file_url: str) -> str:
+def get_file_extension(file_name: str) -> str:
     """
     Function that returns a file extension from a file url
     Args:
-        file_url (str): the file url to return the extension from
+        file_name (str): the file url to return the extension from
     Returns:
         (str): the file extension
     """
-    return pathlib.Path(file_url).suffix[1:]
+    return pathlib.Path(file_name).suffix[1:]
 
 
 def get_file_name(file_uri: str, return_extension=False):
