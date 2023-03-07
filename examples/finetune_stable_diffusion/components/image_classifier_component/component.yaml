@@ -1,0 +1,43 @@
+name: image_classifier_component
+description: A component that takes an input image and applies custom classifiers to it
+inputs:
+  - name: run_id
+    description: The run id of the pipeline
+    type: String
+  - name: artifact_bucket
+    description: The GCS bucket used to store the artifact
+    type: String
+  - name: component_name
+    description: the name of the component (used to create gcs artefact path)
+    type: String
+  - name: project_id
+    description: The id of the gcp-project
+    type: String
+  - name: clean_cut_classifier_path
+    description: The gcs path where the clean cut classifier is located
+    type: String
+  - name: batch_size_clean_cut
+    description: the batch size of the clean cut classifier
+    type: Integer
+  - name: data_manifest_path
+    description: The previous component manifest path
+    type: String
+
+outputs:
+  - name: data_manifest_path_image_classifier_component
+    description: the current component manifest path
+
+implementation:
+  container:
+    image: europe-west1-docker.pkg.dev/storied-landing-366912/storied-landing-366912-default-repository/mlpipelines/kubeflow/components/image_classifier_component:latest
+    command: [
+      python3, main.py,
+      --run-id,                                          { inputValue: run_id },
+      --artifact-bucket,                                 { inputValue: artifact_bucket },
+      --component-name,                                  { inputValue: component_name },
+      --project-id,                                      { inputValue: project_id, },
+      --clean-cut-classifier-path,                       { inputValue: clean_cut_classifier_path },
+      --batch-size-clean-cut,                            { inputValue: batch_size_clean_cut },
+      --data-manifest-path,                              { inputPath: data_manifest_path },
+      --data-manifest-path-image-classifier-component,   { outputPath: data_manifest_path_image_classifier_component },
+    ]
