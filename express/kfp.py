@@ -20,17 +20,3 @@ def parse_kfp_list(kfp_parsed_string: str) -> list:
         list: the list representation of the json string
     """
     return ast.literal_eval("".join(kfp_parsed_string))
-
-
-def get_cuda_availability():
-    """Function that checks if a cuda device is available"""
-    cuda_available = torch.cuda.is_available()
-    LOGGER.info("CUDA device availability:%s", cuda_available)
-
-    if cuda_available:
-        LOGGER.info(torch.cuda.get_device_name(0))
-        LOGGER.info("CUDA device: %s", torch.cuda.get_device_name(0))
-        LOGGER.info("Num of GPUs: %s", torch.cuda.device_count())
-        LOGGER.info("Memory Usage:")
-        LOGGER.info("Allocated: %s GB", round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1))
-        LOGGER.info("Cached: %s GB", round(torch.cuda.memory_reserved(0) / 1024 ** 3, 1))
