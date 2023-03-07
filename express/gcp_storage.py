@@ -107,17 +107,17 @@ class StorageHandler(StorageHandlerInterface):
         # Write file paths to a text file before piping
         with tempfile.TemporaryDirectory() as temp_folder:
             upload_text_file = os.path.join(temp_folder, "files_to_upload.txt")
-            with open(upload_text_file, "w") as out_file:
+            with open(upload_text_file, "w", encoding="utf-8") as out_file:
                 for file in source_files:
                     out_file.write(file)
                     out_file.write("\n")
 
             # Write files to tmp director
-            pipe_file_list = subprocess.Popen(["cat", upload_text_file],  # nosec
-                                              stdout=subprocess.PIPE)
-            subprocess.call(  # nosec
-                ['gsutil', '-o', '"GSUtil:use_gcloud_storage=True"', '-q', '-m', 'cp', '-I',
-                 destination], stdin=pipe_file_list.stdout)
+            with subprocess.Popen(["cat", upload_text_file], stdout=subprocess.PIPE) \
+                    as pipe_file_list:
+                subprocess.call(  # nosec
+                    ['gsutil', '-o', '"GSUtil:use_gcloud_storage=True"', '-q', '-m', 'cp', '-I',
+                     destination], stdin=pipe_file_list.stdout)
 
             logger.info("A total of %s files were copied to %s", len(source_files), destination)
 

@@ -41,7 +41,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
     @staticmethod
     def _load_data_source(data_source: DataSource,
                           index_filter: Union[pd.DataFrame, pd.Series, List[str]]) -> pd.DataFrame:
-        if data_source.type != DataType.parquet:
+        if data_source.type != DataType.PARQUET:
             raise TypeError("Only reading from parquet is currently supported.")
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -83,7 +83,7 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
                                       destination=fully_qualified_blob_path)
             return DataSource(
                 location=fully_qualified_blob_path,
-                type=DataType.parquet,
+                type=DataType.PARQUET,
                 extensions=["parquet"],
                 n_files=1,
                 n_items=len(data)
