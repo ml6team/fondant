@@ -2,6 +2,7 @@
 Test scripts for gcp storage functionalities
 """
 import pytest
+
 from express_components.helpers.storage.storage_interface import DecodedBlobPath
 from express_components.helpers.storage.gcp_storage import StorageHandler
 
