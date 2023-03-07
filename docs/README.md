@@ -27,18 +27,6 @@ The `express.components` module contains component base classes which you can ov
 
 ## Using KubeFlow on GCP
 
-A typical project looks like this:
-
-```
-project root
-+-- mlpipelines
-    +-- components
-    +-- pipelines
-        +-- config <contains general and pipeline specific input configuration>
-        +-- helpers
-            +-- upload.py <helper functions to compile and upload the pipelines>
-```
-
 ### Connecting the Kubeflow Pipelines UI
 
 There are two ways to connect to KFP UI, first make sure you autheticate to the GKE cluster
@@ -157,7 +145,7 @@ However, at the start of a new pipeline, you won't yet have any express datasets
 To implement your own Transform component, you'll need to take a dependency on the `express_components` package and subclass one of the TransformComponent base classes. 
 
 ### 2.a) General flow
-The below example uses the PyArrow base classes.
+The below example uses the Pandas base classes.
 
 #### I. Subclass one of the TransformComponent/LoaderComponent base classes and implement the transform method.
 
@@ -201,9 +189,9 @@ There are two ways to add `express_components` to your dependencies.
 Different implementation mainly differ in how they expose the data, and what data manipulation capabilities are exposed at runtime.
 
 **Available implementations**
-1. Non-distributed pyarrow implementation.\
-    - `express_components.pyarrow_components.{PyArrowTransformComponent, PyArrowLoaderComponent}`
-    - Data is exposed as a `pyarrow.dataset.Scanner`. Depending on the use-case, consumers can do batch transforms, or collect data in-memory to a pyarrow `Table` or pandas `DataFrame`.
+1. Non-distributed Pandas implementation.\
+    - `express_components.pandas_components.{PandasTransformComponent, PandasLoaderComponent}`
+    - Data is exposed as a Pandas `DataFrame`. Depending on the use-case, consumers can do batch transforms, or collect data in-memory to a Pandas `DataFrame`.
 
 **Planned implementations**
 1. Spark-based components and base image.

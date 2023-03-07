@@ -1,15 +1,9 @@
-"""Example script showcasing data loading with Express. Make sure to install express with
-`setup.py develop` command
-run with command
-`python3 data_loading.py --extra-args '{"project_id": "storied-landing-366912"}' \
- --output-manifest <local_path> \
-  --metadata-args '{"run_id":"test","component_name":"test_component", \
-  "artifact_bucket":"storied-landing-366912-kfp-output"}'
-"""
 from typing import Optional, Dict, Union
 import pandas as pd
-from express_components.pandas_components import PandasLoaderComponent, PandasDatasetDraft
-from express_components.helpers.logger import configure_logging
+
+from express.components.pandas_components import PandasLoaderComponent, PandasDatasetDraft
+from express.logger import configure_logging
+
 # pylint: disable=too-few-public-methods
 class SeedDatasetLoader(PandasLoaderComponent):
     """Class that inherits from Pandas data loading """
@@ -43,5 +37,6 @@ class SeedDatasetLoader(PandasLoaderComponent):
         # Create dataset draft from index and additional data sources
         dataset_draft = PandasDatasetDraft(index=df_metadata.index, data_sources=data_sources)
         return dataset_draft
+    
 if __name__ == '__main__':
     SeedDatasetLoader.run()
