@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "Express"
+name = "express"
 version = "0.1.dev0"
 description = "Express - Composable pipelines for foundation model finetuning"
 readme = "README.md"

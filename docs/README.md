@@ -132,7 +132,7 @@ An **ExpressDataset** is a wrapper object around the manifest that implements th
 
 After transforming the input data (see below), an **ExpressDatasetDraft** creates a plan for an output dataset / manifest, by specifying which data sources to retain from the input, which to replace with locally created data, and which new data sources to create. At the end of a component run, local data will be uploaded and an output manifest will be created.
 
-![Figure 1. Relation between different dataset concepts](diagrams/data-flow.png)
+![Figure 1. Relation between different dataset concepts](data-flow.png)
 
 ### 1.b) Transforms and Loaders
 The most common type of component in Express is an **ExpressTransformComponent**, which takes an ExpressDataset and an optional dict of arguments as input and returns an ExpressDatasetDraft of transformed output data.
@@ -202,7 +202,7 @@ If you want a different data manipulation runtime, use different data structures
 
 A general overview of the different implementation levels can be seen in Figure 2. Additional base implementations work on the middle layer, and mainly affect data loading / writing logic.
 
-![Figure 2. Express component class hierarchy](diagrams/class-hierarchy.png)
+![Figure 2. Express component class hierarchy](class-hierarchy.png)
 
 More specifically, you'll need to subclass the ExpressDatasetHandler mix-in and implement the abstract dataset reading / writing methods.
 

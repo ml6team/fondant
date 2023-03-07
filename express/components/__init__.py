@@ -1,1 +1,1 @@
-from .pyarrow_components import PyArrowLoaderComponent, PyArrowTransformComponent
+from .pandas_components import PandasLoaderComponent, PandasTransformComponent
