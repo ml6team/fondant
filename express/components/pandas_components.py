@@ -9,8 +9,8 @@ import pandas as pd
 
 from .common import ExpressDatasetHandler, ExpressDataset, ExpressTransformComponent, \
     ExpressDatasetDraft, ExpressLoaderComponent
-from .storage.storage_interface import StorageHandlerModule
-from .manifest_helpers import DataManifest, DataSource, DataType
+from express.storage_interface import StorageHandlerModule
+from express.manifest import DataManifest, DataSource, DataType
 
 # Define interface of pandas draft
 # pylint: disable=unsubscriptable-object

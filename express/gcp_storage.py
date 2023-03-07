@@ -8,8 +8,8 @@ import tempfile
 from typing import List
 from urllib.parse import urlparse
 
-from .storage_interface import StorageHandlerInterface, DecodedBlobPath
-from ...helpers import io_helpers
+from express.storage_interface import StorageHandlerInterface, DecodedBlobPath
+from express import io
 
 LOGGER = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ class StorageHandler(StorageHandlerInterface):
 
         LOGGER.info("Copying folder from %s to %s [DONE]", source, destination)
 
-        folder_name = io_helpers.get_file_name(source)
+        folder_name = io.get_file_name(source)
 
         return os.path.join(destination, folder_name)
 

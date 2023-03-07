@@ -11,8 +11,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, Optional, TypeVar, Generic, Union
 
-from .helpers.manifest_helpers import DataManifest, DataSource, Metadata
-from .helpers.storage.storage_interface import StorageHandlerModule
+from express.manifest import DataManifest, DataSource, Metadata
+from express.storage_interface import StorageHandlerModule
 
 # pylint: disable=no-member
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[os.environ.get('CLOUD_ENV', 'GCP')]
