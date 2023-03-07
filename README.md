@@ -87,5 +87,13 @@ Example use cases of Express include:
 
 Check out the [examples folder](examples) for some illustrations.
 
+## Contributing
 
+We use poetry and pre-commit to enable a smooth developer flow. Run the following commands to 
+set up your development environment:
 
+```commandline
+pip install poetry
+poetry install
+pre-commit install
+```
