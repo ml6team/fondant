@@ -8,10 +8,15 @@ from typing import List, Optional, Dict, Union
 
 import pandas as pd
 
-from .common import ExpressDatasetHandler, ExpressDataset, ExpressTransformComponent, \
-    ExpressDatasetDraft, ExpressLoaderComponent
-from express.storage_interface import StorageHandlerModule
+from express.components.common import (
+    ExpressDatasetHandler,
+    ExpressDataset,
+    ExpressTransformComponent,
+    ExpressDatasetDraft,
+    ExpressLoaderComponent
+)
 from express.manifest import DataManifest, DataSource, DataType
+from express.storage_interface import StorageHandlerModule
 
 # Define interface of pandas draft
 # pylint: disable=unsubscriptable-object
