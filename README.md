@@ -1,184 +1,91 @@
-# Express pipelines
+# Express
 
-The express pipelines consists of two main separate kubeflow pipelines:
+Express is a framework that speeds up the creation of KubeFlow pipelines to process big datasets and train [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models)
+such as:
 
-* [Dataset Creation Pipeline](#1-dataset-creation-pipeline): Created the dataset that will be used
-  for finetuning the stable diffusion model
-* [Stable Diffusion Finetuning pipeline](#2-sd-finetuning-pipeline): Finetunes a pretrained stable
-  diffusion model on the created dataset.
+- Stable Diffusion
+- CLIP
+- Large Language Models (LLMs like GPT-3)
 
-The separation between the two pipelines enables to run them disjointly to allow for quick
-and fast experimentation;
-the dataset creation pipeline
-will, in practice, only be run once in a while to collect large amount of images. Whereas
-the stable diffusion finetuning pipeline might be run several
-time to allow experimenation
-with different hyperparameters or to resume training from a certain checkpoint.
+on them.
 
-Check out this [page](mlpipelines) for more information on kubeflow pipelines.
+## Installation
 
-## [1. Dataset Creation pipeline](mlpipelines/pipelines/dataset_creation_pipeline.py)
+Express can be installed using pip:
 
-### Description
-
-The aim of this pipeline is to prepare a dataset to finetune a pre-trained Stable Diffusion on.
-
-In short,
-the pipeline first loads in reference dataset containing curated images of a certain style/domain
-(e.g. clip art images) and then retrieves similar images to this dataset from
-the [LAION dataset](https://laion.ai/), a large scale public
-dataset containing around 5 billion images. The retrieved images then
-undergo additional filtering
-steps to ensure that they are of good quality (e.g. single component, clean-cut). Finally, the remaining images
-are then captioned using a captioning model to generate image/caption pairs for stable diffusion
-finetuning.
-
-<img alt="knn" height="600" src="docs/dataset_creation_pipeline.png" width="192" style="display: block; margin: 0 auto"/>
-
-### Pipeline steps
-
-The pipeline consists of the following components:
-
-**[1) Dataset loader component:](mlpipelines/components/dataset_loader_component)** This component
-loads in an image dataset from a specific
-[Google Cloud Storage](https://cloud.google.com/storage/docs) path and creates a
-parquet files with relevant metadata (image path, format, size, ...).
-
-**[2) Image filter component:](mlpipelines/components/image_filter_component)** This component is
-used to filter the images based on the metadata
-attributes to only keep images of a certain size and format.
-
-**[3) Image conversion component:](mlpipelines/components/image_conversion_component)** This
-component converts images from different selected formats
-(currently only `png` and `svg`) to `jpg` images. This step is necessary since other images formats
-are not suitable for training ML model on and often contain artifacts that can be eliminated
-during conversion.
-
-**[4) Image embedding component:](mlpipelines/components/image_embedding_component)** This component
-extracts [image embeddings](https://rom1504.medium.com/image-embeddings-ed1b194d113e)
-from the converted images using
-a [CLIP model](https://www.google.com/search?q=clip+embeddings&oq=clip+embeddings&aqs=chrome..69i57j0i22i30j69i60j69i64l2j69i60j69i64j69i60.6764j0j7&sourceid=chrome&ie=UTF-8).  
-Since image embeddings are good at capturing the features of the image in a compact and useful way,
-it
-will be used in the next steps to retrieve images similar to our seed images.
-
-[**5) Clip retrieval component:**](mlpipelines/components/clip_retrieval_component) This component
-retrieves images from the LAION dataset using a clip
-retrieval system. The images are retrieved using an efficient index built from the previously
-extracted embeddings that enables for fast and accurate
-querying against a large database. Checkout
-this [link](https://github.com/rom1504/clip-retrieval) for information on clip retrieval. You can
-also
-test out clip retrieval in
-this [demo](https://rom1504.github.io/clip-retrieval/?back=https%3A%2F%2Fknn5.laion.ai&index=laion5B&useMclip=false).
-The output of this component is a list of URLs containing the link to the retrieved image.
-
-[**6) Clip downloader component:**](mlpipelines/components/clip_downloader_component) This component
-downloads the images from the list of URLs and
-creates the corresponding datasets. It uses the
-following [library](https://github.com/rom1504/img2dataset)
-for efficient and fast image download (multi-thread approach). The images are also filtered (based
-on size
-and area), resized and converted during download.
-
-[**7) Image classifier component:**](mlpipelines/components/image_classifier_component) This
-component implements two different classifiers to filter out
-the retrieved images:
-
-* _Single component classifier:_ uses classical computer vision algorithm implementation (
-  flood-fill, edge detection)
-  to ensure that the component we extracted are a single component.
-
-
-* _Clean-cut classifier_: uses a pre-trained ML classifier that is trained to identify clean cut
-  images.
-
-[**8) Image caption component:**](mlpipelines/components/image_caption_component) This component
-uses a captioning
-model ([BLIP](https://github.com/salesforce/BLIP))
-to caption the final filtered images for training.
-
-## [2. SD finetuning pipeline](mlpipelines/pipelines/sd_finetuning_pipeline.py)
-
-### Description
-
-This pipeline aims to finetune a pre-trained stable diffusion model on the collected dataset.
-
-### Pipeline steps
-
-This pipeline consists only of a single component:
-
-**[1) SD finetuning component:](mlpipelines/components/sd_finetuning_component)** takes as input the
-final data manifest that is output by the dataset
-creation pipeline. The data
-manifest keeps reference of all the necessary metadata is required for the next step such as the
-reference to the filtered images and captions. The component prepares the dataset for training
-according to the
-required [format](https://huggingface.co/docs/datasets/image_dataset#:~:text=in%20load_dataset.-,Image%20captioning,-Image%20captioning%20datasets)
-and starts the finetuning jobs.
-
-## **Data Manifest: a common approach to simplify different steps throughout the pipeline**
-In order to keep track of the different data sources, we opt for a manifest-centered approach where 
-a manifest is simply a JSON file that is passed and modified throughout the different steps of the pipeline. 
-
-```json
-{
-   "dataset_id":"<run_id>-<component_name>",
-   "index":"<path to the index parquet file>",
-   "associated_data":{
-      "dataset":{
-         "namespace_1":"<path to the dataset (metadata) parquet file of the datasets associated with `namespace_1`>",
-         "...":""
-      },
-      "caption":{
-         "namespace_1":"<path to the caption parquet file associated with `namespace_1`>",
-         "...":""
-      },
-      "embedding":{
-         "namespace_1":"<remote path to the directory containing the embeddings associated with `namespace_1`",
-         "...":""
-      }
-   },
-   "metadata":{
-      "branch":"<the name of the branch associated with the component>",
-      "commit_hash":"<the commit of the component>",
-      "creation_date":"<the creation date of the manifest>",
-      "run_id":"<a unique identifier associated with the kfp pipeline run>"
-   }
-}
 ```
-Further deep dive on some notations:  
+pip install express
+```
 
-* **namespace:** the namespace is used to identify the different data sources. For example, you can give 
-your seed images a specific namespace (e.g. `seed`). Then, the images retrieved with clip-retrieval will 
-have different namespace (e.g. `knn`, `centroid`).
+## Usage
 
-* **index**: the index denotes a unique index for each images with the format <namespace_uid> (e.g. `seed_00010`).
-It indexes all the data sources in `associated_data`.
-**Note**: the index keeps track of all the namespace (e.g. [`seed_00010`,`centroid_0001`, ...])
+Express is built upon [KubeFlow](https://www.kubeflow.org/), a cloud-agnostic framework built by Google to orchestrate machine learning workflows on Kubernetes. An important aspect of KubeFlow are pipelines, which consist of a set of components being executed, one after the other. This typically involves transforming data and optionally training a machine learning model on it. Check out [this page](https://www.kubeflow.org/docs/components/pipelines/v1/concepts/) if you want to learn more about KubeFlow pipelines and components.
 
-* **dataset**: a set of parquet files for each namespace that contain relevant metadata
-(image size, location, ...) as well as the index.
+Express offers ready-made components and helper functions that serve as boilerplate which you can use to speed up the creation of KubeFlow pipelines. To implement your own component, simply overwrite one of the components available in Express. In the example below, we leverage the `PyArrowTransformComponent` and overwrite its `transform` method.
 
-* **caption**: a set of parquet files for each namespace that contain captions
-image captions as well as the index.
+```
+import pyarrow as pa
+from pyarrow.dataset import Scanner
 
-* **metadata**: Helps keep track of the step that generated that manifest, code version and pipeline run id.
+from express.components.pyarrow_components import PyArrowTransformComponent, PyArrowDataset, PyArrowDatasetDraft
 
-The Express pipeline consists of multiple steps defines as **Express steps** that are repeated 
-throughout the pipeline. The manifest pattern offers the required flexibility to promote its reuse and avoid
-duplication of data sources. For example:  
+class MyFirstTransform(PyArrowTransformComponent):
+    @classmethod
+    def transform(cls, data: PyArrowDataset, extra_args: Optional[Dict] = None) -> PyArrowDatasetDraft:
 
-* **Data filtering** (e.g. filtering on image size): add new indices to the `index` but retain associated data.  
+        # Reading data
+        index: List[str] = data.load_index()
+        my_data: Scanner = data.load("my_data_source")
 
-* **Data creation** (e.g. clip retrieval): add new indicies to the new `index` and another source of data under associated data with a new namespace.  
+        # Transforming data
+        table: pa.Table = my_data.to_table()
+        df: pd.DataFrame = table.to_pandas()
+        # ...
+        transformed_table = pa.Table.from_pandas(df)
 
-* **Data transformation** (e.g. image formatting): retain indices but replace dataset source in `dataset`.  
+        # Returning output.
+        return data.extend() \
+            .with_index(in) \
+            .with_data_source("my_transformed_data_source", \
+                              Scanner.from_batches(table.to_batches())
+```
+
+## Components zoo
+
+Available components include:
+
+- Non-distributed PyArrow components: `express.components.pyarrow_components.{PyArrowTransformComponent, PyArrowLoaderComponent}`
+    - Data is exposed as a `pyarrow.dataset.Scanner`. Depending on the use-case, consumers can do batch transforms, or collect data in-memory to a pyarrow `Table` or pandas `DataFrame`.
+
+Planned components include:
+
+- Spark-based components and base image.
+- Pandas-based components.
+- HuggingFace Datasets components?
+
+With Kubeflow, it's possible to share and re-use components across different pipelines. To see an example, checkout this [sample notebook](https://github.com/Svendegroote91/kfp_samples/blob/master/Reusable%20Components%20101.ipynb) that showcases how you can save and load a component.
+
+Note that Google's [AI Hub](https://aihub.cloud.google.com) also contains components that you can easily re-use. Some interesting examples:
+
+- [Gather training data by querying BigQuery](https://aihub.cloud.google.com/p/products%2F4700cd7e-2826-4ce9-a1ad-33f4a5bf7433)
+- [Bigquery to TFRecords converter](https://aihub.cloud.google.com/p/products%2F28a006d0-c833-4c68-98ff-37358eeb7726)
+- [Executing an Apache Beam Python job in Cloud Dataflow](https://aihub.cloud.google.com/p/products%2F44999f4a-1668-4d42-a4e3-1269a8786840)
+- [Submitting a Cloud ML training job as a pipeline step](https://aihub.cloud.google.com/p/products%2Ffbe29250-9b67-4dfb-8900-d6ce41cdb85a)
+- [Deploying a trained model to Cloud Machine Learning Engine](https://aihub.cloud.google.com/p/products%2F7a08de6c-3864-4ccf-8151-4119e1b4e890)
+- [Batch predicting using Cloud Machine Learning Engine](https://aihub.cloud.google.com/p/products%2F3d5d2340-0eb2-4b03-aecc-ae34f6105822)
+
+## Pipeline zoo
+
+To do: add ready-made pipelines.
+
+## Examples
+
+Example use cases of Express include:
+
+- collect additional image-text pairs based on a few seed images and fine-tune Stable Diffusion
+- filter an image-text dataset to only include "count" examples and fine-tune CLIP to improve its counting capabilities
+
+Check out the [examples folder](examples) for some illustrations.
 
 
-### Future updates
-
-Future iterations on the Express pipelines will include the implementations of the [common express 
-component](mlpipelines/common) to simplify the implementations of many of the recurring operations
-across components such as data loading, data transformation and manifest update.
 
