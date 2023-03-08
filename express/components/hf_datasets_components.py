@@ -52,7 +52,7 @@ class HFDatasetsDataset(ExpressDataset[List[str], Union[datasets.Dataset, datase
                 tmp_dir
             )
 
-            data_source_hf_datasets = load_dataset("parquet", data_dir=local_parquet_path)
+            data_source_hf_datasets = load_dataset("parquet", data_dir=local_parquet_path, split="train")
 
             if index_filter:
                 return data_source_hf_datasets.filter([index_filter])
@@ -70,7 +70,6 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
         with tempfile.TemporaryDirectory() as temp_folder:
             # TODO: uploading without writing to temp file
             # TODO: sharded parquet? not sure if we should shard the index or only the data sources
-            # HF shards by default
             dataset_path = f"{temp_folder}/{name}.parquet"
 
             data.to_parquet(path=dataset_path)
