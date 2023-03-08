@@ -23,3 +23,7 @@ jobs:
           poetry install
       - name: Test with pre-commit
         run: poetry run pre-commit run --all-files --show-diff-on-failure
+      - name: Check licenses
+        run: |
+          poetry export -f requirements.txt --output /tmp/requirements.txt
+          poetry run liccheck -s license_strategy.ini -r /tmp/requirements.txt -l PARANOID
