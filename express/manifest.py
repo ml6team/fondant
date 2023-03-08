@@ -14,8 +14,8 @@ class DataType(str, Enum):
     """
     Supported types for stored data.
     """
-    parquet = 'parquet'
-    blob = 'blob'
+    PARQUET = 'parquet'
+    BLOB = 'blob'
 
     @classmethod
     def is_valid(cls, data_type: str) -> bool:
@@ -90,7 +90,7 @@ class DataManifest:
     metadata: Metadata = field(default_factory=Metadata)  # TODO: make mandatory during construction
 
     def __post_init__(self):
-        if (self.index.type != DataType.parquet) or (not DataType.is_valid(self.index.type)):
+        if (self.index.type != DataType.PARQUET) or (not DataType.is_valid(self.index.type)):
             raise TypeError("Index needs to be of type 'parquet'.")
         for name, dataset in self.data_sources.items():
             if not DataType.is_valid(dataset.type):
@@ -100,7 +100,7 @@ class DataManifest:
     @classmethod
     def from_path(cls, manifest_path):
         """Load data manifest from a given manifest path"""
-        with open(manifest_path) as f:
-            manifest_load = json.load(f)
+        with open(manifest_path, encoding="utf-8") as file_:
+            manifest_load = json.load(file_)
             # pylint: disable=no-member
             return DataManifest.from_dict(manifest_load)

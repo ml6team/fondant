@@ -83,9 +83,8 @@ class StorageHandlerInterface(ABC):
             str: the path to the destination copied folder
         """
 
-    @staticmethod
     @abstractmethod
-    def copy_file(source_file: str, destination: str) -> str:
+    def copy_file(self, source_file: str, destination: str) -> str:
         """
         Function that copies source files from a remote/local source to a local/remote
         location respectively

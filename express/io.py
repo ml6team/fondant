@@ -5,7 +5,7 @@ import pathlib
 import logging
 import os
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get_file_extension(file_url: str) -> str:
