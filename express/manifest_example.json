@@ -1,25 +1,25 @@
 {
-   "dataset_id":"image-generator-dataset-tmrxj-413578997_image_caption_component",
-   "index":"gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_classifier_component/index.parquet",
-   "associated_data":{
-      "dataset":{
-         "cf":"gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_conversion_component/dataset.parquet",
-         "centroid":"gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/clip_downloader_component/centroid_dataset.parquet",
-         "knn":"gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/clip_downloader_component/knn_dataset.parquet"
-      },
-      "caption":{
-         "cf":"gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_caption_component/captions_cf.parquet",
-         "centroid":"gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_caption_component/captions_centroid.parquet",
-         "knn":"gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_caption_component/captions_knn.parquet"
-      },
-      "embedding":{
-         "cf":"gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_embedding_component/embeddings"
-      }
-   },
-   "metadata":{
-      "branch":"",
-      "commit_hash":"",
-      "creation_date":"29-01-2023_16-24-05",
-      "run_id":"image-generator-dataset-tmrxj-413578997"
-   }
+  "dataset_id": "image-generator-dataset-tmrxj-413578997_image_caption_component",
+  "index": "gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_classifier_component/index.parquet",
+  "associated_data": {
+    "dataset": {
+      "cf": "gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_conversion_component/dataset.parquet",
+      "centroid": "gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/clip_downloader_component/centroid_dataset.parquet",
+      "knn": "gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/clip_downloader_component/knn_dataset.parquet"
+    },
+    "caption": {
+      "cf": "gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_caption_component/captions_cf.parquet",
+      "centroid": "gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_caption_component/captions_centroid.parquet",
+      "knn": "gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_caption_component/captions_knn.parquet"
+    },
+    "embedding": {
+      "cf": "gs://cf-sandbox-364610-kfp-output/custom_artifact/image-generator-dataset-tmrxj/image_embedding_component/embeddings"
+    }
+  },
+  "metadata": {
+    "branch": "",
+    "commit_hash": "",
+    "creation_date": "29-01-2023_16-24-05",
+    "run_id": "image-generator-dataset-tmrxj-413578997"
+  }
 }
