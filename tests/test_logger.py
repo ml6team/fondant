@@ -4,7 +4,7 @@ Test scripts for logger functionalities
 import logging
 import pytest
 
-from express_components.helpers.logger import configure_logging
+from express.logger import configure_logging
 
 
 @pytest.mark.parametrize("log_level, expected_level", [

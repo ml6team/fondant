@@ -3,8 +3,8 @@ Test scripts for gcp storage functionalities
 """
 import pytest
 
-from express_components.helpers.storage.storage_interface import DecodedBlobPath
-from express_components.helpers.storage.gcp_storage import StorageHandler
+from express.storage_interface import DecodedBlobPath
+from express.gcp_storage import StorageHandler
 
 
 @pytest.mark.parametrize("fully_qualified_blob_path, expected_result", [
