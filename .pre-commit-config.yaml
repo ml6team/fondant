@@ -9,7 +9,8 @@ repos:
         entry: pylint
         language: system
         types: [python]
-        files: "^express/"
+        files: "^express/\n
+                |^tests/"
         args:
           [
             "-rn", # Only display messages
