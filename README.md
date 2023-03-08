@@ -21,15 +21,14 @@ pip install express
 
 Express is built upon [KubeFlow](https://www.kubeflow.org/), a cloud-agnostic framework built by Google to orchestrate machine learning workflows on Kubernetes. An important aspect of KubeFlow are pipelines, which consist of a set of components being executed, one after the other. This typically involves transforming data and optionally training a machine learning model on it. Check out [this page](https://www.kubeflow.org/docs/components/pipelines/v1/concepts/) if you want to learn more about KubeFlow pipelines and components.
 
-Express offers ready-made components and helper functions that serve as boilerplate which you can use to speed up the creation of KubeFlow pipelines. To implement your own component, simply overwrite one of the components available in Express. In the example below, we leverage the `PyArrowTransformComponent` and overwrite its `transform` method.
+Express offers ready-made components and helper functions that serve as boilerplate which you can use to speed up the creation of KubeFlow pipelines. To implement your own component, simply overwrite one of the components available in Express. In the example below, we leverage the `PandasTransformComponent` and overwrite its `transform` method.
 
 ```
-import pyarrow as pa
-from pyarrow.dataset import Scanner
+import pandas as pd
 
-from express.components.pyarrow_components import PyArrowTransformComponent, PyArrowDataset, PyArrowDatasetDraft
+from express.components.pandas_components import PandasTransformComponent, PandasDataset, PandasDatasetDraft
 
-class MyFirstTransform(PyArrowTransformComponent):
+class MyFirstTransform(PandasTransformComponent):
     @classmethod
     def transform(cls, data: PyArrowDataset, extra_args: Optional[Dict] = None) -> PyArrowDatasetDraft:
 
@@ -54,14 +53,12 @@ class MyFirstTransform(PyArrowTransformComponent):
 
 Available components include:
 
-- Non-distributed PyArrow components: `express.components.pyarrow_components.{PyArrowTransformComponent, PyArrowLoaderComponent}`
-    - Data is exposed as a `pyarrow.dataset.Scanner`. Depending on the use-case, consumers can do batch transforms, or collect data in-memory to a pyarrow `Table` or pandas `DataFrame`.
+- Non-distributed Pandas components: `express.components.pandas_components.{PandasTransformComponent, PandasLoaderComponent}`
 
 Planned components include:
 
 - Spark-based components and base image.
-- Pandas-based components.
-- HuggingFace Datasets components?
+- HuggingFace Datasets components.
 
 With Kubeflow, it's possible to share and re-use components across different pipelines. To see an example, checkout this [sample notebook](https://github.com/Svendegroote91/kfp_samples/blob/master/Reusable%20Components%20101.ipynb) that showcases how you can save and load a component.
 
