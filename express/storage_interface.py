@@ -3,8 +3,8 @@ General interface class to unify storage functions across different cloud enviro
 """
 
 from abc import ABC, abstractmethod
-from typing import List
 from dataclasses import dataclass
+from typing import List
 
 from dataclasses_json import dataclass_json
 

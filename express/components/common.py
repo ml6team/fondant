@@ -3,13 +3,13 @@ This file is the entrypoint of the component. It will parse all arguments
 and give them to the actual core of the component.
 """
 import argparse
+import importlib
 import json
 import os
-import importlib
-from datetime import datetime
 from abc import ABC, abstractmethod
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional, TypeVar, Generic, Union
+from typing import Dict, Generic, Optional, TypeVar, Union
 
 from express.manifest import DataManifest, DataSource, Metadata
 from express.storage_interface import StorageHandlerModule

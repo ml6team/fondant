@@ -1,14 +1,14 @@
 """
 General helper class to handle gcp storage functionalities
 """
-import subprocess  # nosec
-import os
 import logging
+import os
+import subprocess  # nosec
 from typing import List
 from urllib.parse import urlparse
 
-from express.storage_interface import StorageHandlerInterface, DecodedBlobPath
 from express import io
+from express.storage_interface import DecodedBlobPath, StorageHandlerInterface
 
 logger = logging.getLogger(__name__)
 

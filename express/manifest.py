@@ -5,7 +5,7 @@ components of the pipeline
 import json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict
+from typing import Dict, List
 
 from dataclasses_json import dataclass_json
 

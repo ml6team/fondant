@@ -1,9 +1,9 @@
 """
 General I/O helpers function
 """
-import pathlib
 import logging
 import os
+import pathlib
 
 logger = logging.getLogger(__name__)
 
