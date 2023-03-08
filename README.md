@@ -89,7 +89,7 @@ Check out the [examples folder](examples) for some illustrations.
 
 ## Contributing
 
-We use poetry and pre-commit to enable a smooth developer flow. Run the following commands to 
+We use [poetry](https://python-poetry.org/docs/) and pre-commit to enable a smooth developer flow. Run the following commands to 
 set up your development environment:
 
 ```commandline
