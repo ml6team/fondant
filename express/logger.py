@@ -18,5 +18,6 @@ def configure_logging(log_level=LOG_LEVEL) -> None:
     # logging stdout handler
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.setFormatter(
-        logging.Formatter(fmt='[%(asctime)s | %(name)s | %(levelname)s] %(message)s'))
+        logging.Formatter(fmt="[%(asctime)s | %(name)s | %(levelname)s] %(message)s")
+    )
     logger.addHandler(handler)
