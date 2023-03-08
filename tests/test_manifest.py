@@ -4,7 +4,7 @@ Test scripts for manifest helpers
 
 import pytest
 
-from express_components.helpers.manifest_helpers import DataManifest, DataSource, Metadata, DataType
+from express.manifest import DataManifest, DataSource, Metadata, DataType
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ Test scripts for kfp helpers
 """
 import pytest
 
-from express_components.helpers.kfp_helpers import parse_kfp_list
+from express.kfp_utils import parse_kfp_list
 
 
 @pytest.mark.parametrize(

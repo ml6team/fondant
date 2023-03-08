@@ -3,7 +3,7 @@ Test scripts for io functionalities
 """
 import pytest
 
-from express_components.helpers.io_helpers import get_file_name, get_file_extension
+from express.io import get_file_name, get_file_extension
 
 
 @pytest.mark.parametrize(
