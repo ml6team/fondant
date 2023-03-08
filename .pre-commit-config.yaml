@@ -1,0 +1,18 @@
+ci:
+  autoupdate_branch: "main"
+  autoupdate_schedule: monthly
+repos:
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        files: "^express/"
+        args:
+          [
+            "-rn", # Only display messages
+            "-sn", # Don't display the score
+            "--disable=fixme"
+          ]

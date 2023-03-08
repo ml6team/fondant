@@ -2,9 +2,7 @@
 import ast
 import logging
 
-import torch
-
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def parse_kfp_list(kfp_parsed_string: str) -> list:

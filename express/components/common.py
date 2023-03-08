@@ -18,11 +18,11 @@ from express.storage_interface import StorageHandlerModule
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[os.environ.get('CLOUD_ENV', 'GCP')]
 STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
 
-TIndex = TypeVar('TIndex')
-TData = TypeVar('TData')
+IndexT = TypeVar('IndexT')
+DataT = TypeVar('DataT')
 
 
-class ExpressDataset(ABC, Generic[TIndex, TData]):
+class ExpressDataset(ABC, Generic[IndexT, DataT]):
     """
     An abstract wrapper class that gives read access to Express Datasets.
     It can be extended to create a draft for a new (output) dataset.
@@ -36,19 +36,19 @@ class ExpressDataset(ABC, Generic[TIndex, TData]):
         self.manifest = manifest
         self._index_data = self.load_index()
 
-    def extend(self) -> 'ExpressDatasetDraft[TIndex, TData]':
+    def extend(self) -> 'ExpressDatasetDraft[IndexT, DataT]':
         """
         Create an `ExpressDatasetDraft` that extends this dataset.
         """
         return ExpressDatasetDraft.extend(self)
 
     @abstractmethod
-    def load_index(self) -> TIndex:
+    def load_index(self) -> IndexT:
         """
         Loads the index data.
         """
 
-    def load(self, data_source: str, for_index: Optional[TIndex] = None) -> TData:
+    def load(self, data_source: str, for_index: Optional[IndexT] = None) -> DataT:
         """
         Load data from a named data source.
 
@@ -70,7 +70,7 @@ class ExpressDataset(ABC, Generic[TIndex, TData]):
 
     @staticmethod
     @abstractmethod
-    def _load_data_source(data_source: DataSource, for_index: Optional[TIndex]) -> TData:
+    def _load_data_source(data_source: DataSource, index_filter: Optional[IndexT]) -> DataT:
         """
         Load data from a (possibly remote) path.
         This method can be subclassed to present data in a specific way. For example, as a local
@@ -78,7 +78,7 @@ class ExpressDataset(ABC, Generic[TIndex, TData]):
 
         Args:
             data_source (DataSource): The DataSource to load the data from.
-            for_index (Optional[TIndex]): Pass in an index to filter the data on.
+            index_filter (Optional[TIndex]): Pass in an index to filter the data on.
 
         Returns:
             TData: Data of type TData
@@ -87,7 +87,7 @@ class ExpressDataset(ABC, Generic[TIndex, TData]):
     # TODO should we keep track of both input and output in the manifests?
 
 
-class ExpressDatasetDraft(ABC, Generic[TIndex, TData]):
+class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
     """
     Draft of an `ExpressDataset`, tracking both preexisting data sources and local data that still
     needs to be uploaded.
@@ -103,11 +103,11 @@ class ExpressDatasetDraft(ABC, Generic[TIndex, TData]):
     """
 
     def __init__(self,
-                 index: Optional[Union[DataSource, TIndex]] = None,
-                 data_sources: Dict[str, Union[DataSource, TData]] = None,
-                 extending_dataset: Optional[ExpressDataset[TIndex, TData]] = None):
+                 index: Optional[Union[DataSource, IndexT]] = None,
+                 data_sources: Dict[str, Union[DataSource, DataT]] = None,
+                 extending_dataset: Optional[ExpressDataset[IndexT, DataT]] = None):
         self.index = index
-        self.data_sources = data_sources or dict()
+        self.data_sources = data_sources or {}
         if not (extending_dataset is None) ^ (index is None):
             raise ValueError(
                 "A dataset draft needs to have a single valid index. Either pass an index "
@@ -124,14 +124,14 @@ class ExpressDatasetDraft(ABC, Generic[TIndex, TData]):
                 self.with_data_source(name, dataset, replace_ok=False)
 
     @classmethod
-    def extend(cls, dataset: ExpressDataset[TIndex, TData]) -> 'ExpressDatasetDraft[TIndex, TData]':
+    def extend(cls, dataset: ExpressDataset[IndexT, DataT]) -> 'ExpressDatasetDraft[IndexT, DataT]':
         """
         Creates a new Express Dataset draft extending the given dataset, which will take over both
          its index and all data sources.
         """
         return cls(extending_dataset=dataset)
 
-    def with_index(self, index: TData) -> 'ExpressDatasetDraft[TIndex, TData]':
+    def with_index(self, index: DataT) -> 'ExpressDatasetDraft[IndexT, DataT]':
         """
         Replaces the current index with the given index.
 
@@ -141,8 +141,8 @@ class ExpressDatasetDraft(ABC, Generic[TIndex, TData]):
         self.index = index
         return self
 
-    def with_data_source(self, name: str, data: Union[TData, DataSource], replace_ok=False) \
-            -> 'ExpressDatasetDraft[TIndex, TData]':
+    def with_data_source(self, name: str, data: Union[DataT, DataSource], replace_ok=False) \
+            -> 'ExpressDatasetDraft[IndexT, DataT]':
         """
         Adds a new data source or replaces a preexisting data source with the same name.
 
@@ -166,7 +166,7 @@ class ExpressDatasetDraft(ABC, Generic[TIndex, TData]):
 
 
 # pylint: disable=too-few-public-methods
-class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
+class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     """
     Abstract mixin class to read from and write to Express Datasets.
     Can be subclassed to deal with a specific type of parsed data representations, like reading to a
@@ -192,7 +192,7 @@ class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
 
     @classmethod
     @abstractmethod
-    def _load_dataset(cls, input_manifest: DataManifest) -> ExpressDataset[TIndex, TData]:
+    def _load_dataset(cls, input_manifest: DataManifest) -> ExpressDataset[IndexT, DataT]:
         """
         Parses a manifest to an ExpressDataset of a specific type, for downstream use by transform
         components.
@@ -200,7 +200,7 @@ class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
 
     @classmethod
     @abstractmethod
-    def _upload_index(cls, index: TIndex, remote_path: str) -> DataSource:
+    def _upload_index(cls, index: IndexT, remote_path: str) -> DataSource:
         """
         Uploads index data of a certain type as parquet and creates a new DataSource.
 
@@ -214,7 +214,7 @@ class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
 
     @classmethod
     @abstractmethod
-    def _upload_data_source(cls, name: str, data: TData, remote_path: str) -> DataSource:
+    def _upload_data_source(cls, name: str, data: DataT, remote_path: str) -> DataSource:
         """
         Uploads data of a certain type as parquet and creates a new DataSource.
 
@@ -265,7 +265,7 @@ class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
         return Metadata.from_dict(metadata_dict)
 
     @classmethod
-    def _create_output_dataset(cls, draft: ExpressDatasetDraft[TIndex, TData],
+    def _create_output_dataset(cls, draft: ExpressDatasetDraft[IndexT, DataT],
                                metadata: Metadata, save_path: str) -> DataManifest:
         """
         Processes a dataset draft of a specific type, uploading all local data to storage and
@@ -277,7 +277,7 @@ class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
             remote_path = cls._path_for_upload(metadata, "index")
             index = cls._upload_index(draft.index, remote_path)
 
-        data_sources = dict()
+        data_sources = {}
         for name, dataset in draft.data_sources.items():
             if isinstance(dataset, DataSource):
                 data_sources[name] = dataset
@@ -290,11 +290,11 @@ class ExpressDatasetHandler(ABC, Generic[TIndex, TData]):
             metadata=metadata
         )
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(save_path).write_text(manifest.to_json())
+        Path(save_path).write_text(manifest.to_json(), encoding="utf-8")
         return manifest
 
 
-class ExpressTransformComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
+class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     """
     An abstract component that facilitates end-to-end transformation of Express Datasets.
     It can be subclassed or used with a mixin to support reading and writing of a specific data
@@ -347,9 +347,9 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
 
     @classmethod
     @abstractmethod
-    def transform(cls, data: ExpressDataset[TIndex, TData],
+    def transform(cls, data: ExpressDataset[IndexT, DataT],
                   extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None) \
-            -> ExpressDatasetDraft[TIndex, TData]:
+            -> ExpressDatasetDraft[IndexT, DataT]:
         """
         Applies transformations to the input dataset and creates a draft for a new dataset.
         The recommended pattern for a transform is to extend the input dataset with a filtered index
@@ -371,7 +371,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
         """
 
 
-class ExpressLoaderComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
+class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     """
     An abstract component that facilitates creation of a new Express Dataset.
     This will commonly be the first component in an Express Pipeline. It can be subclassed or used
@@ -421,7 +421,7 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[TIndex, TData]):
     @classmethod
     @abstractmethod
     def load(cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None) -> \
-            ExpressDatasetDraft[TIndex, TData]:
+            ExpressDatasetDraft[IndexT, DataT]:
         """
         Loads data from an arbitrary source to create a draft for a new dataset.
 
