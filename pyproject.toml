@@ -51,3 +51,6 @@ pre-commit = "^3.1.1"
 [build-system]
 requires = ["poetry-core>=1.2.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

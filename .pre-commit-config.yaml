@@ -32,3 +32,11 @@ repos:
       - id: black
         name: black
         files: "^express/"
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: isort
+        files: "^express/"
+        args: ["--project", "express"]
