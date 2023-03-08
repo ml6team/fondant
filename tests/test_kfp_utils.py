@@ -16,4 +16,5 @@ from express.kfp_utils import parse_kfp_list
     ],
 )
 def test_parse_kfp_list(kfp_parsed_string, expected_output):
+    """Test kfp list parser"""
     assert parse_kfp_list(kfp_parsed_string) == expected_output

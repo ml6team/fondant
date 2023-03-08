@@ -16,6 +16,7 @@ from express.io import get_file_name, get_file_extension
     ],
 )
 def test_get_file_name(file_uri, return_extension, expected_result):
+    """Test get file name function"""
     assert get_file_name(file_uri, return_extension) == expected_result
 
 
@@ -29,4 +30,5 @@ def test_get_file_name(file_uri, return_extension, expected_result):
     ],
 )
 def test_file_extension(file_name, expected_result):
+    """Test get file extension function"""
     assert get_file_extension(file_name) == expected_result

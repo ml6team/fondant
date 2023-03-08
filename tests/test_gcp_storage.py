@@ -19,5 +19,6 @@ from express.gcp_storage import StorageHandler
      DecodedBlobPath(bucket_name="bucket", blob_path="path/to/my-file.test.txt"))
 ])
 def test_decode_blob_path(fully_qualified_blob_path, expected_result):
+    """Test blob path decoding"""
     handler = StorageHandler()
     assert handler.decode_blob_path(fully_qualified_blob_path) == expected_result

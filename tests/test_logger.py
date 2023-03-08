@@ -15,6 +15,7 @@ from express.logger import configure_logging
     ("CRITICAL", logging.CRITICAL),
 ])
 def test_configure_logging(log_level, expected_level):
+    """Function to test """
     configure_logging(log_level)
 
     logger = logging.getLogger(__name__)

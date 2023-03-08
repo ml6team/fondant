@@ -1,6 +1,7 @@
 """
 Test scripts for manifest helpers
 """
+# pylint: disable=redefined-outer-name
 
 import pytest
 
@@ -9,12 +10,13 @@ from express.manifest import DataManifest, DataSource, Metadata, DataType
 
 @pytest.fixture
 def valid_manifest_data():
-    index = DataSource(location='gs://my-bucket/index.parquet', type=DataType.parquet,
+    """Generate valid data to populate the metadata"""
+    index = DataSource(location='gs://my-bucket/index.parquet', type=DataType.PARQUET,
                        extensions=['parquet'])
     data_sources = {
-        'source1': DataSource(location='gs://my-bucket/data1.parquet', type=DataType.parquet,
+        'source1': DataSource(location='gs://my-bucket/data1.parquet', type=DataType.PARQUET,
                               extensions=['parquet']),
-        'source2': DataSource(location='gs://my-bucket/data2.blob', type=DataType.blob,
+        'source2': DataSource(location='gs://my-bucket/data2.blob', type=DataType.BLOB,
                               extensions=['blob'])
     }
     metadata = Metadata(artifact_bucket='gs://my-bucket/artifacts', run_id='12345',
@@ -25,10 +27,11 @@ def valid_manifest_data():
 
 
 @pytest.mark.parametrize('invalid_index', [
-    DataSource(location='gs://my-bucket/index.csv', type=DataType.blob, extensions=['csv']),
-    DataSource(location='gs://my-bucket/index.parquet', type=DataType.blob, extensions=['parquet']),
+    DataSource(location='gs://my-bucket/index.csv', type=DataType.BLOB, extensions=['csv']),
+    DataSource(location='gs://my-bucket/index.parquet', type=DataType.BLOB, extensions=['parquet']),
 ])
 def test_invalid_index(invalid_index, valid_manifest_data):
+    """Test the validity of an index"""
     valid_manifest_data['index'] = invalid_index
     with pytest.raises(TypeError):
         DataManifest(**valid_manifest_data)
@@ -39,12 +42,14 @@ def test_invalid_index(invalid_index, valid_manifest_data):
     DataSource(location='gs://my-bucket/data2.blob', type='invalid', extensions=['blob']),
 ])
 def test_invalid_data_source_type(invalid_data_source_type, valid_manifest_data):
+    """Test the validity of a data source type"""
     valid_manifest_data['data_sources']['source1'] = invalid_data_source_type
     with pytest.raises(TypeError):
         DataManifest(**valid_manifest_data)
 
 
 def test_valid_manifest(valid_manifest_data):
+    """Test the validity of populating the manifest with relevant data"""
     manifest = DataManifest(**valid_manifest_data)
     assert manifest.index == valid_manifest_data['index']
     assert manifest.data_sources == valid_manifest_data['data_sources']
