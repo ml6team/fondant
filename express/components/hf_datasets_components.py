@@ -32,13 +32,14 @@ class HFDatasetsDataset(ExpressDataset[List[str], Union[datasets.Dataset, datase
         with tempfile.TemporaryDirectory() as tmp_dir:
             local_parquet_path = STORAGE_HANDLER.copy_file(self.manifest.index.location, tmp_dir)
 
-            dataset = load_dataset("parquet", data_files=local_parquet_path)
+            # we specify "train" here to get a `Dataset` instead of a `DatasetDict`
+            dataset = load_dataset("parquet", data_files=local_parquet_path, split="train")
 
             return dataset
 
     @staticmethod
     def _load_data_source(data_source: DataSource,
-                          index_filter: Union[datasets.Dataset, datasets.DatasetDict, List[str]]) -> Union[datasets.Dataset, datasets.DatasetDict]:
+                          index_filter: datasets.Dataset) -> Union[datasets.Dataset, datasets.DatasetDict]:
         """Function that loads in a data source"""
         if data_source.type != DataType.parquet:
             raise TypeError("Only reading from parquet is currently supported.")
@@ -52,10 +53,11 @@ class HFDatasetsDataset(ExpressDataset[List[str], Union[datasets.Dataset, datase
                 tmp_dir
             )
 
-            data_source_hf_datasets = load_dataset("parquet", data_dir=local_parquet_path, split="train")
+            data_source_hf_datasets = load_dataset("parquet", data_dir=local_parquet_path)
 
             if index_filter:
-                return data_source_hf_datasets.filter([index_filter])
+                index = index_filter["index"]
+                return data_source_hf_datasets.select([index])
 
             return data_source_hf_datasets
 
@@ -86,7 +88,7 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
             )
 
     @classmethod
-    def _upload_index(cls, index: Union[pd.DataFrame, pd.Series, pd.Index], remote_path: str) \
+    def _upload_index(cls, index: datasets.Dataset, remote_path: str) \
             -> DataSource:
         data_source = cls._upload_parquet(
             data=index,
@@ -95,7 +97,7 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
         return data_source
 
     @classmethod
-    def _upload_data_source(cls, name: str, data: Union[pd.DataFrame, pd.Series, pd.Index],
+    def _upload_data_source(cls, name: str, data: Union[datasets.Dataset, datasets.DatasetDict],
                             remote_path: str) -> DataSource:
         data_source = cls._upload_parquet(
             data=data,
