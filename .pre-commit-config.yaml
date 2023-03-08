@@ -20,6 +20,7 @@ repos:
             "-sn", # Don't display the score
             "--disable=fixme"
           ]
+
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
     hooks:
@@ -28,3 +29,10 @@ repos:
         types: [python]
         files: "^express/"
         args: ["-f", "custom", "-q"]
+
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+        name: black
+        files: "^express/"
