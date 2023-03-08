@@ -30,7 +30,7 @@ from express.components.pandas_components import PandasTransformComponent, Panda
 
 class MyFirstTransform(PandasTransformComponent):
     @classmethod
-    def transform(cls, data: PyArrowDataset, extra_args: Optional[Dict] = None) -> PyArrowDatasetDraft:
+    def transform(cls, data: PandasDataset, extra_args: Optional[Dict] = None) -> PandasDatasetDraft:
 
         # Reading data
         index: List[str] = data.load_index()
