@@ -13,6 +13,7 @@ from dataclasses_json import dataclass_json
 @dataclass
 class StorageHandlerModule:
     """Datclass to define module path for the different cloud Storage Handlers"""
+
     # pylint: disable=invalid-name
     GCP: str = "express.gcp_storage"
     AWS: str = "express.aws_storage"
@@ -23,6 +24,7 @@ class StorageHandlerModule:
 @dataclass
 class DecodedBlobPath:
     """Dataclass for blob path construct"""
+
     bucket_name: str
     blob_path: str
 
@@ -42,7 +44,7 @@ class StorageHandlerInterface(ABC):
          Args:
          fully_qualified_blob_path (str): the fully qualified blob path that points to the blob
             containing the blob of interest
-         """
+        """
 
     @staticmethod
     @abstractmethod
@@ -54,7 +56,7 @@ class StorageHandlerInterface(ABC):
             blob_path (str): the blob path
         Returns
             str: the fully qualified blob path
-         """
+        """
 
     @staticmethod
     @abstractmethod
@@ -70,7 +72,9 @@ class StorageHandlerInterface(ABC):
 
     @staticmethod
     @abstractmethod
-    def copy_folder(source: str, destination: str, copy_source_content: bool = False) -> str:
+    def copy_folder(
+        source: str, destination: str, copy_source_content: bool = False
+    ) -> str:
         """
         Function that copies a source folder (or blob) from a remote/local source to a local/remote
         location respectively
@@ -119,12 +123,8 @@ class StorageHandlerInterface(ABC):
             str: the path where the parquet file/folder was copied to
         """
         if ".parquet" in parquet_path:
-            local_parquet_path = self.copy_file(
-                parquet_path,
-                destination)
+            local_parquet_path = self.copy_file(parquet_path, destination)
         else:
-            local_parquet_path = self.copy_folder(
-                parquet_path,
-                destination)
+            local_parquet_path = self.copy_folder(parquet_path, destination)
 
         return local_parquet_path

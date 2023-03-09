@@ -14,8 +14,9 @@ class DataType(str, Enum):
     """
     Supported types for stored data.
     """
-    PARQUET = 'parquet'
-    BLOB = 'blob'
+
+    PARQUET = "parquet"
+    BLOB = "blob"
 
     @classmethod
     def is_valid(cls, data_type: str) -> bool:
@@ -36,6 +37,7 @@ class DataSource:
         n_items (int): how many items (e.g. distinct images, captions, etc.) are covered by the
          data.
     """
+
     location: str
     type: DataType
     extensions: List[str]
@@ -62,6 +64,7 @@ class Metadata:
         creation_date (str): the creation date of the manifest
         num_items (int): total number of rows in the index
     """
+
     # TODO: get rid of defaults
     artifact_bucket: str = field(default_factory=str)
     run_id: str = field(default_factory=str)
@@ -85,17 +88,23 @@ class DataManifest:
         metadata (Metadata): The metadata associated with the manifest
 
     """
+
     index: DataSource
     data_sources: Dict[str, DataSource] = field(default_factory=dict)
-    metadata: Metadata = field(default_factory=Metadata)  # TODO: make mandatory during construction
+    metadata: Metadata = field(
+        default_factory=Metadata
+    )  # TODO: make mandatory during construction
 
     def __post_init__(self):
-        if (self.index.type != DataType.PARQUET) or (not DataType.is_valid(self.index.type)):
+        if (self.index.type != DataType.PARQUET) or (
+            not DataType.is_valid(self.index.type)
+        ):
             raise TypeError("Index needs to be of type 'parquet'.")
         for name, dataset in self.data_sources.items():
             if not DataType.is_valid(dataset.type):
                 raise TypeError(
-                    f"Data type '{dataset.type}' for data source '{name}' is not valid.")
+                    f"Data type '{dataset.type}' for data source '{name}' is not valid."
+                )
 
     @classmethod
     def from_path(cls, manifest_path):
