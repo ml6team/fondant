@@ -22,7 +22,7 @@ class DataType(str, Enum):
     def is_valid(cls, data_type: str) -> bool:
         """Check if data type is valid"""
         # pylint: disable=no-member
-        return data_type in cls._member_names_
+        return data_type in cls.__members__.values()
 
 
 @dataclass
