@@ -4,16 +4,19 @@ import pandas as pd
 from express.components.pandas_components import PandasLoaderComponent, PandasDatasetDraft
 from express.logger import configure_logging
 
+
 # pylint: disable=too-few-public-methods
 class SeedDatasetLoader(PandasLoaderComponent):
     """Class that inherits from Pandas data loading """
+
     @classmethod
-    def load(cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None) -> PandasDatasetDraft:
+    def load(cls, extra_args: Optional[
+        Dict[str, Union[str, int, float, bool]]] = None) -> PandasDatasetDraft:
         """
         An example function showcasing the data loader component using Express functionalities
         Args:
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to the function (e.g.
-             seed data source)
+            extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
+             the function (e.g. seed data source)
         Returns:
             PandasDatasetDraft: a dataset draft that creates a plan for an output datasets/manifest
         """
@@ -37,6 +40,7 @@ class SeedDatasetLoader(PandasLoaderComponent):
         # Create dataset draft from index and additional data sources
         dataset_draft = PandasDatasetDraft(index=df_metadata.index, data_sources=data_sources)
         return dataset_draft
-    
+
+
 if __name__ == '__main__':
     SeedDatasetLoader.run()
