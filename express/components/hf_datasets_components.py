@@ -77,9 +77,7 @@ class HFDatasetsDataset(
             return data_source_hf_datasets
 
 
-class HFDatasetsDatasetHandler(
-    ExpressDatasetHandler[List[str], datasets.Dataset, datasets.DatasetDict]
-):
+class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset]):
     """Hugging Face Datasets Dataset handler"""
 
     @staticmethod
