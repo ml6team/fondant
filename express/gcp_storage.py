@@ -25,12 +25,12 @@ class StorageHandler(StorageHandlerInterface):
               containing the blob of interest
         Returns:
             DecodedBlobPath: a dataclass containing the bucket and blob path name
-         """
+        """
         parsed_url = urlparse(fully_qualified_blob_path)
-        if parsed_url.scheme == 'gs':
+        if parsed_url.scheme == "gs":
             bucket, blob_path = parsed_url.hostname, parsed_url.path[1:]
         else:
-            path = parsed_url.path[1:].split('/', 1)
+            path = parsed_url.path[1:].split("/", 1)
             bucket, blob_path = path[0], path[1]
 
         return DecodedBlobPath(bucket, blob_path)
@@ -44,7 +44,7 @@ class StorageHandler(StorageHandlerInterface):
             blob_path (str): the blob path
         Returns
             str: the fully qualified blob path
-         """
+        """
 
         return f"gs://{bucket}/{blob_path}"
 
@@ -58,13 +58,22 @@ class StorageHandler(StorageHandlerInterface):
         Returns:
             List [str]: the list of blobs
         """
-        blob_list = subprocess.run(["gsutil", "ls", fully_qualified_blob_path],  # nosec
-                                   capture_output=True, check=True).stdout.decode().split('\n')
+        blob_list = (
+            subprocess.run(  # nosec
+                ["gsutil", "ls", fully_qualified_blob_path],
+                capture_output=True,
+                check=True,
+            )
+            .stdout.decode()
+            .split("\n")
+        )
 
         return blob_list
 
     @staticmethod
-    def copy_folder(source: str, destination: str, copy_source_content: bool = False) -> str:
+    def copy_folder(
+        source: str, destination: str, copy_source_content: bool = False
+    ) -> str:
         """
         Function that copies a source folder (or blob) from a remote/local source to a local/remote
         location respectively
@@ -83,8 +92,19 @@ class StorageHandler(StorageHandlerInterface):
                 source = f"{source}*"
 
         subprocess.run(  # nosec
-            ["gsutil", '-o', '"GSUtil:use_gcloud_storage=True"', '-q', "-m", "cp", "-r",
-             source, destination], check=True)
+            [
+                "gsutil",
+                "-o",
+                '"GSUtil:use_gcloud_storage=True"',
+                "-q",
+                "-m",
+                "cp",
+                "-r",
+                source,
+                destination,
+            ],
+            check=True,
+        )
 
         logger.info("Copying folder from %s to %s [DONE]", source, destination)
 
@@ -103,12 +123,23 @@ class StorageHandler(StorageHandlerInterface):
             destination (str): the destination blob/folder to copy the files to
         """
         with subprocess.Popen(  # nosec
-            ['gsutil', '-o', '"GSUtil:use_gcloud_storage=True"', '-q', '-m', 'cp', '-I',
-             destination], stdin=subprocess.PIPE
+            [
+                "gsutil",
+                "-o",
+                '"GSUtil:use_gcloud_storage=True"',
+                "-q",
+                "-m",
+                "cp",
+                "-I",
+                destination,
+            ],
+            stdin=subprocess.PIPE,
         ) as gsutil_copy:
             gsutil_copy.communicate(b"\n".join([f.encode() for f in source_files]))
 
-        logger.info("A total of %s files were copied to %s", len(source_files), destination)
+        logger.info(
+            "A total of %s files were copied to %s", len(source_files), destination
+        )
 
     def copy_file(self, source_file: str, destination: str) -> str:
         """
