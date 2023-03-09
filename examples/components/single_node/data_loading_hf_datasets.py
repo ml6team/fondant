@@ -1,6 +1,7 @@
 from typing import Optional, Dict, Union
 
-from datasets import load_dataset
+import pandas as pd
+from datasets import Dataset, load_dataset, concatenate_datasets
 
 from express.components.hf_datasets_components import HFDatasetsLoaderComponent, HFDatasetsDatasetDraft
 from express.logger import configure_logging
@@ -28,13 +29,16 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
 
         # 2) Create an example index
         index_list = [f"image_{idx}" for idx in range(len(caption_dataset))]
-        caption_dataset.add_column(name="index", column=index_list)
+        index_df = pd.DataFrame(index_list, columns=['index'])
+        index = Dataset.from_pandas(index_df)
+
+        caption_dataset = concatenate_datasets([index, caption_dataset])
         
         # 2.2) Create data_source dictionary
         data_sources = {"captions": caption_dataset}
         
         # 3) Create dataset draft from index and additional data sources
-        dataset_draft = HFDatasetsDatasetDraft(index=index_list, data_sources=data_sources)
+        dataset_draft = HFDatasetsDatasetDraft(index=index, data_sources=data_sources)
         return dataset_draft
 
 

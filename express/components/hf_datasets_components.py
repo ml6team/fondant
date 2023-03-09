@@ -89,15 +89,16 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
             # TODO: sharded parquet? not sure if we should shard the index or only the data sources
             dataset_path = f"{temp_folder}/{name}.parquet"
 
-            data.to_parquet(path=dataset_path)
+            data.to_parquet(path_or_buf=dataset_path)
 
             fully_qualified_blob_path = f"{remote_path}/{name}.parquet"
             STORAGE_HANDLER.copy_file(
                 source_file=dataset_path, destination=fully_qualified_blob_path
             )
+
             return DataSource(
                 location=fully_qualified_blob_path,
-                type=DataType.parquet,
+                type=DataType.PARQUET,
                 extensions=["parquet"],
                 n_files=1,
                 n_items=len(data),
