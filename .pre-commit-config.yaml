@@ -2,24 +2,13 @@ ci:
   autoupdate_branch: "main"
   autoupdate_schedule: monthly
 repos:
-  - repo: local
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: 'v0.0.254'
     hooks:
-      - id: pylint
-        name: pylint
-        entry: pylint
-        language: system
-        types: [python]
-        files:  |
-            (?x)^(
-                express/.*|
-                tests/.*|
-            )$
-        args:
-          [
-            "-rn", # Only display messages
-            "-sn", # Don't display the score
-            "--disable=fixme"
-          ]
+      - id: ruff
+        files: "^express/"
+        args: [--fix, --exit-non-zero-on-fix]
+
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4

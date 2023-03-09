@@ -1,3 +1,3 @@
 """Module holding base components to build on."""
 
-from .pandas_components import PandasLoaderComponent, PandasTransformComponent
+from .pandas_components import PandasLoaderComponent, PandasTransformComponent  # noqa
