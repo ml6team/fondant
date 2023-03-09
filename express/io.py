@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 def get_file_extension(file_name: str) -> str:
     """
-    Function that returns a file extension from a file url
+    Function that returns a file extension from a file name
     Args:
-        file_name (str): the file url to return the extension from
+        file_name (str): the file name to return the extension from
     Returns:
         (str): the file extension
     """
