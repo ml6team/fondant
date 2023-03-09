@@ -7,7 +7,7 @@ with the `poetry install` command from the root of the repository.
 
 ## Pandas
 
-Run with the following command:
+Run the following command to upload a Pandas dataframe to a Google Cloud Storage bucket:
 
 ```
 python3 data_loading_pandas.py --extra-args '{"project_id": "storied-landing-366912"}' \
@@ -18,7 +18,7 @@ python3 data_loading_pandas.py --extra-args '{"project_id": "storied-landing-366
 
 ## Hugging Face Datasets
 
-Run the following command to load a Hugging Face Dataset from the hub and upload it to a Google Cloud Storage bucket:
+Run the following command to load a Hugging Face Dataset from the [hub](https://huggingface.co/) and upload it to a Google Cloud Storage bucket:
 
 ```
 python3 data_loading_hf_datasets.py --extra-args '{"project_id": "soy-audio-379412"}' \
