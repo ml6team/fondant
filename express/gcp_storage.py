@@ -4,7 +4,6 @@ General helper class to handle gcp storage functionalities
 import subprocess  # nosec
 import os
 import logging
-import tempfile
 from typing import List
 from urllib.parse import urlparse
 
@@ -103,23 +102,13 @@ class StorageHandler(StorageHandlerInterface):
              copy
             destination (str): the destination blob/folder to copy the files to
         """
+        with subprocess.Popen(  # nosec
+            ['gsutil', '-o', '"GSUtil:use_gcloud_storage=True"', '-q', '-m', 'cp', '-I',
+             destination], stdin=subprocess.PIPE
+        ) as gsutil_copy:
+            gsutil_copy.communicate(b"\n".join([f.encode() for f in source_files]))
 
-        # Write file paths to a text file before piping
-        with tempfile.TemporaryDirectory() as temp_folder:
-            upload_text_file = os.path.join(temp_folder, "files_to_upload.txt")
-            with open(upload_text_file, "w", encoding="utf-8") as out_file:
-                for file in source_files:
-                    out_file.write(file)
-                    out_file.write("\n")
-
-            # Write files to tmp director
-            with subprocess.Popen(["cat", upload_text_file], stdout=subprocess.PIPE) \
-                    as pipe_file_list:
-                subprocess.call(  # nosec
-                    ['gsutil', '-o', '"GSUtil:use_gcloud_storage=True"', '-q', '-m', 'cp', '-I',
-                     destination], stdin=pipe_file_list.stdout)
-
-            logger.info("A total of %s files were copied to %s", len(source_files), destination)
+        logger.info("A total of %s files were copied to %s", len(source_files), destination)
 
     def copy_file(self, source_file: str, destination: str) -> str:
         """
