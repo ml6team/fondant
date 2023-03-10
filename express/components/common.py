@@ -14,7 +14,6 @@ from typing import Dict, Optional, TypeVar, Generic, Union
 from express.manifest import DataManifest, DataSource, Metadata
 from express.storage_interface import StorageHandlerModule
 
-# pylint: disable=no-member
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
     os.environ.get("CLOUD_ENV", "GCP")
 ]
@@ -182,7 +181,6 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
         return self
 
 
-# pylint: disable=too-few-public-methods
 class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     """
     Abstract mixin class to read from and write to Express Datasets.

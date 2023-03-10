@@ -21,7 +21,6 @@ class DataType(str, Enum):
     @classmethod
     def is_valid(cls, data_type: str) -> bool:
         """Check if data type is valid"""
-        # pylint: disable=no-member
         return data_type in cls.__members__.values()
 
 
@@ -45,7 +44,6 @@ class DataSource:
     n_items: int = field(default_factory=int)
 
 
-# pylint: disable=too-few-public-methods, too-many-instance-attributes
 @dataclass_json
 @dataclass
 class Metadata:
@@ -111,5 +109,4 @@ class DataManifest:
         """Load data manifest from a given manifest path"""
         with open(manifest_path, encoding="utf-8") as file_:
             manifest_load = json.load(file_)
-            # pylint: disable=no-member
             return DataManifest.from_dict(manifest_load)

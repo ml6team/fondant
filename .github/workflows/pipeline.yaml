@@ -27,3 +27,9 @@ jobs:
         run: |
           poetry export -f requirements.txt --output /tmp/requirements.txt
           poetry run liccheck -s license_strategy.ini -r /tmp/requirements.txt -l PARANOID
+      - name: Shadow-run pylint
+        # Check if pylint catches errors not caught by our pre-commit checks to validate switch
+        # to ruff
+        run: |
+          pip install pylint==2.16.4
+          pylint express --exit-zero
