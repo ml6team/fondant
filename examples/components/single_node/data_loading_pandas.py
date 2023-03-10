@@ -30,7 +30,7 @@ class SeedDatasetLoader(PandasLoaderComponent):
                     'size': [300, 400, 500, 600],
                     'format': ['jpeg', 'jpeg', 'jpeg', 'jpeg']}
         df_metadata = pd.DataFrame(metadata).set_index('index')
-        # 2.1.2) Caption]
+        # 2.1.2) Caption
         captions = {'index': index_list,
                     'captions': ['dog', 'cat', 'bear', 'duck']}
         df_captions = pd.DataFrame(captions).set_index('index')
