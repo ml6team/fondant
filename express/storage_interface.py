@@ -14,7 +14,6 @@ from dataclasses_json import dataclass_json
 class StorageHandlerModule:
     """Datclass to define module path for the different cloud Storage Handlers"""
 
-    # pylint: disable=invalid-name
     GCP: str = "express.gcp_storage"
     AWS: str = "express.aws_storage"
     AZURE: str = "express.azure_storage"
