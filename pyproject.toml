@@ -45,10 +45,12 @@ pandas = "^1.3.5"
 
 [tool.poetry.group.test.dependencies]
 liccheck = "^0.7.3"
-pylint = "2.16.4"
 pre-commit = "^3.1.1"
 pytest= "^7.2.2"
 
 [build-system]
 requires = ["poetry-core>=1.2.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100  # Only for comments, as code is handled by black at length 88
