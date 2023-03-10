@@ -21,7 +21,7 @@ class DataType(str, Enum):
     @classmethod
     def is_valid(cls, data_type: str) -> bool:
         """Check if data type is valid"""
-        return data_type in cls._member_names_
+        return data_type in cls.__members__.values()
 
 
 @dataclass
