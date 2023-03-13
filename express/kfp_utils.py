@@ -8,6 +8,10 @@ from typing import Callable
 import kfp
 from kfp import compiler
 
+from express.logger import configure_logging
+
+configure_logging()
+
 logger = logging.getLogger(__name__)
 
 
@@ -66,34 +70,16 @@ def compile_and_upload_pipeline(pipeline: Callable[[], None], host: str, env: st
     # added here mainly to set the imagePullPolicy
     configure_pipeline(pipeline_filename)
 
-    # pipeline id
-    pipeline_id = client.get_pipeline_id(pipeline_name)
+    existing_pipelines = client.list_pipelines(page_size=100).pipelines
+    for existing_pipeline in existing_pipelines:
+        if existing_pipeline.name == pipeline_name:
+            # Delete existing pipeline before uploading
+            logger.warning(
+                f"Pipeline {pipeline_name} already exists. Deleting old pipeline..."
+            )
+            client.delete_pipeline_version(existing_pipeline.default_version.id)
+            client.delete_pipeline(existing_pipeline.id)
 
-    if pipeline_id:
-        pipeline_versions = [float(pipeline_version.name) for pipeline_version in
-                             client.list_pipeline_versions(pipeline_id).versions]
-        latest_pipeline_version = max(pipeline_versions)
-        new_pipeline_version = latest_pipeline_version + 1
-        client.upload_pipeline_version(pipeline_package_path=pipeline_filename,
-                                       pipeline_version_name=str(new_pipeline_version),
-                                       pipeline_name=pipeline_name)
-        logging.warning(
-            'Pipeline "%s" already exist:.\n\tlatest version: %s.\n\tNew version uploaded: %s',
-            pipeline_name, latest_pipeline_version, new_pipeline_version)
-    else:
-        pipeline = client.upload_pipeline(pipeline_filename, pipeline_name=pipeline_name)
-        # Workaround to allow upload pipeline with initial version
-        # https://github.com/kubeflow/pipelines/issues/7494
-
-        pipeline_id = pipeline.id
-        # delete the initial un-versioned "version"
-        client.pipelines.delete_pipeline_version(pipeline_id)
-
-        # create the versioned "version"
-        client.upload_pipeline_version(
-            pipeline_filename, pipeline_version_name="0",
-            pipeline_id=pipeline_id
-        )
-        logging.warning('Uploading pipeline: %s', pipeline_name)
-
+    logger.info(f'Uploading pipeline: {pipeline_name}')
+    client.upload_pipeline(pipeline_filename, pipeline_name=pipeline_name)
     os.remove(pipeline_filename)
