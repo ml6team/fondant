@@ -3,8 +3,8 @@
 # Start the cluster by scaling up the default node pool
 
 # Cluster information
-KFP_CLUSTER_NAME=kfp-cf
-COMPUTE_ZONE=europe-west1-b
+KFP_CLUSTER_NAME=kfp-express
+COMPUTE_ZONE=europe-west4-a
 
 gcloud container clusters resize $KFP_CLUSTER_NAME \
   --zone $COMPUTE_ZONE \

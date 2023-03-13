@@ -13,7 +13,7 @@ class GeneralConfig:
         GCP_PROJECT_ID (str): the id of the gcp project
         ENV (str): the project run environment (sbx, dev, prd)
     """
-    GCP_PROJECT_ID = "storied-landing-366912"
+    GCP_PROJECT_ID = "soy-audio-379412"
     ENV = os.environ.get('ENV', 'dev')
 
 
@@ -28,6 +28,6 @@ class KubeflowConfig(GeneralConfig):
         HOST (str): the kfp host url
     """
     ARTIFACT_BUCKET = f"{GeneralConfig.GCP_PROJECT_ID}-kfp-output"
-    CLUSTER_NAME = "kfp-cf"
+    CLUSTER_NAME = "kfp-express"
     CLUSTER_ZONE = "europe-west4-a"
-    HOST = "https://2fe14e47821a6eb7-dot-europe-west1.pipelines.googleusercontent.com"
+    HOST = "https://472c61c751ab9be9-dot-europe-west1.pipelines.googleusercontent.com"
