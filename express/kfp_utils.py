@@ -38,21 +38,23 @@ def configure_pipeline(file_path: str) -> None:
         file_path (str): path to pipeline yaml file
 
     """
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         pipeline = yaml.load(f.read(), Loader=yaml.SafeLoader)
 
     # Add configmap with environment mappings to each container
-    for template in pipeline['spec']['templates']:
-        if 'container' in template:
+    for template in pipeline["spec"]["templates"]:
+        if "container" in template:
             # Set imagePullPolicy
-            template['container']['imagePullPolicy'] = 'Always'
+            template["container"]["imagePullPolicy"] = "Always"
 
     # Store the pipeline yaml file
-    with open(file_path, 'w') as f:
+    with open(file_path, "w") as f:
         yaml.dump(pipeline, f)
 
 
-def compile_and_upload_pipeline(pipeline: Callable[[], None], host: str, env: str) -> None:
+def compile_and_upload_pipeline(
+    pipeline: Callable[[], None], host: str, env: str
+) -> None:
     """Upload pipeline to kubeflow.
 
     Args:
@@ -80,6 +82,6 @@ def compile_and_upload_pipeline(pipeline: Callable[[], None], host: str, env: st
             client.delete_pipeline_version(existing_pipeline.default_version.id)
             client.delete_pipeline(existing_pipeline.id)
 
-    logger.info(f'Uploading pipeline: {pipeline_name}')
+    logger.info(f"Uploading pipeline: {pipeline_name}")
     client.upload_pipeline(pipeline_filename, pipeline_name=pipeline_name)
     os.remove(pipeline_filename)
