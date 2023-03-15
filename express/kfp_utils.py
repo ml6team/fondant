@@ -30,28 +30,8 @@ def parse_kfp_list(kfp_parsed_string: str) -> list:
     return ast.literal_eval("".join(kfp_parsed_string))
 
 
-def configure_pipeline(file_path: str) -> None:
-    """Add some configurations to the pipeline yaml file.
-    Specifically,imagePullPolicy is set to always.
-    Args:
-        file_path (str): path to pipeline yaml file
-    """
-    with open(file_path, "r") as f:
-        pipeline = yaml.load(f.read(), Loader=yaml.SafeLoader)
-
-    # Add configmap with environment mappings to each container
-    for template in pipeline["spec"]["templates"]:
-        if "container" in template:
-            # Set imagePullPolicy
-            template["container"]["imagePullPolicy"] = "Always"
-
-    # Store the pipeline yaml file
-    with open(file_path, "w") as f:
-        yaml.dump(pipeline, f)
-
-
 def compile_and_upload_pipeline(
-    pipeline: Callable[[], None], host: str, env: str
+        pipeline: Callable[[], None], host: str, env: str
 ) -> None:
     """Upload pipeline to kubeflow.
     Args:
@@ -64,9 +44,6 @@ def compile_and_upload_pipeline(
     pipeline_name = f"{pipeline.__name__}:{env}"
     pipeline_filename = f"{pipeline_name}.yaml"
     compiler.Compiler().compile(pipeline_func=pipeline, package_path=pipeline_filename)
-
-    # added here mainly to set the imagePullPolicy
-    configure_pipeline(pipeline_filename)
 
     existing_pipelines = client.list_pipelines(page_size=100).pipelines
     for existing_pipeline in existing_pipelines:
