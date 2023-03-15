@@ -40,8 +40,8 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-datasets = "2.10.1"
 dataclasses-json = "^0.5.7"
+datasets = "2.10.1"
 google-api-core = "^2.8.1"
 kfp = "^1.8.19"
 kubernetes= "^18.20.0"
