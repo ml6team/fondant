@@ -67,7 +67,9 @@ class HFDatasetsDataset(
             )
 
             data_source_hf_datasets = load_dataset(
-                "parquet", data_files=local_parquet_path
+                "parquet",
+                data_files=local_parquet_path,
+                split="train",
             )
 
             if index_filter:
