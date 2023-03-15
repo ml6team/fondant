@@ -31,15 +31,13 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
 
         # 2) Create an example index
         index_list = [f"image_{idx}" for idx in range(len(caption_dataset))]
+        caption_dataset = caption_dataset.add_column(name="index", column=index_list)
+        
+        # 3) Create dataset draft from index and data sources
+        # We store the index itself also as a HF Dataset
         index_df = pd.DataFrame(index_list, columns=['index'])
         index = Dataset.from_pandas(index_df)
-
-        caption_dataset = concatenate_datasets([index, caption_dataset])
-        
-        # 2.2) Create data_source dictionary
         data_sources = {"captions": caption_dataset}
-        
-        # 3) Create dataset draft from index and additional data sources
         dataset_draft = HFDatasetsDatasetDraft(index=index, data_sources=data_sources)
 
         return dataset_draft
