@@ -62,16 +62,12 @@ class HFDatasetsDataset(
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_source_location = data_source.location
 
-            print("Data source location:", data_source_location)
-
             local_parquet_path = STORAGE_HANDLER.copy_parquet(
                 data_source_location, tmp_dir
             )
 
-            print("Local parquet path:", local_parquet_path)
-
             data_source_hf_datasets = load_dataset(
-                "parquet", data_dir=local_parquet_path
+                "parquet", data_files=local_parquet_path
             )
 
             if index_filter:
