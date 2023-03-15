@@ -2,7 +2,6 @@
 import os
 import ast
 import logging
-import yaml
 from typing import Callable
 
 import kfp
