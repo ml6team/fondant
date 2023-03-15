@@ -74,7 +74,9 @@ class HFDatasetsDataset(
 
             if index_filter:
                 index = index_filter["index"]
-                return data_source_hf_datasets.select([index])
+                return data_source_hf_datasets.filter(
+                    lambda example: example["index"] in index
+                )
 
             return data_source_hf_datasets
 

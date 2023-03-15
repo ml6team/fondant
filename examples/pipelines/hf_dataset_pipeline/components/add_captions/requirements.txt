@@ -1,5 +1,5 @@
 # Add component requirements here
-git+https://github.com/ml6team/express.git@3c7af1179837f527a02d7693dc59f36c1ef7d4a9
+git+https://github.com/ml6team/express.git@6825922eb91dadcd94b6c306752fa43c18678ff4
 transformers
 torch
 Pillow
