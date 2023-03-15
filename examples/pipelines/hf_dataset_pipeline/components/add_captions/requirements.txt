@@ -1,0 +1,5 @@
+# Add component requirements here
+git+https://github.com/ml6team/express.git@add_hf_dataset_pipeline_transform
+transformers
+torch
+Pillow

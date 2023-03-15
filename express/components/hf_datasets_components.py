@@ -56,7 +56,7 @@ class HFDatasetsDataset(
         data_source: DataSource, index_filter: datasets.Dataset
     ) -> Union[datasets.Dataset, datasets.DatasetDict]:
         """Function that loads in a data source"""
-        if data_source.type != DataType.parquet:
+        if data_source.type != DataType.PARQUET:
             raise TypeError("Only reading from parquet is currently supported.")
 
         with tempfile.TemporaryDirectory() as tmp_dir:
