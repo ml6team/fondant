@@ -31,7 +31,7 @@ def parse_kfp_list(kfp_parsed_string: str) -> list:
 
 
 def compile_and_upload_pipeline(
-        pipeline: Callable[[], None], host: str, env: str
+    pipeline: Callable[[], None], host: str, env: str
 ) -> None:
     """Upload pipeline to kubeflow.
     Args:
