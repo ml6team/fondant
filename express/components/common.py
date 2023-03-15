@@ -69,6 +69,7 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
             )
         if for_index is None:
             for_index = self._index_data
+        print("Manifest:", self.manifest)
         return self._load_data_source(
             self.manifest.data_sources[data_source], for_index
         )
