@@ -19,9 +19,8 @@ for dir in $component_dir/*/; do
   cd "$dir"
   basename=${dir%/}
   basename=${basename##*/}
-  echo $basename
   # Build all images or one image depending on the passed argument
-  if [[ $build_dir == true && "$basename" == "$2/" ]] || [[ $build_dir == false ]]; then
+  if [[ $build_dir == true && "$basename" == "$2" ]] || [[ $build_dir == false ]]; then
     image_name="components/${PWD##*/}"
     full_image_name=${PROJECT_ARTIFACT_PATH}/${image_name}:${IMAGE_TAG}
     echo $full_image_name
