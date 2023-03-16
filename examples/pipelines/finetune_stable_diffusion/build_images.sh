@@ -25,6 +25,7 @@ for dir in $component_dir/*/; do
     image_name="components/${PWD##*/}"
     full_image_name=${PROJECT_ARTIFACT_PATH}/${image_name}:${IMAGE_TAG}
     echo $full_image_name
+    #TODO: replace with docker build after deciding on container locations
     gcloud builds submit --machine-type n1-highcpu-32 . -t "$full_image_name"
   fi
   cd "$component_dir"
