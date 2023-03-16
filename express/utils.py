@@ -11,11 +11,11 @@ logger = logging.getLogger(__name__)
 
 def is_module_available(module_name: Union[str, List[str]]) -> bool:
     """
-    Function that checks if a given module is available
+    Function that checks if a given module or modules is/are available
     Args:
         module_name (Union[List[str], str]): the name of the module(s) to check
     Returns:
-        bool: whether the module is available
+        bool: whether the module(s) is available
     """
     if isinstance(module_name, str):
         module_name = [module_name]
