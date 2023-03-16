@@ -103,6 +103,7 @@ This will build all the components located in the `components` folder, you could
 by passing the `--build-dir` and passing the folder name of the component you want to build. 
 
 
+#TODO: move those docs elsewhere 
 ## **Data Manifest: a common approach to simplify different steps throughout the pipeline**
 In order to keep track of the different data sources, we opt for a manifest-centered approach where 
 a manifest is simply a JSON file that is passed and modified throughout the different steps of the pipeline. 
