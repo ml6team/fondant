@@ -1,4 +1,4 @@
-# Pipelines for fine=tuning Stable Diffusion
+# Pipelines for fine-tuning Stable Diffusion
 
 This folder contains 2 separate KubeFlow pipelines:
 
@@ -90,6 +90,18 @@ reference to the filtered images and captions. The component prepares the datase
 according to the
 required [format](https://huggingface.co/docs/datasets/image_dataset#:~:text=in%20load_dataset.-,Image%20captioning,-Image%20captioning%20datasets)
 and starts the finetuning jobs.
+
+# Building the images
+
+To build and push the component docker images to the container registry, execute the following command:
+
+```bash
+bash build_images.sh
+```
+
+This will build all the components located in the `components` folder, you could also opt for building a specific component
+by passing the `--build-dir` and passing the folder name of the component you want to build. 
+
 
 ## **Data Manifest: a common approach to simplify different steps throughout the pipeline**
 In order to keep track of the different data sources, we opt for a manifest-centered approach where 
