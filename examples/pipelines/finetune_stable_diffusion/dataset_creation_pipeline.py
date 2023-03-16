@@ -5,19 +5,25 @@ import sys
 import os
 import logging
 
-from kfp import components as comp
-from kfp import dsl
-from kubernetes import client as k8s_client
-
 sys.path.insert(0, os.path.abspath('..'))
 
 from config import GeneralConfig, KubeflowConfig
 from pipelines_config.dataset_creation_config import DatasetLoaderConfig, ImageFilterConfig, \
     ImageConversionConfig, ImageEmbeddingConfig, ImageCaptionConfig, ClipRetrievalConfig, \
     ClipDownloaderConfig
-from express.kfp_utils import compile_and_upload_pipeline
+from pipeline_utils import compile_and_upload_pipeline
+from express.logger import configure_logging
+from express.utils import is_module_available
 
-logging.basicConfig(level=logging.INFO)
+configure_logging()
+
+if not is_module_available(["kfp", "kubernetes"]):
+    from kfp import components as comp
+    from kfp import dsl
+    from kubernetes import client as k8s_client
+else:
+    raise ImportError("Please install extra packages using the 'pipelines' extra")
+
 LOGGER = logging.getLogger(__name__)
 
 # Load Component
@@ -33,8 +39,6 @@ clip_retrieval_component = comp.load_component(
     'components/clip_retrieval_component/component.yaml')
 clip_downloader_component = comp.load_component(
     'components/clip_downloader_component/component.yaml')
-image_classifier_component = comp.load_component(
-    'components/image_classifier_component/component.yaml')
 image_caption_component = comp.load_component(
     'components/image_caption_component/component.yaml')
 

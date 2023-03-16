@@ -6,17 +6,23 @@ import sys
 import os
 from typing import Optional
 
-from kfp import components as comp
-from kfp.v2 import dsl
-from kubernetes import client as k8s_client
-
 sys.path.insert(0, os.path.abspath('..'))
 
 from config import GeneralConfig, KubeflowConfig
 from pipelines_config.sd_finetuning_config import StableDiffusionFinetuningConfig as SDConfig
-from express.kfp_utils import compile_and_upload_pipeline
+from pipeline_utils import compile_and_upload_pipeline
+from express.logger import configure_logging
+from express.utils import is_module_available
 
-logging.basicConfig(level=logging.INFO)
+configure_logging()
+
+if not is_module_available(["kfp", "kubernetes"]):
+    from kfp import components as comp
+    from kfp import dsl
+    from kubernetes import client as k8s_client
+else:
+    raise ImportError("Please install extra packages using the 'pipelines' extra")
+
 LOGGER = logging.getLogger(__name__)
 
 sd_finetuning_component = comp.load_component(
