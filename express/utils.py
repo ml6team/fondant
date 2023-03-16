@@ -3,14 +3,10 @@ Import utils
 """
 import logging
 import importlib.util
-import importlib.metadata as importlib_metadata
-from typing import Union, List
+import importlib.metadata
+from typing import Sequence, Union, List
 
 logger = logging.getLogger(__name__)
-
-import importlib.util
-import importlib.metadata
-from typing import Sequence
 
 
 def is_module_available(module_name: Union[str, Sequence[str]]) -> List[str]:
@@ -29,6 +25,6 @@ def is_module_available(module_name: Union[str, Sequence[str]]) -> List[str]:
         if importlib.util.find_spec(module) is None:
             missing_modules.append(module)
         else:
-            module_version = importlib_metadata.version(module)
+            module_version = importlib.metadata.version(module)
             logger.info(f"{module} version {module_version} available.")
     return missing_modules
