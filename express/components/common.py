@@ -6,7 +6,6 @@ import argparse
 import json
 import os
 import importlib
-from datetime import datetime
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, Optional, TypeVar, Generic, Union
@@ -280,9 +279,9 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         metadata_dict = metadata.to_dict()
         for metadata_key, metadata_value in metadata_args.items():
             metadata_dict[metadata_key] = metadata_value
-        metadata_dict["branch"] = ""  # TODO: Fill from docker build env var
-        metadata_dict["commit_hash"] = ""  # TODO: Fill from docker build env var
-        metadata_dict["creation_date"] = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        metadata_dict["git branch"] = os.environ.get("GIT_BRANCH")
+        metadata_dict["commit sha"] = os.environ.get("COMMIT_SHA")
+        metadata_dict["build timestamp"] = os.environ.get("BUILD_TIMESTAMP")
 
         return Metadata.from_dict(metadata_dict)
 

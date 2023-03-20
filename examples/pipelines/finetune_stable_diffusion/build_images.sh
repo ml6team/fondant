@@ -21,7 +21,11 @@ for dir in $component_dir/*/; do
   if [[ $build_dir == true && "$BASENAME" == "$2" ]] || [[ $build_dir == false ]]; then
     full_image_name=${DOCKER_NAMESPACE}/${BASENAME}:${IMAGE_TAG}
     echo $full_image_name
-    docker build . -t "$full_image_name"
+    docker build -t "$full_image_name" \
+     --build-arg COMMIT_SHA=$(git rev-parse HEAD) \
+     --build-arg GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) \
+     --build-arg BUILD_TIMESTAMP=$(date '+%F_%H:%M:%S') \
+     .
     docker push "$full_image_name"
   fi
   cd "$component_dir"
