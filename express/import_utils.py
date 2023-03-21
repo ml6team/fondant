@@ -4,27 +4,55 @@ Import utils
 import logging
 import importlib.util
 import importlib.metadata
-from typing import Sequence, Union, List
+from pathlib import Path
+import sys
 
 logger = logging.getLogger(__name__)
 
+PANDAS_IMPORT_ERROR = """
+`{0}` requires the pandas library but it was not found in your environment. You can install it with
+ pip: `pip install pandas`.
+"""
 
-def is_module_available(module_name: Union[str, Sequence[str]]) -> List[str]:
+DATASETS_IMPORT_ERROR = """
+`{0}` requires the 🤗 Datasets library but it was not found in your environment.
+ You can install it with pip: `pip install datasets`.
+Note that if you have a local folder named `datasets` or a local python file named
+ `datasets.py` in your currentworking directory, python may try to import this instead of the 🤗 
+ Datasets library. You should rename this folder or that python file if that's the case.
+  Please note that you may need to restart your runtime after installation.
+"""
+
+
+def is_package_available(package_name: str, import_error_msg: str) -> bool:
     """
-    Function that checks if given modules are available
+    Function that checks if a given package is available
     Args:
-        module_name (Sequence[str]): the name of the modules to check
+        package_name (str): the name of the package
+        import_error_msg (str): the error message to return if the package is not found
     Returns:
-        Sequence[str]: list of missing modules, empty list if all modules are available
+        bool: check if package is available
     """
-    if isinstance(module_name, str):
-        module_name = [module_name]
 
-    missing_modules = []
-    for module in module_name:
-        if importlib.util.find_spec(module) is None:
-            missing_modules.append(module)
-        else:
-            module_version = importlib.metadata.version(module)
-            logger.info(f"{module} version {module_version} available.")
-    return missing_modules
+    package_available = importlib.util.find_spec(package_name) is not None
+
+    try:
+        package_version = importlib.metadata.version(package_name)
+        logger.debug(f"Successfully imported {package_name} version {package_version}")
+    except importlib.metadata.PackageNotFoundError:
+        package_available = False
+
+    if package_available:
+        return package_available
+    else:
+        raise ModuleNotFoundError(import_error_msg.format(Path(sys.argv[0]).stem))
+
+
+def is_datasets_available():
+    """Check if 'datasets' is available"""
+    return is_package_available("datasets", DATASETS_IMPORT_ERROR)
+
+
+def is_pandas_available():
+    """Check if 'datasets' is available"""
+    return is_package_available("pandas", PANDAS_IMPORT_ERROR)

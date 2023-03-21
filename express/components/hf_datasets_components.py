@@ -6,11 +6,9 @@ import tempfile
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
 
-import datasets
-from datasets import load_dataset
-
 from express.storage_interface import StorageHandlerModule
 from express.manifest import DataManifest, DataSource, DataType
+from express.import_utils import is_datasets_available
 from .common import (
     ExpressDatasetHandler,
     ExpressDataset,
@@ -19,6 +17,9 @@ from .common import (
     ExpressLoaderComponent,
 )
 
+if is_datasets_available():
+    import datasets
+    from datasets import load_dataset
 
 # Define interface of pandas draft
 # pylint: disable=unsubscriptable-object
