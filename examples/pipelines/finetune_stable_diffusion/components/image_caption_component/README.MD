@@ -12,8 +12,8 @@ See [`component.yaml`](component.yaml) for a more detailed description on all th
 ### **Practical considerations**
 * In general, it is [common practice](https://huggingface.co/datasets/lambdalabs/pokemon-blip-captions) 
 to generate relatively short descriptions when finetuning stable diffusion.  
-* You can test the captioning of the BLIP model interactively in this
-[notebook](../../../notebooks/sd-training/dataset_creation.ipynb).
+
+
 * Captions that are long generally take longer to produce but are more descriptive. However,
 it is worth considering first the use case you want to employ.
 In general, shorter captions tend to be less prone to errors. As an example, here is an image with generated captions with:  
