@@ -54,13 +54,16 @@ class AddCaptions(HFDatasetsTransformComponent):
         configure_logging()
         
         # 1) Get one particular data source from the manifest
+        print("Loading caption dataset...")
         caption_dataset = data.load(data_source="captions")
         
         # 2) Create new data source
+        print("Adding alternative captions...")
         alternative_caption_dataset = caption_dataset.map(add_captions, batched=True, batch_size=2,
                                                           remove_columns=["image", "text"])
         
         # 3) Create dataset draft which adds a new data source
+        print("Creating draft...")
         data_sources = {"alternative_captions": alternative_caption_dataset}
         dataset_draft = HFDatasetsDatasetDraft(data_sources=data_sources, extending_dataset=data)
 
