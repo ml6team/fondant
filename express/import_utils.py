@@ -54,5 +54,5 @@ def is_datasets_available():
 
 
 def is_pandas_available():
-    """Check if 'datasets' is available"""
+    """Check if 'pandas' is available"""
     return is_package_available("pandas", PANDAS_IMPORT_ERROR)
