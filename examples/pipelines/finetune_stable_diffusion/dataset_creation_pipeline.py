@@ -5,6 +5,10 @@ import sys
 import os
 import logging
 
+from kfp import components as comp
+from kfp import dsl
+from kubernetes import client as k8s_client
+
 sys.path.insert(0, os.path.abspath('..'))
 
 from config import GeneralConfig, KubeflowConfig
@@ -13,16 +17,8 @@ from pipelines_config.dataset_creation_config import DatasetLoaderConfig, ImageF
     ClipDownloaderConfig
 from pipeline_utils import compile_and_upload_pipeline
 from express.logger import configure_logging
-from express.utils import is_module_available
 
 configure_logging()
-
-if not is_module_available(["kfp", "kubernetes"]):
-    from kfp import components as comp
-    from kfp import dsl
-    from kubernetes import client as k8s_client
-else:
-    raise ImportError("Please install extra packages using the 'pipelines' extra")
 
 LOGGER = logging.getLogger(__name__)
 

@@ -4,14 +4,9 @@ import os
 import logging
 from typing import Callable
 
-from express.utils import is_module_available
+import kfp
 
 logger = logging.getLogger(__name__)
-
-if not is_module_available("kfp"):
-    import kfp
-else:
-    raise ImportError("Please install extra packages using the 'pipelines' extra")
 
 
 def compile_and_upload_pipeline(pipeline: Callable[[], None], host: str, env: str) -> None:
