@@ -11,7 +11,7 @@ from config.general_config import GeneralConfig, KubeflowConfig
 from helpers.upload import compile_and_upload_pipeline
 
 # Load Components
-run_id = '{{pod.name}}'
+run_id = '{{workflow.name}}'
 artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
 
 # Component 1: load from hub
