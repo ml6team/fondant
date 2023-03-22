@@ -35,8 +35,8 @@ def is_module_available(module_name: Union[str, Sequence[str]]) -> List[str]:
 def get_cuda_availability():
     """Function that checks for cuda device availability"""
     try:
-        output = subprocess.check_output('nvidia-smi')
-        logger.info('Nvidia GPU detected!')
+        output = subprocess.check_output("nvidia-smi")
+        logger.info("Nvidia GPU detected!")
         logger.info(output.decode("utf-8"))
     except FileNotFoundError:
-        logger.warning('No Nvidia GPU in system!')
+        logger.warning("No Nvidia GPU in system!")
