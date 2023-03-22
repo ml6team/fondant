@@ -23,7 +23,7 @@ implementation:
         command: [
             python3, main.py,
             --input-manifest,       {inputPath: input_manifest},
-            --metadata,       {inputValue: metadata},
-            --extra-args,       {inputValue: extra_args},
-            --output-manifest,       {outputPath: output_manifest},
+            --metadata,             {inputValue: metadata},
+            --extra-args,           {inputValue: extra_args},
+            --output-manifest,      {outputPath: output_manifest},
         ]

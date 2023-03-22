@@ -3,10 +3,14 @@ This component adds captions to a Hugging Face dataset.
 
 Technically, it adds a data source to the manifest.
 """
+import logging
 from typing import Optional, Union, Dict
 
 from express.components.hf_datasets_components import HFDatasetsTransformComponent, HFDatasetsDataset, HFDatasetsDatasetDraft
 from express.logger import configure_logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 from transformers import BlipProcessor, BlipForConditionalGeneration
 import torch
@@ -51,19 +55,18 @@ class AddCaptions(HFDatasetsTransformComponent):
         Returns:
             HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output datasets/manifest
         """
-        configure_logging()
         
         # 1) Get one particular data source from the manifest
-        print("Loading caption dataset...")
+        logger.info("Loading caption dataset...")
         caption_dataset = data.load(data_source="captions")
         
         # 2) Create new data source
-        print("Adding alternative captions...")
+        logger.info("Adding alternative captions...")
         alternative_caption_dataset = caption_dataset.map(add_captions, batched=True, batch_size=2,
                                                           remove_columns=["image", "text"])
         
         # 3) Create dataset draft which adds a new data source
-        print("Creating draft...")
+        logger.info("Creating draft...")
         data_sources = {"alternative_captions": alternative_caption_dataset}
         dataset_draft = HFDatasetsDatasetDraft(data_sources=data_sources, extending_dataset=data)
 
