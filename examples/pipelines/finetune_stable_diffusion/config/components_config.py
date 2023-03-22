@@ -7,7 +7,7 @@ class DatasetLoaderConfig:
     Params:
         DATASET_NAME (str): Name of the dataset on the hub.
     """
-    DATASET_NAME = "laion/laion400m"
+    DATASET_NAME = "lambdalabs/pokemon-blip-captions"
 
 
 @dataclass
