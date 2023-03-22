@@ -1,7 +1,7 @@
 """
 This component filters images of the dataset based on image size (minimum height and width).
 
-Technically, it adds a data source to the manifest.
+Technically, it updates the index of the manifest.
 """
 import logging
 from typing import Optional, Union, Dict
@@ -39,7 +39,7 @@ class ImageFilterComponent(HFDatasetsTransformComponent):
             extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
              the function
         Returns:
-            HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output datasets/manifest
+            HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output manifest
         """
         
         # 1) Get one particular data source from the manifest
@@ -48,7 +48,7 @@ class ImageFilterComponent(HFDatasetsTransformComponent):
         
         # 2) Update index by filtering
         logger.info("Filtering dataset...")
-        filtered_dataset = caption_dataset.filter(lambda example: example['HEIGHT'] > extra_args["min_height"])
+        filtered_dataset = caption_dataset.filter(lambda example: example['HEIGHT'] >= extra_args["min_height"] and example['WIDTH'] >= extra_args["min_width"])
         index = filtered_dataset["index"]
         
         # 3) Create dataset draft which updates the index
