@@ -1,12 +1,12 @@
 """
 Import utils
 """
+
+import subprocess  # nosec
 import logging
 import importlib.util
 import importlib.metadata
 from typing import Sequence, Union, List
-
-import subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def is_module_available(module_name: Union[str, Sequence[str]]) -> List[str]:
 def get_cuda_availability():
     """Function that checks for cuda device availability"""
     try:
-        output = subprocess.check_output("nvidia-smi")
+        output = subprocess.check_output("nvidia-smi")  # nosec
         logger.info("Nvidia GPU detected!")
         logger.info(output.decode("utf-8"))
     except FileNotFoundError:
