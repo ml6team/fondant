@@ -10,13 +10,13 @@ import sys
 logger = logging.getLogger(__name__)
 
 PANDAS_IMPORT_ERROR = """
-`{0}` requires the pandas library but it was not found in your environment. You can install it with
- pip: `pip install pandas`.
+`{0}` requires the pandas library but it was not found in your environment. Please install express
+ using the 'pandas' extra.
 """
 
 DATASETS_IMPORT_ERROR = """
 `{0}` requires the 🤗 Datasets library but it was not found in your environment.
- You can install it with pip: `pip install datasets`.
+Please install express using the 'datasets' extra.
 Note that if you have a local folder named `datasets` or a local python file named
  `datasets.py` in your currentworking directory, python may try to import this instead of the 🤗 
  Datasets library. You should rename this folder or that python file if that's the case.
