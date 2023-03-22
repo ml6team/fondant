@@ -1,2 +1,0 @@
-img2dataset==1.36.0
-tqdm==4.64.1
