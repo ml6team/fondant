@@ -1,5 +1,5 @@
-name: dataset_loader_component
-description: A basic component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
+name: image_filter_component
+description: A component that filters the images based on minimum height and width.
 inputs: 
     - name: extra_args
       description: Additional arguments passed to the component, as a json dict string

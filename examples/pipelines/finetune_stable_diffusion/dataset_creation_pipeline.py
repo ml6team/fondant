@@ -7,7 +7,7 @@ from kfp import components as comp
 from kfp import dsl
 
 from config.general_config import GeneralConfig, KubeflowConfig
-from config.dataset_loader_config import DatasetLoaderConfig
+from config.components_config import DatasetLoaderConfig, ImageFilterConfig
 from express.kfp_utils import compile_and_upload_pipeline
 
 # Load Components

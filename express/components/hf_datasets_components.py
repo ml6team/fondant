@@ -33,9 +33,7 @@ STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
 
 
 # pylint: disable=too-few-public-methods
-class HFDatasetsDataset(
-    ExpressDataset[List[str], Union[datasets.Dataset, datasets.DatasetDict]]
-):
+class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
     """Hugging Face Datasets dataset"""
 
     def load_index(self) -> datasets.Dataset:
@@ -55,7 +53,7 @@ class HFDatasetsDataset(
     @staticmethod
     def _load_data_source(
         data_source: DataSource, index_filter: datasets.Dataset
-    ) -> Union[datasets.Dataset, datasets.DatasetDict]:
+    ) -> datasets.Dataset:
         """Function that loads in a data source"""
         if data_source.type != DataType.PARQUET:
             raise TypeError("Only reading from parquet is currently supported.")
@@ -67,19 +65,17 @@ class HFDatasetsDataset(
                 data_source_location, tmp_dir
             )
 
-            data_source_hf_datasets = load_dataset(
+            dataset = load_dataset(
                 "parquet",
-                data_files=local_parquet_path,
+                data_dir=local_parquet_path,
                 split="train",
             )
 
             if index_filter:
                 index = index_filter["index"]
-                return data_source_hf_datasets.filter(
-                    lambda example: example["index"] in index
-                )
+                return dataset.filter(lambda example: example["index"] in index)
 
-            return data_source_hf_datasets
+            return dataset
 
 
 class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset]):
@@ -87,7 +83,7 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
 
     @staticmethod
     def _upload_parquet(
-        data: Union[datasets.Dataset, datasets.DatasetDict], name: str, remote_path: str
+        data: datasets.Dataset, name: str, remote_path: str
     ) -> DataSource:
         with tempfile.TemporaryDirectory() as temp_folder:
             # TODO: uploading without writing to temp file
@@ -120,7 +116,7 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
     def _upload_data_source(
         cls,
         name: str,
-        data: Union[datasets.Dataset, datasets.DatasetDict],
+        data: datasets.Dataset,
         remote_path: str,
     ) -> DataSource:
         data_source = cls._upload_parquet(data=data, name=name, remote_path=remote_path)

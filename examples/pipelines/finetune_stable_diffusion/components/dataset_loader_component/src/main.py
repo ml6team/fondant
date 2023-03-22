@@ -1,15 +1,20 @@
 """
-This component loads a seed dataset from the cloud and creates the initial manifest.
+This component loads a seed dataset from the hub and creates the initial manifest.
 """
+import logging
 from typing import Optional, Union, Dict
 
-from datasets import load_from_disk
+from datasets import Dataset, load_dataset
+import pandas as pd
 
 from express.components.hf_datasets_components import HFDatasetsLoaderComponent, HFDatasetsDatasetDraft
 from express.logger import configure_logging
 
+configure_logging()
+logger = logging.getLogger(__name__)
 
-class SeedDatasetLoader(HFDatasetsLoaderComponent):
+
+class DatasetLoaderComponent(HFDatasetsLoaderComponent):
     """Class that inherits from Hugging Face data loading """
 
     @classmethod
@@ -23,16 +28,26 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
         Returns:
             HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output manifest
         """
-        configure_logging()
         
         # 1) Create data source
-        storage_options={"project": extra_args["project_id"]}
-        dataset.save_to_disk("s3://my-private-datasets/imdb/train", storage_options=storage_options)
+        logger.info("Loading caption dataset from the hub...")
+        caption_dataset = load_dataset(extra_args["dataset_name"], split="train")
 
-        print(len(dataset))
+        # 2) Create an example index
+        logger.info("Creating index...")
+        index_list = [f"image_{idx}" for idx in range(len(caption_dataset))]
+        caption_dataset = caption_dataset.add_column(name="index", column=index_list)
+        
+        # 3) Create dataset draft from index and data sources
+        # We store the index itself also as a HF Dataset
+        logger.info("Creating draft...")
+        index_df = pd.DataFrame(index_list, columns=['index'])
+        index = Dataset.from_pandas(index_df)
+        data_sources = {"captions": caption_dataset}
+        dataset_draft = HFDatasetsDatasetDraft(index=index, data_sources=data_sources)
 
-        return dataset
+        return dataset_draft
 
 
 if __name__ == '__main__':
-    SeedDatasetLoader.run()
+    DatasetLoaderComponent.run()
