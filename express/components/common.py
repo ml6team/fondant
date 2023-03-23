@@ -339,6 +339,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             DataManifest: the output manifest
         """
         args = cls._parse_args()
+        print("Args:", args)
         input_dataset = cls._load_dataset(
             input_manifest=DataManifest.from_path(args.input_manifest)
         )
