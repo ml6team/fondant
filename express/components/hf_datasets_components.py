@@ -67,6 +67,8 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
                 data_source_location, tmp_dir
             )
 
+            print("Loading from path:", local_parquet_path)
+
             dataset = load_dataset(
                 "parquet",
                 data_dir=local_parquet_path,
@@ -76,6 +78,7 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
 
             if index_filter:
                 index = index_filter["index"]
+                print("Index:", index)
                 return dataset.filter(lambda example: example["index"] in index)
 
             return dataset
