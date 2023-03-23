@@ -1,12 +1,16 @@
 name: image_filter_component
-description: A component that filters the images based on minimum height and width.
+description: A basic component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
 inputs: 
     - name: extra_args
       description: Additional arguments passed to the component, as a json dict string
       type: String
     
-    - name: metadata_args
+    - name: metadata
       description: Metadata arguments, passed as a json dict string
+      type: String
+
+    - name: input_manifest
+      description: Path to the input manifest
       type: String
     
 outputs:
@@ -18,7 +22,8 @@ implementation:
         image: europe-west4-docker.pkg.dev/soy-audio-379412/soy-audio-379412-default-repository/kubeflow-components/components/image_filter_component:latest
         command: [
             python3, main.py,
-            --extra-args,          {inputValue: extra_args},
-            --metadata-args,       {inputValue: metadata_args},
-            --output-manifest,     {outputPath: output_manifest},
+            --input-manifest,       {inputPath: input_manifest},
+            --metadata,             {inputValue: metadata},
+            --extra-args,           {inputValue: extra_args},
+            --output-manifest,      {outputPath: output_manifest},
         ]

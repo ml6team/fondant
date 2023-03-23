@@ -55,7 +55,7 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
         # 1) Get one particular data source from the manifest
         # TODO check whether we can leverage streaming
         logger.info("Loading caption dataset...")
-        caption_dataset = data.load(data_source="captions")
+        image_dataset = data.load(data_source="images")
         
         # 2) Create embedding dataset
         logger.info("Embedding images...")
@@ -63,10 +63,10 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
         processor = CLIPProcessor.from_pretrained(extra_args["model_id"])
         model = CLIPVisionModelWithProjection.from_pretrained(extra_args["model_id"])
 
-        embedded_dataset = caption_dataset.map(embed,
-                                               batched=True, batch_size=extra_args["batch_size"],
-                                               fn_kwargs=dict(processor=processor, model=model),
-                                               remove_columns=["image", "text"])
+        embedded_dataset = image_dataset.map(embed,
+                                             batched=True, batch_size=extra_args["batch_size"],
+                                             fn_kwargs=dict(processor=processor, model=model),
+                                             remove_columns=["image", "text"])
         
         # 3) Create dataset draft which adds a data source to the manifest
         logger.info("Creating draft...")

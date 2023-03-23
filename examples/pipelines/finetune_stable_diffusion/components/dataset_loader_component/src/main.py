@@ -18,8 +18,8 @@ def create_metadata(examples):
     sizes = [image.size for image in images]
     
     batch = {}
-    batch["width"] = [sizes[0] for size in sizes]
-    batch["height"] = [sizes[1] for size in sizes]
+    batch["width"] = [size[0] for size in sizes]
+    batch["height"] = [size[1] for size in sizes]
     
     return batch
 
@@ -46,7 +46,6 @@ class DatasetLoaderComponent(HFDatasetsLoaderComponent):
         # 2) Create an example index
         logger.info("Creating index...")
         index_list = [f"image_{idx}" for idx in range(len(dataset))]
-        dataset = dataset.add_column(name="index", column=index_list)
         
         # 3) Create dataset draft (manifest without metadata)
         # We store the index itself also as a HF Dataset
