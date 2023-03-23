@@ -1,13 +1,15 @@
 ## Using KubeFlow on GCP
 
+This file includes some tips and tricks to set up and deploy a KubeFlow pipeline on GCS.
+
 ### Connecting the Kubeflow Pipelines UI
 
 There are two ways to connect to KFP UI, first make sure you autheticate to the GKE cluster
-hosting KFP
+hosting KFP:
 
 ```
 gcloud container clusters get-credentials [CLUSTER_NAME} --zone=[ZONE]
-   ```
+```
 
 1) Port-forwarding to access the kubernetes service
 
@@ -39,32 +41,60 @@ is listed within the [authorized networks](https://github.com/creativefabrica/ex
 of the GKE cluster where Kubeflow is deployed. 
 
 
-## Component
+## Implementing components
 
-Pipelines exist out of several components. These are stored in `mlpipelines/components`. Each component requires
-the setup of a Dockerfile 
+Pipelines exist out of several components. These are stored in a `components` folder. Each component requires
+the setup of a Dockerfile. One typically has the following files for each component:
 
-There are multiple steps for setting up the component:  
+- a src/main.py script that implements the main logic
+- component.yaml that defines the input and output parameters
+- Dockerfile
+- build_image.sh
+- requirements.txt 
 
-- Write the main script of your component within the `src` directory inside the component.  
+To implement these components faster, it's recommended to leverage the boilerplate components available in the `express.components` module and include `express` in the `requirements.txt` file of the component. Regarding the `component.yaml` file, one typically defines a `components.config` file at the pipeline root level. This file defines the root of the directory where artifacts get placed (Docker images). Each component's `component.yaml` file then defines the actual path to the Docker image.
 
-- Define all the input and output parameters of your component in the `component.yaml` file  
+When these files are implemented, you're ready to build the images and push it to the [Artifact Registry](https://cloud.google.com/artifact-registry). You can do so by running the script (`sh build_image.sh`). Make sure to enable [kaniko](https://cloud.google.com/build/docs/optimize-builds/kaniko-cache) for faster container build time. One can run the following command locally:
 
-- Specify the requirement packages of the component in the `requirements.txt` file and specify the build 
-steps in the `Dockerfile`.  
+```
+gcloud config set builds/use_kaniko True
+```
 
-- Finally, once you're done, you're ready to build the images and push it to the [Artifact Registry](https://cloud.google.com/artifact-registry). You can do so by running the script (`sh build_image.sh`). Make sure to enable [kaniko](https://cloud.google.com/build/docs/optimize-builds/kaniko-cache) for faster container build time.  
-
-More information about the structure of a component can be found in this [section](example_components/example_component).
+This ensures that, when building a new image, only files that are changed will get rebuild. See [this link](https://cloud.google.com/build/docs/optimize-builds/kaniko-cache#configuring_the_cache_expiration_time) for more details.
 
 ## Pipelines
 
-Finally, once you have built all the separate components, you are ready to compile and upload the 
-pipeline. The `upload.py` script contains functions to help with the compilation and upload of new pipelines.
+Next, once you have built all the separate components, you are ready to define the pipeline. A pipeline is defined in a script (like `my_pipeline.py`). In this script, one can leverage the `@dsl.pipeline` annotator like so:
 
-[Here](pipelines/example_pipeline.py) is a simple example demonstrate a toy pipeline, you can see how parameters are passed between different steps of the pipeline.
-To compile the pipeline, simply execute the file, the pipeline will be uploaded to kubeflow under a specific version
-where it can be visualized and run. 
+python
+```
+@dsl.pipeline(
+    name='XGBoost Trainer',
+    description='A trainer that does end-to-end distributed training for XGBoost models.'
+)
+def xgb_train_pipeline():
+   return -1
+```
+
+Next, make sure to include the following in the main pipeline script:
+
+```
+from express.kfp_utils import compile_and_upload_pipeline
+
+if __name__ == '__main__':
+    compile_and_upload_pipeline(pipeline=example_pipeline,
+                                host=KubeflowConfig.HOST,
+                                env=KubeflowConfig.ENV)
+```
+
+To compile the pipeline, simply execute the file. The pipeline will be uploaded to KubeFlow under a specific version
+where it can be visualized and run. To run the pipeline, you can go to the KubeFlow UI and click "run".
+
+### Create configurations
+
+For each component, a `Config` class can be created which defines a configuration (hyperparameters) for each component. Typically, also a `GeneralConfig` is defined which includes general information like the cloud project ID.
+
+The config classes are then imported in the pipeline, and pass to the op functions, which in turn pass them to the component scripts.
 
 ## Example of a typical pre-process, train and deploy pipeline
 

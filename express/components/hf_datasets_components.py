@@ -56,7 +56,7 @@ class HFDatasetsDataset(
         data_source: DataSource, index_filter: datasets.Dataset
     ) -> Union[datasets.Dataset, datasets.DatasetDict]:
         """Function that loads in a data source"""
-        if data_source.type != DataType.parquet:
+        if data_source.type != DataType.PARQUET:
             raise TypeError("Only reading from parquet is currently supported.")
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -67,12 +67,16 @@ class HFDatasetsDataset(
             )
 
             data_source_hf_datasets = load_dataset(
-                "parquet", data_dir=local_parquet_path
+                "parquet",
+                data_files=local_parquet_path,
+                split="train",
             )
 
             if index_filter:
                 index = index_filter["index"]
-                return data_source_hf_datasets.select([index])
+                return data_source_hf_datasets.filter(
+                    lambda example: example["index"] in index
+                )
 
             return data_source_hf_datasets
 
