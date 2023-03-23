@@ -1,0 +1,4 @@
+datasets==2.10.1
+kfp==1.8.19
+kubernetes==18.20.0
+pandas==1.3.5
