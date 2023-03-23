@@ -301,6 +301,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         Processes a dataset draft of a specific type, uploading all local data to storage and
         composing the output manifest.
         """
+        print("Metadata:", metadata)
         if isinstance(draft.index, DataSource):
             index = draft.index
         else:
