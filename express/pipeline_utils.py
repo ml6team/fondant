@@ -4,12 +4,17 @@ import os
 import logging
 from typing import Callable
 
-import kfp
+from express.import_utils import is_kfp_available
+
+if is_kfp_available():
+    import kfp
 
 logger = logging.getLogger(__name__)
 
 
-def compile_and_upload_pipeline(pipeline: Callable[[], None], host: str, env: str) -> None:
+def compile_and_upload_pipeline(
+    pipeline: Callable[[], None], host: str, env: str
+) -> None:
     """Upload pipeline to kubeflow.
     Args:
         pipeline (Callable): function that contains the pipeline definition
@@ -20,7 +25,9 @@ def compile_and_upload_pipeline(pipeline: Callable[[], None], host: str, env: st
 
     pipeline_name = f"{pipeline.__name__}:{env}"
     pipeline_filename = f"{pipeline_name}.yaml"
-    kfp.compiler.Compiler().compile(pipeline_func=pipeline, package_path=pipeline_filename)
+    kfp.compiler.Compiler().compile(
+        pipeline_func=pipeline, package_path=pipeline_filename
+    )
 
     existing_pipelines = client.list_pipelines(page_size=100).pipelines
     for existing_pipeline in existing_pipelines:

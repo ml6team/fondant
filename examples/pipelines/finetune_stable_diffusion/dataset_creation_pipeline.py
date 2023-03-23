@@ -5,18 +5,18 @@ import sys
 import os
 import logging
 
-from kfp import components as comp
-from kfp import dsl
-from kubernetes import client as k8s_client
-
 sys.path.insert(0, os.path.abspath('..'))
 
 from config import GeneralConfig, KubeflowConfig
 from pipelines_config.dataset_creation_config import DatasetLoaderConfig, ImageFilterConfig, \
     ImageConversionConfig, ImageEmbeddingConfig, ImageCaptionConfig, ClipRetrievalConfig, \
     ClipDownloaderConfig
-from pipeline_utils import compile_and_upload_pipeline
+from express.pipeline_utils import compile_and_upload_pipeline
 from express.logger import configure_logging
+
+from kfp import components as comp
+from kfp import dsl
+from kubernetes import client as k8s_client
 
 configure_logging()
 

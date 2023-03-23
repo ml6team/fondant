@@ -18,9 +18,14 @@ DATASETS_IMPORT_ERROR = """
 `{0}` requires the 🤗 Datasets library but it was not found in your environment.
 Please install express using the 'datasets' extra.
 Note that if you have a local folder named `datasets` or a local python file named
- `datasets.py` in your currentworking directory, python may try to import this instead of the 🤗 
+ `datasets.py` in your current working directory, python may try to import this instead of the 🤗 
  Datasets library. You should rename this folder or that python file if that's the case.
   Please note that you may need to restart your runtime after installation.
+"""
+
+KFP_IMPORT_ERROR = """
+`{0}` requires the kubeflow pipelines (kfp) library but it was not found in your environment.
+Please install express using the 'pipelines' extra.
 """
 
 
@@ -56,3 +61,8 @@ def is_datasets_available():
 def is_pandas_available():
     """Check if 'pandas' is available"""
     return is_package_available("pandas", PANDAS_IMPORT_ERROR)
+
+
+def is_kfp_available():
+    """Check if 'pandas' is available"""
+    return is_package_available("kfp", KFP_IMPORT_ERROR)
