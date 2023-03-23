@@ -74,7 +74,7 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
 
             dataset = load_dataset(
                 "parquet",
-                data_dir=local_parquet_path,
+                data_files=local_parquet_path,
                 split="train",
                 **kwargs,
             )
