@@ -36,7 +36,9 @@ image_filter_metadata_args = json.dumps(image_filter_metadata_args)
 )
 # pylint: disable=too-many-arguments, too-many-locals
 def sd_dataset_creator_pipeline(dataset_loader_extra_args: str = dataset_loader_extra_args,
-                        dataset_loader_metadata_args: str = dataset_loader_metadata_args,
+                                dataset_loader_metadata_args: str = dataset_loader_metadata_args,
+                                image_filter_extra_args: str = image_filter_extra_args,
+                                image_filter_metadata_args: str = image_filter_metadata_args,
 ):
     # Component 1
     dataset_loader_task = dataset_loader_op(extra_args=dataset_loader_extra_args,
