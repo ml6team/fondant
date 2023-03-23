@@ -63,6 +63,9 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_source_location = data_source.location
 
+            print("Data source:", data_source)
+            print("Data source location:", data_source_location)
+
             local_parquet_path = STORAGE_HANDLER.copy_parquet(
                 data_source_location, tmp_dir
             )
