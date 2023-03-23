@@ -5,13 +5,23 @@ import logging
 from typing import Optional, Union, Dict
 
 from datasets import Dataset, load_dataset
-import pandas as pd
 
 from express.components.hf_datasets_components import HFDatasetsLoaderComponent, HFDatasetsDatasetDraft
 from express.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
+
+
+def create_metadata(examples):
+    images = examples["image"]
+    sizes = [image.size for image in images]
+    
+    batch = {}
+    batch["width"] = [sizes[0] for size in sizes]
+    batch["height"] = [sizes[1] for size in sizes]
+    
+    return batch
 
 
 class DatasetLoaderComponent(HFDatasetsLoaderComponent):
@@ -31,20 +41,24 @@ class DatasetLoaderComponent(HFDatasetsLoaderComponent):
         
         # 1) Create data source
         logger.info("Loading caption dataset from the hub...")
-        caption_dataset = load_dataset(extra_args["dataset_name"], split="train")
+        dataset = load_dataset(extra_args["dataset_name"], split="train")
 
         # 2) Create an example index
         logger.info("Creating index...")
-        index_list = [f"image_{idx}" for idx in range(len(caption_dataset))]
-        caption_dataset = caption_dataset.add_column(name="index", column=index_list)
+        index_list = [f"image_{idx}" for idx in range(len(dataset))]
+        dataset = dataset.add_column(name="index", column=index_list)
         
-        # 3) Create dataset draft from index and data sources
+        # 3) Create dataset draft (manifest without metadata)
         # We store the index itself also as a HF Dataset
         logger.info("Creating draft...")
-        index_df = pd.DataFrame(index_list, columns=['index'])
-        index = Dataset.from_pandas(index_df)
-        data_sources = {"captions": caption_dataset}
-        dataset_draft = HFDatasetsDatasetDraft(index=index, data_sources=data_sources)
+        index_dataset = Dataset.from_dict({"index": index_list})
+        image_dataset = dataset.remove_columns(["text"]).add_column(name="index", column=index_list)
+        text_dataset = dataset.remove_columns(["image"]).add_column(name="index", column=index_list)
+        metadata_dataset = image_dataset.map(create_metadata, batched=True, remove_columns=["image"])
+        data_sources = {"images": image_dataset,
+                        "captions": text_dataset,
+                        "image_metadata": metadata_dataset}
+        dataset_draft = HFDatasetsDatasetDraft(index=index_dataset, data_sources=data_sources)
 
         return dataset_draft
 

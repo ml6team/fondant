@@ -12,8 +12,9 @@ from express.logger import configure_logging
 configure_logging()
 logger = logging.getLogger(__name__)
 
+
 def check_min_size(example, min_width, min_height):
-    width, height = example["image"].size
+    width, height = example["width"], example["height"]
     
     return width > min_width and height > min_height
 
@@ -40,17 +41,16 @@ class ImageFilterComponent(HFDatasetsTransformComponent):
         """
         
         # 1) Get one particular data source from the manifest
-        logger.info("Loading caption dataset...")
-        caption_dataset = data.load(data_source="captions")
+        logger.info("Loading metadata dataset...")
+        metadata_dataset = data.load(data_source="image_metadata")
         
         # 2) Update index by filtering
         logger.info("Filtering dataset...")
-        filtered_dataset = caption_dataset.filter(lambda example: check_min_size(example, min_width=extra_args["min_width"], min_height=extra_args["min_height"]))
-        index = filtered_dataset["index"]
+        filtered_dataset = metadata_dataset.filter(lambda example: check_min_size(example, min_width=extra_args["min_width"], min_height=extra_args["min_height"]))
+        index = filtered_dataset.remove_columns(["width", "height"])
         
         # 3) Create dataset draft which updates the index
         logger.info("Creating draft...")
-        data_sources = {"captions": caption_dataset}
         dataset_draft = HFDatasetsDatasetDraft(index=index, data_sources=data_sources)
 
         return dataset_draft

@@ -22,11 +22,12 @@ def embed(examples, processor, model):
     # prepare images for the model
     inputs = processor(images, return_tensors="pt")
 
-    # embed
+    # embed to get (batch_size, hidden_size) embeddings
     outputs = model(**inputs)
     image_embeds = outputs.image_embeds
     
-    batch = {"embeddings": image_embeds}
+    # flatten into list of embeddings
+    batch = {"embeddings": image_embeds.tolist()}
 
     return batch
 
@@ -52,9 +53,9 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
         """
         
         # 1) Get one particular data source from the manifest
-        # TODO support streaming
+        # TODO check whether we can leverage streaming
         logger.info("Loading caption dataset...")
-        caption_dataset = data.load(data_source="captions", streaming=True)
+        caption_dataset = data.load(data_source="captions")
         
         # 2) Create embedding dataset
         logger.info("Embedding images...")
