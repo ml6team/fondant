@@ -301,7 +301,6 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         Processes a dataset draft of a specific type, uploading all local data to storage and
         composing the output manifest.
         """
-        print("Metadata:", metadata)
         if isinstance(draft.index, DataSource):
             index = draft.index
         else:
@@ -346,9 +345,10 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         output_dataset_draft = cls.transform(
             data=input_dataset, extra_args=json.loads(args.extra_args)
         )
+        metadata = Metadata.from_dict(json.loads(args.metadata))
         output_manifest = cls._create_output_dataset(
             draft=output_dataset_draft,
-            metadata=json.loads(args.metadata),
+            metadata=metadata,
             save_path=args.output_manifest,
         )
         return output_manifest
