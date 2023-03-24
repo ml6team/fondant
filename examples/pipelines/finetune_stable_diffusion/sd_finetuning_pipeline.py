@@ -6,17 +6,19 @@ import sys
 import os
 from typing import Optional
 
-from kfp import components as comp
-from kfp.v2 import dsl
-from kubernetes import client as k8s_client
-
 sys.path.insert(0, os.path.abspath('..'))
 
 from config import GeneralConfig, KubeflowConfig
 from pipelines_config.sd_finetuning_config import StableDiffusionFinetuningConfig as SDConfig
-from express.kfp_utils import compile_and_upload_pipeline
+from express.pipeline_utils import compile_and_upload_pipeline
+from express.logger import configure_logging
 
-logging.basicConfig(level=logging.INFO)
+from kfp import components as comp
+from kfp import dsl
+from kubernetes import client as k8s_client
+
+configure_logging()
+
 LOGGER = logging.getLogger(__name__)
 
 sd_finetuning_component = comp.load_component(
