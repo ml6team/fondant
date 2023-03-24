@@ -6,8 +6,6 @@ import tempfile
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
 
-import pandas as pd
-
 from express.components.common import (
     ExpressDatasetHandler,
     ExpressDataset,
@@ -17,6 +15,10 @@ from express.components.common import (
 )
 from express.manifest import DataManifest, DataSource, DataType
 from express.storage_interface import StorageHandlerModule
+from express.import_utils import is_pandas_available
+
+if is_pandas_available():
+    import pandas as pd
 
 # Define interface of pandas draft
 PandasDatasetDraft = ExpressDatasetDraft[List[str], Union[pd.DataFrame, pd.Series]]

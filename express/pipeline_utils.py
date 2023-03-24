@@ -1,32 +1,15 @@
-"""General kfp helpers"""
+"""General pipeline utils"""
+
 import os
-import ast
 import logging
 from typing import Callable
 
-import kfp
-from kfp import compiler
+from express.import_utils import is_kfp_available
 
-from express.logger import configure_logging
-
-configure_logging()
+if is_kfp_available():
+    import kfp
 
 logger = logging.getLogger(__name__)
-
-
-def parse_kfp_list(kfp_parsed_string: str) -> list:
-    """
-    This is mainly to resolve issues in passing a list to kfp components. kfp will return a json
-    string object instead of a list. This function parses the json string to return the
-    original list
-    Reference: https://stackoverflow.com/questions/57806505/in-kubeflow-pipelines-how-to
-    -send-a-list-of-elements-to-a-lightweight-python-co
-    Args:
-        kfp_parsed_string (str): the list string to parse with format: '[',l',i','s','t']'
-    Returns:
-        list: the list representation of the json string
-    """
-    return ast.literal_eval("".join(kfp_parsed_string))
 
 
 def compile_and_upload_pipeline(
@@ -42,7 +25,9 @@ def compile_and_upload_pipeline(
 
     pipeline_name = f"{pipeline.__name__}:{env}"
     pipeline_filename = f"{pipeline_name}.yaml"
-    compiler.Compiler().compile(pipeline_func=pipeline, package_path=pipeline_filename)
+    kfp.compiler.Compiler().compile(
+        pipeline_func=pipeline, package_path=pipeline_filename
+    )
 
     existing_pipelines = client.list_pipelines(page_size=100).pipelines
     for existing_pipeline in existing_pipelines:
