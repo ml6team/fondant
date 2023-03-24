@@ -23,6 +23,8 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copy over src-files of the component
 COPY src /src
 
+# TODO: ADD EXTRA FILES HERE IF NEEDED!
+
 # Set the working directory to the source folder
 WORKDIR /src
 

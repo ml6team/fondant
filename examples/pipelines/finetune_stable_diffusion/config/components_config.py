@@ -20,3 +20,15 @@ class ImageFilterConfig:
     """
     MIN_HEIGHT = 400
     MIN_WIDTH = 400
+
+
+@dataclass
+class EmbeddingConfig:
+    """
+    Configs for the embedding component
+    Params:
+        MODEL_ID (int): HF model id to use for embedding.
+        BATCH_SIZE (int): Batch size to use when embedding.
+    """
+    MODEL_ID = "openai/clip-vit-large-patch14"
+    BATCH_SIZE = 10

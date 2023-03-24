@@ -135,7 +135,7 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
                     "added to an extending dataset draft after it's been constructed."
                 )
             self.index = extending_dataset.manifest.index
-            for name, dataset in extending_dataset.manifest.associated_data.items():
+            for name, dataset in extending_dataset.manifest.data_sources.items():
                 self.with_data_source(name, dataset, replace_ok=False)
 
     @classmethod

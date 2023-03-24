@@ -4,6 +4,8 @@ This component adds a data source to the manifest by embedding the images.
 import logging
 from typing import Optional, Union, Dict
 
+from tqdm.auto import tqdm
+
 from express.components.hf_datasets_components import HFDatasetsTransformComponent, HFDatasetsDataset, HFDatasetsDatasetDraft
 from express.logger import configure_logging
 
@@ -15,21 +17,24 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+
 @torch.no_grad()
 def embed(examples, processor, model):
-    images = examples["images"]
+    images = examples["image"]
 
     # prepare images for the model
-    inputs = processor(images, return_tensors="pt")
+    inputs = processor(images=images, return_tensors="pt").to(device)
 
     # embed to get (batch_size, hidden_size) embeddings
     outputs = model(**inputs)
     image_embeds = outputs.image_embeds
     
     # flatten into list of embeddings
-    batch = {"embeddings": image_embeds.tolist()}
+    examples["embeddings"] = image_embeds.cpu().tolist()
 
-    return batch
+    return examples
 
 
 class EmbeddingComponent(HFDatasetsTransformComponent):
@@ -54,19 +59,20 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
         
         # 1) Get one particular data source from the manifest
         # TODO check whether we can leverage streaming
-        logger.info("Loading caption dataset...")
+        logger.info("Loading image dataset...")
         image_dataset = data.load(data_source="images")
         
         # 2) Create embedding dataset
-        logger.info("Embedding images...")
-
+        logger.info("Loading CLIP...")
         processor = CLIPProcessor.from_pretrained(extra_args["model_id"])
         model = CLIPVisionModelWithProjection.from_pretrained(extra_args["model_id"])
+        model.to(device)
 
+        logger.info("Embedding images...")
         embedded_dataset = image_dataset.map(embed,
                                              batched=True, batch_size=extra_args["batch_size"],
                                              fn_kwargs=dict(processor=processor, model=model),
-                                             remove_columns=["image", "text"])
+                                             remove_columns=["image"])
         
         # 3) Create dataset draft which adds a data source to the manifest
         logger.info("Creating draft...")

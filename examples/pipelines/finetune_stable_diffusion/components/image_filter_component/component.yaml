@@ -1,5 +1,5 @@
 name: image_filter_component
-description: A basic component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
+description: A component that filters images based on certain conditions.
 inputs: 
     - name: extra_args
       description: Additional arguments passed to the component, as a json dict string
