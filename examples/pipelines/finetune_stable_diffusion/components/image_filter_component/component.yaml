@@ -19,7 +19,7 @@ outputs:
 
 implementation:
     container:
-        image: europe-west4-docker.pkg.dev/soy-audio-379412/soy-audio-379412-default-repository/kubeflow-components/components/image_filter_component:latest
+        image: ghcr.io/ml6team/image_filter_component:latest
         command: [
             python3, main.py,
             --input-manifest,       {inputPath: input_manifest},
