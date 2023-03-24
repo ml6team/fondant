@@ -1,4 +1,4 @@
 torch
 transformers
-git+https://github.com/ml6team/express.git@main
+git+https://github.com/ml6team/express.git@0f43bbd88826ffd1b620100275700f9cbe7c0b6e
 Pillow
