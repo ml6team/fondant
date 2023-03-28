@@ -1,5 +1,6 @@
 """General pipeline utils"""
 
+import json
 import os
 import logging
 from typing import Callable
@@ -10,6 +11,23 @@ if is_kfp_available():
     import kfp
 
 logger = logging.getLogger(__name__)
+
+
+def create_extra_args(**kwargs):
+    extra_args = json.dumps(**kwargs)
+    return extra_args
+
+
+def create_metadata_args(component, artifact_bucket):
+    run_id = "{{workflow.name}}"
+
+    metadata_args = {
+        "run_id": run_id,
+        "component_name": component.__name__,
+        "artifact_bucket": artifact_bucket,
+    }
+    metadata_args = json.dumps(metadata_args)
+    return metadata_args
 
 
 def compile_and_upload_pipeline(
