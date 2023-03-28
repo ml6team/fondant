@@ -49,7 +49,7 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
         # 3) Create dataset draft from index and data sources
         # We store the index itself also as a HF Dataset
         logger.info("Creating draft...")
-        index_dataset = Dataset.from_dict("index": index_list)
+        index_dataset = Dataset.from_dict({"index": index_list})
         image_dataset = dataset.remove_columns(["text"]).add_column(name="index", column=index_list)
         image_dataset = image_dataset.map(create_metadata, batched=True)
         text_dataset = dataset.remove_columns(["image"]).add_column(name="index", column=index_list)

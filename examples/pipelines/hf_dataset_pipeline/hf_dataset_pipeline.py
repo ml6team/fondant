@@ -1,12 +1,13 @@
 """
 This module defines a pipeline with 2 Express components, a loading and a transform component.
 """
-import json
 
 from kfp import components as comp
 from kfp import dsl
 
-from config.pipeline_config import GeneralConfig, KubeflowConfig, LoadFromHubConfig
+from kubernetes import client as k8s_client
+
+from config.pipeline_config import KubeflowConfig, LoadFromHubConfig
 
 from express.pipeline_utils import create_extra_args, create_metadata_args, compile_and_upload_pipeline
 
@@ -42,7 +43,12 @@ def hf_dataset_pipeline(load_from_hub_extra_args: str = load_from_hub_extra_args
     add_captions_task = add_captions_component(extra_args=add_captions_extra_args,
                                         metadata=add_captions_metadata_args,
                                         input_manifest=load_from_hub_task.outputs["output_manifest"],
-    ).set_display_name('Add captions component')
+    ).set_display_name('Add captions component') \
+    .set_gpu_limit(1) \
+    .add_node_selector_constraint('node_pool', 'model-inference-pool') \
+    .add_toleration(
+        k8s_client.V1Toleration(effect='NoSchedule', key='reserved-pool', operator='Equal',
+                                value='true'))
 
 
 if __name__ == '__main__':
