@@ -19,7 +19,7 @@ outputs:
 
 implementation:
     container:
-        image: europe-west4-docker.pkg.dev/soy-audio-379412/soy-audio-379412-default-repository/kubeflow-components/components/add_captions:latest
+        image: ghcr.io/ml6team/add_captions:latest
         command: [
             python3, main.py,
             --input-manifest,       {inputPath: input_manifest},
