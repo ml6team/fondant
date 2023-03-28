@@ -9,7 +9,7 @@ from kubernetes import client as k8s_client
 
 from config.general_config import KubeflowConfig
 from config.components_config import DatasetLoaderConfig, ImageFilterConfig, EmbeddingConfig
-from express.kfp_utils import compile_and_upload_pipeline
+from express.pipeline_utils import compile_and_upload_pipeline
 
 # Load Components
 run_id = '{{workflow.name}}'

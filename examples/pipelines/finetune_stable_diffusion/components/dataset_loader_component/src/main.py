@@ -38,7 +38,7 @@ class DatasetLoaderComponent(HFDatasetsLoaderComponent):
         Returns:
             HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output manifest
         """
-        
+
         # 1) Create data source
         logger.info("Loading caption dataset from the hub...")
         dataset = load_dataset(extra_args["dataset_name"], split="train")
