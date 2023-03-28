@@ -15,7 +15,7 @@ artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
 
 # Component 1: load from hub
 load_from_hub_component = comp.load_component('components/load_from_hub/component.yaml')
-load_from_hub_extra_args = create_extra_args(LoadFromHubConfig)
+load_from_hub_extra_args = create_extra_args(dataset_name=LoadFromHubConfig.DATASET_NAME)
 load_from_hub_metadata_args = create_metadata_args(load_from_hub_component, artifact_bucket)
 
 # Component 2: add captions
@@ -39,7 +39,6 @@ def hf_dataset_pipeline(load_from_hub_extra_args: str = load_from_hub_extra_args
     ).set_display_name('Load from hub component')
 
     # Component 2
-    print("Extra args:", add_captions_extra_args)
     add_captions_task = add_captions_component(extra_args=add_captions_extra_args,
                                         metadata=add_captions_metadata_args,
                                         input_manifest=load_from_hub_task.outputs["output_manifest"],

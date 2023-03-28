@@ -1,6 +1,5 @@
 """General pipeline utils"""
 
-from dataclasses import asdict
 import json
 import os
 import logging
@@ -14,10 +13,9 @@ if is_kfp_available():
 logger = logging.getLogger(__name__)
 
 
-def create_extra_args(config):
+def create_extra_args(**kwargs):
     # create dict
-    config_dict = asdict(config)
-    config_dict = {k.lower(): v for k, v in config_dict.items()}
+    config_dict = {k.lower(): v for k, v in kwargs.items()}
     # turn into string representation
     extra_args = json.dumps(config_dict)
     return extra_args
