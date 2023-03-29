@@ -17,13 +17,10 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def create_image_metadata(examples):
-    """
-    Adds metadata about the images (width, height and byte size) to the dataset.
-    """
-    images = examples["image"]
+def create_image_metadata(batch):
+    images = batch["image"]
 
-    batch = {}
+    # add width, height and byte size columns
     batch["width"], batch["height"] = zip(*[image.size for image in images])
     batch["byte_size"] = [sys.getsizeof(image.tobytes()) for image in images]
 
@@ -31,7 +28,7 @@ def create_image_metadata(examples):
 
 
 class LoadFromHubComponent(HFDatasetsLoaderComponent):
-    """Component that loads a dataset from the hub."""
+    """Component that loads a dataset from the hub and creates the initial manifest."""
 
     @classmethod
     def load(
@@ -65,16 +62,14 @@ class LoadFromHubComponent(HFDatasetsLoaderComponent):
         text_dataset = dataset.remove_columns(["image"]).add_column(
             name="index", column=index_list
         )
-        metadata_dataset = image_dataset.map(
+        image_dataset = image_dataset.map(
             create_image_metadata,
             batched=True,
             batch_size=extra_args["batch_size"],
-            remove_columns=["image"],
         )
         data_sources = {
             "images": image_dataset,
             "captions": text_dataset,
-            "image_metadata": metadata_dataset,
         }
         dataset_draft = HFDatasetsDatasetDraft(
             index=index_dataset, data_sources=data_sources
