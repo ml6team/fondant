@@ -3,12 +3,16 @@ FROM europe-west1-docker.pkg.dev/storied-landing-366912/storied-landing-366912-d
 # Set the working directory to the source folder
 WORKDIR /src
 
-# Copy over src-files of the component
-COPY requirements.txt .
+# System dependencies
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install libpango1.0-0 libcairo2 libpq-dev -y
 
 # Install packages
+COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
+# Copy over src-files of the component
 COPY src /src
 
 ENTRYPOINT ["python", "main.py"]
