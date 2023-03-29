@@ -1,19 +1,23 @@
 """Clip embedding util functions"""
-import os
+
+from typing import List
 
 import numpy as np
 
 
-def get_average_embedding(embedding_dir: str) -> np.array:
+def get_average_embedding(embeddings: List[np.array]) -> np.array:
     """
-    Function that returns the average embedding from a selection of embeddings
+    Function that returns the average embedding from a list of embeddings
+
     Args:
-        embedding_dir (str): the directory where the embeddings are located
+        embeddings (List[np.array]): list of embeddings.
     Returns:
         np.array: the average embedding
     """
+    initial_embedding = next(iter(embeddings))
+    embedding_sum = np.zeros(initial_embedding.shape)
+    for embedding in embeddings:
+        embedding_sum += embedding
 
-    embeddings = [np.load(os.path.join(embedding_dir, embedding_file)) for embedding_file in
-                  os.listdir(embedding_dir)]
-    avg_embedding = np.array(embeddings).mean(axis=0)
+    avg_embedding = embedding_sum.mean(axis=0)
     return avg_embedding
