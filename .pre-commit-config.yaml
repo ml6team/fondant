@@ -24,4 +24,8 @@ repos:
     hooks:
       - id: black
         name: black
-        files: "^express/"
+        files:  |
+            (?x)^(
+                express/.*|
+                examples/.*|
+            )$
