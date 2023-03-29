@@ -80,7 +80,7 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
     def _load_data_source(
         data_source: DataSource,
         index_filter: Optional[IndexT],
-        **kwargs: dict,
+        **kwargs,
     ) -> DataT:
         """
         Load data from a (possibly remote) path.
