@@ -2,14 +2,16 @@ from dataclasses import dataclass
 
 
 @dataclass
-class DatasetLoaderConfig:
+class LoadFromHubConfig:
     """
     Configs for the dataset loader component
     Params:
         DATASET_NAME (str): Name of the dataset on the hub.
+        BATCH_SIZE (int): Batch size to use when creating image metadata.
     """
 
     DATASET_NAME = "lambdalabs/pokemon-blip-captions"
+    BATCH_SIZE = 1000
 
 
 @dataclass

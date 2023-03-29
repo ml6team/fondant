@@ -9,7 +9,7 @@ from kubernetes import client as k8s_client
 
 from config.general_config import KubeflowConfig
 from config.components_config import (
-    DatasetLoaderConfig,
+    LoadFromHubConfig,
     ImageFilterConfig,
     EmbeddingConfig,
 )
@@ -23,7 +23,10 @@ artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
 load_from_hub_op = comp.load_component(
     "components/load_from_hub_component/component.yaml"
 )
-load_from_hub_extra_args = {"dataset_name": DatasetLoaderConfig.DATASET_NAME}
+load_from_hub_extra_args = {
+    "dataset_name": LoadFromHubConfig.DATASET_NAME,
+    "batch_size": LoadFromHubConfig.BATCH_SIZE,
+}
 load_from_hub_metadata_args = {
     "run_id": run_id,
     "component_name": load_from_hub_op.__name__,

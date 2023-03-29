@@ -66,7 +66,10 @@ class LoadFromHubComponent(HFDatasetsLoaderComponent):
             name="index", column=index_list
         )
         metadata_dataset = image_dataset.map(
-            create_image_metadata, batched=True, remove_columns=["image"]
+            create_image_metadata,
+            batched=True,
+            batch_size=extra_args["batch_size"],
+            remove_columns=["image"],
         )
         data_sources = {
             "images": image_dataset,
