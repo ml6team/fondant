@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
 
 ## System dependencies
 RUN apt-get update && \

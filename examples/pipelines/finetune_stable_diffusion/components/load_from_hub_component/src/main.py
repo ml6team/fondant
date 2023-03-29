@@ -2,6 +2,7 @@
 This component loads a seed dataset from the hub and creates the initial manifest.
 """
 import logging
+import sys
 from typing import Optional, Union, Dict
 
 from datasets import Dataset, load_dataset
@@ -16,17 +17,21 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def create_metadata(examples):
+def create_image_metadata(examples):
+    """
+    Adds metadata about the images (width, height and byte size) to the dataset.
+    """
     images = examples["image"]
 
     batch = {}
     batch["width"], batch["height"] = zip(*[image.size for image in images])
+    batch["byte_size"] = [sys.getsizeof(image.tobytes()) for image in images]
 
     return batch
 
 
-class DatasetLoaderComponent(HFDatasetsLoaderComponent):
-    """Class that inherits from Hugging Face data loading"""
+class LoadFromHubComponent(HFDatasetsLoaderComponent):
+    """Component that loads a dataset from the hub."""
 
     @classmethod
     def load(
@@ -43,6 +48,7 @@ class DatasetLoaderComponent(HFDatasetsLoaderComponent):
 
         # 1) Create data source
         logger.info("Loading caption dataset from the hub...")
+        # TODO perhaps leverage streaming
         dataset = load_dataset(extra_args["dataset_name"], split="train")
 
         # 2) Create an example index
@@ -60,7 +66,7 @@ class DatasetLoaderComponent(HFDatasetsLoaderComponent):
             name="index", column=index_list
         )
         metadata_dataset = image_dataset.map(
-            create_metadata, batched=True, remove_columns=["image"]
+            create_image_metadata, batched=True, remove_columns=["image"]
         )
         data_sources = {
             "images": image_dataset,
@@ -75,4 +81,4 @@ class DatasetLoaderComponent(HFDatasetsLoaderComponent):
 
 
 if __name__ == "__main__":
-    DatasetLoaderComponent.run()
+    LoadFromHubComponent.run()

@@ -6,7 +6,11 @@ repos:
     rev: 'v0.0.254'
     hooks:
       - id: ruff
-        files: "^express/"
+        files:  |
+            (?x)^(
+                express/.*|
+                examples/.*|
+            )$
         args: [--fix, --exit-non-zero-on-fix]
 
 

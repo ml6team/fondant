@@ -4,9 +4,12 @@ This component adds a data source to the manifest by embedding the images.
 import logging
 from typing import Optional, Union, Dict
 
-from tqdm.auto import tqdm
 
-from express.components.hf_datasets_components import HFDatasetsTransformComponent, HFDatasetsDataset, HFDatasetsDatasetDraft
+from express.components.hf_datasets_components import (
+    HFDatasetsTransformComponent,
+    HFDatasetsDataset,
+    HFDatasetsDatasetDraft,
+)
 from express.logger import configure_logging
 
 import torch
@@ -17,7 +20,14 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+cuda_available = torch.cuda.is_available()
+device = "cuda" if cuda_available else "cpu"
+logger.info("CUDA device availability:%s", cuda_available)
+
+if cuda_available:
+    logger.info(torch.cuda.get_device_name(0))
+    logger.info("CUDA device: %s", torch.cuda.get_device_name(0))
+    logger.info("Num of GPUs: %s", torch.cuda.device_count())
 
 
 @torch.no_grad()
@@ -30,7 +40,7 @@ def embed(examples, processor, model):
     # embed to get (batch_size, hidden_size) embeddings
     outputs = model(**inputs)
     image_embeds = outputs.image_embeds
-    
+
     # flatten into list of embeddings
     examples["embeddings"] = image_embeds.cpu().tolist()
 
@@ -39,15 +49,18 @@ def embed(examples, processor, model):
 
 class EmbeddingComponent(HFDatasetsTransformComponent):
     """
-    Class that inherits from Hugging Face data transform.
+    Component that embeds the images using a CLIP model from Hugging Face.
     """
 
     @classmethod
-    def transform(cls, data: HFDatasetsDataset, extra_args: Optional[
-        Dict[str, Union[str, int, float, bool]]] = None) -> HFDatasetsDatasetDraft:
+    def transform(
+        cls,
+        data: HFDatasetsDataset,
+        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+    ) -> HFDatasetsDatasetDraft:
         """
         An example function showcasing the data transform component using Express functionalities
-        
+
         Args:
             data (HFDatasetsDataset[TIndex, TData]): express dataset providing access to data of a
              given type
@@ -56,12 +69,12 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
         Returns:
             HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output manifest
         """
-        
+
         # 1) Get one particular data source from the manifest
         # TODO check whether we can leverage streaming
         logger.info("Loading image dataset...")
         image_dataset = data.load(data_source="images")
-        
+
         # 2) Create embedding dataset
         logger.info("Loading CLIP...")
         processor = CLIPProcessor.from_pretrained(extra_args["model_id"])
@@ -69,18 +82,23 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
         model.to(device)
 
         logger.info("Embedding images...")
-        embedded_dataset = image_dataset.map(embed,
-                                             batched=True, batch_size=extra_args["batch_size"],
-                                             fn_kwargs=dict(processor=processor, model=model),
-                                             remove_columns=["image"])
-        
+        embedded_dataset = image_dataset.map(
+            embed,
+            batched=True,
+            batch_size=extra_args["batch_size"],
+            fn_kwargs=dict(processor=processor, model=model),
+            remove_columns=["image"],
+        )
+
         # 3) Create dataset draft which adds a data source to the manifest
         logger.info("Creating draft...")
         data_sources = {"embeddings": embedded_dataset}
-        dataset_draft = HFDatasetsDatasetDraft(data_sources=data_sources, extending_dataset=data)
+        dataset_draft = HFDatasetsDatasetDraft(
+            data_sources=data_sources, extending_dataset=data
+        )
 
         return dataset_draft
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     EmbeddingComponent.run()

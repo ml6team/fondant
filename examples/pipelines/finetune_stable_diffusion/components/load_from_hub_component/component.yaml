@@ -1,4 +1,4 @@
-name: dataset_loader_component
+name: load_from_hub_component
 description: A basic component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
 inputs: 
     - name: extra_args
@@ -15,7 +15,7 @@ outputs:
 
 implementation:
     container:
-        image: ghcr.io/ml6team/dataset_loader_component:latest
+        image: ghcr.io/ml6team/load_from_hub_component:latest
         command: [
             python3, main.py,
             --extra-args,          {inputValue: extra_args},
