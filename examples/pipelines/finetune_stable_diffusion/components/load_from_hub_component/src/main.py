@@ -21,7 +21,9 @@ def create_image_metadata(batch):
     images = batch["image"]
 
     # add width, height and byte size columns
-    batch["width"], batch["height"] = zip(*[image.size for image in images])
+    widths, heights = zip(*[image.size for image in images])
+    batch["width"] = list(widths)
+    batch["height"] = list(heights)
     batch["byte_size"] = [sys.getsizeof(image.tobytes()) for image in images]
 
     return batch
