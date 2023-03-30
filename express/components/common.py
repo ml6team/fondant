@@ -114,6 +114,9 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
         data_sources: Dict[str, Union[DataSource, DataT]] = None,
         extending_dataset: Optional[ExpressDataset[IndexT, DataT]] = None,
     ):
+        # verify data sources share the same index
+        self.sanity_check(index, data_sources)
+
         self.index = index
         self.data_sources = data_sources or {}
         if not (extending_dataset is None) ^ (index is None):
@@ -129,9 +132,22 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
                     "pre-existing dataset to extend. Not both. Additional data sources can be "
                     "added to an extending dataset draft after it's been constructed."
                 )
-            self.index = extending_dataset.manifest.index
+            index = extending_dataset.manifest.index
+            self.sanity_check(index, data_sources)
+            self.index = index
             for name, dataset in extending_dataset.manifest.associated_data.items():
                 self.with_data_source(name, dataset, replace_ok=False)
+
+    @classmethod
+    @abstractmethod
+    def sanity_check(
+        cls,
+        index: Optional[Union[DataSource, IndexT]] = None,
+        data_sources: Dict[str, Union[DataSource, DataT]] = None,
+    ) -> bool:
+        """
+        Verifies whether all data sources share the same index.
+        """
 
     @classmethod
     def extend(

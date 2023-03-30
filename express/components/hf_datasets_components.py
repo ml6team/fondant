@@ -21,9 +21,33 @@ if is_datasets_available():
     import datasets
     from datasets import load_dataset
 
+
 # Define interface of pandas draft
 # pylint: disable=unsubscriptable-object
-HFDatasetsDatasetDraft = ExpressDatasetDraft[List[str], datasets.Dataset]
+class HFDatasetsDatasetDraft(ExpressDatasetDraft[List[str], datasets.Dataset]):
+    "HuggingFace Datasets dataset draft (plan for an output manifest)"
+
+    def _is_sublist(self, list1, list2):
+        return set(list1) <= set(list2)
+
+    def sanity_check(self, index: datasets.Dataset, data_sources: dict) -> bool:
+        if len(data_sources) == 0 or index is None:
+            return True
+        else:
+            index = index["index"]
+            for name, data in data_sources.items():
+                if "index" not in data.column_names:
+                    raise ValueError(
+                        f"Data source {name} should have an 'index' column."
+                    )
+                elif not self._is_sublist(index, data["index"]):
+                    raise ValueError(
+                        "Data source {name} does not have all indices present in the index."
+                    )
+                else:
+                    continue
+            return True
+
 
 # pylint: disable=no-member
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
