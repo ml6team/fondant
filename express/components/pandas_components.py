@@ -65,7 +65,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
 
             data_source_df = pd.read_parquet(local_parquet_path, **kwargs)
 
-            if index_filter:
+            if index_filter is not None:
                 return data_source_df.loc[index_filter]
 
             return data_source_df

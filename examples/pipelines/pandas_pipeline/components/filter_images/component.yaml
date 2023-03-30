@@ -5,8 +5,12 @@ inputs:
     description: Additional arguments passed to the component, as a json dict string
     type: String
 
-  - name: metadata_args
+  - name: metadata
     description: Metadata arguments, passed as a json dict string
+    type: String
+
+  - name: input_manifest
+    description: Path to the input manifest
     type: String
 
 outputs:
@@ -18,7 +22,8 @@ implementation:
     image: ghcr.io/ml6team/filter_images:latest
     command: [
       python3, main.py,
+      --input-manifest,      {inputPath: input_manifest},
       --extra-args,          { inputValue: extra_args },
-      --metadata-args,       { inputValue: metadata_args },
+      --metadata,            { inputValue: metadata},
       --output-manifest,     { outputPath: output_manifest },
     ]

@@ -52,9 +52,9 @@ def pandas_dataset_pipeline(load_from_cloud_extra_args: str = load_from_cloud_ex
     ).set_display_name('Load from cloud component')
 
     # Component 2
-    filter_images_task = load_from_cloud_op(
+    filter_images_task = filter_images_op(
         extra_args=filter_images_extra_args,
-        metadata_args=filter_images_metadata_args,
+        metadata=filter_images_metadata_args,
         input_manifest=load_from_cloud_task.outputs["output_manifest"]
     ).set_display_name('Filter images component')
 

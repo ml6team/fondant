@@ -1,2 +1,1 @@
-git+https://github.com/ml6team/express.git@0cbbc0faef53bc13ba43e8e62ff5ab0c3905a656#egg=express[pandas]
-Pillow==9.4.0
+git+https://github.com/ml6team/express.git@6db69f8e92294c752c04e05ff1d1cd6585b1e224#egg=express[pandas]
