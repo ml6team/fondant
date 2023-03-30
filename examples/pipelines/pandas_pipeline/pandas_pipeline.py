@@ -27,6 +27,14 @@ load_from_cloud_metadata_args = {"run_id": run_id, "component_name": load_from_c
 load_from_cloud_extra_args = json.dumps(load_from_cloud_extra_args)
 load_from_cloud_metadata_args = json.dumps(load_from_cloud_metadata_args)
 
+# Component 2: filter images
+filter_images_op = comp.load_component('components/filter_images/component.yaml')
+filter_images_extra_args = {"dataset_remote_path": LoadFromCloudConfig.DATASET_REMOTE_PATH}
+filter_images_metadata_args = {"run_id": run_id, "component_name": load_from_cloud_op.__name__,
+                               "artifact_bucket": artifact_bucket}
+filter_images_extra_args = json.dumps(filter_images_extra_args)
+filter_images_metadata_args = json.dumps(filter_images_metadata_args)
+
 
 # Pipeline
 @dsl.pipeline(
@@ -34,11 +42,21 @@ load_from_cloud_metadata_args = json.dumps(load_from_cloud_metadata_args)
     description='Tiny pipeline that includes 2 components to load and process a pandas dataset'
 )
 def pandas_dataset_pipeline(load_from_cloud_extra_args: str = load_from_cloud_extra_args,
-                            load_from_cloud_metadata_args: str = load_from_cloud_metadata_args):
+                            load_from_cloud_metadata_args: str = load_from_cloud_metadata_args,
+                            filter_images_extra_args: str = filter_images_extra_args,
+                            filter_images_metadata_args: str = filter_images_metadata_args):
     # Component 1
-    load_from_cloud_task = load_from_cloud_op(extra_args=load_from_cloud_extra_args,
-                                              metadata_args=load_from_cloud_metadata_args,
-                                              ).set_display_name('Load from cloud component')
+    load_from_cloud_task = load_from_cloud_op(
+        extra_args=load_from_cloud_extra_args,
+        metadata_args=load_from_cloud_metadata_args,
+    ).set_display_name('Load from cloud component')
+
+    # Component 2
+    filter_images_task = load_from_cloud_op(
+        extra_args=filter_images_extra_args,
+        metadata_args=filter_images_metadata_args,
+        input_manifest=load_from_cloud_task.outputs["output_manifest"]
+    ).set_display_name('Filter images component')
 
 
 if __name__ == '__main__':
