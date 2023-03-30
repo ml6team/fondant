@@ -69,11 +69,13 @@ embedding_metadata_args = json.dumps(embedding_metadata_args)
 
 
 # Component 4
-clip_retrieval_op = comp.load_component("components/clip_retrieval_component/component.yaml")
+clip_retrieval_op = comp.load_component(
+    "components/clip_retrieval_component/component.yaml"
+)
 clip_retrieval_extra_args = {
     "model_id": ClipRetrievalConfig.LAION_INDEX_URL,
     "batch_size": ClipRetrievalConfig.LAION_METADATA_URL,
-    "num_images_knn":ClipRetrievalConfig.NUM_IMAGES_KNN,
+    "num_images_knn": ClipRetrievalConfig.NUM_IMAGES_KNN,
     "num_images_centroid": ClipRetrievalConfig.NUM_IMAGES_CENTROID,
 }
 clip_retrieval_metadata_args = {
@@ -116,15 +118,19 @@ def sd_dataset_creator_pipeline(
     ).set_display_name("Filter images")
 
     # Component 3
-    embedding_task = embedding_op(
-        extra_args=embedding_extra_args,
-        metadata=embedding_metadata_args,
-        input_manifest=image_filter_task.outputs["output_manifest"],
-    ).set_display_name("Embed images").set_gpu_limit(1).add_node_selector_constraint(
-        "node_pool", "model-inference-pool"
-    ).add_toleration(
-        k8s_client.V1Toleration(
-            effect="NoSchedule", key="reserved-pool", operator="Equal", value="true"
+    embedding_task = (
+        embedding_op(
+            extra_args=embedding_extra_args,
+            metadata=embedding_metadata_args,
+            input_manifest=image_filter_task.outputs["output_manifest"],
+        )
+        .set_display_name("Embed images")
+        .set_gpu_limit(1)
+        .add_node_selector_constraint("node_pool", "model-inference-pool")
+        .add_toleration(
+            k8s_client.V1Toleration(
+                effect="NoSchedule", key="reserved-pool", operator="Equal", value="true"
+            )
         )
     )
 

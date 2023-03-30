@@ -58,5 +58,5 @@ class ClipRetrievalConfig:
     LAION_METADATA_URL = (
         "gs://express-sd-datasets/laion-5b/metadata/metadata/2B-en.arrow"
     )
-    NB_IMAGES_KNN = 500
-    NB_IMAGES_CENTROID = 1_000_000
+    NUM_IMAGES_KNN = 500
+    NUM_IMAGES_CENTROID = 1_000_000
