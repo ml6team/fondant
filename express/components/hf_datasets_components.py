@@ -30,7 +30,9 @@ class HFDatasetsDatasetDraft(ExpressDatasetDraft[List[str], datasets.Dataset]):
     def _is_sublist(self, list1, list2):
         return set(list1) <= set(list2)
 
-    def sanity_check(self, index: datasets.Dataset, data_sources: dict) -> bool:
+    def sanity_check(
+        self, index: Optional[datasets.Dataset] = None, data_sources: dict = None
+    ) -> bool:
         if len(data_sources) == 0 or index is None:
             return True
         else:
