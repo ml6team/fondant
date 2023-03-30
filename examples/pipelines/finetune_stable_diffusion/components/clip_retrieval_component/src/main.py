@@ -45,12 +45,10 @@ class CLIPRetrievalComponent(HFDatasetsTransformComponent):
         # TODO check whether we can leverage streaming
         # TODO just column in the load method in the future
         logger.info("Loading embedding dataset...")
-        embeddings = data.load(
-            data_source="embeddings", columns=["embeddings"], streaming=True
-        )
+        dataset = data.load(data_source="embeddings", columns=["index", "embeddings"])
 
         logger.info("Calculating average embedding...")
-        centroid_embedding = get_average_embedding(embeddings)
+        centroid_embedding = get_average_embedding(dataset)
 
         print("Centroid embedding:", centroid_embedding)
 

@@ -2,22 +2,22 @@
 
 from typing import List
 
+from datasets import Dataset
+
 import numpy as np
 
 
-def get_average_embedding(embeddings: List[np.array]) -> np.array:
+def get_average_embedding(embeddings_dataset: Dataset) -> np.array:
     """
     Function that returns the average embedding from a list of embeddings
 
     Args:
-        embeddings (List[np.array]): list of embeddings.
+        embeddings_dataset (datasets.Dataset): list of embeddings.
     Returns:
         np.array: the average embedding
     """
-    initial_embedding = next(iter(embeddings))
-    embedding_sum = np.zeros(initial_embedding.shape)
-    for embedding in embeddings:
-        embedding_sum += embedding
-
-    avg_embedding = embedding_sum.mean(axis=0)
+    embeddings = [np.array(embedding) for embedding in embeddings_dataset["embeddings"]]
+    
+    avg_embedding = np.mean(embeddings, axis=0)
+    
     return avg_embedding

@@ -87,7 +87,7 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
             batched=True,
             batch_size=extra_args["batch_size"],
             fn_kwargs=dict(processor=processor, model=model),
-            remove_columns=["image"],
+            remove_columns=["image", "width", "height", "byte_size"],
         )
 
         # 3) Create dataset draft which adds a data source to the manifest

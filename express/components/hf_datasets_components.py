@@ -67,6 +67,12 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
                 data_source_location, tmp_dir
             )
 
+            if "columns" in kwargs:
+                if "index" not in kwargs["columns"]:
+                    raise ValueError(
+                        "Please also include the index when specifying columns"
+                    )
+
             dataset = load_dataset(
                 "parquet",
                 data_files=local_parquet_path,
