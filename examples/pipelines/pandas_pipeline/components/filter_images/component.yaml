@@ -1,0 +1,24 @@
+name: filter images
+description: A basic component that filters images based on specific attributes
+inputs:
+  - name: extra_args
+    description: Additional arguments passed to the component, as a json dict string
+    type: String
+
+  - name: metadata_args
+    description: Metadata arguments, passed as a json dict string
+    type: String
+
+outputs:
+  - name: output_manifest
+    description: Path to the output manifest
+
+implementation:
+  container:
+    image: ghcr.io/ml6team/filter_images:latest
+    command: [
+      python3, main.py,
+      --extra-args,          { inputValue: extra_args },
+      --metadata-args,       { inputValue: metadata_args },
+      --output-manifest,     { outputPath: output_manifest },
+    ]

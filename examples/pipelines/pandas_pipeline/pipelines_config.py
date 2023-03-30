@@ -22,4 +22,4 @@ class FilterDatasetConifg:
         MIN_IMAGE_HEIGHT (str): The minimum height of the image
     """
     MIN_IMAGE_WIDTH = 200
-    MAX_IMAGE_HEIGHT = 200
+    MIN_IMAGE_HEIGHT = 200
