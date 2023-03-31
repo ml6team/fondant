@@ -1,1 +1,1 @@
-git+https://github.com/ml6team/express.git@9ad311d0e43d92b0f2ef1147c1db582846f4ae28#egg=express[pandas]
+git+https://github.com/ml6team/express.git@732023768222c6211400c21b694784a2a395ee88#egg=express[pandas]
