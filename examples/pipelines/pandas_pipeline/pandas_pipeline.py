@@ -12,13 +12,14 @@ from kfp import dsl
 sys.path.insert(0, os.path.abspath('..'))
 
 from config import KubeflowConfig
-from pipelines_config import LoadFromCloudConfig
+from pipelines_config import LoadFromCloudConfig, FilterDatasetConifg
 from express.pipeline_utils import compile_and_upload_pipeline
 
 # Load Components
 run_id = '{{workflow.name}}'
 artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
 
+# Todo: Simplify args parsing after PR #21 is merged
 # Component 1: load from hub
 load_from_cloud_op = comp.load_component('components/load_from_cloud/component.yaml')
 load_from_cloud_extra_args = {"dataset_remote_path": LoadFromCloudConfig.DATASET_REMOTE_PATH}
@@ -29,7 +30,8 @@ load_from_cloud_metadata_args = json.dumps(load_from_cloud_metadata_args)
 
 # Component 2: filter images
 filter_images_op = comp.load_component('components/filter_images/component.yaml')
-filter_images_extra_args = {"dataset_remote_path": LoadFromCloudConfig.DATASET_REMOTE_PATH}
+filter_images_extra_args = {"min_image_width": FilterDatasetConifg.MIN_IMAGE_WIDTH,
+                            "min_image_height": FilterDatasetConifg.MIN_IMAGE_HEIGHT}
 filter_images_metadata_args = {"run_id": run_id, "component_name": load_from_cloud_op.__name__,
                                "artifact_bucket": artifact_bucket}
 filter_images_extra_args = json.dumps(filter_images_extra_args)
