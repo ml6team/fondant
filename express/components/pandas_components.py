@@ -44,7 +44,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
     @staticmethod
     def _load_data_source(
             data_source: DataSource,
-            index_filter: Union[pd.DataFrame, pd.Series, List[str]],
+            index_filter: pd.Series,
             **kwargs,
     ) -> pd.DataFrame:
         if data_source.type != DataType.PARQUET:
@@ -66,7 +66,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
             data_source_df = pd.read_parquet(local_parquet_path, **kwargs)
 
             if index_filter is not None:
-                return data_source_df.loc[index_filter]
+                return data_source_df[data_source_df['index'].isin(index_filter)]
 
             return data_source_df
 
