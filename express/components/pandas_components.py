@@ -44,7 +44,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
     @staticmethod
     def _load_data_source(
             data_source: DataSource,
-            index_filter: pd.Series,
+            index_filter: Union[pd.Series, list],
             **kwargs,
     ) -> pd.DataFrame:
         if data_source.type != DataType.PARQUET:
