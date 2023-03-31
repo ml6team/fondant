@@ -48,7 +48,9 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         Loads the index data.
         """
 
-    def load(self, data_source: str, for_index: Optional[IndexT] = None, **kwargs) -> DataT:
+    def load(
+        self, data_source: str, for_index: Optional[IndexT] = None, **kwargs
+    ) -> DataT:
         """
         Load data from a named data source.
 
@@ -76,9 +78,7 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
     @staticmethod
     @abstractmethod
     def _load_data_source(
-        data_source: DataSource,
-        index_filter: Optional[IndexT],
-        **kwargs
+        data_source: DataSource, index_filter: Optional[IndexT], **kwargs
     ) -> DataT:
         """
         Load data from a (possibly remote) path.

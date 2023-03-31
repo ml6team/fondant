@@ -43,9 +43,9 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
 
     @staticmethod
     def _load_data_source(
-            data_source: DataSource,
-            index_filter: Union[pd.Series, list],
-            **kwargs,
+        data_source: DataSource,
+        index_filter: Union[pd.Series, list],
+        **kwargs,
     ) -> pd.DataFrame:
         if data_source.type != DataType.PARQUET:
             raise TypeError("Only reading from parquet is currently supported.")
@@ -66,7 +66,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
             data_source_df = pd.read_parquet(local_parquet_path, **kwargs)
 
             if index_filter is not None:
-                return data_source_df[data_source_df['index'].isin(index_filter)]
+                return data_source_df[data_source_df["index"].isin(index_filter)]
 
             return data_source_df
 
@@ -76,7 +76,7 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
     @staticmethod
     def _upload_parquet(
-            data: Union[pd.DataFrame, pd.Series], name: str, remote_path: str
+        data: Union[pd.DataFrame, pd.Series], name: str, remote_path: str
     ) -> DataSource:
         with tempfile.TemporaryDirectory() as temp_folder:
             # TODO: uploading without writing to temp file
@@ -102,7 +102,7 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
     @classmethod
     def _upload_index(
-            cls, index: Union[pd.DataFrame, pd.Series, pd.Index], remote_path: str
+        cls, index: Union[pd.DataFrame, pd.Series, pd.Index], remote_path: str
     ) -> DataSource:
         data_source = cls._upload_parquet(
             data=index, name="index", remote_path=remote_path
@@ -111,7 +111,7 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
     @classmethod
     def _upload_data_source(
-            cls, name: str, data: Union[pd.DataFrame, pd.Series, pd.Index], remote_path: str
+        cls, name: str, data: Union[pd.DataFrame, pd.Series, pd.Index], remote_path: str
     ) -> DataSource:
         data_source = cls._upload_parquet(data=data, name=name, remote_path=remote_path)
         return data_source
@@ -129,9 +129,9 @@ class PandasTransformComponent(
     @classmethod
     @abstractmethod
     def transform(
-            cls,
-            data: PandasDataset,
-            extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+        cls,
+        data: PandasDataset,
+        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
     ) -> PandasDatasetDraft:
         """Transform dataset"""
 
@@ -144,6 +144,6 @@ class PandasLoaderComponent(
     @classmethod
     @abstractmethod
     def load(
-            cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
+        cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
     ) -> PandasDatasetDraft:
         """Load initial dataset"""
