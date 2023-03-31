@@ -16,9 +16,11 @@ RUN mkdir -p /usr/local/gcloud \
 # Adding the package path to local
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 
-# install requirements
-COPY requirements.txt /
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Copy over src-files of the component
+COPY requirements.txt .
+
+# Install packages
+RUN pip3 install -r requirements.txt
 
 # Copy over src-files of the component
 COPY src /src

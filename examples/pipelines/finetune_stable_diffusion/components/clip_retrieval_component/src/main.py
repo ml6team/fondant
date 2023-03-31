@@ -2,10 +2,18 @@
 This component extends the images data source by retrieving similar images from LAION.
 """
 import logging
+import os
+import tempfile
+import time
+from tqdm import tqdm
 from typing import Optional, Union, Dict
 
-from utils.embedding_utils import get_average_embedding
+import numpy as np
 
+from utils.embedding_utils import get_average_embedding
+from utils.knn_service import ClipRetrievalLaion5B
+
+from express.gcp_storage import copy_folder
 from express.components.hf_datasets_components import (
     HFDatasetsTransformComponent,
     HFDatasetsDataset,
@@ -43,65 +51,68 @@ class CLIPRetrievalComponent(HFDatasetsTransformComponent):
 
         # 1) Get one particular data source from the manifest
         # TODO check whether we can leverage streaming
-        # TODO just column in the load method in the future
+        # TODO make it possible to not having to also load the index column
         logger.info("Loading embedding dataset...")
         dataset = data.load(data_source="embeddings", columns=["index", "embeddings"])
 
-        logger.info("Calculating average embedding...")
+        logger.info("Calculating centroid embedding...")
         centroid_embedding = get_average_embedding(dataset)
+        logger.info("Done calculating centroid embedding.")
 
-        print("Centroid embedding:", centroid_embedding)
+        # This component uses local SSD mounting to enable faster querying
+        # of the LAION dataset. The local SSDs are mounted in the cache directory
+        laion_index_folder = os.path.join('/cache', 'laion_dataset')
+        laion_metadata_folder = os.path.join(laion_index_folder, 'metadata')
+        laion_indices_folder = os.path.join(laion_index_folder, 'image.index')
+        os.makedirs(laion_metadata_folder, exist_ok=True)
+        os.makedirs(laion_indices_folder, exist_ok=True)
 
-        # # This component uses local SSD mounting to enable faster querying
-        # of the laion dataset. The
-        # # local SSDs are mounted in the cache directory
-        # laion_index_folder = os.path.join('/cache', 'laion_dataset')
-        # laion_metadata_folder = os.path.join(laion_index_folder, 'metadata')
-        # laion_indices_folder = os.path.join(laion_index_folder, 'image.index')
-        # os.makedirs(laion_metadata_folder, exist_ok=True)
-        # os.makedirs(laion_indices_folder, exist_ok=True)
+        # Download LAION indices and metadata from storage
+        logger.info("Downloading LAION index...")
+        start_indices = time.time()
+        copy_folder(extra_args["laion_index_url"], laion_indices_folder)
+        logger.info("LAION index download complete: it took %s minutes",
+                    round((time.time() - start_indices) / 60))
+        
+        logger.info("Downloading LAION metadata...")
+        start_metadata = time.time()
+        copy_folder(extra_args["laion_metadata_url"], laion_metadata_folder)
+        logger.info("LAION metadata download complete: it took %s minutes",
+            round((time.time() - start_metadata) / 60))
 
-        #  # Download laion indices and metadata from storage
-        # start_indices = time.time()
-        # copy_folder(extra_args["laion_index_url"], laion_indices_folder)
-        # logger.info('Laion index download complete: it took %s minutes to download the
-        # laion indices',
-        #             round((time.time() - start_indices) / 60))
-        # start_metadata = time.time()
-        # copy_folder(extra_args["laion_metadata_url"], laion_metadata_folder)
-        # logger.info(
-        #     'Laion metadata download complete: it took %s minutes to download the laion metadata',
-        #     round((time.time() - start_metadata) / 60))
+        # Setup KNN service
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_embedding_dir_path = os.path.join(tmp_dir, 'embed_dir')
+            os.makedirs(tmp_embedding_dir_path, exist_ok=True)
+            laion_indices_folder = os.path.join(tmp_dir, 'index_file.json')
+            clip_retrieval_runner = ClipRetrievalLaion5B(
+                    laion_index_path=laion_indices_folder,
+                    laion_index_folder=laion_index_folder)
+            knn_service = clip_retrieval_runner.setup_knn_service()
 
-        # # Setup KNN service
-        # with tempfile.TemporaryDirectory() as tmp_dir:
-        #     tmp_embedding_dir_path = os.path.join(tmp_dir, 'embed_dir')
-        #     os.makedirs(tmp_embedding_dir_path, exist_ok=True)
-        #     laion_indices_folder = os.path.join(tmp_dir, 'index_file.json')
-        #     clip_retrieval_runner = ClipRetrievalLaion5B(
-        #             laion_index_path=laion_indices_folder,
-        #             laion_index_folder=laion_index_folder)
-        #     knn_service = clip_retrieval_runner.setup_knn_service()
+        # Run CLIP retrieval with KNN approach
+        logger.info('Starting KNN CLIP retrieval')
+        results_knn = []
+        for embedding in tqdm(dataset["embeddings"]):
+            embedding = np.array(embedding)
+            results = clip_retrieval_runner.run_query(knn_service=knn_service,
+                                                      query={'embedding_query': embedding},
+                                                      nb_images_request=extra_args["num_images_knn"],
+                                                      deduplicate=True,
+                                                      benchmark=True)
+            results_knn.extend(results)
+        logger.info('KNN clip retrieval complete')
 
-        # logger.info('Starting centroid clip retrieval')
+        # TODO add CLIP retrieval with centroid approach
 
-        # # Run clip retrieval with centroid approach
-        # results_centroid = clip_retrieval_runner.run_query(
-        #     knn_service=knn_service,
-        #     query={'embedding_query': centroid_embedding},
-        #     nb_images_request=extra_args["nb_images_centroid"],
-        #     deduplicate=True,
-        #     benchmark=True)
-        # logger.info('Centroid clip retrieval complete')
-
-        # # 3) Create dataset draft
-        # logger.info("Creating draft...")
-        # data_sources = {}
-        # dataset_draft = HFDatasetsDatasetDraft(
-        #     data_sources=data_sources, extending_dataset=data
-        # )
-        # return dataset_draft
-        return None
+        # Create dataset draft
+        # This component doesn't change the index nor the data sources
+        logger.info("Creating draft...")
+        dataset_draft = HFDatasetsDatasetDraft(
+            index=data.manifest.index,
+            data_sources=data.manifest.data_sources,
+        )
+        return dataset_draft
 
 
 if __name__ == "__main__":

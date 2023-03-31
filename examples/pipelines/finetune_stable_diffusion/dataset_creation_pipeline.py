@@ -104,6 +104,13 @@ def sd_dataset_creator_pipeline(
     clip_retrieval_extra_args: str = clip_retrieval_extra_args,
     clip_retrieval_metadata_args: str = clip_retrieval_metadata_args,
 ):
+    # Define necessary volume mounts (local ssd)
+    local_ssd_volume = dsl.PipelineVolume(
+        volume=k8s_client.V1Volume(
+            name="scratch-volume", empty_dir=k8s_client.V1EmptyDirVolumeSource()
+        )
+    )
+
     # Component 1
     load_from_hub_task = load_from_hub_op(
         extra_args=load_from_hub_extra_args,
@@ -139,7 +146,13 @@ def sd_dataset_creator_pipeline(
         extra_args=clip_retrieval_extra_args,
         metadata=clip_retrieval_metadata_args,
         input_manifest=embedding_task.outputs["output_manifest"],
-    ).set_display_name("Retrieve images")
+    ).set_display_name("Retrieve images").set_ephemeral_storage_request(
+        "2T"
+    ).add_pvolumes(
+        {"/cache": local_ssd_volume}
+    ).add_node_selector_constraint(
+        "node_pool", "nvme-pool"
+    )
 
 
 if __name__ == "__main__":
