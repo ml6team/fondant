@@ -1,4 +1,4 @@
-name: filter images
+name: filter_images
 description: A basic component that filters images based on specific attributes
 inputs:
   - name: extra_args
