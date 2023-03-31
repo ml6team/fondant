@@ -1,5 +1,12 @@
 FROM python:3.8-slim
 
+ARG GIT_BRANCH
+ARG COMMIT_SHA
+ARG BUILD_TIMESTAMP
+ENV GIT_BRANCH $GIT_BRANCH
+ENV COMMIT_SHA $COMMIT_SHA
+ENV BUILD_TIMESTAMP $BUILD_TIMESTAMP
+
 ## System dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
