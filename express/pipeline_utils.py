@@ -13,7 +13,9 @@ if is_kfp_available():
 logger = logging.getLogger(__name__)
 
 
-def create_component_args(component: kfp.components, artifact_bucket: str, **kwargs) -> str:
+def create_component_args(
+    component: kfp.components, artifact_bucket: str, **kwargs
+) -> str:
     """
     Function that creates the component arguments as a json string
     Args:
@@ -34,7 +36,7 @@ def create_component_args(component: kfp.components, artifact_bucket: str, **kwa
 
 
 def compile_and_upload_pipeline(
-        pipeline: Callable[[], None], host: str, env: str
+    pipeline: Callable[[], None], host: str, env: str
 ) -> None:
     """Upload pipeline to kubeflow.
     Args:
