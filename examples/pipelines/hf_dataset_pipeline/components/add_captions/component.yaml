@@ -2,7 +2,7 @@ name: add_captions
 description: A basic component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
 inputs: 
     - name: args
-      description: Additional arguments passed to the component, as a json dict string
+      description: Component arguments passed as a json dict string
       type: String
     
     - name: input_manifest

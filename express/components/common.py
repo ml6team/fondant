@@ -248,19 +248,6 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         """
 
     @classmethod
-    def _create_metadata(cls, args: dict) -> Metadata:
-        """
-        Create the manifest metadata
-        Args:
-            args (dict): a dictionary containing metadata information
-        Returns:
-            Metadata: the initial metadata
-        """
-
-        initial_metadata = Metadata()
-        return cls._update_metadata(initial_metadata, args)
-
-    @classmethod
     def _update_metadata(
             cls,
             metadata: Metadata,
@@ -270,8 +257,8 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         Update the manifest metadata
         Args:
             metadata (metadata): the previous component metadata
-            metadata_args (dict): a dictionary containing metadata information related to the
-            current component
+            args ([Dict[str, Union[str, int, float, bool]]): Component arguments passed as a
+             json dict string
         Returns:
             Metadata: the initial metadata
         """
@@ -362,7 +349,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             "--args",
             type=str,
             required=True,
-            help="Extra arguments for the component, passed as a json dict string",
+            help="Component arguments passed as a json dict string",
         )
         parser.add_argument(
             "--output-manifest",
@@ -390,8 +377,8 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         Args:
             data (ExpressDataset[TIndex, TData]): express dataset providing access to data of a
              given type
-            args (Optional[Dict[str, Union[str, int, float, bool]]]): an optional dictionary
-             of additional arguments passed in by the pipeline run
+            args (Optional[Dict[str, Union[str, int, float, bool]]]): Component arguments passed as
+             a json dict string
 
         Returns:
             ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this
@@ -438,7 +425,7 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             "--args",
             type=str,
             required=True,
-            help="Extra arguments, passed as a json dict string",
+            help="Component arguments passed as a json dict string",
         )
         parser.add_argument(
             "--output-manifest",
@@ -457,9 +444,8 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         Loads data from an arbitrary source to create a draft for a new dataset.
 
         Args:
-            #TODO update
-            args (Optional[Dict[str, Union[str, int, float, bool]]): an optional dictionary
-             of additional arguments passed in by the pipeline run
+            args ([Dict[str, Union[str, int, float, bool]]): Component arguments passed as a
+             json dict string
 
         Returns:
             ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this

@@ -50,7 +50,7 @@ class AddCaptions(HFDatasetsTransformComponent):
         Args:
             data (HFDatasetsDataset[TIndex, TData]): express dataset providing access to data of a
              given type
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
+            args ([Dict[str, Union[str, int, float, bool]]): optional args to pass to
              the function (e.g. seed data source)
         Returns:
             HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output datasets/manifest

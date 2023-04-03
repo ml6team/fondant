@@ -4,7 +4,7 @@ import os
 import importlib
 import tempfile
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Union
+from typing import List, Dict, Union
 
 from express.components.common import (
     ExpressDatasetHandler,
@@ -123,7 +123,7 @@ class PandasTransformComponent(
     def transform(
         cls,
         data: PandasDataset,
-        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+        args: Dict[str, Union[str, int, float, bool]] = None,
     ) -> PandasDatasetDraft:
         """Transform dataset"""
 
@@ -136,6 +136,6 @@ class PandasLoaderComponent(
     @classmethod
     @abstractmethod
     def load(
-        cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
+        cls, args: Dict[str, Union[str, int, float, bool]] = None
     ) -> PandasDatasetDraft:
         """Load initial dataset"""

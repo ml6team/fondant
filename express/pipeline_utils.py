@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def create_component_args(artifact_bucket: str, **kwargs) -> str:
     """
-    Function that created the component
+    Function that creates the component arguments as a json string
     Args:
         artifact_bucket (str): the name of the bucket where the artifacts will be stored
         **kwargs: additional components arguments

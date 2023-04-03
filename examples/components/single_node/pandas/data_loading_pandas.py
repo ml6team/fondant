@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Union
+from typing import Dict, Union
 import pandas as pd
 
 from express.components.pandas_components import PandasLoaderComponent, PandasDatasetDraft
@@ -10,13 +10,12 @@ class SeedDatasetLoader(PandasLoaderComponent):
     """Class that inherits from Pandas data loading """
 
     @classmethod
-    def load(cls, extra_args: Optional[
-        Dict[str, Union[str, int, float, bool]]] = None) -> PandasDatasetDraft:
+    def load(cls, args: Dict[str, Union[str, int, float, bool]] = None) -> PandasDatasetDraft:
         """
         An example function showcasing the data loader component using Express functionalities
         Args:
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
-             the function (e.g. seed data source)
+            args ([Dict[str, Union[str, int, float, bool]]): Component arguments passed as a
+             json dict string
         Returns:
             PandasDatasetDraft: a dataset draft that creates a plan for an output datasets/manifest
         """

@@ -33,7 +33,7 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
         """
         An example function showcasing the data loader component using Express functionalities
         Args:
-            args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
+            args ([Dict[str, Union[str, int, float, bool]]): optional args to pass to
              the function (e.g. seed data source)
         Returns:
             HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output datasets/manifest
