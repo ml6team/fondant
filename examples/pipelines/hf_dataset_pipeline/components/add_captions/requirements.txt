@@ -1,6 +1,4 @@
-# Add component requirements here
-git+https://github.com/ml6team/express.git@main
-datasets
-transformers
-torch
-Pillow
+git+https://github.com/ml6team/express.git@27957bb4d6e0d56e52d0caee871dc16608cd235c#egg=express[datasets]
+transformers==4.27.3
+torch==2.0.0
+Pillow==9.4.0

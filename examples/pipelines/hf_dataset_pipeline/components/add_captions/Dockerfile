@@ -1,4 +1,7 @@
-FROM python:3.8-slim
+FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
+
+# Set the working directory to the source folder
+WORKDIR /src
 
 ## System dependencies
 RUN apt-get update && \
@@ -17,15 +20,12 @@ RUN mkdir -p /usr/local/gcloud \
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 
 # install requirements
-COPY requirements.txt /
+COPY ./requirements.txt /src/requirements.txt
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy over src-files of the component
 COPY src /src
 
-# TODO: ADD EXTRA FILES HERE IF NEEDED!
 
-# Set the working directory to the source folder
-WORKDIR /src
 
 ENTRYPOINT ["python", "main.py"]
