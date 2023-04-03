@@ -27,7 +27,7 @@ def create_component_args(
     """
     metadata_args = {
         "run_id": "{{workflow.name}}",
-        "component_name": f"{component.__name__}",
+        "component_name": component.__name__,
         "artifact_bucket": artifact_bucket,
     }
     extra_args = {key.lower(): value for key, value in kwargs.items()}
