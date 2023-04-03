@@ -146,7 +146,7 @@ class HFDatasetsTransformComponent(
     def transform(
         cls,
         data: HFDatasetsDataset,
-        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+        args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
     ) -> HFDatasetsDatasetDraft:
         """Transform dataset"""
 
@@ -160,6 +160,6 @@ class HFDatasetsLoaderComponent(
     @classmethod
     @abstractmethod
     def load(
-        cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
+        cls, args: Optional[Dict[str, Union[str, int, float, bool]]] = None
     ) -> HFDatasetsDatasetDraft:
         """Load initial dataset"""

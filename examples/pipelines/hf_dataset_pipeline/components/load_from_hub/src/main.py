@@ -28,7 +28,7 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
     """Class that inherits from Hugging Face data loading """
 
     @classmethod
-    def load(cls, extra_args: Optional[
+    def load(cls, args: Optional[
         Dict[str, Union[str, int, float, bool]]] = None) -> HFDatasetsDatasetDraft:
         """
         An example function showcasing the data loader component using Express functionalities
@@ -40,7 +40,7 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
         """
         # 1) Create data source
         logger.info("Loading caption dataset from the hub...")
-        dataset = load_dataset(extra_args["dataset_name"], split="train")
+        dataset = load_dataset(args["dataset_name"], split="train")
 
         # 2) Create an example index
         logger.info("Creating index...")
@@ -51,7 +51,7 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
         logger.info("Creating draft...")
         index_dataset = Dataset.from_dict({"index": index_list})
         image_dataset = dataset.remove_columns(["text"]).add_column(name="index", column=index_list)
-        image_dataset = image_dataset.map(create_metadata, batched=True)
+        #image_dataset = image_dataset.map(create_metadata, batched=True)
         text_dataset = dataset.remove_columns(["image"]).add_column(name="index", column=index_list)
         
         data_sources = {"images": image_dataset,

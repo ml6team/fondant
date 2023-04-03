@@ -12,37 +12,37 @@ from express.logger import configure_logging
 configure_logging()
 logger = logging.getLogger(__name__)
 
-from transformers import BlipProcessor, BlipForConditionalGeneration
-import torch
+# from transformers import BlipProcessor, BlipForConditionalGeneration
+# import torch
 
-repo_id = "Salesforce/blip-image-captioning-base"
-processor = BlipProcessor.from_pretrained(repo_id)
-model = BlipForConditionalGeneration.from_pretrained(repo_id)
+# repo_id = "Salesforce/blip-image-captioning-base"
+# processor = BlipProcessor.from_pretrained(repo_id)
+# model = BlipForConditionalGeneration.from_pretrained(repo_id)
+#
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+# model.to(device)
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model.to(device)
-
-def add_captions(examples):
-    # get batch of images
-    images = examples["image"]
-
-    # prepare images for the model
-    encoding = processor(images, return_tensors="pt").to(device)
-
-    # generate captions
-    generated_ids = model.generate(**encoding, max_new_tokens=50)
-    generated_captions = processor.batch_decode(generated_ids, skip_special_tokens=True)
-
-    examples["new_caption"] = generated_captions
-
-    return examples
+# def add_captions(examples):
+#     # get batch of images
+#     images = examples["image"]
+#
+#     # prepare images for the model
+#     encoding = processor(images, return_tensors="pt").to(device)
+#
+#     # generate captions
+#     generated_ids = model.generate(**encoding, max_new_tokens=50)
+#     generated_captions = processor.batch_decode(generated_ids, skip_special_tokens=True)
+#
+#     examples["new_caption"] = generated_captions
+#
+#     return examples
 
 
 class AddCaptions(HFDatasetsTransformComponent):
     """Class that inherits from Hugging Face data transform"""
 
     @classmethod
-    def transform(cls, data: HFDatasetsDataset, extra_args: Optional[
+    def transform(cls, data: HFDatasetsDataset, args: Optional[
         Dict[str, Union[str, int, float, bool]]] = None) -> HFDatasetsDatasetDraft:
         """
         An example function showcasing the data transform component using Express functionalities
@@ -61,13 +61,13 @@ class AddCaptions(HFDatasetsTransformComponent):
         image_dataset = data.load(data_source="images")
         
         # 2) Create new data source
-        logger.info("Adding alternative captions...")
-        alternative_caption_dataset = image_dataset.map(add_captions, batched=True, batch_size=2,
-                                                          remove_columns=["image", "width", "height"])
+        # logger.info("Adding alternative captions...")
+        # alternative_caption_dataset = image_dataset.map(add_captions, batched=True, batch_size=2,
+        #                                                   remove_columns=["image", "width", "height"])
         
         # 3) Create dataset draft which adds a new data source
         logger.info("Creating draft...")
-        data_sources = {"alternative_captions": alternative_caption_dataset}
+        data_sources = {"alternative_captions": image_dataset}
         dataset_draft = HFDatasetsDatasetDraft(data_sources=data_sources, extending_dataset=data)
 
         return dataset_draft

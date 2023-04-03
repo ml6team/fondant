@@ -3,6 +3,7 @@ import os
 
 from dataclasses import dataclass
 
+
 @dataclass
 class GeneralConfig:
     """
@@ -32,7 +33,7 @@ class KubeflowConfig(GeneralConfig):
 
 
 @dataclass
-class LoadFromHubConfig(GeneralConfig):
+class LoadFromHubConfig:
     """
     Config for the data loading component.
     Params:

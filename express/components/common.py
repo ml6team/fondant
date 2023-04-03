@@ -75,7 +75,7 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
     @staticmethod
     @abstractmethod
     def _load_data_source(
-        data_source: DataSource, index_filter: Optional[IndexT]
+            data_source: DataSource, index_filter: Optional[IndexT]
     ) -> DataT:
         """
         Load data from a (possibly remote) path.
@@ -109,10 +109,10 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
     """
 
     def __init__(
-        self,
-        index: Optional[Union[DataSource, IndexT]] = None,
-        data_sources: Dict[str, Union[DataSource, DataT]] = None,
-        extending_dataset: Optional[ExpressDataset[IndexT, DataT]] = None,
+            self,
+            index: Optional[Union[DataSource, IndexT]] = None,
+            data_sources: Dict[str, Union[DataSource, DataT]] = None,
+            extending_dataset: Optional[ExpressDataset[IndexT, DataT]] = None,
     ):
         self.index = index
         self.data_sources = data_sources or {}
@@ -130,12 +130,12 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
                     "added to an extending dataset draft after it's been constructed."
                 )
             self.index = extending_dataset.manifest.index
-            for name, dataset in extending_dataset.manifest.associated_data.items():
+            for name, dataset in extending_dataset.manifest.data_sources.items():
                 self.with_data_source(name, dataset, replace_ok=False)
 
     @classmethod
     def extend(
-        cls, dataset: ExpressDataset[IndexT, DataT]
+            cls, dataset: ExpressDataset[IndexT, DataT]
     ) -> "ExpressDatasetDraft[IndexT, DataT]":
         """
         Creates a new Express Dataset draft extending the given dataset, which will take over both
@@ -154,7 +154,7 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
         return self
 
     def with_data_source(
-        self, name: str, data: Union[DataT, DataSource], replace_ok=False
+            self, name: str, data: Union[DataT, DataSource], replace_ok=False
     ) -> "ExpressDatasetDraft[IndexT, DataT]":
         """
         Adds a new data source or replaces a preexisting data source with the same name.
@@ -209,7 +209,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def _load_dataset(
-        cls, input_manifest: DataManifest
+            cls, input_manifest: DataManifest
     ) -> ExpressDataset[IndexT, DataT]:
         """
         Parses a manifest to an ExpressDataset of a specific type, for downstream use by transform
@@ -233,7 +233,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def _upload_data_source(
-        cls, name: str, data: DataT, remote_path: str
+            cls, name: str, data: DataT, remote_path: str
     ) -> DataSource:
         """
         Uploads data of a certain type as parquet and creates a new DataSource.
@@ -248,24 +248,23 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         """
 
     @classmethod
-    def _create_metadata(cls, metadata_args: dict) -> Metadata:
+    def _create_metadata(cls, args: dict) -> Metadata:
         """
         Create the manifest metadata
         Args:
-            metadata_args (dict): a dictionary containing metadata information
-
+            args (dict): a dictionary containing metadata information
         Returns:
             Metadata: the initial metadata
         """
 
         initial_metadata = Metadata()
-        return cls._update_metadata(initial_metadata, metadata_args)
+        return cls._update_metadata(initial_metadata, args)
 
     @classmethod
     def _update_metadata(
-        cls,
-        metadata: Metadata,
-        metadata_args: Optional[Dict[str, Union[str, int, float, bool]]],
+            cls,
+            metadata: Metadata,
+            args: Optional[Dict[str, Union[str, int, float, bool]]],
     ) -> Metadata:
         """
         Update the manifest metadata
@@ -277,6 +276,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
             Metadata: the initial metadata
         """
         metadata_dict = metadata.to_dict()
+        metadata_args = {key: value for key, value in args.items() if key in metadata_dict}
         for metadata_key, metadata_value in metadata_args.items():
             metadata_dict[metadata_key] = metadata_value
         metadata_dict["git branch"] = os.environ.get("GIT_BRANCH")
@@ -287,10 +287,10 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
 
     @classmethod
     def _create_output_dataset(
-        cls,
-        draft: ExpressDatasetDraft[IndexT, DataT],
-        metadata: Metadata,
-        save_path: str,
+            cls,
+            draft: ExpressDatasetDraft[IndexT, DataT],
+            metadata: Metadata,
+            save_path: str,
     ) -> DataManifest:
         """
         Processes a dataset draft of a specific type, uploading all local data to storage and
@@ -328,21 +328,21 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     def run(cls) -> DataManifest:
         """
         Parses input data, executes the transform, and creates output artifacts.
-
         Returns:
             DataManifest: the output manifest
         """
-        args = cls._parse_args()
-        input_dataset = cls._load_dataset(
-            input_manifest=DataManifest.from_path(args.input_manifest)
-        )
-        output_dataset_draft = cls.transform(
-            data=input_dataset, extra_args=json.loads(args.extra_args)
-        )
+        parsed_args = cls._parse_args()
+        args_dict = json.loads(parsed_args.args)
+        input_manifest = DataManifest.from_path(parsed_args.input_manifest)
+        input_dataset = cls._load_dataset(input_manifest)
+
+        output_dataset_draft = cls.transform(data=input_dataset, args=args_dict)
+        metadata = cls._update_metadata(metadata=input_manifest.metadata,
+                                        args=args_dict)
         output_manifest = cls._create_output_dataset(
             draft=output_dataset_draft,
-            metadata=json.loads(args.metadata),
-            save_path=args.output_manifest,
+            metadata=metadata,
+            save_path=parsed_args.output_manifest,
         )
         return output_manifest
 
@@ -359,15 +359,9 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             help="The input data manifest artifact",
         )
         parser.add_argument(
-            "--metadata",
+            "--args",
             type=str,
             required=True,
-            help="The metadata associated with this pipeline run",
-        )
-        parser.add_argument(
-            "--extra-args",
-            type=str,
-            required=False,
             help="Extra arguments for the component, passed as a json dict string",
         )
         parser.add_argument(
@@ -381,9 +375,9 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def transform(
-        cls,
-        data: ExpressDataset[IndexT, DataT],
-        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+            cls,
+            data: ExpressDataset[IndexT, DataT],
+            args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
     ) -> ExpressDatasetDraft[IndexT, DataT]:
         """
         Applies transformations to the input dataset and creates a draft for a new dataset.
@@ -396,7 +390,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         Args:
             data (ExpressDataset[TIndex, TData]): express dataset providing access to data of a
              given type
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]]): an optional dictionary
+            args (Optional[Dict[str, Union[str, int, float, bool]]]): an optional dictionary
              of additional arguments passed in by the pipeline run
 
         Returns:
@@ -418,17 +412,18 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     def run(cls) -> DataManifest:
         """
         Parses input data, executes the data loader, and creates output artifacts.
-
         Returns:
             DataManifest: the output manifest
         """
-        args = cls._parse_args()
-        output_dataset_draft = cls.load(extra_args=json.loads(args.extra_args))
-        metadata = cls._create_metadata(metadata_args=json.loads(args.metadata_args))
+        parsed_args = cls._parse_args()
+        args_dict = json.loads(parsed_args.args)
+        output_dataset_draft = cls.load(args=args_dict)
+        metadata = cls._update_metadata(metadata=Metadata(),
+                                        args=args_dict)
         # Create metadata
         output_manifest = cls._create_output_dataset(
             draft=output_dataset_draft,
-            save_path=args.output_manifest,
+            save_path=parsed_args.output_manifest,
             metadata=metadata,
         )
         return output_manifest
@@ -440,15 +435,9 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         """
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            "--metadata-args",
+            "--args",
             type=str,
-            required=False,
-            help="Metadata arguments, passed as a json dict string",
-        )
-        parser.add_argument(
-            "--extra-args",
-            type=str,
-            required=False,
+            required=True,
             help="Extra arguments, passed as a json dict string",
         )
         parser.add_argument(
@@ -462,13 +451,14 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def load(
-        cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
+            cls, args: Dict[str, Union[str, int, float, bool]]
     ) -> ExpressDatasetDraft[IndexT, DataT]:
         """
         Loads data from an arbitrary source to create a draft for a new dataset.
 
         Args:
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]): an optional dictionary
+            #TODO update
+            args (Optional[Dict[str, Union[str, int, float, bool]]): an optional dictionary
              of additional arguments passed in by the pipeline run
 
         Returns:

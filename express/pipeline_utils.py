@@ -9,32 +9,32 @@ from express.import_utils import is_kfp_available
 
 if is_kfp_available():
     import kfp
+    import kfp.v2.dsl as dsl
 
 logger = logging.getLogger(__name__)
 
 
-def create_extra_args(**kwargs):
-    # create dict
-    config_dict = {k.lower(): v for k, v in kwargs.items()}
-    # turn into string representation
-    extra_args = json.dumps(config_dict)
-    return extra_args
-
-
-def create_metadata_args(component, artifact_bucket):
-    run_id = "{{workflow.name}}"
-
+def create_component_args(artifact_bucket: str, **kwargs) -> str:
+    """
+    Function that created the component
+    Args:
+        artifact_bucket (str): the name of the bucket where the artifacts will be stored
+        **kwargs: additional components arguments
+    Returns:
+        str: json string of component arguments
+    """
     metadata_args = {
-        "run_id": run_id,
-        "component_name": component.__name__,
+        "run_id": dsl.PIPELINE_JOB_ID_PLACEHOLDER,
+        "component_name": dsl.PIPELINE_TASK_ID_PLACEHOLDER,
         "artifact_bucket": artifact_bucket,
     }
-    metadata_args = json.dumps(metadata_args)
-    return metadata_args
+    extra_args = {k.lower(): v for k, v in kwargs.items()}
+
+    return json.dumps(extra_args | metadata_args)
 
 
 def compile_and_upload_pipeline(
-    pipeline: Callable[[], None], host: str, env: str
+        pipeline: Callable[[], None], host: str, env: str
 ) -> None:
     """Upload pipeline to kubeflow.
     Args:
