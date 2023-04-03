@@ -33,7 +33,7 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
         """
         An example function showcasing the data loader component using Express functionalities
         Args:
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
+            args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
              the function (e.g. seed data source)
         Returns:
             HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output datasets/manifest
@@ -51,7 +51,7 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
         logger.info("Creating draft...")
         index_dataset = Dataset.from_dict({"index": index_list})
         image_dataset = dataset.remove_columns(["text"]).add_column(name="index", column=index_list)
-        #image_dataset = image_dataset.map(create_metadata, batched=True)
+        image_dataset = image_dataset.map(create_metadata, batched=True)
         text_dataset = dataset.remove_columns(["image"]).add_column(name="index", column=index_list)
         
         data_sources = {"images": image_dataset,
