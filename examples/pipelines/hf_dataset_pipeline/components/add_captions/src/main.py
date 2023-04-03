@@ -6,7 +6,8 @@ Technically, it adds a data source to the manifest.
 import logging
 from typing import Optional, Union, Dict
 
-from express.components.hf_datasets_components import HFDatasetsTransformComponent, HFDatasetsDataset, HFDatasetsDatasetDraft
+from express.components.hf_datasets_components import HFDatasetsTransformComponent, \
+    HFDatasetsDataset, HFDatasetsDatasetDraft
 from express.logger import configure_logging
 
 configure_logging()
@@ -21,6 +22,7 @@ model = BlipForConditionalGeneration.from_pretrained(repo_id)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
+
 
 def add_captions(examples):
     # get batch of images
@@ -42,8 +44,8 @@ class AddCaptions(HFDatasetsTransformComponent):
     """Class that inherits from Hugging Face data transform"""
 
     @classmethod
-    def transform(cls, data: HFDatasetsDataset, args: Optional[
-        Dict[str, Union[str, int, float, bool]]] = None) -> HFDatasetsDatasetDraft:
+    def transform(cls, data: HFDatasetsDataset,
+                  args: Dict[str, Union[str, int, float, bool]] = None) -> HFDatasetsDatasetDraft:
         """
         An example function showcasing the data transform component using Express functionalities
         
@@ -55,15 +57,15 @@ class AddCaptions(HFDatasetsTransformComponent):
         Returns:
             HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output datasets/manifest
         """
-        
+
         # 1) Get one particular data source from the manifest
         logger.info("Loading image dataset...")
         image_dataset = data.load(data_source="images")
-        
+
         # 2) Create new data source
         logger.info("Adding alternative captions...")
         alternative_caption_dataset = image_dataset.map(add_captions, batched=True, batch_size=2,
-                                                          remove_columns=["image", "width", "height"])
+                                                        remove_columns=["image", "width", "height"])
 
         # 3) Create dataset draft which adds a new data source
         logger.info("Creating draft...")

@@ -251,7 +251,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     def _update_metadata(
         cls,
         metadata: Metadata,
-        args: Optional[Dict[str, Union[str, int, float, bool]]],
+        args: Dict[str, Union[str, int, float, bool]],
     ) -> Metadata:
         """
         Update the manifest metadata
@@ -367,7 +367,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     def transform(
         cls,
         data: ExpressDataset[IndexT, DataT],
-        args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+        args: Dict[str, Union[str, int, float, bool]] = None,
     ) -> ExpressDatasetDraft[IndexT, DataT]:
         """
         Applies transformations to the input dataset and creates a draft for a new dataset.
