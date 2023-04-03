@@ -9,26 +9,26 @@ from express.import_utils import is_kfp_available
 
 if is_kfp_available():
     import kfp
-    import kfp.v2.dsl as dsl
 
 logger = logging.getLogger(__name__)
 
 
-def create_component_args(artifact_bucket: str, **kwargs) -> str:
+def create_component_args(component: kfp.components, artifact_bucket: str, **kwargs) -> str:
     """
     Function that creates the component arguments as a json string
     Args:
+        component (kfp.component): the kubeflow component to create the arguments for
         artifact_bucket (str): the name of the bucket where the artifacts will be stored
         **kwargs: additional components arguments
     Returns:
         str: json string of component arguments
     """
     metadata_args = {
-        "run_id": dsl.PIPELINE_JOB_ID_PLACEHOLDER,
-        "component_name": dsl.PIPELINE_TASK_ID_PLACEHOLDER,
+        "run_id": "{{workflow.name}}",
+        "component_name": f"{component.__name__}",
         "artifact_bucket": artifact_bucket,
     }
-    extra_args = {k.lower(): v for k, v in kwargs.items()}
+    extra_args = {key.lower(): value for key, value in kwargs.items()}
 
     return json.dumps(extra_args | metadata_args)
 

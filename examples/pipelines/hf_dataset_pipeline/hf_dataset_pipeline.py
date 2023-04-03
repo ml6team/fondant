@@ -30,16 +30,23 @@ add_captions_args = create_component_args(component=add_captions_component,
     name='HF Dataset pipeline',
     description='Tiny pipeline that includes 2 components to load and process a HF dataset'
 )
-def hf_dataset_pipeline(load_from_hub_args: str = load_from_hub_args,
-                        add_captions_args: str = add_captions_args):
+def hf_dataset_pipeline(load_from_hub_comp_args: str = load_from_hub_args,
+                        add_captions_comp_args: str = add_captions_args):
+    """
+    An example pipeline that demonstrates the usage of Express to run a pipeline using the HF
+     datasets framework
+    Args:
+        load_from_hub_comp_args (str): load component arguments
+        add_captions_comp_args (str): caption component arguments
+    """
     # Component 1
     load_from_hub_task = load_from_hub_component \
-        (args=load_from_hub_args) \
+        (args=load_from_hub_comp_args) \
         .set_display_name('Load from hub component')
 
     # Component 2
     add_captions_task = add_captions_component \
-        (args=add_captions_args,
+        (args=add_captions_comp_args,
          input_manifest=load_from_hub_task.outputs[
              "output_manifest"],
          ).set_display_name('Add captions component') \
