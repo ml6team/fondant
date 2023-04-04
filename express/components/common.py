@@ -331,6 +331,34 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         Path(save_path).write_text(manifest.to_json(), encoding="utf-8")
         return manifest
 
+    def _verify_data_sources_in(cls, data: ExpressDataset):
+        for expected_data_source in cls.data_sources_in:
+            # get the data source from the manifest
+            if expected_data_source[0] not in data.manifest.data_sources:
+                raise ValueError(
+                    f"Input dataset is missing data source {expected_data_source}"
+                )
+            data.manifest.data_sources[expected_data_source[0]]
+            # TODO verify that the required fields are present
+            # according to the taxonomy expected_data_source[1]
+            continue
+
+        return True
+
+    def _verify_data_sources_out(cls, draft):
+        for expected_data_source in cls.data_sources_out:
+            # get the data source from the draft
+            if expected_data_source[0] not in draft.data_sources:
+                raise ValueError(
+                    f"Output dataset draft is missing data source {expected_data_source}"
+                )
+            draft.data_sources[expected_data_source[0]]
+            # TODO verify that the required fields are present
+            # according to the taxonomy expected_data_source[1]
+            continue
+
+        return True
+
 
 class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     """
@@ -351,10 +379,17 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         input_dataset = cls._load_dataset(
             input_manifest=DataManifest.from_path(args.input_manifest)
         )
+        # verify input data sources
+        cls._verify_data_sources_in(input_dataset)
+        # transform
         output_dataset_draft = cls.transform(
             data=input_dataset, extra_args=json.loads(args.extra_args)
         )
+        # verify output data sources
+        cls._verify_data_sources_out(output_dataset_draft)
+        # create metadata
         metadata = Metadata.from_dict(json.loads(args.metadata))
+        # create output manifest
         output_manifest = cls._create_output_dataset(
             draft=output_dataset_draft,
             metadata=metadata,
@@ -439,9 +474,14 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             DataManifest: the output manifest
         """
         args = cls._parse_args()
+        if cls.data_sources_in is not None:
+            raise ValueError("Loader components should not have input data sources.")
         output_dataset_draft = cls.load(extra_args=json.loads(args.extra_args))
-        metadata = cls._create_metadata(metadata_args=json.loads(args.metadata_args))
+        # verify output data sources
+        cls._verify_data_sources_out(output_dataset_draft)
         # Create metadata
+        metadata = cls._create_metadata(metadata_args=json.loads(args.metadata_args))
+        # Create output manifest
         output_manifest = cls._create_output_dataset(
             draft=output_dataset_draft,
             save_path=args.output_manifest,

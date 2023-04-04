@@ -33,7 +33,7 @@ class ImageFilterComponent(HFDatasetsTransformComponent):
     Goal is to leverage streaming."""
 
     data_sources_in = [("images", express.Image)]
-    data_sources_out = None
+    data_sources_out = [("images", express.Image)]
 
     @classmethod
     def transform(

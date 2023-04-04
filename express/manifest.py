@@ -34,6 +34,17 @@ class Text:
 
 
 @dataclass
+class Vector:
+    """
+    A single vector
+    Args:
+        size (int): size of the vector
+    """
+
+    size: int
+
+
+@dataclass
 class DataSource:
     """
     Information about the location and contents of a single data source.

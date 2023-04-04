@@ -52,7 +52,7 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
     Component that embeds the images using a CLIP model from Hugging Face.
     """
     data_sources_in = [("images", express.Image)]
-    data_sources_out = [("embeddings", express.Text)]
+    data_sources_out = [("embeddings", express.Vector)]
 
     @classmethod
     def transform(
