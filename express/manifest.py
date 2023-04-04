@@ -4,24 +4,33 @@ components of the pipeline
 """
 import json
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Dict
+from typing import Dict
 
 from dataclasses_json import dataclass_json
 
 
-class DataType(str, Enum):
+@dataclass
+class Image:
     """
-    Supported types for stored data.
+    A single image
+    Args:
+        width (int): width of the image
+        height (int): height of the image
     """
 
-    PARQUET = "parquet"
-    BLOB = "blob"
+    width: int
+    height: int
 
-    @classmethod
-    def is_valid(cls, data_type: str) -> bool:
-        """Check if data type is valid"""
-        return data_type in cls.__members__.values()
+
+@dataclass
+class Text:
+    """
+    A single text
+    Args:
+        len (int): length of the text
+    """
+
+    len: int
 
 
 @dataclass
@@ -30,18 +39,11 @@ class DataSource:
     Information about the location and contents of a single data source.
     Args:
         location (str): the URI of the data root
-        type (Union[DataType, str]): the type of data, which determines how it's interpreted
-        extensions (List[str]): under what file extensions the data is stored.
-        n_files (int): how many files make up the data
-        n_items (int): how many items (e.g. distinct images, captions, etc.) are covered by the
-         data.
+        len (int): length of the data source
     """
 
     location: str
-    type: DataType
-    extensions: List[str]
-    n_files: int = field(default_factory=int)
-    n_items: int = field(default_factory=int)
+    len: int
 
 
 @dataclass_json
@@ -78,7 +80,7 @@ class Metadata:
 @dataclass
 class DataManifest:
     """
-    The dataset Manifest
+    The manifest
     Args:
         index (DataSource): the index parquet file which indexes all the data_sources
         data_sources (List[DataSource]): Location and metadata of various data sources associated
@@ -89,24 +91,11 @@ class DataManifest:
 
     index: DataSource
     data_sources: Dict[str, DataSource] = field(default_factory=dict)
-    metadata: Metadata = field(
-        default_factory=Metadata
-    )  # TODO: make mandatory during construction
-
-    def __post_init__(self):
-        if (self.index.type != DataType.PARQUET) or (
-            not DataType.is_valid(self.index.type)
-        ):
-            raise TypeError("Index needs to be of type 'parquet'.")
-        for name, dataset in self.data_sources.items():
-            if not DataType.is_valid(dataset.type):
-                raise TypeError(
-                    f"Data type '{dataset.type}' for data source '{name}' is not valid."
-                )
+    metadata: Metadata
 
     @classmethod
     def from_path(cls, manifest_path):
-        """Load data manifest from a given manifest path"""
+        """Load manifest from a given manifest path"""
         with open(manifest_path, encoding="utf-8") as file_:
             manifest_load = json.load(file_)
             return DataManifest.from_dict(manifest_load)

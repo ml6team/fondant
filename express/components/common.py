@@ -192,6 +192,16 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
      Pandas DataFrame or a Spark RDD.
     """
 
+    @property
+    @abstractmethod
+    def data_sources_in(self):
+        pass
+
+    @property
+    @abstractmethod
+    def data_sources_out(self):
+        pass
+
     @staticmethod
     def _path_for_upload(metadata: Metadata, name: str) -> str:
         """

@@ -4,7 +4,7 @@ This component adds a data source to the manifest by embedding the images.
 import logging
 from typing import Optional, Union, Dict
 
-
+import express
 from express.components.hf_datasets_components import (
     HFDatasetsTransformComponent,
     HFDatasetsDataset,
@@ -51,6 +51,8 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
     """
     Component that embeds the images using a CLIP model from Hugging Face.
     """
+    data_sources_in = [("images", express.Image)]
+    data_sources_out = [("embeddings", express.Text)]
 
     @classmethod
     def transform(

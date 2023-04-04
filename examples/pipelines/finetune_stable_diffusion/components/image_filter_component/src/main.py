@@ -8,6 +8,7 @@ from typing import Optional, Union, Dict
 
 from datasets import Dataset
 
+import express
 from express.components.hf_datasets_components import (
     HFDatasetsTransformComponent,
     HFDatasetsDataset,
@@ -30,6 +31,9 @@ class ImageFilterComponent(HFDatasetsTransformComponent):
     Class that inherits from Hugging Face data transform.
 
     Goal is to leverage streaming."""
+
+    data_sources_in = [("images", express.Image)]
+    data_sources_out = None
 
     @classmethod
     def transform(
