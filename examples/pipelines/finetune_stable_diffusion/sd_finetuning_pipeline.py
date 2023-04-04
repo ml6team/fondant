@@ -100,7 +100,7 @@ def sd_finetuning_pipeline(
     run_id = '{{pod.name}}'
     artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
 
-    sd_finetuning_task = sd_finetuning_component(
+    sd_finetuning_component(
         project_id=GeneralConfig.GCP_PROJECT_ID,
         run_id=run_id,
         artifact_bucket=artifact_bucket,

@@ -1,5 +1,5 @@
-name: image_filter_component
-description: A component that filters images based on certain conditions.
+name: embedding_component
+description: A component that embeds images using a CLIP model from the 🤗 hub.
 inputs: 
     - name: extra_args
       description: Additional arguments passed to the component, as a json dict string
@@ -19,7 +19,7 @@ outputs:
 
 implementation:
     container:
-        image: ghcr.io/ml6team/image_filter_component:latest
+        image: ghcr.io/ml6team/embedding_component:latest
         command: [
             python3, main.py,
             --input-manifest,       {inputPath: input_manifest},
