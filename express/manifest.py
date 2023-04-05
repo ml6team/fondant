@@ -10,41 +10,6 @@ from dataclasses_json import dataclass_json
 
 
 @dataclass
-class Image:
-    """
-    A single image
-    Args:
-        width (int): width of the image
-        height (int): height of the image
-    """
-
-    width: int
-    height: int
-
-
-@dataclass
-class Text:
-    """
-    A single text
-    Args:
-        len (int): length of the text
-    """
-
-    len: int
-
-
-@dataclass
-class Vector:
-    """
-    A single vector
-    Args:
-        size (int): size of the vector
-    """
-
-    size: int
-
-
-@dataclass
 class DataSource:
     """
     Information about the location and contents of a single data source.

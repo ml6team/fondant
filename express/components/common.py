@@ -3,7 +3,6 @@ This file is the entrypoint of the component. It will parse all arguments
 and give them to the actual core of the component.
 """
 import argparse
-import dataclasses
 import json
 import os
 import importlib
@@ -357,17 +356,16 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
                     f"Output manifest is missing data source {expected_data_source}"
                 )
             data_source = draft.data_sources[expected_data_source]
-            # verify that the required fields are present
+            # verify that the required columns are present
             cls._verify_data_source(data_source, modality)
 
         return True
 
     def _verify_data_source(cls, data_source, modality):
-        modality_fields = [field.name for field in dataclasses.fields(modality)]
-        for field in modality_fields:
-            if field not in data_source.column_names:
+        for column in modality.required_columns():
+            if column not in data_source.column_names:
                 raise ValueError(
-                    f"Data source {data_source} is missing the required column {field} "
+                    f"Data source {data_source} is missing the required column {column} "
                 )
 
 

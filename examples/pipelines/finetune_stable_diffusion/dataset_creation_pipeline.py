@@ -12,7 +12,6 @@ from config.components_config import (
     LoadFromHubConfig,
     ImageFilterConfig,
     EmbeddingConfig,
-    ClipRetrievalConfig,
 )
 from express.pipeline_utils import compile_and_upload_pipeline
 
@@ -68,25 +67,6 @@ embedding_extra_args = json.dumps(embedding_extra_args)
 embedding_metadata_args = json.dumps(embedding_metadata_args)
 
 
-# Component 4
-clip_retrieval_op = comp.load_component(
-    "components/clip_retrieval_component/component.yaml"
-)
-clip_retrieval_extra_args = {
-    "model_id": ClipRetrievalConfig.LAION_INDEX_URL,
-    "batch_size": ClipRetrievalConfig.LAION_METADATA_URL,
-    "num_images_knn": ClipRetrievalConfig.NUM_IMAGES_KNN,
-    "num_images_centroid": ClipRetrievalConfig.NUM_IMAGES_CENTROID,
-}
-clip_retrieval_metadata_args = {
-    "run_id": run_id,
-    "component_name": clip_retrieval_op.__name__,
-    "artifact_bucket": artifact_bucket,
-}
-clip_retrieval_extra_args = json.dumps(clip_retrieval_extra_args)
-clip_retrieval_metadata_args = json.dumps(clip_retrieval_metadata_args)
-
-
 # Pipeline
 @dsl.pipeline(
     name="image-generator-dataset",
@@ -101,11 +81,9 @@ def sd_dataset_creator_pipeline(
     image_filter_metadata_args: str = image_filter_metadata_args,
     embedding_extra_args: str = embedding_extra_args,
     embedding_metadata_args: str = embedding_metadata_args,
-    clip_retrieval_extra_args: str = clip_retrieval_extra_args,
-    clip_retrieval_metadata_args: str = clip_retrieval_metadata_args,
 ):
     # Define necessary volume mounts (local ssd)
-    local_ssd_volume = dsl.PipelineVolume(
+    dsl.PipelineVolume(
         volume=k8s_client.V1Volume(
             name="scratch-volume", empty_dir=k8s_client.V1EmptyDirVolumeSource()
         )
@@ -125,7 +103,7 @@ def sd_dataset_creator_pipeline(
     ).set_display_name("Filter images")
 
     # Component 3
-    embedding_task = (
+    (
         embedding_op(
             extra_args=embedding_extra_args,
             metadata=embedding_metadata_args,
@@ -139,19 +117,6 @@ def sd_dataset_creator_pipeline(
                 effect="NoSchedule", key="reserved-pool", operator="Equal", value="true"
             )
         )
-    )
-
-    # Component 4
-    clip_retrieval_op(
-        extra_args=clip_retrieval_extra_args,
-        metadata=clip_retrieval_metadata_args,
-        input_manifest=embedding_task.outputs["output_manifest"],
-    ).set_display_name("Retrieve images").set_ephemeral_storage_request(
-        "2T"
-    ).add_pvolumes(
-        {"/cache": local_ssd_volume}
-    ).add_node_selector_constraint(
-        "node_pool", "nvme-pool"
     )
 
 

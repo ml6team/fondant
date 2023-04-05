@@ -34,7 +34,7 @@ class LoadFromHubComponent(HFDatasetsLoaderComponent):
     """Component that loads a dataset from the hub and creates the initial manifest."""
 
     data_sources_in = None
-    data_sources_out = [("images", express.Image), ("captions", express.Text)]
+    data_sources_out = [("images", express.taxonomy.Image), ("captions", express.taxonomy.Text)]
 
     @classmethod
     def load(
