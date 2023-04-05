@@ -55,6 +55,7 @@ class DataSource:
 
     location: str
     len: int
+    column_names: list
 
 
 @dataclass_json

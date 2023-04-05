@@ -3,6 +3,7 @@ This file is the entrypoint of the component. It will parse all arguments
 and give them to the actual core of the component.
 """
 import argparse
+import dataclasses
 import json
 import os
 import importlib
@@ -332,32 +333,42 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         return manifest
 
     def _verify_data_sources_in(cls, data: ExpressDataset):
-        for expected_data_source in cls.data_sources_in:
+        if cls.data_sources_in is None:
+            return True
+        for expected_data_source, modality in cls.data_sources_in:
             # get the data source from the manifest
-            if expected_data_source[0] not in data.manifest.data_sources:
+            if expected_data_source not in data.manifest.data_sources:
                 raise ValueError(
-                    f"Input dataset is missing data source {expected_data_source}"
+                    f"Input manifest is missing data source {expected_data_source}"
                 )
-            data.manifest.data_sources[expected_data_source[0]]
-            # TODO verify that the required fields are present
-            # according to the taxonomy expected_data_source[1]
-            continue
+            data_source = data.manifest.data_sources[expected_data_source]
+            # verify that the required fields are present
+            cls._verify_data_source(data_source, modality)
 
         return True
 
-    def _verify_data_sources_out(cls, draft):
-        for expected_data_source in cls.data_sources_out:
+    def _verify_data_sources_out(cls, draft: ExpressDatasetDraft):
+        if cls.data_sources_out is None:
+            return True
+        for expected_data_source, modality in cls.data_sources_out:
             # get the data source from the draft
-            if expected_data_source[0] not in draft.data_sources:
+            if expected_data_source not in draft.data_sources:
                 raise ValueError(
-                    f"Output dataset draft is missing data source {expected_data_source}"
+                    f"Output manifest is missing data source {expected_data_source}"
                 )
-            draft.data_sources[expected_data_source[0]]
-            # TODO verify that the required fields are present
-            # according to the taxonomy expected_data_source[1]
-            continue
+            data_source = draft.data_sources[expected_data_source]
+            # verify that the required fields are present
+            cls._verify_data_source(data_source, modality)
 
         return True
+
+    def _verify_data_source(cls, data_source, modality):
+        modality_fields = [field.name for field in dataclasses.fields(modality)]
+        for field in modality_fields:
+            if field not in data_source.column_names:
+                raise ValueError(
+                    f"Data source {data_source} is missing the required column {field} "
+                )
 
 
 class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
@@ -379,13 +390,13 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         input_dataset = cls._load_dataset(
             input_manifest=DataManifest.from_path(args.input_manifest)
         )
-        # verify input data sources
+        # verify incoming data sources
         cls._verify_data_sources_in(input_dataset)
         # transform
         output_dataset_draft = cls.transform(
             data=input_dataset, extra_args=json.loads(args.extra_args)
         )
-        # verify output data sources
+        # verify outgoing data sources
         cls._verify_data_sources_out(output_dataset_draft)
         # create metadata
         metadata = Metadata.from_dict(json.loads(args.metadata))
@@ -477,11 +488,11 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         if cls.data_sources_in is not None:
             raise ValueError("Loader components should not have input data sources.")
         output_dataset_draft = cls.load(extra_args=json.loads(args.extra_args))
-        # verify output data sources
+        # verify outgoing data sources
         cls._verify_data_sources_out(output_dataset_draft)
-        # Create metadata
+        # create metadata
         metadata = cls._create_metadata(metadata_args=json.loads(args.metadata_args))
-        # Create output manifest
+        # create output manifest
         output_manifest = cls._create_output_dataset(
             draft=output_dataset_draft,
             save_path=args.output_manifest,

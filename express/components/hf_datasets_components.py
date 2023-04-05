@@ -108,10 +108,8 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
 
             return DataSource(
                 location=fully_qualified_blob_path,
-                type=DataType.PARQUET,
-                extensions=["parquet"],
-                n_files=1,
-                n_items=len(data),
+                len=len(data),
+                column_names=data.column_names,
             )
 
     @classmethod
