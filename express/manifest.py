@@ -24,6 +24,7 @@ class DataType(str, Enum):
         return data_type in cls.__members__.values()
 
 
+@dataclass_json
 @dataclass
 class DataSource:
     """

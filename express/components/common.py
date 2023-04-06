@@ -241,7 +241,14 @@ class Manifest:
         for k, v in manifest_dict.items():
             print(f"{k}: {v}")
 
-        return cls(**manifest_dict)
+        index = DataSource.from_dict(manifest_dict["index"])
+        data_sources = {
+            name: DataSource.from_dict(data_source)
+            for name, data_source in manifest_dict["data_sources"].items()
+        }
+        metadata = Metadata.from_dict(manifest_dict["metadata"])
+
+        return cls(index, data_sources, metadata)
 
 
 class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
