@@ -1,0 +1,41 @@
+{
+    "data_sources": {
+        "captions": {
+            "extensions": [
+                "parquet"
+            ],
+            "location": "gs:///custom_artifact/100//captions/captions.parquet",
+            "n_files": 1,
+            "n_items": 833,
+            "type": "parquet"
+        },
+        "images": {
+            "extensions": [
+                "parquet"
+            ],
+            "location": "gs:///custom_artifact/100//images/images.parquet",
+            "n_files": 1,
+            "n_items": 833,
+            "type": "parquet"
+        }
+    },
+    "index": {
+        "extensions": [
+            "parquet"
+        ],
+        "location": "gs:///custom_artifact/100//index/index.parquet",
+        "n_files": 1,
+        "n_items": 833,
+        "type": "parquet"
+    },
+    "metadata": {
+        "artifact_bucket": "",
+        "branch": "",
+        "commit_hash": "",
+        "component_id": "",
+        "component_name": "",
+        "creation_date": "",
+        "num_items": 0,
+        "run_id": 100
+    }
+}
