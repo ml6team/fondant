@@ -1,8 +1,8 @@
 """Pandas single component module """
 
-import os
-import importlib
 import tempfile
+import shutil
+from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
 
@@ -14,7 +14,6 @@ from express.components.common import (
     ExpressLoaderComponent,
 )
 from express.manifest import DataManifest, DataSource, DataType
-from express.storage_interface import StorageHandlerModule
 from express.import_utils import is_pandas_available
 
 if is_pandas_available():
@@ -23,11 +22,6 @@ if is_pandas_available():
 # Define interface of pandas draft
 PandasDatasetDraft = ExpressDatasetDraft[List[str], Union[pd.DataFrame, pd.Series]]
 
-STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
-    os.environ.get("CLOUD_ENV", "GCP")
-]
-STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
-
 
 class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
     """Pandas dataset"""
@@ -35,9 +29,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
     def load_index(self) -> pd.Series:
         """Function that loads in the index"""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            local_parquet_path = STORAGE_HANDLER.copy_file(
-                self.manifest.index.location, tmp_dir
-            )
+            local_parquet_path = shutil.copy(self.manifest.index.location, tmp_dir)
 
             return pd.read_parquet(local_parquet_path).squeeze()
 
@@ -50,11 +42,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_source_location = data_source.location
-
-            local_parquet_path = STORAGE_HANDLER.copy_parquet(
-                data_source_location, tmp_dir
-            )
-
+            local_parquet_path = shutil.copy(data_source_location, tmp_dir)
             data_source_df = pd.read_parquet(local_parquet_path)
 
             if index_filter:
@@ -68,7 +56,10 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
     @staticmethod
     def _upload_parquet(
-        data: Union[pd.DataFrame, pd.Series], name: str, remote_path: str
+        data: Union[pd.DataFrame, pd.Series],
+        name: str,
+        remote_path: str,
+        mount_path: str,
     ) -> DataSource:
         with tempfile.TemporaryDirectory() as temp_folder:
             # TODO: uploading without writing to temp file
@@ -79,13 +70,11 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
                 data = data.to_frame(name=name)
 
             data.to_parquet(path=dataset_path)
+            Path(mount_path).mkdir(parents=True, exist_ok=True)
+            shutil.copy(dataset_path, mount_path)
 
-            fully_qualified_blob_path = f"{remote_path}/{name}.parquet"
-            STORAGE_HANDLER.copy_file(
-                source_file=dataset_path, destination=fully_qualified_blob_path
-            )
             return DataSource(
-                location=fully_qualified_blob_path,
+                location=remote_path,
                 type=DataType.PARQUET,
                 extensions=["parquet"],
                 n_files=1,
@@ -94,18 +83,27 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
     @classmethod
     def _upload_index(
-        cls, index: Union[pd.DataFrame, pd.Series, pd.Index], remote_path: str
+        cls,
+        index: Union[pd.DataFrame, pd.Series, pd.Index],
+        remote_path: str,
+        mount_path: str,
     ) -> DataSource:
         data_source = cls._upload_parquet(
-            data=index, name="index", remote_path=remote_path
+            data=index, name="index", remote_path=remote_path, mount_path=mount_path
         )
         return data_source
 
     @classmethod
     def _upload_data_source(
-        cls, name: str, data: Union[pd.DataFrame, pd.Series, pd.Index], remote_path: str
+        cls,
+        name: str,
+        data: Union[pd.DataFrame, pd.Series, pd.Index],
+        remote_path: str,
+        mount_path: str,
     ) -> DataSource:
-        data_source = cls._upload_parquet(data=data, name=name, remote_path=remote_path)
+        data_source = cls._upload_parquet(
+            data=data, name=name, remote_path=remote_path, mount_path=mount_path
+        )
         return data_source
 
     @classmethod
