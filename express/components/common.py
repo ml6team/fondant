@@ -5,18 +5,16 @@ and give them to the actual core of the component.
 import argparse
 import json
 import os
-import importlib
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, Optional, TypeVar, Generic, Union
+from typing import Dict, Optional, TypeVar, Generic, Union, Tuple
 
 from express.manifest import DataManifest, DataSource, Metadata
-from express.storage_interface import StorageHandlerModule
-
-STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
-    os.environ.get("CLOUD_ENV", "GCP")
-]
-STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
+from express.storage_mount import (
+    mount_remote_storage,
+    unmount_remote_storage,
+    CloudProvider,
+)
 
 IndexT = TypeVar("IndexT")
 DataT = TypeVar("DataT")
@@ -188,23 +186,30 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     """
 
     @staticmethod
-    def _path_for_upload(metadata: Metadata, name: str) -> str:
+    def _path_for_upload(
+        metadata: Metadata, storage_prefix: str, mount_dir: str, name: str
+    ) -> Tuple[str, str]:
         """
         Constructs a remote path for new data sources.
 
         Args:
             metadata (MetaData): Component metadata, which is used to construct the base path.
             name (str): The name of the data source that's being created.
+            mount_dir (str): the local directory mounted with FUSE
+            storage_prefix (str): the storage file system prefix
+
         Returns:
-            str: the destination blob path (indicating a folder) where to upload the file/folder.
+            Tuple [str, str]: the remote and mount path referencing the folder where the file/folder
+             will be uploaded
         """
         artifact_bucket_blob_path = (
             f"custom_artifact/{metadata.run_id}/{metadata.component_name}/{name}"
         )
-        destination_path = STORAGE_HANDLER.construct_blob_path(
-            metadata.artifact_bucket, artifact_bucket_blob_path
-        )
-        return destination_path
+        file_path = os.path.join(metadata.artifact_bucket, artifact_bucket_blob_path)
+        remote_path = os.path.join(storage_prefix, file_path)
+        mount_path = os.path.join(mount_dir, file_path)
+
+        return remote_path, mount_path
 
     @classmethod
     @abstractmethod
@@ -218,13 +223,16 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
 
     @classmethod
     @abstractmethod
-    def _upload_index(cls, index: IndexT, remote_path: str) -> DataSource:
+    def _upload_index(
+        cls, index: IndexT, remote_path: str, mount_path: str
+    ) -> DataSource:
         """
         Uploads index data of a certain type as parquet and creates a new DataSource.
 
         Args:
             index (TIndex): index data of type `TIndex`
             remote_path (str): fully qualified remote path where to upload the data to.
+            mount_path (str): the mount path where the data will be uploaded to
 
         Returns:
             DataSource: DataSource for the newly uploaded index data
@@ -233,7 +241,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def _upload_data_source(
-        cls, name: str, data: DataT, remote_path: str
+        cls, name: str, data: DataT, remote_path: str, mount_path: str
     ) -> DataSource:
         """
         Uploads data of a certain type as parquet and creates a new DataSource.
@@ -242,6 +250,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
             name (str): name of the data source to be created.
             data (TData): data of type `TData`
             remote_path (str): fully qualified remote path where to upload the data to.
+            mount_path (str): the mount data where the data will be uploaded to
 
         Returns:
             DataSource: DataSource for the newly uploaded data source
@@ -290,7 +299,9 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         cls,
         draft: ExpressDatasetDraft[IndexT, DataT],
         metadata: Metadata,
-        save_path: str,
+        manifest_save_path: str,
+        storage_prefix: str,
+        mount_dir: str,
     ) -> DataManifest:
         """
         Processes a dataset draft of a specific type, uploading all local data to storage and
@@ -299,21 +310,28 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         if isinstance(draft.index, DataSource):
             index = draft.index
         else:
-            remote_path = cls._path_for_upload(metadata, "index")
-            index = cls._upload_index(draft.index, remote_path)
+            remote_path, mount_path = cls._path_for_upload(
+                metadata, storage_prefix, mount_dir, "index"
+            )
+            index = cls._upload_index(draft.index, remote_path, mount_path)
 
         data_sources = {}
         for name, dataset in draft.data_sources.items():
             if isinstance(dataset, DataSource):
                 data_sources[name] = dataset
             else:
-                remote_path = cls._path_for_upload(metadata, name)
-                data_sources[name] = cls._upload_data_source(name, dataset, remote_path)
+                remote_path, mount_path = cls._path_for_upload(
+                    metadata, storage_prefix, mount_dir, name
+                )
+                data_sources[name] = cls._upload_data_source(
+                    name, dataset, remote_path, mount_path
+                )
+
         manifest = DataManifest(
             index=index, data_sources=data_sources, metadata=metadata
         )
-        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(save_path).write_text(manifest.to_json(), encoding="utf-8")
+        Path(manifest_save_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(manifest_save_path).write_text(manifest.to_json(), encoding="utf-8")
         return manifest
 
 
@@ -328,22 +346,49 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     def run(cls) -> DataManifest:
         """
         Parses input data, executes the transform, and creates output artifacts.
-
         Returns:
             DataManifest: the output manifest
         """
+        # Parse arguments
         args = cls._parse_args()
+        storage_args = json.loads(args.storage_args)
+        extra_args = json.loads(args.extra_args)
+        metadata_args = json.loads(args.metadata_args)
+
+        # Get specific cloud storage configs
+        cloud_storage = CloudProvider[storage_args["cloud_env"]].value
+        storage_mount_cmd, storage_prefix = (
+            cloud_storage.fuse_command,
+            cloud_storage.storage_prefix,
+        )
+
+        # Mount remote storage
+        mount_remote_storage(
+            mount_buckets=storage_args["mount_buckets"],
+            mount_dir=storage_args["mount_dir"],
+            mount_command=storage_mount_cmd,
+            mount_args=storage_args["mount_args"],
+            mount_kwargs=storage_args["mount_kwargs"],
+        )
+
+        # Load dataset, transform and create draft
         input_dataset = cls._load_dataset(
             input_manifest=DataManifest.from_path(args.input_manifest)
         )
-        output_dataset_draft = cls.transform(
-            data=input_dataset, extra_args=json.loads(args.extra_args)
-        )
+        output_dataset_draft = cls.transform(data=input_dataset, extra_args=extra_args)
+
+        # Create output manifest
+        metadata = Metadata.from_dict(metadata_args)
         output_manifest = cls._create_output_dataset(
+            mount_dir=storage_args["mount_dir"],
+            storage_prefix=storage_prefix,
             draft=output_dataset_draft,
-            metadata=json.loads(args.metadata),
-            save_path=args.output_manifest,
+            metadata=metadata,
+            manifest_save_path=args.output_manifest,
         )
+
+        # unmount remote storage
+        unmount_remote_storage(mount_dir=storage_args["mount_dir"])
         return output_manifest
 
     @classmethod
@@ -357,6 +402,12 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             type=str,
             required=True,
             help="The input data manifest artifact",
+        )
+        parser.add_argument(
+            "--storage-args",
+            type=str,
+            required=True,
+            help="The storage argument for the component, passed as a json string",
         )
         parser.add_argument(
             "--metadata",
@@ -422,15 +473,43 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         Returns:
             DataManifest: the output manifest
         """
+        # Parse arguments
         args = cls._parse_args()
-        output_dataset_draft = cls.load(extra_args=json.loads(args.extra_args))
-        metadata = cls._create_metadata(metadata_args=json.loads(args.metadata_args))
-        # Create metadata
+        storage_args = json.loads(args.storage_args)
+        extra_args = json.loads(args.extra_args)
+        metadata_args = json.loads(args.metadata_args)
+
+        # Get specific cloud storage configs
+        cloud_storage = CloudProvider[storage_args["cloud_env"]].value
+        storage_mount_cmd, storage_prefix = (
+            cloud_storage.mount_command,
+            cloud_storage.storage_prefix,
+        )
+
+        # Mount remote storage
+        mount_remote_storage(
+            mount_buckets=storage_args["mount_buckets"],
+            mount_dir=storage_args["mount_dir"],
+            mount_command=storage_mount_cmd,
+            mount_args=storage_args["mount_args"],
+            mount_kwargs=storage_args["mount_kwargs"],
+        )
+
+        # Load dataset and create metadata
+        output_dataset_draft = cls.load(extra_args=extra_args)
+        metadata = cls._create_metadata(metadata_args=metadata_args)
+
+        # Create output manifest
         output_manifest = cls._create_output_dataset(
+            storage_prefix=storage_prefix,
+            mount_dir=storage_args["mount_dir"],
             draft=output_dataset_draft,
-            save_path=args.output_manifest,
+            manifest_save_path=args.output_manifest,
             metadata=metadata,
         )
+
+        # unmount remote storage
+        unmount_remote_storage(mount_dir=storage_args["mount_dir"])
         return output_manifest
 
     @classmethod
@@ -439,6 +518,12 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         Parse component arguments
         """
         parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "--storage-args",
+            type=str,
+            required=True,
+            help="The storage argument for the component, passed as a json string",
+        )
         parser.add_argument(
             "--metadata-args",
             type=str,
