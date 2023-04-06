@@ -230,12 +230,14 @@ class Manifest:
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     @classmethod
-    def load_manifest(cls, manifest_path):
-        manifest = Path(manifest_path).read_text(encoding="utf-8")
+    def from_json(cls, json_file):
+        # TODO perhaps use this
+        # manifest = Path(manifest_path).read_text(encoding="utf-8")
 
-        print("Manifest:", manifest)
-
-        return cls()
+        with open(json_file, "r", encoding="utf-8") as reader:
+            text = reader.read()
+        manifest_dict = json.loads(text)
+        return cls(**manifest_dict)
 
 
 class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
@@ -362,7 +364,8 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             DataManifest: the output manifest
         """
         args = cls._parse_args()
-        input_manifest = Manifest.load_manifest(args.input_manifest)
+        input_manifest = Manifest.from_json(args.input_manifest)
+        print("Input manifest after reading:", input_manifest)
         output_manifest = cls.transform(
             manifest=input_manifest,
             args=json.loads(args.args),
