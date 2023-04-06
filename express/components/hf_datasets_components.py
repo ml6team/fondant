@@ -7,23 +7,22 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
 
 from express.storage_interface import StorageHandlerModule
-from express.manifest import DataManifest, DataSource, DataType
+from express.manifest import DataSource, DataType
 from express.import_utils import is_datasets_available
 from .common import (
     ExpressDatasetHandler,
-    ExpressDataset,
+    # ExpressDataset,
     ExpressTransformComponent,
-    ExpressDatasetDraft,
+    # ExpressDatasetDraft,
     ExpressLoaderComponent,
 )
 
 if is_datasets_available():
     import datasets
-    from datasets import load_dataset
 
 # Define interface of pandas draft
 # pylint: disable=unsubscriptable-object
-HFDatasetsDatasetDraft = ExpressDatasetDraft[List[str], datasets.Dataset]
+# HFDatasetsDatasetDraft = ExpressDatasetDraft[List[str], datasets.Dataset]
 
 # pylint: disable=no-member
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
@@ -33,58 +32,58 @@ STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
 
 
 # pylint: disable=too-few-public-methods
-class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
-    """Hugging Face Datasets dataset"""
+# class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
+#     """Hugging Face Datasets dataset"""
 
-    def load_index(self) -> datasets.Dataset:
-        """Function that loads in the index"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            local_parquet_path = STORAGE_HANDLER.copy_file(
-                self.manifest.index.location, tmp_dir
-            )
+#     def load_index(self) -> datasets.Dataset:
+#         """Function that loads in the index"""
+#         with tempfile.TemporaryDirectory() as tmp_dir:
+#             local_parquet_path = STORAGE_HANDLER.copy_file(
+#                 self.manifest.index.location, tmp_dir
+#             )
 
-            # we specify "train" here to get a `Dataset` instead of a `DatasetDict`
-            dataset = load_dataset(
-                "parquet", data_files=local_parquet_path, split="train"
-            )
+#             # we specify "train" here to get a `Dataset` instead of a `DatasetDict`
+#             dataset = load_dataset(
+#                 "parquet", data_files=local_parquet_path, split="train"
+#             )
 
-            return dataset
+#             return dataset
 
-    @staticmethod
-    def _load_data_source(
-        data_source: DataSource,
-        index_filter: datasets.Dataset,
-        **kwargs,
-    ) -> datasets.Dataset:
-        """Function that loads in a data source"""
-        if data_source.type != DataType.PARQUET:
-            raise TypeError("Only reading from parquet is currently supported.")
+#     @staticmethod
+#     def _load_data_source(
+#         data_source: DataSource,
+#         index_filter: datasets.Dataset,
+#         **kwargs,
+#     ) -> datasets.Dataset:
+#         """Function that loads in a data source"""
+#         if data_source.type != DataType.PARQUET:
+#             raise TypeError("Only reading from parquet is currently supported.")
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            data_source_location = data_source.location
+#         with tempfile.TemporaryDirectory() as tmp_dir:
+#             data_source_location = data_source.location
 
-            local_parquet_path = STORAGE_HANDLER.copy_parquet(
-                data_source_location, tmp_dir
-            )
+#             local_parquet_path = STORAGE_HANDLER.copy_parquet(
+#                 data_source_location, tmp_dir
+#             )
 
-            if "columns" in kwargs:
-                if "index" not in kwargs["columns"]:
-                    raise ValueError(
-                        "Please also include the index when specifying columns"
-                    )
+#             if "columns" in kwargs:
+#                 if "index" not in kwargs["columns"]:
+#                     raise ValueError(
+#                         "Please also include the index when specifying columns"
+#                     )
 
-            dataset = load_dataset(
-                "parquet",
-                data_files=local_parquet_path,
-                split="train",
-                **kwargs,
-            )
+#             dataset = load_dataset(
+#                 "parquet",
+#                 data_files=local_parquet_path,
+#                 split="train",
+#                 **kwargs,
+#             )
 
-            if index_filter:
-                index = index_filter["index"]
-                return dataset.filter(lambda example: example["index"] in index)
+#             if index_filter:
+#                 index = index_filter["index"]
+#                 return dataset.filter(lambda example: example["index"] in index)
 
-            return dataset
+#             return dataset
 
 
 class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset]):
@@ -131,9 +130,9 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
         data_source = cls._upload_parquet(data=data, name=name, remote_path=remote_path)
         return data_source
 
-    @classmethod
-    def _load_dataset(cls, input_manifest: DataManifest) -> HFDatasetsDataset:
-        return HFDatasetsDataset(input_manifest)
+    # @classmethod
+    # def _load_dataset(cls, input_manifest: DataManifest) -> HFDatasetsDataset:
+    #     return HFDatasetsDataset(input_manifest)
 
 
 class HFDatasetsTransformComponent(
@@ -150,9 +149,9 @@ class HFDatasetsTransformComponent(
     @abstractmethod
     def transform(
         cls,
-        data: HFDatasetsDataset,
+        data,
         extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
-    ) -> HFDatasetsDatasetDraft:
+    ):
         """Transform dataset"""
 
 
@@ -165,6 +164,8 @@ class HFDatasetsLoaderComponent(
     @classmethod
     @abstractmethod
     def load(
-        cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
-    ) -> HFDatasetsDatasetDraft:
+        cls,
+        args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+        metadata=None,
+    ):
         """Load initial dataset"""
