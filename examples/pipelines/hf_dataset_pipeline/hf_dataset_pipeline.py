@@ -9,7 +9,7 @@ from kfp import dsl
 
 from config.general_config import GeneralConfig, KubeflowConfig
 
-from express.kfp_utils import compile_and_upload_pipeline
+from express.pipeline_utils import compile_and_upload_pipeline
 
 # Load Components
 run_id = '{{workflow.name}}'
