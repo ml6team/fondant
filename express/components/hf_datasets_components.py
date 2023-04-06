@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
 
 from express.storage_interface import StorageHandlerModule
-from express.manifest import DataManifest, DataSource, DataType
+from express.manifest import DataManifest, DataSource
 from express.import_utils import is_datasets_available
 from .common import (
     ExpressDatasetHandler,
@@ -57,9 +57,6 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
         **kwargs,
     ) -> datasets.Dataset:
         """Function that loads in a data source"""
-        if data_source.type != DataType.PARQUET:
-            raise TypeError("Only reading from parquet is currently supported.")
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_source_location = data_source.location
 

@@ -5,19 +5,16 @@ Test scripts for manifest helpers
 
 import pytest
 
-from express.manifest import DataManifest, DataSource, Metadata, DataType
+from express.manifest import DataManifest, DataSource, Metadata
 
 
 @pytest.fixture
 def valid_manifest_data():
     """Generate valid data to populate the metadata"""
-    index = DataSource(location='gs://my-bucket/index.parquet', type=DataType.PARQUET,
-                       extensions=['parquet'])
+    index = DataSource(location='gs://my-bucket/index.parquet', len=100, column_names=['id'])
     data_sources = {
-        'source1': DataSource(location='gs://my-bucket/data1.parquet', type=DataType.PARQUET,
-                              extensions=['parquet']),
-        'source2': DataSource(location='gs://my-bucket/data2.blob', type=DataType.BLOB,
-                              extensions=['blob'])
+        'source1': DataSource(location='gs://my-bucket/data1.parquet', len=100, column_names=['id']),
+        'source2': DataSource(location='gs://my-bucket/data2.blob', len=100, column_names=['id'])
     }
     metadata = Metadata(artifact_bucket='gs://my-bucket/artifacts', run_id='12345',
                         component_id='component1',
@@ -27,8 +24,8 @@ def valid_manifest_data():
 
 
 @pytest.mark.parametrize('invalid_index', [
-    DataSource(location='gs://my-bucket/index.csv', type=DataType.BLOB, extensions=['csv']),
-    DataSource(location='gs://my-bucket/index.parquet', type=DataType.BLOB, extensions=['parquet']),
+    DataSource(location='gs://my-bucket/index.csv', extensions=['csv']),
+    DataSource(location='gs://my-bucket/index.parquet', extensions=['parquet']),
 ])
 def test_invalid_index(invalid_index, valid_manifest_data):
     """Test the validity of an index"""

@@ -13,7 +13,7 @@ from express.components.common import (
     ExpressDatasetDraft,
     ExpressLoaderComponent,
 )
-from express.manifest import DataManifest, DataSource, DataType
+from express.manifest import DataManifest, DataSource
 from express.storage_interface import StorageHandlerModule
 from express.import_utils import is_pandas_available
 
@@ -45,9 +45,6 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
     def _load_data_source(
         data_source: DataSource, index_filter: Union[pd.DataFrame, pd.Series, List[str]]
     ) -> pd.DataFrame:
-        if data_source.type != DataType.PARQUET:
-            raise TypeError("Only reading from parquet is currently supported.")
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_source_location = data_source.location
 
@@ -86,10 +83,7 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
             )
             return DataSource(
                 location=fully_qualified_blob_path,
-                type=DataType.PARQUET,
-                extensions=["parquet"],
-                n_files=1,
-                n_items=len(data),
+                len=len(data),
             )
 
     @classmethod
