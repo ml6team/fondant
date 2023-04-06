@@ -5,7 +5,7 @@ import logging
 from typing import Optional, Union, Dict
 
 import pandas as pd
-from datasets import Dataset, load_dataset, concatenate_datasets
+from datasets import Dataset, load_dataset
 
 from express.components.hf_datasets_components import HFDatasetsLoaderComponent, HFDatasetsDatasetDraft
 from express.logger import configure_logging

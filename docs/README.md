@@ -100,3 +100,61 @@ After transforming the input data (see below), an **ExpressDatasetDraft** create
 The most common type of component in Express is an **ExpressTransformComponent**, which takes an `ExpressDataset` and an optional dict of arguments as input and returns an `ExpressDatasetDraft` of transformed output data.
 
 However, at the start of a new pipeline, you won't yet have any express datasets to transform. Instead, an express pipeline can use an **ExpressLoaderComponent** as entry-point, which only takes the optional dict of arguments to construct an ExpressDatasetDraft. For example, the arguments could specify an external data location and how to interpret it, after which a loader job can create a first `ExpressDataset`.
+
+## **Data Manifest: a common approach to simplify different steps throughout the pipeline**
+In order to keep track of the different data sources, we opt for a manifest-centered approach where 
+a manifest is simply a JSON file that is passed and modified throughout the different steps of the pipeline. 
+
+```json
+{
+   "dataset_id":"<run_id>-<component_name>",
+   "index":"<path to the index parquet file>",
+   "associated_data":{
+      "dataset":{
+         "namespace_1":"<path to the dataset (metadata) parquet file of the datasets associated with `namespace_1`>",
+         "...":""
+      },
+      "caption":{
+         "namespace_1":"<path to the caption parquet file associated with `namespace_1`>",
+         "...":""
+      },
+      "embedding":{
+         "namespace_1":"<remote path to the directory containing the embeddings associated with `namespace_1`",
+         "...":""
+      }
+   },
+   "metadata":{
+      "branch":"<the name of the branch associated with the component>",
+      "commit_hash":"<the commit of the component>",
+      "creation_date":"<the creation date of the manifest>",
+      "run_id":"<a unique identifier associated with the kfp pipeline run>"
+   }
+}
+```
+Further deep dive on some notations:  
+
+* **namespace:** the namespace is used to identify the different data sources. For example, you can give 
+your seed images a specific namespace (e.g. `seed`). Then, the images retrieved with clip-retrieval will 
+have different namespace (e.g. `knn`, `centroid`).
+
+* **index**: the index denotes a unique index for each images with the format <namespace_uid> (e.g. `seed_00010`).
+It indexes all the data sources in `associated_data`.
+**Note**: the index keeps track of all the namespace (e.g. [`seed_00010`,`centroid_0001`, ...])
+
+* **dataset**: a set of parquet files for each namespace that contain relevant metadata
+(image size, location, ...) as well as the index.
+
+* **caption**: a set of parquet files for each namespace that contain captions
+image captions as well as the index.
+
+* **metadata**: Helps keep track of the step that generated that manifest, code version and pipeline run id.
+
+The Express pipeline consists of multiple steps defines as **Express steps** that are repeated 
+throughout the pipeline. The manifest pattern offers the required flexibility to promote its reuse and avoid
+duplication of data sources. For example:  
+
+* **Data filtering** (e.g. filtering on image size): add new indices to the `index` but retain associated data.  
+
+* **Data creation** (e.g. clip retrieval): add new indicies to the new `index` and another source of data under associated data with a new namespace.  
+
+* **Data transformation** (e.g. image formatting): retain indices but replace dataset source in `dataset`.  

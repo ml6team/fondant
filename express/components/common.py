@@ -46,7 +46,9 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         Loads the index data.
         """
 
-    def load(self, data_source: str, for_index: Optional[IndexT] = None) -> DataT:
+    def load(
+        self, data_source: str, for_index: Optional[IndexT] = None, **kwargs
+    ) -> DataT:
         """
         Load data from a named data source.
 
@@ -55,6 +57,7 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
             for_index (Optional[TIndex]): Pass in an index to filter the data on. By default, the
              original Dataset index is used. This argument can be used to use a different
               index instead.
+            kwargs (dict): Additional keyword arguments forwarded to the _load_data_source method.
 
         Returns:
             TData: Data of type TData
@@ -67,13 +70,15 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         if for_index is None:
             for_index = self._index_data
         return self._load_data_source(
-            self.manifest.data_sources[data_source], for_index
+            self.manifest.data_sources[data_source], for_index, **kwargs
         )
 
     @staticmethod
     @abstractmethod
     def _load_data_source(
-        data_source: DataSource, index_filter: Optional[IndexT]
+        data_source: DataSource,
+        index_filter: Optional[IndexT],
+        **kwargs,
     ) -> DataT:
         """
         Load data from a (possibly remote) path.
@@ -128,7 +133,7 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
                     "added to an extending dataset draft after it's been constructed."
                 )
             self.index = extending_dataset.manifest.index
-            for name, dataset in extending_dataset.manifest.associated_data.items():
+            for name, dataset in extending_dataset.manifest.data_sources.items():
                 self.with_data_source(name, dataset, replace_ok=False)
 
     @classmethod

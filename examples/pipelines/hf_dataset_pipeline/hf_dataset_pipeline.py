@@ -45,7 +45,7 @@ def hf_dataset_pipeline(load_from_hub_extra_args: str = load_from_hub_extra_args
     ).set_display_name('Load from hub component')
 
     # Component 2
-    add_captions_task = add_captions_op(extra_args=add_captions_extra_args,
+    add_captions_op(extra_args=add_captions_extra_args,
                                         metadata=add_captions_metadata_args,
                                         input_manifest=load_from_hub_task.outputs["output_manifest"],
     ).set_display_name('Add captions component')

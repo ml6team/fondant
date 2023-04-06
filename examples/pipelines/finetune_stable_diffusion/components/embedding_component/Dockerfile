@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.8-slim
+FROM --platform=linux/amd64 pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
 
 ## System dependencies
 RUN apt-get update && \
@@ -17,8 +17,8 @@ RUN mkdir -p /usr/local/gcloud \
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 
 # install requirements
-COPY requirements.txt /
-RUN pip3 install --no-cache-dir -r requirements.txt
+COPY requirements.txt /tmp/requirements.txt
+RUN python3 -m pip install -r /tmp/requirements.txt
 
 # Copy over src-files of the component
 COPY src /src
