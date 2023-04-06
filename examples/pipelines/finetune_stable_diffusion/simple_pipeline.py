@@ -73,12 +73,12 @@ def sd_dataset_creator_pipeline(
         metadata=load_from_hub_metadata,
     ).set_display_name("Load initial images")
 
-    # # Component 2
-    # image_filter_task = image_filter_op(
-    #     args=image_filter_args,
-    #     metadata=image_filter_metadata,
-    #     input_manifest=load_from_hub_task.outputs["output_manifest"],
-    # ).set_display_name("Filter images")
+    # Component 2
+    image_filter_task = image_filter_op(
+        input_manifest=load_from_hub_task.outputs["output_manifest"],
+        args=image_filter_args,
+        metadata=image_filter_metadata,
+    ).set_display_name("Filter images")
 
 
 if __name__ == "__main__":

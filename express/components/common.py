@@ -229,12 +229,13 @@ class Manifest:
         # based on https://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
-    def load_manifest(self, manifest_path):
+    @classmethod
+    def load_manifest(cls, manifest_path):
         manifest = Path(manifest_path).read_text(encoding="utf-8")
 
         print("Manifest:", manifest)
 
-        return self()
+        return cls()
 
 
 class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
