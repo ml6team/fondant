@@ -7,7 +7,7 @@ from typing import Optional, Union, Dict
 
 from datasets import Dataset, load_dataset
 
-import express
+from express.taxonomy import Image, Text
 from express.components.hf_datasets_components import (
     HFDatasetsLoaderComponent,
     HFDatasetsDatasetDraft,
@@ -34,7 +34,7 @@ class LoadFromHubComponent(HFDatasetsLoaderComponent):
     """Component that loads a dataset from the hub and creates the initial manifest."""
 
     data_sources_in = None
-    data_sources_out = [("images", express.taxonomy.Image), ("captions", express.taxonomy.Text)]
+    data_sources_out = [("images", Image()), ("captions", Text())]
 
     @classmethod
     def load(
