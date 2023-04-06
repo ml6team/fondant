@@ -37,9 +37,8 @@ class LoadFromHubComponent(HFDatasetsLoaderComponent):
         """
         An example function showcasing the data loader component using Express functionalities
         Args:
-            args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
-             the function (e.g. seed data source)
-            metadata
+            args: optional args to pass to the function (e.g. seed data source)
+            metadata: metadata to pass to the manifest
         Returns:
             Manifest: output manifest
         """

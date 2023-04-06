@@ -1,12 +1,12 @@
 name: load_from_hub_component
 description: A basic component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
 inputs: 
-    - name: extra_args
+    - name: args
       description: Additional arguments passed to the component, as a json dict string
       type: String
     
-    - name: metadata_args
-      description: Metadata arguments, passed as a json dict string
+    - name: metadata
+      description: Metadata, passed as a json dict string
       type: String
     
 outputs:
@@ -18,7 +18,7 @@ implementation:
         image: ghcr.io/ml6team/load_from_hub_component:latest
         command: [
             python3, main.py,
-            --extra-args,          {inputValue: extra_args},
-            --metadata-args,       {inputValue: metadata_args},
+            --args,                {inputValue: args},
+            --metadata,            {inputValue: metadata},
             --output-manifest,     {outputPath: output_manifest},
         ]
