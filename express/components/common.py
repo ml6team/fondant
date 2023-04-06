@@ -234,9 +234,13 @@ class Manifest:
         # TODO perhaps use this
         # manifest = Path(manifest_path).read_text(encoding="utf-8")
 
-        with open(json_file, "r", encoding="utf-8") as reader:
-            text = reader.read()
-        manifest_dict = json.loads(text)
+        with open(json_file, encoding="utf-8") as file_:
+            manifest_dict = json.load(file_)
+
+        print("Manifest dict:", manifest_dict)
+        for k, v in manifest_dict.items():
+            print(f"{k}: {v}")
+
         return cls(**manifest_dict)
 
 
