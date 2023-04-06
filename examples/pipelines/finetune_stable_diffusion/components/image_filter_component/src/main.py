@@ -52,14 +52,22 @@ class ImageFilterComponent(HFDatasetsTransformComponent):
             data_source="images", columns=["index", "width", "height"]
         )
 
+        print("Metadata dataset", metadata_dataset)
+        print("Length of the dataset:", len(metadata_dataset))
+
         # 2) Update index by filtering
         logger.info("Filtering dataset...")
         min_width, min_height = args["min_width"], args["min_height"]
         filtered_dataset = metadata_dataset.filter(lambda example: example["width"] > min_width and example["height"] > min_height)
         index_dataset = Dataset.from_dict({"index": filtered_dataset["index"]})
 
+        print("First index:", index_dataset[0])
+
         # 3) Update index of the manifest
+        print("Manifest metadata:", manifest.metadata)
         manifest.update_index(index_dataset)
+
+        print("Updated the index")
 
         return manifest
 

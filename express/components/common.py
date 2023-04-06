@@ -397,10 +397,12 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             manifest=input_manifest,
             args=json.loads(args.args),
         )
+        print("Output manifest after transform:", output_manifest)
         # update metadata based on args.metadata
         output_manifest._update_metadata(
             output_manifest.metadata, json.loads(args.metadata)
         )
+        print("Output manifest after updating metadata:", output_manifest)
 
         return output_manifest
 
