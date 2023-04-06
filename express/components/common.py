@@ -14,7 +14,7 @@ from typing import Dict, Optional, TypeVar, Generic, Union
 import datasets
 from datasets import load_dataset
 
-from express.manifest import DataManifest, DataSource, Metadata, DataType
+from express.manifest import DataManifest, DataSource, Metadata
 from express.storage_interface import StorageHandlerModule
 
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
@@ -74,10 +74,8 @@ class Manifest:
 
             return DataSource(
                 location=fully_qualified_blob_path,
-                type=DataType.PARQUET,
-                extensions=["parquet"],
-                n_files=1,
-                n_items=len(data),
+                len=len(data),
+                column_names=data.column_names,
             )
 
     @classmethod

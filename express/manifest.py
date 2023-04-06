@@ -39,10 +39,8 @@ class DataSource:
     """
 
     location: str
-    type: DataType
-    extensions: List[str]
-    n_files: int = field(default_factory=int)
-    n_items: int = field(default_factory=int)
+    len: int
+    column_names: List[str]
 
 
 @dataclass_json
