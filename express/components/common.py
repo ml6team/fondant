@@ -398,7 +398,9 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             args=json.loads(args.args),
         )
         # update metadata based on args.metadata
-        output_manifest._update_metadata(output_manifest.metadata, args.metadata)
+        output_manifest._update_metadata(
+            output_manifest.metadata, json.loads(args.metadata)
+        )
 
         return output_manifest
 
