@@ -396,8 +396,10 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         output_manifest = cls.transform(
             manifest=input_manifest,
             args=json.loads(args.args),
-            metadata=json.loads(args.metadata),
         )
+        # update metadata based on args.metadata
+        output_manifest._update_metadata(output_manifest.metadata, args.metadata)
+
         return output_manifest
 
     @classmethod
@@ -482,7 +484,6 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             args=json.loads(args.args), metadata=json.loads(args.metadata)
         )
         # upload manifest
-        print("Output manifest:", output_manifest)
         output_manifest.upload(save_path=args.output_manifest)
 
     @classmethod

@@ -32,7 +32,6 @@ class ImageFilterComponent(HFDatasetsTransformComponent):
         cls,
         manifest: Manifest,
         args = None,
-        metadata = None,
     ) -> Manifest:
         """
         An example function showcasing the data transform component using Express functionalities
