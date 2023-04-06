@@ -68,7 +68,9 @@ class DataManifest:
 
     index: DataSource
     data_sources: Dict[str, DataSource] = field(default_factory=dict)
-    metadata: Metadata
+    metadata: Metadata = field(
+        default_factory=Metadata
+    )  # TODO: make mandatory during construction
 
     @classmethod
     def from_path(cls, manifest_path):
