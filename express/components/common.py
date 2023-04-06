@@ -182,8 +182,7 @@ class Manifest:
         """
         # TODO this is framework specific
 
-    @classmethod
-    def _create_metadata(cls, metadata_args: dict) -> Metadata:
+    def _create_metadata(self, metadata_args: dict) -> Metadata:
         """
         Create the manifest metadata
         Args:
@@ -194,11 +193,10 @@ class Manifest:
         """
 
         initial_metadata = Metadata()
-        return cls._update_metadata(initial_metadata, metadata_args)
+        return self._update_metadata(initial_metadata, metadata_args)
 
-    @classmethod
     def _update_metadata(
-        cls,
+        self,
         metadata: Metadata,
         metadata_args: Optional[Dict[str, Union[str, int, float, bool]]],
     ) -> Metadata:
@@ -246,9 +244,8 @@ class Manifest:
             name: DataSource.from_dict(data_source)
             for name, data_source in manifest_dict["data_sources"].items()
         }
-        metadata = Metadata.from_dict(manifest_dict["metadata"])
 
-        return cls(index, data_sources, metadata)
+        return cls(index, data_sources, manifest_dict["metadata"])
 
 
 class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
