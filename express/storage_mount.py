@@ -1,4 +1,5 @@
-import subprocess
+"""Storage mounting functionalities"""
+import subprocess  # nosec
 import logging
 import os
 from typing import Sequence, List, NamedTuple, Dict, Optional
@@ -18,6 +19,7 @@ class CloudStorageConfig(NamedTuple):
         storage_prefix (str): The prefix used to access the storage system.
         mount_command (str): The command used to mount the storage system.
     """
+
     storage_prefix: str
     mount_command: str
 
@@ -31,17 +33,20 @@ class CloudProvider(Enum):
         AWS (CloudStorageConfig): Amazon Web Services storage configuration.
         AZURE (CloudStorageConfig): Microsoft Azure storage configuration.
     """
+
     GCP = CloudStorageConfig("gs://", "gcsfuse")
     AWS = CloudStorageConfig("s3://", "s3fs")
     # TODO: double check azure storage prefix
     AZURE = CloudStorageConfig("blob.core.windows.net://", "blobfuse")
 
 
-def mount_remote_storage(mount_buckets: Sequence[str],
-                         mount_dir: str,
-                         mount_command: str,
-                         mount_args: Optional[List[str]] = None,
-                         mount_kwargs: Optional[Dict[str, any]] = None):
+def mount_remote_storage(
+    mount_buckets: Sequence[str],
+    mount_dir: str,
+    mount_command: str,
+    mount_args: Optional[List[str]] = None,
+    mount_kwargs: Optional[Dict[str, any]] = None,
+):
     """
     Function that mounts a remote bucket to a local directory using FUSE
     Args:
@@ -65,15 +70,18 @@ def mount_remote_storage(mount_buckets: Sequence[str],
         mount_path = os.path.join(mount_dir, mount_bucket)
         try:
             Path(mount_path).mkdir(parents=True, exist_ok=True)
-            extra_args_list = create_subprocess_arguments(args=mount_args, kwargs=mount_kwargs)
-            extra_args_string = ' '.join(extra_args_list)
+            extra_args_list = create_subprocess_arguments(
+                args=mount_args, kwargs=mount_kwargs
+            )
+            extra_args_string = " ".join(extra_args_list)
             command = [mount_command, extra_args_string, mount_bucket, mount_path]
             subprocess.run(command, check=True)  # nosec
             logger.info(f"Mounted {mount_bucket} to {mount_path}")
         except FileNotFoundError:
             raise FileNotFoundError(
                 f"{mount_command} was not found. Please make sure that you have "
-                f"configured the proper installation in your component.")
+                f"configured the proper installation in your component."
+            )
         except Exception as e:
             raise Exception(f"Failed to mount {mount_bucket} to {mount_path}: {e}")
 
