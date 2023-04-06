@@ -28,11 +28,13 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
     Args:
         manifest (DataManifest): A manifest that describes the different data sources comprising
         the Dataset, as well as their locations.
+        mount_dir (str): the local directory mounted with FUSE
     """
 
-    def __init__(self, manifest: DataManifest):
+    def __init__(self, manifest: DataManifest, mount_dir: str):
+        self.mount_dir = mount_dir
         self.manifest = manifest
-        self._index_data = self.load_index()
+        self._index_data = self.load_index(self.mount_dir)
 
     def extend(self) -> "ExpressDatasetDraft[IndexT, DataT]":
         """
@@ -41,9 +43,11 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         return ExpressDatasetDraft.extend(self)
 
     @abstractmethod
-    def load_index(self) -> IndexT:
+    def load_index(self, mount_dir: str) -> IndexT:
         """
         Loads the index data.
+        Args:
+            mount_dir (str): the local directory mounted with fuse
         """
 
     def load(
@@ -70,13 +74,14 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         if for_index is None:
             for_index = self._index_data
         return self._load_data_source(
-            self.manifest.data_sources[data_source], for_index, **kwargs
+            self.manifest.data_sources[data_source], self.mount_dir, for_index, **kwargs
         )
 
     @staticmethod
     @abstractmethod
     def _load_data_source(
         data_source: DataSource,
+        mount_dir: str,
         index_filter: Optional[IndexT],
         **kwargs,
     ) -> DataT:
@@ -88,6 +93,7 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         Args:
             data_source (DataSource): The DataSource to load the data from.
             index_filter (Optional[TIndex]): Pass in an index to filter the data on.
+            mount_dir(str): the local directory mounted with FUSE
 
         Returns:
             TData: Data of type TData
@@ -219,7 +225,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def _load_dataset(
-        cls, input_manifest: DataManifest
+        cls, input_manifest: DataManifest, mount_dir: str
     ) -> ExpressDataset[IndexT, DataT]:
         """
         Parses a manifest to an ExpressDataset of a specific type, for downstream use by transform
@@ -358,12 +364,12 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         args = cls._parse_args()
         storage_args = json.loads(args.storage_args)
         extra_args = json.loads(args.extra_args)
-        metadata_args = json.loads(args.metadata_args)
+        metadata_args = json.loads(args.metadata)
 
         # Get specific cloud storage configs
         cloud_storage = CloudProvider[storage_args["cloud_env"]].value
         storage_mount_cmd, storage_prefix = (
-            cloud_storage.fuse_command,
+            cloud_storage.mount_command,
             cloud_storage.storage_prefix,
         )
 
@@ -378,7 +384,8 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
 
         # Load dataset, transform and create draft
         input_dataset = cls._load_dataset(
-            input_manifest=DataManifest.from_path(args.input_manifest)
+            input_manifest=DataManifest.from_path(args.input_manifest),
+            mount_dir=storage_args["mount_dir"],
         )
         output_dataset_draft = cls.transform(data=input_dataset, extra_args=extra_args)
 
