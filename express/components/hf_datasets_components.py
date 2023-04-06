@@ -1,14 +1,12 @@
 """Hugging Face Datasets single component module """
-
 import os
-import importlib
-import tempfile
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
+from pathlib import Path
 
-from express.storage_interface import StorageHandlerModule
 from express.manifest import DataManifest, DataSource, DataType
 from express.import_utils import is_datasets_available
+from express.io import get_path_from_url
 from .common import (
     ExpressDatasetHandler,
     ExpressDataset,
@@ -25,34 +23,26 @@ if is_datasets_available():
 # pylint: disable=unsubscriptable-object
 HFDatasetsDatasetDraft = ExpressDatasetDraft[List[str], datasets.Dataset]
 
-# pylint: disable=no-member
-STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
-    os.environ.get("CLOUD_ENV", "GCP")
-]
-STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
-
 
 # pylint: disable=too-few-public-methods
 class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
     """Hugging Face Datasets dataset"""
 
-    def load_index(self) -> datasets.Dataset:
-        """Function that loads in the index"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            local_parquet_path = STORAGE_HANDLER.copy_file(
-                self.manifest.index.location, tmp_dir
-            )
+    def load_index(self, mount_dir: str) -> datasets.Dataset:
+        """
+        Function that loads in the index
+        Args:
+            mount_dir(str): the local directory mounted with FUSE
+        """
+        index_location = get_path_from_url(self.manifest.index.location)
+        index_path = os.path.join(mount_dir, index_location)
 
-            # we specify "train" here to get a `Dataset` instead of a `DatasetDict`
-            dataset = load_dataset(
-                "parquet", data_files=local_parquet_path, split="train"
-            )
-
-            return dataset
+        return load_dataset("parquet", data_dir=index_path, split="train")
 
     @staticmethod
     def _load_data_source(
         data_source: DataSource,
+        mount_dir: str,
         index_filter: datasets.Dataset,
         **kwargs,
     ) -> datasets.Dataset:
@@ -60,31 +50,24 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
         if data_source.type != DataType.PARQUET:
             raise TypeError("Only reading from parquet is currently supported.")
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            data_source_location = data_source.location
+        data_source_location = get_path_from_url(data_source.location)
+        data_source_path = os.path.join(mount_dir, data_source_location)
 
-            local_parquet_path = STORAGE_HANDLER.copy_parquet(
-                data_source_location, tmp_dir
-            )
+        if "columns" in kwargs:
+            if "index" not in kwargs["columns"]:
+                raise ValueError(
+                    "Please also include the index when specifying columns"
+                )
 
-            if "columns" in kwargs:
-                if "index" not in kwargs["columns"]:
-                    raise ValueError(
-                        "Please also include the index when specifying columns"
-                    )
+        dataset = load_dataset(
+            "parquet", data_dir=data_source_path, split="train", **kwargs
+        )
 
-            dataset = load_dataset(
-                "parquet",
-                data_files=local_parquet_path,
-                split="train",
-                **kwargs,
-            )
+        if index_filter:
+            index = index_filter["index"]
+            return dataset.filter(lambda example: example["index"] in index)
 
-            if index_filter:
-                index = index_filter["index"]
-                return dataset.filter(lambda example: example["index"] in index)
-
-            return dataset
+        return dataset
 
 
 class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset]):
@@ -92,32 +75,28 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
 
     @staticmethod
     def _upload_parquet(
-        data: datasets.Dataset, name: str, remote_path: str
+        data: datasets.Dataset, name: str, remote_path: str, mount_path: str
     ) -> DataSource:
-        with tempfile.TemporaryDirectory() as temp_folder:
-            # TODO: uploading without writing to temp file
-            # TODO: sharded parquet? not sure if we should shard the index or only the data sources
-            dataset_path = f"{temp_folder}/{name}.parquet"
+        # TODO: sharded parquet? not sure if we should shard the index or only the data sources
+        Path(mount_path).mkdir(parents=True, exist_ok=True)
+        upload_path = f"{mount_path}/{name}.parquet"
+        # TODO: Investigate why sharding is not possible with HF dataset (can only write to file)
+        data.to_parquet(path_or_buf=upload_path)
 
-            data.to_parquet(path_or_buf=dataset_path)
-
-            fully_qualified_blob_path = f"{remote_path}/{name}.parquet"
-            STORAGE_HANDLER.copy_file(
-                source_file=dataset_path, destination=fully_qualified_blob_path
-            )
-
-            return DataSource(
-                location=fully_qualified_blob_path,
-                type=DataType.PARQUET,
-                extensions=["parquet"],
-                n_files=1,
-                n_items=len(data),
-            )
+        return DataSource(
+            location=remote_path,
+            type=DataType.PARQUET,
+            extensions=["parquet"],
+            n_files=1,
+            n_items=len(data),
+        )
 
     @classmethod
-    def _upload_index(cls, index: datasets.Dataset, remote_path: str) -> DataSource:
+    def _upload_index(
+        cls, index: datasets.Dataset, remote_path: str, mount_path: str
+    ) -> DataSource:
         data_source = cls._upload_parquet(
-            data=index, name="index", remote_path=remote_path
+            data=index, name="index", remote_path=remote_path, mount_path=mount_path
         )
         return data_source
 
@@ -127,13 +106,18 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
         name: str,
         data: datasets.Dataset,
         remote_path: str,
+        mount_path: str,
     ) -> DataSource:
-        data_source = cls._upload_parquet(data=data, name=name, remote_path=remote_path)
+        data_source = cls._upload_parquet(
+            data=data, name=name, remote_path=remote_path, mount_path=mount_path
+        )
         return data_source
 
     @classmethod
-    def _load_dataset(cls, input_manifest: DataManifest) -> HFDatasetsDataset:
-        return HFDatasetsDataset(input_manifest)
+    def _load_dataset(
+        cls, input_manifest: DataManifest, mount_dir: str
+    ) -> HFDatasetsDataset:
+        return HFDatasetsDataset(input_manifest, mount_dir)
 
 
 class HFDatasetsTransformComponent(
