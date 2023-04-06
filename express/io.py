@@ -4,6 +4,7 @@ General I/O helpers function
 import pathlib
 import logging
 import os
+from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -31,3 +32,37 @@ def get_file_name(file_uri: str, return_extension=False):
     if return_extension:
         file_name = f"{file_name}{extension}"
     return file_name
+
+
+def create_subprocess_arguments(
+    args: Optional[List[str]] = None, kwargs: Optional[Dict[str, Any]] = None
+) -> List[str]:
+    """
+    Function that creates subprocess arguments from a list of positional arguments
+    and a dictionary of keyword arguments.
+
+    Args:
+        args: A list of positional arguments to be included as subprocess arguments.
+        kwargs: A dictionary of keyword arguments to be included as subprocess arguments.
+    Returns:
+        A list of strings representing the subprocess arguments.
+    """
+    subprocess_args = []
+
+    if args is not None:
+        for arg in args:
+            if "--" not in arg:
+                subprocess_args.append(f"--{arg}")
+            else:
+                subprocess_args.append(arg)
+
+    if kwargs is not None:
+        for key, value in kwargs.items():
+            key_prefix = "-" if key[0] != "-" else ""
+            subprocess_args.append(f"{key_prefix}{key}")
+            if isinstance(value, bool) or value is None:
+                continue
+            else:
+                subprocess_args.append(str(value))
+
+    return subprocess_args

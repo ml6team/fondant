@@ -2,8 +2,9 @@
 Test scripts for io functionalities
 """
 import pytest
+from typing import Any, List
 
-from express.io import get_file_name, get_file_extension
+from express.io import get_file_name, get_file_extension, create_subprocess_arguments
 
 
 @pytest.mark.parametrize(
@@ -32,3 +33,17 @@ def test_get_file_name(file_uri, return_extension, expected_result):
 def test_file_extension(file_name, expected_result):
     """Test get file extension function"""
     assert get_file_extension(file_name) == expected_result
+
+
+@pytest.mark.parametrize(
+    "args, kwargs, expected",
+    [
+        (["foo", "--bar"], {"baz": 123, "--qux": True}, ["--foo", "--bar", "-baz", "123", "--qux"]),
+        ([], {"foo": "bar"}, ["-foo", "bar"]),
+        ([], {}, [])
+    ]
+)
+def test_create_subprocess_arguments(args: List[str], kwargs: dict[str, Any],
+                                     expected: List[str]) -> None:
+    """Test create subprocess argument function"""
+    assert create_subprocess_arguments(args, kwargs) == expected
