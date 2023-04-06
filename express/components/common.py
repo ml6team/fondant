@@ -129,7 +129,7 @@ class Manifest:
         """
         Updates the index of the manifest.
         """
-        return self._create_index(index, self.metadata)
+        self.index = self._create_index(index, self.metadata)
 
     # TODO this is framework specific
     def load_index(self) -> datasets.Dataset:
