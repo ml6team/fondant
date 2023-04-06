@@ -120,23 +120,30 @@ class Manifest:
 
     def add_data_source(self, name, data):
         """
-        Creates an `ExpressDatasetDraft` that extends this dataset.
+        Add a data source to the manifest.
         """
         # TODO
         raise NotImplementedError("")
 
     def update_index(self, index):
         """
-        Updates the index of the manifest."""
+        Updates the index of the manifest.
+        """
         # TODO
         raise NotImplementedError("Updating the index is not yet supported.")
 
-    @abstractmethod
-    def load_index(self) -> IndexT:
-        """
-        Loads the index data.
-        """
-        # TODO this is framework specific
+    # TODO this is framework specific
+    def load_index(self) -> datasets.Dataset:
+        """Function that loads in the index"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            local_parquet_path = STORAGE_HANDLER.copy_file(self.index.location, tmp_dir)
+
+            # we specify "train" here to get a `Dataset` instead of a `DatasetDict`
+            dataset = load_dataset(
+                "parquet", data_files=local_parquet_path, split="train"
+            )
+
+            return dataset
 
     def load(self, data_source: str, index: Optional[IndexT] = None, **kwargs) -> DataT:
         """
@@ -158,7 +165,7 @@ class Manifest:
                 f"{self.data_sources.keys()}."
             )
         if index is None:
-            index = self.index
+            index = self.load_index()
         return self._load_data_source(self.data_sources[data_source], index, **kwargs)
 
     # TODO this is actually framework specific
@@ -169,9 +176,6 @@ class Manifest:
         **kwargs,
     ) -> datasets.Dataset:
         """Function that loads in a data source"""
-        if data_source.type != DataType.PARQUET:
-            raise TypeError("Only reading from parquet is currently supported.")
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_source_location = data_source.location
 
