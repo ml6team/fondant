@@ -1,3 +1,3 @@
 datasets==2.10.1
-git+https://github.com/ml6team/express.git@main
+git+https://github.com/ml6team/express.git@e4a7a8966b4fe1399cfdc8378c337069d7efadc5
 Pillow==9.4.0

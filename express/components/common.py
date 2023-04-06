@@ -118,8 +118,14 @@ class Manifest:
 
     def add_data_source(self, name, data):
         """
-        Create an `ExpressDatasetDraft` that extends this dataset.
+        Creates an `ExpressDatasetDraft` that extends this dataset.
         """
+        # TODO
+        raise NotImplementedError("")
+
+    def update_index(self, index):
+        """
+        Updates the index of the manifest."""
         # TODO
         raise NotImplementedError("")
 
@@ -128,6 +134,7 @@ class Manifest:
         """
         Loads the index data.
         """
+        # TODO this is framework specific
 
     def load(self, data_source: str, index: Optional[IndexT] = None, **kwargs) -> DataT:
         """
@@ -173,6 +180,7 @@ class Manifest:
         Returns:
             TData: Data of type TData
         """
+        # TODO this is framework specific
 
     @classmethod
     def _create_metadata(cls, metadata_args: dict) -> Metadata:
@@ -223,7 +231,10 @@ class Manifest:
 
     def load_manifest(self, manifest_path):
         manifest = Path(manifest_path).read_text(encoding="utf-8")
-        return manifest
+
+        print("Manifest:", manifest)
+
+        return self()
 
 
 class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
@@ -350,7 +361,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             DataManifest: the output manifest
         """
         args = cls._parse_args()
-        input_manifest = cls._load_manifest(args.input_manifest)
+        input_manifest = Manifest.load_manifest(args.input_manifest)
         output_manifest = cls.transform(
             manifest=input_manifest,
             args=json.loads(args.args),
