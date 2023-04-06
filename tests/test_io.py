@@ -4,7 +4,8 @@ Test scripts for io functionalities
 import pytest
 from typing import Any, List
 
-from express.io import get_file_name, get_file_extension, create_subprocess_arguments
+from express.io import get_file_name, get_file_extension, create_subprocess_arguments, \
+    get_path_from_url
 
 
 @pytest.mark.parametrize(
@@ -47,3 +48,12 @@ def test_create_subprocess_arguments(args: List[str], kwargs: dict[str, Any],
                                      expected: List[str]) -> None:
     """Test create subprocess argument function"""
     assert create_subprocess_arguments(args, kwargs) == expected
+
+
+@pytest.mark.parametrize("url, expected_path", [
+    ("gs://bucket/blob/image", "bucket/blob/image"),
+    ("https://www.google.com/search?q=python", "www.google.com/search"),
+    ("ftp://ftp.example.com/dir/file.txt", "ftp.example.com/dir/file.txt")
+])
+def test_get_path_from_url(url, expected_path):
+    assert get_path_from_url(url) == expected_path

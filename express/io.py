@@ -4,9 +4,21 @@ General I/O helpers function
 import pathlib
 import logging
 import os
+from urllib.parse import urlparse
 from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
+
+
+def get_path_from_url(url) -> str:
+    """
+    Function that extract the path from a given url"""
+    try:
+        parsed_url = urlparse(url)
+        path = f"{parsed_url.netloc}{parsed_url.path}"
+    except Exception as e:
+        raise Exception(e)
+    return path
 
 
 def get_file_extension(file_name: str) -> str:
