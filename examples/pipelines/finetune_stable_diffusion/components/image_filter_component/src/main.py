@@ -62,6 +62,7 @@ class ImageFilterComponent(HFDatasetsTransformComponent):
         index_dataset = Dataset.from_dict({"index": filtered_dataset["index"]})
 
         print("First index:", index_dataset[0])
+        print("Length of the dataset:", len(index_dataset))
 
         # 3) Update index of the manifest
         print("Manifest metadata:", manifest.metadata)

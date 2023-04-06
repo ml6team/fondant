@@ -393,16 +393,17 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         args = cls._parse_args()
         # load manifest
         input_manifest = Manifest.from_json(args.input_manifest)
+        # update metadata based on args.metadata
+        # TODO check whether metadata is properly updated
+        input_manifest._update_metadata(
+            input_manifest.metadata, json.loads(args.metadata)
+        )
         # transform
         output_manifest = cls.transform(
             manifest=input_manifest,
             args=json.loads(args.args),
         )
-        # update metadata based on args.metadata
-        # TODO check whether metadata is properly updated
-        output_manifest._update_metadata(
-            output_manifest.metadata, json.loads(args.metadata)
-        )
+
         print("Output manifest after updating metadata:", output_manifest)
         print("Content of manifest:", output_manifest.to_json())
 
