@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Dict, Optional, TypeVar, Generic, Union
 
 import datasets
+from datasets import load_dataset
 
 from express.manifest import DataManifest, DataSource, Metadata, DataType
 from express.storage_interface import StorageHandlerModule
@@ -54,6 +55,7 @@ class Manifest:
         )
         return destination_path
 
+    # TODO this is framework specific
     @staticmethod
     def _upload_parquet(
         data: datasets.Dataset, name: str, remote_path: str
@@ -127,7 +129,7 @@ class Manifest:
         """
         Updates the index of the manifest."""
         # TODO
-        raise NotImplementedError("")
+        raise NotImplementedError("Updating the index is not yet supported.")
 
     @abstractmethod
     def load_index(self) -> IndexT:
@@ -157,30 +159,44 @@ class Manifest:
             )
         if index is None:
             index = self.index
-        return self._load_data_source(
-            self.manifest.data_sources[data_source], index, **kwargs
-        )
+        return self._load_data_source(self.data_sources[data_source], index, **kwargs)
 
+    # TODO this is actually framework specific
     @staticmethod
-    @abstractmethod
     def _load_data_source(
         data_source: DataSource,
-        index_filter: Optional[IndexT],
+        index_filter: datasets.Dataset,
         **kwargs,
-    ) -> DataT:
-        """
-        Load data from a (possibly remote) path.
-        This method can be subclassed to present data in a specific way. For example, as a local
-         dataframe, a lazy access method, or a distributed set of data.
+    ) -> datasets.Dataset:
+        """Function that loads in a data source"""
+        if data_source.type != DataType.PARQUET:
+            raise TypeError("Only reading from parquet is currently supported.")
 
-        Args:
-            data_source (DataSource): The DataSource to load the data from.
-            index_filter (Optional[TIndex]): Pass in an index to filter the data on.
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_source_location = data_source.location
 
-        Returns:
-            TData: Data of type TData
-        """
-        # TODO this is framework specific
+            local_parquet_path = STORAGE_HANDLER.copy_parquet(
+                data_source_location, tmp_dir
+            )
+
+            if "columns" in kwargs:
+                if "index" not in kwargs["columns"]:
+                    raise ValueError(
+                        "Please also include the index when specifying columns"
+                    )
+
+            dataset = load_dataset(
+                "parquet",
+                data_files=local_parquet_path,
+                split="train",
+                **kwargs,
+            )
+
+            if index_filter:
+                index = index_filter["index"]
+                return dataset.filter(lambda example: example["index"] in index)
+
+            return dataset
 
     def _create_metadata(self, metadata_args: dict) -> Metadata:
         """
