@@ -24,6 +24,9 @@ class Text:
     def required_columns(self):
         return ["len"]
 
+    def __repr__(self) -> str:
+        return "Text"
+
 
 class Vector:
     """

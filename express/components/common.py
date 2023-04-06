@@ -331,6 +331,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         Path(save_path).write_text(manifest.to_json(), encoding="utf-8")
         return manifest
 
+    @classmethod
     def _verify_data_sources_in(cls, data: ExpressDataset):
         if cls.data_sources_in is None:
             return True
@@ -346,6 +347,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
 
         return True
 
+    @classmethod
     def _verify_data_sources_out(cls, draft: ExpressDatasetDraft):
         if cls.data_sources_out is None:
             return True
@@ -361,11 +363,12 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
 
         return True
 
+    @classmethod
     def _verify_data_source(cls, data_source, modality):
         for column in modality.required_columns():
             if column not in data_source.column_names:
                 raise ValueError(
-                    f"Data source {data_source} is missing the required column {column} "
+                    f"Data source {modality} is missing the required column {column} "
                 )
 
 
@@ -486,8 +489,9 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         if cls.data_sources_in is not None:
             raise ValueError("Loader components should not have input data sources.")
         output_dataset_draft = cls.load(extra_args=json.loads(args.extra_args))
+        print("Output draft:", output_dataset_draft)
         # verify outgoing data sources
-        cls._verify_data_sources_out(output_dataset_draft)
+        cls._verify_data_sources_out(draft=output_dataset_draft)
         # create metadata
         metadata = cls._create_metadata(metadata_args=json.loads(args.metadata_args))
         # create output manifest
