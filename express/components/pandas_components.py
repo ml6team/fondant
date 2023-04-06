@@ -1,7 +1,5 @@
 """Pandas single component module """
-
-import tempfile
-import shutil
+import os
 from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
@@ -15,6 +13,7 @@ from express.components.common import (
 )
 from express.manifest import DataManifest, DataSource, DataType
 from express.import_utils import is_pandas_available
+from express.io import get_path_from_url
 
 if is_pandas_available():
     import pandas as pd
@@ -26,29 +25,31 @@ PandasDatasetDraft = ExpressDatasetDraft[List[str], Union[pd.DataFrame, pd.Serie
 class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
     """Pandas dataset"""
 
-    def load_index(self) -> pd.Series:
+    def load_index(self, mount_dir: str) -> pd.Series:
         """Function that loads in the index"""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            local_parquet_path = shutil.copy(self.manifest.index.location, tmp_dir)
+        index_location = get_path_from_url(self.manifest.index.location)
+        index_path = os.path.join(mount_dir, index_location)
 
-            return pd.read_parquet(local_parquet_path).squeeze()
+        return pd.read_parquet(index_path).squeeze()
 
     @staticmethod
     def _load_data_source(
-        data_source: DataSource, index_filter: Union[pd.DataFrame, pd.Series, List[str]]
+        data_source: DataSource,
+        mount_dir: str,
+        index_filter: Union[pd.DataFrame, pd.Series, List[str]],
+        **kwargs
     ) -> pd.DataFrame:
         if data_source.type != DataType.PARQUET:
             raise TypeError("Only reading from parquet is currently supported.")
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            data_source_location = data_source.location
-            local_parquet_path = shutil.copy(data_source_location, tmp_dir)
-            data_source_df = pd.read_parquet(local_parquet_path)
+        data_source_location = get_path_from_url(data_source.location)
+        data_source_path = os.path.join(mount_dir, data_source_location)
+        data_source_df = pd.read_parquet(data_source_path)
 
-            if index_filter:
-                return data_source_df.loc[index_filter]
+        if index_filter:
+            return data_source_df.loc[index_filter]
 
-            return data_source_df
+        return data_source_df
 
 
 class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
@@ -61,25 +62,22 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
         remote_path: str,
         mount_path: str,
     ) -> DataSource:
-        with tempfile.TemporaryDirectory() as temp_folder:
-            # TODO: uploading without writing to temp file
-            # TODO: sharded parquet? not sure if we should shard the index or only the data sources
-            dataset_path = f"{temp_folder}/{name}.parquet"
+        # TODO: sharded parquet? not sure if we should shard the index or only the data sources
+        Path(mount_path).mkdir(parents=True, exist_ok=True)
 
-            if isinstance(data, (pd.Index, pd.Series)):
-                data = data.to_frame(name=name)
+        # Convert to df to be able to write to parquet
+        if isinstance(data, (pd.Index, pd.Series)):
+            data = data.to_frame(name=name)
 
-            data.to_parquet(path=dataset_path)
-            Path(mount_path).mkdir(parents=True, exist_ok=True)
-            shutil.copy(dataset_path, mount_path)
+        data.to_parquet(path=mount_path)
 
-            return DataSource(
-                location=remote_path,
-                type=DataType.PARQUET,
-                extensions=["parquet"],
-                n_files=1,
-                n_items=len(data),
-            )
+        return DataSource(
+            location=remote_path,
+            type=DataType.PARQUET,
+            extensions=["parquet"],
+            n_files=1,
+            n_items=len(data),
+        )
 
     @classmethod
     def _upload_index(
@@ -107,8 +105,10 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
         return data_source
 
     @classmethod
-    def _load_dataset(cls, input_manifest: DataManifest) -> PandasDataset:
-        return PandasDataset(input_manifest)
+    def _load_dataset(
+        cls, input_manifest: DataManifest, mount_dir: str
+    ) -> PandasDataset:
+        return PandasDataset(input_manifest, mount_dir)
 
 
 class PandasTransformComponent(
