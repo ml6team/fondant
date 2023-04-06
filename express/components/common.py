@@ -129,8 +129,7 @@ class Manifest:
         """
         Updates the index of the manifest.
         """
-        # TODO
-        raise NotImplementedError("Updating the index is not yet supported.")
+        return self._create_index(index, self.metadata)
 
     # TODO this is framework specific
     def load_index(self) -> datasets.Dataset:
