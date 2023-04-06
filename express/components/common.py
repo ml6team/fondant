@@ -221,6 +221,10 @@ class Manifest:
         # based on https://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
+    def load_manifest(self, manifest_path):
+        manifest = Path(manifest_path).read_text(encoding="utf-8")
+        return manifest
+
 
 class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     """
@@ -228,35 +232,6 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     Can be subclassed to deal with a specific type of parsed data representations, like reading to a
      Pandas DataFrame or a Spark RDD.
     """
-
-    # @staticmethod
-    # def _path_for_upload(metadata: Metadata, name: str) -> str:
-    #     """
-    #     Constructs a remote path for new data sources.
-
-    #     Args:
-    #         metadata (MetaData): Component metadata, which is used to construct the base path.
-    #         name (str): The name of the data source that's being created.
-    #     Returns:
-    #         str: the destination blob path (indicating a folder) where to upload the file/folder.
-    #     """
-    #     artifact_bucket_blob_path = (
-    #         f"custom_artifact/{metadata.run_id}/{metadata.component_name}/{name}"
-    #     )
-    #     destination_path = STORAGE_HANDLER.construct_blob_path(
-    #         metadata.artifact_bucket, artifact_bucket_blob_path
-    #     )
-    #     return destination_path
-
-    # @classmethod
-    # @abstractmethod
-    # def _load_dataset(
-    #     cls, input_manifest: DataManifest
-    # ) -> ExpressDataset[IndexT, DataT]:
-    #     """
-    #     Parses a manifest to an ExpressDataset of a specific type, for downstream use by transform
-    #     components.
-    #     """
 
     @classmethod
     @abstractmethod
@@ -378,8 +353,8 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         input_manifest = cls._load_manifest(args.input_manifest)
         output_manifest = cls.transform(
             manifest=input_manifest,
-            extra_args=json.loads(args.extra_args),
-            metadata_args=json.loads(args.metadata),
+            args=json.loads(args.args),
+            metadata=json.loads(args.metadata),
         )
         return output_manifest
 
@@ -393,7 +368,13 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             "--input-manifest",
             type=str,
             required=True,
-            help="The input data manifest artifact",
+            help="Path to the input data manifest",
+        )
+        parser.add_argument(
+            "--args",
+            type=str,
+            required=False,
+            help="Extra arguments for the component, passed as a json dict string",
         )
         parser.add_argument(
             "--metadata",
@@ -402,16 +383,10 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             help="The metadata associated with this pipeline run",
         )
         parser.add_argument(
-            "--extra-args",
-            type=str,
-            required=False,
-            help="Extra arguments for the component, passed as a json dict string",
-        )
-        parser.add_argument(
             "--output-manifest",
             type=str,
             required=True,
-            help="The output data manifest artifact",
+            help="Path to store the output data manifest",
         )
         return parser.parse_args()
 
@@ -447,8 +422,8 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     """
     An abstract component that facilitates creation of a new output manifest.
     This will commonly be the first component in a Fondant Pipeline. It can be subclassed or used
-     with a mixin to support loading of a specific data type, and to implement specific dataset
-      loaders.
+    with a mixin to support loading of a specific data type, and to implement specific dataset
+    loaders.
     """
 
     @classmethod
@@ -502,7 +477,7 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         metadata=None,
     ) -> Manifest:
         """
-        Loads data from an arbitrary source to create a draft for a new dataset.
+        Loads data from an arbitrary source to create an output manifest.
 
         Args:
             args (Optional[Dict[str, Union[str, int, float, bool]]): an optional dictionary
@@ -511,5 +486,5 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
                 of metadata passed in by the pipeline run
 
         Returns:
-            Manifest[TIndex, TData]: output manifest, to be uploaded after this loader completes.
+            Manifest: output manifest, to be uploaded after this loader completes.
         """
