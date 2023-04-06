@@ -395,7 +395,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         input_manifest = Manifest.from_json(args.input_manifest)
         # update metadata based on args.metadata
         # TODO check whether metadata is properly updated
-        input_manifest._update_metadata(
+        input_manifest.metadata = input_manifest._update_metadata(
             input_manifest.metadata, json.loads(args.metadata)
         )
         # transform
