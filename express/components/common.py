@@ -403,6 +403,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             output_manifest.metadata, json.loads(args.metadata)
         )
         print("Output manifest after updating metadata:", output_manifest)
+        print("Content of manifest:", output_manifest.to_json())
 
         return output_manifest
 
