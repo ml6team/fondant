@@ -41,6 +41,7 @@ class CloudProvider(Enum):
 
 
 def mount_remote_storage(
+    *,
     mount_buckets: Sequence[str],
     mount_dir: str,
     mount_command: str,

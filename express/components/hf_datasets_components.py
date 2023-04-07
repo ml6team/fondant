@@ -41,10 +41,11 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
 
     @staticmethod
     def _load_data_source(
-        data_source: DataSource,
-        mount_dir: str,
-        index_filter: datasets.Dataset,
-        **kwargs,
+            *,
+            data_source: DataSource,
+            mount_dir: str,
+            index_filter: datasets.Dataset,
+            **kwargs,
     ) -> datasets.Dataset:
         """Function that loads in a data source"""
         if data_source.type != DataType.PARQUET:
@@ -75,7 +76,7 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
 
     @staticmethod
     def _upload_parquet(
-        data: datasets.Dataset, name: str, remote_path: str, mount_path: str
+            *, data: datasets.Dataset, name: str, remote_path: str, mount_path: str
     ) -> DataSource:
         # TODO: sharded parquet? not sure if we should shard the index or only the data sources
         Path(mount_path).mkdir(parents=True, exist_ok=True)
@@ -93,7 +94,7 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
 
     @classmethod
     def _upload_index(
-        cls, index: datasets.Dataset, remote_path: str, mount_path: str
+            cls, *, index: datasets.Dataset, remote_path: str, mount_path: str
     ) -> DataSource:
         data_source = cls._upload_parquet(
             data=index, name="index", remote_path=remote_path, mount_path=mount_path
@@ -102,11 +103,11 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
 
     @classmethod
     def _upload_data_source(
-        cls,
-        name: str,
-        data: datasets.Dataset,
-        remote_path: str,
-        mount_path: str,
+            cls,
+            name: str,
+            data: datasets.Dataset,
+            remote_path: str,
+            mount_path: str,
     ) -> DataSource:
         data_source = cls._upload_parquet(
             data=data, name=name, remote_path=remote_path, mount_path=mount_path
@@ -115,7 +116,7 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
 
     @classmethod
     def _load_dataset(
-        cls, input_manifest: DataManifest, mount_dir: str
+            cls, input_manifest: DataManifest, mount_dir: str
     ) -> HFDatasetsDataset:
         return HFDatasetsDataset(input_manifest, mount_dir)
 
@@ -133,9 +134,9 @@ class HFDatasetsTransformComponent(
     @classmethod
     @abstractmethod
     def transform(
-        cls,
-        data: HFDatasetsDataset,
-        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+            cls,
+            data: HFDatasetsDataset,
+            extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
     ) -> HFDatasetsDatasetDraft:
         """Transform dataset"""
 
@@ -149,6 +150,6 @@ class HFDatasetsLoaderComponent(
     @classmethod
     @abstractmethod
     def load(
-        cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
+            cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
     ) -> HFDatasetsDatasetDraft:
         """Load initial dataset"""

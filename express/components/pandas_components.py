@@ -34,10 +34,11 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
 
     @staticmethod
     def _load_data_source(
-        data_source: DataSource,
-        mount_dir: str,
-        index_filter: Union[pd.DataFrame, pd.Series, List[str]],
-        **kwargs
+            *,
+            data_source: DataSource,
+            mount_dir: str,
+            index_filter: Union[pd.DataFrame, pd.Series, List[str]],
+            **kwargs
     ) -> pd.DataFrame:
         if data_source.type != DataType.PARQUET:
             raise TypeError("Only reading from parquet is currently supported.")
@@ -57,10 +58,11 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
     @staticmethod
     def _upload_parquet(
-        data: Union[pd.DataFrame, pd.Series],
-        name: str,
-        remote_path: str,
-        mount_path: str,
+            *,
+            data: Union[pd.DataFrame, pd.Series],
+            name: str,
+            remote_path: str,
+            mount_path: str,
     ) -> DataSource:
         # TODO: sharded parquet? not sure if we should shard the index or only the data sources
         Path(mount_path).mkdir(parents=True, exist_ok=True)
@@ -81,10 +83,10 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
     @classmethod
     def _upload_index(
-        cls,
-        index: Union[pd.DataFrame, pd.Series, pd.Index],
-        remote_path: str,
-        mount_path: str,
+            cls,
+            index: Union[pd.DataFrame, pd.Series, pd.Index],
+            remote_path: str,
+            mount_path: str,
     ) -> DataSource:
         data_source = cls._upload_parquet(
             data=index, name="index", remote_path=remote_path, mount_path=mount_path
@@ -93,11 +95,12 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
     @classmethod
     def _upload_data_source(
-        cls,
-        name: str,
-        data: Union[pd.DataFrame, pd.Series, pd.Index],
-        remote_path: str,
-        mount_path: str,
+            cls,
+            *,
+            name: str,
+            data: Union[pd.DataFrame, pd.Series, pd.Index],
+            remote_path: str,
+            mount_path: str,
     ) -> DataSource:
         data_source = cls._upload_parquet(
             data=data, name=name, remote_path=remote_path, mount_path=mount_path
@@ -106,7 +109,7 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
     @classmethod
     def _load_dataset(
-        cls, input_manifest: DataManifest, mount_dir: str
+            cls, input_manifest: DataManifest, mount_dir: str
     ) -> PandasDataset:
         return PandasDataset(input_manifest, mount_dir)
 
@@ -119,9 +122,9 @@ class PandasTransformComponent(
     @classmethod
     @abstractmethod
     def transform(
-        cls,
-        data: PandasDataset,
-        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+            cls,
+            data: PandasDataset,
+            extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
     ) -> PandasDatasetDraft:
         """Transform dataset"""
 
@@ -134,6 +137,6 @@ class PandasLoaderComponent(
     @classmethod
     @abstractmethod
     def load(
-        cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
+            cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
     ) -> PandasDatasetDraft:
         """Load initial dataset"""

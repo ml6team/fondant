@@ -51,7 +51,7 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         """
 
     def load(
-        self, data_source: str, for_index: Optional[IndexT] = None, **kwargs
+            self, data_source: str, *, for_index: Optional[IndexT] = None, **kwargs
     ) -> DataT:
         """
         Load data from a named data source.
@@ -74,16 +74,20 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         if for_index is None:
             for_index = self._index_data
         return self._load_data_source(
-            self.manifest.data_sources[data_source], self.mount_dir, for_index, **kwargs
+            data_source=self.manifest.data_sources[data_source],
+            mount_dir=self.mount_dir,
+            index_filter=for_index,
+            **kwargs
         )
 
     @staticmethod
     @abstractmethod
     def _load_data_source(
-        data_source: DataSource,
-        mount_dir: str,
-        index_filter: Optional[IndexT],
-        **kwargs,
+            *,
+            data_source: DataSource,
+            mount_dir: str,
+            index_filter: Optional[IndexT],
+            **kwargs,
     ) -> DataT:
         """
         Load data from a (possibly remote) path.
@@ -118,10 +122,10 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
     """
 
     def __init__(
-        self,
-        index: Optional[Union[DataSource, IndexT]] = None,
-        data_sources: Dict[str, Union[DataSource, DataT]] = None,
-        extending_dataset: Optional[ExpressDataset[IndexT, DataT]] = None,
+            self,
+            index: Optional[Union[DataSource, IndexT]] = None,
+            data_sources: Dict[str, Union[DataSource, DataT]] = None,
+            extending_dataset: Optional[ExpressDataset[IndexT, DataT]] = None,
     ):
         self.index = index
         self.data_sources = data_sources or {}
@@ -144,7 +148,7 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
 
     @classmethod
     def extend(
-        cls, dataset: ExpressDataset[IndexT, DataT]
+            cls, dataset: ExpressDataset[IndexT, DataT]
     ) -> "ExpressDatasetDraft[IndexT, DataT]":
         """
         Creates a new Express Dataset draft extending the given dataset, which will take over both
@@ -163,7 +167,7 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
         return self
 
     def with_data_source(
-        self, name: str, data: Union[DataT, DataSource], replace_ok=False
+            self, name: str, data: Union[DataT, DataSource], replace_ok=False
     ) -> "ExpressDatasetDraft[IndexT, DataT]":
         """
         Adds a new data source or replaces a preexisting data source with the same name.
@@ -198,7 +202,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
 
     @staticmethod
     def _path_for_upload(
-        metadata: Metadata, storage_prefix: str, mount_dir: str, name: str
+            *, metadata: Metadata, storage_prefix: str, mount_dir: str, name: str
     ) -> Tuple[str, str]:
         """
         Constructs a remote path for new data sources.
@@ -225,7 +229,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def _load_dataset(
-        cls, input_manifest: DataManifest, mount_dir: str
+            cls, input_manifest: DataManifest, mount_dir: str
     ) -> ExpressDataset[IndexT, DataT]:
         """
         Parses a manifest to an ExpressDataset of a specific type, for downstream use by transform
@@ -235,7 +239,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def _upload_index(
-        cls, index: IndexT, remote_path: str, mount_path: str
+            cls, *, index: IndexT, remote_path: str, mount_path: str
     ) -> DataSource:
         """
         Uploads index data of a certain type as parquet and creates a new DataSource.
@@ -252,7 +256,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def _upload_data_source(
-        cls, name: str, data: DataT, remote_path: str, mount_path: str
+            cls, *, name: str, data: DataT, remote_path: str, mount_path: str
     ) -> DataSource:
         """
         Uploads data of a certain type as parquet and creates a new DataSource.
@@ -283,9 +287,9 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
 
     @classmethod
     def _update_metadata(
-        cls,
-        metadata: Metadata,
-        metadata_args: Optional[Dict[str, Union[str, int, float, bool]]],
+            cls,
+            metadata: Metadata,
+            metadata_args: Optional[Dict[str, Union[str, int, float, bool]]],
     ) -> Metadata:
         """
         Update the manifest metadata
@@ -307,12 +311,13 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
 
     @classmethod
     def _create_output_dataset(
-        cls,
-        draft: ExpressDatasetDraft[IndexT, DataT],
-        metadata: Metadata,
-        manifest_save_path: str,
-        storage_prefix: str,
-        mount_dir: str,
+            cls,
+            *,
+            draft: ExpressDatasetDraft[IndexT, DataT],
+            metadata: Metadata,
+            manifest_save_path: str,
+            storage_prefix: str,
+            mount_dir: str,
     ) -> DataManifest:
         """
         Processes a dataset draft of a specific type, uploading all local data to storage and
@@ -322,9 +327,12 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
             index = draft.index
         else:
             remote_path, mount_path = cls._path_for_upload(
-                metadata, storage_prefix, mount_dir, "index"
+                metadata=metadata, storage_prefix=storage_prefix, mount_dir=mount_dir, name="index"
             )
-            index = cls._upload_index(draft.index, remote_path, mount_path)
+            index = cls._upload_index(
+                index=draft.index,
+                remote_path=remote_path,
+                mount_path=mount_path)
 
         data_sources = {}
         for name, dataset in draft.data_sources.items():
@@ -332,10 +340,10 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
                 data_sources[name] = dataset
             else:
                 remote_path, mount_path = cls._path_for_upload(
-                    metadata, storage_prefix, mount_dir, name
+                    metadata=metadata, storage_prefix=storage_prefix, mount_dir=mount_dir, name=name
                 )
                 data_sources[name] = cls._upload_data_source(
-                    name, dataset, remote_path, mount_path
+                    name=name, data=dataset, remote_path=remote_path, mount_path=mount_path
                 )
 
         manifest = DataManifest(
@@ -444,9 +452,9 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def transform(
-        cls,
-        data: ExpressDataset[IndexT, DataT],
-        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+            cls,
+            data: ExpressDataset[IndexT, DataT],
+            extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
     ) -> ExpressDatasetDraft[IndexT, DataT]:
         """
         Applies transformations to the input dataset and creates a draft for a new dataset.
@@ -559,7 +567,7 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     @classmethod
     @abstractmethod
     def load(
-        cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
+            cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
     ) -> ExpressDatasetDraft[IndexT, DataT]:
         """
         Loads data from an arbitrary source to create a draft for a new dataset.
