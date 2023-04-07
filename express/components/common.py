@@ -7,14 +7,14 @@ import json
 import os
 import tempfile
 import importlib
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from typing import Dict, Optional, TypeVar, Generic, Union
 
 import datasets
 from datasets import load_dataset
 
-from express.manifest import DataManifest, DataSource, Metadata
+from express.data_source import DataSource, Metadata
 from express.storage_interface import StorageHandlerModule
 
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
@@ -29,6 +29,8 @@ DataT = TypeVar("DataT")
 class Manifest:
     """
     A class representing a data manifest.
+
+    A data manifest consists of a single index and one or more data sources.
     """
 
     def __init__(self, index, data_sources, metadata):
@@ -278,9 +280,9 @@ class Manifest:
         with open(json_file, encoding="utf-8") as file_:
             manifest_dict = json.load(file_)
 
-        print("Manifest dict:", manifest_dict)
-        for k, v in manifest_dict.items():
-            print(f"{k}: {v}")
+        # print("Manifest dict:", manifest_dict)
+        # for k, v in manifest_dict.items():
+        #     print(f"{k}: {v}")
 
         index = DataSource.from_dict(manifest_dict["index"])
         data_sources = {
@@ -291,115 +293,7 @@ class Manifest:
         return cls(index, data_sources, manifest_dict["metadata"])
 
 
-class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
-    """
-    Abstract mixin class to read from and write to Express Datasets.
-    Can be subclassed to deal with a specific type of parsed data representations, like reading to a
-     Pandas DataFrame or a Spark RDD.
-    """
-
-    @classmethod
-    @abstractmethod
-    def _upload_index(cls, index: IndexT, remote_path: str) -> DataSource:
-        """
-        Uploads index data of a certain type as parquet and creates a new DataSource.
-
-        Args:
-            index (TIndex): index data of type `TIndex`
-            remote_path (str): fully qualified remote path where to upload the data to.
-
-        Returns:
-            DataSource: DataSource for the newly uploaded index data
-        """
-
-    @classmethod
-    @abstractmethod
-    def _upload_data_source(
-        cls, name: str, data: DataT, remote_path: str
-    ) -> DataSource:
-        """
-        Uploads data of a certain type as parquet and creates a new DataSource.
-
-        Args:
-            name (str): name of the data source to be created.
-            data (TData): data of type `TData`
-            remote_path (str): fully qualified remote path where to upload the data to.
-
-        Returns:
-            DataSource: DataSource for the newly uploaded data source
-        """
-
-    @classmethod
-    def _create_metadata(cls, metadata_args: dict) -> Metadata:
-        """
-        Create the manifest metadata
-        Args:
-            metadata_args (dict): a dictionary containing metadata information
-
-        Returns:
-            Metadata: the initial metadata
-        """
-
-        initial_metadata = Metadata()
-        return cls._update_metadata(initial_metadata, metadata_args)
-
-    @classmethod
-    def _update_metadata(
-        cls,
-        metadata: Metadata,
-        metadata_args: Optional[Dict[str, Union[str, int, float, bool]]],
-    ) -> Metadata:
-        """
-        Update the manifest metadata
-        Args:
-            metadata (metadata): the previous component metadata
-            metadata_args (dict): a dictionary containing metadata information related to the
-            current component
-        Returns:
-            Metadata: the initial metadata
-        """
-        metadata_dict = metadata.to_dict()
-        for metadata_key, metadata_value in metadata_args.items():
-            metadata_dict[metadata_key] = metadata_value
-        metadata_dict["git branch"] = os.environ.get("GIT_BRANCH")
-        metadata_dict["commit sha"] = os.environ.get("COMMIT_SHA")
-        metadata_dict["build timestamp"] = os.environ.get("BUILD_TIMESTAMP")
-
-        return Metadata.from_dict(metadata_dict)
-
-    # @classmethod
-    # def _create_output_dataset(
-    #     cls,
-    #     draft: ExpressDatasetDraft[IndexT, DataT],
-    #     metadata: Metadata,
-    #     save_path: str,
-    # ) -> DataManifest:
-    #     """
-    #     Processes a dataset draft of a specific type, uploading all local data to storage and
-    #     composing the output manifest.
-    #     """
-    #     if isinstance(draft.index, DataSource):
-    #         index = draft.index
-    #     else:
-    #         remote_path = cls._path_for_upload(metadata, "index")
-    #         index = cls._upload_index(draft.index, remote_path)
-
-    #     data_sources = {}
-    #     for name, dataset in draft.data_sources.items():
-    #         if isinstance(dataset, DataSource):
-    #             data_sources[name] = dataset
-    #         else:
-    #             remote_path = cls._path_for_upload(metadata, name)
-    #             data_sources[name] = cls._upload_data_source(name, dataset, remote_path)
-    #     manifest = DataManifest(
-    #         index=index, data_sources=data_sources, metadata=metadata
-    #     )
-    #     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-    #     Path(save_path).write_text(manifest.to_json(), encoding="utf-8")
-    #     return manifest
-
-
-class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
+class ExpressTransformComponent(Generic[IndexT, DataT]):
     """
     An abstract component that facilitates end-to-end transformation of Express Datasets.
     It can be subclassed or used with a mixin to support reading and writing of a specific data
@@ -407,18 +301,17 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     """
 
     @classmethod
-    def run(cls) -> DataManifest:
+    def run(cls) -> Manifest:
         """
-        Parses input data, executes the transform, and creates output artifacts.
+        Parses input data, executes the transform, and creates output manifest.
 
         Returns:
-            DataManifest: the output manifest
+            Manifest: the output manifest
         """
         args = cls._parse_args()
         # load manifest
         input_manifest = Manifest.from_json(args.input_manifest)
         # update metadata based on args.metadata
-        # TODO check whether metadata is properly updated
         input_manifest.metadata = input_manifest._update_metadata(
             input_manifest.metadata, json.loads(args.metadata)
         )
@@ -427,10 +320,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
             manifest=input_manifest,
             args=json.loads(args.args),
         )
-
-        print("Output manifest after updating metadata:", output_manifest)
-        print("Content of manifest:", output_manifest.to_json())
-
+        # create output manifest
         output_manifest.upload(save_path=args.output_manifest)
 
     @classmethod
@@ -493,21 +383,21 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         """
 
 
-class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
+class ExpressLoaderComponent(Generic[IndexT, DataT]):
     """
     An abstract component that facilitates creation of a new output manifest.
-    This will commonly be the first component in a Fondant Pipeline. It can be subclassed or used
+    This will commonly be the first component in an Express Pipeline. It can be subclassed or used
     with a mixin to support loading of a specific data type, and to implement specific dataset
     loaders.
     """
 
     @classmethod
-    def run(cls) -> DataManifest:
+    def run(cls) -> Manifest:
         """
-        Parses input data, executes the data loader, and creates output artifacts.
+        Parses input data, executes the data loader, and creates output manifest.
 
         Returns:
-            DataManifest: the output manifest
+            Manifest: the output manifest
         """
         args = cls._parse_args()
         # create manifest

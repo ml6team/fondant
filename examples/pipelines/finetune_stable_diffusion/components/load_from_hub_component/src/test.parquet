@@ -1,32 +1,31 @@
 {
     "data_sources": {
         "captions": {
-            "extensions": [
-                "parquet"
+            "column_names": [
+                "text",
+                "index"
             ],
-            "location": "gs:///custom_artifact/100//captions/captions.parquet",
-            "n_files": 1,
-            "n_items": 833,
-            "type": "parquet"
+            "len": 833,
+            "location": "gs:///custom_artifact/100//captions/captions.parquet"
         },
         "images": {
-            "extensions": [
-                "parquet"
+            "column_names": [
+                "image",
+                "index",
+                "width",
+                "height",
+                "byte_size"
             ],
-            "location": "gs:///custom_artifact/100//images/images.parquet",
-            "n_files": 1,
-            "n_items": 833,
-            "type": "parquet"
+            "len": 833,
+            "location": "gs:///custom_artifact/100//images/images.parquet"
         }
     },
     "index": {
-        "extensions": [
-            "parquet"
+        "column_names": [
+            "index"
         ],
-        "location": "gs:///custom_artifact/100//index/index.parquet",
-        "n_files": 1,
-        "n_items": 833,
-        "type": "parquet"
+        "len": 833,
+        "location": "gs:///custom_artifact/100//index/index.parquet"
     },
     "metadata": {
         "artifact_bucket": "",

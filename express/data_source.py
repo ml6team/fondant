@@ -1,27 +1,7 @@
-"""
-Script for generating the dataset manifest that will be passed and updated through different
-components of the pipeline
-"""
-import json
+from typing import List
+
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Dict
-
 from dataclasses_json import dataclass_json
-
-
-class DataType(str, Enum):
-    """
-    Supported types for stored data.
-    """
-
-    PARQUET = "parquet"
-    BLOB = "blob"
-
-    @classmethod
-    def is_valid(cls, data_type: str) -> bool:
-        """Check if data type is valid"""
-        return data_type in cls.__members__.values()
 
 
 @dataclass_json
@@ -71,41 +51,3 @@ class Metadata:
     commit_hash: str = field(default_factory=str)
     creation_date: str = field(default_factory=str)
     num_items: int = field(default_factory=int)
-
-
-@dataclass_json
-@dataclass
-class DataManifest:
-    """
-    The dataset Manifest
-    Args:
-        index (DataSource): the index parquet file which indexes all the data_sources
-        data_sources (List[DataSource]): Location and metadata of various data sources associated
-         with the index.
-        metadata (Metadata): The metadata associated with the manifest
-
-    """
-
-    index: DataSource
-    data_sources: Dict[str, DataSource] = field(default_factory=dict)
-    metadata: Metadata = field(
-        default_factory=Metadata
-    )  # TODO: make mandatory during construction
-
-    def __post_init__(self):
-        if (self.index.type != DataType.PARQUET) or (
-            not DataType.is_valid(self.index.type)
-        ):
-            raise TypeError("Index needs to be of type 'parquet'.")
-        for name, dataset in self.data_sources.items():
-            if not DataType.is_valid(dataset.type):
-                raise TypeError(
-                    f"Data type '{dataset.type}' for data source '{name}' is not valid."
-                )
-
-    @classmethod
-    def from_path(cls, manifest_path):
-        """Load data manifest from a given manifest path"""
-        with open(manifest_path, encoding="utf-8") as file_:
-            manifest_load = json.load(file_)
-            return DataManifest.from_dict(manifest_load)

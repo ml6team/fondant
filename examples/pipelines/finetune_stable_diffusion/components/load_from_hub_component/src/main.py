@@ -7,8 +7,7 @@ from typing import Optional, Union, Dict
 
 from datasets import Dataset, load_dataset
 
-from express.components.hf_datasets_components import HFDatasetsLoaderComponent
-from express.components.common import Manifest
+from express.components.common import Manifest, ExpressLoaderComponent
 from express.logger import configure_logging
 
 configure_logging()
@@ -27,7 +26,7 @@ def create_image_metadata(batch):
     return batch
 
 
-class LoadFromHubComponent(HFDatasetsLoaderComponent):
+class LoadFromHubComponent(ExpressLoaderComponent):
     """Component that loads a dataset from the hub and creates the initial manifest."""
 
     @classmethod

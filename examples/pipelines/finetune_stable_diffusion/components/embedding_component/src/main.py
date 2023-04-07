@@ -3,8 +3,7 @@ This component adds a data source to the manifest by embedding the images.
 """
 import logging
 
-from express.components.hf_datasets_components import HFDatasetsTransformComponent
-from express.components.common import Manifest
+from express.components.common import Manifest, ExpressTransformComponent
 from express.logger import configure_logging
 
 import torch
@@ -42,7 +41,7 @@ def embed(examples, processor, model):
     return examples
 
 
-class EmbeddingComponent(HFDatasetsTransformComponent):
+class EmbeddingComponent(ExpressTransformComponent):
     """
     Component that embeds the images using a CLIP model from Hugging Face.
     """

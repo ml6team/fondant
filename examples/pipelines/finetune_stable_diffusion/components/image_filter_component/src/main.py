@@ -8,8 +8,7 @@ from typing import Dict
 
 from datasets import Dataset
 
-from express.components.hf_datasets_components import HFDatasetsTransformComponent
-from express.components.common import Manifest
+from express.components.common import Manifest, ExpressTransformComponent
 from express.logger import configure_logging
 
 configure_logging()
@@ -22,7 +21,7 @@ def check_min_size(example, min_width, min_height):
     return width > min_width and height > min_height
 
 
-class ImageFilterComponent(HFDatasetsTransformComponent):
+class ImageFilterComponent(ExpressTransformComponent):
     """
     Class that inherits from Hugging Face data transform.
     """
