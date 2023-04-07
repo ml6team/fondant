@@ -12,7 +12,12 @@ logger = logging.getLogger(__name__)
 
 def get_path_from_url(url) -> str:
     """
-    Function that extract the path from a given url"""
+    Function that extract the path from a given url
+    Args:
+        url (str): the url to get the path from
+    Returns:
+        str: the url path
+    """
     try:
         parsed_url = urlparse(url)
         path = f"{parsed_url.netloc}{parsed_url.path}"
@@ -47,17 +52,17 @@ def get_file_name(file_uri: str, return_extension=False):
 
 
 def create_subprocess_arguments(
-    args: Optional[List[str]] = None, kwargs: Optional[Dict[str, Any]] = None
+        args: Optional[List[str]] = None, kwargs: Optional[Dict[str, Any]] = None
 ) -> List[str]:
     """
     Function that creates subprocess arguments from a list of positional arguments
     and a dictionary of keyword arguments.
 
     Args:
-        args: A list of positional arguments to be included as subprocess arguments.
-        kwargs: A dictionary of keyword arguments to be included as subprocess arguments.
+        args (List[str]): A list of positional arguments to be included as subprocess arguments.
+        kwargs (Dict[str, Any]): A dictionary of keyword arguments to be included as subprocess arguments.
     Returns:
-        A list of strings representing the subprocess arguments.
+        List[str]: A list of strings representing the subprocess arguments.
     """
     subprocess_args = []
 

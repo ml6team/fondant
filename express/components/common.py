@@ -261,7 +261,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
             name (str): name of the data source to be created.
             data (TData): data of type `TData`
             remote_path (str): fully qualified remote path where to upload the data to.
-            mount_path (str): the mount data where the data will be uploaded to
+            mount_path (str): the mount path where the data will be uploaded to
 
         Returns:
             DataSource: DataSource for the newly uploaded data source
