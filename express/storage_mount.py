@@ -1,7 +1,7 @@
 """Storage mounting functionalities"""
 import subprocess  # nosec
 import logging
-from typing import Sequence, List, NamedTuple, Dict, Optional
+from typing import List, NamedTuple, Dict, Optional, Tuple, Sequence, Union
 from enum import Enum
 from pathlib import Path
 
@@ -40,12 +40,12 @@ class CloudProvider(Enum):
 
 
 def mount_remote_storage(
-    *,
-    mount_buckets: Sequence[str],
-    mount_dir: str,
-    mount_command: str,
-    mount_args: Optional[List[str]] = None,
-    mount_kwargs: Optional[Dict[str, any]] = None,
+        *,
+        mount_buckets: Union[str,Sequence],
+        mount_dir: str,
+        mount_command: str,
+        mount_args: Optional[List[str]] = None,
+        mount_kwargs: Optional[Dict[str, any]] = None,
 ):
     """
     Function that mounts a remote bucket to a local directory using FUSE
@@ -59,11 +59,13 @@ def mount_remote_storage(
     # TODO: figure out if we want to pass credentials for accounts to authenticate or whether we
     #  expect the orchestrator service account to have a service accounts with valid permissions
     #  (current scenario)
+    def _is_sequence_of_str(instance):
+        return isinstance(instance, Sequence) and all(isinstance(item, str) for item in instance)
 
     if isinstance(mount_buckets, str):
         mount_buckets = [mount_buckets]
-    elif not isinstance(mount_buckets, list):
-        raise ValueError("The 'mount_buckets' argument must be a list or string.")
+    elif not _is_sequence_of_str(mount_buckets):
+        raise ValueError("The 'mount_buckets' argument must be a sequence of strings or string.")
 
     for mount_bucket in mount_buckets:
         mount_path = str(Path(mount_dir, mount_bucket))
@@ -82,7 +84,7 @@ def mount_remote_storage(
                 f"configured the proper installation in your component."
             )
         except Exception as e:
-            raise Exception(f"Failed to mount {mount_bucket} to {mount_path}: {e}")
+            raise Exception(f"Failed to mount {mount_bucket} to {mount_path}: {e}") from e
 
 
 def unmount_remote_storage(mount_dir: str):

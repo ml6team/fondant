@@ -375,16 +375,12 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
 
         # Get specific cloud storage configs
         cloud_storage = CloudProvider[storage_args["cloud_env"]].value
-        storage_mount_cmd, storage_prefix = (
-            cloud_storage.mount_command,
-            cloud_storage.storage_prefix,
-        )
 
         # Mount remote storage
         mount_remote_storage(
             mount_buckets=storage_args["mount_buckets"],
             mount_dir=storage_args["mount_dir"],
-            mount_command=storage_mount_cmd,
+            mount_command=cloud_storage.mount_command,
             mount_args=storage_args["mount_args"],
             mount_kwargs=storage_args["mount_kwargs"],
         )
@@ -400,7 +396,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         metadata = Metadata.from_dict(metadata_args)
         output_manifest = cls._create_output_dataset(
             mount_dir=storage_args["mount_dir"],
-            storage_prefix=storage_prefix,
+            storage_prefix=cloud_storage.storage_prefix,
             draft=output_dataset_draft,
             metadata=metadata,
             manifest_save_path=args.output_manifest,
@@ -499,16 +495,12 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
 
         # Get specific cloud storage configs
         cloud_storage = CloudProvider[storage_args["cloud_env"]].value
-        storage_mount_cmd, storage_prefix = (
-            cloud_storage.mount_command,
-            cloud_storage.storage_prefix,
-        )
 
         # Mount remote storage
         mount_remote_storage(
             mount_buckets=storage_args["mount_buckets"],
             mount_dir=storage_args["mount_dir"],
-            mount_command=storage_mount_cmd,
+            mount_command=cloud_storage.mount_command,
             mount_args=storage_args["mount_args"],
             mount_kwargs=storage_args["mount_kwargs"],
         )
@@ -519,7 +511,7 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
 
         # Create output manifest
         output_manifest = cls._create_output_dataset(
-            storage_prefix=storage_prefix,
+            storage_prefix=cloud_storage.storage_prefix,
             mount_dir=storage_args["mount_dir"],
             draft=output_dataset_draft,
             manifest_save_path=args.output_manifest,
