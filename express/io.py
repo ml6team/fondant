@@ -52,7 +52,7 @@ def get_file_name(file_uri: str, return_extension=False):
 
 
 def create_subprocess_arguments(
-        args: Optional[List[str]] = None, kwargs: Optional[Dict[str, Any]] = None
+    args: Optional[List[str]] = None, kwargs: Optional[Dict[str, Any]] = None
 ) -> List[str]:
     """
     Function that creates subprocess arguments from a list of positional arguments
@@ -60,7 +60,8 @@ def create_subprocess_arguments(
 
     Args:
         args (List[str]): A list of positional arguments to be included as subprocess arguments.
-        kwargs (Dict[str, Any]): A dictionary of keyword arguments to be included as subprocess arguments.
+        kwargs (Dict[str, Any]): A dictionary of keyword arguments to be included as subprocess
+         arguments.
     Returns:
         List[str]: A list of strings representing the subprocess arguments.
     """
