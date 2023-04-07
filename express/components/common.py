@@ -143,7 +143,11 @@ class Manifest:
                 f"after it's been constructed."
             )
         # TODO: verify same namespace?
-        self.data_sources[name] = data
+        if isinstance(data, DataSource):
+            self.data_sources[name] = data
+        else:
+            remote_path = self._path_for_upload(self.metadata, name)
+            self.data_sources[name] = self._upload_data_source(name, data, remote_path)
 
     def update_index(self, index):
         """

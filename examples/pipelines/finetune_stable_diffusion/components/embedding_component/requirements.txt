@@ -1,4 +1,5 @@
 torch==2.0.0
 transformers==4.27.3
-git+https://github.com/ml6team/express.git@0f43bbd88826ffd1b620100275700f9cbe7c0b6e
+git+https://github.com/ml6team/express.git@888810c75738cb427c95f0b6c4166b7101c45d19
 Pillow==9.4.0
+datasets==2.10.1 # TODO  remove this, currently common.py uses datasets only

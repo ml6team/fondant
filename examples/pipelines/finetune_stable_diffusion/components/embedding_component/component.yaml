@@ -1,7 +1,7 @@
 name: embedding_component
 description: A component that embeds images using a CLIP model from the 🤗 hub.
 inputs: 
-    - name: extra_args
+    - name: args
       description: Additional arguments passed to the component, as a json dict string
       type: String
     
@@ -24,6 +24,6 @@ implementation:
             python3, main.py,
             --input-manifest,       {inputPath: input_manifest},
             --metadata,             {inputValue: metadata},
-            --extra-args,           {inputValue: extra_args},
+            --args,                 {inputValue: args},
             --output-manifest,      {outputPath: output_manifest},
         ]

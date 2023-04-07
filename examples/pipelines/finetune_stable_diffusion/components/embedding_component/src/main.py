@@ -85,9 +85,11 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
         # 3) Create output manifest
         logger.info("Creating output manifest...")
         data_sources = {"embeddings": embedded_dataset}
-        output_manifest = manifest.add_data_sources(data_sources)
+        manifest.add_data_sources(data_sources)
 
-        return output_manifest
+        print("Output manifest:", manifest)
+
+        return manifest
 
 
 if __name__ == "__main__":
