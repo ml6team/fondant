@@ -116,12 +116,34 @@ class Manifest:
 
         return data_sources
 
-    def add_data_source(self, name, data):
+    def add_data_sources(self, data_sources: Dict[str, DataT]):
         """
-        Add a data source to the manifest.
+        Add one or more data sources to the manifest.
         """
-        # TODO
-        raise NotImplementedError("")
+        for name, dataset in data_sources.items():
+            self.with_data_source(name, dataset, replace_ok=False)
+
+    def with_data_source(
+        self, name: str, data: Union[DataT, DataSource], replace_ok=False
+    ):
+        """
+        Adds a new data source or replaces a preexisting data source with the same name.
+
+        Args:
+            name (str): Name of the data source.
+            data (Union[TData, DataSource]): Local data of type `TData`, or a preexisting
+             `DataSource`.
+            replace_ok (bool): Default=False. Whether to replace a preexisting Data Source of the
+            same name, if such a Data Source exists.
+        """
+        if (name in self.data_sources) and (not replace_ok):
+            raise ValueError(
+                f"A conflicting data source with identifier {name} is already set "
+                f"in this draft. Data sources on a dataset draft can be replaced "
+                f"after it's been constructed."
+            )
+        # TODO: verify same namespace?
+        self.data_sources[name] = data
 
     def update_index(self, index):
         """

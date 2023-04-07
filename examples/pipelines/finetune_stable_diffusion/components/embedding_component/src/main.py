@@ -2,14 +2,9 @@
 This component adds a data source to the manifest by embedding the images.
 """
 import logging
-from typing import Optional, Union, Dict
 
-
-from express.components.hf_datasets_components import (
-    HFDatasetsTransformComponent,
-    HFDatasetsDataset,
-    HFDatasetsDatasetDraft,
-)
+from express.components.hf_datasets_components import HFDatasetsTransformComponent
+from express.components.common import Manifest
 from express.logger import configure_logging
 
 import torch
@@ -55,49 +50,44 @@ class EmbeddingComponent(HFDatasetsTransformComponent):
     @classmethod
     def transform(
         cls,
-        data: HFDatasetsDataset,
-        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
-    ) -> HFDatasetsDatasetDraft:
+        manifest,
+        args,
+    ) -> Manifest:
         """
-        An example function showcasing the data transform component using Express functionalities
-
         Args:
-            data (HFDatasetsDataset[TIndex, TData]): express dataset providing access to data of a
-             given type
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
+            manifest (HFDatasetsDataset[TIndex, TData]): Fondant manifest
+            args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
              the function
         Returns:
-            HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output manifest
+            Manifest: output manifest
         """
 
         # 1) Get one particular data source from the manifest
         # TODO check whether we can leverage streaming
         logger.info("Loading image dataset...")
-        image_dataset = data.load(data_source="images")
+        image_dataset = manifest.load(data_source="images")
 
         # 2) Create embedding dataset
         logger.info("Loading CLIP...")
-        processor = CLIPProcessor.from_pretrained(extra_args["model_id"])
-        model = CLIPVisionModelWithProjection.from_pretrained(extra_args["model_id"])
+        processor = CLIPProcessor.from_pretrained(args["model_id"])
+        model = CLIPVisionModelWithProjection.from_pretrained(args["model_id"])
         model.to(device)
 
         logger.info("Embedding images...")
         embedded_dataset = image_dataset.map(
             embed,
             batched=True,
-            batch_size=extra_args["batch_size"],
+            batch_size=args["batch_size"],
             fn_kwargs=dict(processor=processor, model=model),
             remove_columns=["image", "width", "height", "byte_size"],
         )
 
-        # 3) Create dataset draft which adds a data source to the manifest
-        logger.info("Creating draft...")
+        # 3) Create output manifest
+        logger.info("Creating output manifest...")
         data_sources = {"embeddings": embedded_dataset}
-        dataset_draft = HFDatasetsDatasetDraft(
-            data_sources=data_sources, extending_dataset=data
-        )
+        output_manifest = manifest.add_data_sources(data_sources)
 
-        return dataset_draft
+        return output_manifest
 
 
 if __name__ == "__main__":
