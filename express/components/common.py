@@ -220,9 +220,9 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         artifact_bucket_blob_path = (
             f"custom_artifact/{metadata.run_id}/{metadata.component_name}/{name}"
         )
-        file_path = os.path.join(metadata.artifact_bucket, artifact_bucket_blob_path)
-        remote_path = os.path.join(storage_prefix, file_path)
-        mount_path = os.path.join(mount_dir, file_path)
+        file_path = str(Path(metadata.artifact_bucket, artifact_bucket_blob_path))
+        remote_path = str(Path(storage_prefix, file_path))
+        mount_path = str(Path(mount_dir) / file_path)
 
         return remote_path, mount_path
 

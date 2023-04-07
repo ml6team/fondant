@@ -1,5 +1,4 @@
 """Pandas single component module """
-import os
 from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
@@ -28,7 +27,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
     def load_index(self, mount_dir: str) -> pd.Series:
         """Function that loads in the index"""
         index_location = get_path_from_url(self.manifest.index.location)
-        index_path = os.path.join(mount_dir, index_location)
+        index_path = str(Path(mount_dir, index_location))
 
         return pd.read_parquet(index_path).squeeze()
 
@@ -44,7 +43,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
             raise TypeError("Only reading from parquet is currently supported.")
 
         data_source_location = get_path_from_url(data_source.location)
-        data_source_path = os.path.join(mount_dir, data_source_location)
+        data_source_path = str(Path(mount_dir, data_source_location))
         data_source_df = pd.read_parquet(data_source_path)
 
         if index_filter:

@@ -1,7 +1,6 @@
 """Storage mounting functionalities"""
 import subprocess  # nosec
 import logging
-import os
 from typing import Sequence, List, NamedTuple, Dict, Optional
 from enum import Enum
 from pathlib import Path
@@ -68,7 +67,7 @@ def mount_remote_storage(
         raise ValueError("The 'mount_buckets' argument must be a list or string.")
 
     for mount_bucket in mount_buckets:
-        mount_path = os.path.join(mount_dir, mount_bucket)
+        mount_path = str(Path(mount_dir, mount_bucket))
         try:
             Path(mount_path).mkdir(parents=True, exist_ok=True)
             extra_args_list = create_subprocess_arguments(

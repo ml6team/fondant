@@ -1,5 +1,4 @@
 """Hugging Face Datasets single component module """
-import os
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
 from pathlib import Path
@@ -35,7 +34,7 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
             mount_dir(str): the local directory mounted with FUSE
         """
         index_location = get_path_from_url(self.manifest.index.location)
-        index_path = os.path.join(mount_dir, index_location)
+        index_path = str(Path(mount_dir, index_location))
 
         return load_dataset("parquet", data_dir=index_path, split="train")
 
@@ -52,7 +51,7 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
             raise TypeError("Only reading from parquet is currently supported.")
 
         data_source_location = get_path_from_url(data_source.location)
-        data_source_path = os.path.join(mount_dir, data_source_location)
+        data_source_path = str(Path(mount_dir, data_source_location))
 
         if "columns" in kwargs:
             if "index" not in kwargs["columns"]:
