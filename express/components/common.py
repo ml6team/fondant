@@ -26,9 +26,9 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
     It can be extended to create a draft for a new (output) dataset.
 
     Args:
-        manifest (DataManifest): A manifest that describes the different data sources comprising
+        manifest: A manifest that describes the different data sources comprising
         the Dataset, as well as their locations.
-        mount_dir (str): the local directory mounted with FUSE
+        mount_dir: the local directory mounted with FUSE
     """
 
     def __init__(self, manifest: DataManifest, mount_dir: str):
@@ -47,7 +47,7 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         """
         Loads the index data.
         Args:
-            mount_dir (str): the local directory mounted with fuse
+            mount_dir: the local directory mounted with fuse
         """
 
     def load(
@@ -57,11 +57,11 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         Load data from a named data source.
 
         Args:
-            data_source (str): A named data source from the input manifest.
-            for_index (Optional[TIndex]): Pass in an index to filter the data on. By default, the
+            data_source: A named data source from the input manifest.
+            for_index: Pass in an index to filter the data on. By default, the
              original Dataset index is used. This argument can be used to use a different
               index instead.
-            kwargs (dict): Additional keyword arguments forwarded to the _load_data_source method.
+            kwargs: Additional keyword arguments forwarded to the _load_data_source method.
 
         Returns:
             TData: Data of type TData
@@ -95,9 +95,9 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
          dataframe, a lazy access method, or a distributed set of data.
 
         Args:
-            data_source (DataSource): The DataSource to load the data from.
-            index_filter (Optional[TIndex]): Pass in an index to filter the data on.
-            mount_dir(str): the local directory mounted with FUSE
+            data_source: The DataSource to load the data from.
+            index_filter: Pass in an index to filter the data on.
+            mount_dir: the local directory mounted with FUSE
 
         Returns:
             TData: Data of type TData
@@ -112,12 +112,12 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
     needs to be uploaded.
 
     Args:
-        index (Union[DataSource, TIndex]): Index of the output dataset. Needs to be present if no
+        index: Index of the output dataset. Needs to be present if no
          `extending_dataset` is set.
-        data_sources (Dict[str, Union[DataSource, TData]]): Named preexisting data sources or local
+        data_sources: Named preexisting data sources or local
          data to be uploaded. Each data source should have data available for each item in
          the shared index.
-        extending_dataset (ExpressDataset[TIndex, TData]): Existing dataset to extend, which will
+        extending_dataset: Existing dataset to extend, which will
         take over both its index an all data sources. Needs to be present if no `index` is set.
     """
 
@@ -159,9 +159,8 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
     def with_index(self, index: DataT) -> "ExpressDatasetDraft[IndexT, DataT]":
         """
         Replaces the current index with the given index.
-
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: self, for easier chaining
+            ExpressDatasetDraft: self, for easier chaining
         """
         self.index = index
         return self
@@ -173,14 +172,14 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
         Adds a new data source or replaces a preexisting data source with the same name.
 
         Args:
-            name (str): Name of the data source.
-            data (Union[TData, DataSource]): Local data of type `TData`, or a preexisting
+            name: Name of the data source.
+            data: Local data of type `TData`, or a preexisting
              `DataSource`.
-            replace_ok (bool): Default=False. Whether to replace a preexisting Data Source of the
+            replace_ok: Default=False. Whether to replace a preexisting Data Source of the
             same name, if such a Data Source exists.
 
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: self, for easier chaining
+            ExpressDatasetDraft: self, for easier chaining
         """
         if (name in self.data_sources) and (not replace_ok):
             raise ValueError(
@@ -208,13 +207,13 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         Constructs a remote path for new data sources.
 
         Args:
-            metadata (MetaData): Component metadata, which is used to construct the base path.
-            name (str): The name of the data source that's being created.
-            mount_dir (str): the local directory mounted with FUSE
-            storage_prefix (str): the storage file system prefix
+            metadata: Component metadata, which is used to construct the base path.
+            name: The name of the data source that's being created.
+            mount_dir: the local directory mounted with FUSE
+            storage_prefix the storage file system prefix
 
         Returns:
-            Tuple [str, str]: the remote and mount path referencing the folder where the file/folder
+             The remote and mount path referencing the folder where the file/folder
              will be uploaded
         """
         artifact_bucket_blob_path = (
@@ -245,12 +244,12 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         Uploads index data of a certain type as parquet and creates a new DataSource.
 
         Args:
-            index (TIndex): index data of type `TIndex`
-            remote_path (str): fully qualified remote path where to upload the data to.
-            mount_path (str): the mount path where the data will be uploaded to
+            index: index data of type `TIndex`
+            remote_path: fully qualified remote path where to upload the data to.
+            mount_path: the mount path where the data will be uploaded to
 
         Returns:
-            DataSource: DataSource for the newly uploaded index data
+            DataSource for the newly uploaded index data
         """
 
     @classmethod
@@ -262,13 +261,13 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         Uploads data of a certain type as parquet and creates a new DataSource.
 
         Args:
-            name (str): name of the data source to be created.
-            data (TData): data of type `TData`
-            remote_path (str): fully qualified remote path where to upload the data to.
-            mount_path (str): the mount path where the data will be uploaded to
+            name: name of the data source to be created.
+            data: data of type `TData`
+            remote_path: fully qualified remote path where to upload the data to.
+            mount_path: the mount path where the data will be uploaded to
 
         Returns:
-            DataSource: DataSource for the newly uploaded data source
+            DataSource for the newly uploaded data source
         """
 
     @classmethod
@@ -276,10 +275,10 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         """
         Create the manifest metadata
         Args:
-            metadata_args (dict): a dictionary containing metadata information
+            metadata_args: a dictionary containing metadata information
 
         Returns:
-            Metadata: the initial metadata
+            The initial metadata
         """
 
         initial_metadata = Metadata()
@@ -294,11 +293,11 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         """
         Update the manifest metadata
         Args:
-            metadata (metadata): the previous component metadata
-            metadata_args (dict): a dictionary containing metadata information related to the
-            current component
+            metadata: the previous component metadata
+            metadata_args: a dictionary containing metadata information related to the current
+             component
         Returns:
-            Metadata: the initial metadata
+            The initial metadata
         """
         metadata_dict = metadata.to_dict()
         for metadata_key, metadata_value in metadata_args.items():
@@ -366,7 +365,7 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         """
         Parses input data, executes the transform, and creates output artifacts.
         Returns:
-            DataManifest: the output manifest
+            The output manifest
         """
         # Parse arguments
         args = cls._parse_args()
@@ -465,15 +464,15 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
           a completely new dataset.
 
         Args:
-            data (ExpressDataset[TIndex, TData]): express dataset providing access to data of a
+            data: express dataset providing access to data of a
              given type
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]]): an optional dictionary
+            extra_args: an optional dictionary
              of additional arguments passed in by the pipeline run
 
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this
-             transform completes. Can be created by calling `extend` on an existing dataset, or by
-              directly calling the constructor.
+            Draft of output dataset, to be uploaded after this transform completes.
+             Can be created by calling `extend` on an existing dataset, or by directly calling
+              the constructor.
         """
 
 
@@ -489,9 +488,8 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     def run(cls) -> DataManifest:
         """
         Parses input data, executes the data loader, and creates output artifacts.
-
         Returns:
-            DataManifest: the output manifest
+            The output manifest
         """
         # Parse arguments
         args = cls._parse_args()
@@ -573,10 +571,8 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
         Loads data from an arbitrary source to create a draft for a new dataset.
 
         Args:
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]): an optional dictionary
-             of additional arguments passed in by the pipeline run
+            extra_args: an optional dictionary of additional arguments passed in by the pipeline run
 
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this
-             loader completes.
+            ExpressDatasetDraft: draft of output dataset, to be uploaded after this loader completes
         """

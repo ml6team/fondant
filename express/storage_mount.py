@@ -15,8 +15,8 @@ class CloudStorageConfig(NamedTuple):
     Defines the configuration for a specific cloud provider's storage system.
 
     Attributes:
-        storage_prefix (str): The prefix used to access the storage system.
-        mount_command (str): The command used to mount the storage system.
+        storage_prefix: The prefix used to access the storage system.
+        mount_command: The command used to mount the storage system.
     """
 
     storage_prefix: str
@@ -28,9 +28,9 @@ class CloudProvider(Enum):
     Enumerates the different cloud providers that can be used for remote storage.
 
     Attributes:
-        GCP (CloudStorageConfig): Google Cloud Platform storage configuration.
-        AWS (CloudStorageConfig): Amazon Web Services storage configuration.
-        AZURE (CloudStorageConfig): Microsoft Azure storage configuration.
+        GCP: Google Cloud Platform storage configuration.
+        AWS: Amazon Web Services storage configuration.
+        AZURE: Microsoft Azure storage configuration.
     """
 
     GCP = CloudStorageConfig("gs://", "gcsfuse")
@@ -50,12 +50,11 @@ def mount_remote_storage(
     """
     Function that mounts a remote bucket to a local directory using FUSE
     Args:
-        mount_buckets (str): the name of the bucket(s) to be mount
-        mount_dir (str): the local directory where to mount the buckets to
-        mount_command (str): the command used to mount the storage system
-        mount_args (Optional[List[str]]): Additional arguments to pass to the FUSE command.
-        mount_kwargs (Optional[Dict[str, any]]): Additional key word arguments to pass
-         to the FUSE command.
+        mount_buckets: the name of the bucket(s) to be mount
+        mount_dir: the local directory where to mount the buckets to
+        mount_command: the command used to mount the storage system
+        mount_args: Additional arguments to pass to the FUSE command.
+        mount_kwargs: Additional key word arguments to pass to the FUSE command.
     """
     # TODO: figure out if we want to pass credentials for accounts to authenticate or whether we
     #  expect the orchestrator service account to have a service accounts with valid permissions
@@ -90,7 +89,7 @@ def unmount_remote_storage(mount_dir: str):
     """
     Function that mounts a remote GCS bucket to a local mount path
     Args:
-         mount_dir (str): the local directory where to mount the buckets to
+         mount_dir: the local directory where to mount the buckets to
     """
     for path in Path(mount_dir).iterdir():
         if path.is_dir():

@@ -31,7 +31,7 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
         """
         Function that loads in the index
         Args:
-            mount_dir(str): the local directory mounted with FUSE
+            mount_dir: the local directory mounted with FUSE
         """
         index_location = get_path_from_url(self.manifest.index.location)
         index_path = str(Path(mount_dir, index_location))
