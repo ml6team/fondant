@@ -276,9 +276,9 @@ class FondantManifest:
         return cls(manifest.index, manifest.data_sources, manifest.metadata)
 
 
-class ExpressComponent(Generic[IndexT, DataT]):
+class FondantComponent(Generic[IndexT, DataT]):
     """
-    An abstract component that facilitates end-to-end transformation of the Express manifest.
+    An abstract component that facilitates end-to-end transformation of the Fondant manifest.
     It can be subclassed or used with a mixin to support reading and writing of a specific data
     source, and to implement specific dataset transformations.
     """
@@ -293,6 +293,7 @@ class ExpressComponent(Generic[IndexT, DataT]):
         """
         args = cls._parse_args()
         # create or load manifest
+        print("Input manifest: ", args.input_manifest)
         if args.input_manifest is None:
             input_manifest = FondantManifest()
         else:
@@ -346,7 +347,7 @@ class ExpressComponent(Generic[IndexT, DataT]):
     def process(
         cls,
         manifest: FondantManifest,
-        extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
+        args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
     ) -> FondantManifest:
         """
         Applies transformations to the input manifest and creates an output manifest.
@@ -357,9 +358,8 @@ class ExpressComponent(Generic[IndexT, DataT]):
           a completely new dataset.
 
         Args:
-            data (ExpressDataset[TIndex, TData]): express dataset providing access to data of a
-             given type
-            extra_args (Optional[Dict[str, Union[str, int, float, bool]]]): an optional dictionary
+            manifest: Fondant manifest
+            args (Optional[Dict[str, Union[str, int, float, bool]]]): an optional dictionary
              of additional arguments passed in by the pipeline run
 
         Returns:
