@@ -274,15 +274,11 @@ class Manifest:
 
     @classmethod
     def from_json(cls, json_file):
-        # TODO perhaps use this
+        # TODO perhaps use this instead
         # manifest = Path(manifest_path).read_text(encoding="utf-8")
 
         with open(json_file, encoding="utf-8") as file_:
             manifest_dict = json.load(file_)
-
-        # print("Manifest dict:", manifest_dict)
-        # for k, v in manifest_dict.items():
-        #     print(f"{k}: {v}")
 
         index = DataSource.from_dict(manifest_dict["index"])
         data_sources = {

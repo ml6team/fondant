@@ -86,8 +86,6 @@ class EmbeddingComponent(ExpressTransformComponent):
         data_sources = {"embeddings": embedded_dataset}
         manifest.add_data_sources(data_sources)
 
-        print("Output manifest:", manifest)
-
         return manifest
 
 
