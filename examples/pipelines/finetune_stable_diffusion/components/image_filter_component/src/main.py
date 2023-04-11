@@ -4,7 +4,7 @@ This component filters images of the dataset based on image size (minimum height
 Technically, it updates the index of the manifest.
 """
 import logging
-from typing import Dict
+from typing import Dict, Union
 
 from datasets import Dataset
 
@@ -23,24 +23,20 @@ def check_min_size(example, min_width, min_height):
 
 class ImageFilterComponent(ExpressTransformComponent):
     """
-    Class that inherits from Hugging Face data transform.
+    Component that filters images based on height and width.
     """
 
     @classmethod
     def transform(
         cls,
         manifest: Manifest,
-        args = None,
+        args: Dict[str, Union[str, int, float, bool]],
     ) -> Manifest:
         """
-        An example function showcasing the data transform component using Express functionalities
-
         Args:
-            manifest
-            data (HFDatasetsDataset[TIndex, TData]): express dataset providing access to data of a
-             given type
-            args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
-             the function
+            manifest: Fondant manifest
+            args: args to pass to the function
+        
         Returns:
             HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output manifest
         """

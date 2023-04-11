@@ -3,7 +3,7 @@ This component loads a seed dataset from the hub and creates the initial manifes
 """
 import logging
 import sys
-from typing import Optional, Union, Dict
+from typing import Union, Dict
 
 from datasets import Dataset, load_dataset
 
@@ -31,12 +31,11 @@ class LoadFromHubComponent(ExpressLoaderComponent):
 
     @classmethod
     def load(
-        cls, args: Optional[Dict[str, Union[str, int, float, bool]]] = None, metadata=None,
+        cls, args: Dict[str, Union[str, int, float, bool]], metadata,
     ) -> Manifest:
         """
-        An example function showcasing the data loader component using Express functionalities
         Args:
-            args: optional args to pass to the function (e.g. seed data source)
+            args: args to pass to the function
             metadata: metadata to pass to the manifest
         Returns:
             Manifest: output manifest

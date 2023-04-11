@@ -2,6 +2,7 @@
 This component adds a data source to the manifest by embedding the images.
 """
 import logging
+from typing import Dict, Union
 
 from express.components.common import Manifest, ExpressTransformComponent
 from express.logger import configure_logging
@@ -49,14 +50,13 @@ class EmbeddingComponent(ExpressTransformComponent):
     @classmethod
     def transform(
         cls,
-        manifest,
-        args,
+        manifest: Manifest,
+        args: Dict[str, Union[str, int, float, bool]],
     ) -> Manifest:
         """
         Args:
-            manifest (HFDatasetsDataset[TIndex, TData]): Fondant manifest
-            args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
-             the function
+            manifest: Fondant manifest
+            args: args to pass to the function
         Returns:
             Manifest: output manifest
         """
