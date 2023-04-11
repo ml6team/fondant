@@ -32,7 +32,7 @@ class Manifest:
     """
 
     def __init__(self, index, data_sources, metadata):
-        metadata = self._create_metadata(metadata)
+        self.metadata = self._create_metadata(metadata)
         self.index = self._create_index(index)
         self.data_sources = self._create_data_sources(data_sources)
 
