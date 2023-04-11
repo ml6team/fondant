@@ -1,2 +1,2 @@
-git+https://github.com/ml6team/express.git@13a93e673777f7006294c0d3d84768252c671a2e#egg=express[datasets]
+git+https://github.com/ml6team/express.git@545ff44ead2b5f09b29852766e6554a066e5c012#egg=express[datasets]
 Pillow==9.4.0

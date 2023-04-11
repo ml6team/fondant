@@ -70,7 +70,7 @@ class LoadFromHubComponent(ExpressComponent):
             "images": image_dataset,
             "captions": text_dataset,
         }
-        manifest.create_index(index_dataset)
+        manifest._create_index(index_dataset)
         manifest.add_data_sources(data_sources)
 
         return manifest

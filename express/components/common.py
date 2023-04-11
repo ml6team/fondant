@@ -293,7 +293,7 @@ class ExpressComponent(Generic[IndexT, DataT]):
         """
         args = cls._parse_args()
         # create or load manifest
-        if args.input_manifest is None:
+        if args.input_manifest == "":
             input_manifest = FondantManifest()
         else:
             input_manifest = FondantManifest.from_json(args.input_manifest)
