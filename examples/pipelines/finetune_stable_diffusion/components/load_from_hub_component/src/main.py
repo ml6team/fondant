@@ -7,7 +7,7 @@ from typing import Union, Dict
 
 from datasets import Dataset, load_dataset
 
-from express.components.common import FondantManifest, ExpressComponent
+from express.components.common import FondantManifest, FondantComponent
 from express.logger import configure_logging
 
 configure_logging()
@@ -26,7 +26,7 @@ def create_image_metadata(batch):
     return batch
 
 
-class LoadFromHubComponent(ExpressComponent):
+class LoadFromHubComponent(FondantComponent):
     """Component that loads a dataset from the hub and adds it to the manifest."""
 
     @classmethod

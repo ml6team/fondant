@@ -294,6 +294,8 @@ class FondantComponent(Generic[IndexT, DataT]):
         args = cls._parse_args()
         # create or load manifest
         print("Input manifest: ", args.input_manifest)
+        print("Type of input manifest: ", type(args.input_manifest))
+        print(args.input_manifest is not None)
         if args.input_manifest is None:
             input_manifest = FondantManifest()
         else:

@@ -8,7 +8,7 @@ from typing import Dict, Union
 
 from datasets import Dataset
 
-from express.components.common import FondantManifest, ExpressComponent
+from express.components.common import FondantManifest, FondantComponent
 from express.logger import configure_logging
 
 configure_logging()
@@ -21,7 +21,7 @@ def check_min_size(example, min_width, min_height):
     return width > min_width and height > min_height
 
 
-class ImageFilterComponent(ExpressComponent):
+class ImageFilterComponent(FondantComponent):
     """
     Component that filters images based on height and width.
     """
