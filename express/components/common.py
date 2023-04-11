@@ -34,10 +34,9 @@ class Manifest:
     """
 
     def __init__(self, index, data_sources, metadata):
-        metadata = self._create_metadata(metadata)
-        self.index = self._create_index(index, metadata)
-        self.data_sources = self._create_data_sources(data_sources, metadata)
-        self.metadata = metadata
+        self.metadata = self._create_metadata(metadata)
+        self.index = self._create_index(index)
+        self.data_sources = self._create_data_sources(data_sources)
 
     def _path_for_upload(self, metadata: Metadata, name: str) -> str:
         """
@@ -97,21 +96,21 @@ class Manifest:
         data_source = cls._upload_parquet(data=data, name=name, remote_path=remote_path)
         return data_source
 
-    def _create_index(self, index, metadata):
+    def _create_index(self, index):
         if isinstance(index, DataSource):
             pass
         else:
-            remote_path = self._path_for_upload(metadata, "index")
+            remote_path = self._path_for_upload(self.metadata, "index")
             index = self._upload_index(index, remote_path)
 
         return index
 
-    def _create_data_sources(self, data_sources, metadata):
+    def _create_data_sources(self, data_sources):
         for name, dataset in data_sources.items():
             if isinstance(dataset, DataSource):
                 data_sources[name] = dataset
             else:
-                remote_path = self._path_for_upload(metadata, name)
+                remote_path = self._path_for_upload(self.metadata, name)
                 data_sources[name] = self._upload_data_source(
                     name, dataset, remote_path
                 )
@@ -144,7 +143,6 @@ class Manifest:
                 f"in this draft. Data sources on a dataset draft can be replaced "
                 f"after it's been constructed."
             )
-        # TODO: verify same namespace?
         if isinstance(data, DataSource):
             self.data_sources[name] = data
         else:
@@ -155,7 +153,7 @@ class Manifest:
         """
         Updates the index of the manifest.
         """
-        self.index = self._create_index(index, self.metadata)
+        self.index = self._create_index(index)
 
     # TODO this is framework specific
     def load_index(self) -> datasets.Dataset:
