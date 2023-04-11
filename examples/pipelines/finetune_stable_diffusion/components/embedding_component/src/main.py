@@ -4,7 +4,7 @@ This component adds a data source to the manifest by embedding the images.
 import logging
 from typing import Dict, Union
 
-from express.components.common import Manifest, ExpressTransformComponent
+from express.components.common import FondantManifest, ExpressTransformComponent
 from express.logger import configure_logging
 
 import torch
@@ -50,15 +50,16 @@ class EmbeddingComponent(ExpressTransformComponent):
     @classmethod
     def transform(
         cls,
-        manifest: Manifest,
+        manifest: FondantManifest,
         args: Dict[str, Union[str, int, float, bool]],
-    ) -> Manifest:
+    ) -> FondantManifest:
         """
         Args:
             manifest: Fondant manifest
             args: args to pass to the function
+        
         Returns:
-            Manifest: output manifest
+            FondantManifest: output manifest
         """
 
         # 1) Get one particular data source from the manifest

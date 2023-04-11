@@ -8,7 +8,7 @@ from typing import Dict, Union
 
 from datasets import Dataset
 
-from express.components.common import Manifest, ExpressTransformComponent
+from express.components.common import FondantManifest, ExpressTransformComponent
 from express.logger import configure_logging
 
 configure_logging()
@@ -29,16 +29,16 @@ class ImageFilterComponent(ExpressTransformComponent):
     @classmethod
     def transform(
         cls,
-        manifest: Manifest,
+        manifest: FondantManifest,
         args: Dict[str, Union[str, int, float, bool]],
-    ) -> Manifest:
+    ) -> FondantManifest:
         """
         Args:
             manifest: Fondant manifest
             args: args to pass to the function
         
         Returns:
-            HFDatasetsDatasetDraft: a dataset draft that creates a plan for an output manifest
+            FondantManifest: output manifest
         """
 
         # 1) Load one particular data source from the manifest

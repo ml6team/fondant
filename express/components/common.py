@@ -14,7 +14,7 @@ from typing import Dict, Optional, TypeVar, Generic, Union
 import datasets
 from datasets import load_dataset
 
-from express.manifest import DataSource, Metadata, DataManifest
+from express.manifest import DataSource, Metadata, Manifest
 from express.storage_interface import StorageHandlerModule
 
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
@@ -26,7 +26,7 @@ IndexT = TypeVar("IndexT")
 DataT = TypeVar("DataT")
 
 
-class Manifest:
+class FondantManifest:
     """
     A class wrapper around a data manifest which allows to manipulate it.
     """
@@ -265,12 +265,12 @@ class Manifest:
         return None
 
     def to_json(self):
-        manifest = DataManifest(self.index, self.data_sources, self.metadata)
+        manifest = Manifest(self.index, self.data_sources, self.metadata)
         return manifest.to_json()
 
     @classmethod
     def from_json(cls, json_file):
-        manifest = DataManifest.from_json(json_file)
+        manifest = Manifest.from_json(json_file)
 
         return cls(manifest.index, manifest.data_sources, manifest.metadata)
 
@@ -283,16 +283,16 @@ class ExpressTransformComponent(Generic[IndexT, DataT]):
     """
 
     @classmethod
-    def run(cls) -> Manifest:
+    def run(cls) -> FondantManifest:
         """
         Parses input data, executes the transform, and creates output manifest.
 
         Returns:
-            Manifest: the output manifest
+            FondantManifest: the output manifest
         """
         args = cls._parse_args()
         # load manifest
-        input_manifest = Manifest.from_json(args.input_manifest)
+        input_manifest = FondantManifest.from_json(args.input_manifest)
         # update metadata based on args.metadata
         input_manifest.metadata = input_manifest._update_metadata(
             input_manifest.metadata, json.loads(args.metadata)
@@ -341,9 +341,9 @@ class ExpressTransformComponent(Generic[IndexT, DataT]):
     @abstractmethod
     def transform(
         cls,
-        manifest: Manifest,
+        manifest: FondantManifest,
         extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
-    ) -> Manifest:
+    ) -> FondantManifest:
         """
         Applies transformations to the input dataset and creates a draft for a new dataset.
         The recommended pattern for a transform is to extend the input dataset with a filtered index
@@ -359,7 +359,7 @@ class ExpressTransformComponent(Generic[IndexT, DataT]):
              of additional arguments passed in by the pipeline run
 
         Returns:
-            Manifest[TIndex, TData]: draft of output dataset, to be uploaded after this
+            FondantManifest[TIndex, TData]: draft of output dataset, to be uploaded after this
              transform completes. Can be created by calling `extend` on an existing dataset, or by
               directly calling the constructor.
         """
@@ -374,12 +374,12 @@ class ExpressLoaderComponent(Generic[IndexT, DataT]):
     """
 
     @classmethod
-    def run(cls) -> Manifest:
+    def run(cls) -> FondantManifest:
         """
         Parses input data, executes the data loader, and creates output manifest.
 
         Returns:
-            Manifest: the output manifest
+            FondantManifest: the output manifest
         """
         args = cls._parse_args()
         # create manifest
@@ -421,7 +421,7 @@ class ExpressLoaderComponent(Generic[IndexT, DataT]):
         cls,
         args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
         metadata=None,
-    ) -> Manifest:
+    ) -> FondantManifest:
         """
         Loads data from an arbitrary source to create an output manifest.
 
@@ -432,5 +432,5 @@ class ExpressLoaderComponent(Generic[IndexT, DataT]):
                 of metadata passed in by the pipeline run
 
         Returns:
-            Manifest: output manifest, to be uploaded after this loader completes.
+            FondantManifest: output manifest, to be uploaded after this loader completes.
         """

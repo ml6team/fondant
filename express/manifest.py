@@ -56,9 +56,9 @@ class Metadata:
 
 @dataclass_json
 @dataclass
-class DataManifest:
+class Manifest:
     """
-    The data manifest. A data manifest consists of a single index and one or more data sources.
+    The manifest. A manifest consists of a single index and one or more data sources.
 
     Args:
         index (DataSource): the index parquet file which indexes all the data_sources
@@ -79,4 +79,4 @@ class DataManifest:
         """Load data manifest from a given manifest path"""
         with open(manifest_path, encoding="utf-8") as file_:
             manifest_load = json.load(file_)
-            return DataManifest.from_dict(manifest_load)
+            return Manifest.from_dict(manifest_load)

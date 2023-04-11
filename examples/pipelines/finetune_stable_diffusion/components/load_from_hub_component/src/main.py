@@ -7,7 +7,7 @@ from typing import Union, Dict
 
 from datasets import Dataset, load_dataset
 
-from express.components.common import Manifest, ExpressLoaderComponent
+from express.components.common import FondantManifest, ExpressLoaderComponent
 from express.logger import configure_logging
 
 configure_logging()
@@ -32,13 +32,13 @@ class LoadFromHubComponent(ExpressLoaderComponent):
     @classmethod
     def load(
         cls, args: Dict[str, Union[str, int, float, bool]], metadata,
-    ) -> Manifest:
+    ) -> FondantManifest:
         """
         Args:
             args: args to pass to the function
             metadata: metadata to pass to the manifest
         Returns:
-            Manifest: output manifest
+            FondantManifest: output manifest
         """
         # 1) Create data source
         logger.info("Loading caption dataset from the hub...")
@@ -67,7 +67,7 @@ class LoadFromHubComponent(ExpressLoaderComponent):
             "images": image_dataset,
             "captions": text_dataset,
         }
-        output_manifest = Manifest(index=index_dataset, data_sources=data_sources, metadata=metadata)
+        output_manifest = FondantManifest(index=index_dataset, data_sources=data_sources, metadata=metadata)
 
         return output_manifest
 
