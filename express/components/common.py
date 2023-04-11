@@ -265,8 +265,6 @@ class Manifest:
         return None
 
     def to_json(self):
-        # return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-        # based on https://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
         manifest = DataManifest(self.index, self.data_sources, self.metadata)
         return manifest.to_json()
 
@@ -275,17 +273,6 @@ class Manifest:
         manifest = DataManifest.from_json(json_file)
 
         return cls(manifest.index, manifest.data_sources, manifest.metadata)
-
-        # with open(json_file, encoding="utf-8") as file:
-        #     manifest_dict = json.load(file)
-
-        # index = DataSource.from_dict(manifest_dict["index"])
-        # data_sources = {
-        #     name: DataSource.from_dict(data_source)
-        #     for name, data_source in manifest_dict["data_sources"].items()
-        # }
-
-        # return cls(index, data_sources, manifest_dict["metadata"])
 
 
 class ExpressTransformComponent(Generic[IndexT, DataT]):

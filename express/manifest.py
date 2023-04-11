@@ -9,14 +9,13 @@ from dataclasses_json import dataclass_json
 @dataclass
 class DataSource:
     """
-    Information about the location and contents of a single data source.
+    A data source is a reference to a dataset stored remotely. It contains the location, length
+    and column names of the dataset.
+
     Args:
-        location (str): the URI of the data root
-        type (Union[DataType, str]): the type of data, which determines how it's interpreted
-        extensions (List[str]): under what file extensions the data is stored.
-        n_files (int): how many files make up the data
-        n_items (int): how many items (e.g. distinct images, captions, etc.) are covered by the
-         data.
+        location (str): the URI of the data root (e.g. gs://bucket/path/to/data)
+        len (int): length of the dataset
+        column_names (int): list of column names
     """
 
     location: str
@@ -28,7 +27,8 @@ class DataSource:
 @dataclass
 class Metadata:
     """
-    The metadata associated with the manifest
+    The metadata associated with the manifest.
+
     Args:
         artifact_bucket (str): remote location of all newly created job artifacts.
         run_id (str): the kfp run id associated with the manifest (kfp.dsl.EXECUTION_ID_PLACEHOLDER)
