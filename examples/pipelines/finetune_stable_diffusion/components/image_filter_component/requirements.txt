@@ -1,2 +1,1 @@
-datasets==2.10.1
-git+https://github.com/ml6team/express.git@4f863bdf12eb29764aad1fe1195c342e54da0074
+git+https://github.com/ml6team/express.git@8540f31b0062ab46ac24a159a5f913b5cb862d7d#egg=express[datasets]

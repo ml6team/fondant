@@ -14,7 +14,7 @@ from typing import Dict, Optional, TypeVar, Generic, Union
 import datasets
 from datasets import load_dataset
 
-from express.data_source import DataSource, Metadata
+from express.manifest import DataSource, Metadata, DataManifest
 from express.storage_interface import StorageHandlerModule
 
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
@@ -28,13 +28,11 @@ DataT = TypeVar("DataT")
 
 class Manifest:
     """
-    A class representing a data manifest.
-
-    A data manifest consists of a single index and one or more data sources.
+    A class wrapper around a data manifest which allows to manipulate it.
     """
 
     def __init__(self, index, data_sources, metadata):
-        self.metadata = self._create_metadata(metadata)
+        metadata = self._create_metadata(metadata)
         self.index = self._create_index(index)
         self.data_sources = self._create_data_sources(data_sources)
 
@@ -267,24 +265,27 @@ class Manifest:
         return None
 
     def to_json(self):
+        # return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
         # based on https://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+        manifest = DataManifest(self.index, self.data_sources, self.metadata)
+        return manifest.to_json()
 
     @classmethod
     def from_json(cls, json_file):
-        # TODO perhaps use this instead
-        # manifest = Path(manifest_path).read_text(encoding="utf-8")
+        manifest = DataManifest.from_json(json_file)
 
-        with open(json_file, encoding="utf-8") as file_:
-            manifest_dict = json.load(file_)
+        return cls(manifest.index, manifest.data_sources, manifest.metadata)
 
-        index = DataSource.from_dict(manifest_dict["index"])
-        data_sources = {
-            name: DataSource.from_dict(data_source)
-            for name, data_source in manifest_dict["data_sources"].items()
-        }
+        # with open(json_file, encoding="utf-8") as file:
+        #     manifest_dict = json.load(file)
 
-        return cls(index, data_sources, manifest_dict["metadata"])
+        # index = DataSource.from_dict(manifest_dict["index"])
+        # data_sources = {
+        #     name: DataSource.from_dict(data_source)
+        #     for name, data_source in manifest_dict["data_sources"].items()
+        # }
+
+        # return cls(index, data_sources, manifest_dict["metadata"])
 
 
 class ExpressTransformComponent(Generic[IndexT, DataT]):

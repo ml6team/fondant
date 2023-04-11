@@ -1,4 +1,5 @@
-from typing import List
+import json
+from typing import List, Dict
 
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
@@ -51,3 +52,31 @@ class Metadata:
     commit_hash: str = field(default_factory=str)
     creation_date: str = field(default_factory=str)
     num_items: int = field(default_factory=int)
+
+
+@dataclass_json
+@dataclass
+class DataManifest:
+    """
+    The data manifest. A data manifest consists of a single index and one or more data sources.
+
+    Args:
+        index (DataSource): the index parquet file which indexes all the data_sources
+        data_sources (List[DataSource]): Location and metadata of various data sources associated
+         with the index.
+        metadata (Metadata): The metadata associated with the manifest
+
+    """
+
+    index: DataSource
+    data_sources: Dict[str, DataSource] = field(default_factory=dict)
+    metadata: Metadata = field(
+        default_factory=Metadata
+    )  # TODO: make mandatory during construction
+
+    @classmethod
+    def from_path(cls, manifest_path):
+        """Load data manifest from a given manifest path"""
+        with open(manifest_path, encoding="utf-8") as file_:
+            manifest_load = json.load(file_)
+            return DataManifest.from_dict(manifest_load)
