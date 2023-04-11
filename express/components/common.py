@@ -301,8 +301,8 @@ class ExpressComponent(Generic[IndexT, DataT]):
         input_manifest.metadata = input_manifest._update_metadata(
             input_manifest.metadata, json.loads(args.metadata)
         )
-        # transform
-        output_manifest = cls.transform(
+        # process
+        output_manifest = cls.process(
             manifest=input_manifest,
             args=json.loads(args.args),
         )
