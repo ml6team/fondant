@@ -27,7 +27,7 @@ def create_image_metadata(batch):
 
 
 class LoadFromHubComponent(ExpressComponent):
-    """Component that loads a dataset from the hub and creates the initial manifest."""
+    """Component that loads a dataset from the hub and adds it to the manifest."""
 
     @classmethod
     def process(
