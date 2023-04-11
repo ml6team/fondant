@@ -1,13 +1,18 @@
 name: load_from_hub_component
-description: A basic component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
+description: A component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
 inputs: 
+    - name: input_manifest
+      description: Path to the input manifest
+      type: String
+    
     - name: args
       description: Additional arguments passed to the component, as a json dict string
       type: String
     
     - name: metadata
-      description: Metadata, passed as a json dict string
+      description: Metadata arguments, passed as a json dict string
       type: String
+    
     
 outputs:
     - name: output_manifest
@@ -15,10 +20,11 @@ outputs:
 
 implementation:
     container:
-        image: ghcr.io/ml6team/load_from_hub_component:latest
+        image: ghcr.io/ml6team/image_filter_component:latest
         command: [
             python3, main.py,
-            --args,                {inputValue: args},
-            --metadata,            {inputValue: metadata},
-            --output-manifest,     {outputPath: output_manifest},
+            --input-manifest,       {inputPath: input_manifest},
+            --args,                 {inputValue: args},
+            --metadata,             {inputValue: metadata},
+            --output-manifest,      {outputPath: output_manifest},
         ]

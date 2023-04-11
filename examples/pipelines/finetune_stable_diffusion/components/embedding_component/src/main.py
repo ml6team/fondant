@@ -4,7 +4,7 @@ This component adds a data source to the manifest by embedding the images.
 import logging
 from typing import Dict, Union
 
-from express.components.common import FondantManifest, ExpressTransformComponent
+from express.components.common import FondantManifest, ExpressComponent
 from express.logger import configure_logging
 
 import torch
@@ -42,13 +42,13 @@ def embed(examples, processor, model):
     return examples
 
 
-class EmbeddingComponent(ExpressTransformComponent):
+class EmbeddingComponent(ExpressComponent):
     """
     Component that embeds the images using a CLIP model from Hugging Face.
     """
 
     @classmethod
-    def transform(
+    def process(
         cls,
         manifest: FondantManifest,
         args: Dict[str, Union[str, int, float, bool]],

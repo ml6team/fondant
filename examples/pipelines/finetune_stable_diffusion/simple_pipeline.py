@@ -82,6 +82,7 @@ def sd_dataset_creator_pipeline(
 
     # Component 1
     load_from_hub_task = load_from_hub_op(
+        input_manifest=None,
         args=load_from_hub_args,
         metadata=load_from_hub_metadata,
     ).set_display_name("Load initial images")

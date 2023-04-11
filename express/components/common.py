@@ -31,10 +31,10 @@ class FondantManifest:
     A class wrapper around a data manifest which allows to manipulate it.
     """
 
-    def __init__(self, index, data_sources, metadata):
-        self.metadata = self._create_metadata(metadata)
-        self.index = self._create_index(index)
-        self.data_sources = self._create_data_sources(data_sources)
+    def __init__(self, index=None, data_sources={}, metadata={}):
+        self._create_metadata(metadata)
+        self._create_index(index)
+        self._create_data_sources(data_sources)
 
     def _path_for_upload(self, metadata: Metadata, name: str) -> str:
         """
@@ -95,25 +95,26 @@ class FondantManifest:
         return data_source
 
     def _create_index(self, index):
-        if isinstance(index, DataSource):
+        if isinstance(index, DataSource) or index is None:
             pass
         else:
             remote_path = self._path_for_upload(self.metadata, "index")
             index = self._upload_index(index, remote_path)
 
-        return index
+        self.index = index
 
     def _create_data_sources(self, data_sources):
-        for name, dataset in data_sources.items():
-            if isinstance(dataset, DataSource):
-                data_sources[name] = dataset
-            else:
-                remote_path = self._path_for_upload(self.metadata, name)
-                data_sources[name] = self._upload_data_source(
-                    name, dataset, remote_path
-                )
+        if len(data_sources) > 0:
+            for name, dataset in data_sources.items():
+                if isinstance(dataset, DataSource):
+                    data_sources[name] = dataset
+                else:
+                    remote_path = self._path_for_upload(self.metadata, name)
+                    data_sources[name] = self._upload_data_source(
+                        name, dataset, remote_path
+                    )
 
-        return data_sources
+        self.data_sources = data_sources
 
     def add_data_sources(self, data_sources: Dict[str, DataT]):
         """
@@ -151,7 +152,7 @@ class FondantManifest:
         """
         Updates the index of the manifest.
         """
-        self.index = self._create_index(index)
+        self.index = self.create_index(index)
 
     # TODO this is framework specific
     def load_index(self) -> datasets.Dataset:
@@ -234,7 +235,7 @@ class FondantManifest:
         """
 
         initial_metadata = Metadata()
-        return self._update_metadata(initial_metadata, metadata_args)
+        self.metadata = self._update_metadata(initial_metadata, metadata_args)
 
     def _update_metadata(
         self,
@@ -275,24 +276,27 @@ class FondantManifest:
         return cls(manifest.index, manifest.data_sources, manifest.metadata)
 
 
-class ExpressTransformComponent(Generic[IndexT, DataT]):
+class ExpressComponent(Generic[IndexT, DataT]):
     """
-    An abstract component that facilitates end-to-end transformation of Express Datasets.
+    An abstract component that facilitates end-to-end transformation of the Express manifest.
     It can be subclassed or used with a mixin to support reading and writing of a specific data
-     type, and to implement specific dataset transformations.
+    source, and to implement specific dataset transformations.
     """
 
     @classmethod
     def run(cls) -> FondantManifest:
         """
-        Parses input data, executes the transform, and creates output manifest.
+        Parses input manifest, processes, and creates output manifest.
 
         Returns:
             FondantManifest: the output manifest
         """
         args = cls._parse_args()
-        # load manifest
-        input_manifest = FondantManifest.from_json(args.input_manifest)
+        # create or load manifest
+        if args.input_manifest is None:
+            input_manifest = FondantManifest()
+        else:
+            input_manifest = FondantManifest.from_json(args.input_manifest)
         # update metadata based on args.metadata
         input_manifest.metadata = input_manifest._update_metadata(
             input_manifest.metadata, json.loads(args.metadata)
@@ -339,13 +343,13 @@ class ExpressTransformComponent(Generic[IndexT, DataT]):
 
     @classmethod
     @abstractmethod
-    def transform(
+    def process(
         cls,
         manifest: FondantManifest,
         extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
     ) -> FondantManifest:
         """
-        Applies transformations to the input dataset and creates a draft for a new dataset.
+        Applies transformations to the input manifest and creates an output manifest.
         The recommended pattern for a transform is to extend the input dataset with a filtered index
         , and/or with additional data sources.
         If the transform generated data that is independent of the input data, or if the output size
@@ -362,75 +366,4 @@ class ExpressTransformComponent(Generic[IndexT, DataT]):
             FondantManifest[TIndex, TData]: draft of output dataset, to be uploaded after this
              transform completes. Can be created by calling `extend` on an existing dataset, or by
               directly calling the constructor.
-        """
-
-
-class ExpressLoaderComponent(Generic[IndexT, DataT]):
-    """
-    An abstract component that facilitates creation of a new output manifest.
-    This will commonly be the first component in an Express Pipeline. It can be subclassed or used
-    with a mixin to support loading of a specific data type, and to implement specific dataset
-    loaders.
-    """
-
-    @classmethod
-    def run(cls) -> FondantManifest:
-        """
-        Parses input data, executes the data loader, and creates output manifest.
-
-        Returns:
-            FondantManifest: the output manifest
-        """
-        args = cls._parse_args()
-        # create manifest
-        output_manifest = cls.load(
-            args=json.loads(args.args), metadata=json.loads(args.metadata)
-        )
-        # upload manifest
-        output_manifest.upload(save_path=args.output_manifest)
-
-    @classmethod
-    def _parse_args(cls):
-        """
-        Parse component arguments
-        """
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            "--args",
-            type=str,
-            required=False,
-            help="Extra arguments, passed as a json dict string",
-        )
-        parser.add_argument(
-            "--metadata",
-            type=str,
-            required=True,
-            help="Metadata, passed as a json dict string",
-        )
-        parser.add_argument(
-            "--output-manifest",
-            type=str,
-            required=True,
-            help="Path to store the output manifest",
-        )
-        return parser.parse_args()
-
-    @classmethod
-    @abstractmethod
-    def load(
-        cls,
-        args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
-        metadata=None,
-    ) -> FondantManifest:
-        """
-        Loads data from an arbitrary source to create an output manifest.
-
-        Args:
-            args (Optional[Dict[str, Union[str, int, float, bool]]): an optional dictionary
-             of additional arguments passed in by the pipeline run
-            metadata (Optional[Dict[str, Union[str, int, float, bool]]): an optional dictionary
-                of metadata passed in by the pipeline run
-
-        Returns:
-            FondantManifest: output manifest, to be uploaded after this loader completes.
         """

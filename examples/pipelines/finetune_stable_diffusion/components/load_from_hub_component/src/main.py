@@ -7,7 +7,7 @@ from typing import Union, Dict
 
 from datasets import Dataset, load_dataset
 
-from express.components.common import FondantManifest, ExpressLoaderComponent
+from express.components.common import FondantManifest, ExpressComponent
 from express.logger import configure_logging
 
 configure_logging()
@@ -26,17 +26,20 @@ def create_image_metadata(batch):
     return batch
 
 
-class LoadFromHubComponent(ExpressLoaderComponent):
+class LoadFromHubComponent(ExpressComponent):
     """Component that loads a dataset from the hub and creates the initial manifest."""
 
     @classmethod
-    def load(
-        cls, args: Dict[str, Union[str, int, float, bool]], metadata,
+    def process(
+        cls,
+        manifest: FondantManifest,
+        args: Dict[str, Union[str, int, float, bool]],
     ) -> FondantManifest:
         """
         Args:
+            manifest: Fondant manifest
             args: args to pass to the function
-            metadata: metadata to pass to the manifest
+        
         Returns:
             FondantManifest: output manifest
         """
@@ -67,9 +70,10 @@ class LoadFromHubComponent(ExpressLoaderComponent):
             "images": image_dataset,
             "captions": text_dataset,
         }
-        output_manifest = FondantManifest(index=index_dataset, data_sources=data_sources, metadata=metadata)
+        manifest.create_index(index_dataset)
+        manifest.add_data_sources(data_sources)
 
-        return output_manifest
+        return manifest
 
 
 if __name__ == "__main__":
