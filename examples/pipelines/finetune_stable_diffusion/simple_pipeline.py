@@ -12,7 +12,6 @@ from config.components_config import (
     LoadFromHubConfig,
     ImageFilterConfig,
     EmbeddingConfig,
-    ClipRetrievalConfig,
 )
 from express.pipeline_utils import compile_and_upload_pipeline
 
