@@ -296,7 +296,7 @@ class FondantComponent(Generic[IndexT, DataT]):
         print("Input manifest: ", args.input_manifest)
         print("Type of input manifest: ", type(args.input_manifest))
         print(args.input_manifest is not None)
-        if args.input_manifest == "initial":
+        if args.input_manifest == "":
             input_manifest = FondantManifest()
         else:
             input_manifest = FondantManifest.from_json(args.input_manifest)
