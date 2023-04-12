@@ -271,7 +271,7 @@ class FondantManifest:
 
     @classmethod
     def from_json(cls, json_file):
-        manifest = Manifest.from_json(json_file)
+        manifest = Manifest.from_path(json_file)
 
         return cls(manifest.index, manifest.data_sources, manifest.metadata)
 
