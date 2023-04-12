@@ -25,6 +25,9 @@ def test_manifest_from_data_sources():
     assert manifest.metadata.run_id == 100
 
 
-def test_from_json():
+def test_to_from_json():
     """Test the validity of a manifest from a json file"""
-    raise NotImplementedError("To do")
+    
+    manifest = FondantManifest()
+    manifest_json_string = manifest.to_json()
+    new_manifest = FondantManifest.from_json(manifest_json_string)

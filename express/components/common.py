@@ -224,9 +224,10 @@ class FondantManifest:
 
             return dataset
 
-    def _create_metadata(self, metadata_args: dict) -> Metadata:
+    def _create_metadata(self, metadata_args) -> Metadata:
         """
         Create the manifest metadata
+
         Args:
             metadata_args (dict): a dictionary containing metadata information
 
@@ -271,9 +272,9 @@ class FondantManifest:
 
     @classmethod
     def from_json(cls, json_file):
-        manifest = Manifest.from_path(json_file)
+        manifest = Manifest.from_json(json_file)
 
-        return cls(manifest.index, manifest.data_sources, manifest.metadata)
+        return cls(manifest.index, manifest.data_sources, manifest.metadata.to_dict())
 
 
 class FondantComponent:
