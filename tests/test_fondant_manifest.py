@@ -29,5 +29,5 @@ def test_to_from_json():
     """Test the validity of a manifest from a json file"""
     
     manifest = FondantManifest()
-    manifest_json_string = manifest.to_json()
-    new_manifest = FondantManifest.from_json(manifest_json_string)
+    manifest_json_string = manifest.to_json_string()
+    new_manifest = FondantManifest.manifest.from_json(manifest_json_string)

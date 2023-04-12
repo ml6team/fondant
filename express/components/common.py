@@ -263,16 +263,16 @@ class FondantManifest:
 
     def upload(self, save_path):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(save_path).write_text(self.to_json(), encoding="utf-8")
+        Path(save_path).write_text(self.to_json_string(), encoding="utf-8")
         return None
 
-    def to_json(self):
+    def to_json_string(self):
         manifest = Manifest(self.index, self.data_sources, self.metadata)
         return manifest.to_json()
 
     @classmethod
-    def from_json(cls, json_file):
-        manifest = Manifest.from_json(json_file)
+    def from_path(cls, path: str):
+        manifest = Manifest.from_path(path)
 
         return cls(manifest.index, manifest.data_sources, manifest.metadata.to_dict())
 
@@ -300,7 +300,7 @@ class FondantComponent:
         if cls.type == "load":
             input_manifest = FondantManifest()
         elif cls.type == "transform":
-            input_manifest = FondantManifest.from_json(args.input_manifest)
+            input_manifest = FondantManifest.from_path(args.input_manifest)
         else:
             raise ValueError(f"Unknown component type: {cls.type}")
         # update metadata based on args.metadata
@@ -314,7 +314,7 @@ class FondantComponent:
         )
         # create output manifest
         print("Path to output manifest:", args.output_manifest)
-        print("Output manifest:", output_manifest.to_json())
+        print("Output manifest:", output_manifest.to_json_string())
         output_manifest.upload(save_path=args.output_manifest)
 
     @classmethod
