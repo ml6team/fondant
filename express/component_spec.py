@@ -71,7 +71,9 @@ class ExpressComponent:
         """Validate a component specification against the component schema
         Raises: InvalidManifest when the manifest is not valid.
         """
-        spec_schema = json.loads(pkgutil.get_data("express", "schemas/component_spec.json"))
+        spec_schema = json.loads(
+            pkgutil.get_data("express", "schemas/component_spec.json")
+        )
         validator = Draft4Validator(spec_schema)
         try:
             validator.validate(spec)
@@ -87,11 +89,11 @@ class ExpressComponent:
 
     @property
     def name(self):
-        return self._metadata['name']
+        return self._metadata["name"]
 
     @property
     def description(self):
-        return self._metadata['description']
+        return self._metadata["description"]
 
     @property
     def input_subsets(self) -> t.Dict[str, ComponentSubsets]:
