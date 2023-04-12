@@ -1,7 +1,7 @@
 import json
 import pytest
 from express.exceptions import InvalidManifest
-from express.manifest import Manifest
+from express.manifest import Manifest, Type
 
 VALID_MANIFEST = {
     "metadata": {
@@ -15,13 +15,13 @@ VALID_MANIFEST = {
             "location": "/images",
             "fields": {
                 "data": {
-                    "type": "bytes"
+                    "type": "binary"
                 },
                 "height": {
-                    "type": "int"
+                    "type": "int32"
                 },
                 "width": {
-                    "type": "int"
+                    "type": "int32"
                 }
             }
         },
@@ -29,7 +29,7 @@ VALID_MANIFEST = {
             "location": "/captions",
             "fields": {
                 "data": {
-                    "type": "bytes"
+                    "type": "binary"
                 }
             }
         }
@@ -84,4 +84,45 @@ def test_attribute_access():
     assert manifest.metadata == VALID_MANIFEST["metadata"]
     assert manifest.index.location == "gs://bucket/index"
     assert manifest.subsets["images"].location == "gs://bucket/images"
-    assert manifest.subsets["images"].fields["data"].type == "bytes"
+    assert manifest.subsets["images"].fields["data"].type == "binary"
+
+
+def test_manifest_creation():
+    """Test the stepwise creation of a manifest via the Manifest class"""
+    manifest = Manifest.create("gs://bucket")
+    manifest.add_subset("images", [("width", Type.int32), ("height", Type.int32)])
+    manifest.subsets["images"].add_field("data", Type.binary)
+
+    assert manifest._specification == {
+        "metadata": {
+            "base_path": "gs://bucket",
+        },
+        "index": {
+            "location": "/index"
+        },
+        "subsets": {
+            "images": {
+                "location": "/images",
+                "fields": {
+                    "width": {
+                        "type": "int32",
+                    },
+                    "height": {
+                        "type": "int32",
+                    },
+                    "data": {
+                        "type": "binary",
+                    }
+                }
+            }
+        }
+    }
+
+
+def test_manifest_copy_and_adapt():
+    """Test that a manifest can be copied and adapted without changing the original."""
+    manifest = Manifest(VALID_MANIFEST)
+    new_manifest = manifest.copy()
+    new_manifest.remove_subset("images")
+    assert manifest._specification == VALID_MANIFEST
+    assert new_manifest._specification != VALID_MANIFEST
