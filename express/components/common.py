@@ -295,13 +295,12 @@ class FondantComponent:
         """
         args = cls._parse_args()
         # create or load manifest
-        print("Input manifest: ", args.input_manifest)
-        print("Type of input manifest: ", type(args.input_manifest))
-        print(args.input_manifest is not None)
         if cls.type == "load":
             input_manifest = FondantManifest()
-        else:
+        elif cls.type == "transform":
             input_manifest = FondantManifest.from_json(args.input_manifest)
+        else:
+            raise ValueError(f"Unknown component type: {cls.type}")
         # update metadata based on args.metadata
         input_manifest.metadata = input_manifest._update_metadata(
             input_manifest.metadata, json.loads(args.metadata)
@@ -312,6 +311,8 @@ class FondantComponent:
             args=json.loads(args.args),
         )
         # create output manifest
+        print("Path to output manifest:", args.output_manifest)
+        print("Output manifest:", output_manifest.to_json())
         output_manifest.upload(save_path=args.output_manifest)
 
     @classmethod
