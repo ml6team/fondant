@@ -1,6 +1,14 @@
 # Welcome to Fondant
 
-Fondant helps you create pipelines for training foundation models.
+Fondant helps you create data processing pipelines to train foundation models, like Stable Diffusion or GPT language models.
+
+Fondant offers a set of reusable components, such as:
+- image filtering
+- language filtering
+- deduplication
+- image expansion based on LAION retrieval
+
+and so on, to help you train foundation models faster. 
 
 ## Fondant internals
 
