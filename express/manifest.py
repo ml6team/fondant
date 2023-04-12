@@ -140,15 +140,21 @@ class Manifest:
             raise InvalidManifest.create_from(e)
 
     @classmethod
-    def create(cls, base_path: str) -> "Manifest":
+    def create(cls, *, base_path: str, run_id: str, component_id: str) -> "Manifest":
         """Create an empty manifest
 
         Args:
             base_path: The base path of the manifest
+            run_id: The id of the current pipeline run
+            component_id: The id of the current component being executed
         """
         specification = {
-            "metadata": {"base_path": base_path},
-            "index": {"location": "/index"},
+            "metadata": {
+                "base_path": base_path,
+                "run_id": run_id,
+                "component_id": component_id,
+            },
+            "index": {"location": f"/index/{run_id}/{component_id}"},
             "subsets": {},
         }
         return cls(specification)
@@ -178,11 +184,19 @@ class Manifest:
 
     @property
     def base_path(self) -> str:
-        return self.metadata.get("base_path")
+        return self.metadata["base_path"]
+
+    @property
+    def run_id(self) -> str:
+        return self.metadata["run_id"]
+
+    @property
+    def component_id(self) -> str:
+        return self.metadata["component_id"]
 
     @property
     def index(self) -> Index:
-        return Index(self._specification.get("index"), base_path=self.base_path)
+        return Index(self._specification["index"], base_path=self.base_path)
 
     @property
     def subsets(self) -> t.Mapping[str, Subset]:
@@ -199,7 +213,7 @@ class Manifest:
             raise ValueError("A subset with name {name} already exists")
 
         self._specification["subsets"][name] = {
-            "location": f"/{name}",
+            "location": f"/{name}/{self.run_id}/{self.component_id}",
             "fields": {name: {"type": type_.value} for name, type_ in fields},
         }
 
