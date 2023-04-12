@@ -294,6 +294,7 @@ class FondantComponent:
             FondantManifest: the output manifest
         """
         args = cls._parse_args()
+        print("Path to input manifest:", args.input_manifest)
         # create or load manifest
         if cls.type == "load":
             input_manifest = FondantManifest()
