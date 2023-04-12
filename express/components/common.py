@@ -9,7 +9,7 @@ import tempfile
 import importlib
 from abc import abstractmethod
 from pathlib import Path
-from typing import Dict, Optional, TypeVar, Generic, Union
+from typing import Dict, Optional, TypeVar, Union
 
 import datasets
 from datasets import load_dataset
@@ -276,12 +276,14 @@ class FondantManifest:
         return cls(manifest.index, manifest.data_sources, manifest.metadata)
 
 
-class FondantComponent(Generic[IndexT, DataT]):
+class FondantComponent:
     """
     An abstract component that facilitates end-to-end transformation of the Fondant manifest.
     It can be subclassed or used with a mixin to support reading and writing of a specific data
     source, and to implement specific dataset transformations.
     """
+
+    type: str = "transform"
 
     @classmethod
     def run(cls) -> FondantManifest:
@@ -296,7 +298,7 @@ class FondantComponent(Generic[IndexT, DataT]):
         print("Input manifest: ", args.input_manifest)
         print("Type of input manifest: ", type(args.input_manifest))
         print(args.input_manifest is not None)
-        if args.input_manifest == "":
+        if cls.type == "load":
             input_manifest = FondantManifest()
         else:
             input_manifest = FondantManifest.from_json(args.input_manifest)

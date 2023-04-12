@@ -28,6 +28,7 @@ def create_image_metadata(batch):
 
 class LoadFromHubComponent(FondantComponent):
     """Component that loads a dataset from the hub and adds it to the manifest."""
+    type = "load"
 
     @classmethod
     def process(
