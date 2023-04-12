@@ -152,7 +152,7 @@ class FondantManifest:
         """
         Updates the index of the manifest.
         """
-        self.index = self.create_index(index)
+        self._create_index(index)
 
     # TODO this is framework specific
     def load_index(self) -> datasets.Dataset:
