@@ -12,28 +12,28 @@ VALID_COMPONENT_SPEC = {
     "input_subsets": {
         "images": {
             "fields": {
-                "data": {"type": "bytes"},
-                "height": {"type": "int"},
-                "width": {"type": "int"}
+                "data": {"type": "binary"},
+                "height": {"type": "int32"},
+                "width": {"type": "int32"}
             }
         },
         "texts": {
             "fields": {
-                "data": {"type": "str"},
-                "length": {"type": "int"}
+                "data": {"type": "utf8"},
+                "length": {"type": "int32"}
             }
         }
     },
     "output_subsets": {
         "embedding": {
             "fields": {
-                "data": {"type": "bytes"}
+                "data": {"type": "binary"}
             }
         },
         "captions": {
             "fields": {
-                "length": {"type": "int"},
-                "language": {"type": "str"}
+                "length": {"type": "int32"},
+                "language": {"type": "utf8"}
             }
         }
     }
@@ -43,27 +43,27 @@ INVALID_COMPONENT_SPEC = {
     "input_subsets": {
         "images": {
             "fields": {
-                "data": {"type": "bytes"},
+                "data": {"type": "binary"},
                 "height": {"type": None},
-                "width": {"type": "int"}
+                "width": {"type": "int32"}
             }
         },
         "texts": {
             "fields": {
-                "data": {"type": "str"},
-                "length": {"type": "int"}
+                "data": {"type": "utf8"},
+                "length": {"type": "int32"}
             }
         }
     },
     "output_subsets": {
         "embedding": {
             "fields": {
-                "data": {"type": "bytes"}
+                "data": {"type": "int32"}
             }
         },
         "captions": {
             "fields": {
-                "length": {"type": "int"},
+                "length": {"type": "int32"},
                 "language": {"type": "str"}
             }
         }
@@ -73,9 +73,9 @@ INVALID_COMPONENT_SPEC = {
 
 def test_component_spec_validation():
     """Test that the manifest is validated correctly on instantiation"""
-    ExpressComponent(VALID_COMPONENT_SPEC, yaml_path())
+    ExpressComponent(yaml_path(), VALID_COMPONENT_SPEC)
     with pytest.raises(InvalidComponentSpec):
-        ExpressComponent(INVALID_COMPONENT_SPEC, yaml_path())
+        ExpressComponent(yaml_path(), INVALID_COMPONENT_SPEC)
 
 
 def test_attribute_access():
@@ -84,8 +84,8 @@ def test_attribute_access():
     - Fixed properties should be accessible as an attribute
     - Dynamic properties should be accessible by lookup
     """
-    express_component = ExpressComponent(VALID_COMPONENT_SPEC, yaml_path())
+    express_component = ExpressComponent(yaml_path(), VALID_COMPONENT_SPEC)
 
     assert express_component.name == "Example component"
     assert express_component.description == "This is an example component"
-    assert express_component.input_subsets['images'].fields["data"].type == "bytes"
+    assert express_component.input_subsets['images'].fields["data"].type == "binary"
