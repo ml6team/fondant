@@ -9,7 +9,48 @@ import jsonschema.exceptions
 from jsonschema import Draft4Validator
 
 from express.exceptions import InvalidManifest
-from express.common import Type, Field, Subset
+from express.common import Type, Field
+
+
+class Subset:
+    """
+    Class representing an Express subset.
+
+    Args:
+        specification: The part of the manifest json representing the subset
+        base_path: The base path which the subset location is defined relative to
+    """
+
+    def __init__(self, specification: dict, *, base_path: str) -> None:
+        self._specification = specification
+        self._base_path = base_path
+
+    @property
+    def location(self) -> str:
+        """The resolved location of the subset"""
+        return self._base_path.rstrip("/") + self._specification["location"]
+
+    @property
+    def fields(self) -> t.Mapping[str, Field]:
+        """The fields of the subset returned as a immutable mapping."""
+        return types.MappingProxyType(
+            {
+                name: Field(name=name, type=field["type"])
+                for name, field in self._specification["fields"].items()
+            }
+        )
+
+    def add_field(self, name: str, type_: Type) -> None:
+        if name in self._specification["fields"]:
+            raise ValueError("A field with name {name} already exists")
+
+        self._specification["fields"][name] = {"type": type_.value}
+
+    def remove_field(self, name: str) -> None:
+        del self._specification["fields"][name]
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._specification!r}"
 
 
 class Index(Subset):

@@ -26,6 +26,9 @@ class ComponentSubset:
         """
         self._specification = specification
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._specification!r}"
+
     @property
     def fields(self) -> t.Dict[str, Field]:
         return {
