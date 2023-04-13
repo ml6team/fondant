@@ -24,7 +24,7 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["str", "int", "float", "bool", "bytes"]
+                "$ref": "data_types.json"
               }
             },
             "required": ["type"],
