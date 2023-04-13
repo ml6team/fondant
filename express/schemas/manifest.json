@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "properties": {
     "metadata": {
@@ -40,7 +40,10 @@
       "properties": {
         "type": {
           "type": "string",
-          "$ref": "data_types.json"
+          "enum": ["bool", "int8", "int16", "int32", "uint8", "uint16", "uint32", "uint64",
+                   "float16", "float32", "float64", "decimal",
+                   "time32", "time64", "timestamp", "date32", "date64", "duration",
+                   "utf8", "binary", "categorical", "list", "struct"]
         }
       },
       "required": ["type"]
