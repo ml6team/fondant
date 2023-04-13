@@ -41,6 +41,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.8"
 dataclasses-json = "^0.5.7"
+jsonschema = "^4.17.3"
 
 datasets = { version = "^2.10.1", optional = true }
 kfp = { version = "^1.8.19", optional = true }
