@@ -4,15 +4,11 @@
   "properties": {
     "input_subsets": {
       "type": "object",
-      "patternProperties": {
-        "^[a-zA-Z0-9_-]+$": {"$ref": "#/definitions/subsetFields"}
-      }
+      "additionalProperties": {"$ref": "#/definitions/subsetFields"}
     },
     "output_subsets": {
       "type": "object",
-      "patternProperties": {
-        "^[a-zA-Z0-9_-]+$": {"$ref": "#/definitions/subsetFields"}
-      }
+      "additionalProperties": {"$ref": "#/definitions/subsetFields"}
     }
   },
   "required": ["input_subsets", "output_subsets"],
@@ -23,18 +19,16 @@
       "properties": {
         "fields": {
           "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9_-]+$": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "enum": ["str", "int", "float", "bool", "bytes"]
-                }
-              },
-              "required": ["type"],
-              "additionalProperties": false
-            }
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["str", "int", "float", "bool", "bytes"]
+              }
+            },
+            "required": ["type"],
+            "additionalProperties": false
           }
         }
       },

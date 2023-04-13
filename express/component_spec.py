@@ -1,9 +1,8 @@
-"""This module defines classes to represent an Express component specifications."""
+"""This module defines classes to represent an Express component specification."""
 import json
 import pkgutil
 import yaml
 import typing as t
-from typing import Dict
 from dataclasses import dataclass
 
 import jsonschema.exceptions
@@ -12,7 +11,7 @@ from jsonschema import Draft4Validator
 from express.exceptions import InvalidComponentSpec
 
 
-def load_yaml(yaml_path: str) -> Dict:
+def load_yaml(yaml_path: str) -> t.Dict:
     """Loads a YAML file and returns a dictionary."""
     try:
         with open(yaml_path) as f:
@@ -29,17 +28,14 @@ class ComponentField:
     type: str
 
 
-@dataclass
-class ComponentSubsets:
+class ComponentSubset:
     """
     Class representing an Express Component subset.
-    Args:
-        specification: A dictionary representing the component input and output subset specs
     """
 
     def __init__(self, specification: dict) -> None:
         """
-        Class representing a component subset
+        Initialize subsets
         Args:
             specification: the part of the component json representing the subset
         """
@@ -47,7 +43,6 @@ class ComponentSubsets:
 
     @property
     def fields(self) -> t.Dict[str, ComponentField]:
-        print(self._specification)
         return {
             name: ComponentField(name=name, type=field["type"])
             for name, field in self._specification["fields"].items()
@@ -59,6 +54,8 @@ class ExpressComponent:
     Class representing an Express component
     Args:
         specification: The component specification as a Python dict
+        yaml_spec_path: the path to the component yaml file containing the name and the descrption
+        of the component
     """
 
     def __init__(self, specification: dict, yaml_spec_path: str) -> None:
@@ -80,10 +77,10 @@ class ExpressComponent:
         except jsonschema.exceptions.ValidationError as e:
             raise InvalidComponentSpec.create_from(e)
 
-    def get_subset(self, subset_field: str) -> t.Dict[str, ComponentSubsets]:
+    def get_subset(self, subset_field: str) -> t.Dict[str, ComponentSubset]:
         """Function that returns subsets from a component specification"""
         return {
-            name: ComponentSubsets(subset)
+            name: ComponentSubset(subset)
             for name, subset in self._specification[subset_field].items()
         }
 
@@ -96,11 +93,11 @@ class ExpressComponent:
         return self._metadata["description"]
 
     @property
-    def input_subsets(self) -> t.Dict[str, ComponentSubsets]:
+    def input_subsets(self) -> t.Dict[str, ComponentSubset]:
         return self.get_subset("input_subsets")
 
     @property
-    def output_subsets(self) -> t.Dict[str, ComponentSubsets]:
+    def output_subsets(self) -> t.Dict[str, ComponentSubset]:
         return self.get_subset("output_subsets")
 
     def to_file(self, path) -> None:

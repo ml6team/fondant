@@ -10,30 +10,30 @@ def yaml_path() -> str:
 
 VALID_COMPONENT_SPEC = {
     "input_subsets": {
-        "subset1": {
+        "images": {
             "fields": {
                 "data": {"type": "bytes"},
                 "height": {"type": "int"},
                 "width": {"type": "int"}
             }
         },
-        "subset2": {
+        "texts": {
             "fields": {
-                "name": {"type": "str"},
-                "age": {"type": "int"}
+                "data": {"type": "str"},
+                "length": {"type": "int"}
             }
         }
     },
     "output_subsets": {
-        "subset1": {
+        "embedding": {
             "fields": {
-                "result": {"type": "str"}
+                "data": {"type": "bytes"}
             }
         },
-        "subset2": {
+        "captions": {
             "fields": {
-                "score": {"type": "int"},
-                "grade": {"type": "str"}
+                "length": {"type": "int"},
+                "language": {"type": "str"}
             }
         }
     }
@@ -41,36 +41,34 @@ VALID_COMPONENT_SPEC = {
 
 INVALID_COMPONENT_SPEC = {
     "input_subsets": {
-        "subset1": {
+        "images": {
             "fields": {
                 "data": {"type": "bytes"},
                 "height": {"type": None},
                 "width": {"type": "int"}
             }
         },
-        "subset2": {
+        "texts": {
             "fields": {
-                "name": {"type": "string"},
-                "age": {"type": "int"}
+                "data": {"type": "str"},
+                "length": {"type": "int"}
             }
         }
     },
     "output_subsets": {
-        "subset1": {
+        "embedding": {
             "fields": {
-                "result": {"type": "str"}
+                "data": {"type": "bytes"}
             }
         },
-        "subset2": {
+        "captions": {
             "fields": {
-                "score": {"type": "int"},
-                "grade": {"type": "str"}
+                "length": {"type": "int"},
+                "language": {"type": "str"}
             }
         }
     }
 }
-
-print(ExpressComponent(VALID_COMPONENT_SPEC, yaml_path()))
 
 
 def test_component_spec_validation():
@@ -90,4 +88,4 @@ def test_attribute_access():
 
     assert express_component.name == "Example component"
     assert express_component.description == "This is an example component"
-    assert express_component.input_subsets['subset1'].fields["data"].type == "bytes"
+    assert express_component.input_subsets['images'].fields["data"].type == "bytes"
