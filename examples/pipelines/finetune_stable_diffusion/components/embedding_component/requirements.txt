@@ -1,4 +1,4 @@
 torch==2.0.0
 transformers==4.27.3
-git+https://github.com/ml6team/express.git@ab37677cf1872f5f22ec366525840b1a2f3e6525#egg=express[datasets]
+git+https://github.com/ml6team/express.git@77a3b3c166c37f8bde029d1e2de34444b2b6371e#egg=express[datasets]
 Pillow==9.4.0
