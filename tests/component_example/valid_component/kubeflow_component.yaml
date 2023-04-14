@@ -1,0 +1,29 @@
+name: Example component
+description: This is an example component
+inputs:
+-   name: input_manifest
+    description: Path to the the input manifest
+    type: String
+-   name: extra_args
+    description: The extra arguments passed to the component
+    type: String
+-   name: storage_args
+    description: Storage arguments
+    type: String
+outputs:
+-   name: output_manifest
+    description: The path to the output manifest
+implementation:
+    container:
+        image: example_component:latest
+        command:
+        - python3
+        - main.py
+        - --input-manifest
+        -   inputPath: input_manifest
+        - --extra-args
+        -   inputValue: extra_args
+        - --storage-args
+        -   inputValue: storage_args
+        - --output-manifest
+        -   outputPath: output_manifest
