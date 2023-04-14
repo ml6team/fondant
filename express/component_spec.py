@@ -114,9 +114,9 @@ class KFPComponent:
 
     @staticmethod
     def _add_defaults_values(
-        values: t.Union[None, T, t.List[T]],
-        default_values: t.List[T],
-        value_type: t.Type[T],
+            values: t.Union[None, T, t.List[T]],
+            default_values: t.List[T],
+            value_type: t.Type[T],
     ) -> t.List[T]:
         """Add default values to a input/output list attribute"""
 
@@ -173,14 +173,14 @@ class KFPComponent:
             the kubeflow specification as a dictionary
         """
         if not all(
-            [
-                self.name,
-                self.description,
-                self.inputs,
-                self.outputs,
-                self.image,
-                self.command,
-            ]
+                [
+                    self.name,
+                    self.description,
+                    self.inputs,
+                    self.outputs,
+                    self.image,
+                    self.command,
+                ]
         ):
             raise ValueError("Missing required attributes to construct specification")
 
@@ -214,11 +214,13 @@ class ComponentSubset:
         return f"{self.__class__.__name__}({self._specification!r}"
 
     @property
-    def fields(self) -> t.Dict[str, Field]:
-        return {
-            name: Field(name=name, type=field["type"])
-            for name, field in self._specification["fields"].items()
-        }
+    def fields(self) -> t.Mapping[str, Field]:
+        return types.MappingProxyType(
+            {
+                name: Field(name=name, type=field)
+                for name, field in self._specification["fields"].items()
+            }
+        )
 
 
 class ExpressComponent:
@@ -230,8 +232,8 @@ class ExpressComponent:
 
     def __init__(self, yaml_spec_path: str):
         self.yaml_spec = load_yaml(yaml_spec_path)
-        self._kubeflow_comp_specs = self.get_kubeflow_comp_specification()
-        self._specification = self.get_express_comp_specification()
+        self._kubeflow_comp_specs = self.set_kubeflow_comp_specification()
+        self._specification = self.set_express_comp_specification()
         self._validate_spec()
 
     def _validate_spec(self) -> None:
@@ -247,7 +249,7 @@ class ExpressComponent:
         except jsonschema.exceptions.ValidationError as e:
             raise InvalidComponentSpec.create_from(e)
 
-    def get_kubeflow_comp_specification(self) -> t.Dict[str, any]:
+    def set_kubeflow_comp_specification(self) -> t.Dict[str, any]:
         """
         Function that returns the kubeflow specifications as a dictionary
         """
@@ -261,26 +263,16 @@ class ExpressComponent:
 
         return kfp_component.get_specification()
 
-    def get_express_comp_specification(self) -> t.Dict[str, any]:
+    def set_express_comp_specification(self) -> t.Dict[str, any]:
         """
         Function that return the express component specification which contains both the kubeflow
         component specifications in addition to the subsets defining the input and output datasets
         """
-
         express_component_spec = copy.deepcopy(self._kubeflow_comp_specs)
         express_component_spec["input_subsets"] = self.yaml_spec["input_subsets"]
         express_component_spec["output_subsets"] = self.yaml_spec["output_subsets"]
 
         return express_component_spec
-
-    def get_subset(self, subset_field: str) -> t.Mapping[str, ComponentSubset]:
-        """Function that returns subsets from a component specification"""
-        return types.MappingProxyType(
-            {
-                name: ComponentSubset(subset)
-                for name, subset in self._specification[subset_field].items()
-            }
-        )
 
     def write_component(self, path: str):
         """
@@ -297,11 +289,23 @@ class ExpressComponent:
 
     @property
     def input_subsets(self) -> t.Mapping[str, ComponentSubset]:
-        return self.get_subset("input_subsets")
+        """Function that returns the input subsets from a component specification"""
+        return types.MappingProxyType(
+            {
+                name: ComponentSubset(subset)
+                for name, subset in self._specification["input_subsets"].items()
+            }
+        )
 
     @property
     def output_subsets(self) -> t.Mapping[str, ComponentSubset]:
-        return self.get_subset("output_subsets")
+        """Function that returns the output subsets from a component specification"""
+        return types.MappingProxyType(
+            {
+                name: ComponentSubset(subset)
+                for name, subset in self._specification["output_subsets"].items()
+            }
+        )
 
     @property
     def name(self):
@@ -321,15 +325,3 @@ class ExpressComponent:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r}"
-
-
-#
-a = load_yaml(
-    "/home/philippe/Scripts/express/examples/pipelines/finetune_stable_diffusion/components/clip_retrieval_component/component.yaml"
-)
-b = 2
-
-# yaml_spec = load_yaml("/home/philippe/Scripts/express/express/express_component.yaml")
-p = "/home/philippe/Scripts/express/express/express_component.yaml"
-b = ExpressComponent(p)
-b.write_component("aa.yaml")

@@ -4,11 +4,13 @@ image: example_component:latest
 
 input_subsets:
   images:
-    data: binary
+    fields:
+      data: binary
 
 output_subsets:
   captions:
-    data: utf8
+    fields:
+      data: utf8
 
 args:
   storage_args:
