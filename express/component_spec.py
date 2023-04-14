@@ -114,9 +114,9 @@ class KFPComponent:
 
     @staticmethod
     def _add_defaults_values(
-            values: t.Union[None, T, t.List[T]],
-            default_values: t.List[T],
-            value_type: t.Type[T],
+        values: t.Union[None, T, t.List[T]],
+        default_values: t.List[T],
+        value_type: t.Type[T],
     ) -> t.List[T]:
         """Add default values to a input/output list attribute"""
 
@@ -173,14 +173,14 @@ class KFPComponent:
             the kubeflow specification as a dictionary
         """
         if not all(
-                [
-                    self.name,
-                    self.description,
-                    self.inputs,
-                    self.outputs,
-                    self.image,
-                    self.command,
-                ]
+            [
+                self.name,
+                self.description,
+                self.inputs,
+                self.outputs,
+                self.image,
+                self.command,
+            ]
         ):
             raise ValueError("Missing required attributes to construct specification")
 
@@ -321,3 +321,15 @@ class ExpressComponent:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r}"
+
+
+#
+a = load_yaml(
+    "/home/philippe/Scripts/express/examples/pipelines/finetune_stable_diffusion/components/clip_retrieval_component/component.yaml"
+)
+b = 2
+
+# yaml_spec = load_yaml("/home/philippe/Scripts/express/express/express_component.yaml")
+p = "/home/philippe/Scripts/express/express/express_component.yaml"
+b = ExpressComponent(p)
+b.write_component("aa.yaml")
