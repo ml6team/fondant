@@ -232,9 +232,9 @@ class ExpressComponent:
 
     def __init__(self, yaml_spec_path: str):
         self.yaml_spec = load_yaml(yaml_spec_path)
+        self._validate_spec()
         self._kubeflow_comp_specs = self.set_kubeflow_comp_specification()
         self._specification = self.set_express_comp_specification()
-        self._validate_spec()
 
     def _validate_spec(self) -> None:
         """Validate a component specification against the component schema
@@ -245,7 +245,7 @@ class ExpressComponent:
         )
         validator = Draft4Validator(spec_schema)
         try:
-            validator.validate(self._specification)
+            validator.validate(self.yaml_spec)
         except jsonschema.exceptions.ValidationError as e:
             raise InvalidComponentSpec.create_from(e)
 
