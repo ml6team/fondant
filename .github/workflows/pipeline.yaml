@@ -37,4 +37,5 @@ jobs:
           pylint express --exit-zero
       - name: Test with pytest
         run: |
+          pip install pytest
           pytest tests
