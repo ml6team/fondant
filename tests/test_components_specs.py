@@ -3,6 +3,7 @@ import os
 import pytest
 from express.exceptions import InvalidComponentSpec
 from express.component_spec import ExpressComponent
+from express.io_utils import load_yaml
 
 valid_path = os.path.join("component_example", "valid_component")
 invalid_path = os.path.join("component_example", "invalid_component")
@@ -38,3 +39,11 @@ def test_attribute_access():
     assert express_component.name == "Example component"
     assert express_component.description == "This is an example component"
     assert express_component.input_subsets['images'].fields["data"].type == "binary"
+
+
+def test_kfp_component_creation():
+    """
+    Test that the created kubeflow component matches the expected kubeflow component
+    """
+    express_component = ExpressComponent(valid_express_schema())
+    assert express_component._kubeflow_comp_specs == load_yaml(valid_kubeflow_schema())
