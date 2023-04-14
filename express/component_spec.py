@@ -54,7 +54,7 @@ class KFPComponent:
     Attributes:
         name: The name of the component.
         description: The description of the component.
-        image: The Docker image for the component.
+        image: The Docker image url for the component.
         args: A dictionary of component arguments.
         inputs: The input parameters for the component.
         outputs: The output parameters for the component.
@@ -88,12 +88,12 @@ class KFPComponent:
         """
         inputs = [
             Input(
-                name="input_manifest",
+                name="input_manifest_path",
                 description="Path to the the input manifest",
                 type="String",
             ),
             Input(
-                name="extra_args",
+                name="args",
                 description="The extra arguments passed to the component",
                 type="String",
             ),
@@ -107,16 +107,17 @@ class KFPComponent:
         """
         outputs = [
             Output(
-                name="output_manifest", description="The path to the output manifest"
+                name="output_manifest_path",
+                description="The path to the output manifest",
             )
         ]
         return outputs
 
     @staticmethod
     def _add_defaults_values(
-            values: t.Union[None, T, t.List[T]],
-            default_values: t.List[T],
-            value_type: t.Type[T],
+        values: t.Union[None, T, t.List[T]],
+        default_values: t.List[T],
+        value_type: t.Type[T],
     ) -> t.List[T]:
         """Add default values to a input/output list attribute"""
 
@@ -173,14 +174,14 @@ class KFPComponent:
             the kubeflow specification as a dictionary
         """
         if not all(
-                [
-                    self.name,
-                    self.description,
-                    self.inputs,
-                    self.outputs,
-                    self.image,
-                    self.command,
-                ]
+            [
+                self.name,
+                self.description,
+                self.inputs,
+                self.outputs,
+                self.image,
+                self.command,
+            ]
         ):
             raise ValueError("Missing required attributes to construct specification")
 
