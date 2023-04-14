@@ -7,7 +7,7 @@ def load_yaml(yaml_path: str) -> t.Dict:
     """
     Loads a YAML file and returns a dictionary.
     Args:
-        yaml_path (str): the path to the yaml path
+        yaml_path (str): the path to the yaml file
     """
     try:
         with open(yaml_path) as f:

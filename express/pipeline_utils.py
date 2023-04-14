@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def get_kubeflow_type(python_type: str):
     """
-    Function that returns a Kubeflow equivalent data types from a Python data types
+    Function that returns a Kubeflow equivalent data type from a Python data type
     Args:
         python_type (str): the string representation of the data type
     Returns:

@@ -17,9 +17,9 @@ from express.pipeline_utils import get_kubeflow_type
 
 
 @dataclass
-class Input:
+class KubeflowInput:
     """
-    Component input arguments
+    Component input argument
     Attributes:
         name: name of the argument
         description: argument description
@@ -32,7 +32,7 @@ class Input:
 
 
 @dataclass
-class Output:
+class KubeflowOutput:
     """
     Component output argument
     Attributes:
@@ -44,7 +44,7 @@ class Output:
     description: str
 
 
-T = t.TypeVar("T", Input, Output)
+T = t.TypeVar("T", KubeflowInput, KubeflowOutput)
 
 
 @dataclass
@@ -65,34 +65,34 @@ class KFPComponent:
     description: str
     image: str
     args: t.Dict[str, t.Dict[str, str]]
-    inputs: t.Union[Input, t.List[Input]] = None
-    outputs: t.Union[Output, t.List[Output]] = None
+    inputs: t.Union[KubeflowInput, t.List[KubeflowInput]] = None
+    outputs: t.Union[KubeflowOutput, t.List[KubeflowOutput]] = None
     command: t.List[t.Union[str, t.Dict[str, str]]] = None
 
     def __post_init__(self):
         self.inputs = self._add_defaults_values(
-            self.inputs, self._get_default_inputs(), Input
+            self.inputs, self._get_default_inputs(), KubeflowInput
         )
 
         self.outputs = self._add_defaults_values(
-            self.outputs, self._get_default_outputs(), Output
+            self.outputs, self._get_default_outputs(), KubeflowOutput
         )
 
         self._add_input_args()
-        self._set_component_run_cmd()
+        self._set_component_run_command()
 
     @staticmethod
-    def _get_default_inputs() -> t.List[Input]:
+    def _get_default_inputs() -> t.List[KubeflowInput]:
         """
         Set default inputs to components
         """
         inputs = [
-            Input(
+            KubeflowInput(
                 name="input_manifest_path",
                 description="Path to the the input manifest",
                 type="String",
             ),
-            Input(
+            KubeflowInput(
                 name="args",
                 description="The extra arguments passed to the component",
                 type="String",
@@ -101,12 +101,12 @@ class KFPComponent:
         return inputs
 
     @staticmethod
-    def _get_default_outputs() -> t.List[Output]:
+    def _get_default_outputs() -> t.List[KubeflowOutput]:
         """
         Set default output to components
         """
         outputs = [
-            Output(
+            KubeflowOutput(
                 name="output_manifest_path",
                 description="The path to the output manifest",
             )
@@ -134,16 +134,16 @@ class KFPComponent:
         """Add specified component arguments to the input"""
         for arg_name, arg_info in self.args.items():
             self.inputs.append(
-                Input(
+                KubeflowInput(
                     name=arg_name.strip(),
                     description=arg_info["description"].strip(),
                     type=get_kubeflow_type(arg_info["type"].strip()),
                 )
             )
 
-    def _set_component_run_cmd(self):
+    def _set_component_run_command(self):
         """
-        Function that return the run command of the kubeflow component
+        Function that returns the run command of the kubeflow component
         Returns:
             The kubeflow component run command
         """
@@ -153,9 +153,9 @@ class KFPComponent:
                 arg_name = arg.name.replace("-", "_").strip()
                 arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
 
-                if arg_name == "input_manifest":
+                if arg_name == "input_manifest_path":
                     arg_kfp_value_type = "inputPath"
-                elif arg_name == "output_manifest":
+                elif arg_name == "output_manifest_path":
                     arg_kfp_value_type = "outputPath"
                 else:
                     arg_kfp_value_type = "inputValue"
@@ -169,7 +169,7 @@ class KFPComponent:
 
     def get_specification(self) -> dict:
         """
-        Function that returns the specifications of the kubeflow component
+        Function that returns the specification of the kubeflow component
         Returns:
             the kubeflow specification as a dictionary
         """
@@ -234,7 +234,7 @@ class ExpressComponent:
     def __init__(self, yaml_spec_path: str):
         self.yaml_spec = load_yaml(yaml_spec_path)
         self._validate_spec()
-        self._kubeflow_comp_specs = self.set_kubeflow_comp_specification()
+        self._kubeflow_comp_specs = self.set_kubeflow_component_specification()
         self._specification = self.set_express_comp_specification()
 
     def _validate_spec(self) -> None:
@@ -250,9 +250,9 @@ class ExpressComponent:
         except jsonschema.exceptions.ValidationError as e:
             raise InvalidComponentSpec.create_from(e)
 
-    def set_kubeflow_comp_specification(self) -> t.Dict[str, any]:
+    def set_kubeflow_component_specification(self) -> t.Dict[str, any]:
         """
-        Function that returns the kubeflow specifications as a dictionary
+        Function that returns the kubeflow specification as a dictionary
         """
 
         kfp_component = KFPComponent(
@@ -277,7 +277,7 @@ class ExpressComponent:
 
     def write_component(self, path: str):
         """
-        Function that write the component yaml file required to compile a kubeflow pipeline
+        Function that writes the component yaml file required to compile a kubeflow pipeline
         """
         with open(path, "w") as file:
             yaml.dump(
