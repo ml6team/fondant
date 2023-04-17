@@ -19,7 +19,7 @@ from express.pipeline_utils import get_kubeflow_type
 @dataclass
 class KubeflowInput:
     """
-    Component input argument
+    Kubeflow component input argument
     Attributes:
         name: name of the argument
         description: argument description
@@ -34,7 +34,7 @@ class KubeflowInput:
 @dataclass
 class KubeflowOutput:
     """
-    Component output argument
+    Kubeflow component output argument
     Attributes:
         name: name of the argument
         description: argument description
@@ -48,7 +48,7 @@ T = t.TypeVar("T", KubeflowInput, KubeflowOutput)
 
 
 @dataclass
-class KFPComponent:
+class KubeflowComponent:
     """
     A class representing a Kubeflow Pipelines component.
     Attributes:
@@ -143,9 +143,9 @@ class KFPComponent:
 
     def _set_component_run_command(self):
         """
-        Function that returns the run command of the kubeflow component
+        Function that returns the run command of the Kubeflow component
         Returns:
-            The kubeflow component run command
+            The Kubeflow component run command
         """
 
         def _add_run_arguments(args: t.List[T]):
@@ -154,14 +154,14 @@ class KFPComponent:
                 arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
 
                 if arg_name == "input_manifest_path":
-                    arg_kfp_value_type = "inputPath"
+                    arg_value_type = "inputPath"
                 elif arg_name == "output_manifest_path":
-                    arg_kfp_value_type = "outputPath"
+                    arg_value_type = "outputPath"
                 else:
-                    arg_kfp_value_type = "inputValue"
+                    arg_value_type = "inputValue"
 
                 self.command.append(arg_name_cmd)
-                self.command.append({arg_kfp_value_type: arg_name})
+                self.command.append({arg_value_type: arg_name})
 
         self.command = ["python3", "main.py"]
         _add_run_arguments(self.inputs)
@@ -171,7 +171,7 @@ class KFPComponent:
         """
         Function that returns the specification of the kubeflow component
         Returns:
-            the kubeflow specification as a dictionary
+            The Kubeflow specification as a dictionary
         """
         if not all(
             [
@@ -234,17 +234,17 @@ class ExpressComponent:
     def __init__(self, yaml_spec_path: str):
         self.yaml_spec = load_yaml(yaml_spec_path)
         self._validate_spec()
-        self._kubeflow_comp_specs = self.set_kubeflow_component_specification()
-        self._specification = self.set_express_comp_specification()
+        self._kubeflow_component_specification = self.set_kubeflow_component_specification()
+        self._express_component_specification = self.set_express_component_specification()
 
     def _validate_spec(self) -> None:
         """Validate a component specification against the component schema
         Raises: InvalidManifest when the manifest is not valid.
         """
-        spec_schema = json.loads(
+        specification_schema = json.loads(
             pkgutil.get_data("express", "schemas/component_spec.json")
         )
-        validator = Draft4Validator(spec_schema)
+        validator = Draft4Validator(specification_schema)
         try:
             validator.validate(self.yaml_spec)
         except jsonschema.exceptions.ValidationError as e:
@@ -252,24 +252,24 @@ class ExpressComponent:
 
     def set_kubeflow_component_specification(self) -> t.Dict[str, any]:
         """
-        Function that returns the kubeflow specification as a dictionary
+        Function that returns the Kubeflow specification as a dictionary
         """
 
-        kfp_component = KFPComponent(
+        kubeflow_component = KubeflowComponent(
             name=self.yaml_spec["name"],
             description=self.yaml_spec["description"],
             image=self.yaml_spec["image"],
             args=self.yaml_spec["args"],
         )
 
-        return kfp_component.get_specification()
+        return kubeflow_component.get_specification()
 
-    def set_express_comp_specification(self) -> t.Dict[str, any]:
+    def set_express_component_specification(self) -> t.Dict[str, any]:
         """
-        Function that return the express component specification which contains both the kubeflow
+        Function that return the express component specification which contains both the Kubeflow
         component specifications in addition to the subsets defining the input and output datasets
         """
-        express_component_spec = copy.deepcopy(self._kubeflow_comp_specs)
+        express_component_spec = copy.deepcopy(self._kubeflow_component_specification)
         express_component_spec["input_subsets"] = self.yaml_spec["input_subsets"]
         express_component_spec["output_subsets"] = self.yaml_spec["output_subsets"]
 
@@ -277,11 +277,11 @@ class ExpressComponent:
 
     def write_component(self, path: str):
         """
-        Function that writes the component yaml file required to compile a kubeflow pipeline
+        Function that writes the component yaml file required to compile a Kubeflow pipeline
         """
         with open(path, "w") as file:
             yaml.dump(
-                self._kubeflow_comp_specs,
+                self._kubeflow_component_specification,
                 file,
                 indent=4,
                 default_flow_style=False,
@@ -294,7 +294,7 @@ class ExpressComponent:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._specification["input_subsets"].items()
+                for name, subset in self._express_component_specification["input_subsets"].items()
             }
         )
 
@@ -304,25 +304,25 @@ class ExpressComponent:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._specification["output_subsets"].items()
+                for name, subset in self._express_component_specification["output_subsets"].items()
             }
         )
 
     @property
     def name(self):
-        return self._specification["name"]
+        return self._express_component_specification["name"]
 
     @property
     def description(self):
-        return self._specification["description"]
+        return self._express_component_specification["description"]
 
     @property
     def image(self):
-        return self._specification["implementation"]["container"]["image"]
+        return self._express_component_specification["implementation"]["container"]["image"]
 
     @property
     def run_command(self):
-        return self._specification["implementation"]["container"]["command"]
+        return self._express_component_specification["implementation"]["container"]["command"]
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r}"
+        return f"{self.__class__.__name__}({self._express_component_specification!r}"

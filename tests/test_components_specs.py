@@ -46,4 +46,4 @@ def test_kfp_component_creation():
     Test that the created kubeflow component matches the expected kubeflow component
     """
     express_component = ExpressComponent(valid_express_schema())
-    assert express_component._kubeflow_comp_specs == load_yaml(valid_kubeflow_schema())
+    assert express_component._kubeflow_component_specification == load_yaml(valid_kubeflow_schema())
