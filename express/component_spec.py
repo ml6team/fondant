@@ -247,7 +247,9 @@ class ExpressComponent:
         """Validate a component specification against the component schema
         Raises: InvalidManifest when the manifest is not valid.
         """
-        spec_schema = json.loads(pkgutil.get_data("express", "schemas/component_spec.json"))
+        spec_schema = json.loads(
+            pkgutil.get_data("express", "schemas/component_spec.json")
+        )
 
         base_uri = (Path(__file__).parent / "schemas").as_uri()
         resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)
