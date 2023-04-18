@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Example Component Schema",
   "type": "object",
   "required": ["name", "description", "image", "input_subsets", "output_subsets", "args"],
@@ -72,10 +72,7 @@
   "definitions": {
     "data_type": {
       "type": "string",
-      "enum": ["bool", "int8", "int16", "int32", "uint8", "uint16", "uint32", "uint64",
-               "float16", "float32", "float64", "decimal",
-               "time32", "time64", "timestamp", "date32", "date64", "duration",
-               "utf8", "binary", "categorical", "list", "struct"],
+          "$ref": "common.json#/definitions/subset_data_type",
       "description": "Valid data types"
     }
   }

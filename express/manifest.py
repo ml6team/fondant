@@ -4,9 +4,11 @@ import json
 import pkgutil
 import types
 import typing as t
+from pathlib import Path
 
 import jsonschema.exceptions
 from jsonschema import Draft4Validator
+from jsonschema.validators import RefResolver
 
 from express.exceptions import InvalidManifest
 from express.common import Type, Field
@@ -82,7 +84,11 @@ class Manifest:
         Raises: InvalidManifest when the manifest is not valid.
         """
         spec_schema = json.loads(pkgutil.get_data("express", "schemas/manifest.json"))
-        validator = Draft4Validator(spec_schema)
+
+        base_uri = (Path(__file__).parent / "schemas").as_uri()
+        resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)
+        validator = Draft4Validator(spec_schema, resolver=resolver)
+
         try:
             validator.validate(self._specification)
         except jsonschema.exceptions.ValidationError as e:

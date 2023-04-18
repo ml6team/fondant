@@ -5,10 +5,12 @@ import yaml
 import pkgutil
 import types
 import typing as t
+from pathlib import Path
 from dataclasses import dataclass, asdict
 
 import jsonschema.exceptions
 from jsonschema import Draft4Validator
+from jsonschema.validators import RefResolver
 
 from express.exceptions import InvalidComponentSpec
 from express.io_utils import load_yaml
@@ -234,17 +236,23 @@ class ExpressComponent:
     def __init__(self, yaml_spec_path: str):
         self.yaml_spec = load_yaml(yaml_spec_path)
         self._validate_spec()
-        self._kubeflow_component_specification = self.set_kubeflow_component_specification()
-        self._express_component_specification = self.set_express_component_specification()
+        self._kubeflow_component_specification = (
+            self.set_kubeflow_component_specification()
+        )
+        self._express_component_specification = (
+            self.set_express_component_specification()
+        )
 
     def _validate_spec(self) -> None:
         """Validate a component specification against the component schema
         Raises: InvalidManifest when the manifest is not valid.
         """
-        specification_schema = json.loads(
-            pkgutil.get_data("express", "schemas/component_spec.json")
-        )
-        validator = Draft4Validator(specification_schema)
+        spec_schema = json.loads(pkgutil.get_data("express", "schemas/component_spec.json"))
+
+        base_uri = (Path(__file__).parent / "schemas").as_uri()
+        resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)
+        validator = Draft4Validator(spec_schema, resolver=resolver)
+
         try:
             validator.validate(self.yaml_spec)
         except jsonschema.exceptions.ValidationError as e:
@@ -294,7 +302,9 @@ class ExpressComponent:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._express_component_specification["input_subsets"].items()
+                for name, subset in self._express_component_specification[
+                    "input_subsets"
+                ].items()
             }
         )
 
@@ -304,7 +314,9 @@ class ExpressComponent:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._express_component_specification["output_subsets"].items()
+                for name, subset in self._express_component_specification[
+                    "output_subsets"
+                ].items()
             }
         )
 
@@ -318,11 +330,15 @@ class ExpressComponent:
 
     @property
     def image(self):
-        return self._express_component_specification["implementation"]["container"]["image"]
+        return self._express_component_specification["implementation"]["container"][
+            "image"
+        ]
 
     @property
     def run_command(self):
-        return self._express_component_specification["implementation"]["container"]["command"]
+        return self._express_component_specification["implementation"]["container"][
+            "command"
+        ]
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._express_component_specification!r}"
