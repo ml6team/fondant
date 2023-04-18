@@ -1,9 +1,9 @@
 """Express component specs test"""
 import os
 import pytest
+import yaml
 from express.exceptions import InvalidComponentSpec
 from express.component_spec import ExpressComponent
-from express.io_utils import load_yaml
 
 valid_path = os.path.join("component_example", "valid_component")
 invalid_path = os.path.join("component_example", "invalid_component")
@@ -49,4 +49,5 @@ def test_kfp_component_creation(valid_express_schema, valid_kubeflow_schema):
     Test that the created kubeflow component matches the expected kubeflow component
     """
     express_component = ExpressComponent(valid_express_schema)
-    assert express_component.kubeflow_component_specification == load_yaml(valid_kubeflow_schema)
+    kubeflow_schema = yaml.safe_load(open(valid_kubeflow_schema, 'r'))
+    assert express_component.kubeflow_component_specification == kubeflow_schema

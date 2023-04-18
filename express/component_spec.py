@@ -13,7 +13,6 @@ from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
 from express.exceptions import InvalidComponentSpec
-from express.io_utils import load_yaml
 from express.schema import Field
 
 
@@ -127,14 +126,14 @@ class KubeflowComponent:
             The Kubeflow specification as a dictionary
         """
         if not all(
-            [
-                self.name,
-                self.description,
-                self.inputs,
-                self.outputs,
-                self.image,
-                self.command,
-            ]
+                [
+                    self.name,
+                    self.description,
+                    self.inputs,
+                    self.outputs,
+                    self.image,
+                    self.command,
+                ]
         ):
             raise ValueError("Missing required attributes to construct specification")
 
@@ -185,7 +184,7 @@ class ExpressComponent:
     """
 
     def __init__(self, yaml_spec_path: str):
-        self.yaml_spec = load_yaml(yaml_spec_path)
+        self.yaml_spec = yaml.safe_load(open(yaml_spec_path, 'r'))
         self._validate_spec()
 
     def _validate_spec(self) -> None:
@@ -294,8 +293,8 @@ class ExpressComponent:
             {
                 name: ComponentSubset(subset)
                 for name, subset in self.express_component_specification[
-                    "input_subsets"
-                ].items()
+                "input_subsets"
+            ].items()
             }
         )
 
@@ -306,8 +305,8 @@ class ExpressComponent:
             {
                 name: ComponentSubset(subset)
                 for name, subset in self.express_component_specification[
-                    "output_subsets"
-                ].items()
+                "output_subsets"
+            ].items()
             }
         )
 
