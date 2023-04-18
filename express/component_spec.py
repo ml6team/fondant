@@ -127,14 +127,14 @@ class KubeflowComponent:
             The Kubeflow specification as a dictionary
         """
         if not all(
-            [
-                self.name,
-                self.description,
-                self.inputs,
-                self.outputs,
-                self.image,
-                self.command,
-            ]
+                [
+                    self.name,
+                    self.description,
+                    self.inputs,
+                    self.outputs,
+                    self.image,
+                    self.command,
+                ]
         ):
             raise ValueError("Missing required attributes to construct specification")
 
@@ -249,7 +249,7 @@ class ExpressComponent:
     def express_component_specification(self) -> t.Dict[str, any]:
         """
         The express component specification which contains both the Kubeflow component
-         specifications in addition to the input and output subsets
+        specifications in addition to the input and output subsets
         """
         express_component_specification = copy.deepcopy(
             self.kubeflow_component_specification
@@ -299,8 +299,8 @@ class ExpressComponent:
             {
                 name: ComponentSubset(subset)
                 for name, subset in self.express_component_specification[
-                    "input_subsets"
-                ].items()
+                "input_subsets"
+            ].items()
             }
         )
 
@@ -311,8 +311,8 @@ class ExpressComponent:
             {
                 name: ComponentSubset(subset)
                 for name, subset in self.express_component_specification[
-                    "output_subsets"
-                ].items()
+                "output_subsets"
+            ].items()
             }
         )
 
