@@ -77,7 +77,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["list", "str", "int"]
+              "enum": ["list", "str", "int", "float", "bool", "dict", "tuple", "set"]
             },
             "description": {
               "type": "string"
