@@ -221,7 +221,7 @@ class ExpressComponent:
     @property
     def kubeflow_component_specification(self) -> t.Dict[str, any]:
         """
-        Function that returns the Kubeflow specification as a dictionary
+        The Kubeflow component specification
         """
         inputs = self.default_input_arguments
         outputs = self.default_output_arguments
@@ -248,8 +248,8 @@ class ExpressComponent:
     @property
     def express_component_specification(self) -> t.Dict[str, any]:
         """
-        Function that return the express component specification which contains both the Kubeflow
-        component specifications in addition to the subsets defining the input and output datasets
+        The express component specification which contains both the Kubeflow component
+         specifications in addition to the input and output subsets
         """
         express_component_specification = copy.deepcopy(
             self.kubeflow_component_specification
@@ -265,9 +265,7 @@ class ExpressComponent:
 
     @property
     def default_input_arguments(self) -> t.List[KubeflowInput]:
-        """
-        Default input arguments to components
-        """
+        """The default component input arguments"""
         inputs = [
             KubeflowInput(
                 name="input_manifest_path",
@@ -284,9 +282,8 @@ class ExpressComponent:
 
     @property
     def default_output_arguments(self) -> t.List[KubeflowOutput]:
-        """
-        Default input arguments to components
-        """
+        """The default component output arguments"""
+
         outputs = [
             KubeflowOutput(
                 name="output_manifest_path",
@@ -297,7 +294,7 @@ class ExpressComponent:
 
     @property
     def input_subsets(self) -> t.Mapping[str, ComponentSubset]:
-        """Function that returns the input subsets from a component specification"""
+        """The input subsets of the component as an immutable mapping"""
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
@@ -309,7 +306,7 @@ class ExpressComponent:
 
     @property
     def output_subsets(self) -> t.Mapping[str, ComponentSubset]:
-        """Function that returns the output subsets from a component specification"""
+        """The output subsets of the component as an immutable mapping"""
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
