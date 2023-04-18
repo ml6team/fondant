@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def compile_and_upload_pipeline(
-        pipeline: Callable[[], None], host: str, env: str
+    pipeline: Callable[[], None], host: str, env: str
 ) -> None:
     """Upload pipeline to kubeflow.
     Args:
