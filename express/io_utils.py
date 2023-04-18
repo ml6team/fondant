@@ -12,5 +12,5 @@ def load_yaml(yaml_path: str) -> t.Dict:
     try:
         with open(yaml_path) as f:
             return yaml.safe_load(f)
-    except Exception as e:
-        raise ValueError(f"Failed to load YAML file: {e}")
+    except yaml.YAMLError as e:
+        raise e

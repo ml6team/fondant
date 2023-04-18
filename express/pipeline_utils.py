@@ -12,33 +12,8 @@ if is_kfp_available():
 logger = logging.getLogger(__name__)
 
 
-def get_kubeflow_type(python_type: str):
-    """
-    Function that returns a Kubeflow equivalent data type from a Python data type
-    Args:
-        python_type (str): the string representation of the data type
-    Returns:
-        The kubeflow data type
-    """
-    mapping = {
-        "str": "String",
-        "int": "Integer",
-        "float": "Float",
-        "bool": "Boolean",
-        "dict": "Map",
-        "list": "List",
-        "tuple": "List",
-        "set": "Set",
-    }
-
-    try:
-        return mapping[python_type]
-    except KeyError:
-        raise ValueError(f"Invalid Python data type: {python_type}")
-
-
 def compile_and_upload_pipeline(
-    pipeline: Callable[[], None], host: str, env: str
+        pipeline: Callable[[], None], host: str, env: str
 ) -> None:
     """Upload pipeline to kubeflow.
     Args:

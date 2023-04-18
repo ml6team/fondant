@@ -11,7 +11,7 @@ from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
 from express.exceptions import InvalidManifest
-from express.common import Type, Field
+from express.schema import Type, Field
 
 
 class Subset:

@@ -5,12 +5,14 @@ image: example_component:latest
 input_subsets:
   images:
     fields:
-      data: binary
+      data:
+        type: binary
 
 output_subsets:
   captions:
     fields:
-      data: utf8
+      data:
+        type: utf8
 
 args:
   storage_args:

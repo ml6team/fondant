@@ -14,15 +14,39 @@ from jsonschema.validators import RefResolver
 
 from express.exceptions import InvalidComponentSpec
 from express.io_utils import load_yaml
-from express.common import Field
-from express.pipeline_utils import get_kubeflow_type
+from express.schema import Field
+
+
+def get_kubeflow_type(python_type: str):
+    """
+    Function that returns a Kubeflow equivalent data type from a Python data type
+    Args:
+        python_type (str): the string representation of the data type
+    Returns:
+        The kubeflow data type
+    """
+    mapping = {
+        "str": "String",
+        "int": "Integer",
+        "float": "Float",
+        "bool": "Boolean",
+        "dict": "Map",
+        "list": "List",
+        "tuple": "List",
+        "set": "Set",
+    }
+
+    try:
+        return mapping[python_type]
+    except KeyError:
+        raise ValueError(f"Invalid Python data type: {python_type}")
 
 
 @dataclass
 class KubeflowInput:
     """
     Kubeflow component input argument
-    Attributes:
+    Args:
         name: name of the argument
         description: argument description
         type: the python argument type (str, int, ...)
@@ -37,7 +61,7 @@ class KubeflowInput:
 class KubeflowOutput:
     """
     Kubeflow component output argument
-    Attributes:
+    Args:
         name: name of the argument
         description: argument description
     """
@@ -53,7 +77,7 @@ T = t.TypeVar("T", KubeflowInput, KubeflowOutput)
 class KubeflowComponent:
     """
     A class representing a Kubeflow Pipelines component.
-    Attributes:
+    Args:
         name: The name of the component.
         description: The description of the component.
         image: The Docker image url for the component.
@@ -117,9 +141,9 @@ class KubeflowComponent:
 
     @staticmethod
     def _add_defaults_values(
-        values: t.Union[None, T, t.List[T]],
-        default_values: t.List[T],
-        value_type: t.Type[T],
+            values: t.Union[None, T, t.List[T]],
+            default_values: t.List[T],
+            value_type: t.Type[T],
     ) -> t.List[T]:
         """Add default values to a input/output list attribute"""
 
@@ -176,14 +200,14 @@ class KubeflowComponent:
             The Kubeflow specification as a dictionary
         """
         if not all(
-            [
-                self.name,
-                self.description,
-                self.inputs,
-                self.outputs,
-                self.image,
-                self.command,
-            ]
+                [
+                    self.name,
+                    self.description,
+                    self.inputs,
+                    self.outputs,
+                    self.image,
+                    self.command,
+                ]
         ):
             raise ValueError("Missing required attributes to construct specification")
 
@@ -285,7 +309,7 @@ class ExpressComponent:
 
         return express_component_spec
 
-    def write_component(self, path: str):
+    def write_kubeflow_component(self, path: str):
         """
         Function that writes the component yaml file required to compile a Kubeflow pipeline
         """
@@ -305,8 +329,8 @@ class ExpressComponent:
             {
                 name: ComponentSubset(subset)
                 for name, subset in self._express_component_specification[
-                    "input_subsets"
-                ].items()
+                "input_subsets"
+            ].items()
             }
         )
 
@@ -317,8 +341,8 @@ class ExpressComponent:
             {
                 name: ComponentSubset(subset)
                 for name, subset in self._express_component_specification[
-                    "output_subsets"
-                ].items()
+                "output_subsets"
+            ].items()
             }
         )
 
@@ -344,3 +368,8 @@ class ExpressComponent:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._express_component_specification!r}"
+
+
+com = ExpressComponent(
+    "/home/philippe/Scripts/express/tests/component_example/valid_component/express_component.yaml")
+print(com.yaml_spec)
