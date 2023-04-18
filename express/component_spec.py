@@ -271,12 +271,7 @@ class ExpressComponent:
                 name="input_manifest_path",
                 description="Path to the the input manifest",
                 type="String",
-            ),
-            KubeflowInput(
-                name="args",
-                description="The extra arguments passed to the component",
-                type="String",
-            ),
+            )
         ]
         return inputs
 
