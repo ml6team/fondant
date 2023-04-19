@@ -53,13 +53,15 @@ class FondantDataset:
         Path(save_path).write_text(self.to_json_string(), encoding="utf-8")
         return None
 
+    def to_json_string(self):
+        return self.manifest.to_json()
+
 
 class FondantComponent:
-    spec_path: str
     type: str = "transform"
 
-    def _load_spec(cls) -> ExpressComponent:
-        return ExpressComponent(cls.spec_path)
+    def _load_spec(cls, spec_path) -> ExpressComponent:
+        return ExpressComponent(spec_path)
 
     @classmethod
     def run(cls) -> Dataset:
@@ -72,22 +74,24 @@ class FondantComponent:
         # step 1: parse arguments
         args = cls._parse_args()
         # step 2: load component spec
-        spec = cls._load_spec()
+        spec = cls._load_spec(args.spec_path)
         # step 3: create or read input manifest
-        metadata = json.loads(args.metadata)
+        dataset = FondantDataset(args.input_manifest)
+        # step 4: transform data
+        args = json.loads(args.args)
         if cls.type == "load":
-            kwargs = {}
-            output_dataset = cls.load(**kwargs)
+            output_dataset = cls.load(args)
         else:
-            dataset = FondantDataset(args.input_manifest)
             # create HF dataset, based on component spec
             input_dataset = dataset.load_data(spec)
             # provide this dataset to the user
-            kwargs = {}
-            output_dataset = cls.transform(data=input_dataset, **kwargs)
+            output_dataset = cls.transform(dataset=input_dataset, args=args)
+
+        # TODO check whether output dataset created by the user complies to spec.output_subsets
 
         # step 5: create output manifest based on component spec
-        output_manifest = cls._create_output_manifest(
+        metadata = json.loads(args.metadata)
+        output_manifest = dataset.upload(
             output_dataset, metadata=metadata, save_path=args.output_manifest
         )
 
@@ -106,6 +110,18 @@ class FondantComponent:
             help="Path to the input manifest",
         )
         parser.add_argument(
+            "--spec-path",
+            type=str,
+            required=False,
+            help="Path to the Fondant component spec yaml file",
+        )
+        parser.add_argument(
+            "--args",
+            type=str,
+            required=False,
+            help="Custom arguments for the component, passed as a json dict string",
+        )
+        parser.add_argument(
             "--metadata",
             type=str,
             required=True,
@@ -121,10 +137,10 @@ class FondantComponent:
 
     @classmethod
     @abstractmethod
-    def load(cls, **kwargs) -> Dataset:
+    def load(cls, args) -> Dataset:
         """Load initial dataset"""
 
     @classmethod
     @abstractmethod
-    def transform(cls, dataset, **kwargs) -> Dataset:
+    def transform(cls, dataset, args) -> Dataset:
         """Transform existing dataset"""

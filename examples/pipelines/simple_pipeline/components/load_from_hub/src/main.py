@@ -1,13 +1,11 @@
 """
-This component loads a seed dataset from the hub and creates the initial manifest.
+This component loads a seed dataset from the hub.
 """
 import logging
-import sys
-from typing import Union, Dict
 
-from datasets import Dataset, load_dataset
+from datasets import load_dataset
 
-from express.components.common import FondantManifest, FondantComponent
+from express.dataset import FondantComponent
 from express.logger import configure_logging
 
 configure_logging()
@@ -17,11 +15,10 @@ logger = logging.getLogger(__name__)
 def create_image_metadata(batch):
     images = batch["image"]
 
-    # add width, height and byte size columns
+    # add width and height columns
     widths, heights = zip(*[image.size for image in images])
-    batch["width"] = list(widths)
-    batch["height"] = list(heights)
-    batch["byte_size"] = [sys.getsizeof(image.tobytes()) for image in images]
+    batch["images_width"] = list(widths)
+    batch["images_height"] = list(heights)
 
     return batch
 
@@ -32,50 +29,35 @@ class LoadFromHubComponent(FondantComponent):
     type = "load"
 
     @classmethod
-    def process(
-        cls,
-        manifest: FondantManifest,
-        args: Dict[str, Union[str, int, float, bool]],
-    ) -> FondantManifest:
+    def load(cls, args):
         """
         Args:
-            manifest: Fondant manifest
-            args: args to pass to the function
+            args: additional arguments passed to the component
         
         Returns:
-            FondantManifest: output manifest
+            Dataset: HF dataset
         """
         # 1) Create data source
         logger.info("Loading caption dataset from the hub...")
-        # TODO perhaps leverage streaming
         dataset = load_dataset(args["dataset_name"], split="train")
 
         # 2) Create index
         logger.info("Creating index...")
-        index_list = [f"image_{idx}" for idx in range(len(dataset))]
+        index_list = [idx for idx in range(len(dataset))]
 
-        # 3) Create data sources
-        # We store the index itself also as a HF Dataset
-        index_dataset = Dataset.from_dict({"index": index_list})
-        image_dataset = dataset.remove_columns(["text"]).add_column(
-            name="index", column=index_list
-        )
-        text_dataset = dataset.remove_columns(["image"]).add_column(
-            name="index", column=index_list
-        )
-        image_dataset = image_dataset.map(
+        # 3) Add index to the dataset, rename columns
+        dataset = dataset.add_column("id", index_list)
+        dataset = dataset.rename_column("image", "images_data")
+        dataset = dataset.rename_column("text", "captions_data")
+        
+        # 4) Add metadata columns
+        dataset = dataset.map(
             create_image_metadata,
             batched=True,
             batch_size=args["batch_size"],
         )
-        data_sources = {
-            "images": image_dataset,
-            "captions": text_dataset,
-        }
-        manifest._create_index(index_dataset)
-        manifest.add_data_sources(data_sources)
-
-        return manifest
+        
+        return dataset
 
 
 if __name__ == "__main__":
