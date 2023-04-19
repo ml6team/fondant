@@ -1,66 +1,17 @@
 """This module defines classes to represent an Express manifest."""
 import copy
-import enum
 import json
 import pkgutil
 import types
 import typing as t
+from pathlib import Path
 
 import jsonschema.exceptions
 from jsonschema import Draft4Validator
+from jsonschema.validators import RefResolver
 
 from express.exceptions import InvalidManifest
-
-
-class Type(enum.Enum):
-    """Supported types.
-
-    Based on:
-    - https://arrow.apache.org/docs/python/api/datatypes.html#api-types
-    - https://pola-rs.github.io/polars/py-polars/html/reference/datatypes.html
-    """
-
-    bool: str = "bool"
-
-    int8: str = "int8"
-    int16: str = "int16"
-    int32: str = "int32"
-    int64: str = "int64"
-
-    uint8: str = "uint8"
-    uint16: str = "uint16"
-    uint32: str = "uint32"
-    uint64: str = "uint64"
-
-    float16: str = "float16"
-    float32: str = "float32"
-    float64: str = "float64"
-
-    decimal: str = "decimal"
-
-    time32: str = "time32"
-    time64: str = "time64"
-    timestamp: str = "timestamp"
-
-    date32: str = "date32"
-    date64: str = "date64"
-    duration: str = "duration"
-
-    utf8: str = "utf8"
-
-    binary: str = "binary"
-
-    categorical: str = "categorical"
-
-    list: str = "list"
-    struct: str = "struct"
-
-
-class Field(t.NamedTuple):
-    """Class representing a single field or column in an Express subset."""
-
-    name: str
-    type: Type
+from express.schema import Type, Field
 
 
 class Subset:
@@ -133,7 +84,11 @@ class Manifest:
         Raises: InvalidManifest when the manifest is not valid.
         """
         spec_schema = json.loads(pkgutil.get_data("express", "schemas/manifest.json"))
-        validator = Draft4Validator(spec_schema)
+
+        base_uri = (Path(__file__).parent / "schemas").as_uri()
+        resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)
+        validator = Draft4Validator(spec_schema, resolver=resolver)
+
         try:
             validator.validate(self._specification)
         except jsonschema.exceptions.ValidationError as e:

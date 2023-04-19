@@ -9,3 +9,7 @@ class ExpressException(Exception):
 
 class InvalidManifest(ValidationError, ExpressException):
     """Thrown when a manifest cannot be validated against the schema."""
+
+
+class InvalidComponentSpec(ValidationError, ExpressException):
+    """Thrown when a component spec cannot be validated against the schema."""
