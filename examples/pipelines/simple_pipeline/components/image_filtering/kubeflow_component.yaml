@@ -1,0 +1,35 @@
+name: image_filtering
+description: A component that filters images
+inputs: 
+    - name: input_manifest_path
+      description: Path to the input manifest
+      type: String
+    
+    - name: args
+      description: Additional arguments passed to the component, as a json dict string
+      type: String
+    
+    - name: metadata
+      description: Metadata arguments, passed as a json dict string
+      type: String
+
+    - name: spec_path
+      description: Path to the Fondant component spec
+      type: String
+    
+    
+outputs:
+    - name: output_manifest_path
+      description: Path to the output manifest
+
+implementation:
+    container:
+        image: ghcr.io/ml6team/image_filtering:latest
+        command: [
+            python3, main.py,
+            --input-manifest-path,       {inputPath: input_manifest},
+            --args,                      {inputValue: args},
+            --metadata,                  {inputValue: metadata},
+            --spec-path,                 {inputValue: spec_path},
+            --output-manifest-path,      {outputPath: output_manifest},
+        ]
