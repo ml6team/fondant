@@ -6,7 +6,7 @@ import tempfile
 import os
 from pathlib import Path
 
-from datasets import Dataset, load_dataset
+from datasets import Dataset, load_dataset, concatenate_datasets
 
 from express.component_spec import ExpressComponent
 from express.manifest import Manifest, Subset, Index
@@ -46,13 +46,16 @@ class FondantDataset:
         return dataset
 
     def load_data(self, component_spec):
-        data = {}
+        subsets = []
         for name in component_spec.input_subsets.keys():
             subset_data = self._load_subset(name)
-            data[name] = subset_data
+            subsets.append(subset_data)
 
         # TODO this method should return a single dataframe with column_names called subset_field
-        return data
+        # TODO add index
+        dataset = concatenate_datasets(subsets)
+
+        return dataset
 
     @staticmethod
     def _upload_parquet(data: Dataset, name: str, remote_path: str):
@@ -113,7 +116,10 @@ class FondantComponent:
     type: str = "transform"
 
     @classmethod
-    def _load_spec(cls, spec_path) -> ExpressComponent:
+    def _load_spec(cls) -> ExpressComponent:
+        # note: Fondant spec always need to be called like this
+        # and placed in the src directory
+        spec_path = "fondant_component.yaml"
         return ExpressComponent(spec_path)
 
     @classmethod
@@ -129,7 +135,7 @@ class FondantComponent:
         # use the same name for the spec, always in the src directory
         args = cls._parse_args()
         # step 2: load component spec
-        spec = cls._load_spec(args.spec_path)
+        spec = cls._load_spec()
         # TODO verify that args.args contain all arguments defined in the component spec
         # step 3: create Fondant dataset based on input manifest
         metadata = json.loads(args.metadata)
@@ -175,14 +181,8 @@ class FondantComponent:
         parser.add_argument(
             "--input-manifest-path",
             type=str,
-            required=True,
+            required=True if cls.type == "transform" else False,
             help="Path to the input manifest",
-        )
-        parser.add_argument(
-            "--spec-path",
-            type=str,
-            required=True,
-            help="Path to the Fondant component spec yaml file",
         )
         parser.add_argument(
             "--args",
