@@ -16,21 +16,20 @@ run_id = "{{workflow.name}}"
 artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
 
 # Component 1
-load_from_hub_op = comp.load_component(
-    "components/load_from_hub/kubeflow_component.yaml"
-)
+load_from_hub_op = comp.load_component("components/load_from_hub/kubeflow_component.yaml")
+load_from_hub_spec_path = "load_from_hub.yaml"
+
 load_from_hub_args = {
     "dataset_name": LoadFromHubConfig.DATASET_NAME,
     "batch_size": LoadFromHubConfig.BATCH_SIZE,
 }
 load_from_hub_metadata = {
+    "base_path": artifact_bucket,
     "run_id": run_id,
-    "component_name": load_from_hub_op.__name__,
-    "artifact_bucket": artifact_bucket,
+    "component_id": load_from_hub_op.__name__,
 }
 load_from_hub_args = json.dumps(load_from_hub_args)
 load_from_hub_metadata = json.dumps(load_from_hub_metadata)
-load_from_hub_spec_path = "components/load_from_hub/load_from_hub.yaml"
 
 
 # Pipeline

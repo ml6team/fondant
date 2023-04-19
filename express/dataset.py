@@ -134,7 +134,7 @@ class FondantComponent:
         if cls.type == "load":
             manifest = Manifest.create(
                 base_path=metadata["base_path"],
-                run_id=metadata["run_id"],
+                run_id="{{workflow.name}}",
                 component_id=metadata["component_id"],
             )
         else:
