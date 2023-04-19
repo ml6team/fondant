@@ -311,6 +311,34 @@ class ExpressComponent:
         )
 
     @property
+    def input_arguments(self):
+        """The input arguments of the component as an immutable mapping"""
+        return types.MappingProxyType(
+            {
+                info["name"]: KubeflowInput(
+                    name=info["name"],
+                    description=info["description"],
+                    type=info["type"],
+                )
+                for info in self.express_component_specification["inputs"]
+            }
+        )
+
+    @property
+    def output_arguments(self):
+        """The output arguments of the component as an immutable mapping"""
+        return types.MappingProxyType(
+            {
+                info["name"]: KubeflowInput(
+                    name=info["name"],
+                    description=info["description"],
+                    type=info["type"],
+                )
+                for info in self.express_component_specification["outputs"]
+            }
+        )
+
+    @property
     def name(self):
         return self.express_component_specification["name"]
 
