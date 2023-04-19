@@ -26,7 +26,10 @@ class FondantDataset:
     def __init__(self, manifest):
         self.manifest = manifest
 
-    def _load_subset(self, subset: Subset):
+    def _load_subset(self, name):
+        # get subset from the manifest
+        subset = self.manifest.get_subset(name)
+        # get its location and fields
         location = subset.location
         fields = list(subset.fields.keys())
 
@@ -44,8 +47,8 @@ class FondantDataset:
 
     def load_data(self, component_spec):
         data = {}
-        for name, subset in component_spec.input_subsets.items():
-            subset_data = self._load_subset(subset)
+        for name in component_spec.input_subsets.keys():
+            subset_data = self._load_subset(name)
             data[name] = subset_data
 
         # TODO this method should return a single dataframe with column_names called subset_field
@@ -97,7 +100,7 @@ class FondantDataset:
                     if col not in subset_columns
                 ]
             )
-            # add to the manifest
+            # add to the manifest and upload
             self._upload_subset(name, subset.fields, subset_dataset)
 
     def upload(self, save_path):
@@ -125,6 +128,7 @@ class FondantComponent:
         args = cls._parse_args()
         # step 2: load component spec
         spec = cls._load_spec(args.spec_path)
+        # TODO verify that args.args contain all arguments defined in the component spec
         # step 3: create Fondant dataset based on input manifest
         metadata = json.loads(args.metadata)
         if cls.type == "load":
@@ -139,6 +143,8 @@ class FondantComponent:
         # step 4: transform data
         if cls.type == "load":
             output_dataset = cls.load(json.loads(args.args))
+            # TODO also add index
+            dataset.add_subsets(output_dataset, spec)
         else:
             # create HF dataset, based on component spec
             input_dataset = dataset.load_data(spec)
@@ -146,11 +152,6 @@ class FondantComponent:
             output_dataset = cls.transform(
                 dataset=input_dataset, args=json.loads(args.args)
             )
-
-        # TODO check whether output dataset created by the user complies to spec.output_subsets
-        print("Created columns:", output_dataset.column_names)
-        print("Output subsets:", spec.output_subsets)
-        dataset.add_subsets(output_dataset, spec)
 
         # step 5: create output manifest based on component spec
         output_manifest = dataset.upload(save_path=args.output_manifest_path)
