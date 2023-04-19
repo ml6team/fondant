@@ -175,7 +175,7 @@ class Manifest:
 
         self._specification["subsets"][name] = {
             "location": f"/{name}/{self.run_id}/{self.component_id}",
-            "fields": {name: {"type": type_.value} for name, type_ in fields},
+            "fields": {name: {"type": type_} for name, type_ in fields},
         }
 
     def remove_subset(self, name: str) -> None:

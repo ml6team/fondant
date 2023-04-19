@@ -7,8 +7,8 @@ import logging
 from typing import List
 from urllib.parse import urlparse
 
-from express.storage_interface import StorageHandlerInterface, DecodedBlobPath
 from express import io
+from express.storage_interface import StorageHandlerInterface, DecodedBlobPath
 
 logger = logging.getLogger(__name__)
 

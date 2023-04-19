@@ -47,8 +47,6 @@ class LoadFromHubComponent(FondantComponent):
 
         # 3) Add index to the dataset, rename columns
         dataset = dataset.add_column("id", index_list)
-        dataset = dataset.rename_column("image", "images_data")
-        dataset = dataset.rename_column("text", "captions_data")
         
         # 4) Add metadata columns
         dataset = dataset.map(
@@ -56,6 +54,10 @@ class LoadFromHubComponent(FondantComponent):
             batched=True,
             batch_size=args["batch_size"],
         )
+
+        # 5) Rename columns
+        dataset = dataset.rename_column("image", "images_data")
+        dataset = dataset.rename_column("text", "captions_data")
         
         return dataset
 

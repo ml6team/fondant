@@ -3,6 +3,10 @@ description: Component that loads a dataset from the hub
 image: load_from_hub:latest
 
 input_subsets:
+  images:
+      fields:
+        data:
+          type: binary
 
 output_subsets:
   images:
@@ -10,9 +14,9 @@ output_subsets:
       data:
         type: binary
       width:
-        type: int
+        type: int32
       height:
-        type: int
+        type: int32
   captions:
     fields:
       data:
