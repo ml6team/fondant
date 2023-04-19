@@ -1,0 +1,20 @@
+name: Load from hub
+description: Component that loads a dataset from the hub
+image: load_from_hub:latest
+
+input_subsets:
+
+output_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+  captions:
+    fields:
+      data:
+        type: utf8
+
+args:
+  dataset_name:
+    description: Name of dataset on the hub
+    type: str

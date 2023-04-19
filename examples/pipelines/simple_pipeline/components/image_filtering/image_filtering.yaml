@@ -1,0 +1,15 @@
+name: Image filtering
+description: Component that filters images based on desired width and height
+image: image_filtering:latest
+
+input_subsets:
+
+output_subsets:
+
+args:
+  width:
+    description: Desired minimum width
+    type: int
+  height:
+    description: Desired minimum height
+    type: int

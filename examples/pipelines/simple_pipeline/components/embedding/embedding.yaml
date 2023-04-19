@@ -1,0 +1,23 @@
+name: Embedding
+description: Component that embeds images using CLIP
+image: embedding:latest
+
+input_subsets:
+
+output_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+  captions:
+    fields:
+      data:
+        type: utf8
+
+args:
+  model_id:
+    description: Model id on the Hugging Face hub
+    type: str
+  batch_size:
+    description: Batch size to use when embedding
+    type: int
