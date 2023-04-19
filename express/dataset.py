@@ -125,6 +125,8 @@ class FondantComponent:
             Manifest: the output manifest
         """
         # step 1: parse arguments
+        # TODO add custom arguments as individual argparse arguments based on component spec
+        # use the same name for the spec, always in the src directory
         args = cls._parse_args()
         # step 2: load component spec
         spec = cls._load_spec(args.spec_path)
@@ -133,9 +135,15 @@ class FondantComponent:
         metadata = json.loads(args.metadata)
         if cls.type == "load":
             manifest = Manifest.create(
-                base_path=metadata["base_path"],
-                run_id="{{workflow.name}}",
-                component_id=metadata["component_id"],
+                base_path=metadata[
+                    "base_path"
+                ],  # TODO make this part of the storage_args
+                run_id=metadata[
+                    "run_id"
+                ],  # TODO get the run id based on args.output_manifest?
+                component_id=metadata[
+                    "component_id"
+                ],  # TODO spec can be used to get component ID
             )
         else:
             manifest = Manifest.from_file(args.input_manifest_path)
