@@ -9,7 +9,7 @@ from pathlib import Path
 from datasets import Dataset, load_dataset
 
 from express.component_spec import ExpressComponent
-from express.manifest import Manifest, Subset
+from express.manifest import Manifest, Subset, Index
 from express.storage_interface import StorageHandlerModule
 
 
@@ -20,20 +20,24 @@ STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
 
 
 class FondantDataset:
-    """Wrapper around the manifest to download and upload data into a specific framework"""
+    """Wrapper around the manifest to download and upload data into a specific framework
+    like HF datasets or Dask"""
 
     def __init__(self, manifest):
         self.manifest = manifest
 
-    def _load_subset(self, subset):
+    def _load_subset(self, subset: Subset):
+        location = subset.location
+        fields = list(subset.fields.keys())
+
         with tempfile.TemporaryDirectory() as tmp_dir:
-            local_parquet_path = STORAGE_HANDLER.copy_parquet(subset.location, tmp_dir)
+            local_parquet_path = STORAGE_HANDLER.copy_parquet(location, tmp_dir)
 
         dataset = load_dataset(
             "parquet",
             data_files=local_parquet_path,
             split="train",
-            column_names=subset.fields,
+            column_names=fields,
         )
 
         return dataset
@@ -44,7 +48,7 @@ class FondantDataset:
             subset_data = self._load_subset(subset)
             data[name] = subset_data
 
-        # TODO this method should return a single dataframe with columnn_names called subset_field
+        # TODO this method should return a single dataframe with column_names called subset_field
         return data
 
     @staticmethod
@@ -60,14 +64,18 @@ class FondantDataset:
             )
 
     def _upload_subset(self, name, fields, data: Dataset) -> Subset:
-        print("Fields:", fields)
+        # add subset to the manifest
         fields = [(field.name, field.type) for field in fields.values()]
-        print("Fields:", fields)
         self.manifest.add_subset(name, fields=fields)
+        # upload to the cloud
         remote_path = os.path.join(
             self.manifest.base_path, self.manifest.get_subset(name)["location"]
         )
         subset = self._upload_parquet(data=data, name=name, remote_path=remote_path)
+        return subset
+
+    def _upload_index(self, index: Dataset, remote_path: str) -> Index:
+        subset = self._upload_parquet(data=index, name="index", remote_path=remote_path)
         return subset
 
     def add_subsets(self, output_dataset, component_spec):
@@ -94,7 +102,7 @@ class FondantDataset:
 
     def upload(self, save_path):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(save_path).write_text(self.manifest.to_json(), encoding="utf-8")
+        self.manifest.to_file(save_path)
         return None
 
 

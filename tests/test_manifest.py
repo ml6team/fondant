@@ -104,11 +104,11 @@ def test_manifest_creation():
             "component_id": component_id,
         },
         "index": {
-            "location": f"/index/{run_id}/{component_id}"
+            "location": f"/{run_id}/{component_id}/index"
         },
         "subsets": {
             "images": {
-                "location": f"/images/{run_id}/{component_id}",
+                "location": f"/{run_id}/{component_id}/images",
                 "fields": {
                     "width": {
                         "type": "int32",
