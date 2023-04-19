@@ -132,7 +132,6 @@ class FondantComponent:
         """
         # step 1: parse arguments
         # TODO add custom arguments as individual argparse arguments based on component spec
-        # use the same name for the spec, always in the src directory
         args = cls._parse_args()
         # step 2: load component spec
         spec = cls._load_spec()
