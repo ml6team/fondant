@@ -37,5 +37,4 @@ jobs:
           pylint express --exit-zero
       - name: Test with pytest
         run: |
-          pip install pytest dataclasses_json
-          pytest tests
+          poetry run pytest tests
