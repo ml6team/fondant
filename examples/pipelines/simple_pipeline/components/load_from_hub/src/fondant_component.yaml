@@ -26,3 +26,6 @@ args:
   dataset_name:
     description: Name of dataset on the hub
     type: str
+  batch_size:
+    description: Batch size to use to create image metadata
+    type: int

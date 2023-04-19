@@ -38,7 +38,7 @@ class LoadFromHubComponent(FondantComponent):
         """
         # 1) Create data source
         logger.info("Loading caption dataset from the hub...")
-        dataset = load_dataset(args["dataset_name"], split="train")
+        dataset = load_dataset(args.dataset_name, split="train")
 
         # 2) Create index
         logger.info("Creating index...")
@@ -51,7 +51,7 @@ class LoadFromHubComponent(FondantComponent):
         dataset = dataset.map(
             create_image_metadata,
             batched=True,
-            batch_size=args["batch_size"],
+            batch_size=args.batch_size,
         )
 
         # 5) Rename columns

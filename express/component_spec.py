@@ -16,29 +16,23 @@ from express.exceptions import InvalidComponentSpec
 from express.schema import Field
 
 
-def get_kubeflow_type(python_type: str):
-    """
-    Function that returns a Kubeflow equivalent data type from a Python data type
-    Args:
-        python_type (str): the string representation of the data type
-    Returns:
-        The kubeflow data type
-    """
-    mapping = {
-        "str": "String",
-        "int": "Integer",
-        "float": "Float",
-        "bool": "Boolean",
-        "dict": "Map",
-        "list": "List",
-        "tuple": "List",
-        "set": "Set",
-    }
+python2kubeflow_type = {
+    "str": "String",
+    "int": "Integer",
+    "float": "Float",
+    "bool": "Boolean",
+    "dict": "Map",
+    "list": "List",
+    "tuple": "List",
+    "set": "Set",
+}
 
-    try:
-        return mapping[python_type]
-    except KeyError:
-        raise ValueError(f"Invalid Python data type: {python_type}")
+kubeflow2python_type = {
+    "String": str,
+    "Integer": int,
+    "Float": float,
+    "Boolean": bool,
+}
 
 
 @dataclass
@@ -230,7 +224,7 @@ class ExpressComponent:
                 KubeflowInput(
                     name=arg_name.strip(),
                     description=arg_info["description"].strip(),
-                    type=get_kubeflow_type(arg_info["type"].strip()),
+                    type=python2kubeflow_type[arg_info["type"].strip()],
                 )
             )
 
@@ -329,10 +323,9 @@ class ExpressComponent:
         """The output arguments of the component as an immutable mapping"""
         return types.MappingProxyType(
             {
-                info["name"]: KubeflowInput(
+                info["name"]: KubeflowOutput(
                     name=info["name"],
                     description=info["description"],
-                    type=info["type"],
                 )
                 for info in self.express_component_specification["outputs"]
             }

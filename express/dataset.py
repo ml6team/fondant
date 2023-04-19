@@ -8,7 +8,7 @@ from pathlib import Path
 
 from datasets import Dataset, load_dataset, concatenate_datasets
 
-from express.component_spec import ExpressComponent
+from express.component_spec import ExpressComponent, kubeflow2python_type
 from express.manifest import Manifest, Subset, Index
 from express.storage_interface import StorageHandlerModule
 
@@ -130,11 +130,10 @@ class FondantComponent:
         Returns:
             Manifest: the output manifest
         """
-        # step 1: parse arguments
-        # TODO add custom arguments as individual argparse arguments based on component spec
-        args = cls._parse_args()
-        # step 2: load component spec
+        # step 1: load component spec
         spec = cls._load_spec()
+        # step 2: add and parse arguments
+        args = cls._add_and_parse_args(spec)
         # TODO verify that args.args contain all arguments defined in the component spec
         # step 3: create Fondant dataset based on input manifest
         metadata = json.loads(args.metadata)
@@ -155,7 +154,7 @@ class FondantComponent:
         dataset = FondantDataset(manifest)
         # step 4: transform data
         if cls.type == "load":
-            output_dataset = cls.load(json.loads(args.args))
+            output_dataset = cls.load(args)
             # TODO also add index
             dataset.add_subsets(output_dataset, spec)
         else:
@@ -163,7 +162,8 @@ class FondantComponent:
             input_dataset = dataset.load_data(spec)
             # provide this dataset to the user
             output_dataset = cls.transform(
-                dataset=input_dataset, args=json.loads(args.args)
+                dataset=input_dataset,
+                args=args,
             )
 
         # step 5: create output manifest based on component spec
@@ -172,35 +172,37 @@ class FondantComponent:
         return output_manifest
 
     @classmethod
-    def _parse_args(cls):
+    def _add_and_parse_args(cls, spec):
         """
-        Parse component arguments
+        Add component arguments
         """
         parser = argparse.ArgumentParser()
-        parser.add_argument(
-            "--input-manifest-path",
-            type=str,
-            required=True if cls.type == "transform" else False,
-            help="Path to the input manifest",
-        )
-        parser.add_argument(
-            "--args",
-            type=str,
-            required=False,
-            help="Custom arguments for the component, passed as a json dict string",
-        )
+        # add input args
+        for arg in spec.input_arguments.values():
+            parser.add_argument(
+                f"--{arg.name}",
+                type=kubeflow2python_type[arg.type],
+                required=False
+                if cls.type == "load" and arg.name == "input_manifest_path"
+                else True,
+                help=arg.description,
+            )
+        # add output args
+        for arg in spec.output_arguments.values():
+            parser.add_argument(
+                f"--{arg.name}",
+                required=True,
+                type=str,
+                help=arg.description,
+            )
+        # add metadata
         parser.add_argument(
             "--metadata",
             type=str,
             required=True,
             help="The metadata associated with the pipeline run",
         )
-        parser.add_argument(
-            "--output-manifest-path",
-            type=str,
-            required=True,
-            help="Path to the output manifest",
-        )
+
         return parser.parse_args()
 
     @classmethod
