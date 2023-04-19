@@ -1,20 +1,16 @@
 name: load_from_hub
 description: A component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
 inputs: 
-    - name: input_manifest_path
-      description: Path to the input manifest
+    - name: dataset_name
+      description: Name of dataset on the hub
       type: String
     
-    - name: args
-      description: Additional arguments passed to the component, as a json dict string
-      type: String
+    - name: batch_size
+      description: Batch size to use to create image metadata
+      type: Integer
     
     - name: metadata
       description: Metadata arguments, passed as a json dict string
-      type: String
-
-    - name: spec_path
-      description: Path to the Fondant component spec
       type: String
     
     
@@ -27,9 +23,8 @@ implementation:
         image: ghcr.io/ml6team/load_from_hub:latest
         command: [
             python3, main.py,
-            --input-manifest-path,       {inputPath: input_manifest_path},
-            --args,                      {inputValue: args},
+            --dataset_name,              {inputValue: dataset_name},
+            --batch_size,                {inputValue: batch_size},
             --metadata,                  {inputValue: metadata},
-            --spec-path,                 {inputValue: spec_path},
-            --output-manifest-path,      {outputPath: output_manifest_path},
+            --output_manifest_path,      {outputPath: output_manifest_path},
         ]

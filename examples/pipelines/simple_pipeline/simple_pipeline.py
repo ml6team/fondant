@@ -17,18 +17,12 @@ artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
 
 # Component 1
 load_from_hub_op = comp.load_component("components/load_from_hub/kubeflow_component.yaml")
-load_from_hub_spec_path = "load_from_hub.yaml"
 
-load_from_hub_args = {
-    "dataset_name": LoadFromHubConfig.DATASET_NAME,
-    "batch_size": LoadFromHubConfig.BATCH_SIZE,
-}
 load_from_hub_metadata = {
     "base_path": artifact_bucket,
     "run_id": run_id,
     "component_id": load_from_hub_op.__name__,
 }
-load_from_hub_args = json.dumps(load_from_hub_args)
 load_from_hub_metadata = json.dumps(load_from_hub_metadata)
 
 
@@ -40,17 +34,16 @@ load_from_hub_metadata = json.dumps(load_from_hub_metadata)
 )
 # pylint: disable=too-many-arguments, too-many-locals
 def sd_dataset_creator_pipeline(
-    load_from_hub_args: str = load_from_hub_args,
+    load_from_hub_dataset_name: str = LoadFromHubConfig.DATASET_NAME,
+    load_from_hub_batch_size: int = LoadFromHubConfig.BATCH_SIZE,
     load_from_hub_metadata: str = load_from_hub_metadata,
-    load_from_hub_spec_path: str = load_from_hub_spec_path,
 ):
 
     # Component 1
     load_from_hub_task = load_from_hub_op(
-        input_manifest_path="",
-        args=load_from_hub_args,
+        dataset_name=load_from_hub_dataset_name,
+        batch_size=load_from_hub_batch_size,
         metadata=load_from_hub_metadata,
-        spec_path=load_from_hub_spec_path,
     ).set_display_name("Load initial images")
 
 
