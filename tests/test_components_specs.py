@@ -5,8 +5,8 @@ import yaml
 from express.exceptions import InvalidComponentSpec
 from express.component_spec import ExpressComponent
 
-valid_path = os.path.join("component_example", "valid_component")
-invalid_path = os.path.join("component_example", "invalid_component")
+valid_path = os.path.join("tests/component_example", "valid_component")
+invalid_path = os.path.join("tests/component_example", "invalid_component")
 
 
 @pytest.fixture
