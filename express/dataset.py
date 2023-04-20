@@ -71,11 +71,7 @@ class FondantDataset:
 
     def _upload_index(self, data: Dataset) -> Index:
         # get location
-        remote_path = os.path.join(
-            self.manifest.base_path, "custom_artifact", self.manifest.index.location
-        )
-        print("Base path:", self.manifest.base_path)
-        print("Index location:", self.manifest.index.location)
+        remote_path = self.manifest.index.location
         print("Remote path for index:", remote_path)
         # upload to the cloud
         self._upload_parquet(data=data, name="index", remote_path=remote_path)
@@ -97,8 +93,6 @@ class FondantDataset:
         remote_path = os.path.join(
             self.manifest.base_path, self.manifest.get_subset(name)["location"]
         )
-        print("Base path:", self.manifest.base_path)
-        print("Subset location:", self.manifest.get_subset(name)["location"])
         print(f"Remote path for subset {name}:", remote_path)
         self._upload_parquet(data=data, name=name, remote_path=remote_path)
 

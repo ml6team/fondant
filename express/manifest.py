@@ -109,7 +109,7 @@ class Manifest:
                 "run_id": run_id,
                 "component_id": component_id,
             },
-            "index": {"location": f"/{run_id}/{component_id}/index"},
+            "index": {"location": f"/custom_artifact/{run_id}/{component_id}/index"},
             "subsets": {},
         }
         return cls(specification)
@@ -174,7 +174,7 @@ class Manifest:
             raise ValueError("A subset with name {name} already exists")
 
         self._specification["subsets"][name] = {
-            "location": f"/{self.run_id}/{self.component_id}/{name}",
+            "location": f"custom_artifact/{self.run_id}/{self.component_id}/{name}",
             "fields": {name: {"type": type_} for name, type_ in fields},
         }
 
