@@ -21,14 +21,14 @@ logger = logging.getLogger(__name__)
 
 def extract_width(image_bytes):
     # Decode image bytes to PIL Image object
-    pil_image = Image.open(io.BytesIO(image_bytes["bytes"]))
+    pil_image = Image.open(io.BytesIO(image_bytes))
     width = pil_image.size[0]
     
     return width
 
 def extract_height(image_bytes):
     # Decode image bytes to PIL Image object
-    pil_image = Image.open(io.BytesIO(image_bytes["bytes"]))
+    pil_image = Image.open(io.BytesIO(image_bytes))
     height = pil_image.size[1]
     
     return height
@@ -62,8 +62,12 @@ class LoadFromHubComponent(FondantComponent):
 
         # 3) Rename columns
         dask_df = dask_df.rename(columns={"image": "images_data", "text": "captions_data"})  
+
+        # 4) Make sure images are bytes instead of dicts
+        dask_df["images_data"] = dask_df["images_data"].map(lambda x: x["bytes"],
+                                                            meta=pd.Series([], dtype=np.float64))
         
-        # 4) Add width and height columns
+        # 5) Add width and height columns
         dask_df['images_width'] = dask_df['images_data'].map(extract_width, meta=pd.Series([], dtype=np.float64))
         dask_df['images_height'] = dask_df['images_data'].map(extract_height, meta=pd.Series([], dtype=np.float64))
         

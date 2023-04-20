@@ -65,16 +65,10 @@ class FondantDataset:
             overwrite=True,
         )
 
-    def add_index(self, output_df):
-        index_columns = list(self.manifest.index.fields.keys())
-        # load index dataframe
-        index_df = output_df[index_columns]
-
-        self._upload_index(index_df)
-
     def _upload_subset(self, name, fields, df) -> Subset:
         # add subset to the manifest
         fields = [(field.name, field.type) for field in fields.values()]
+        print("Fields:", fields)
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
         # TODO remove prefix and suffix?
@@ -84,7 +78,15 @@ class FondantDataset:
             remote_path,
             storage_options={"project": self.project_name},
             overwrite=True,
+            schema={name: type_ for name, type_ in fields},
         )
+
+    def add_index(self, output_df):
+        index_columns = list(self.manifest.index.fields.keys())
+        # load index dataframe
+        index_df = output_df[index_columns]
+
+        self._upload_index(index_df)
 
     def add_subsets(self, output_df, component_spec):
         for name, subset in component_spec.output_subsets.items():
@@ -121,7 +123,7 @@ class FondantComponent:
     @classmethod
     def run(cls) -> dd.DataFrame:
         """
-        Parses input data, executes the transform, and creates output artifacts.
+        Parses input data, executes the transform, and creates the output manifest.
 
         Returns:
             Manifest: the output manifest
