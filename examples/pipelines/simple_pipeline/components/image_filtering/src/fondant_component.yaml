@@ -6,17 +6,17 @@ input_subsets:
   images:
     fields:
       width:
-        type: int32
+        type: int16
       height:
-        type: int32
+        type: int16
 
 output_subsets:
   images:
     fields:
       width:
-        type: int32
+        type: int16
       height:
-        type: int32
+        type: int16
 
 args:
   min_width:
