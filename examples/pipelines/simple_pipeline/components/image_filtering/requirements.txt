@@ -1,1 +1,1 @@
-git+https://github.com/ml6team/express.git@5720358d43d40628f6f763278cf9c6c4b36af5a1#egg=express[datasets]
+git+https://github.com/ml6team/express.git@932e05e9076590dcd7d602805d93c5b64d31ffdf#egg=express[datasets]

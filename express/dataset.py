@@ -32,6 +32,7 @@ class FondantDataset:
         # get its location and fields
         # TODO remove gcp prefix
         location = "gs://" + subset.location + ".parquet"
+        print(f"Location of subset {name}:", location)
         fields = list(subset.fields.keys())
 
         with tempfile.TemporaryDirectory() as tmp_dir:
