@@ -71,7 +71,8 @@ class FondantDataset:
 
     def _upload_index(self, data: Dataset) -> Index:
         # get location
-        remote_path = self.manifest.index.location
+        # TODO remove GCP prefix
+        remote_path = "gs://" + self.manifest.index.location
         print("Remote path for index:", remote_path)
         # upload to the cloud
         self._upload_parquet(data=data, name="index", remote_path=remote_path)
@@ -90,7 +91,8 @@ class FondantDataset:
         fields = [(field.name, field.type) for field in fields.values()]
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
-        remote_path = self.manifest.get_subset(name).location
+        # TODO remove gcp prefix
+        remote_path = "gs://" + self.manifest.get_subset(name).location
         print(f"Remote path for subset {name}:", remote_path)
         self._upload_parquet(data=data, name=name, remote_path=remote_path)
 
