@@ -24,7 +24,6 @@ def create_image_metadata(batch):
 
 
 class LoadFromHubComponent(FondantComponent):
-    """Component that loads a dataset from the hub and adds it to the manifest."""
     type = "load"
 
     @classmethod
@@ -43,7 +42,7 @@ class LoadFromHubComponent(FondantComponent):
         # 2) Create index
         logger.info("Creating index...")
         index_list = [idx for idx in range(len(dataset))]
-        source_list = ["hub" for _ in len(dataset)]
+        source_list = ["hub" for _ in range(len(dataset))]
 
         # 3) Add index to the dataset
         dataset = dataset.add_column("id", index_list)
