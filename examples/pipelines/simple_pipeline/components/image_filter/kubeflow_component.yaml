@@ -5,16 +5,16 @@ inputs:
       description: Path to the input manifest
       type: String
     
-    - name: args
-      description: Additional arguments passed to the component, as a json dict string
-      type: String
+    - name: min_width
+      description: Desired minimum width
+      type: Integer
+
+    - name: min_height
+      description: Desired minimum height
+      type: Integer
     
     - name: metadata
       description: Metadata arguments, passed as a json dict string
-      type: String
-
-    - name: spec_path
-      description: Path to the Fondant component spec
       type: String
     
     
@@ -28,8 +28,8 @@ implementation:
         command: [
             python3, main.py,
             --input-manifest-path,       {inputPath: input_manifest},
-            --args,                      {inputValue: args},
+            --min_width,                 {inputValue: min_width},
+            --min_height,                {inputValue: min_height},
             --metadata,                  {inputValue: metadata},
-            --spec-path,                 {inputValue: spec_path},
             --output-manifest-path,      {outputPath: output_manifest},
         ]

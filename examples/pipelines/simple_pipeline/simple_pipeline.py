@@ -8,6 +8,7 @@ from kfp import dsl
 from config.general_config import KubeflowConfig
 from config.components_config import (
     LoadFromHubConfig,
+    ImageFilterConfig,
 )
 from express.pipeline_utils import compile_and_upload_pipeline
 
@@ -17,13 +18,21 @@ artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
 
 # Component 1
 load_from_hub_op = comp.load_component("components/load_from_hub/kubeflow_component.yaml")
+# Component 2
+image_filter_op = comp.load_component("components/image_filter/kubeflow_component.yaml")
 
 load_from_hub_metadata = {
     "base_path": artifact_bucket,
     "run_id": run_id,
     "component_id": load_from_hub_op.__name__,
 }
+image_filter_metadata = {
+    "base_path": artifact_bucket,
+    "run_id": run_id,
+    "component_id": image_filter_op.__name__,
+}
 load_from_hub_metadata = json.dumps(load_from_hub_metadata)
+image_filter_metadata = json.dumps(image_filter_metadata)
 
 
 # Pipeline
@@ -37,6 +46,9 @@ def sd_dataset_creator_pipeline(
     load_from_hub_dataset_name: str = LoadFromHubConfig.DATASET_NAME,
     load_from_hub_batch_size: int = LoadFromHubConfig.BATCH_SIZE,
     load_from_hub_metadata: str = load_from_hub_metadata,
+    image_filter_min_width: int = ImageFilterConfig.MIN_WIDTH,
+    image_filter_min_height: int = ImageFilterConfig.MIN_HEIGHT,
+    image_filter_metadata: str = image_filter_metadata,
 ):
 
     # Component 1
@@ -45,6 +57,14 @@ def sd_dataset_creator_pipeline(
         batch_size=load_from_hub_batch_size,
         metadata=load_from_hub_metadata,
     ).set_display_name("Load initial images")
+
+    # Component 2
+    image_filter_task = image_filter_op(
+        input_manifest=load_from_hub_task.outputs["output_manifest"],
+        min_width=image_filter_min_width,
+        min_height=image_filter_min_height,
+        metadata=image_filter_metadata,
+    ).set_display_name("Filter images")
 
 
 if __name__ == "__main__":

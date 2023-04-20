@@ -29,7 +29,7 @@ class ImageFilterComponent(FondantComponent):
             dataset
         """
         logger.info("Filtering dataset...")
-        min_width, min_height = args["min_width"], args["min_height"]
+        min_width, min_height = args.min_width, args.min_height
         filtered_dataset = dataset.filter(lambda example: example["images_width"] > min_width and example["images_height"] > min_height)
         
         return filtered_dataset
