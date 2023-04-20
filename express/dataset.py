@@ -2,11 +2,10 @@ from abc import abstractmethod
 import argparse
 import importlib
 import json
-import tempfile
 import os
 from pathlib import Path
 
-from datasets import Dataset, load_dataset, concatenate_datasets
+import dask.dataframe as dd
 
 from express.component_spec import ExpressComponent, kubeflow2python_type
 from express.manifest import Manifest, Subset, Index
@@ -25,28 +24,21 @@ class FondantDataset:
 
     def __init__(self, manifest):
         self.manifest = manifest
+        self.gcs_project = "soy-audio-379412"
 
     def _load_subset(self, name):
-        print("Manifest:", self.manifest)
         # get subset from the manifest
         subset = self.manifest.get_subset(name)
         # get its location and fields
         # TODO remove gcp prefix
-        location = "gs://" + subset.location + ".parquet"
-        print(f"Location of subset {name}:", location)
+        location = "gcs://" + subset.location + ".parquet"
         fields = list(subset.fields.keys())
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            local_parquet_path = STORAGE_HANDLER.copy_parquet(location, tmp_dir)
-
-        dataset = load_dataset(
-            "parquet",
-            data_files=local_parquet_path,
-            split="train",
-            column_names=fields,
+        df = dd.read_parquet(
+            location, columns=fields, storage_options={"project": self.gcs_project}
         )
 
-        return dataset
+        return df
 
     def load_data(self, component_spec):
         subsets = []
@@ -56,48 +48,43 @@ class FondantDataset:
 
         # TODO this method should return a single dataframe with column_names called subset_field
         # TODO add index
-        dataset = concatenate_datasets(subsets)
+        # dataset = concatenate_datasets(subsets)
 
-        return dataset
+        # return dataset
 
-    @staticmethod
-    def _upload_parquet(data: Dataset, name: str, remote_path: str):
-        with tempfile.TemporaryDirectory() as temp_folder:
-            dataset_path = f"{temp_folder}/{name}.parquet"
-
-            data.to_parquet(path_or_buf=dataset_path)
-
-            fully_qualified_blob_path = f"{remote_path}.parquet"
-            STORAGE_HANDLER.copy_file(
-                source_file=dataset_path, destination=fully_qualified_blob_path
-            )
-
-    def _upload_index(self, data: Dataset) -> Index:
+    def _upload_index(self, df) -> Index:
         # get location
         # TODO remove GCP prefix
-        remote_path = "gs://" + self.manifest.index.location
+        remote_path = "gcs://" + self.manifest.index.location + ".parquet"
         print("Remote path for index:", remote_path)
         # upload to the cloud
-        self._upload_parquet(data=data, name="index", remote_path=remote_path)
+        dd.to_parquet(
+            df,
+            remote_path,
+            storage_options={"project": self.gcs_project},
+            overwrite=True,
+        )
 
     def add_index(self, output_dataset):
         index_columns = list(self.manifest.index.fields.keys())
-        # load subset data
-        index_dataset = output_dataset.remove_columns(
-            [col for col in output_dataset.column_names if col not in index_columns]
-        )
+        # load index dataframe
+        index_df = output_dataset[index_columns]
 
-        self._upload_index(index_dataset)
+        self._upload_index(index_df)
 
-    def _upload_subset(self, name, fields, data: Dataset) -> Subset:
+    def _upload_subset(self, name, fields, df) -> Subset:
         # add subset to the manifest
         fields = [(field.name, field.type) for field in fields.values()]
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
         # TODO remove gcp prefix
-        remote_path = "gs://" + self.manifest.get_subset(name).location
-        print(f"Remote path for subset {name}:", remote_path)
-        self._upload_parquet(data=data, name=name, remote_path=remote_path)
+        remote_path = "gcs://" + self.manifest.get_subset(name).location + ".parquet"
+        dd.to_parquet(
+            df,
+            remote_path,
+            storage_options={"project": self.gcs_project},
+            overwrite=True,
+        )
 
     def add_subsets(self, output_dataset, component_spec):
         for name, subset in component_spec.output_subsets.items():
@@ -138,7 +125,7 @@ class FondantComponent:
         return ExpressComponent(spec_path)
 
     @classmethod
-    def run(cls) -> Dataset:
+    def run(cls) -> dd.DataFrame:
         """
         Parses input data, executes the transform, and creates output artifacts.
 
@@ -221,10 +208,10 @@ class FondantComponent:
 
     @classmethod
     @abstractmethod
-    def load(cls, args) -> Dataset:
+    def load(cls, args) -> dd.DataFrame:
         """Load initial dataset"""
 
     @classmethod
     @abstractmethod
-    def transform(cls, dataset, args) -> Dataset:
+    def transform(cls, dataset, args) -> dd.DataFrame:
         """Transform existing dataset"""

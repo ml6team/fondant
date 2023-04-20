@@ -1,9 +1,16 @@
 """
 This component loads a seed dataset from the hub.
 """
+import io
 import logging
 
 from datasets import load_dataset
+
+import dask.dataframe as dd
+import dask.array as da
+import pandas as pd
+import numpy as np
+from PIL import Image
 
 from express.dataset import FondantComponent
 from express.logger import configure_logging
@@ -12,15 +19,19 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def create_image_metadata(batch):
-    images = batch["image"]
+def extract_width(image_bytes):
+    #Decode image bytes to PIL Image object
+    pil_image = Image.open(io.BytesIO(image_bytes["bytes"]))
+    width = pil_image.size[0]
+    
+    return width
 
-    # add width and height columns
-    widths, heights = zip(*[image.size for image in images])
-    batch["images_width"] = list(widths)
-    batch["images_height"] = list(heights)
-
-    return batch
+def extract_height(image_bytes):
+    #Decode image bytes to PIL Image object
+    pil_image = Image.open(io.BytesIO(image_bytes["bytes"]))
+    height = pil_image.size[1]
+    
+    return height
 
 
 class LoadFromHubComponent(FondantComponent):
@@ -35,31 +46,28 @@ class LoadFromHubComponent(FondantComponent):
         Returns:
             Dataset: HF dataset
         """
-        # 1) Create data source
-        logger.info("Loading caption dataset from the hub...")
+        # 1) Load data, read as Dask dataframe
+        logger.info("Loading dataset from the hub...")
         dataset = load_dataset(args.dataset_name, split="train")
+        dataset.to_parquet("data.parquet")
+        dask_df = dd.read_parquet("data.parquet")
 
-        # 2) Create index
+        # 2) Add index to the dataframe
         logger.info("Creating index...")
-        index_list = [idx for idx in range(len(dataset))]
-        source_list = ["hub" for _ in range(len(dataset))]
+        index_list = [idx for idx in range(len(dask_df))]
+        source_list = ["hub" for _ in range(len(dask_df))]
 
-        # 3) Add index to the dataset
-        dataset = dataset.add_column("id", index_list)
-        dataset = dataset.add_column("source", source_list)
-        
-        # 4) Add metadata columns
-        dataset = dataset.map(
-            create_image_metadata,
-            batched=True,
-            batch_size=args.batch_size,
-        )
+        dask_df["id"] = da.array(index_list)
+        dask_df["source"] = da.array(source_list)
 
-        # 5) Rename columns
-        dataset = dataset.rename_column("image", "images_data")
-        dataset = dataset.rename_column("text", "captions_data")
+        # 3) Rename columns
+        dask_df = dask_df.rename(columns={"image": "images_data", "text": "captions_data"})  
         
-        return dataset
+        # 4) Add width and height columns
+        dask_df['images_width'] = dask_df['images_data'].map(extract_width, meta=pd.Series([], dtype=np.float64))
+        dask_df['images_height'] = dask_df['images_data'].map(extract_height, meta=pd.Series([], dtype=np.float64))
+        
+        return dask_df
 
 
 if __name__ == "__main__":
