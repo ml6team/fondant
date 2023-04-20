@@ -27,6 +27,7 @@ class FondantDataset:
         self.manifest = manifest
 
     def _load_subset(self, name):
+        print("Manifest:", self.manifest)
         # get subset from the manifest
         subset = self.manifest.get_subset(name)
         # get its location and fields
