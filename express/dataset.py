@@ -1,3 +1,8 @@
+"""This module defines the FondantDataset class, which is a wrapper around the manifest.
+
+It also defines the FondantComponent class, which uses the FondantDataset class to manipulate data.
+"""
+
 from abc import abstractmethod
 import argparse
 import json
@@ -60,10 +65,10 @@ class FondantDataset:
             overwrite=True,
         )
 
-    def add_index(self, output_dataset):
+    def add_index(self, output_df):
         index_columns = list(self.manifest.index.fields.keys())
         # load index dataframe
-        index_df = output_dataset[index_columns]
+        index_df = output_df[index_columns]
 
         self._upload_index(index_df)
 
@@ -81,27 +86,21 @@ class FondantDataset:
             overwrite=True,
         )
 
-    def add_subsets(self, output_dataset, component_spec):
+    def add_subsets(self, output_df, component_spec):
         for name, subset in component_spec.output_subsets.items():
             fields = list(subset.fields.keys())
-            # verify fields are present in the output dataset
+            # verify fields are present in the output dataframe
             subset_columns = [f"{name}_{field}" for field in fields]
             for col in subset_columns:
-                if col not in output_dataset.column_names:
+                if col not in output_df.columns:
                     raise ValueError(
                         f"Column {col} present in output subsets but not found in dataset"
                     )
 
-            # load subset data
-            subset_dataset = output_dataset.remove_columns(
-                [
-                    col
-                    for col in output_dataset.column_names
-                    if col not in subset_columns
-                ]
-            )
+            # load subset dataframe
+            subset_df = output_df[subset_columns]
             # add to the manifest and upload
-            self._upload_subset(name, subset.fields, subset_dataset)
+            self._upload_subset(name, subset.fields, subset_df)
 
     def upload(self, save_path):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
@@ -148,14 +147,14 @@ class FondantComponent:
         dataset = FondantDataset(manifest)
         # step 4: transform data
         if cls.type == "load":
-            output_dataset = cls.load(args)
-            dataset.add_index(output_dataset)
-            dataset.add_subsets(output_dataset, spec)
+            output_df = cls.load(args)
+            dataset.add_index(output_df)
+            dataset.add_subsets(output_df, spec)
         else:
             # create HF dataset, based on component spec
             input_dataset = dataset.load_data(spec)
             # provide this dataset to the user
-            output_dataset = cls.transform(
+            output_df = cls.transform(
                 dataset=input_dataset,
                 args=args,
             )
@@ -168,7 +167,7 @@ class FondantComponent:
     @classmethod
     def _add_and_parse_args(cls, spec):
         """
-        Add component arguments
+        Add and parse component arguments based on the component specification.
         """
         parser = argparse.ArgumentParser()
         # add input args
