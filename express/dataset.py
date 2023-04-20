@@ -1,32 +1,28 @@
 from abc import abstractmethod
 import argparse
-import importlib
 import json
-import os
 from pathlib import Path
 
 import dask.dataframe as dd
 
 from express.component_spec import ExpressComponent, kubeflow2python_type
 from express.manifest import Manifest, Subset, Index
-from express.storage_interface import StorageHandlerModule
-
-
-STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
-    os.environ.get("CLOUD_ENV", "GCP")
-]
-STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
 
 
 class FondantDataset:
-    """Wrapper around the manifest to download and upload data into a specific framework
-    like HF datasets or Dask"""
+    """Wrapper around the manifest to download and upload data into a specific framework.
+
+    Uses Dask Dataframes for the moment.
+    """
 
     def __init__(self, manifest):
         self.manifest = manifest
-        self.gcs_project = "soy-audio-379412"
 
-    def _load_subset(self, name):
+    @property
+    def project_name(self):
+        return self.manifest.project_name
+
+    def _load_subset(self, name: str) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.get_subset(name)
         # get its location and fields
@@ -35,12 +31,12 @@ class FondantDataset:
         fields = list(subset.fields.keys())
 
         df = dd.read_parquet(
-            location, columns=fields, storage_options={"project": self.gcs_project}
+            location, columns=fields, storage_options={"project": self.project_name}
         )
 
         return df
 
-    def load_data(self, component_spec):
+    def load_data(self, component_spec: ExpressComponent) -> dd.DataFrame:
         subsets = []
         for name in component_spec.input_subsets.keys():
             subset_data = self._load_subset(name)
@@ -56,7 +52,6 @@ class FondantDataset:
         # get location
         # TODO remove GCP prefix
         remote_path = "gcs://" + self.manifest.index.location + ".parquet"
-        print("Remote path for index:", remote_path)
         # upload to the cloud
         dd.to_parquet(
             df,

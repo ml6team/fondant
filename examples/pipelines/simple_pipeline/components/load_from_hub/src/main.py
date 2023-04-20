@@ -20,14 +20,14 @@ logger = logging.getLogger(__name__)
 
 
 def extract_width(image_bytes):
-    #Decode image bytes to PIL Image object
+    # Decode image bytes to PIL Image object
     pil_image = Image.open(io.BytesIO(image_bytes["bytes"]))
     width = pil_image.size[0]
     
     return width
 
 def extract_height(image_bytes):
-    #Decode image bytes to PIL Image object
+    # Decode image bytes to PIL Image object
     pil_image = Image.open(io.BytesIO(image_bytes["bytes"]))
     height = pil_image.size[1]
     
