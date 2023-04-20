@@ -30,7 +30,8 @@ class FondantDataset:
         # get subset from the manifest
         subset = self.manifest.get_subset(name)
         # get its location and fields
-        location = subset.location
+        # TODO remove gcp prefix
+        location = "gs://" + subset.location
         fields = list(subset.fields.keys())
 
         with tempfile.TemporaryDirectory() as tmp_dir:
