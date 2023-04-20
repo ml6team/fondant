@@ -12,6 +12,7 @@ import dask.dataframe as dd
 
 from express.component_spec import ExpressComponent, kubeflow2python_type
 from express.manifest import Manifest, Subset, Index
+from express.schema import type_to_pyarrow
 
 
 class FondantDataset:
@@ -73,12 +74,13 @@ class FondantDataset:
         # upload to the cloud
         # TODO remove prefix and suffix?
         remote_path = "gcs://" + self.manifest.get_subset(name).location + ".parquet"
+
         dd.to_parquet(
             df,
             remote_path,
             storage_options={"project": self.project_name},
             overwrite=True,
-            schema={name: type_ for name, type_ in fields},
+            schema={name: type_to_pyarrow(type_) for name, type_ in fields},
         )
 
     def add_index(self, output_df):

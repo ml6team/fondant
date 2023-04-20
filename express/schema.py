@@ -4,6 +4,19 @@ and pipelines."""
 import enum
 import typing as t
 
+import pyarrow as pa
+
+
+type_to_pyarrow = {
+    "binary": pa.binary(),
+    "int64": pa.int64(),
+    "int32": pa.int32(),
+    "int16": pa.int16(),
+    "int8": pa.int8(),
+    "string": pa.string(),
+    # TODO add all other types here
+}
+
 
 class Type(enum.Enum):
     """Supported types.
