@@ -56,7 +56,7 @@ class FondantDataset:
         dd.to_parquet(
             df,
             remote_path,
-            storage_options={"project": self.gcs_project},
+            storage_options={"project": self.project_name},
             overwrite=True,
         )
 
