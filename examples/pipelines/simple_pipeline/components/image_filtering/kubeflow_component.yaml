@@ -27,9 +27,9 @@ implementation:
         image: ghcr.io/ml6team/image_filtering:latest
         command: [
             python3, main.py,
-            --input-manifest-path,       {inputPath: input_manifest},
+            --input_manifest_path,       {inputPath: input_manifest_path},
             --min_width,                 {inputValue: min_width},
             --min_height,                {inputValue: min_height},
             --metadata,                  {inputValue: metadata},
-            --output-manifest-path,      {outputPath: output_manifest},
+            --output_manifest_path,      {outputPath: output_manifest_path},
         ]
