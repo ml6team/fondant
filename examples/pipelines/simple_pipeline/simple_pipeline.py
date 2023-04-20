@@ -5,7 +5,7 @@ import json
 from kfp import components as comp
 from kfp import dsl
 
-from config.general_config import KubeflowConfig
+from config.general_config import GeneralConfig, KubeflowConfig
 from config.components_config import (
     LoadFromHubConfig,
     ImageFilterConfig,
@@ -13,8 +13,9 @@ from config.components_config import (
 from express.pipeline_utils import compile_and_upload_pipeline
 
 # Load Components
-run_id = "{{workflow.name}}"
+project_name = GeneralConfig.GCP_PROJECT_ID
 artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
+run_id = "{{workflow.name}}"
 
 # Component 1
 load_from_hub_op = comp.load_component("components/load_from_hub/kubeflow_component.yaml")
@@ -22,11 +23,13 @@ load_from_hub_op = comp.load_component("components/load_from_hub/kubeflow_compon
 image_filtering_op = comp.load_component("components/image_filtering/kubeflow_component.yaml")
 
 load_from_hub_metadata = {
+    "project_name": project_name,
     "base_path": artifact_bucket,
     "run_id": run_id,
     "component_id": load_from_hub_op.__name__,
 }
 image_filtering_metadata = {
+    "project_name": project_name,
     "base_path": artifact_bucket,
     "run_id": run_id,
     "component_id": image_filtering_op.__name__,

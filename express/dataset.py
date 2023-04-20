@@ -72,12 +72,12 @@ class FondantDataset:
         fields = [(field.name, field.type) for field in fields.values()]
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
-        # TODO remove gcp prefix
+        # TODO remove prefix and suffix?
         remote_path = "gcs://" + self.manifest.get_subset(name).location + ".parquet"
         dd.to_parquet(
             df,
             remote_path,
-            storage_options={"project": self.gcs_project},
+            storage_options={"project": self.project_name},
             overwrite=True,
         )
 
@@ -134,16 +134,14 @@ class FondantComponent:
         # step 3: create Fondant dataset based on input manifest
         metadata = json.loads(args.metadata)
         if cls.type == "load":
+            # TODO ideally get rid of arrs.metadata
+            # by including them in the storage args,
+            # getting run_id based on args.output_manifest_path
             manifest = Manifest.create(
-                base_path=metadata[
-                    "base_path"
-                ],  # TODO make this part of the storage_args
-                run_id=metadata[
-                    "run_id"
-                ],  # TODO get the run id based on args.output_manifest?
-                component_id=metadata[
-                    "component_id"
-                ],  # TODO spec can be used to get component ID
+                project_name=metadata["project_name"],
+                base_path=metadata["base_path"],
+                run_id=metadata["run_id"],
+                component_id=metadata["component_id"],
             )
         else:
             manifest = Manifest.from_file(args.input_manifest_path)
