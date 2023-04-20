@@ -31,7 +31,7 @@ class FondantDataset:
         subset = self.manifest.get_subset(name)
         # get its location and fields
         # TODO remove gcp prefix
-        location = "gs://" + subset.location
+        location = "gs://" + subset.location + ".parquet"
         fields = list(subset.fields.keys())
 
         with tempfile.TemporaryDirectory() as tmp_dir:
