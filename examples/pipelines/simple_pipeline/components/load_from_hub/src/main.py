@@ -43,9 +43,11 @@ class LoadFromHubComponent(FondantComponent):
         # 2) Create index
         logger.info("Creating index...")
         index_list = [idx for idx in range(len(dataset))]
+        source_list = ["hub" for _ in len(dataset)]
 
-        # 3) Add index to the dataset, rename columns
+        # 3) Add index to the dataset
         dataset = dataset.add_column("id", index_list)
+        dataset = dataset.add_column("source", source_list)
         
         # 4) Add metadata columns
         dataset = dataset.map(

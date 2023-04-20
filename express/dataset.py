@@ -69,6 +69,23 @@ class FondantDataset:
                 source_file=dataset_path, destination=fully_qualified_blob_path
             )
 
+    def _upload_index(self, data: Dataset) -> Index:
+        # get location
+        remote_path = os.path.join(
+            self.manifest.base_path, self.manifest.index.location
+        )
+        # upload to the cloud
+        self._upload_parquet(data=data, name="index", remote_path=remote_path)
+
+    def add_index(self, output_dataset):
+        index_columns = list(self.manifest.index.fields.keys())
+        # load subset data
+        index_dataset = output_dataset.remove_columns(
+            [col for col in output_dataset.column_names if col not in index_columns]
+        )
+
+        self._upload_index(index_dataset)
+
     def _upload_subset(self, name, fields, data: Dataset) -> Subset:
         # add subset to the manifest
         fields = [(field.name, field.type) for field in fields.values()]
@@ -77,12 +94,7 @@ class FondantDataset:
         remote_path = os.path.join(
             self.manifest.base_path, self.manifest.get_subset(name)["location"]
         )
-        subset = self._upload_parquet(data=data, name=name, remote_path=remote_path)
-        return subset
-
-    def _upload_index(self, index: Dataset, remote_path: str) -> Index:
-        subset = self._upload_parquet(data=index, name="index", remote_path=remote_path)
-        return subset
+        self._upload_parquet(data=data, name=name, remote_path=remote_path)
 
     def add_subsets(self, output_dataset, component_spec):
         for name, subset in component_spec.output_subsets.items():
@@ -117,7 +129,7 @@ class FondantComponent:
 
     @classmethod
     def _load_spec(cls) -> ExpressComponent:
-        # note: Fondant spec always need to be called like this
+        # note: Fondant spec always needs to be called like this
         # and placed in the src directory
         spec_path = "fondant_component.yaml"
         return ExpressComponent(spec_path)
@@ -134,7 +146,6 @@ class FondantComponent:
         spec = cls._load_spec()
         # step 2: add and parse arguments
         args = cls._add_and_parse_args(spec)
-        # TODO verify that args.args contain all arguments defined in the component spec
         # step 3: create Fondant dataset based on input manifest
         metadata = json.loads(args.metadata)
         if cls.type == "load":
@@ -155,7 +166,7 @@ class FondantComponent:
         # step 4: transform data
         if cls.type == "load":
             output_dataset = cls.load(args)
-            # TODO also add index
+            dataset.add_index(output_dataset)
             dataset.add_subsets(output_dataset, spec)
         else:
             # create HF dataset, based on component spec
