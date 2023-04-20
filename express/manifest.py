@@ -30,7 +30,7 @@ class Subset:
     @property
     def location(self) -> str:
         """The resolved location of the subset"""
-        return self._base_path.rstrip("/") + self._specification["location"]
+        return self._base_path + self._specification["location"]
 
     @property
     def fields(self) -> t.Mapping[str, Field]:
@@ -167,14 +167,14 @@ class Manifest:
         if name not in self._specification["subsets"]:
             raise ValueError(f"Subset {name} not found in specification")
 
-        return self._specification["subsets"][name]
+        return Subset(self._specification["subsets"][name], base_path=self.base_path)
 
     def add_subset(self, name: str, fields: t.List[t.Tuple[str, Type]]) -> None:
         if name in self._specification["subsets"]:
             raise ValueError("A subset with name {name} already exists")
 
         self._specification["subsets"][name] = {
-            "location": f"custom_artifact/{self.run_id}/{self.component_id}/{name}",
+            "location": f"/custom_artifact/{self.run_id}/{self.component_id}/{name}",
             "fields": {name: {"type": type_} for name, type_ in fields},
         }
 

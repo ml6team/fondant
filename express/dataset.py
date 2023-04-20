@@ -90,9 +90,7 @@ class FondantDataset:
         fields = [(field.name, field.type) for field in fields.values()]
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
-        remote_path = os.path.join(
-            self.manifest.base_path, self.manifest.get_subset(name)["location"]
-        )
+        remote_path = self.manifest.get_subset(name).location
         print(f"Remote path for subset {name}:", remote_path)
         self._upload_parquet(data=data, name=name, remote_path=remote_path)
 
