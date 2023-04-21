@@ -1,4 +1,4 @@
 datasets==2.11.0
-git+https://github.com/ml6team/express.git@12ebf7eaecb49014a3ddb5b100fa26c2f427e529#egg=express
+git+https://github.com/ml6team/express.git@7a6a1085d4e1f2b00019c1bf01cb936a23dbd93a#egg=express
 Pillow==9.4.0
 gcsfs==2023.4.0

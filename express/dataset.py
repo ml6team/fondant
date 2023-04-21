@@ -94,11 +94,15 @@ class FondantDataset:
             for col in subset_columns:
                 if col not in df.columns:
                     raise ValueError(
-                        f"Column {col} present in output subsets but not found in dataset"
+                        f"Field {col} defined in output subset {name} but not found in dataframe"
                     )
 
             # load subset dataframe
             subset_df = df[subset_columns]
+            # remove subset prefix from subset columns
+            subset_df = subset_df.rename(
+                columns={col: col.split("_")[-1] for col in subset_df.columns}
+            )
             # add to the manifest and upload
             self._upload_subset(name, subset.fields, subset_df)
 
