@@ -13,3 +13,7 @@ class InvalidManifest(ValidationError, ExpressException):
 
 class InvalidComponentSpec(ValidationError, ExpressException):
     """Thrown when a component spec cannot be validated against the schema."""
+
+
+class InvalidPipelineDefinition(ValidationError, ExpressException):
+    """Thrown when a pipeline definition is invalid."""
