@@ -7,6 +7,7 @@ from abc import abstractmethod
 import argparse
 import json
 from pathlib import Path
+from typing import List
 
 import dask.dataframe as dd
 
@@ -28,7 +29,7 @@ class FondantDataset:
     def project_name(self):
         return self.manifest.project_name
 
-    def _load_subset(self, name: str, fields: list[str]) -> dd.DataFrame:
+    def _load_subset(self, name: str, fields: List[str]) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]
         # TODO remove prefix and suffix
@@ -129,11 +130,11 @@ class FondantComponent:
             Manifest: the output manifest
         """
         # step 1: add and parse arguments
-        args = self._add_and_parse_args(self.spec)
-        # step 3: create Fondant dataset based on input manifest
+        args = self._add_and_parse_args()
+        # step 2: create Fondant dataset based on input manifest
         metadata = json.loads(args.metadata)
         if self.type == "load":
-            # TODO ideally get rid of arrs.metadata
+            # TODO ideally get rid of args.metadata
             # by including them in the storage args,
             # getting run_id based on args.output_manifest_path
             manifest = Manifest.create(
@@ -145,7 +146,7 @@ class FondantComponent:
         else:
             manifest = Manifest.from_file(args.input_manifest_path)
         dataset = FondantDataset(manifest)
-        # step 4: transform data
+        # step 3: load or transform data
         if self.type == "load":
             output_df = self.load(args)
             dataset.add_index(output_df)
@@ -159,18 +160,18 @@ class FondantComponent:
                 args=args,
             )
 
-        # step 5: create output manifest
+        # step 4: create output manifest
         output_manifest = dataset.upload(save_path=args.output_manifest_path)
 
         return output_manifest
 
-    def _add_and_parse_args(self, spec):
+    def _add_and_parse_args(self):
         """
         Add and parse component arguments based on the component specification.
         """
         parser = argparse.ArgumentParser()
         # add input args
-        for arg in spec.input_arguments.values():
+        for arg in self.spec.input_arguments.values():
             parser.add_argument(
                 f"--{arg.name}",
                 type=kubeflow2python_type[arg.type],
@@ -180,7 +181,7 @@ class FondantComponent:
                 help=arg.description,
             )
         # add output args
-        for arg in spec.output_arguments.values():
+        for arg in self.spec.output_arguments.values():
             parser.add_argument(
                 f"--{arg.name}",
                 required=True,
