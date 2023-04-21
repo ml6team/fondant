@@ -80,7 +80,7 @@ class FondantDataset:
             remote_path,
             storage_options={"project": self.project_name},
             overwrite=True,
-            schema={name: type_to_pyarrow(type_) for name, type_ in fields},
+            schema={name: type_to_pyarrow[type_] for name, type_ in fields},
         )
 
     def add_index(self, output_df):

@@ -20,7 +20,7 @@ output_subsets:
   captions:
     fields:
       data:
-        type: string
+        type: utf8
 
 args:
   dataset_name:

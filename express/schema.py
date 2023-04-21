@@ -9,11 +9,11 @@ import pyarrow as pa
 
 type_to_pyarrow = {
     "binary": pa.binary(),
-    "int64": pa.int64(),
-    "int32": pa.int32(),
-    "int16": pa.int16(),
     "int8": pa.int8(),
-    "string": pa.string(),
+    "int16": pa.int16(),
+    "int32": pa.int32(),
+    "int64": pa.int64(),
+    "utf8": pa.string(),
     # TODO add all other types here
 }
 
