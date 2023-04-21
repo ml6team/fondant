@@ -43,6 +43,7 @@ class ExpressComponentOperation(ExpressComponent):
              kfp components here:
              https://kubeflow-pipelines.readthedocs.io/en/1.8.13/source/kfp.dsl.html
     """
+
     yaml_spec_path: str
     args: t.Dict[str, any]
     number_of_gpus: int = None
@@ -82,7 +83,8 @@ class ExpressPipeline:
 
     @staticmethod
     def _validate_pipeline_definition(
-            express_components_operation: t.List[ExpressComponentOperation]):
+        express_components_operation: t.List[ExpressComponentOperation],
+    ):
         """
         Validates the pipeline definition by ensuring that the input and output subsets of each
          component match and are invoked in the correct order
@@ -96,7 +98,10 @@ class ExpressPipeline:
         available_subsets = {}
         for express_component_operation in express_components_operation:
             if not load_component:
-                for subset_name, subset in express_component_operation.input_subsets.items():
+                for (
+                    subset_name,
+                    subset,
+                ) in express_component_operation.input_subsets.items():
                     if subset_name not in available_subsets:
                         raise InvalidPipelineDefinition(
                             f"Component '{express_component_operation.name}' "
@@ -121,12 +126,12 @@ class ExpressPipeline:
         logger.info("All pipeline component specifications match.")
 
     def compile_pipeline(
-            self,
-            *,
-            pipeline_name: str,
-            pipeline_description: str,
-            express_components_operation: t.List[ExpressComponentOperation],
-            pipeline_package_path: str
+        self,
+        *,
+        pipeline_name: str,
+        pipeline_description: str,
+        express_components_operation: t.List[ExpressComponentOperation],
+        pipeline_package_path: str,
     ):
         """
         Function that creates and compiles a Kubeflow Pipeline.
@@ -161,7 +166,8 @@ class ExpressPipeline:
         """
 
         def _get_component_function(
-                express_component_operation: ExpressComponentOperation) -> t.Callable:
+            express_component_operation: ExpressComponentOperation,
+        ) -> t.Callable:
             """
             Load the Kubeflow component based on the specification from the express component
              operation.
@@ -172,10 +178,12 @@ class ExpressPipeline:
                 Callable: The Kubeflow component.
             """
             return kfp.components.load_component(
-                text=json.dumps(express_component_operation.kubeflow_component_specification))
+                text=json.dumps(
+                    express_component_operation.kubeflow_component_specification
+                )
+            )
 
         def _set_task_configuration(task, express_component_operation):
-
             # Unpack optional specifications
             number_of_gpus = express_component_operation.number_of_gpus
             node_pool_name = express_component_operation.node_pool_name
@@ -197,28 +205,27 @@ class ExpressPipeline:
         # Validate subset schema before defining the pipeline
         self._validate_pipeline_definition(express_components_operation)
 
-        @dsl.pipeline(
-            name=pipeline_name,
-            description=pipeline_description
-        )
+        @dsl.pipeline(name=pipeline_name, description=pipeline_description)
         def pipeline():
             # TODO: check if we want to have the manifest path empty for loading component or remove
             #  it completely from the loading component
             manifest_path = ""
             previous_component_task = None
             for express_component_operation in express_components_operation:
-
                 # Get the Kubeflow component based on the express component operation.
                 component_op = _get_component_function(express_component_operation)
 
                 # Execute the Kubeflow component and pass in the output manifest path from
                 # the previous component.
                 component_args = express_component_operation.args
-                component_task = component_op(input_manifest_path=manifest_path, **component_args)
+                component_task = component_op(
+                    input_manifest_path=manifest_path, **component_args
+                )
 
                 # Set optional configurations
-                component_task = _set_task_configuration(component_task,
-                                                         express_component_operation)
+                component_task = _set_task_configuration(
+                    component_task, express_component_operation
+                )
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if previous_component_task is not None:
@@ -236,11 +243,11 @@ class ExpressPipeline:
         logger.info("Pipeline compiled successfully")
 
     def upload_pipeline(
-            self,
-            *,
-            pipeline_name: str,
-            pipeline_package_path: str,
-            delete_pipeline_package: t.Optional[bool] = False
+        self,
+        *,
+        pipeline_name: str,
+        pipeline_package_path: str,
+        delete_pipeline_package: t.Optional[bool] = False,
     ):
         """
         Uploads a pipeline package to Kubeflow Pipelines and deletes any existing pipeline with the
@@ -258,8 +265,9 @@ class ExpressPipeline:
         logger.info(f"Uploading pipeline: {pipeline_name}")
 
         try:
-            self.client.upload_pipeline(pipeline_package_path=pipeline_package_path,
-                                        pipeline_name=pipeline_name)
+            self.client.upload_pipeline(
+                pipeline_package_path=pipeline_package_path, pipeline_name=pipeline_name
+            )
         except Exception as e:
             raise Exception(f"Error uploading pipeline package: {str(e)}")
 
