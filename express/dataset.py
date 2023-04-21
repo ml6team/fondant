@@ -13,6 +13,7 @@ import dask.dataframe as dd
 
 from express.component_spec import ComponentSpec, kubeflow2python_type
 from express.manifest import Manifest, Subset
+from express.schema import Type
 
 
 class FondantDataset:
@@ -67,7 +68,7 @@ class FondantDataset:
 
     def _upload_subset(self, name: str, fields: Dict, df: dd.DataFrame) -> Subset:
         # add subset to the manifest
-        fields = [(field.name, field.type) for field in fields.values()]
+        fields = [(field.name, Type[field.type]) for field in fields.values()]
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
         # TODO remove prefix

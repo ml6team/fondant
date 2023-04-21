@@ -94,7 +94,7 @@ def test_manifest_creation():
     component_id = "component_id"
 
     manifest = Manifest.create(base_path=base_path, run_id=run_id, component_id=component_id)
-    manifest.add_subset("images", [("width", "int32"), ("height", "int32")])
+    manifest.add_subset("images", [("width", Type.int32), ("height", Type.int32)])
     manifest.subsets["images"].add_field("data", Type.binary)
 
     assert manifest._specification == {
