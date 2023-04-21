@@ -6,8 +6,8 @@ from unittest import mock
 from express.exceptions import InvalidPipelineDefinition
 from express.pipeline import ExpressComponentOperation, ExpressPipeline
 
-valid_pipelines_path = os.path.join("pipeline_examples", "valid_pipeline")
-invalid_pipelines_path = os.path.join("pipeline_examples", "invalid_pipeline")
+valid_pipelines_path = os.path.join(*["tests", "pipeline_examples", "valid_pipeline"])
+invalid_pipelines_path = os.path.join(*["tests", "pipeline_examples", "invalid_pipeline"])
 
 
 @pytest.fixture
