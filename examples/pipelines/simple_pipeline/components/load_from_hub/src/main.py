@@ -35,10 +35,8 @@ def extract_height(image_bytes):
 
 
 class LoadFromHubComponent(FondantComponent):
-    type = "load"
 
-    @classmethod
-    def load(cls, args):
+    def load(self, args):
         """
         Args:
             args: additional arguments passed to the component
@@ -75,4 +73,5 @@ class LoadFromHubComponent(FondantComponent):
 
 
 if __name__ == "__main__":
-    LoadFromHubComponent.run()
+    component = LoadFromHubComponent(type="load")
+    component.run()

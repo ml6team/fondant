@@ -4,7 +4,7 @@ This component filters images of the dataset based on image size (minimum height
 import logging
 from typing import Dict
 
-from datasets import Dataset
+import dask.dataframe as dd
 
 from express.dataset import FondantComponent
 from express.logger import configure_logging
@@ -17,9 +17,7 @@ class ImageFilterComponent(FondantComponent):
     """
     Component that filters images based on height and width.
     """
-
-    @classmethod
-    def process(cls, dataset: Dataset, args: Dict) -> Dataset:
+    def process(self, dataset: dd.DataFrame, args: Dict) -> dd.DataFrame:
         """
         Args:
             dataset
@@ -36,4 +34,5 @@ class ImageFilterComponent(FondantComponent):
 
 
 if __name__ == "__main__":
-    ImageFilterComponent.run()
+    component = ImageFilterComponent()
+    component.run()
