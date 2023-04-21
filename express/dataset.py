@@ -7,13 +7,12 @@ from abc import abstractmethod
 import argparse
 import json
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 import dask.dataframe as dd
 
 from express.component_spec import ComponentSpec, kubeflow2python_type
-from express.manifest import Manifest, Subset, Index
-from express.schema import type_to_pyarrow
+from express.manifest import Manifest, Subset
 
 
 class FondantDataset:
@@ -22,31 +21,32 @@ class FondantDataset:
     Uses Dask Dataframes for the moment.
     """
 
-    def __init__(self, manifest):
+    def __init__(self, manifest: Manifest):
         self.manifest = manifest
 
     @property
-    def project_name(self):
+    def project_name(self) -> str:
         return self.manifest.project_name
 
     def _load_subset(self, name: str, fields: List[str]) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]
-        # TODO remove prefix and suffix
-        location = "gcs://" + subset.location + ".parquet"
+        # TODO remove prefix
+        location = "gcs://" + subset.location
 
         df = dd.read_parquet(
-            location, columns=fields, storage_options={"project": self.project_name}
+            location,
+            columns=fields,
         )
 
         return df
 
-    def load_data(self, component_spec: ComponentSpec) -> dd.DataFrame:
+    def load_data(self, spec: ComponentSpec) -> dd.DataFrame:
         subsets = []
-        for name, subset in component_spec.input_subsets.items():
+        for name, subset in spec.input_subsets.items():
             fields = list(subset.fields.keys())
-            subset_data = self._load_subset(name, fields)
-            subsets.append(subset_data)
+            subset_df = self._load_subset(name, fields)
+            subsets.append(subset_df)
 
         # TODO this method should return a single dataframe with column_names called subset_field
         # TODO add index
@@ -54,58 +54,51 @@ class FondantDataset:
 
         # return df
 
-    def _upload_index(self, df) -> Index:
+    def _upload_index(self, df: dd.DataFrame):
         # get location
         # TODO remove prefix and suffix
-        remote_path = "gcs://" + self.manifest.index.location + ".parquet"
+        remote_path = "gcs://" + self.manifest.index.location
         # upload to the cloud
         dd.to_parquet(
             df,
             remote_path,
-            storage_options={"project": self.project_name},
             overwrite=True,
         )
 
-    def _upload_subset(self, name, fields, df) -> Subset:
+    def _upload_subset(self, name: str, fields: Dict, df: dd.DataFrame) -> Subset:
         # add subset to the manifest
         fields = [(field.name, field.type) for field in fields.values()]
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
-        # TODO remove prefix and suffix?
-        remote_path = "gcs://" + self.manifest.subsets[name].location + ".parquet"
-
-        schema = {name: type_to_pyarrow[type_] for name, type_ in fields}
-
-        print("Schema:", schema)
+        # TODO remove prefix
+        remote_path = "gcs://" + self.manifest.subsets[name].location
 
         dd.to_parquet(
             df,
             remote_path,
-            storage_options={"project": self.project_name},
             overwrite=True,
-            schema=schema,
         )
 
-    def add_index(self, output_df):
+    def add_index(self, df: dd.DataFrame):
         index_columns = list(self.manifest.index.fields.keys())
         # load index dataframe
-        index_df = output_df[index_columns]
+        index_df = df[index_columns]
 
         self._upload_index(index_df)
 
-    def add_subsets(self, output_df, component_spec):
-        for name, subset in component_spec.output_subsets.items():
+    def add_subsets(self, df: dd.DataFrame, spec: ComponentSpec):
+        for name, subset in spec.output_subsets.items():
             fields = list(subset.fields.keys())
             # verify fields are present in the output dataframe
             subset_columns = [f"{name}_{field}" for field in fields]
             for col in subset_columns:
-                if col not in output_df.columns:
+                if col not in df.columns:
                     raise ValueError(
                         f"Column {col} present in output subsets but not found in dataset"
                     )
 
             # load subset dataframe
-            subset_df = output_df[subset_columns]
+            subset_df = df[subset_columns]
             # add to the manifest and upload
             self._upload_subset(name, subset.fields, subset_df)
 
@@ -148,14 +141,14 @@ class FondantComponent:
         dataset = FondantDataset(manifest)
         # step 3: load or transform data
         if self.type == "load":
-            output_df = self.load(args)
-            dataset.add_index(output_df)
-            dataset.add_subsets(output_df, self.spec)
+            df = self.load(args)
+            dataset.add_index(df)
+            dataset.add_subsets(df, self.spec)
         else:
             # create HF dataset, based on component spec
             input_dataset = dataset.load_data(self.spec)
             # provide this dataset to the user
-            output_df = self.transform(
+            df = self.transform(
                 dataset=input_dataset,
                 args=args,
             )
