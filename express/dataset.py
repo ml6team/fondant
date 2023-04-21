@@ -30,9 +30,9 @@ class FondantDataset:
 
     def _load_subset(self, name: str) -> dd.DataFrame:
         # get subset from the manifest
-        subset = self.manifest.get_subset(name)
+        subset = self.manifest.subsets[name]
         # get its location and fields
-        # TODO remove gcp prefix
+        # TODO remove prefix and suffix
         location = "gcs://" + subset.location + ".parquet"
         fields = list(subset.fields.keys())
 
@@ -72,7 +72,7 @@ class FondantDataset:
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
         # TODO remove prefix and suffix?
-        remote_path = "gcs://" + self.manifest.get_subset(name).location + ".parquet"
+        remote_path = "gcs://" + self.manifest.subsets[name].location + ".parquet"
 
         dd.to_parquet(
             df,

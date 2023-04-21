@@ -171,12 +171,6 @@ class Manifest:
             }
         )
 
-    def get_subset(self, name: str) -> Subset:
-        if name not in self._specification["subsets"]:
-            raise ValueError(f"Subset {name} not found in specification")
-
-        return Subset(self._specification["subsets"][name], base_path=self.base_path)
-
     def add_subset(self, name: str, fields: t.List[t.Tuple[str, Type]]) -> None:
         if name in self._specification["subsets"]:
             raise ValueError("A subset with name {name} already exists")
