@@ -29,7 +29,7 @@ def mock_host():
 def test_valid_pipeline(mock_host, default_pipeline_args, valid_pipeline_example, tmp_path):
     """Test that a valid pipeline definition can be compiled without errors."""
     example_dir, component_names = valid_pipeline_example
-    component_args = {"args": "a dummy string arg", "storage_args": "a dummy string arg"}
+    component_args = {"storage_args": "a dummy string arg"}
     components_path = os.path.join(valid_pipelines_path, example_dir)
     operations = [ExpressComponentOperation(os.path.join(components_path, name), component_args) for
                   name in component_names]
