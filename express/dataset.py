@@ -10,7 +10,7 @@ from pathlib import Path
 
 import dask.dataframe as dd
 
-from express.component_spec import ExpressComponent, kubeflow2python_type
+from express.component_spec import ComponentSpec, kubeflow2python_type
 from express.manifest import Manifest, Subset, Index
 from express.schema import type_to_pyarrow
 
@@ -42,7 +42,7 @@ class FondantDataset:
 
         return df
 
-    def load_data(self, component_spec: ExpressComponent) -> dd.DataFrame:
+    def load_data(self, component_spec: ComponentSpec) -> dd.DataFrame:
         subsets = []
         for name in component_spec.input_subsets.keys():
             subset_data = self._load_subset(name)
@@ -69,7 +69,6 @@ class FondantDataset:
     def _upload_subset(self, name, fields, df) -> Subset:
         # add subset to the manifest
         fields = [(field.name, field.type) for field in fields.values()]
-        print("Fields:", fields)
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
         # TODO remove prefix and suffix?
@@ -116,11 +115,11 @@ class FondantComponent:
     type: str = "transform"
 
     @classmethod
-    def _load_spec(cls) -> ExpressComponent:
+    def _load_spec(cls) -> ComponentSpec:
         # note: Fondant spec always needs to be called like this
         # and placed in the src directory
         spec_path = "fondant_component.yaml"
-        return ExpressComponent(spec_path)
+        return ComponentSpec(spec_path)
 
     @classmethod
     def run(cls) -> dd.DataFrame:

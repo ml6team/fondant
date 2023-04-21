@@ -170,9 +170,9 @@ class ComponentSubset:
         )
 
 
-class ExpressComponent:
+class ComponentSpec:
     """
-    Class representing an Express component
+    Class representing an Express component specification.
     Args:
         yaml_spec_path: The yaml file containing the component specification
     """
