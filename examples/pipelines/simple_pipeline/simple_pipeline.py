@@ -14,7 +14,7 @@ from express.pipeline_utils import compile_and_upload_pipeline
 
 # Load Components
 project_name = GeneralConfig.GCP_PROJECT_ID
-artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
+artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET + "/custom_artifact"
 run_id = "{{workflow.name}}"
 
 # Component 1
