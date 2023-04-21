@@ -13,7 +13,6 @@ from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
 from express.exceptions import InvalidComponentSpec
-from express.io_utils import load_yaml
 from express.schema import Field
 
 
@@ -185,7 +184,7 @@ class ExpressComponent:
     """
 
     def __init__(self, yaml_spec_path: str):
-        self.yaml_spec = load_yaml(yaml_spec_path)
+        self.yaml_spec = yaml.safe_load(open(yaml_spec_path, "r"))
         self._validate_spec()
 
     def _validate_spec(self) -> None:
@@ -271,12 +270,7 @@ class ExpressComponent:
                 name="input_manifest_path",
                 description="Path to the the input manifest",
                 type="String",
-            ),
-            KubeflowInput(
-                name="args",
-                description="The extra arguments passed to the component",
-                type="String",
-            ),
+            )
         ]
         return inputs
 
@@ -313,6 +307,34 @@ class ExpressComponent:
                 for name, subset in self.express_component_specification[
                     "output_subsets"
                 ].items()
+            }
+        )
+
+    @property
+    def input_arguments(self):
+        """The input arguments of the component as an immutable mapping"""
+        return types.MappingProxyType(
+            {
+                info["name"]: KubeflowInput(
+                    name=info["name"],
+                    description=info["description"],
+                    type=info["type"],
+                )
+                for info in self.express_component_specification["inputs"]
+            }
+        )
+
+    @property
+    def output_arguments(self):
+        """The output arguments of the component as an immutable mapping"""
+        return types.MappingProxyType(
+            {
+                info["name"]: KubeflowInput(
+                    name=info["name"],
+                    description=info["description"],
+                    type=info["type"],
+                )
+                for info in self.express_component_specification["outputs"]
             }
         )
 
