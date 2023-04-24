@@ -30,4 +30,4 @@ class KubeflowConfig(GeneralConfig):
     ARTIFACT_BUCKET = f"{GeneralConfig.GCP_PROJECT_ID}_kfp-artifacts"
     CLUSTER_NAME = "kfp-express"
     CLUSTER_ZONE = "europe-west4-a"
-    HOST = "https://472c61c751ab9be9-dot-europe-west1.pipelines.googleusercontent.com"
+    HOST = "https://52074149b1563463-dot-europe-west1.pipelines.googleusercontent.com"
