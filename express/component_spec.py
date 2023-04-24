@@ -15,7 +15,8 @@ from jsonschema.validators import RefResolver
 from express.exceptions import InvalidComponentSpec
 from express.schema import Field
 
-
+# TODO: Change after upgrading to kfp v2
+# :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
 python2kubeflow_type = {
     "str": "String",
     "int": "Integer",
@@ -27,6 +28,7 @@ python2kubeflow_type = {
     "set": "Set",
 }
 
+# TODO: remove after upgrading to kfpv2
 kubeflow2python_type = {
     "String": str,
     "Integer": int,
