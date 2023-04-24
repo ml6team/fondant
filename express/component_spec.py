@@ -15,30 +15,26 @@ from jsonschema.validators import RefResolver
 from express.exceptions import InvalidComponentSpec
 from express.schema import Field
 
+# TODO: Change after upgrading to kfp v2
+# :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
+python2kubeflow_type = {
+    "str": "String",
+    "int": "Integer",
+    "float": "Float",
+    "bool": "Boolean",
+    "dict": "Map",
+    "list": "List",
+    "tuple": "List",
+    "set": "Set",
+}
 
-def get_kubeflow_type(python_type: str):
-    """
-    Function that returns a Kubeflow equivalent data type from a Python data type
-    Args:
-        python_type (str): the string representation of the data type
-    Returns:
-        The kubeflow data type
-    """
-    mapping = {
-        "str": "String",
-        "int": "Integer",
-        "float": "Float",
-        "bool": "Boolean",
-        "dict": "Map",
-        "list": "List",
-        "tuple": "List",
-        "set": "Set",
-    }
-
-    try:
-        return mapping[python_type]
-    except KeyError:
-        raise ValueError(f"Invalid Python data type: {python_type}")
+# TODO: remove after upgrading to kfpv2
+kubeflow2python_type = {
+    "String": str,
+    "Integer": int,
+    "Float": float,
+    "Boolean": bool,
+}
 
 
 @dataclass
@@ -176,9 +172,9 @@ class ComponentSubset:
         )
 
 
-class ExpressComponent:
+class ComponentSpec:
     """
-    Class representing an Express component
+    Class representing an Express component specification.
     Args:
         yaml_spec_path: The yaml file containing the component specification
     """
@@ -230,7 +226,7 @@ class ExpressComponent:
                 KubeflowInput(
                     name=arg_name.strip(),
                     description=arg_info["description"].strip(),
-                    type=get_kubeflow_type(arg_info["type"].strip()),
+                    type=python2kubeflow_type[arg_info["type"].strip()],
                 )
             )
 
@@ -329,10 +325,9 @@ class ExpressComponent:
         """The output arguments of the component as an immutable mapping"""
         return types.MappingProxyType(
             {
-                info["name"]: KubeflowInput(
+                info["name"]: KubeflowOutput(
                     name=info["name"],
                     description=info["description"],
-                    type=info["type"],
                 )
                 for info in self.express_component_specification["outputs"]
             }

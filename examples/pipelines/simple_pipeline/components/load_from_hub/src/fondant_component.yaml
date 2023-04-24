@@ -1,0 +1,31 @@
+name: Load from hub
+description: Component that loads a dataset from the hub
+image: load_from_hub:latest
+
+input_subsets:
+  images:
+      fields:
+        data:
+          type: binary
+
+output_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+      width:
+        type: int16
+      height:
+        type: int16
+  captions:
+    fields:
+      data:
+        type: utf8
+
+args:
+  dataset_name:
+    description: Name of dataset on the hub
+    type: str
+  batch_size:
+    description: Batch size to use to create image metadata
+    type: int

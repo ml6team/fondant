@@ -29,8 +29,8 @@ class Subset:
 
     @property
     def location(self) -> str:
-        """The resolved location of the subset"""
-        return self._base_path.rstrip("/") + self._specification["location"]
+        """The absolute location of the subset"""
+        return self._base_path + self._specification["location"]
 
     @property
     def fields(self) -> t.Mapping[str, Field]:
@@ -109,7 +109,7 @@ class Manifest:
                 "run_id": run_id,
                 "component_id": component_id,
             },
-            "index": {"location": f"/index/{run_id}/{component_id}"},
+            "index": {"location": f"/{run_id}/{component_id}/index"},
             "subsets": {},
         }
         return cls(specification)
@@ -168,11 +168,14 @@ class Manifest:
             raise ValueError("A subset with name {name} already exists")
 
         self._specification["subsets"][name] = {
-            "location": f"/{name}/{self.run_id}/{self.component_id}",
+            "location": f"/{self.run_id}/{self.component_id}/{name}",
             "fields": {name: {"type": type_.value} for name, type_ in fields},
         }
 
     def remove_subset(self, name: str) -> None:
+        if name not in self._specification["subsets"]:
+            raise ValueError(f"Subset {name} not found in specification")
+
         del self._specification["subsets"][name]
 
     def __repr__(self) -> str:

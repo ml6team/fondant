@@ -1,16 +1,16 @@
-"""Dataset creation pipeline config"""
+"""General config"""
+
 import os
 
 from dataclasses import dataclass
 
-
-# pylint: disable=invalid-name
 @dataclass
 class GeneralConfig:
     """
     General configs
     Params:
-        GCP_PROJECT_ID (str): the id of the gcp project
+        GCP_PROJECT_ID (str): GCP project ID
+        DATASET_NAME (str): name of the Hugging Face dataset
         ENV (str): the project run environment (sbx, dev, prd)
     """
     GCP_PROJECT_ID = "soy-audio-379412"
@@ -27,7 +27,7 @@ class KubeflowConfig(GeneralConfig):
         CLUSTER_ZONE (str): the zone of the k8 cluster hosting KFP
         HOST (str): the kfp host url
     """
-    ARTIFACT_BUCKET = f"{GeneralConfig.GCP_PROJECT_ID}-kfp-output"
+    ARTIFACT_BUCKET = f"{GeneralConfig.GCP_PROJECT_ID}_kfp-artifacts"
     CLUSTER_NAME = "kfp-express"
     CLUSTER_ZONE = "europe-west4-a"
-    HOST = "https://52074149b1563463-dot-europe-west1.pipelines.googleusercontent.com/"
+    HOST = "https://52074149b1563463-dot-europe-west1.pipelines.googleusercontent.com"

@@ -3,7 +3,7 @@ import os
 import pytest
 import yaml
 from express.exceptions import InvalidComponentSpec
-from express.component_spec import ExpressComponent
+from express.component_spec import ComponentSpec
 
 valid_path = os.path.join("tests/component_example", "valid_component")
 invalid_path = os.path.join("tests/component_example", "invalid_component")
@@ -26,9 +26,9 @@ def invalid_express_schema() -> str:
 
 def test_component_spec_validation(valid_express_schema, invalid_express_schema):
     """Test that the manifest is validated correctly on instantiation"""
-    ExpressComponent(valid_express_schema)
+    ComponentSpec(valid_express_schema)
     with pytest.raises(InvalidComponentSpec):
-        ExpressComponent(invalid_express_schema)
+        ComponentSpec(invalid_express_schema)
 
 
 def test_attribute_access(valid_express_schema):
@@ -37,7 +37,7 @@ def test_attribute_access(valid_express_schema):
     - Fixed properties should be accessible as an attribute
     - Dynamic properties should be accessible by lookup
     """
-    express_component = ExpressComponent(valid_express_schema)
+    express_component = ComponentSpec(valid_express_schema)
 
     assert express_component.name == "Example component"
     assert express_component.description == "This is an example component"
@@ -48,6 +48,6 @@ def test_kfp_component_creation(valid_express_schema, valid_kubeflow_schema):
     """
     Test that the created kubeflow component matches the expected kubeflow component
     """
-    express_component = ExpressComponent(valid_express_schema)
+    express_component = ComponentSpec(valid_express_schema)
     kubeflow_schema = yaml.safe_load(open(valid_kubeflow_schema, 'r'))
     assert express_component.kubeflow_component_specification == kubeflow_schema
