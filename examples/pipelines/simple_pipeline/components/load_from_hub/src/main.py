@@ -8,7 +8,6 @@ from datasets import load_dataset
 
 import dask.dataframe as dd
 import dask.array as da
-import pandas as pd
 import numpy as np
 from PIL import Image
 
@@ -23,15 +22,16 @@ def extract_width(image_bytes):
     # Decode image bytes to PIL Image object
     pil_image = Image.open(io.BytesIO(image_bytes))
     width = pil_image.size[0]
-    
-    return width
+
+    return np.int16(width)
+
 
 def extract_height(image_bytes):
     # Decode image bytes to PIL Image object
     pil_image = Image.open(io.BytesIO(image_bytes))
     height = pil_image.size[1]
-    
-    return height
+
+    return np.int16(height)
 
 
 class LoadFromHubComponent(FondantComponent):
@@ -59,16 +59,18 @@ class LoadFromHubComponent(FondantComponent):
         dask_df["source"] = da.array(source_list)
 
         # 3) Rename columns
-        dask_df = dask_df.rename(columns={"image": "images_data", "text": "captions_data"})  
+        dask_df = dask_df.rename(columns={"image": "images_data", "text": "captions_data"})
 
         # 4) Make sure images are bytes instead of dicts
         dask_df["images_data"] = dask_df["images_data"].map(lambda x: x["bytes"],
-                                                            meta=pd.Series([], dtype=np.float64))
-        
+                                                            meta=("bytes", bytes))
+
         # 5) Add width and height columns
-        dask_df['images_width'] = dask_df['images_data'].map(extract_width, meta=pd.Series([], dtype=np.float64))
-        dask_df['images_height'] = dask_df['images_data'].map(extract_height, meta=pd.Series([], dtype=np.float64))
-        
+        dask_df['images_width'] = dask_df['images_data'].map(extract_width,
+                                                             meta=("images_width", int))
+        dask_df['images_height'] = dask_df['images_data'].map(extract_height,
+                                                              meta=("images_height", int))
+
         return dask_df
 
 

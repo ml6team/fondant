@@ -7,13 +7,13 @@ from abc import abstractmethod
 import argparse
 import json
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Mapping
 
 import dask.dataframe as dd
 
 from express.component_spec import ComponentSpec, kubeflow2python_type
-from express.manifest import Manifest, Subset
-from express.schema import Type
+from express.manifest import Manifest
+from express.schema import Type, Field
 
 
 class FondantDataset:
@@ -25,6 +25,11 @@ class FondantDataset:
     def __init__(self, manifest: Manifest):
         self.manifest = manifest
         self.mandatory_subset_columns = ["id", "source"]
+        self.index_schema = {
+            "source": "string",
+            "id": "int64",
+            "__null_dask_index__": "int64",
+        }
 
     def _load_subset(self, name: str, fields: List[str]) -> dd.DataFrame:
         # get subset from the manifest
@@ -56,29 +61,33 @@ class FondantDataset:
         # get location
         # TODO remove prefix and suffix
         remote_path = "gcs://" + self.manifest.index.location
+
         # upload to the cloud
         dd.to_parquet(
             df,
             remote_path,
+            schema=self.index_schema,
             overwrite=True,
         )
 
-    def _upload_subset(self, name: str, fields: Dict, df: dd.DataFrame):
+    def _upload_subset(self, name: str, fields: Mapping[str, Field], df: dd.DataFrame):
         # add subset to the manifest
-        fields = [(field.name, Type[field.type]) for field in fields.values()]
-        self.manifest.add_subset(name, fields=fields)
-        # upload to the cloud
+        manifest_fields = [(field.name, Type[field.type]) for field in fields.values()]
+        self.manifest.add_subset(name, fields=manifest_fields)
+
+        # create expected schema
+        expected_schema = {field.name: field.type for field in fields.values()}
+        expected_schema.update(self.index_schema)
+
         # TODO remove prefix
         remote_path = "gcs://" + self.manifest.subsets[name].location
-        print(df.compute())
-        # dd.to_parquet(
-        #     df,
-        #     remote_path,
-        #     overwrite=True,
-        # )
+
+        # upload to the cloud
+        dd.to_parquet(df, remote_path, schema=expected_schema, overwrite=True)
 
     def add_index(self, df: dd.DataFrame):
         index_columns = list(self.manifest.index.fields.keys())
+
         # load index dataframe
         index_df = df[index_columns]
 
@@ -101,7 +110,11 @@ class FondantDataset:
             subset_df = df[subset_columns]
             # remove subset prefix from subset columns
             subset_df = subset_df.rename(
-                columns={col: col.split("_")[-1] for col in subset_df.columns}
+                columns={
+                    col: col.split("_")[-1]
+                    for col in subset_df.columns
+                    if col not in self.mandatory_subset_columns
+                }
             )
             # add to the manifest and upload
             self._upload_subset(name, subset.fields, subset_df)
