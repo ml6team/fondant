@@ -95,20 +95,16 @@ class Manifest:
             raise InvalidManifest.create_from(e)
 
     @classmethod
-    def create(
-        cls, *, project_name: str, base_path: str, run_id: str, component_id: str
-    ) -> "Manifest":
+    def create(cls, *, base_path: str, run_id: str, component_id: str) -> "Manifest":
         """Create an empty manifest
 
         Args:
-            project_name: Name of the cloud project (e.g. "soy-audio-379412")
             base_path: The base path of the manifest
             run_id: The id of the current pipeline run
             component_id: The id of the current component being executed
         """
         specification = {
             "metadata": {
-                "project_name": project_name,
                 "base_path": base_path,
                 "run_id": run_id,
                 "component_id": component_id,
@@ -140,10 +136,6 @@ class Manifest:
 
     def add_metadata(self, key: str, value: t.Any) -> None:
         self.metadata[key] = value
-
-    @property
-    def project_name(self) -> str:
-        return self.metadata["project_name"]
 
     @property
     def base_path(self) -> str:

@@ -25,10 +25,6 @@ class FondantDataset:
     def __init__(self, manifest: Manifest):
         self.manifest = manifest
 
-    @property
-    def project_name(self) -> str:
-        return self.manifest.project_name
-
     def _load_subset(self, name: str, fields: List[str]) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]
@@ -136,7 +132,6 @@ class FondantComponent:
             # by including them in the storage args,
             # getting run_id based on args.output_manifest_path
             manifest = Manifest.create(
-                project_name=metadata["project_name"],
                 base_path=metadata["base_path"],
                 run_id=metadata["run_id"],
                 component_id=metadata["component_id"],
