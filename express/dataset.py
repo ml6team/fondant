@@ -24,6 +24,7 @@ class FondantDataset:
 
     def __init__(self, manifest: Manifest):
         self.manifest = manifest
+        self.mandatory_subset_columns = ["id", "source"]
 
     def _load_subset(self, name: str, fields: List[str]) -> dd.DataFrame:
         # get subset from the manifest
@@ -62,19 +63,19 @@ class FondantDataset:
             overwrite=True,
         )
 
-    def _upload_subset(self, name: str, fields: Dict, df: dd.DataFrame) -> Subset:
+    def _upload_subset(self, name: str, fields: Dict, df: dd.DataFrame):
         # add subset to the manifest
         fields = [(field.name, Type[field.type]) for field in fields.values()]
         self.manifest.add_subset(name, fields=fields)
         # upload to the cloud
         # TODO remove prefix
         remote_path = "gcs://" + self.manifest.subsets[name].location
-
-        dd.to_parquet(
-            df,
-            remote_path,
-            overwrite=True,
-        )
+        print(df.compute())
+        # dd.to_parquet(
+        #     df,
+        #     remote_path,
+        #     overwrite=True,
+        # )
 
     def add_index(self, df: dd.DataFrame):
         index_columns = list(self.manifest.index.fields.keys())
@@ -88,6 +89,8 @@ class FondantDataset:
             fields = list(subset.fields.keys())
             # verify fields are present in the output dataframe
             subset_columns = [f"{name}_{field}" for field in fields]
+            subset_columns.extend(self.mandatory_subset_columns)
+
             for col in subset_columns:
                 if col not in df.columns:
                     raise ValueError(
