@@ -1,4 +1,4 @@
-"""This module defines classes to represent an Express manifest."""
+"""This module defines classes to represent an Fondant manifest."""
 import copy
 import json
 import pkgutil
@@ -10,13 +10,13 @@ import jsonschema.exceptions
 from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
-from express.exceptions import InvalidManifest
-from express.schema import Type, Field
+from fondant.exceptions import InvalidManifest
+from fondant.schema import Type, Field
 
 
 class Subset:
     """
-    Class representing an Express subset.
+    Class representing an Fondant subset.
 
     Args:
         specification: The part of the manifest json representing the subset
@@ -68,7 +68,7 @@ class Index(Subset):
 
 class Manifest:
     """
-    Class representing an Express manifest
+    Class representing an Fondant manifest
 
     Args:
         specification: The manifest specification as a Python dict
@@ -83,7 +83,7 @@ class Manifest:
 
         Raises: InvalidManifest when the manifest is not valid.
         """
-        spec_schema = json.loads(pkgutil.get_data("express", "schemas/manifest.json"))
+        spec_schema = json.loads(pkgutil.get_data("fondant", "schemas/manifest.json"))
 
         base_uri = (Path(__file__).parent / "schemas").as_uri()
         resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)

@@ -6,22 +6,22 @@ import tempfile
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
 
-from express.components.common import (
-    ExpressDatasetHandler,
-    ExpressDataset,
-    ExpressTransformComponent,
-    ExpressDatasetDraft,
-    ExpressLoaderComponent,
+from fondant.components.common import (
+    FondantDatasetHandler,
+    FondantDataset,
+    FondantTransformComponent,
+    FondantDatasetDraft,
+    FondantLoaderComponent,
 )
-from express.manifest import DataManifest, DataSource, DataType
-from express.storage_interface import StorageHandlerModule
-from express.import_utils import is_pandas_available
+from fondant.manifest import DataManifest, DataSource, DataType
+from fondant.storage_interface import StorageHandlerModule
+from fondant.import_utils import is_pandas_available
 
 if is_pandas_available():
     import pandas as pd
 
 # Define interface of pandas draft
-PandasDatasetDraft = ExpressDatasetDraft[List[str], Union[pd.DataFrame, pd.Series]]
+PandasDatasetDraft = FondantDatasetDraft[List[str], Union[pd.DataFrame, pd.Series]]
 
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
     os.environ.get("CLOUD_ENV", "GCP")
@@ -29,7 +29,7 @@ STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
 STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
 
 
-class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
+class PandasDataset(FondantDataset[List[str], Union[pd.DataFrame, pd.Series]]):
     """Pandas dataset"""
 
     def load_index(self) -> pd.Series:
@@ -63,7 +63,7 @@ class PandasDataset(ExpressDataset[List[str], Union[pd.DataFrame, pd.Series]]):
             return data_source_df
 
 
-class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
+class PandasDatasetHandler(FondantDatasetHandler[List[str], pd.DataFrame]):
     """Pandas Dataset handler"""
 
     @staticmethod
@@ -114,7 +114,7 @@ class PandasDatasetHandler(ExpressDatasetHandler[List[str], pd.DataFrame]):
 
 
 class PandasTransformComponent(
-    PandasDatasetHandler, ExpressTransformComponent[List[str], pd.DataFrame], ABC
+    PandasDatasetHandler, FondantTransformComponent[List[str], pd.DataFrame], ABC
 ):
     """Pandas dataset transformer. Subclass this class to define custom transformation function"""
 
@@ -129,7 +129,7 @@ class PandasTransformComponent(
 
 
 class PandasLoaderComponent(
-    PandasDatasetHandler, ExpressLoaderComponent[List[str], pd.DataFrame], ABC
+    PandasDatasetHandler, FondantLoaderComponent[List[str], pd.DataFrame], ABC
 ):
     """Pandas dataset loader. Subclass this class to define custom transformation function"""
 

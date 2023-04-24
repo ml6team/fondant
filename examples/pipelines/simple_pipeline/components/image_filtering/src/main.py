@@ -6,8 +6,8 @@ from typing import Dict
 
 import dask.dataframe as dd
 
-from express.dataset import FondantComponent
-from express.logger import configure_logging
+from fondant.dataset import FondantComponent
+from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)

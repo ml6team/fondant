@@ -7,11 +7,11 @@ from typing import Optional, Union, Dict
 
 from datasets import Dataset, load_dataset
 
-from express.components.hf_datasets_components import (
+from fondant.components.hf_datasets_components import (
     HFDatasetsLoaderComponent,
     HFDatasetsDatasetDraft,
 )
-from express.logger import configure_logging
+from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class LoadFromHubComponent(HFDatasetsLoaderComponent):
         cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
     ) -> HFDatasetsDatasetDraft:
         """
-        An example function showcasing the data loader component using Express functionalities
+        An example function showcasing the data loader component using Fondant functionalities
         Args:
             extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
              the function (e.g. seed data source)

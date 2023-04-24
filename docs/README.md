@@ -1,14 +1,14 @@
 # Docs
 
-This file contains general documentation on Express.
+This file contains general documentation on Fondant.
 
-## Express: built around manifests
+## Fondant: built around manifests
 
-Express provides helper functions and boilerplate to speed up the creation of KubeFlow components and pipelines.
+Fondant provides helper functions and boilerplate to speed up the creation of KubeFlow components and pipelines.
 
 ### Helpers
 
-Express contains a few helper modules:
+Fondant contains a few helper modules:
 
 - `io.py`: general I/O helper functions.
 - `kfp.py`: include helper functions for GPU logging when running a KFP component and parsing specific KFP input.
@@ -20,20 +20,20 @@ Those helper functions can be used when creating components.
 
 ### Component base classes
 
-The `express.components` module contains component base classes which you can overwrite to create components. Each of these component classes always have 2 variants; a loader and a transform version.
+The `fondant.components` module contains component base classes which you can overwrite to create components. Each of these component classes always have 2 variants; a loader and a transform version.
 
 **Available implementations**
 1. Non-distributed Pandas implementation.\
-    - `express_components.pandas_components.{PandasTransformComponent, PandasLoaderComponent}`
+    - `fondant_components.pandas_components.{PandasTransformComponent, PandasLoaderComponent}`
     - Data is exposed as a Pandas `DataFrame`. Depending on the use-case, consumers can do batch transforms, or collect data in-memory to a Pandas `DataFrame`.
 
 **Planned implementations**
 1. Spark-based components and base image.
 
-To implement your own Transform component, you'll need to take a dependency on the `express` package and subclass one of the TransformComponent base classes. 
+To implement your own Transform component, you'll need to take a dependency on the `fondant` package and subclass one of the TransformComponent base classes. 
 
 ```python
-from express.components.pandas_components import PandasTransformComponent, PandasDataset, PandasDatasetDraft
+from fondant.components.pandas_components import PandasTransformComponent, PandasDataset, PandasDatasetDraft
 
 class MyFirstTransform(PandasTransformComponent):
     @classmethod
@@ -61,45 +61,45 @@ if __name__ == '__main__':
     MyFirstTransform.run()
 ```
 
-#### Taking a dependency on express
-There are two ways to add `express` to your dependencies.
+#### Taking a dependency on fondant
+There are two ways to add `fondant` to your dependencies.
 
-1. (Recommended) Build the `common` docker image, and have your component use this as a base image. This base image will include the `express` python package, and itself extends a PyTorch GPU image.
-2. `express` can be installed as a standalone Python package into your custom images. See the Dockerfile of the `common` base image for an example implementation.
+1. (Recommended) Build the `common` docker image, and have your component use this as a base image. This base image will include the `fondant` python package, and itself extends a PyTorch GPU image.
+2. `fondant` can be installed as a standalone Python package into your custom images. See the Dockerfile of the `common` base image for an example implementation.
 
 ### Adding additional Transform/Loader base implementations
 
 Different implementations mainly differ in how they expose the data, and what data manipulation capabilities are exposed at runtime.
 
-If you want a different data manipulation runtime, use different data structures, or do other component-level bootstrapping across multiple jobs, you could add another base implementation for the `ExpressTransformComponent` / `ExpressLoaderComponent`.
+If you want a different data manipulation runtime, use different data structures, or do other component-level bootstrapping across multiple jobs, you could add another base implementation for the `FondantTransformComponent` / `FondantLoaderComponent`.
 
 A general overview of the different implementation levels can be seen in Figure 2. Additional base implementations work on the middle layer, and mainly affect data loading / writing logic.
 
-![Figure 2. Express component class hierarchy](class-hierarchy.png)
+![Figure 2. Fondant component class hierarchy](class-hierarchy.png)
 
-More specifically, you'll need to subclass the `ExpressDatasetHandler` mix-in and implement the abstract dataset reading / writing methods.
+More specifically, you'll need to subclass the `FondantDatasetHandler` mix-in and implement the abstract dataset reading / writing methods.
 
-Look at `express_components/pyarrow_components.py` for an example implementation.
+Look at `fondant_components/pyarrow_components.py` for an example implementation.
 
-## Express concepts
+## Fondant concepts
 
-Manifest handling, dataset loading and writing are moderate-complexity recurring patterns across different express components.
+Manifest handling, dataset loading and writing are moderate-complexity recurring patterns across different fondant components.
 
-To make implementing express components as lightweight as possible, Express provides a python package and base docker image that takes care of this heavy lifting, and makes it easy to implement many data transformations out of the box.
+To make implementing fondant components as lightweight as possible, Fondant provides a python package and base docker image that takes care of this heavy lifting, and makes it easy to implement many data transformations out of the box.
 
-### 1.a) DataManifests, ExpressDatasets and ExpressDatasetDrafts
+### 1.a) DataManifests, FondantDatasets and FondantDatasetDrafts
 A **DataManifest** is a JSON file that describes the location and contents of different data sources. It can be seen as the recipe for a dataset.
 
-An **ExpressDataset** is a wrapper object around the manifest that implements the data access logic, and exposes methods to read data from specific data sources.
+An **FondantDataset** is a wrapper object around the manifest that implements the data access logic, and exposes methods to read data from specific data sources.
 
-After transforming the input data (see below), an **ExpressDatasetDraft** creates a plan for an output dataset / manifest, by specifying which data sources to retain from the input, which to replace with locally created data, and which new data sources to create. At the end of a component run, local data will be uploaded and an output manifest will be created.
+After transforming the input data (see below), an **FondantDatasetDraft** creates a plan for an output dataset / manifest, by specifying which data sources to retain from the input, which to replace with locally created data, and which new data sources to create. At the end of a component run, local data will be uploaded and an output manifest will be created.
 
 ![Figure 1. Relation between different dataset concepts](data-flow.png)
 
 ### 1.b) Transforms and Loaders
-The most common type of component in Express is an **ExpressTransformComponent**, which takes an `ExpressDataset` and an optional dict of arguments as input and returns an `ExpressDatasetDraft` of transformed output data.
+The most common type of component in Fondant is an **FondantTransformComponent**, which takes an `FondantDataset` and an optional dict of arguments as input and returns an `FondantDatasetDraft` of transformed output data.
 
-However, at the start of a new pipeline, you won't yet have any express datasets to transform. Instead, an express pipeline can use an **ExpressLoaderComponent** as entry-point, which only takes the optional dict of arguments to construct an ExpressDatasetDraft. For example, the arguments could specify an external data location and how to interpret it, after which a loader job can create a first `ExpressDataset`.
+However, at the start of a new pipeline, you won't yet have any fondant datasets to transform. Instead, an fondant pipeline can use an **FondantLoaderComponent** as entry-point, which only takes the optional dict of arguments to construct an FondantDatasetDraft. For example, the arguments could specify an external data location and how to interpret it, after which a loader job can create a first `FondantDataset`.
 
 ## **Data Manifest: a common approach to simplify different steps throughout the pipeline**
 In order to keep track of the different data sources, we opt for a manifest-centered approach where 
@@ -149,7 +149,7 @@ image captions as well as the index.
 
 * **metadata**: Helps keep track of the step that generated that manifest, code version and pipeline run id.
 
-The Express pipeline consists of multiple steps defines as **Express steps** that are repeated 
+The Fondant pipeline consists of multiple steps defines as **Fondant steps** that are repeated 
 throughout the pipeline. The manifest pattern offers the required flexibility to promote its reuse and avoid
 duplication of data sources. For example:  
 

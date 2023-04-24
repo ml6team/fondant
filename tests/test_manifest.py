@@ -1,7 +1,7 @@
 import json
 import pytest
-from express.exceptions import InvalidManifest
-from express.manifest import Manifest, Type
+from fondant.exceptions import InvalidManifest
+from fondant.manifest import Manifest, Type
 
 VALID_MANIFEST = {
     "metadata": {

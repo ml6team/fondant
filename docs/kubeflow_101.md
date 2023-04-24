@@ -37,7 +37,7 @@ select the right account in the pop up page, this will make sure that your local
 temporarily uses your own user credentials for API access.  
 
 * Finally, if the issues still persists. Make sure that the IP address you're trying to connect to 
-is listed within the [authorized networks](https://github.com/creativefabrica/express-infrastructure/blob/master/terraform/modules/kfp/variables.tf)
+is listed within the [authorized networks](https://github.com/creativefabrica/fondant-infrastructure/blob/master/terraform/modules/kfp/variables.tf)
 of the GKE cluster where Kubeflow is deployed. 
 
 
@@ -52,7 +52,7 @@ the setup of a Dockerfile. One typically has the following files for each compon
 - build_image.sh
 - requirements.txt 
 
-To implement these components faster, it's recommended to leverage the boilerplate components available in the `express.components` module and include `express` in the `requirements.txt` file of the component. Regarding the `component.yaml` file, one typically defines a `components.config` file at the pipeline root level. This file defines the root of the directory where artifacts get placed (Docker images). Each component's `component.yaml` file then defines the actual path to the Docker image.
+To implement these components faster, it's recommended to leverage the boilerplate components available in the `fondant.components` module and include `fondant` in the `requirements.txt` file of the component. Regarding the `component.yaml` file, one typically defines a `components.config` file at the pipeline root level. This file defines the root of the directory where artifacts get placed (Docker images). Each component's `component.yaml` file then defines the actual path to the Docker image.
 
 When these files are implemented, you're ready to build the images and push it to the [Artifact Registry](https://cloud.google.com/artifact-registry). You can do so by running the script (`sh build_image.sh`). Make sure to enable [kaniko](https://cloud.google.com/build/docs/optimize-builds/kaniko-cache) for faster container build time. One can run the following command locally:
 
@@ -79,7 +79,7 @@ def xgb_train_pipeline():
 Next, make sure to include the following in the main pipeline script:
 
 ```
-from express.kfp_utils import compile_and_upload_pipeline
+from fondant.kfp_utils import compile_and_upload_pipeline
 
 if __name__ == '__main__':
     compile_and_upload_pipeline(pipeline=example_pipeline,

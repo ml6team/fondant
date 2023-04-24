@@ -10,7 +10,7 @@ from config.components_config import (
     LoadFromHubConfig,
     ImageFilterConfig,
 )
-from express.pipeline_utils import compile_and_upload_pipeline
+from fondant.pipeline_utils import compile_and_upload_pipeline
 
 # Load Components
 artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET + "/custom_artifact"

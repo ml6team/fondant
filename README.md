@@ -1,6 +1,6 @@
-# Express
+# Fondant
 
-Express is a framework that speeds up the creation of KubeFlow pipelines to process big datasets and train [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models)
+Fondant is a framework that speeds up the creation of KubeFlow pipelines to process big datasets and train [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models)
 such as:
 
 - Stable Diffusion
@@ -11,22 +11,22 @@ on them.
 
 ## Installation
 
-Express can be installed using pip:
+Fondant can be installed using pip:
 
 ```
-pip install express
+pip install fondant
 ```
 
 ## Usage
 
-Express is built upon [KubeFlow](https://www.kubeflow.org/), a cloud-agnostic framework built by Google to orchestrate machine learning workflows on Kubernetes. An important aspect of KubeFlow are pipelines, which consist of a set of components being executed, one after the other. This typically involves transforming data and optionally training a machine learning model on it. Check out [this page](https://www.kubeflow.org/docs/components/pipelines/v1/concepts/) if you want to learn more about KubeFlow pipelines and components.
+Fondant is built upon [KubeFlow](https://www.kubeflow.org/), a cloud-agnostic framework built by Google to orchestrate machine learning workflows on Kubernetes. An important aspect of KubeFlow are pipelines, which consist of a set of components being executed, one after the other. This typically involves transforming data and optionally training a machine learning model on it. Check out [this page](https://www.kubeflow.org/docs/components/pipelines/v1/concepts/) if you want to learn more about KubeFlow pipelines and components.
 
-Express offers ready-made components and helper functions that serve as boilerplate which you can use to speed up the creation of KubeFlow pipelines. To implement your own component, simply overwrite one of the components available in Express. In the example below, we leverage the `PandasTransformComponent` and overwrite its `transform` method.
+Fondant offers ready-made components and helper functions that serve as boilerplate which you can use to speed up the creation of KubeFlow pipelines. To implement your own component, simply overwrite one of the components available in Fondant. In the example below, we leverage the `PandasTransformComponent` and overwrite its `transform` method.
 
 ```
 import pandas as pd
 
-from express.components.pandas_components import PandasTransformComponent, PandasDataset, PandasDatasetDraft
+from fondant.components.pandas_components import PandasTransformComponent, PandasDataset, PandasDatasetDraft
 
 class MyFirstTransform(PandasTransformComponent):
     @classmethod
@@ -53,7 +53,7 @@ class MyFirstTransform(PandasTransformComponent):
 
 Available components include:
 
-- Non-distributed Pandas components: `express.components.pandas_components.{PandasTransformComponent, PandasLoaderComponent}`
+- Non-distributed Pandas components: `fondant.components.pandas_components.{PandasTransformComponent, PandasLoaderComponent}`
 
 Planned components include:
 
@@ -77,7 +77,7 @@ To do: add ready-made pipelines.
 
 ## Examples
 
-Example use cases of Express include:
+Example use cases of Fondant include:
 
 - collect additional image-text pairs based on a few seed images and fine-tune Stable Diffusion
 - filter an image-text dataset to only include "count" examples and fine-tune CLIP to improve its counting capabilities

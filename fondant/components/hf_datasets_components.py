@@ -6,15 +6,15 @@ import tempfile
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Union
 
-from express.storage_interface import StorageHandlerModule
-from express.manifest import DataManifest, DataSource, DataType
-from express.import_utils import is_datasets_available
+from fondant.storage_interface import StorageHandlerModule
+from fondant.manifest import DataManifest, DataSource, DataType
+from fondant.import_utils import is_datasets_available
 from .common import (
-    ExpressDatasetHandler,
-    ExpressDataset,
-    ExpressTransformComponent,
-    ExpressDatasetDraft,
-    ExpressLoaderComponent,
+    FondantDatasetHandler,
+    FondantDataset,
+    FondantTransformComponent,
+    FondantDatasetDraft,
+    FondantLoaderComponent,
 )
 
 if is_datasets_available():
@@ -23,7 +23,7 @@ if is_datasets_available():
 
 # Define interface of pandas draft
 # pylint: disable=unsubscriptable-object
-HFDatasetsDatasetDraft = ExpressDatasetDraft[List[str], datasets.Dataset]
+HFDatasetsDatasetDraft = FondantDatasetDraft[List[str], datasets.Dataset]
 
 # pylint: disable=no-member
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
@@ -33,7 +33,7 @@ STORAGE_HANDLER = importlib.import_module(STORAGE_MODULE_PATH).StorageHandler()
 
 
 # pylint: disable=too-few-public-methods
-class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
+class HFDatasetsDataset(FondantDataset[List[str], datasets.Dataset]):
     """Hugging Face Datasets dataset"""
 
     def load_index(self) -> datasets.Dataset:
@@ -87,7 +87,7 @@ class HFDatasetsDataset(ExpressDataset[List[str], datasets.Dataset]):
             return dataset
 
 
-class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset]):
+class HFDatasetsDatasetHandler(FondantDatasetHandler[List[str], datasets.Dataset]):
     """Hugging Face Datasets Dataset handler"""
 
     @staticmethod
@@ -138,7 +138,7 @@ class HFDatasetsDatasetHandler(ExpressDatasetHandler[List[str], datasets.Dataset
 
 class HFDatasetsTransformComponent(
     HFDatasetsDatasetHandler,
-    ExpressTransformComponent[List[str], datasets.Dataset],
+    FondantTransformComponent[List[str], datasets.Dataset],
     ABC,
 ):
     """
@@ -157,7 +157,7 @@ class HFDatasetsTransformComponent(
 
 
 class HFDatasetsLoaderComponent(
-    HFDatasetsDatasetHandler, ExpressLoaderComponent[List[str], datasets.Dataset], ABC
+    HFDatasetsDatasetHandler, FondantLoaderComponent[List[str], datasets.Dataset], ABC
 ):
     """Hugging Face Datasets dataset loader. Subclass this class to define custom
     transformation function"""
