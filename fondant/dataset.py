@@ -129,7 +129,7 @@ class FondantComponent:
     def __init__(self, type="transform"):
         # note: Fondant spec always needs to be called like this
         # and placed in the src directory
-        self.spec = ComponentSpec("fondant_component.yaml")
+        self.spec = ComponentSpec.from_file("fondant_component.yaml")
         self.type = type
 
     def run(self) -> dd.DataFrame:
@@ -179,8 +179,11 @@ class FondantComponent:
         Add and parse component arguments based on the component specification.
         """
         parser = argparse.ArgumentParser()
+
+        kubeflow_component = self.spec.kubeflow_specification
+
         # add input args
-        for arg in self.spec.input_arguments.values():
+        for arg in kubeflow_component.input_arguments.values():
             parser.add_argument(
                 f"--{arg.name}",
                 type=kubeflow2python_type[arg.type],
@@ -190,7 +193,7 @@ class FondantComponent:
                 help=arg.description,
             )
         # add output args
-        for arg in self.spec.output_arguments.values():
+        for arg in kubeflow_component.output_arguments.values():
             parser.add_argument(
                 f"--{arg.name}",
                 required=True,

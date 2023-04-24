@@ -6,7 +6,7 @@ import pkgutil
 import types
 import typing as t
 from pathlib import Path
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 import jsonschema.exceptions
 from jsonschema import Draft4Validator
@@ -38,7 +38,7 @@ kubeflow2python_type = {
 
 
 @dataclass
-class KubeflowInput:
+class Argument:
     """
     Kubeflow component input argument
     Args:
@@ -52,103 +52,9 @@ class KubeflowInput:
     type: str
 
 
-@dataclass
-class KubeflowOutput:
-    """
-    Kubeflow component output argument
-    Args:
-        name: name of the argument
-        description: argument description
-    """
-
-    name: str
-    description: str
-
-
-@dataclass
-class KubeflowComponent:
-    """
-    A class representing a Kubeflow Pipelines component.
-    Args:
-        name: The name of the component.
-        description: The description of the component.
-        image: The Docker image url for the component.
-        inputs: The input parameters for the component.
-        outputs: The output parameters for the component.
-        command: The command to run the component.
-    """
-
-    name: str
-    description: str
-    image: str
-    inputs: t.Union[KubeflowInput, t.List[KubeflowInput]]
-    outputs: t.Union[KubeflowOutput, t.List[KubeflowOutput]]
-    command: t.List[t.Union[str, t.Dict[str, str]]] = None
-
-    def __post_init__(self):
-        self._set_component_run_command()
-
-    def _set_component_run_command(self):
-        """
-        Function that returns the run command of the Kubeflow component
-        Returns:
-            The Kubeflow component run command
-        """
-
-        def _add_run_arguments(args: t.List[t.Union[KubeflowInput, KubeflowOutput]]):
-            for arg in args:
-                arg_name = arg.name.replace("-", "_").strip()
-                arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
-
-                if arg_name == "input_manifest_path":
-                    arg_value_type = "inputPath"
-                elif arg_name == "output_manifest_path":
-                    arg_value_type = "outputPath"
-                else:
-                    arg_value_type = "inputValue"
-
-                self.command.append(arg_name_cmd)
-                self.command.append({arg_value_type: arg_name})
-
-        self.command = ["python3", "main.py"]
-        _add_run_arguments(self.inputs)
-        _add_run_arguments(self.outputs)
-
-    @property
-    def specification(self) -> dict:
-        """
-        Function that returns the specification of the kubeflow component
-        Returns:
-            The Kubeflow specification as a dictionary
-        """
-        if not all(
-            [
-                self.name,
-                self.description,
-                self.inputs,
-                self.outputs,
-                self.image,
-                self.command,
-            ]
-        ):
-            raise ValueError("Missing required attributes to construct specification")
-
-        specification = {
-            "name": self.name,
-            "description": self.description,
-            "inputs": [asdict(input_obj) for input_obj in self.inputs],
-            "outputs": [asdict(output_obj) for output_obj in self.outputs],
-            "implementation": {
-                "container": {"image": self.image, "command": self.command}
-            },
-        }
-
-        return specification
-
-
 class ComponentSubset:
     """
-    Class representing an Fondant Component subset.
+    Class representing a Fondant Component subset.
     """
 
     def __init__(self, specification: dict) -> None:
@@ -174,13 +80,14 @@ class ComponentSubset:
 
 class ComponentSpec:
     """
-    Class representing an Fondant component specification.
+    Class representing a Fondant component specification.
+
     Args:
-        yaml_spec_path: The yaml file containing the component specification
+        specification: The component specification as a Python dict
     """
 
-    def __init__(self, yaml_spec_path: str):
-        self.yaml_spec = yaml.safe_load(open(yaml_spec_path, "r"))
+    def __init__(self, specification: t.Optional[dict] = None) -> None:
+        self._specification = copy.deepcopy(specification)
         self._validate_spec()
 
     def _validate_spec(self) -> None:
@@ -196,91 +103,33 @@ class ComponentSpec:
         validator = Draft4Validator(spec_schema, resolver=resolver)
 
         try:
-            validator.validate(self.yaml_spec)
+            validator.validate(self._specification)
         except jsonschema.exceptions.ValidationError as e:
             raise InvalidComponentSpec.create_from(e)
 
-    def write_kubeflow_component(self, path: str):
-        """
-        Function that writes the component yaml file required to compile a Kubeflow pipeline
-        """
-        with open(path, "w") as file:
-            yaml.dump(
-                self.kubeflow_component_specification,
-                file,
-                indent=4,
-                default_flow_style=False,
-                sort_keys=False,
-            )
+    @classmethod
+    def from_file(cls, path: str) -> "ComponentSpec":
+        """Load the manifest from the file specified by the provided path"""
+        with open(path, encoding="utf-8") as file_:
+            specification = yaml.safe_load(file_)
+            return cls(specification)
+
+    def to_file(self, path) -> None:
+        """Dump the manifest to the file specified by the provided path"""
+        with open(path, "w", encoding="utf-8") as file_:
+            yaml.dump(self._specification, file_)
 
     @property
-    def kubeflow_component_specification(self) -> t.Dict[str, any]:
-        """
-        The Kubeflow component specification
-        """
-        inputs = self.default_input_arguments
-        outputs = self.default_output_arguments
-
-        for arg_name, arg_info in self.yaml_spec["args"].items():
-            inputs.append(
-                KubeflowInput(
-                    name=arg_name.strip(),
-                    description=arg_info["description"].strip(),
-                    type=python2kubeflow_type[arg_info["type"].strip()],
-                )
-            )
-
-        kubeflow_component = KubeflowComponent(
-            name=self.yaml_spec["name"],
-            description=self.yaml_spec["description"],
-            image=self.yaml_spec["image"],
-            inputs=inputs,
-            outputs=outputs,
-        )
-
-        return kubeflow_component.specification
+    def name(self):
+        return self._specification["name"]
 
     @property
-    def fondant_component_specification(self) -> t.Dict[str, any]:
-        """
-        The fondant component specification which contains both the Kubeflow component
-        specifications in addition to the input and output subsets
-        """
-        fondant_component_specification = copy.deepcopy(
-            self.kubeflow_component_specification
-        )
-        fondant_component_specification["input_subsets"] = self.yaml_spec[
-            "input_subsets"
-        ]
-        fondant_component_specification["output_subsets"] = self.yaml_spec[
-            "output_subsets"
-        ]
-
-        return fondant_component_specification
+    def description(self):
+        return self._specification["description"]
 
     @property
-    def default_input_arguments(self) -> t.List[KubeflowInput]:
-        """The default component input arguments"""
-        inputs = [
-            KubeflowInput(
-                name="input_manifest_path",
-                description="Path to the the input manifest",
-                type="String",
-            )
-        ]
-        return inputs
-
-    @property
-    def default_output_arguments(self) -> t.List[KubeflowOutput]:
-        """The default component output arguments"""
-
-        outputs = [
-            KubeflowOutput(
-                name="output_manifest_path",
-                description="The path to the output manifest",
-            )
-        ]
-        return outputs
+    def image(self):
+        return self._specification["image"]
 
     @property
     def input_subsets(self) -> t.Mapping[str, ComponentSubset]:
@@ -288,9 +137,7 @@ class ComponentSpec:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self.fondant_component_specification[
-                    "input_subsets"
-                ].items()
+                for name, subset in self._specification["input_subsets"].items()
             }
         )
 
@@ -300,58 +147,146 @@ class ComponentSpec:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self.fondant_component_specification[
-                    "output_subsets"
-                ].items()
+                for name, subset in self._specification["output_subsets"].items()
             }
         )
 
     @property
-    def input_arguments(self):
+    def accepts_additional_subsets(self) -> bool:
+        return self._specification["input_subsets"].get("additionalSubsets", True)
+
+    @property
+    def produces_additional_subsets(self) -> bool:
+        return self._specification["output_subsets"].get("additionalSubsets", True)
+
+    @property
+    def args(self) -> t.List[Argument]:
+        return [
+            Argument(
+                name=arg_name,
+                description=arg_info["description"],
+                type=arg_info["type"],
+            )
+            for arg_name, arg_info in self._specification["args"].items()
+        ]
+
+    @property
+    def kubeflow_specification(self) -> "KubeflowComponent":
+        return KubeflowComponent.from_fondant_component(self)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._specification!r}"
+
+
+class KubeflowComponent:
+    """
+    Class representing a Kubeflow component specification.
+
+    Args:
+        specification: The component specification as a Python dict
+    """
+
+    def __init__(self, specification: t.Optional[dict]) -> None:
+        self._specification = specification
+
+    @classmethod
+    def from_fondant_component(
+        cls, fondant_component: ComponentSpec
+    ) -> "KubeflowComponent":
+        """Create a Kubeflow component spec from a Fondant component spec."""
+        specification = {
+            "name": fondant_component.name,
+            "description": fondant_component.description,
+            "inputs": [
+                {
+                    "name": "input_manifest_path",
+                    "description": "Path to the input manifest",
+                    "type": "String",
+                },
+                *(
+                    {
+                        "name": arg.name,
+                        "description": arg.description,
+                        "type": python2kubeflow_type[arg.type],
+                    }
+                    for arg in fondant_component.args
+                ),
+            ],
+            "outputs": [
+                {
+                    "name": "output_manifest_path",
+                    "description": "Path to the output manifest",
+                    "type": "String",
+                },
+            ],
+            "implementation": {
+                "container": {
+                    "image": fondant_component.image,
+                    "command": [
+                        "python3",
+                        "main.py",
+                        "--input-manifest-path",
+                        {"inputPath": "input_manifest_path"},
+                        *cls._dump_args(fondant_component.args),
+                        "--output-manifest-path",
+                        {"outputPath": "output_manifest_path"},
+                    ],
+                }
+            },
+        }
+        return cls(specification)
+
+    @staticmethod
+    def _dump_args(args: t.List[Argument]) -> t.List[t.Union[str, t.Dict[str, str]]]:
+        """Dump Fondant specification arguments to KfP command arguments."""
+        dumped_args = []
+        for arg in args:
+            arg_name = arg.name.replace("-", "_").strip()
+            arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
+
+            dumped_args.append(arg_name_cmd)
+            dumped_args.append({"inputValue": arg_name})
+
+        return dumped_args
+
+    def to_file(self, path: t.Union[str, Path]) -> None:
+        """Dump the component specification to the file specified by the provided path"""
+        with open(path, "w", encoding="utf-8") as file_:
+            yaml.dump(
+                self._specification,
+                file_,
+                indent=4,
+                default_flow_style=False,
+                sort_keys=False,
+            )
+
+    @property
+    def input_arguments(self) -> t.Mapping[str, Argument]:
         """The input arguments of the component as an immutable mapping"""
         return types.MappingProxyType(
             {
-                info["name"]: KubeflowInput(
+                info["name"]: Argument(
                     name=info["name"],
                     description=info["description"],
                     type=info["type"],
                 )
-                for info in self.fondant_component_specification["inputs"]
+                for info in self._specification["inputs"]
             }
         )
 
     @property
-    def output_arguments(self):
+    def output_arguments(self) -> t.Mapping[str, Argument]:
         """The output arguments of the component as an immutable mapping"""
         return types.MappingProxyType(
             {
-                info["name"]: KubeflowOutput(
+                info["name"]: Argument(
                     name=info["name"],
                     description=info["description"],
+                    type=info["type"],
                 )
-                for info in self.fondant_component_specification["outputs"]
+                for info in self._specification["outputs"]
             }
         )
 
-    @property
-    def name(self):
-        return self.fondant_component_specification["name"]
-
-    @property
-    def description(self):
-        return self.fondant_component_specification["description"]
-
-    @property
-    def image(self):
-        return self.fondant_component_specification["implementation"]["container"][
-            "image"
-        ]
-
-    @property
-    def run_command(self):
-        return self.fondant_component_specification["implementation"]["container"][
-            "command"
-        ]
-
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.fondant_component_specification!r}"
+        return f"{self.__class__.__name__}({self._specification!r}"

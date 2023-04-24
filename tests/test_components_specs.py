@@ -1,27 +1,31 @@
 """Fondant component specs test"""
-import os
 import pytest
 import yaml
+from pathlib import Path
+
 from fondant.exceptions import InvalidComponentSpec
 from fondant.component_spec import ComponentSpec
 
-valid_path = os.path.join("tests/component_example", "valid_component")
-invalid_path = os.path.join("tests/component_example", "invalid_component")
+valid_path = Path("tests/component_example/valid_component")
+invalid_path = Path("tests/component_example/invalid_component")
 
 
 @pytest.fixture
-def valid_fondant_schema() -> str:
-    return os.path.join(valid_path, "fondant_component.yaml")
+def valid_fondant_schema() -> dict:
+    with open(valid_path / "fondant_component.yaml") as f:
+        return yaml.safe_load(f)
 
 
 @pytest.fixture
-def valid_kubeflow_schema() -> str:
-    return os.path.join(valid_path, "kubeflow_component.yaml")
+def valid_kubeflow_schema() -> dict:
+    with open(valid_path / "kubeflow_component.yaml") as f:
+        return yaml.safe_load(f)
 
 
 @pytest.fixture
-def invalid_fondant_schema() -> str:
-    return os.path.join(invalid_path, "fondant_component.yaml")
+def invalid_fondant_schema() -> dict:
+    with open(invalid_path / "fondant_component.yaml") as f:
+        return yaml.safe_load(f)
 
 
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
@@ -49,5 +53,5 @@ def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     Test that the created kubeflow component matches the expected kubeflow component
     """
     fondant_component = ComponentSpec(valid_fondant_schema)
-    kubeflow_schema = yaml.safe_load(open(valid_kubeflow_schema, 'r'))
-    assert fondant_component.kubeflow_component_specification == kubeflow_schema
+    kubeflow_component = fondant_component.kubeflow_specification
+    assert kubeflow_component._specification == valid_kubeflow_schema
