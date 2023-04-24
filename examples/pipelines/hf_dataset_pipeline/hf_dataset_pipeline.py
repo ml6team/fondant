@@ -1,5 +1,5 @@
 """
-This module defines a pipeline with 2 Express components, a loading and a transform component.
+This module defines a pipeline with 2 Fondant components, a loading and a transform component.
 """
 
 import json
@@ -9,7 +9,7 @@ from kfp import dsl
 
 from config.general_config import GeneralConfig, KubeflowConfig
 
-from express.kfp_utils import compile_and_upload_pipeline
+from fondant.kfp_utils import compile_and_upload_pipeline
 
 # Load Components
 run_id = '{{workflow.name}}'

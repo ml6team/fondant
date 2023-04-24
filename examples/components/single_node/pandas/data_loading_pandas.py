@@ -1,8 +1,8 @@
 from typing import Optional, Dict, Union
 import pandas as pd
 
-from express.components.pandas_components import PandasLoaderComponent, PandasDatasetDraft
-from express.logger import configure_logging
+from fondant.components.pandas_components import PandasLoaderComponent, PandasDatasetDraft
+from fondant.logger import configure_logging
 
 
 # pylint: disable=too-few-public-methods
@@ -13,7 +13,7 @@ class SeedDatasetLoader(PandasLoaderComponent):
     def load(cls, extra_args: Optional[
         Dict[str, Union[str, int, float, bool]]] = None) -> PandasDatasetDraft:
         """
-        An example function showcasing the data loader component using Express functionalities
+        An example function showcasing the data loader component using Fondant functionalities
         Args:
             extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
              the function (e.g. seed data source)

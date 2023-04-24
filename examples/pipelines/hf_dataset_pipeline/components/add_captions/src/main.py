@@ -6,8 +6,8 @@ Technically, it adds a data source to the manifest.
 import logging
 from typing import Optional, Union, Dict
 
-from express.components.hf_datasets_components import HFDatasetsTransformComponent, HFDatasetsDataset, HFDatasetsDatasetDraft
-from express.logger import configure_logging
+from fondant.components.hf_datasets_components import HFDatasetsTransformComponent, HFDatasetsDataset, HFDatasetsDatasetDraft
+from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -45,10 +45,10 @@ class AddCaptions(HFDatasetsTransformComponent):
     def transform(cls, data: HFDatasetsDataset, extra_args: Optional[
         Dict[str, Union[str, int, float, bool]]] = None) -> HFDatasetsDatasetDraft:
         """
-        An example function showcasing the data transform component using Express functionalities
+        An example function showcasing the data transform component using Fondant functionalities
         
         Args:
-            data (HFDatasetsDataset[TIndex, TData]): express dataset providing access to data of a
+            data (HFDatasetsDataset[TIndex, TData]): fondant dataset providing access to data of a
              given type
             extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
              the function (e.g. seed data source)

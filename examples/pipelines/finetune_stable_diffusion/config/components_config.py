@@ -54,9 +54,9 @@ class ClipRetrievalConfig:
         NB_IMAGES_CENTROID (int): The ratio of number of image to retrieve via the centroid strategy
     """
 
-    LAION_INDEX_URL = "gs://express-sd-datasets/laion-5b/2b-en/image.index/*"
+    LAION_INDEX_URL = "gs://fondant-sd-datasets/laion-5b/2b-en/image.index/*"
     LAION_METADATA_URL = (
-        "gs://express-sd-datasets/laion-5b/metadata/metadata/2B-en.arrow"
+        "gs://fondant-sd-datasets/laion-5b/metadata/metadata/2B-en.arrow"
     )
     NUM_IMAGES_KNN = 500
     NUM_IMAGES_CENTROID = 1_000_000

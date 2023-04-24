@@ -11,8 +11,8 @@ import dask.array as da
 import numpy as np
 from PIL import Image
 
-from express.dataset import FondantComponent
-from express.logger import configure_logging
+from fondant.dataset import FondantComponent
+from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)

@@ -10,8 +10,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, Optional, TypeVar, Generic, Union
 
-from express.manifest import DataManifest, DataSource, Metadata
-from express.storage_interface import StorageHandlerModule
+from fondant.manifest import DataManifest, DataSource, Metadata
+from fondant.storage_interface import StorageHandlerModule
 
 STORAGE_MODULE_PATH = StorageHandlerModule().to_dict()[
     os.environ.get("CLOUD_ENV", "GCP")
@@ -22,9 +22,9 @@ IndexT = TypeVar("IndexT")
 DataT = TypeVar("DataT")
 
 
-class ExpressDataset(ABC, Generic[IndexT, DataT]):
+class FondantDataset(ABC, Generic[IndexT, DataT]):
     """
-    An abstract wrapper class that gives read access to Express Datasets.
+    An abstract wrapper class that gives read access to Fondant Datasets.
     It can be extended to create a draft for a new (output) dataset.
 
     Args:
@@ -36,11 +36,11 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
         self.manifest = manifest
         self._index_data = self.load_index()
 
-    def extend(self) -> "ExpressDatasetDraft[IndexT, DataT]":
+    def extend(self) -> "FondantDatasetDraft[IndexT, DataT]":
         """
-        Create an `ExpressDatasetDraft` that extends this dataset.
+        Create an `FondantDatasetDraft` that extends this dataset.
         """
-        return ExpressDatasetDraft.extend(self)
+        return FondantDatasetDraft.extend(self)
 
     @abstractmethod
     def load_index(self) -> IndexT:
@@ -98,9 +98,9 @@ class ExpressDataset(ABC, Generic[IndexT, DataT]):
     # TODO should we keep track of both input and output in the manifests?
 
 
-class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
+class FondantDatasetDraft(ABC, Generic[IndexT, DataT]):
     """
-    Draft of an `ExpressDataset`, tracking both preexisting data sources and local data that still
+    Draft of an `FondantDataset`, tracking both preexisting data sources and local data that still
     needs to be uploaded.
 
     Args:
@@ -109,7 +109,7 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
         data_sources (Dict[str, Union[DataSource, TData]]): Named preexisting data sources or local
          data to be uploaded. Each data source should have data available for each item in
          the shared index.
-        extending_dataset (ExpressDataset[TIndex, TData]): Existing dataset to extend, which will
+        extending_dataset (FondantDataset[TIndex, TData]): Existing dataset to extend, which will
         take over both its index an all data sources. Needs to be present if no `index` is set.
     """
 
@@ -117,7 +117,7 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
         self,
         index: Optional[Union[DataSource, IndexT]] = None,
         data_sources: Dict[str, Union[DataSource, DataT]] = None,
-        extending_dataset: Optional[ExpressDataset[IndexT, DataT]] = None,
+        extending_dataset: Optional[FondantDataset[IndexT, DataT]] = None,
     ):
         self.index = index
         self.data_sources = data_sources or {}
@@ -140,27 +140,27 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
 
     @classmethod
     def extend(
-        cls, dataset: ExpressDataset[IndexT, DataT]
-    ) -> "ExpressDatasetDraft[IndexT, DataT]":
+        cls, dataset: FondantDataset[IndexT, DataT]
+    ) -> "FondantDatasetDraft[IndexT, DataT]":
         """
-        Creates a new Express Dataset draft extending the given dataset, which will take over both
+        Creates a new Fondant Dataset draft extending the given dataset, which will take over both
          its index and all data sources.
         """
         return cls(extending_dataset=dataset)
 
-    def with_index(self, index: DataT) -> "ExpressDatasetDraft[IndexT, DataT]":
+    def with_index(self, index: DataT) -> "FondantDatasetDraft[IndexT, DataT]":
         """
         Replaces the current index with the given index.
 
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: self, for easier chaining
+            FondantDatasetDraft[TIndex, TData]: self, for easier chaining
         """
         self.index = index
         return self
 
     def with_data_source(
         self, name: str, data: Union[DataT, DataSource], replace_ok=False
-    ) -> "ExpressDatasetDraft[IndexT, DataT]":
+    ) -> "FondantDatasetDraft[IndexT, DataT]":
         """
         Adds a new data source or replaces a preexisting data source with the same name.
 
@@ -172,7 +172,7 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
             same name, if such a Data Source exists.
 
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: self, for easier chaining
+            FondantDatasetDraft[TIndex, TData]: self, for easier chaining
         """
         if (name in self.data_sources) and (not replace_ok):
             raise ValueError(
@@ -185,9 +185,9 @@ class ExpressDatasetDraft(ABC, Generic[IndexT, DataT]):
         return self
 
 
-class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
+class FondantDatasetHandler(ABC, Generic[IndexT, DataT]):
     """
-    Abstract mixin class to read from and write to Express Datasets.
+    Abstract mixin class to read from and write to Fondant Datasets.
     Can be subclassed to deal with a specific type of parsed data representations, like reading to a
      Pandas DataFrame or a Spark RDD.
     """
@@ -215,9 +215,9 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     @abstractmethod
     def _load_dataset(
         cls, input_manifest: DataManifest
-    ) -> ExpressDataset[IndexT, DataT]:
+    ) -> FondantDataset[IndexT, DataT]:
         """
-        Parses a manifest to an ExpressDataset of a specific type, for downstream use by transform
+        Parses a manifest to an FondantDataset of a specific type, for downstream use by transform
         components.
         """
 
@@ -293,7 +293,7 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
     @classmethod
     def _create_output_dataset(
         cls,
-        draft: ExpressDatasetDraft[IndexT, DataT],
+        draft: FondantDatasetDraft[IndexT, DataT],
         metadata: Metadata,
         save_path: str,
     ) -> DataManifest:
@@ -322,9 +322,9 @@ class ExpressDatasetHandler(ABC, Generic[IndexT, DataT]):
         return manifest
 
 
-class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
+class FondantTransformComponent(FondantDatasetHandler, Generic[IndexT, DataT]):
     """
-    An abstract component that facilitates end-to-end transformation of Express Datasets.
+    An abstract component that facilitates end-to-end transformation of Fondant Datasets.
     It can be subclassed or used with a mixin to support reading and writing of a specific data
      type, and to implement specific dataset transformations.
     """
@@ -388,9 +388,9 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     @abstractmethod
     def transform(
         cls,
-        data: ExpressDataset[IndexT, DataT],
+        data: FondantDataset[IndexT, DataT],
         extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None,
-    ) -> ExpressDatasetDraft[IndexT, DataT]:
+    ) -> FondantDatasetDraft[IndexT, DataT]:
         """
         Applies transformations to the input dataset and creates a draft for a new dataset.
         The recommended pattern for a transform is to extend the input dataset with a filtered index
@@ -400,22 +400,22 @@ class ExpressTransformComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
           a completely new dataset.
 
         Args:
-            data (ExpressDataset[TIndex, TData]): express dataset providing access to data of a
+            data (FondantDataset[TIndex, TData]): fondant dataset providing access to data of a
              given type
             extra_args (Optional[Dict[str, Union[str, int, float, bool]]]): an optional dictionary
              of additional arguments passed in by the pipeline run
 
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this
+            FondantDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this
              transform completes. Can be created by calling `extend` on an existing dataset, or by
               directly calling the constructor.
         """
 
 
-class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
+class FondantLoaderComponent(FondantDatasetHandler, Generic[IndexT, DataT]):
     """
-    An abstract component that facilitates creation of a new Express Dataset.
-    This will commonly be the first component in an Express Pipeline. It can be subclassed or used
+    An abstract component that facilitates creation of a new Fondant Dataset.
+    This will commonly be the first component in an Fondant Pipeline. It can be subclassed or used
      with a mixin to support loading of a specific data type, and to implement specific dataset
       loaders.
     """
@@ -469,7 +469,7 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
     @abstractmethod
     def load(
         cls, extra_args: Optional[Dict[str, Union[str, int, float, bool]]] = None
-    ) -> ExpressDatasetDraft[IndexT, DataT]:
+    ) -> FondantDatasetDraft[IndexT, DataT]:
         """
         Loads data from an arbitrary source to create a draft for a new dataset.
 
@@ -478,6 +478,6 @@ class ExpressLoaderComponent(ExpressDatasetHandler, Generic[IndexT, DataT]):
              of additional arguments passed in by the pipeline run
 
         Returns:
-            ExpressDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this
+            FondantDatasetDraft[TIndex, TData]: draft of output dataset, to be uploaded after this
              loader completes.
         """

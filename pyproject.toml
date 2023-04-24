@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "express"
+name = "fondant"
 version = "0.1.dev0"
-description = "Express - Composable pipelines for foundation model finetuning"
+description = "Fondant - Composable pipelines for foundation model finetuning"
 readme = "README.md"
 keywords = ["data", "machine learning", "finetuning", "foundation models"]
 license = "Apache-2.0"
@@ -18,7 +18,7 @@ maintainers = [
     "Georges Lorré <georges.lorré@ml6.eu>",
     "Niels Rogge <niels.rogge@ml6.eu>",
 ]
-repository = "https://github.com/ml6-team/express"
+repository = "https://github.com/ml6-team/fondant"
 include = ["*.txt", "*.rst", "*.md"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

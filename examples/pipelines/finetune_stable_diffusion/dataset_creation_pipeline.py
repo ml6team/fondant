@@ -14,7 +14,7 @@ from config.components_config import (
     EmbeddingConfig,
     ClipRetrievalConfig,
 )
-from express.pipeline_utils import compile_and_upload_pipeline
+from fondant.pipeline_utils import compile_and_upload_pipeline
 
 # Load Components
 run_id = "{{workflow.name}}"

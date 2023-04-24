@@ -3,7 +3,7 @@ Test scripts for import module functionality
 """
 import pytest
 
-from express.import_utils import is_package_available
+from fondant.import_utils import is_package_available
 
 
 @pytest.mark.parametrize("package_name, import_error_msg, expected_result", [

@@ -1,4 +1,4 @@
-"""This module defines classes to represent an Express component specification."""
+"""This module defines classes to represent an Fondant component specification."""
 import copy
 import json
 import yaml
@@ -12,8 +12,8 @@ import jsonschema.exceptions
 from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
-from express.exceptions import InvalidComponentSpec
-from express.schema import Field
+from fondant.exceptions import InvalidComponentSpec
+from fondant.schema import Field
 
 # TODO: Change after upgrading to kfp v2
 # :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
@@ -148,7 +148,7 @@ class KubeflowComponent:
 
 class ComponentSubset:
     """
-    Class representing an Express Component subset.
+    Class representing an Fondant Component subset.
     """
 
     def __init__(self, specification: dict) -> None:
@@ -174,7 +174,7 @@ class ComponentSubset:
 
 class ComponentSpec:
     """
-    Class representing an Express component specification.
+    Class representing an Fondant component specification.
     Args:
         yaml_spec_path: The yaml file containing the component specification
     """
@@ -188,7 +188,7 @@ class ComponentSpec:
         Raises: InvalidManifest when the manifest is not valid.
         """
         spec_schema = json.loads(
-            pkgutil.get_data("express", "schemas/component_spec.json")
+            pkgutil.get_data("fondant", "schemas/component_spec.json")
         )
 
         base_uri = (Path(__file__).parent / "schemas").as_uri()
@@ -241,22 +241,22 @@ class ComponentSpec:
         return kubeflow_component.specification
 
     @property
-    def express_component_specification(self) -> t.Dict[str, any]:
+    def fondant_component_specification(self) -> t.Dict[str, any]:
         """
-        The express component specification which contains both the Kubeflow component
+        The fondant component specification which contains both the Kubeflow component
         specifications in addition to the input and output subsets
         """
-        express_component_specification = copy.deepcopy(
+        fondant_component_specification = copy.deepcopy(
             self.kubeflow_component_specification
         )
-        express_component_specification["input_subsets"] = self.yaml_spec[
+        fondant_component_specification["input_subsets"] = self.yaml_spec[
             "input_subsets"
         ]
-        express_component_specification["output_subsets"] = self.yaml_spec[
+        fondant_component_specification["output_subsets"] = self.yaml_spec[
             "output_subsets"
         ]
 
-        return express_component_specification
+        return fondant_component_specification
 
     @property
     def default_input_arguments(self) -> t.List[KubeflowInput]:
@@ -288,7 +288,7 @@ class ComponentSpec:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self.express_component_specification[
+                for name, subset in self.fondant_component_specification[
                     "input_subsets"
                 ].items()
             }
@@ -300,7 +300,7 @@ class ComponentSpec:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self.express_component_specification[
+                for name, subset in self.fondant_component_specification[
                     "output_subsets"
                 ].items()
             }
@@ -316,7 +316,7 @@ class ComponentSpec:
                     description=info["description"],
                     type=info["type"],
                 )
-                for info in self.express_component_specification["inputs"]
+                for info in self.fondant_component_specification["inputs"]
             }
         )
 
@@ -329,29 +329,29 @@ class ComponentSpec:
                     name=info["name"],
                     description=info["description"],
                 )
-                for info in self.express_component_specification["outputs"]
+                for info in self.fondant_component_specification["outputs"]
             }
         )
 
     @property
     def name(self):
-        return self.express_component_specification["name"]
+        return self.fondant_component_specification["name"]
 
     @property
     def description(self):
-        return self.express_component_specification["description"]
+        return self.fondant_component_specification["description"]
 
     @property
     def image(self):
-        return self.express_component_specification["implementation"]["container"][
+        return self.fondant_component_specification["implementation"]["container"][
             "image"
         ]
 
     @property
     def run_command(self):
-        return self.express_component_specification["implementation"]["container"][
+        return self.fondant_component_specification["implementation"]["container"][
             "command"
         ]
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.express_component_specification!r}"
+        return f"{self.__class__.__name__}({self.fondant_component_specification!r}"

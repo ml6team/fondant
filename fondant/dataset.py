@@ -11,9 +11,9 @@ from typing import List, Mapping
 
 import dask.dataframe as dd
 
-from express.component_spec import ComponentSpec, kubeflow2python_type
-from express.manifest import Manifest
-from express.schema import Type, Field
+from fondant.component_spec import ComponentSpec, kubeflow2python_type
+from fondant.manifest import Manifest
+from fondant.schema import Type, Field
 
 
 class FondantDataset:

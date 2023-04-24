@@ -1,4 +1,4 @@
-"""This module defines common schemas and datatypes used to define Express manifests, components
+"""This module defines common schemas and datatypes used to define Fondant manifests, components
 and pipelines."""
 
 import enum
@@ -50,7 +50,7 @@ class Type(enum.Enum):
 
 
 class Field(t.NamedTuple):
-    """Class representing a single field or column in an Express subset."""
+    """Class representing a single field or column in an Fondant subset."""
 
     name: str
     type: Type

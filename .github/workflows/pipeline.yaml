@@ -34,7 +34,7 @@ jobs:
         # to ruff
         run: |
           pip install pylint==2.16.4
-          pylint express --exit-zero
+          pylint fondant --exit-zero
       - name: Test with pytest
         run: |
           poetry run pytest tests

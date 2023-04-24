@@ -10,8 +10,8 @@ sys.path.insert(0, os.path.abspath('..'))
 
 from config import GeneralConfig, KubeflowConfig
 from pipelines_config.sd_finetuning_config import StableDiffusionFinetuningConfig as SDConfig
-from express.pipeline_utils import compile_and_upload_pipeline
-from express.logger import configure_logging
+from fondant.pipeline_utils import compile_and_upload_pipeline
+from fondant.logger import configure_logging
 
 from kfp import components as comp
 from kfp import dsl

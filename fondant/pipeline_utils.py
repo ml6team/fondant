@@ -4,7 +4,7 @@ import os
 import logging
 from typing import Callable
 
-from express.import_utils import is_kfp_available
+from fondant.import_utils import is_kfp_available
 
 if is_kfp_available():
     import kfp
