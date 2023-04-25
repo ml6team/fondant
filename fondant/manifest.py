@@ -168,7 +168,7 @@ class Manifest:
         self, name: str, fields: t.Iterable[t.Union[Field, t.Tuple[str, Type]]]
     ) -> None:
         if name in self._specification["subsets"]:
-            raise ValueError("A subset with name {name} already exists")
+            raise ValueError(f"A subset with name {name} already exists")
 
         self._specification["subsets"][name] = {
             "location": f"/{self.run_id}/{self.component_id}/{name}",
@@ -216,7 +216,7 @@ class Manifest:
         for subset_name, subset in component_spec.output_subsets.items():
             # Subset is already in manifest, update it
             if subset_name in evolved_manifest.subsets:
-                # If additional fields are not allowed, remove the fields not define in the
+                # If additional fields are not allowed, remove the fields not defined in the
                 # component spec output subsets
                 if not subset.additional_fields:
                     for field_name in evolved_manifest.subsets[subset_name].fields:
