@@ -13,7 +13,7 @@ from config.components_config import (
 from fondant.pipeline_utils import compile_and_upload_pipeline
 
 # Load Components
-artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET + "/custom_artifact"
+base_path = KubeflowConfig.BASE_PATH
 run_id = "{{workflow.name}}"
 
 # Component 1
@@ -22,12 +22,12 @@ load_from_hub_op = comp.load_component("components/load_from_hub/kubeflow_compon
 image_filtering_op = comp.load_component("components/image_filtering/kubeflow_component.yaml")
 
 load_from_hub_metadata = {
-    "base_path": artifact_bucket,
+    "base_path": base_path,
     "run_id": run_id,
     "component_id": load_from_hub_op.__name__,
 }
 image_filtering_metadata = {
-    "base_path": artifact_bucket,
+    "base_path": base_path,
     "run_id": run_id,
     "component_id": image_filtering_op.__name__,
 }

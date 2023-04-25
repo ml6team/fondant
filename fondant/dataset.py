@@ -34,11 +34,11 @@ class FondantDataset:
     def _load_subset(self, name: str, fields: List[str]) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]
-        # TODO remove prefix
-        location = "gcs://" + subset.location
+        # get remote path
+        remote_path = subset.location
 
         df = dd.read_parquet(
-            location,
+            remote_path,
             columns=fields,
         )
 
@@ -58,9 +58,8 @@ class FondantDataset:
         # return df
 
     def _upload_index(self, df: dd.DataFrame):
-        # get location
-        # TODO remove prefix and suffix
-        remote_path = "gcs://" + self.manifest.index.location
+        # get remote path
+        remote_path = self.manifest.index.location
 
         # upload to the cloud
         dd.to_parquet(
@@ -79,8 +78,8 @@ class FondantDataset:
         expected_schema = {field.name: field.type for field in fields.values()}
         expected_schema.update(self.index_schema)
 
-        # TODO remove prefix
-        remote_path = "gcs://" + self.manifest.subsets[name].location
+        # get remote path
+        remote_path = self.manifest.subsets[name].location
 
         # upload to the cloud
         dd.to_parquet(df, remote_path, schema=expected_schema, overwrite=True)
