@@ -2,7 +2,14 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Example Component Schema",
   "type": "object",
-  "required": ["name", "description", "image", "input_subsets", "output_subsets", "args"],
+  "required": [
+    "name",
+    "description",
+    "image",
+    "input_subsets",
+    "output_subsets",
+    "args"
+  ],
   "properties": {
     "name": {
       "type": "string",
@@ -16,82 +23,60 @@
       "type": "string",
       "description": "Docker image for the component"
     },
-     "input_subsets": {
-      "type": "object",
-      "description": "Input subsets for the component",
-      "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "fields": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "$ref": "#/definitions/data_type"
-                },
-                "description": {
-                  "type": "string"
-                }
-              },
-              "required": ["type"]
-            }
-          }
-        },
-        "required": ["fields"],
-        "additionalProperties": false
-      }
+    "input_subsets": {
+      "$ref": "#/definitions/subsets"
     },
-     "output_subsets": {
+    "output_subsets": {
+      "$ref": "#/definitions/subsets"
+    },
+    "args": {
+      "$ref": "#/definitions/args"
+    }
+  },
+  "definitions": {
+    "subset": {
       "type": "object",
-      "description": "Output subsets for the component",
+      "properties": {
+        "fields": {
+          "$ref": "common.json#/definitions/fields"
+        }
+      },
+      "required": [
+        "fields"
+      ]
+    },
+    "subsets": {
+      "type": "object",
       "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "fields": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "$ref": "#/definitions/data_type"
-                },
-                "description": {
-                  "type": "string"
-                }
-              },
-              "required": ["type"]
-            }
-          }
-        },
-        "required": ["fields"],
-        "additionalProperties": false
+        "$ref": "#/definitions/subset"
       }
     },
     "args": {
       "type": "object",
-     "additionalProperties": {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "enum": ["list", "str", "int", "float", "bool", "dict", "tuple", "set"]
-            },
-            "description": {
-              "type": "string"
-            }
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "list",
+              "str",
+              "int",
+              "float",
+              "bool",
+              "dict",
+              "tuple",
+              "set"
+            ]
           },
-               "required": ["type"]
-        }
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ]
       }
-    },
-  "definitions": {
-    "data_type": {
-      "type": "string",
-          "$ref": "common.json#/definitions/subset_data_type",
-      "description": "Valid data types"
     }
   }
 }
