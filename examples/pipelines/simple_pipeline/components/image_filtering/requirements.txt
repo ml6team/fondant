@@ -1,1 +1,3 @@
-git+https://github.com/ml6team/fondant.git@b1855308ca9251da5ddd8e6b88c34bc1c082a71b#egg=fondant
+git+https://github.com/ml6team/fondant.git@b4f7a43eae540e6708af76dafd071c77a2254d86
+pyarrow>=7.0
+gcsfs==2023.4.0

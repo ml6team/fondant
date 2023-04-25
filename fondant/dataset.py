@@ -6,14 +6,17 @@ It also defines the FondantComponent class, which uses the FondantDataset class 
 from abc import abstractmethod
 import argparse
 import json
+import logging
 from pathlib import Path
 from typing import List, Mapping
 
 import dask.dataframe as dd
 
 from fondant.component_spec import FondantComponentSpec, kubeflow2python_type
-from fondant.manifest import Manifest
+from fondant.manifest import Manifest, Index
 from fondant.schema import Type, Field
+
+logger = logging.getLogger(__name__)
 
 
 class FondantDataset:
@@ -31,36 +34,74 @@ class FondantDataset:
             "__null_dask_index__": "int64",
         }
 
-    def _load_subset(self, name: str, fields: List[str]) -> dd.DataFrame:
+    def _load_subset(
+        self, name: str, fields: List[str], index: Index = None
+    ) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]
-        # TODO remove prefix
-        location = "gcs://" + subset.location
+        # get remote path
+        remote_path = subset.location
+
+        # add index fields
+        index_fields = list(self.manifest.index.fields.keys())
+        fields = index_fields + fields
+
+        logger.info(f"Loading subset {name} with fields {fields}...")
 
         df = dd.read_parquet(
-            location,
+            remote_path,
             columns=fields,
+        )
+
+        # filter on default index of manifest if no index is provided
+        if index is None:
+            index_df = self._load_index()
+            ids = index_df["id"].compute()
+            sources = index_df["source"].compute()
+            df = df[df["id"].isin(ids) & df["source"].isin(sources)]
+
+        # add subset prefix to columns
+        df = df.rename(
+            columns={
+                col: name + "_" + col for col in df.columns if col not in index_fields
+            }
         )
 
         return df
 
+    def _load_index(self):
+        # get index subset from the manifest
+        index = self.manifest.index
+        # get remote path
+        remote_path = index.location
+
+        df = dd.read_parquet(remote_path)
+
+        if list(df.columns) != ["id", "source"]:
+            raise ValueError(
+                f"Index columns should be 'id' and 'source', found {df.columns}"
+            )
+
+        return df
+
     def load_data(self, spec: FondantComponentSpec) -> dd.DataFrame:
-        subsets = []
+        subset_dfs = []
         for name, subset in spec.input_subsets.items():
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
-            subsets.append(subset_df)
+            subset_dfs.append(subset_df)
 
-        # TODO this method should return a single dataframe with column_names called subset_field
-        # TODO add index
-        # df = concatenate_datasets(subsets)
+        # return a single dataframe with column_names called subset_field
+        # TODO perhaps leverage dd.merge here instead
+        df = dd.concat(subset_dfs)
 
-        # return df
+        logging.info("Columns of dataframe:", list(df.columns))
+
+        return df
 
     def _upload_index(self, df: dd.DataFrame):
-        # get location
-        # TODO remove prefix and suffix
-        remote_path = "gcs://" + self.manifest.index.location
+        # get remote path
+        remote_path = self.manifest.index.location
 
         # upload to the cloud
         dd.to_parquet(
@@ -79,8 +120,8 @@ class FondantDataset:
         expected_schema = {field.name: field.type for field in fields.values()}
         expected_schema.update(self.index_schema)
 
-        # TODO remove prefix
-        remote_path = "gcs://" + self.manifest.subsets[name].location
+        # get remote path
+        remote_path = self.manifest.subsets[name].location
 
         # upload to the cloud
         dd.to_parquet(df, remote_path, schema=expected_schema, overwrite=True)
@@ -161,13 +202,14 @@ class FondantComponent:
             dataset.add_index(df)
             dataset.add_subsets(df, self.spec)
         else:
-            # create HF dataset, based on component spec
-            input_dataset = dataset.load_data(self.spec)
-            # provide this dataset to the user
+            # create dataframe, based on component spec
+            df = dataset.load_data(self.spec)
+            # provide this dataframe to the user
             df = self.transform(
-                dataset=input_dataset,
+                df=df,
                 args=args,
             )
+            # TODO update index, potentially add new subsets
 
         # step 4: create output manifest
         output_manifest = dataset.upload(save_path=args.output_manifest_path)
@@ -212,8 +254,8 @@ class FondantComponent:
 
     @abstractmethod
     def load(self, args) -> dd.DataFrame:
-        """Load initial dataset"""
+        """Load initial dataframe"""
 
     @abstractmethod
-    def transform(self, dataset, args) -> dd.DataFrame:
-        """Transform existing dataset"""
+    def transform(self, df, args) -> dd.DataFrame:
+        """Transform existing dataframe"""

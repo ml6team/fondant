@@ -13,7 +13,7 @@ from config.components_config import (
 from fondant.pipeline_utils import compile_and_upload_pipeline
 
 # Load Components
-artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET + "/custom_artifact"
+base_path = KubeflowConfig.BASE_PATH
 run_id = "{{workflow.name}}"
 
 # Component 1
@@ -22,12 +22,12 @@ load_from_hub_op = comp.load_component("components/load_from_hub/kubeflow_compon
 image_filtering_op = comp.load_component("components/image_filtering/kubeflow_component.yaml")
 
 load_from_hub_metadata = {
-    "base_path": artifact_bucket,
+    "base_path": base_path,
     "run_id": run_id,
     "component_id": load_from_hub_op.__name__,
 }
 image_filtering_metadata = {
-    "base_path": artifact_bucket,
+    "base_path": base_path,
     "run_id": run_id,
     "component_id": image_filtering_op.__name__,
 }
@@ -37,12 +37,11 @@ image_filtering_metadata = json.dumps(image_filtering_metadata)
 
 # Pipeline
 @dsl.pipeline(
-    name="image-generator-dataset",
-    description="Pipeline that takes example images as input and returns an expanded dataset of "
-    "similar images as outputs",
+    name="simple-pipeline-v2",
+    description="Simple pipeline that takes example images as input and embeds them using CLIP",
 )
 # pylint: disable=too-many-arguments, too-many-locals
-def sd_dataset_creator_pipeline(
+def simple_pipeline_v2(
     load_from_hub_dataset_name: str = LoadFromHubConfig.DATASET_NAME,
     load_from_hub_batch_size: int = LoadFromHubConfig.BATCH_SIZE,
     load_from_hub_metadata: str = load_from_hub_metadata,
@@ -69,7 +68,7 @@ def sd_dataset_creator_pipeline(
 
 if __name__ == "__main__":
     compile_and_upload_pipeline(
-        pipeline=sd_dataset_creator_pipeline,
+        pipeline=simple_pipeline_v2,
         host=KubeflowConfig.HOST,
         env=KubeflowConfig.ENV,
     )
