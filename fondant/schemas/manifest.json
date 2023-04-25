@@ -8,10 +8,18 @@
         "base_path": {
           "type": "string",
           "format": "uri"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "component_id": {
+          "type": "string"
         }
       },
       "required": [
-        "base_path"
+        "base_path",
+        "run_id",
+        "component_id"
       ]
     },
     "index": {
