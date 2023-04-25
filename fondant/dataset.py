@@ -77,7 +77,7 @@ class FondantDataset:
 
         df = dd.read_parquet(remote_path)
 
-        if df.columns != ["id", "source"]:
+        if list(df.columns) != ["id", "source"]:
             raise ValueError(
                 f"Index columns should be 'id' and 'source', found {df.columns}"
             )
