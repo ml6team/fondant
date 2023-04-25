@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def compile_and_upload_pipeline(
-        pipeline: Callable[[], None], host: str, env: str, pipeline_id: Optional[str] = None
+    pipeline: Callable[[], None], host: str, env: str, pipeline_id: Optional[str] = None
 ) -> None:
     """Upload pipeline to kubeflow.
     Args:
@@ -31,7 +31,7 @@ def compile_and_upload_pipeline(
     kfp.compiler.Compiler().compile(
         pipeline_func=pipeline, package_path=pipeline_filename
     )
-
+    client.get
     if pipeline_id is not None:
         pipeline_versions = client.list_pipeline_versions(pipeline_id).versions
         if pipeline_versions is not None:
@@ -49,5 +49,6 @@ def compile_and_upload_pipeline(
         raise ApiException(
             f"Failed to upload the pipeline. Make sure that the pipeline {pipeline_name} does"
             f" not exist. If you have a pipeline under a similar name, pass in the `pipeline id`"
-            f" in order to delete the existing pipeline") from e
+            f" in order to delete the existing pipeline"
+        ) from e
     os.remove(pipeline_filename)
