@@ -47,20 +47,25 @@ class FondantDataset:
             columns=fields,
         )
 
+        # add subset prefix to columns
+        df = df.rename(columns={col: name + "_" + col for col in df.columns})
+
         return df
 
     def load_data(self, spec: FondantComponentSpec) -> dd.DataFrame:
-        subsets = []
+        subset_dfs = []
         for name, subset in spec.input_subsets.items():
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
-            subsets.append(subset_df)
+            subset_dfs.append(subset_df)
 
         # TODO this method should return a single dataframe with column_names called subset_field
         # TODO add index
-        # df = concatenate_datasets(subsets)
+        df = dd.concat(subset_dfs)
 
-        # return df
+        logging.info("Columns of dataframe:", df.columns)
+
+        return df
 
     def _upload_index(self, df: dd.DataFrame):
         # get remote path
@@ -165,11 +170,11 @@ class FondantComponent:
             dataset.add_index(df)
             dataset.add_subsets(df, self.spec)
         else:
-            # create HF dataset, based on component spec
-            input_dataset = dataset.load_data(self.spec)
-            # provide this dataset to the user
+            # create dataframe, based on component spec
+            df = dataset.load_data(self.spec)
+            # provide this dataframe to the user
             df = self.transform(
-                dataset=input_dataset,
+                df=df,
                 args=args,
             )
 
@@ -216,8 +221,8 @@ class FondantComponent:
 
     @abstractmethod
     def load(self, args) -> dd.DataFrame:
-        """Load initial dataset"""
+        """Load initial dataframe"""
 
     @abstractmethod
-    def transform(self, dataset, args) -> dd.DataFrame:
-        """Transform existing dataset"""
+    def transform(self, df, args) -> dd.DataFrame:
+        """Transform existing dataframe"""
