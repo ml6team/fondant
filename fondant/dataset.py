@@ -6,6 +6,7 @@ It also defines the FondantComponent class, which uses the FondantDataset class 
 from abc import abstractmethod
 import argparse
 import json
+import logging
 from pathlib import Path
 from typing import List, Mapping
 
@@ -14,6 +15,8 @@ import dask.dataframe as dd
 from fondant.component_spec import FondantComponentSpec, kubeflow2python_type
 from fondant.manifest import Manifest
 from fondant.schema import Type, Field
+
+logger = logging.getLogger(__name__)
 
 
 class FondantDataset:
@@ -36,6 +39,8 @@ class FondantDataset:
         subset = self.manifest.subsets[name]
         # get remote path
         remote_path = subset.location
+
+        logger.info(f"Loading subset {name} with fields {fields}...")
 
         df = dd.read_parquet(
             remote_path,
