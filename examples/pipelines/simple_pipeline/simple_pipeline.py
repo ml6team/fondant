@@ -37,11 +37,11 @@ image_filtering_metadata = json.dumps(image_filtering_metadata)
 
 # Pipeline
 @dsl.pipeline(
-    name="simple-pipeline-v1",
+    name="simple-pipeline-v2",
     description="Simple pipeline that takes example images as input and embeds them using CLIP",
 )
 # pylint: disable=too-many-arguments, too-many-locals
-def simple_pipeline_v1(
+def simple_pipeline_v2(
     load_from_hub_dataset_name: str = LoadFromHubConfig.DATASET_NAME,
     load_from_hub_batch_size: int = LoadFromHubConfig.BATCH_SIZE,
     load_from_hub_metadata: str = load_from_hub_metadata,
@@ -68,7 +68,7 @@ def simple_pipeline_v1(
 
 if __name__ == "__main__":
     compile_and_upload_pipeline(
-        pipeline=simple_pipeline_v1,
+        pipeline=simple_pipeline_v2,
         host=KubeflowConfig.HOST,
         env=KubeflowConfig.ENV,
     )
