@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "base_path": "gs://bucket",
+    "run_id": "12345",
+    "component_id": "67890"
+  },
+  "index": {
+    "location": "/index"
+  },
+  "subsets": {
+    "images": {
+      "location": "/images",
+      "fields": {
+        "data": {
+          "type": "binary"
+        }
+      }
+    },
+    "embeddings": {
+      "location": "/12345/67890/embeddings",
+      "fields": {
+        "data": {
+          "type": "binary"
+        }
+      }
+    }
+  }
+}

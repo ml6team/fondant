@@ -47,6 +47,11 @@
     },
     "subsets": {
       "type": "object",
+      "properties": {
+        "additionalSubsets": {
+          "type": "boolean"
+        }
+      },
       "additionalProperties": {
         "$ref": "#/definitions/subset"
       }

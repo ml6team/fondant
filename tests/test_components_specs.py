@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fondant.exceptions import InvalidComponentSpec
 from fondant.component_spec import FondantComponentSpec
+from fondant.schema import Type
 
 valid_path = Path(__file__).parent / "example_specs/valid_component"
 invalid_path = Path(__file__).parent / "example_specs/invalid_component"
@@ -45,7 +46,7 @@ def test_attribute_access(valid_fondant_schema):
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
-    assert fondant_component.input_subsets['images'].fields["data"].type == "binary"
+    assert fondant_component.input_subsets['images'].fields["data"].type == Type.binary
 
 
 def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):

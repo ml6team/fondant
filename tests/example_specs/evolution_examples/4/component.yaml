@@ -1,0 +1,20 @@
+name: Example component
+description: This is an example component
+image: example_component:latest
+
+input_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+  
+output_subsets:
+  images:
+    fields:
+      encoding:
+        type: utf8
+
+args:
+  storage_args:
+    description: Storage arguments
+    type: str
