@@ -1,3 +1,3 @@
-git+https://github.com/ml6team/fondant.git@2853f8e80008ef3d9837513a6945cd2f5cb27a8d
+git+https://github.com/ml6team/fondant.git@b4f7a43eae540e6708af76dafd071c77a2254d86
 pyarrow>=7.0
 gcsfs==2023.4.0

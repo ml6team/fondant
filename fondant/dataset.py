@@ -209,6 +209,7 @@ class FondantComponent:
                 df=df,
                 args=args,
             )
+            # TODO update index, potentially add new subsets
 
         # step 4: create output manifest
         output_manifest = dataset.upload(save_path=args.output_manifest_path)
