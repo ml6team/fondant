@@ -6,8 +6,8 @@ from pathlib import Path
 from fondant.exceptions import InvalidComponentSpec
 from fondant.component_spec import FondantComponentSpec
 
-valid_path = Path("tests/component_example/valid_component")
-invalid_path = Path("tests/component_example/invalid_component")
+valid_path = Path(__file__).parent / "example_specs/valid_component"
+invalid_path = Path(__file__).parent / "example_specs/invalid_component"
 
 
 @pytest.fixture
