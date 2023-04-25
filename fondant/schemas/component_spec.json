@@ -39,6 +39,9 @@
       "properties": {
         "fields": {
           "$ref": "common.json#/definitions/fields"
+        },
+        "additionalFields": {
+          "type": "boolean"
         }
       },
       "required": [
