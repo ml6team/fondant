@@ -91,8 +91,8 @@ class FondantDataset:
             subset_df = self._load_subset(name, fields)
             subset_dfs.append(subset_df)
 
-        # TODO this method should return a single dataframe with column_names called subset_field
-        # TODO add index
+        # return a single dataframe with column_names called subset_field
+        # TODO perhaps leverage dd.merge here instead
         df = dd.concat(subset_dfs)
 
         logging.info("Columns of dataframe:", list(df.columns))
