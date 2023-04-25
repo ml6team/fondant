@@ -11,7 +11,7 @@ from typing import List, Mapping
 
 import dask.dataframe as dd
 
-from fondant.component_spec import ComponentSpec, kubeflow2python_type
+from fondant.component_spec import FondantComponentSpec, kubeflow2python_type
 from fondant.manifest import Manifest
 from fondant.schema import Type, Field
 
@@ -44,7 +44,7 @@ class FondantDataset:
 
         return df
 
-    def load_data(self, spec: ComponentSpec) -> dd.DataFrame:
+    def load_data(self, spec: FondantComponentSpec) -> dd.DataFrame:
         subsets = []
         for name, subset in spec.input_subsets.items():
             fields = list(subset.fields.keys())
@@ -93,7 +93,7 @@ class FondantDataset:
 
         self._upload_index(index_df)
 
-    def add_subsets(self, df: dd.DataFrame, spec: ComponentSpec):
+    def add_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
         for name, subset in spec.output_subsets.items():
             fields = list(subset.fields.keys())
             # verify fields are present in the output dataframe
@@ -129,7 +129,7 @@ class FondantComponent:
     def __init__(self, type="transform"):
         # note: Fondant spec always needs to be called like this
         # and placed in the src directory
-        self.spec = ComponentSpec.from_file("fondant_component.yaml")
+        self.spec = FondantComponentSpec.from_file("fondant_component.yaml")
         self.type = type
 
     def run(self) -> dd.DataFrame:

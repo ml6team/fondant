@@ -40,7 +40,8 @@ kubeflow2python_type = {
 @dataclass
 class Argument:
     """
-    Kubeflow component input argument
+    Kubeflow component argument
+
     Args:
         name: name of the argument
         description: argument description
@@ -55,14 +56,12 @@ class Argument:
 class ComponentSubset:
     """
     Class representing a Fondant Component subset.
+
+    Args:
+        specification: the part of the component json representing the subset
     """
 
     def __init__(self, specification: dict) -> None:
-        """
-        Initialize subsets
-        Args:
-            specification: the part of the component json representing the subset
-        """
         self._specification = specification
 
     def __repr__(self) -> str:
@@ -78,7 +77,7 @@ class ComponentSubset:
         )
 
 
-class ComponentSpec:
+class FondantComponentSpec:
     """
     Class representing a Fondant component specification.
 
@@ -92,7 +91,8 @@ class ComponentSpec:
 
     def _validate_spec(self) -> None:
         """Validate a component specification against the component schema
-        Raises: InvalidManifest when the manifest is not valid.
+
+        Raises: InvalidComponent when the component specification is not valid.
         """
         spec_schema = json.loads(
             pkgutil.get_data("fondant", "schemas/component_spec.json")
@@ -108,14 +108,14 @@ class ComponentSpec:
             raise InvalidComponentSpec.create_from(e)
 
     @classmethod
-    def from_file(cls, path: str) -> "ComponentSpec":
-        """Load the manifest from the file specified by the provided path"""
+    def from_file(cls, path: str) -> "FondantComponentSpec":
+        """Load the component spec from the file specified by the provided path"""
         with open(path, encoding="utf-8") as file_:
             specification = yaml.safe_load(file_)
             return cls(specification)
 
     def to_file(self, path) -> None:
-        """Dump the manifest to the file specified by the provided path"""
+        """Dump the component spec to the file specified by the provided path"""
         with open(path, "w", encoding="utf-8") as file_:
             yaml.dump(self._specification, file_)
 
@@ -171,14 +171,14 @@ class ComponentSpec:
         ]
 
     @property
-    def kubeflow_specification(self) -> "KubeflowComponent":
-        return KubeflowComponent.from_fondant_component(self)
+    def kubeflow_specification(self) -> "KubeflowComponentSpec":
+        return KubeflowComponentSpec.from_fondant_component_spec(self)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r}"
 
 
-class KubeflowComponent:
+class KubeflowComponentSpec:
     """
     Class representing a Kubeflow component specification.
 
@@ -190,9 +190,9 @@ class KubeflowComponent:
         self._specification = specification
 
     @classmethod
-    def from_fondant_component(
-        cls, fondant_component: ComponentSpec
-    ) -> "KubeflowComponent":
+    def from_fondant_component_spec(
+        cls, fondant_component: FondantComponentSpec
+    ) -> "KubeflowComponentSpec":
         """Create a Kubeflow component spec from a Fondant component spec."""
         specification = {
             "name": fondant_component.name,
@@ -238,7 +238,7 @@ class KubeflowComponent:
 
     @staticmethod
     def _dump_args(args: t.List[Argument]) -> t.List[t.Union[str, t.Dict[str, str]]]:
-        """Dump Fondant specification arguments to KfP command arguments."""
+        """Dump Fondant specification arguments to kfp command arguments."""
         dumped_args = []
         for arg in args:
             arg_name = arg.name.replace("-", "_").strip()
