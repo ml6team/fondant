@@ -1,0 +1,5 @@
+site_name: Fondant
+theme: readthedocs
+nav:
+    - Home: home.md
+    - About: about.md

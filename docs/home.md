@@ -3,6 +3,7 @@
 Fondant helps you create data processing pipelines to train foundation models, like Stable Diffusion or GPT language models.
 
 Fondant offers a set of reusable components, such as:
+
 - image filtering
 - language filtering
 - deduplication
