@@ -45,7 +45,7 @@ class Subset:
 
     def add_field(self, name: str, type_: Type, *, overwrite: bool = False) -> None:
         if not overwrite and name in self._specification["fields"]:
-            raise ValueError("A field with name {name} already exists")
+            raise ValueError(f"A field with name {name} already exists")
 
         self._specification["fields"][name] = {"type": type_.value}
 

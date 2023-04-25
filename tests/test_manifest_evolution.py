@@ -30,6 +30,4 @@ def test_evolution(input_manifest, component_spec, output_manifest):
     component = FondantComponentSpec(component_spec)
     evolved_manifest = manifest.evolve(component)
 
-    print(json.dumps(evolved_manifest._specification, indent=4))
-
     assert evolved_manifest._specification == output_manifest
