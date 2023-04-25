@@ -13,7 +13,7 @@ from typing import List, Mapping
 import dask.dataframe as dd
 
 from fondant.component_spec import FondantComponentSpec, kubeflow2python_type
-from fondant.manifest import Manifest
+from fondant.manifest import Manifest, Index
 from fondant.schema import Type, Field
 
 logger = logging.getLogger(__name__)
@@ -34,11 +34,17 @@ class FondantDataset:
             "__null_dask_index__": "int64",
         }
 
-    def _load_subset(self, name: str, fields: List[str]) -> dd.DataFrame:
+    def _load_subset(
+        self, name: str, fields: List[str], index: Index = None
+    ) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]
         # get remote path
         remote_path = subset.location
+
+        # add index fields
+        index_fields = list(self.manifest.index.fields.keys())
+        fields = index_fields + fields
 
         logger.info(f"Loading subset {name} with fields {fields}...")
 
@@ -47,8 +53,34 @@ class FondantDataset:
             columns=fields,
         )
 
+        # filter on default index of manifest if no index is provided
+        if index is None:
+            index_df = self._load_index()
+            ids = index_df["id"].compute()
+            sources = index_df["source"].compute()
+            df = df[df["id"].isin(ids) & df["source"].isin(sources)]
+
         # add subset prefix to columns
-        df = df.rename(columns={col: name + "_" + col for col in df.columns})
+        df = df.rename(
+            columns={
+                col: name + "_" + col for col in df.columns if col not in index_fields
+            }
+        )
+
+        return df
+
+    def _load_index(self):
+        # get index subset from the manifest
+        index = self.manifest.index
+        # get remote path
+        remote_path = index.location
+
+        df = dd.read_parquet(remote_path)
+
+        if df.columns != ["id", "source"]:
+            raise ValueError(
+                f"Index columns should be 'id' and 'source', found {df.columns}"
+            )
 
         return df
 
@@ -63,7 +95,7 @@ class FondantDataset:
         # TODO add index
         df = dd.concat(subset_dfs)
 
-        logging.info("Columns of dataframe:", df.columns)
+        logging.info("Columns of dataframe:", list(df.columns))
 
         return df
 
