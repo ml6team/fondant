@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "base_path": "gs://bucket"
+  },
+  "index": {
+    "location": "/index"
+  },
+  "subsets": {
+    "images": {
+      "location": "/images",
+      "fields": []
+    }
+  }
+}
