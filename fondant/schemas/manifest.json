@@ -43,23 +43,6 @@
     "subsets"
   ],
   "definitions": {
-    "field": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "$ref": "common.json#/definitions/subset_data_type"
-        }
-      },
-      "required": ["type"]
-    },
-    "fields": {
-      "type": "object",
-      "minProperties": 1,
-      "additionalProperties": {
-        "$ref": "#/definitions/field"
-      }
-    },
     "subset": {
       "type": "object",
       "properties": {
@@ -68,10 +51,13 @@
           "pattern": "/.*"
         },
         "fields": {
-          "$ref": "#/definitions/fields"
+          "$ref": "common.json#/definitions/fields"
         }
       },
-      "required": ["location", "fields"]
+      "required": [
+        "location",
+        "fields"
+      ]
     },
     "subsets": {
       "type": "object",
