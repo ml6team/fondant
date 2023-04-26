@@ -39,6 +39,9 @@
       "properties": {
         "fields": {
           "$ref": "common.json#/definitions/fields"
+        },
+        "additionalFields": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -47,6 +50,11 @@
     },
     "subsets": {
       "type": "object",
+      "properties": {
+        "additionalSubsets": {
+          "type": "boolean"
+        }
+      },
       "additionalProperties": {
         "$ref": "#/definitions/subset"
       }
