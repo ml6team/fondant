@@ -8,7 +8,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import List, Mapping
+from typing import List, Mapping, Optional
 
 import dask.dataframe as dd
 
@@ -35,7 +35,7 @@ class FondantDataset:
         }
 
     def _load_subset(
-        self, name: str, fields: List[str], index: Index = None
+        self, name: str, fields: List[str], index: Optional[Index] = None
     ) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]

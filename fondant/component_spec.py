@@ -61,7 +61,7 @@ class ComponentSubset:
         specification: the part of the component json representing the subset
     """
 
-    def __init__(self, specification: dict) -> None:
+    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
         self._specification = specification
 
     def __repr__(self) -> str:
@@ -85,7 +85,7 @@ class FondantComponentSpec:
         specification: The component specification as a Python dict
     """
 
-    def __init__(self, specification: t.Mapping) -> None:
+    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
         self._specification = copy.deepcopy(specification)
         self._validate_spec()
 
@@ -191,7 +191,7 @@ class KubeflowComponentSpec:
         specification: The component specification as a Python dict
     """
 
-    def __init__(self, specification: t.Mapping) -> None:
+    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
         self._specification = specification
 
     @classmethod
@@ -242,9 +242,9 @@ class KubeflowComponentSpec:
         return cls(specification)
 
     @staticmethod
-    def _dump_args(args: t.List[Argument]) -> t.List[t.Union[str, t.Mapping[str, str]]]:
+    def _dump_args(args: t.List[Argument]) -> t.List[t.Union[str, t.Dict[str, str]]]:
         """Dump Fondant specification arguments to kfp command arguments."""
-        dumped_args: t.List[t.Union[str, t.Mapping[str, str]]] = []
+        dumped_args: t.List[t.Union[str, t.Dict[str, str]]] = []
         for arg in args:
             arg_name = arg.name.replace("-", "_").strip()
             arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()

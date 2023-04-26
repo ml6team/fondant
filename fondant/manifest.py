@@ -74,7 +74,7 @@ class Manifest:
         specification: The manifest specification as a Python dict
     """
 
-    def __init__(self, specification: dict) -> None:
+    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
         self._specification = copy.deepcopy(specification)
         self._validate_spec()
 
@@ -138,7 +138,7 @@ class Manifest:
         return self.__class__(copy.deepcopy(self._specification))
 
     @property
-    def metadata(self) -> dict:
+    def metadata(self) -> t.Dict[str, t.Any]:
         return self._specification["metadata"]
 
     def add_metadata(self, key: str, value: t.Any) -> None:
