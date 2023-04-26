@@ -141,7 +141,7 @@ class FondantComponentSpec:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._specification["input_subsets"].items()
+                for name, subset in self._specification.get("input_subsets", {}).items()
                 if name != "additionalSubsets"
             }
         )
@@ -152,18 +152,24 @@ class FondantComponentSpec:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._specification["output_subsets"].items()
+                for name, subset in self._specification.get(
+                    "output_subsets", {}
+                ).items()
                 if name != "additionalSubsets"
             }
         )
 
     @property
     def accepts_additional_subsets(self) -> bool:
-        return self._specification["input_subsets"].get("additionalSubsets", True)
+        return self._specification.get("input_subsets", {}).get(
+            "additionalSubsets", True
+        )
 
     @property
     def produces_additional_subsets(self) -> bool:
-        return self._specification["output_subsets"].get("additionalSubsets", True)
+        return self._specification.get("output_subsets", {}).get(
+            "additionalSubsets", True
+        )
 
     @property
     def args(self) -> t.List[Argument]:
