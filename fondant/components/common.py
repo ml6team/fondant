@@ -412,7 +412,7 @@ class FondantTransformComponent(FondantDatasetHandler, Generic[IndexT, DataT]):
         """
 
 
-class FondantLoaderComponent(FondantDatasetHandler, Generic[IndexT, DataT]):
+class FondantLoadComponent(FondantDatasetHandler, Generic[IndexT, DataT]):
     """
     An abstract component that facilitates creation of a new Fondant Dataset.
     This will commonly be the first component in an Fondant Pipeline. It can be subclassed or used

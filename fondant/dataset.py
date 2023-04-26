@@ -198,7 +198,7 @@ class FondantComponent(ABC):
         """Abstract method for running component"""
 
 
-class FondantLoaderComponent(FondantComponent):
+class FondantLoadComponent(FondantComponent):
     """Abstract base class for a Fondant loader component"""
 
     def _add_and_parse_args(self) -> argparse.Namespace:
