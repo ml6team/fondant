@@ -113,12 +113,15 @@ class FondantDataset:
 
     def _upload_subset(self, name: str, fields: Mapping[str, Field], df: dd.DataFrame):
         # add subset to the manifest
-        manifest_fields = [(field.name, Type[field.type]) for field in fields.values()]
+        manifest_fields = [
+            (field.name, Type[str(field.type)]) for field in fields.values()
+        ]
         self.manifest.add_subset(name, fields=manifest_fields)
 
         # create expected schema
         expected_schema = {field.name: field.type for field in fields.values()}
-        expected_schema.update(self.index_schema)
+
+        expected_schema.update(self.index_schema)  # type: ignore
 
         # get remote path
         remote_path = self.manifest.subsets[name].location

@@ -74,7 +74,7 @@ class Manifest:
         specification: The manifest specification as a Python dict
     """
 
-    def __init__(self, specification: t.Optional[dict] = None) -> None:
+    def __init__(self, specification: dict) -> None:
         self._specification = copy.deepcopy(specification)
         self._validate_spec()
 
@@ -83,7 +83,14 @@ class Manifest:
 
         Raises: InvalidManifest when the manifest is not valid.
         """
-        spec_schema = json.loads(pkgutil.get_data("fondant", "schemas/manifest.json"))
+
+        spec_data = pkgutil.get_data("fondant", "schemas/manifest.json")
+
+        if spec_data is not None:
+            spec_str = spec_data.decode("utf-8")
+            spec_schema = json.loads(spec_str)
+        else:
+            raise FileNotFoundError("component_spec.json not found in fondant schema")
 
         base_uri = (Path(__file__).parent / "schemas").as_uri()
         resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)
