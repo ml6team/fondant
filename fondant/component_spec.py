@@ -13,7 +13,7 @@ from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
 from fondant.exceptions import InvalidComponentSpec
-from fondant.schema import Field, Type
+from fondant.schema import Field, Type, KubeflowCommandArguments
 
 # TODO: Change after upgrading to kfp v2
 # :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
@@ -101,11 +101,11 @@ class FondantComponentSpec:
 
         spec_data = pkgutil.get_data("fondant", "schemas/component_spec.json")
 
-        if spec_data is not None:
+        if spec_data is None:
+            raise FileNotFoundError("component_spec.json not found in fondant schema")
+        else:
             spec_str = spec_data.decode("utf-8")
             spec_schema = json.loads(spec_str)
-        else:
-            raise FileNotFoundError("component_spec.json not found in fondant schema")
 
         base_uri = (Path(__file__).parent / "schemas").as_uri()
         resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)
@@ -254,17 +254,17 @@ class KubeflowComponentSpec:
         return cls(specification)
 
     @staticmethod
-    def _dump_args(args: t.List[Argument]) -> t.List[t.Union[str, t.Dict[str, str]]]:
+    def _dump_args(args: t.List[Argument]) -> KubeflowCommandArguments:
         """Dump Fondant specification arguments to kfp command arguments."""
-        dumped_args = []
+        dumped_args: KubeflowCommandArguments = []
         for arg in args:
             arg_name = arg.name.replace("-", "_").strip()
             arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
 
             dumped_args.append(arg_name_cmd)
-            dumped_args.append({"inputValue": arg_name})  # type: ignore
+            dumped_args.append({"inputValue": arg_name})
 
-        return dumped_args  # type: ignore
+        return dumped_args
 
     def to_file(self, path: t.Union[str, Path]) -> None:
         """Dump the component specification to the file specified by the provided path"""

@@ -87,11 +87,11 @@ class Manifest:
 
         spec_data = pkgutil.get_data("fondant", "schemas/manifest.json")
 
-        if spec_data is not None:
+        if spec_data is None:
+            raise FileNotFoundError("component_spec.json not found in fondant schema")
+        else:
             spec_str = spec_data.decode("utf-8")
             spec_schema = json.loads(spec_str)
-        else:
-            raise FileNotFoundError("component_spec.json not found in fondant schema")
 
         base_uri = (Path(__file__).parent / "schemas").as_uri()
         resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)

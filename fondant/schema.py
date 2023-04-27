@@ -4,6 +4,8 @@ and pipelines."""
 import enum
 import typing as t
 
+KubeflowCommandArguments = t.List[t.Union[str, t.Dict[str, str]]]
+
 
 class Type(enum.Enum):
     """Supported types.
