@@ -11,7 +11,7 @@ import dask.array as da
 import numpy as np
 from PIL import Image
 
-from fondant.dataset import FondantComponent
+from fondant.component import FondantLoadComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -34,7 +34,7 @@ def extract_height(image_bytes):
     return np.int16(height)
 
 
-class LoadFromHubComponent(FondantComponent):
+class LoadFromHubComponent(FondantLoadComponent):
 
     def load(self, args):
         """
@@ -75,5 +75,5 @@ class LoadFromHubComponent(FondantComponent):
 
 
 if __name__ == "__main__":
-    component = LoadFromHubComponent(type="load")
+    component = LoadFromHubComponent()
     component.run()
