@@ -31,7 +31,6 @@ def compile_and_upload_pipeline(
     kfp.compiler.Compiler().compile(
         pipeline_func=pipeline, package_path=pipeline_filename
     )
-    client.get
     if pipeline_id is not None:
         pipeline_versions = client.list_pipeline_versions(pipeline_id).versions
         if pipeline_versions is not None:

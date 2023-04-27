@@ -1,4 +1,5 @@
-datasets==2.11.0
-git+https://github.com/ml6team/fondant.git@b04dec44ff198c34bf3862324ed5e431a9fd5366
+huggingface_hub==0.14.1
+git+https://github.com/ml6team/fondant.git@b82876a60880b008a86cc67dd0e31fc7c07321f2
+pyarrow>=7.0
 Pillow==9.4.0
 gcsfs==2023.4.0

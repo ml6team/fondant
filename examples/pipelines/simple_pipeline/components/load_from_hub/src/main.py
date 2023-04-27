@@ -4,8 +4,6 @@ This component loads a seed dataset from the hub.
 import io
 import logging
 
-from datasets import load_dataset
-
 import dask.dataframe as dd
 import dask.array as da
 import numpy as np
@@ -46,9 +44,7 @@ class LoadFromHubComponent(FondantLoadComponent):
         """
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the hub...")
-        dataset = load_dataset(args.dataset_name, split="train")
-        dataset.to_parquet("data.parquet")
-        dask_df = dd.read_parquet("data.parquet")
+        dask_df = dd.read_parquet(f"hf://datasets/{args.dataset_name}")
 
         # 2) Add index to the dataframe
         logger.info("Creating index...")
