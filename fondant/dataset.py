@@ -9,7 +9,7 @@ from pathlib import Path
 import dask.dataframe as dd
 
 from fondant.component_spec import FondantComponentSpec
-from fondant.manifest import Manifest, Index
+from fondant.manifest import Manifest
 from fondant.schema import Type, Field
 
 logger = logging.getLogger(__name__)
@@ -30,9 +30,7 @@ class FondantDataset:
             "__null_dask_index__": "int64",
         }
 
-    def _load_subset(
-        self, name: str, fields: t.List[str], index: t.Optional[Index] = None
-    ) -> dd.DataFrame:
+    def _load_subset(self, name: str, fields: t.List[str]) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]
         # get remote path
@@ -49,19 +47,12 @@ class FondantDataset:
             columns=fields,
         )
 
-        # filter on default index of manifest if no index is provided
-        if index is None:
-            index_df = self._load_index()
-            ids = index_df["id"].compute()
-            sources = index_df["source"].compute()
-            df = df[df["id"].isin(ids) & df["source"].isin(sources)]
-
         # add subset prefix to columns
-        df = df.rename(
-            columns={
-                col: name + "_" + col for col in df.columns if col not in index_fields
-            }
-        )
+        # df = df.rename(
+        #     columns={
+        #         col: name + "_" + col for col in df.columns if col not in index_fields
+        #     }
+        # )
 
         return df
 
@@ -70,26 +61,19 @@ class FondantDataset:
         index = self.manifest.index
         # get remote path
         remote_path = index.location
-
-        df = dd.read_parquet(remote_path)
-
-        if list(df.columns) != ["id", "source"]:
-            raise ValueError(
-                f"Index columns should be 'id' and 'source', found {df.columns}"
-            )
+        # load index from parquet, expecting id and source columns
+        df = dd.read_parquet(remote_path, columns=["id", "source"])
 
         return df
 
     def load_dataframe(self, spec: FondantComponentSpec) -> dd.DataFrame:
-        subset_dfs = []
+        # load index into dataframe
+        df = self._load_index()
         for name, subset in spec.input_subsets.items():
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
-            subset_dfs.append(subset_df)
-
-        # return a single dataframe with column_names called subset_field
-        # TODO perhaps leverage dd.merge here instead
-        df = dd.concat(subset_dfs)
+            # left joins -> filter on index
+            df = dd.merge(df, subset_df, how="left")
 
         logging.info("Columns of dataframe:", list(df.columns))
 
