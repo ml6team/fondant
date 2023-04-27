@@ -10,6 +10,7 @@ import jsonschema.exceptions
 from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
+from fondant.component_spec import FondantComponentSpec
 from fondant.exceptions import InvalidManifest
 from fondant.schema import Type, Field
 
@@ -42,9 +43,9 @@ class Subset:
             }
         )
 
-    def add_field(self, name: str, type_: Type) -> None:
-        if name in self._specification["fields"]:
-            raise ValueError("A field with name {name} already exists")
+    def add_field(self, name: str, type_: Type, *, overwrite: bool = False) -> None:
+        if not overwrite and name in self._specification["fields"]:
+            raise ValueError(f"A field with name {name} already exists")
 
         self._specification["fields"][name] = {"type": type_.value}
 
@@ -133,7 +134,7 @@ class Manifest:
         with open(path, "w", encoding="utf-8") as file_:
             json.dump(self._specification, file_)
 
-    def copy(self):
+    def copy(self) -> "Manifest":
         """Return a deep copy of itself"""
         return self.__class__(copy.deepcopy(self._specification))
 
@@ -170,9 +171,11 @@ class Manifest:
             }
         )
 
-    def add_subset(self, name: str, fields: t.List[t.Tuple[str, Type]]) -> None:
+    def add_subset(
+        self, name: str, fields: t.Iterable[t.Union[Field, t.Tuple[str, Type]]]
+    ) -> None:
         if name in self._specification["subsets"]:
-            raise ValueError("A subset with name {name} already exists")
+            raise ValueError(f"A subset with name {name} already exists")
 
         self._specification["subsets"][name] = {
             "location": f"/{self.run_id}/{self.component_id}/{name}",
@@ -184,6 +187,62 @@ class Manifest:
             raise ValueError(f"Subset {name} not found in specification")
 
         del self._specification["subsets"][name]
+
+    def evolve(self, component_spec: FondantComponentSpec) -> "Manifest":
+        """Evolve the manifest based on the provided component spec. The resulting manifest is
+        the expected result if the current manifest is provided to the component defined by the
+        component spec."""
+        evolved_manifest = self.copy()
+
+        # If additionalSubsets is False in component input subsets,
+        # Remove all subsets from the manifest that are not listed
+        if not component_spec.accepts_additional_subsets:
+            for subset_name in evolved_manifest.subsets:
+                if subset_name not in component_spec.input_subsets:
+                    evolved_manifest.remove_subset(subset_name)
+
+        # If additionalSubsets is False in component output subsets,
+        # Remove all subsets from the manifest that are not listed
+        if not component_spec.produces_additional_subsets:
+            for subset_name in evolved_manifest.subsets:
+                if subset_name not in component_spec.output_subsets:
+                    evolved_manifest.remove_subset(subset_name)
+
+        # If additionalFields is False for input subsets,
+        # Remove all fields from that subset that are not listed
+        for subset_name, subset in component_spec.input_subsets.items():
+            if subset_name in evolved_manifest.subsets:
+                if not subset.additional_fields:
+                    for field_name in evolved_manifest.subsets[subset_name].fields:
+                        if field_name not in subset.fields:
+                            evolved_manifest.subsets[subset_name].remove_field(
+                                field_name
+                            )
+
+        # For each output subset defined in the component, add or update it
+        for subset_name, subset in component_spec.output_subsets.items():
+            # Subset is already in manifest, update it
+            if subset_name in evolved_manifest.subsets:
+                # If additional fields are not allowed, remove the fields not defined in the
+                # component spec output subsets
+                if not subset.additional_fields:
+                    for field_name in evolved_manifest.subsets[subset_name].fields:
+                        if field_name not in subset.fields:
+                            evolved_manifest.subsets[subset_name].remove_field(
+                                field_name
+                            )
+
+                # Add fields defined in the component spec output subsets
+                # Overwrite to persist changes to the field (eg. type of column)
+                for field in subset.fields.values():
+                    evolved_manifest.subsets[subset_name].add_field(
+                        field.name, field.type, overwrite=True
+                    )
+            # Subset is not yet in manifest, add it
+            else:
+                evolved_manifest.add_subset(subset_name, subset.fields.values())
+
+        return evolved_manifest
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r}"

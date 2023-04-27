@@ -13,7 +13,7 @@ from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
 from fondant.exceptions import InvalidComponentSpec
-from fondant.schema import Field
+from fondant.schema import Field, Type
 
 # TODO: Change after upgrading to kfp v2
 # :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
@@ -71,10 +71,14 @@ class ComponentSubset:
     def fields(self) -> t.Mapping[str, Field]:
         return types.MappingProxyType(
             {
-                name: Field(name=name, type=field["type"])
+                name: Field(name=name, type=Type[field["type"]])
                 for name, field in self._specification["fields"].items()
             }
         )
+
+    @property
+    def additional_fields(self) -> bool:
+        return self._specification.get("additionalFields", True)
 
 
 class FondantComponentSpec:
@@ -142,7 +146,8 @@ class FondantComponentSpec:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._specification["input_subsets"].items()
+                for name, subset in self._specification.get("input_subsets", {}).items()
+                if name != "additionalSubsets"
             }
         )
 
@@ -152,17 +157,24 @@ class FondantComponentSpec:
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._specification["output_subsets"].items()
+                for name, subset in self._specification.get(
+                    "output_subsets", {}
+                ).items()
+                if name != "additionalSubsets"
             }
         )
 
     @property
     def accepts_additional_subsets(self) -> bool:
-        return self._specification["input_subsets"].get("additionalSubsets", True)
+        return self._specification.get("input_subsets", {}).get(
+            "additionalSubsets", True
+        )
 
     @property
     def produces_additional_subsets(self) -> bool:
-        return self._specification["output_subsets"].get("additionalSubsets", True)
+        return self._specification.get("output_subsets", {}).get(
+            "additionalSubsets", True
+        )
 
     @property
     def args(self) -> t.List[Argument]:

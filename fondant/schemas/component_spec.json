@@ -6,8 +6,6 @@
     "name",
     "description",
     "image",
-    "input_subsets",
-    "output_subsets",
     "args"
   ],
   "properties": {
@@ -39,6 +37,9 @@
       "properties": {
         "fields": {
           "$ref": "common.json#/definitions/fields"
+        },
+        "additionalFields": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -47,6 +48,11 @@
     },
     "subsets": {
       "type": "object",
+      "properties": {
+        "additionalSubsets": {
+          "type": "boolean"
+        }
+      },
       "additionalProperties": {
         "$ref": "#/definitions/subset"
       }
