@@ -4,3 +4,7 @@ theme:
 nav:
     - Home: home.md
     - About: about.md
+
+markdown_extensions:
+- pymdownx.snippets:
+    check_paths: true
