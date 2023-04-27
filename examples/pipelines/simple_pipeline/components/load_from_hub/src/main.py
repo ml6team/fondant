@@ -44,7 +44,7 @@ class LoadFromHubComponent(FondantComponent):
         """
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the hub...")
-        dask_df = dd.read_parquet("hf://datasets/lambdalabs/pokemon-blip-captions/data/train-00000-of-00001-566cc9b19d7203f8.parquet")
+        dask_df = dd.read_parquet(f"hf://datasets/{args.dataset_name}")
 
         # 2) Add index to the dataframe
         logger.info("Creating index...")
