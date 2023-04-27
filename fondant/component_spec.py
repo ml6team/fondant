@@ -244,15 +244,15 @@ class KubeflowComponentSpec:
     @staticmethod
     def _dump_args(args: t.List[Argument]) -> t.List[t.Union[str, t.Dict[str, str]]]:
         """Dump Fondant specification arguments to kfp command arguments."""
-        dumped_args: t.List[t.Union[str, t.Dict[str, str]]] = []
+        dumped_args = []
         for arg in args:
             arg_name = arg.name.replace("-", "_").strip()
             arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
 
             dumped_args.append(arg_name_cmd)
-            dumped_args.append({"inputValue": arg_name})
+            dumped_args.append({"inputValue": arg_name})  # type: ignore
 
-        return dumped_args
+        return dumped_args  # type: ignore
 
     def to_file(self, path: t.Union[str, Path]) -> None:
         """Dump the component specification to the file specified by the provided path"""
