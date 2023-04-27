@@ -38,6 +38,3 @@ jobs:
       - name: Test with pytest
         run: |
           poetry run pytest tests
-      - name: Deploy documentation
-        run: pip install mkdocs-material 
-        run: mkdocs gh-deploy --force
