@@ -31,7 +31,7 @@ class FondantDataset:
         }
 
     def _load_subset(
-        self, name: str, fields: t.List[str], index: Index = None
+        self, name: str, fields: t.List[str], index: t.Optional[Index] = None
     ) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]
