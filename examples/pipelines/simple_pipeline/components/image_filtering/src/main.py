@@ -6,14 +6,14 @@ from typing import Dict
 
 import dask.dataframe as dd
 
-from fondant.dataset import FondantComponent
+from fondant.component import FondantTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 
-class ImageFilterComponent(FondantComponent):
+class ImageFilterComponent(FondantTransformComponent):
     """
     Component that filters images based on height and width.
     """

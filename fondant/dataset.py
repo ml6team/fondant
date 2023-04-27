@@ -2,16 +2,13 @@
 It also defines the FondantComponent class, which uses the FondantDataset class to manipulate data.
 """
 
-import argparse
-import json
 import logging
 import typing as t
-from abc import ABC, abstractmethod
 from pathlib import Path
 
 import dask.dataframe as dd
 
-from fondant.component_spec import FondantComponentSpec, kubeflow2python_type, Argument
+from fondant.component_spec import FondantComponentSpec
 from fondant.manifest import Manifest, Index
 from fondant.schema import Type, Field
 
@@ -83,7 +80,7 @@ class FondantDataset:
 
         return df
 
-    def load_data(self, spec: FondantComponentSpec) -> dd.DataFrame:
+    def load_dataframe(self, spec: FondantComponentSpec) -> dd.DataFrame:
         subset_dfs = []
         for name, subset in spec.input_subsets.items():
             fields = list(subset.fields.keys())
@@ -114,16 +111,17 @@ class FondantDataset:
         self, name: str, fields: t.Mapping[str, Field], df: dd.DataFrame
     ):
         # add subset to the manifest
-        manifest_fields = [(field.name, Type[field.type]) for field in fields.values()]
+        manifest_fields = [
+            (field.name, Type[field.type.name]) for field in fields.values()
+        ]
         self.manifest.add_subset(name, fields=manifest_fields)
 
         # create expected schema
-        expected_schema = {field.name: field.type for field in fields.values()}
+        expected_schema = {field.name: field.type.name for field in fields.values()}
         expected_schema.update(self.index_schema)
 
         # get remote path
         remote_path = self.manifest.subsets[name].location
-
         # upload to the cloud
         dd.to_parquet(df, remote_path, schema=expected_schema, overwrite=True)
 
@@ -165,163 +163,3 @@ class FondantDataset:
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         self.manifest.to_file(save_path)
         return None
-
-
-class FondantComponent(ABC):
-    """Abstract base class for a Fondant component"""
-
-    def __init__(self):
-        self.spec = FondantComponentSpec.from_file("fondant_component.yaml")
-
-    @abstractmethod
-    def _get_manifest(self, args: argparse.Namespace) -> Manifest:
-        """Abstract method that returns the dataset manifest"""
-
-    @abstractmethod
-    def _add_and_parse_args(self) -> argparse.Namespace:
-        """Abstract method that adds and parses the component arguments"""
-
-    def get_component_arguments(self) -> t.Mapping[str, Argument]:
-        """
-        Dictionary representation of the input and output arguments of a component
-        Returns:
-            Input and output arguments of the component.
-        """
-        component_arguments = {}
-        kubeflow_component_spec = self.spec.kubeflow_specification
-        component_arguments.update(kubeflow_component_spec.input_arguments)
-        component_arguments.update(kubeflow_component_spec.output_arguments)
-        return component_arguments
-
-    @abstractmethod
-    def run(self):
-        """Abstract method for running component"""
-
-
-class FondantLoadComponent(FondantComponent):
-    """Abstract base class for a Fondant loader component"""
-
-    def _add_and_parse_args(self) -> argparse.Namespace:
-        parser = argparse.ArgumentParser()
-        component_arguments = self.get_component_arguments()
-
-        for arg in component_arguments.values():
-            # Input manifest is not required for loading component
-            if arg.name == "input_manifest_path":
-                input_required = False
-            else:
-                input_required = True
-
-            parser.add_argument(
-                f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],
-                required=input_required,
-                help=arg.description,
-            )
-
-        # add metadata
-        parser.add_argument(
-            "--metadata",
-            type=str,
-            required=True,
-            help="The metadata associated with the pipeline run",
-        )
-
-        return parser.parse_args()
-
-    def _get_manifest(self, args: argparse.Namespace) -> Manifest:
-        metadata = json.loads(args.metadata)
-        # TODO ideally get rid of args.metadata by including them in the storage args, getting
-        #  run_id based on args.output_manifest_path
-        manifest = Manifest.create(
-            base_path=metadata["base_path"],
-            run_id=metadata["run_id"],
-            component_id=metadata["component_id"],
-        )
-
-        return manifest
-
-    @abstractmethod
-    def load(self, args: argparse.Namespace) -> dd.DataFrame:
-        """Abstract method that loads the initial dataframe"""
-
-    def run(self):
-        """
-        Runs the loading component.
-        """
-        # step 1: Add and parse arguments
-        args = self._add_and_parse_args()
-
-        # step 2: Get manifest
-        manifest = self._get_manifest(args)
-
-        # step 3: Create dataset
-        dataset = FondantDataset(manifest)
-
-        # step 4: Load the dataframe according to the custom function provided to the user
-        df = self.load(args)
-
-        # step 5: Add index and specified subsets and write them to remote storage
-        dataset.add_index(df)
-        dataset.add_subsets(df, self.spec)
-
-        # step 6: create and upload the output manifest
-        dataset.upload(save_path=args.output_manifest_path)
-
-
-class FondantTransformComponent(FondantComponent):
-    """Abstract base class for a Fondant transform component"""
-
-    def _add_and_parse_args(self) -> argparse.Namespace:
-        parser = argparse.ArgumentParser()
-        component_arguments = self.get_component_arguments()
-
-        for arg in component_arguments.values():
-            parser.add_argument(
-                f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],
-                required=True,
-                help=arg.description,
-            )
-
-        # add metadata
-        parser.add_argument(
-            "--metadata",
-            type=str,
-            required=True,
-            help="The metadata associated with the pipeline run",
-        )
-
-        return parser.parse_args()
-
-    def _get_manifest(self, args: argparse.Namespace) -> Manifest:
-        return Manifest.from_file(args.input_manifest_path)
-
-    @abstractmethod
-    def transform(
-        self, args: argparse.Namespace, dataframe: dd.DataFrame
-    ) -> dd.DataFrame:
-        """Abstract method for applying data transformations to the input dataframe"""
-
-    def run(self):
-        """
-        Runs the loading component.
-        """
-        # step 1: Add and parse arguments
-        args = self._add_and_parse_args()
-
-        # step 2: Get manifest
-        manifest = self._get_manifest(args)
-
-        # step 3: Create dataset
-        dataset = FondantDataset(manifest)
-
-        # step 5: Load the dataframe according to the component specifications
-        df = dataset.load_data(self.spec)
-
-        # provide this datasets to the user
-        df = self.transform(args=args, dataframe=df)
-        # TODO update index, potentially add new subsets (functionality still missing)
-
-        # step 6: create and upload the output manifest
-        dataset.upload(save_path=args.output_manifest_path)

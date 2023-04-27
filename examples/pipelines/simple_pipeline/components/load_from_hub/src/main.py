@@ -11,7 +11,7 @@ import dask.array as da
 import numpy as np
 from PIL import Image
 
-from fondant.dataset import FondantLoadComponent
+from fondant.component import FondantLoadComponent
 from fondant.logger import configure_logging
 
 configure_logging()
