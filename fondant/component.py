@@ -74,7 +74,7 @@ class FondantComponent(ABC):
         """Abstract method that returns the dataset manifest"""
 
     @abstractmethod
-    def _process_dataframe(self,  dataset: FondantDataset) -> FondantDataset:
+    def _process_dataset(self, dataset: FondantDataset) -> FondantDataset:
         """Abstract method that processes the input dataframe and updates the Fondant Dataset
         with the new or loaded subsets"""
 
@@ -84,12 +84,12 @@ class FondantComponent(ABC):
         """
         manifest = self._load_or_create_manifest()
         dataset = FondantDataset(manifest)
-        dataset = self._process_dataframe(dataset)
+        dataset = self._process_dataset(dataset)
         dataset.upload(save_path=self.args.output_manifest_path)
 
 
 class FondantLoadComponent(FondantComponent):
-    """Abstract base class for a Fondant loader component"""
+    """Abstract base class for a Fondant load component"""
 
     def _load_or_create_manifest(self) -> Manifest:
         metadata = json.loads(self.args.metadata)
@@ -107,7 +107,7 @@ class FondantLoadComponent(FondantComponent):
     def load(self, args: argparse.Namespace) -> dd.DataFrame:
         """Abstract method that loads the initial dataframe"""
 
-    def _process_dataframe(self, dataset: FondantDataset) -> FondantDataset:
+    def _process_dataset(self, dataset: FondantDataset) -> FondantDataset:
         """This function takes in a FondantDataset object and processes the initial input dataframe
          by loading it using the user-provided load function. It then adds an initial index and
         subsets to the dataset, as specified by the component specification, and uploads
@@ -115,7 +115,7 @@ class FondantLoadComponent(FondantComponent):
          object
         Returns:
             A `FondantDataset` instance with updated data based on the applied data transformations.
-         """
+        """
         # Load the dataframe according to the custom function provided to the user
         df = self.load(self.args)
         # Add index and specified subsets and write them to remote storage
@@ -133,11 +133,11 @@ class FondantTransformComponent(FondantComponent):
 
     @abstractmethod
     def transform(
-            self, args: argparse.Namespace, dataframe: dd.DataFrame
+        self, args: argparse.Namespace, dataframe: dd.DataFrame
     ) -> dd.DataFrame:
         """Abstract method for applying data transformations to the input dataframe"""
 
-    def _process_dataframe(self, dataset: FondantDataset) -> FondantDataset:
+    def _process_dataset(self, dataset: FondantDataset) -> FondantDataset:
         """Applies data transformations to the input dataframe and updates the Fondant Dataset with
          the new or loaded subsets.
         Loads the input dataframe using the `load_data` method of the provided `FondantDataset`
