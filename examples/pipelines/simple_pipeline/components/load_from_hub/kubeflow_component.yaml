@@ -1,5 +1,5 @@
 name: load_from_hub
-description: A component that takes a dataset name from the 🤗 hub as input and uploads it to a GCS bucket.
+description: A component that loads a dataset name from the 🤗 hub.
 inputs: 
     - name: dataset_name
       description: Name of dataset on the hub
