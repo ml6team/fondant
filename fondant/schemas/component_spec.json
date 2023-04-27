@@ -6,8 +6,6 @@
     "name",
     "description",
     "image",
-    "input_subsets",
-    "output_subsets",
     "args"
   ],
   "properties": {
