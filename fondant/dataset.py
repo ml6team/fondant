@@ -1,18 +1,14 @@
 """This module defines the FondantDataset class, which is a wrapper around the manifest.
-
 It also defines the FondantComponent class, which uses the FondantDataset class to manipulate data.
 """
 
-from abc import abstractmethod
-import argparse
-import json
 import logging
+import typing as t
 from pathlib import Path
-from typing import List, Mapping
 
 import dask.dataframe as dd
 
-from fondant.component_spec import FondantComponentSpec, kubeflow2python_type
+from fondant.component_spec import FondantComponentSpec
 from fondant.manifest import Manifest, Index
 from fondant.schema import Type, Field
 
@@ -35,7 +31,7 @@ class FondantDataset:
         }
 
     def _load_subset(
-        self, name: str, fields: List[str], index: Index = None
+        self, name: str, fields: t.List[str], index: Index = None
     ) -> dd.DataFrame:
         # get subset from the manifest
         subset = self.manifest.subsets[name]
@@ -84,7 +80,7 @@ class FondantDataset:
 
         return df
 
-    def load_data(self, spec: FondantComponentSpec) -> dd.DataFrame:
+    def load_dataframe(self, spec: FondantComponentSpec) -> dd.DataFrame:
         subset_dfs = []
         for name, subset in spec.input_subsets.items():
             fields = list(subset.fields.keys())
@@ -111,18 +107,21 @@ class FondantDataset:
             overwrite=True,
         )
 
-    def _upload_subset(self, name: str, fields: Mapping[str, Field], df: dd.DataFrame):
+    def _upload_subset(
+        self, name: str, fields: t.Mapping[str, Field], df: dd.DataFrame
+    ):
         # add subset to the manifest
-        manifest_fields = [(field.name, Type[field.type]) for field in fields.values()]
+        manifest_fields = [
+            (field.name, Type[field.type.name]) for field in fields.values()
+        ]
         self.manifest.add_subset(name, fields=manifest_fields)
 
         # create expected schema
-        expected_schema = {field.name: field.type for field in fields.values()}
+        expected_schema = {field.name: field.type.name for field in fields.values()}
         expected_schema.update(self.index_schema)
 
         # get remote path
         remote_path = self.manifest.subsets[name].location
-
         # upload to the cloud
         dd.to_parquet(df, remote_path, schema=expected_schema, overwrite=True)
 
@@ -164,98 +163,3 @@ class FondantDataset:
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         self.manifest.to_file(save_path)
         return None
-
-
-class FondantComponent:
-    def __init__(self, type="transform"):
-        # note: Fondant spec always needs to be called like this
-        # and placed in the src directory
-        self.spec = FondantComponentSpec.from_file("fondant_component.yaml")
-        self.type = type
-
-    def run(self) -> dd.DataFrame:
-        """
-        Parses input data, executes the transform, and creates the output manifest.
-
-        Returns:
-            Manifest: the output manifest
-        """
-        # step 1: add and parse arguments
-        args = self._add_and_parse_args()
-        # step 2: create Fondant dataset based on input manifest
-        metadata = json.loads(args.metadata)
-        if self.type == "load":
-            # TODO ideally get rid of args.metadata
-            # by including them in the storage args,
-            # getting run_id based on args.output_manifest_path
-            manifest = Manifest.create(
-                base_path=metadata["base_path"],
-                run_id=metadata["run_id"],
-                component_id=metadata["component_id"],
-            )
-        else:
-            manifest = Manifest.from_file(args.input_manifest_path)
-        dataset = FondantDataset(manifest)
-        # step 3: load or transform data
-        if self.type == "load":
-            df = self.load(args)
-            dataset.add_index(df)
-            dataset.add_subsets(df, self.spec)
-        else:
-            # create dataframe, based on component spec
-            df = dataset.load_data(self.spec)
-            # provide this dataframe to the user
-            df = self.transform(
-                df=df,
-                args=args,
-            )
-            # TODO update index, potentially add new subsets
-
-        # step 4: create output manifest
-        output_manifest = dataset.upload(save_path=args.output_manifest_path)
-
-        return output_manifest
-
-    def _add_and_parse_args(self):
-        """
-        Add and parse component arguments based on the component specification.
-        """
-        parser = argparse.ArgumentParser()
-
-        kubeflow_component = self.spec.kubeflow_specification
-
-        # add input args
-        for arg in kubeflow_component.input_arguments.values():
-            parser.add_argument(
-                f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],
-                required=False
-                if self.type == "load" and arg.name == "input_manifest_path"
-                else True,
-                help=arg.description,
-            )
-        # add output args
-        for arg in kubeflow_component.output_arguments.values():
-            parser.add_argument(
-                f"--{arg.name}",
-                required=True,
-                type=str,
-                help=arg.description,
-            )
-        # add metadata
-        parser.add_argument(
-            "--metadata",
-            type=str,
-            required=True,
-            help="The metadata associated with the pipeline run",
-        )
-
-        return parser.parse_args()
-
-    @abstractmethod
-    def load(self, args) -> dd.DataFrame:
-        """Load initial dataframe"""
-
-    @abstractmethod
-    def transform(self, df, args) -> dd.DataFrame:
-        """Transform existing dataframe"""
