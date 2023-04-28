@@ -10,7 +10,7 @@ import dask.dataframe as dd
 
 from fondant.component_spec import FondantComponentSpec
 from fondant.manifest import Manifest, Index
-from fondant.schema import Type, Field
+from fondant.schema import Type
 
 logger = logging.getLogger(__name__)
 
@@ -31,56 +31,75 @@ class FondantDataset:
         }
 
     def _load_subset(
-        self, name: str, fields: t.List[str], index: t.Optional[Index] = None
+        self, subset_name: str, fields: t.List[str], index: t.Optional[Index] = None
     ) -> dd.DataFrame:
-        # get subset from the manifest
-        subset = self.manifest.subsets[name]
-        # get remote path
-        remote_path = subset.location
+        """
+        Function that loads the subset
+        Args:
+            subset_name: the name of the subset to load
+            fields: the fields to load from the subset
+            index: the manifest index to filter the subset on.
+        Returns:
+            The subset as a dask dataframe
+        """
 
-        # add index fields
+        subset = self.manifest.subsets[subset_name]
+        remote_path = subset.location
         index_fields = list(self.manifest.index.fields.keys())
         fields = index_fields + fields
 
-        logger.info(f"Loading subset {name} with fields {fields}...")
+        logger.info(f"Loading subset {subset_name} with fields {fields}...")
 
-        df = dd.read_parquet(
-            remote_path,
-            columns=fields,
-        )
+        subset_df = dd.read_parquet(remote_path, columns=fields)
 
         # filter on default index of manifest if no index is provided
         if index is None:
             index_df = self._load_index()
             ids = index_df["id"].compute()
             sources = index_df["source"].compute()
-            df = df[df["id"].isin(ids) & df["source"].isin(sources)]
+            subset_df = subset_df[
+                subset_df["id"].isin(ids) & subset_df["source"].isin(sources)
+            ]
 
         # add subset prefix to columns
-        df = df.rename(
+        subset_df = subset_df.rename(
             columns={
-                col: name + "_" + col for col in df.columns if col not in index_fields
+                col: subset_name + "_" + col
+                for col in subset_df.columns
+                if col not in index_fields
             }
         )
 
-        return df
+        return subset_df
 
-    def _load_index(self):
+    def _load_index(self) -> dd.DataFrame:
+        """
+        Function that loads the index dataframe from the manifest
+        Returns:
+            The index as a dask dataframe
+        """
         # get index subset from the manifest
         index = self.manifest.index
         # get remote path
         remote_path = index.location
 
-        df = dd.read_parquet(remote_path)
+        index_df = dd.read_parquet(remote_path)
 
-        if list(df.columns) != ["id", "source"]:
+        if list(index_df.columns) != ["id", "source"]:
             raise ValueError(
-                f"Index columns should be 'id' and 'source', found {df.columns}"
+                f"Index columns should be 'id' and 'source', found {index_df.columns}"
             )
 
-        return df
+        return index_df
 
     def load_dataframe(self, spec: FondantComponentSpec) -> dd.DataFrame:
+        """
+        Function that loads the subsets defined in the component spec as a single dask dataframe
+        Args:
+            spec: the fondant component spec
+        Returns:
+            The dask dataframe with the field columns in the format (<subset>_<column_name>)
+        """
         subset_dfs = []
         for name, subset in spec.input_subsets.items():
             fields = list(subset.fields.keys())
@@ -95,71 +114,145 @@ class FondantDataset:
 
         return df
 
-    def _upload_index(self, df: dd.DataFrame):
-        # get remote path
-        remote_path = self.manifest.index.location
+    @staticmethod
+    def _create_write_dataframe_task(
+        *, df: dd.DataFrame, remote_path: str, schema: t.Dict[str, str]
+    ) -> dd.core.Scalar:
+        """
+        Creates a delayed Dask task to upload the given DataFrame to the remote storage location
+         specified in the manifest.
+        Args:
+            df: The DataFrame to be uploaded.
+            remote_path: the location to upload the subset to
+            schema: the schema of the dataframe to write
+        Returns:
+             A delayed Dask task that uploads the DataFrame to the remote storage location when
+              executed.
+        """
 
-        # upload to the cloud
-        dd.to_parquet(
-            df,
-            remote_path,
-            schema=self.index_schema,
-            overwrite=True,
+        # Define task to upload index to remote storage
+        upload_index_task = dd.to_parquet(
+            df, remote_path, schema=schema, overwrite=True, compute=False
         )
+        return upload_index_task
 
-    def _upload_subset(
-        self, name: str, fields: t.Mapping[str, Field], df: dd.DataFrame
-    ):
-        # add subset to the manifest
-        manifest_fields = [
-            (field.name, Type[field.type.name]) for field in fields.values()
-        ]
-        self.manifest.add_subset(name, fields=manifest_fields)
-
-        # create expected schema
-        expected_schema = {field.name: field.type.name for field in fields.values()}
-        expected_schema.update(self.index_schema)
-
-        # get remote path
-        remote_path = self.manifest.subsets[name].location
-        # upload to the cloud
-        dd.to_parquet(df, remote_path, schema=expected_schema, overwrite=True)
-
-    def add_index(self, df: dd.DataFrame):
+    def get_upload_index_task(self, df: dd.DataFrame) -> dd.core.Scalar:
+        """
+        Create a Dask task that uploads the index dataframe to a remote location.
+        Args:
+            df: The input Dask dataframe.
+        Returns:
+            A Dask scalar representing the upload task.
+        """
+        remote_path = self.manifest.index.location
         index_columns = list(self.manifest.index.fields.keys())
 
         # load index dataframe
         index_df = df[index_columns]
 
-        self._upload_index(index_df)
+        upload_index_task = self._create_write_dataframe_task(
+            df=index_df, remote_path=remote_path, schema=self.index_schema
+        )
 
-    def add_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
-        for name, subset in spec.output_subsets.items():
-            fields = list(subset.fields.keys())
-            # verify fields are present in the output dataframe
-            subset_columns = [f"{name}_{field}" for field in fields]
+        return upload_index_task
+
+    def get_upload_subsets_task(
+        self, df: dd.DataFrame, spec: FondantComponentSpec
+    ) -> t.List[dd.core.Scalar]:
+        """
+        Create a list of Dask tasks for uploading the output subsets to remote locations.
+
+        Args:
+            df (dask.dataframe.DataFrame): The input Dask dataframe.
+            spec (FondantComponentSpec): The specification of the output subsets.
+
+        Returns:
+            list[dask.core.Scalar]: A list of Dask scalars representing the upload tasks.
+
+        Raises:
+            ValueError: If a field defined in an output subset is not present in the input
+             dataframe.
+        """
+
+        def verify_subset_columns(subset_name, subset_fields, df):
+            """
+            Verify that all the fields defined in the output subset are present in
+            the input dataframe
+            """
+
+            field_names = list(subset_fields.keys())
+            subset_columns = [f"{subset_name}_{field}" for field in field_names]
             subset_columns.extend(self.mandatory_subset_columns)
 
             for col in subset_columns:
                 if col not in df.columns:
                     raise ValueError(
-                        f"Field {col} defined in output subset {name} but not found in dataframe"
+                        f"Field {col} defined in output subset {subset_name} "
+                        f"but not found in dataframe"
                     )
 
-            # load subset dataframe
+            return subset_columns
+
+        def create_subset_dataframe(subset_name, subset_columns, df):
+            """
+            Create subset dataframe to save with the original field name as the column name
+            """
+            # Create a new dataframe with only the columns needed for the output subset
             subset_df = df[subset_columns]
-            # remove subset prefix from subset columns
+
+            # Remove the subset prefix from the column names
+            prefix_to_replace = f"{subset_name}_"
             subset_df = subset_df.rename(
                 columns={
-                    col: col.split("_")[-1]
+                    col: col.replace(prefix_to_replace, "")
                     for col in subset_df.columns
                     if col not in self.mandatory_subset_columns
+                    and col.startswith(prefix_to_replace)
                 }
             )
-            # add to the manifest and upload
-            self._upload_subset(name, subset.fields, subset_df)
 
-    def upload(self, save_path):
+            return subset_df
+
+        upload_subsets_task = []
+
+        # Loop through each output subset defined in the spec
+        for subset_name, subset in spec.output_subsets.items():
+            # Verify that all the fields defined in the output subset are present in the
+            # input dataframe
+            subset_columns = verify_subset_columns(subset_name, subset.fields, df)
+
+            # Create a new dataframe with only the columns needed for the output subset
+            subset_df = create_subset_dataframe(subset_name, subset_columns, df)
+
+            # Add the output subset to the manifest
+            manifest_fields = [
+                (field.name, Type[field.type.name]) for field in subset.fields.values()
+            ]
+            self.manifest.add_subset(subset_name, fields=manifest_fields)
+
+            # Get the remote path where the output subset should be uploaded
+            remote_path = self.manifest.subsets[subset_name].location
+
+            # Create the expected schema for the output subset
+            expected_schema = {
+                field.name: field.type.name for field in subset.fields.values()
+            }
+            expected_schema.update(self.index_schema)
+
+            # Create a Dask task to upload the output subset to the remote location
+            upload_subset_task = self._create_write_dataframe_task(
+                df=subset_df, remote_path=remote_path, schema=expected_schema
+            )
+            upload_subsets_task.append(upload_subset_task)
+
+        # Return the list of Dask tasks to upload the output subsets
+        return upload_subsets_task
+
+    def upload_manifest(self, save_path: str):
+        """
+        Function that uploads the updated manifest to a remote storage
+        Args:
+            save_path: the path to upload the manifest to
+        """
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         self.manifest.to_file(save_path)
-        return None
