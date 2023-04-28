@@ -1,6 +1,6 @@
 # Fondant
 
-Fondant is a framework that speeds up the creation of KubeFlow pipelines to process big datasets and train [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models)
+Fondant is a framework built on top of KubeFlow pipelines to prepare big datasets for and train [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models)
 such as:
 
 - Stable Diffusion
