@@ -55,6 +55,8 @@ liccheck = "^0.7.3"
 pre-commit = "^3.1.1"
 pytest = "^7.2.2"
 pytest-cov = "~2.12.1"
+dask = "^2022.2.0"
+pyarrow = "11.0.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.1.8"
