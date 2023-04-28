@@ -123,9 +123,9 @@ class FondantLoadComponent(FondantComponent):
         # Load the dataframe according to the custom function provided to the user
         df = self.load(self.args)
 
-        # Add index and specified subsets and write them to remote storage
-        dataset.add_index(df)
-        dataset.add_subsets(df, self.spec)
+        # Write index and output subsets to remote storage
+        dataset.write_index(df)
+        dataset.write_subsets(df, self.spec)
 
         return dataset
 
