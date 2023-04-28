@@ -143,7 +143,8 @@ class FondantDataset:
             # add to the manifest and upload
             self._upload_subset(name, subset.fields, subset_df)
 
-    def upload(self, save_path):
+    def upload(self, component_spec, save_path):
+        output_manifest = self.manifest.evolve(component_spec)
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        self.manifest.to_file(save_path)
+        output_manifest.to_file(save_path)
         return None
