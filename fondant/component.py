@@ -161,7 +161,6 @@ class FondantTransformComponent(FondantComponent):
         # evolve manifest
         dataset.manifest = dataset.manifest.evolve(self.spec)
 
-        # TODO update index, potentially add new subsets (functionality still missing)
-        # Write index and output subsets and write them to remote storage
+        # TODO Write index and output subsets and write them to remote storage
 
         return dataset
