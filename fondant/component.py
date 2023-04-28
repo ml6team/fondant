@@ -92,14 +92,18 @@ class FondantLoadComponent(FondantComponent):
     """Abstract base class for a Fondant load component"""
 
     def _load_or_create_manifest(self) -> Manifest:
-        metadata = json.loads(self.args.metadata)
+        # create initial manifest
         # TODO ideally get rid of args.metadata by including them in the storage args, getting
         #  run_id based on args.output_manifest_path
+        metadata = json.loads(self.args.metadata)
         manifest = Manifest.create(
             base_path=metadata["base_path"],
             run_id=metadata["run_id"],
             component_id=metadata["component_id"],
         )
+
+        # evolve manifest based on component spec
+        manifest = manifest.evolve(self.spec)
 
         return manifest
 
@@ -118,8 +122,7 @@ class FondantLoadComponent(FondantComponent):
         """
         # Load the dataframe according to the custom function provided to the user
         df = self.load(self.args)
-        # Update manifest
-        dataset.manifest = dataset.manifest.evolve(self.spec)
+
         # Add index and specified subsets and write them to remote storage
         dataset.add_index(df)
         dataset.add_subsets(df, self.spec)
@@ -155,6 +158,10 @@ class FondantTransformComponent(FondantComponent):
         """
         df = dataset.load_dataframe(self.spec)
         df = self.transform(args=self.args, dataframe=df)
+        # evolve manifest
+        dataset.manifest = dataset.manifest.evolve(self.spec)
+
         # TODO update index, potentially add new subsets (functionality still missing)
+        # Write index and output subsets and write them to remote storage
 
         return dataset

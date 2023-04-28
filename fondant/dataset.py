@@ -1,6 +1,4 @@
-"""This module defines the FondantDataset class, which is a wrapper around the manifest.
-It also defines the FondantComponent class, which uses the FondantDataset class to manipulate data.
-"""
+"""This module defines the FondantDataset class, which is a wrapper around the manifest."""
 
 import logging
 import typing as t
@@ -94,12 +92,6 @@ class FondantDataset:
     def _upload_subset(
         self, name: str, fields: t.Mapping[str, Field], df: dd.DataFrame
     ):
-        # add subset to the manifest
-        manifest_fields = [
-            (field.name, Type[field.type.name]) for field in fields.values()
-        ]
-        self.manifest.add_subset(name, fields=manifest_fields)
-
         # create expected schema
         expected_schema = {field.name: field.type.name for field in fields.values()}
         expected_schema.update(self.index_schema)
