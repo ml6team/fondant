@@ -103,7 +103,7 @@ class FondantLoadComponent(FondantComponent):
         )
 
         # evolve manifest based on component spec
-        manifest = manifest.evolve(self.spec)
+        manifest = manifest.evolve(metadata=metadata, component_spec=self.spec)
 
         return manifest
 
@@ -159,8 +159,13 @@ class FondantTransformComponent(FondantComponent):
         df = dataset.load_dataframe(self.spec)
         df = self.transform(args=self.args, dataframe=df)
         # evolve manifest
-        dataset.manifest = dataset.manifest.evolve(self.spec)
+        metadata = json.loads(self.args.metadata)
+        dataset.manifest = dataset.manifest.evolve(
+            metadata=metadata, component_spec=self.spec
+        )
 
-        # TODO Write index and output subsets and write them to remote storage
+        # Write index and output subsets and write them to remote storage
+        dataset.write_index(df)
+        dataset.write_subsets(df, self.spec)
 
         return dataset
