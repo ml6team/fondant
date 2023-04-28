@@ -85,9 +85,7 @@ class FondantComponent(ABC):
         manifest = self._load_or_create_manifest()
         dataset = FondantDataset(manifest)
         dataset = self._process_dataset(dataset)
-        dataset.upload(
-            component_spec=self.spec, save_path=self.args.output_manifest_path
-        )
+        dataset.upload(save_path=self.args.output_manifest_path)
 
 
 class FondantLoadComponent(FondantComponent):
@@ -120,6 +118,8 @@ class FondantLoadComponent(FondantComponent):
         """
         # Load the dataframe according to the custom function provided to the user
         df = self.load(self.args)
+        # Update manifest
+        dataset.manifest = dataset.manifest.evolve(self.spec)
         # Add index and specified subsets and write them to remote storage
         dataset.add_index(df)
         dataset.add_subsets(df, self.spec)
