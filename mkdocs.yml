@@ -2,7 +2,7 @@ site_name: Fondant
 theme:
     name: material
 nav:
-    - Home: home.md
+    - Home: index.md
     - About: about.md
 
 markdown_extensions:
