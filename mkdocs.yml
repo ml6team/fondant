@@ -3,7 +3,6 @@ theme:
     name: material
 nav:
     - Home: index.md
-    - About: about.md
 
 markdown_extensions:
 - pymdownx.snippets:
