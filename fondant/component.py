@@ -102,11 +102,6 @@ class FondantLoadComponent(FondantComponent):
             component_id=metadata["component_id"],
         )
 
-        # evolve manifest based on component spec
-        manifest = manifest.evolve(
-            component_id=metadata["component_id"], component_spec=self.spec
-        )
-
         return manifest
 
     @abstractmethod

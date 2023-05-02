@@ -199,6 +199,11 @@ class Manifest:
         # Update `component_id` of the metadata
         evolved_manifest.add_metadata(key="component_id", value=component_id)
 
+        # Update index location as this is currently always rewritten
+        evolved_manifest.index._specification[
+            "location"
+        ] = f"/{self.run_id}/{component_id}/index"
+
         # If additionalSubsets is False in component input subsets,
         # Remove all subsets from the manifest that are not listed
         if not component_spec.accepts_additional_subsets:
