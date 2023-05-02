@@ -73,7 +73,7 @@ class FondantDataset:
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
             # left joins -> filter on index
-            df = dd.merge(df, subset_df, how="left")
+            df = dd.merge(df, subset_df, on=["id", "source"], how="left")
 
         logging.info("Columns of dataframe:", list(df.columns))
 

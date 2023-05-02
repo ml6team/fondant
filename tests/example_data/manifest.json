@@ -1,6 +1,6 @@
 {
     "metadata": {
-      "base_path": "./temp",
+      "base_path": "tests/example_data/subsets",
       "run_id": "12345",
       "component_id": "67890"
     },
