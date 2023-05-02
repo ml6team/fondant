@@ -39,7 +39,9 @@ jobs:
         run: |
           poetry run pytest tests --cov connexion --cov-report term-missing
       - name: Coveralls
-        run: coveralls --service github
+        run: |
+          pip install "coveralls<4"
+          coveralls --service github
         env:
           COVERALLS_PARALLEL: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
