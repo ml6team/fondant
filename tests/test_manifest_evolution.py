@@ -28,7 +28,7 @@ def examples():
 def test_evolution(input_manifest, component_spec, output_manifest):
     manifest = Manifest(input_manifest)
     component_spec = FondantComponentSpec(component_spec)
-    evolved_manifest = manifest.evolve(component_spec=component_spec)
+    evolved_manifest = manifest.evolve(component_id="100", component_spec=component_spec)
 
     print("Spec:", evolved_manifest._specification)
     print("Output manifest:", output_manifest)
