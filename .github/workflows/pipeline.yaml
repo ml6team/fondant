@@ -37,7 +37,7 @@ jobs:
           pylint fondant --exit-zero
       - name: Test with pytest
         run: |
-          poetry run pytest tests --cov connexion --cov-report term-missing
+          poetry run pytest tests --cov fondant --cov-report term-missing
       - name: Coveralls
         run: |
           pip install "coveralls<4"
