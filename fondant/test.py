@@ -21,6 +21,9 @@ manifest = Manifest.create(base_path=".", run_id="100", component_id="200")
 print("Initial manifest:", manifest)
 
 # evolve manifest based on component spec
-output_manifest = manifest.evolve(component_spec=component_spec)
+component_id = "100"
+output_manifest = manifest.evolve(
+    component_id=component_id, component_spec=component_spec
+)
 
 print("Output manifest:", output_manifest)
