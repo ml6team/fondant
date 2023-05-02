@@ -30,4 +30,11 @@ def test_merge_subsets(manifest, component_spec):
     fds = FondantDataset(manifest=manifest)
     df = fds.load_dataframe(spec=component_spec)
     assert len(df) == 151
-    assert list(df.columns) == ["id", "source", "Name", "HP", "Type 1", "Type 2"]
+    assert list(df.columns) == [
+        "id",
+        "source",
+        "properties_Name",
+        "properties_HP",
+        "types_Type 1",
+        "types_Type 2",
+    ]

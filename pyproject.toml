@@ -41,7 +41,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.8"
 jsonschema = "^4.17.3"
-dask = "^2023.4.0"
+dask = {extras = ["dataframe"], version = "^2023.4.1"}
 
 kfp = { version = "^1.8.19", optional = true }
 kubernetes = { version = "^18.20.0", optional = true }

@@ -48,11 +48,11 @@ class FondantDataset:
         )
 
         # add subset prefix to columns
-        # df = df.rename(
-        #     columns={
-        #         col: name + "_" + col for col in df.columns if col not in index_fields
-        #     }
-        # )
+        df = df.rename(
+            columns={
+                col: name + "_" + col for col in df.columns if col not in index_fields
+            }
+        )
 
         return df
 

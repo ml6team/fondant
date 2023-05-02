@@ -1,7 +1,7 @@
 """
 This is a small script to split the raw data into different subsets to be used while testing.
 
-The data is the 151 first pokemon and the following field are available:
+The data is the 151 first pokemon and the following fields are available:
 
 'id', 'Name', 'Type 1', 'Type 2', 'Total', 'HP', 'Attack', 'Defense',
 'Sp. Atk', 'Sp. Def', 'Speed', 'source', 'Legendary'
