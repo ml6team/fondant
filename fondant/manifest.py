@@ -188,17 +188,15 @@ class Manifest:
 
         del self._specification["subsets"][name]
 
-    def evolve(
-        self, metadata: dict, component_spec: FondantComponentSpec
-    ) -> "Manifest":
-        """Evolve the manifest based on the provided metadata and component spec. The resulting
+    def evolve(self, component_spec: FondantComponentSpec) -> "Manifest":
+        """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided to the component defined
         by the component spec."""
         evolved_manifest = self.copy()
 
-        # Update metadata
-        for key, value in metadata.items():
-            evolved_manifest.add_metadata(key, value)
+        # Update `component_id` of the metadata
+        component_name = component_spec.name
+        evolved_manifest.add_metadata(key="component_id", value=component_name)
 
         # If additionalSubsets is False in component input subsets,
         # Remove all subsets from the manifest that are not listed
