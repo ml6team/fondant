@@ -31,7 +31,7 @@ class FondantDataset:
         }
 
     def _load_subset(
-            self, subset_name: str, fields: t.List[str], index: t.Optional[Index] = None
+        self, subset_name: str, fields: t.List[str], index: t.Optional[Index] = None
     ) -> dd.DataFrame:
         """
         Function that loads the subset
@@ -60,7 +60,7 @@ class FondantDataset:
             sources = index_df["source"].compute()
             subset_df = subset_df[
                 subset_df["id"].isin(ids) & subset_df["source"].isin(sources)
-                ]
+            ]
 
         # add subset prefix to columns
         subset_df = subset_df.rename(
@@ -115,7 +115,7 @@ class FondantDataset:
 
     @staticmethod
     def _create_write_dataframe_task(
-            *, df: dd.DataFrame, remote_path: str, schema: t.Dict[str, str]
+        *, df: dd.DataFrame, remote_path: str, schema: t.Dict[str, str]
     ) -> dd.core.Scalar:
         """
         Creates a delayed Dask task to upload the given DataFrame to the remote storage location
@@ -202,10 +202,10 @@ class FondantDataset:
             prefix_to_replace = f"{subset_name}_"
             subset_df = subset_df.rename(
                 columns={
-                    col: col[(len(prefix_to_replace)):]
+                    col: col[(len(prefix_to_replace)) :]
                     for col in subset_df.columns
                     if col not in self.mandatory_subset_columns
-                       and col.startswith(prefix_to_replace)
+                    and col.startswith(prefix_to_replace)
                 }
             )
 

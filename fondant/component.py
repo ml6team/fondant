@@ -134,7 +134,7 @@ class FondantTransformComponent(FondantComponent):
 
     @abstractmethod
     def transform(
-            self, args: argparse.Namespace, dataframe: dd.DataFrame
+        self, args: argparse.Namespace, dataframe: dd.DataFrame
     ) -> dd.DataFrame:
         """Abstract method for applying data transformations to the input dataframe"""
 
