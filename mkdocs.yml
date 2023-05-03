@@ -1,0 +1,9 @@
+site_name: Fondant
+theme:
+    name: material
+nav:
+    - Home: index.md
+
+markdown_extensions:
+- pymdownx.snippets:
+    check_paths: true

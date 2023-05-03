@@ -1,0 +1,21 @@
+name: Test component 1
+description: This is an example component
+image: example_component:latest
+
+input_subsets:
+  properties:
+    fields:
+      Name:
+        type: "utf8"
+      HP:
+        type: "int32"
+  types:
+    fields:
+      Type 1:
+        type: "utf8"
+      Type 2:
+        type: "utf8"
+args:
+  storage_args:
+    description: Storage arguments
+    type: str

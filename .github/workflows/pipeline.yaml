@@ -37,4 +37,23 @@ jobs:
           pylint fondant --exit-zero
       - name: Test with pytest
         run: |
-          poetry run pytest tests
+          poetry run pytest tests --cov fondant --cov-report term-missing
+      - name: Coveralls
+        run: |
+          pip install "coveralls<4"
+          coveralls --service github
+        env:
+          COVERALLS_PARALLEL: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_FLAG_NAME: test-${{ matrix.python-version }}
+
+  finish-coveralls:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install "coveralls<4"
+        run: pip install coveralls
+      - name: Coveralls Finished
+        run: coveralls --service github --finish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

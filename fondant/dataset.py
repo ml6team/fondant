@@ -101,15 +101,13 @@ class FondantDataset:
         Returns:
             The dask dataframe with the field columns in the format (<subset>_<column_name>)
         """
-        subset_dfs = []
+        # load index into dataframe
+        df = self._load_index()
         for name, subset in spec.input_subsets.items():
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
-            subset_dfs.append(subset_df)
-
-        # return a single dataframe with column_names called subset_field
-        # TODO perhaps leverage dd.merge here instead
-        df = dd.concat(subset_dfs)
+            # left joins -> filter on index
+            df = dd.merge(df, subset_df, on=["id", "source"], how="left")
 
         logging.info("Columns of dataframe:", list(df.columns))
 
