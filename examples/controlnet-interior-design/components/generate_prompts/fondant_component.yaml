@@ -1,0 +1,14 @@
+name: Generate prompts
+description: Component that generates a set of seed prompts
+image: generate_prompts::latest
+
+output_subsets:
+  prompts:
+    fields:
+      text:
+        type: utf8
+
+args:
+  dataset_name:
+    description: Name of dataset on the hub
+    type: str
