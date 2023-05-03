@@ -74,7 +74,7 @@ class FondantComponent(ABC):
         """Abstract method that returns the dataset manifest"""
 
     @abstractmethod
-    def _process_dataset(self, dataset: FondantDataset) -> FondantDataset:
+    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
         """Abstract method that processes the input dataframe and updates the Fondant Dataset
         with the new or loaded subsets"""
 
@@ -82,9 +82,21 @@ class FondantComponent(ABC):
         """
         Runs the component.
         """
-        manifest = self._load_or_create_manifest()
-        dataset = FondantDataset(manifest)
-        dataset = self._process_dataset(dataset)
+        input_manifest = self._load_or_create_manifest()
+        dataset = FondantDataset(input_manifest)
+
+        df = self._process_dataset(dataset)
+
+        metadata = json.loads(self.args.metadata)
+        output_manifest = input_manifest.evolve(
+            component_id=metadata["component_id"], component_spec=self.spec
+        )
+        dataset = FondantDataset(output_manifest)
+
+        # write index and output subsets to remote storage
+        dataset.write_index(df)
+        dataset.write_subsets(df, self.spec)
+
         dataset.upload(save_path=self.args.output_manifest_path)
 
 
@@ -102,34 +114,25 @@ class FondantLoadComponent(FondantComponent):
             component_id=metadata["component_id"],
         )
 
-        # evolve manifest
-        manifest = manifest.evolve(
-            component_id=metadata["component_id"], component_spec=self.spec
-        )
-
         return manifest
 
     @abstractmethod
     def load(self, args: argparse.Namespace) -> dd.DataFrame:
         """Abstract method that loads the initial dataframe"""
 
-    def _process_dataset(self, dataset: FondantDataset) -> FondantDataset:
+    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
         """This function takes in a FondantDataset object and processes the initial input dataframe
          by loading it using the user-provided load function. It then adds an initial index and
         subsets to the dataset, as specified by the component specification, and uploads
          the updated dataset to remote storage. The function returns the updated FondantDataset
          object
         Returns:
-            A `FondantDataset` instance with updated data based on the applied data transformations.
+            A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         # Load the dataframe according to the custom function provided to the user
         df = self.load(self.args)
 
-        # Write index and output subsets to remote storage
-        dataset.write_index(df)
-        dataset.write_subsets(df, self.spec)
-
-        return dataset
+        return df
 
 
 class FondantTransformComponent(FondantComponent):
@@ -144,7 +147,7 @@ class FondantTransformComponent(FondantComponent):
     ) -> dd.DataFrame:
         """Abstract method for applying data transformations to the input dataframe"""
 
-    def _process_dataset(self, dataset: FondantDataset) -> FondantDataset:
+    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
         """Applies data transformations to the input dataframe and updates the Fondant Dataset with
          the new or loaded subsets.
         Loads the input dataframe using the `load_data` method of the provided `FondantDataset`
@@ -153,21 +156,12 @@ class FondantTransformComponent(FondantComponent):
 
         After data transformations, the index of the dataset may need to be updated or new subsets
         may need to be added, depending on the component specification. Once the necessary updates
-        have been performed, the updated dataset is returned.
+        have been performed, the updated dataframe is returned.
 
         Returns:
-            A `FondantDataset` instance with updated data based on the applied data transformations.
+            A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         df = dataset.load_dataframe(self.spec)
         df = self.transform(args=self.args, dataframe=df)
-        # evolve manifest
-        metadata = json.loads(self.args.metadata)
-        dataset.manifest = dataset.manifest.evolve(
-            component_id=metadata["component_id"], component_spec=self.spec
-        )
 
-        # Write index and output subsets and write them to remote storage
-        dataset.write_index(df)
-        dataset.write_subsets(df, self.spec)
-
-        return dataset
+        return df
