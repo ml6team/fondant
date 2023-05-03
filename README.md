@@ -1,13 +1,14 @@
 # Fondant
 
-Fondant is a data-centric framework to fine-tune [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models)
-such as:
+Fondant is a data-centric framework to fine-tune [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models) such as:
 
 - Stable Diffusion
 - CLIP
 - Large Language Models (LLMs like GPT-3)
 - Segment Anything (SAM)
 - etc.
+
+Fondant focuses on data preparation to fine-tune these models.
 
 ## Installation
 
