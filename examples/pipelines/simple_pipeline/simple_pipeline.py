@@ -71,5 +71,5 @@ if __name__ == "__main__":
         pipeline=simple_pipeline,
         host=KubeflowConfig.HOST,
         env=KubeflowConfig.ENV,
-        pipeline_id="804be43a-7c7f-406a-8c01-7f3fa6171125",
+        pipeline_id="3c099f48-2aa0-4bcc-96a8-09ef2834e667",
     )

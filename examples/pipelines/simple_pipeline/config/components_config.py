@@ -23,8 +23,8 @@ class ImageFilterConfig:
         MIN_WIDTH (int): Minimum width for each image.
     """
 
-    MIN_HEIGHT = 200
-    MIN_WIDTH = 200
+    MIN_HEIGHT = 600
+    MIN_WIDTH = 600
 
 
 @dataclass

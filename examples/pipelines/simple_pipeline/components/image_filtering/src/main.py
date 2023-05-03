@@ -27,9 +27,13 @@ class ImageFilterComponent(FondantTransformComponent):
         Returns:
             dataset
         """
+        logger.info("Length of the dataframe before filtering:", len(dataframe))
+
         logger.info("Filtering dataset...")
         min_width, min_height = args.min_width, args.min_height
         filtered_df = dataframe[(dataframe["images_width"] > min_width) & (dataframe["images_height"] > min_height)]
+
+        logger.info("Length of the dataframe after filtering:", len(filtered_df))
 
         return filtered_df
 
