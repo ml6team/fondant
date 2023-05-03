@@ -1,16 +1,13 @@
-"""This module defines the FondantDataset class, which is a wrapper around the manifest.
-It also defines the FondantComponent class, which uses the FondantDataset class to manipulate data.
-"""
+"""This module defines the FondantDataset class, which is a wrapper around the manifest."""
 
 import logging
 import typing as t
-from pathlib import Path
 
 import dask.dataframe as dd
 
 from fondant.component_spec import FondantComponentSpec
 from fondant.manifest import Manifest
-from fondant.schema import Type, Field
+from fondant.schema import Field
 
 logger = logging.getLogger(__name__)
 
@@ -94,12 +91,6 @@ class FondantDataset:
     def _upload_subset(
         self, name: str, fields: t.Mapping[str, Field], df: dd.DataFrame
     ):
-        # add subset to the manifest
-        manifest_fields = [
-            (field.name, Type[field.type.name]) for field in fields.values()
-        ]
-        self.manifest.add_subset(name, fields=manifest_fields)
-
         # create expected schema
         expected_schema = {field.name: field.type.name for field in fields.values()}
         expected_schema.update(self.index_schema)
@@ -109,7 +100,7 @@ class FondantDataset:
         # upload to the cloud
         dd.to_parquet(df, remote_path, schema=expected_schema, overwrite=True)
 
-    def add_index(self, df: dd.DataFrame):
+    def write_index(self, df: dd.DataFrame):
         index_columns = list(self.manifest.index.fields.keys())
 
         # load index dataframe
@@ -117,7 +108,7 @@ class FondantDataset:
 
         self._upload_index(index_df)
 
-    def add_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
+    def write_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
         for name, subset in spec.output_subsets.items():
             fields = list(subset.fields.keys())
             # verify fields are present in the output dataframe
@@ -140,10 +131,5 @@ class FondantDataset:
                     if col not in self.mandatory_subset_columns
                 }
             )
-            # add to the manifest and upload
+            # upload to the cloud
             self._upload_subset(name, subset.fields, subset_df)
-
-    def upload(self, save_path):
-        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        self.manifest.to_file(save_path)
-        return None
