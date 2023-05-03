@@ -140,8 +140,6 @@ class FondantDataset:
         Create a Dask task that uploads the index dataframe to a remote location.
         Args:
             df: The input Dask dataframe.
-        Returns:
-            A Dask scalar representing the upload task.
         """
         remote_path = self.manifest.index.location
         index_columns = list(self.manifest.index.fields.keys())
@@ -163,9 +161,6 @@ class FondantDataset:
         Args:
             df (dask.dataframe.DataFrame): The input Dask dataframe.
             spec (FondantComponentSpec): The specification of the output subsets.
-
-        Returns:
-            list[dask.core.Scalar]: A list of Dask scalars representing the upload tasks.
 
         Raises:
             ValueError: If a field defined in an output subset is not present in the input
