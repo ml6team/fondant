@@ -8,7 +8,7 @@ import dask.dataframe as dd
 
 from fondant.component_spec import FondantComponentSpec
 from fondant.manifest import Manifest
-from fondant.schema import Type, Field
+from fondant.schema import Field
 
 logger = logging.getLogger(__name__)
 
