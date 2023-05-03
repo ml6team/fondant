@@ -84,16 +84,16 @@ class FondantComponent(ABC):
         Runs the component.
         """
         input_manifest = self._load_or_create_manifest()
-        dataset = FondantDataset(input_manifest)
+        input_dataset = FondantDataset(input_manifest)
 
-        df = self._process_dataset(dataset)
+        df = self._process_dataset(input_dataset)
 
         output_manifest = input_manifest.evolve(component_spec=self.spec)
-        dataset = FondantDataset(output_manifest)
+        output_dataset = FondantDataset(output_manifest)
 
         # write index and output subsets to remote storage
-        dataset.write_index(df)
-        dataset.write_subsets(df, self.spec)
+        output_dataset.write_index(df)
+        output_dataset.write_subsets(df, self.spec)
 
         # write output manifest
         self.upload_manifest(output_manifest, save_path=self.args.output_manifest_path)
