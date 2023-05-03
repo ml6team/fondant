@@ -2,10 +2,10 @@
   "metadata": {
     "base_path": "gs://bucket",
     "run_id": "12345",
-    "component_id": "67890"
+    "component_id": "example_component"
   },
   "index": {
-    "location": "/index"
+    "location": "/12345/example_component/index"
   },
   "subsets": {
     "images": {
