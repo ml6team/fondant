@@ -32,17 +32,12 @@ print("Initial manifest:", manifest)
 
 # 2. evolve manifest based on load_from_hub component spec
 component_id = "2"
-output_manifest = manifest.evolve(
-    component_id=component_id, component_spec=load_from_hub_spec
-)
+output_manifest = manifest.evolve(component_spec=load_from_hub_spec)
 
 print("Intermediate manifest:", output_manifest)
 
 # 3. evolve manifest based on image_filtering component spec
 component_id = "3"
-output_manifest = output_manifest.evolve(
-    component_id=component_id,
-    component_spec=image_filtering_spec,
-)
+output_manifest = output_manifest.evolve(component_spec=image_filtering_spec)
 
 print("Output manifest:", output_manifest)

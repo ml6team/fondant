@@ -87,10 +87,7 @@ class FondantComponent(ABC):
 
         df = self._process_dataset(dataset)
 
-        metadata = json.loads(self.args.metadata)
-        output_manifest = input_manifest.evolve(
-            component_id=metadata["component_id"], component_spec=self.spec
-        )
+        output_manifest = input_manifest.evolve(component_spec=self.spec)
         dataset = FondantDataset(output_manifest)
 
         # write index and output subsets to remote storage
