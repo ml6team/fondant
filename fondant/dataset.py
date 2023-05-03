@@ -202,7 +202,7 @@ class FondantDataset:
             prefix_to_replace = f"{subset_name}_"
             subset_df = subset_df.rename(
                 columns={
-                    col: col.replace(prefix_to_replace, "")
+                    col: col[(len(prefix_to_replace)):]
                     for col in subset_df.columns
                     if col not in self.mandatory_subset_columns
                        and col.startswith(prefix_to_replace)
