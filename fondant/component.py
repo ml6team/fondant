@@ -119,15 +119,9 @@ class FondantLoadComponent(FondantComponent):
         # Load the dataframe according to the custom function provided to the user
         df = self.load(self.args)
 
-        # Add index and specified subsets and write them to remote storage
-        index_task = dataset.get_upload_index_task(df)
-        subset_tasks = dataset.get_upload_subsets_task(df, self.spec)
-
-        # Append the index writing task to the subset task
-        subset_tasks.append(index_task)
-
-        # Run all tasks in parallel
-        dd.compute(*subset_tasks)
+        # Upload index and subsets
+        dataset.upload_index(df)
+        dataset.upload_subsets(df, self.spec)
 
         return dataset
 
@@ -140,7 +134,7 @@ class FondantTransformComponent(FondantComponent):
 
     @abstractmethod
     def transform(
-        self, args: argparse.Namespace, dataframe: dd.DataFrame
+            self, args: argparse.Namespace, dataframe: dd.DataFrame
     ) -> dd.DataFrame:
         """Abstract method for applying data transformations to the input dataframe"""
 

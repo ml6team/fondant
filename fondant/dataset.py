@@ -31,14 +31,15 @@ class FondantDataset:
         }
 
     def _load_subset(
-        self, subset_name: str, fields: t.List[str], index: t.Optional[Index] = None
+            self, subset_name: str, fields: t.List[str], index: t.Optional[Index] = None
     ) -> dd.DataFrame:
         """
         Function that loads the subset
         Args:
             subset_name: the name of the subset to load
             fields: the fields to load from the subset
-            index: the manifest index to filter the subset on.
+            index: optional index to filter the subset on. If not provided, the default manifest
+             index is used.
         Returns:
             The subset as a dask dataframe
         """
@@ -59,7 +60,7 @@ class FondantDataset:
             sources = index_df["source"].compute()
             subset_df = subset_df[
                 subset_df["id"].isin(ids) & subset_df["source"].isin(sources)
-            ]
+                ]
 
         # add subset prefix to columns
         subset_df = subset_df.rename(
@@ -116,7 +117,7 @@ class FondantDataset:
 
     @staticmethod
     def _create_write_dataframe_task(
-        *, df: dd.DataFrame, remote_path: str, schema: t.Dict[str, str]
+            *, df: dd.DataFrame, remote_path: str, schema: t.Dict[str, str]
     ) -> dd.core.Scalar:
         """
         Creates a delayed Dask task to upload the given DataFrame to the remote storage location
@@ -136,7 +137,7 @@ class FondantDataset:
         )
         return upload_index_task
 
-    def get_upload_index_task(self, df: dd.DataFrame) -> dd.core.Scalar:
+    def upload_index(self, df: dd.DataFrame):
         """
         Create a Dask task that uploads the index dataframe to a remote location.
         Args:
@@ -154,11 +155,10 @@ class FondantDataset:
             df=index_df, remote_path=remote_path, schema=self.index_schema
         )
 
-        return upload_index_task
+        # Write index
+        dd.compute(upload_index_task)
 
-    def get_upload_subsets_task(
-        self, df: dd.DataFrame, spec: FondantComponentSpec
-    ) -> t.List[dd.core.Scalar]:
+    def upload_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
         """
         Create a list of Dask tasks for uploading the output subsets to remote locations.
 
@@ -207,13 +207,13 @@ class FondantDataset:
                     col: col.replace(prefix_to_replace, "")
                     for col in subset_df.columns
                     if col not in self.mandatory_subset_columns
-                    and col.startswith(prefix_to_replace)
+                       and col.startswith(prefix_to_replace)
                 }
             )
 
             return subset_df
 
-        upload_subsets_task = []
+        upload_subsets_tasks = []
 
         # Loop through each output subset defined in the spec
         for subset_name, subset in spec.output_subsets.items():
@@ -243,10 +243,10 @@ class FondantDataset:
             upload_subset_task = self._create_write_dataframe_task(
                 df=subset_df, remote_path=remote_path, schema=expected_schema
             )
-            upload_subsets_task.append(upload_subset_task)
+            upload_subsets_tasks.append(upload_subset_task)
 
-        # Return the list of Dask tasks to upload the output subsets
-        return upload_subsets_task
+        # Run all write subset tasks in parallel
+        dd.compute(*upload_subsets_tasks)
 
     def upload_manifest(self, save_path: str):
         """
