@@ -2,7 +2,6 @@
 
 import logging
 import typing as t
-from pathlib import Path
 
 import dask.dataframe as dd
 
@@ -134,8 +133,3 @@ class FondantDataset:
             )
             # upload to the cloud
             self._upload_subset(name, subset.fields, subset_df)
-
-    def upload(self, save_path):
-        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        self.manifest.to_file(save_path)
-        return None

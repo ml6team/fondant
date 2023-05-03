@@ -8,6 +8,7 @@ components take care of processing, filtering and extending the data.
 import argparse
 import json
 import logging
+from pathlib import Path
 import typing as t
 from abc import ABC, abstractmethod
 
@@ -94,7 +95,12 @@ class FondantComponent(ABC):
         dataset.write_index(df)
         dataset.write_subsets(df, self.spec)
 
-        dataset.upload(save_path=self.args.output_manifest_path)
+        # write output manifest
+        self.upload_manifest(output_manifest, save_path=self.args.output_manifest_path)
+
+    def upload_manifest(self, manifest: Manifest, save_path: str):
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        manifest.to_file(save_path)
 
 
 class FondantLoadComponent(FondantComponent):
