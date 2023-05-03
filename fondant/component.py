@@ -75,8 +75,8 @@ class FondantComponent(ABC):
 
     @abstractmethod
     def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
-        """Abstract method that processes the input dataframe and updates the Fondant Dataset
-        with the new or loaded subsets"""
+        """Abstract method that processes the input dataframe of the `FondantDataset` and
+        returns another dataframe"""
 
     def run(self):
         """
@@ -118,13 +118,10 @@ class FondantLoadComponent(FondantComponent):
         """Abstract method that loads the initial dataframe"""
 
     def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
-        """This function takes in a FondantDataset object and processes the initial input dataframe
-         by loading it using the user-provided load function. It then adds an initial index and
-        subsets to the dataset, as specified by the component specification, and uploads
-         the updated dataset to remote storage. The function returns the updated FondantDataset
-         object
+        """This function loads the initial dataframe sing the user-provided `load` method.
+
         Returns:
-            A `dd.DataFrame` instance with updated data based on the applied data transformations.
+            A `dd.DataFrame` instance with initial data'.
         """
         # Load the dataframe according to the custom function provided to the user
         df = self.load(self.args)
@@ -145,15 +142,10 @@ class FondantTransformComponent(FondantComponent):
         """Abstract method for applying data transformations to the input dataframe"""
 
     def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
-        """Applies data transformations to the input dataframe and updates the Fondant Dataset with
-         the new or loaded subsets.
-        Loads the input dataframe using the `load_data` method of the provided `FondantDataset`
-         instance, and  applies data transformations to it using the `transform` method implemented
-          by the derived class.
-
-        After data transformations, the index of the dataset may need to be updated or new subsets
-        may need to be added, depending on the component specification. Once the necessary updates
-        have been performed, the updated dataframe is returned.
+        """
+        Loads the input dataframe using the `load_dataframe` method of the provided `FondantDataset`
+        instance, and  applies data transformations to it using the `transform` method implemented
+        by the derived class. Returns a single dataframe.
 
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
