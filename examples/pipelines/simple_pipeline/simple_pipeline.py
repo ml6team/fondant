@@ -43,7 +43,6 @@ image_filtering_metadata = json.dumps(image_filtering_metadata)
 # pylint: disable=too-many-arguments, too-many-locals
 def simple_pipeline(
     load_from_hub_dataset_name: str = LoadFromHubConfig.DATASET_NAME,
-    load_from_hub_batch_size: int = LoadFromHubConfig.BATCH_SIZE,
     load_from_hub_metadata: str = load_from_hub_metadata,
     image_filter_min_width: int = ImageFilterConfig.MIN_WIDTH,
     image_filter_min_height: int = ImageFilterConfig.MIN_HEIGHT,
@@ -53,7 +52,6 @@ def simple_pipeline(
     # Component 1
     load_from_hub_task = load_from_hub_op(
         dataset_name=load_from_hub_dataset_name,
-        batch_size=load_from_hub_batch_size,
         metadata=load_from_hub_metadata,
     ).set_display_name("Load initial images")
 
@@ -71,5 +69,5 @@ if __name__ == "__main__":
         pipeline=simple_pipeline,
         host=KubeflowConfig.HOST,
         env=KubeflowConfig.ENV,
-        pipeline_id="16a2cc44-3590-4a0d-be42-02631e23fb8d",
+        pipeline_id="bbfe206a-911a-4e9a-923c-16530fedb5a2",
     )

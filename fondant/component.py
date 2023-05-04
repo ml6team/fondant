@@ -79,7 +79,9 @@ class FondantComponent(ABC):
         """Abstract method that processes the input dataframe of the `FondantDataset` and
         returns another dataframe"""
 
-    def get_custom_args(self):
+    def _get_custom_arguments(self):
+        """Gets the custom argument names and their values as a dictionary"""
+
         args = vars(self.args)
         # only keep the custom args of the component
         custom_args = [arg.name for arg in self.spec.args]
@@ -104,9 +106,9 @@ class FondantComponent(ABC):
         output_dataset.write_subsets(df, self.spec)
 
         # write output manifest
-        self.upload_manifest(output_manifest, save_path=self.args.output_manifest_path)
+        self._upload_manifest(output_manifest, save_path=self.args.output_manifest_path)
 
-    def upload_manifest(self, manifest: Manifest, save_path: str):
+    def _upload_manifest(self, manifest: Manifest, save_path: str):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         manifest.to_file(save_path)
 
@@ -138,7 +140,7 @@ class FondantLoadComponent(FondantComponent):
             A `dd.DataFrame` instance with initial data'.
         """
         # Load the dataframe according to the custom function provided to the user
-        custom_args = self.get_custom_args()
+        custom_args = self._get_custom_arguments()
         df = self.load(**custom_args)
 
         return df
@@ -164,7 +166,7 @@ class FondantTransformComponent(FondantComponent):
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         df = dataset.load_dataframe(self.spec)
-        custom_args = self.get_custom_args()
+        custom_args = self._get_custom_arguments()
         df = self.transform(dataframe=df, **custom_args)
 
         return df

@@ -5,10 +5,6 @@ inputs:
       description: Name of dataset on the hub
       type: String
     
-    - name: batch_size
-      description: Batch size to use to create image metadata
-      type: Integer
-    
     - name: metadata
       description: Metadata arguments, passed as a json dict string
       type: String
@@ -24,7 +20,6 @@ implementation:
         command: [
             python3, main.py,
             --dataset_name,              {inputValue: dataset_name},
-            --batch_size,                {inputValue: batch_size},
             --metadata,                  {inputValue: metadata},
             --output_manifest_path,      {outputPath: output_manifest_path},
         ]
