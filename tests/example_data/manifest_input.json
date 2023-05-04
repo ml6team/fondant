@@ -1,15 +1,15 @@
 {
     "metadata": {
-      "base_path": "/home/philippe/Scripts/express/tests/example_data/subsets",
-      "run_id": "12345",
-      "component_id": "67890"
+      "base_path": "tests/example_data/subsets/",
+      "run_id": "load_examples",
+      "component_id": "load_1"
     },
     "index": {
-      "location": "/index"
+      "location": "load_examples/load_1/index"
     },
     "subsets": {
       "properties": {
-        "location": "/properties",
+        "location": "load_examples/load_1/properties",
         "fields": {
             "Name": {
                 "type": "utf8"
@@ -20,7 +20,7 @@
         }
       },
       "types": {
-        "location": "/types",
+        "location": "load_examples/load_1/types",
         "fields": {
             "Type 1": {
                 "type": "utf8"

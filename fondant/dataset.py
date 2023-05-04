@@ -217,12 +217,6 @@ class FondantDataset:
             # Create a new dataframe with only the columns needed for the output subset
             subset_df = create_subset_dataframe(subset_name, subset_columns, df)
 
-            # Add the output subset to the manifest
-            manifest_fields = [
-                (field.name, Type[field.type.name]) for field in subset.fields.values()
-            ]
-            self.manifest.add_subset(subset_name, fields=manifest_fields)
-
             # Get the remote path where the output subset should be uploaded
             remote_path = self.manifest.subsets[subset_name].location
 
