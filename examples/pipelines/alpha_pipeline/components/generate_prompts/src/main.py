@@ -5,7 +5,7 @@ This component generates prompts that will be used to retrieve images
 import os
 import itertools
 import pandas as pd
-import dask as dd
+from dask import dataframe as dd
 
 
 def load_prompt_seeds(path_to_data):
