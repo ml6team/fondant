@@ -1,4 +1,5 @@
 from clip_retrieval.clip_client import ClipClient, Modality
+from dask import dataframe as dd
 
 
 def get_image_urls(text, client):
