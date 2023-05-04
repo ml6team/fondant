@@ -135,6 +135,9 @@ class FondantDataset:
         # load index dataframe
         index_df = df[index_columns]
 
+        # set index
+        index_df.set_index("id")
+
         upload_index_task = self._create_write_dataframe_task(
             df=index_df, remote_path=remote_path, schema=self.index_schema
         )
@@ -207,6 +210,9 @@ class FondantDataset:
 
             # Create a new dataframe with only the columns needed for the output subset
             subset_df = create_subset_dataframe(subset_name, subset_columns, df)
+
+            # set index
+            subset_df.set_index("id")
 
             # Get the remote path where the output subset should be uploaded
             remote_path = self.manifest.subsets[subset_name].location
