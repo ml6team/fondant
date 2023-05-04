@@ -59,6 +59,6 @@ def generate_prompts(path_to_data):
 
     prompts_pdf = pd.DataFrame(prompts_list, columns=['prompts_data'])
 
-    prompts_ddf = dd.from_pandas(prompts_pdf)
+    prompts_ddf = dd.from_pandas(prompts_pdf, npartitions=1) # need to decide how npartitions should be set
 
     return prompts_ddf
