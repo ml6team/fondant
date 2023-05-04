@@ -43,7 +43,7 @@ class FondantComponent(ABC):
 
     @abstractmethod
     def _add_and_parse_args(self) -> argparse.Namespace:
-        """Add and parses the component arguments"""
+        """Abstract method to add and parse the component arguments"""
 
     @abstractmethod
     def _load_or_create_manifest(self) -> Manifest:
