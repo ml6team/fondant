@@ -2,7 +2,7 @@ from clip_retrieval.clip_client import ClipClient, Modality
 from dask import dataframe as dd
 
 
-def get_image_urls(text, client):
+def query_clip_client(text, client):
     """
     Given a text query and a ClipClient instance, this function retrieves
     image URLs related to the query.
@@ -22,7 +22,7 @@ def get_image_urls(text, client):
     return results
 
 
-def retrieve_images(df):
+def retrieve_image_urls(df):
     """
     Given a Pandas DataFrame containing a column "prompt_data" with text
     queries, this function retrieves image URLs related to each query from the
@@ -49,7 +49,7 @@ def retrieve_images(df):
     )
 
     df['image_urls'] = df['prompt_data'].map_partitions(
-        lambda x: x.apply(get_image_urls, args=(client,)),
+        lambda x: x.apply(query_clip_client, args=(client,)),
         meta=('image_urls', 'object')
     )
 
