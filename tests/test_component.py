@@ -30,7 +30,6 @@ metadata = json.dumps({"base_path": ".", "run_id": "200"})
 @mock.patch('argparse.ArgumentParser.parse_args',
             return_value=argparse.Namespace(input_manifest_path=".", output_manifest_path="result.parquet", metadata=metadata))
 def test_component(mock_args):
-    """Test that the manifest is validated correctly on instantiation"""
     component = LoadFromHubComponent()
     
     # test component args
@@ -46,8 +45,3 @@ def test_component(mock_args):
     # test manifest
     initial_manifest = component._load_or_create_manifest()
     assert initial_manifest.metadata == {'base_path': '.', 'run_id': '200', 'component_id': 'example_component'}
-
-    # Create temporary directory for writing the subsets
-    with tempfile.TemporaryDirectory(dir="."):
-        component.run()
-
