@@ -5,7 +5,7 @@ function usage {
   echo "Options:"
   echo "  -c, --component <value>  Set the component name. Pass the component folder name to build a certain components or 'all' to build all components in the current directory (required)"
   echo "  -n, --namespace <value>  Set the namespace (default: ml6team)"
-  echo "  -r, --repo <value>       Set the repo (default: express)"
+  echo "  -r, --repo <value>       Set the repo (default: fondant)"
   echo "  -t, --tag <value>        Set the tag (default: latest)"
   echo "  -h, --help               Display this help message"
 }
@@ -29,7 +29,7 @@ fi
 
 # Set default values for optional arguments if not passed
 [ -n "${namespace-}" ] || namespace="ml6team"
-[ -n "${repo-}" ] || repo="express"
+[ -n "${repo-}" ] || repo="fondant"
 [ -n "${tag-}" ] || tag="latest"
 
 # Get the component directory

@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "base_path": {
+          "type": "string",
+          "format": "uri"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "component_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_path",
+        "run_id",
+        "component_id"
+      ]
+    },
+    "index": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "location"
+      ]
+    },
+    "subsets": {
+      "$ref": "#/definitions/subsets"
+    }
+  },
+  "required": [
+    "metadata",
+    "index",
+    "subsets"
+  ],
+  "definitions": {
+    "subset": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "pattern": "/.*"
+        },
+        "fields": {
+          "$ref": "common.json#/definitions/fields"
+        }
+      },
+      "required": [
+        "location",
+        "fields"
+      ]
+    },
+    "subsets": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/subset"
+      }
+    }
+  }
+}

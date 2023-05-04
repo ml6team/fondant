@@ -1,0 +1,51 @@
+{
+  "definitions": {
+    "subset_data_type": {
+      "type": "string",
+      "enum": [
+        "bool",
+        "int8",
+        "int16",
+        "int32",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+        "float16",
+        "float32",
+        "float64",
+        "decimal",
+        "time32",
+        "time64",
+        "timestamp",
+        "date32",
+        "date64",
+        "duration",
+        "utf8",
+        "binary",
+        "categorical",
+        "list",
+        "struct"
+      ]
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "$ref": "#/definitions/subset_data_type"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "fields": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/definitions/field"
+      }
+    }
+  }
+}

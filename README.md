@@ -1,75 +1,125 @@
-# Express
+# Fondant
 
-Express is a framework that speeds up the creation of KubeFlow pipelines to process big datasets and train [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models)
-such as:
+Fondant is a data-centric framework to fine-tune [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models) such as:
 
 - Stable Diffusion
 - CLIP
 - Large Language Models (LLMs like GPT-3)
+- Segment Anything (SAM)
+- etc.
 
-on them.
+Fondant focuses on data preparation to fine-tune these models.
 
 ## Installation
 
-Express can be installed using pip:
+Fondant can be installed from source using pip:
 
 ```
-pip install express
+pip install git+https://github.com/ml6team/fondant.git
 ```
 
-## Usage
+## Introduction
 
-Express is built upon [KubeFlow](https://www.kubeflow.org/), a cloud-agnostic framework built by Google to orchestrate machine learning workflows on Kubernetes. An important aspect of KubeFlow are pipelines, which consist of a set of components being executed, one after the other. This typically involves transforming data and optionally training a machine learning model on it. Check out [this page](https://www.kubeflow.org/docs/components/pipelines/v1/concepts/) if you want to learn more about KubeFlow pipelines and components.
+Fondant is built upon [KubeFlow pipelines](https://www.kubeflow.org/docs/components/pipelines/), a cloud-agnostic and open-source framework built by Google to run machine learning workflows on Kubernetes.
 
-Express offers ready-made components and helper functions that serve as boilerplate which you can use to speed up the creation of KubeFlow pipelines. To implement your own component, simply overwrite one of the components available in Express. In the example below, we leverage the `PandasTransformComponent` and overwrite its `transform` method.
+Fondant consists of a pipeline that runs a sequence of components (steps) one after the other. Each step implements one logical piece of a data processing pipeline, like image filtering, image embedding, text deduplication, etc.
+
+A Fondant pipeline always includes a loading component as first component, followed by one or more transform components. The loading component loads some initial seed data, with the transform components making transformations on them (like enrichment, filtering, transformation).
+
+## Fondant Components
+
+To implement a new component, one needs to implement 4 things:
+
+- a component specification (YAML file), which lists the name and description of the component, the input and output subsets of the component, as well as custom arguments (like the batch size to use in case the component embeds images)
+- a component implementation (Python script), which implements the core logic of the component in plain Python
+- a Docker container image, which packages the component's code
+- a requirements.txt file which lists the Python dependencies of the component.
+
+The structure of each component should look like this:
 
 ```
-import pandas as pd
+src
+__init__.py
+Dockerfile
+requirements.txt
+```
 
-from express.components.pandas_components import PandasTransformComponent, PandasDataset, PandasDatasetDraft
+The `src` folder should contain the component specification and implementation, both are explained below.
 
-class MyFirstTransform(PandasTransformComponent):
-    @classmethod
-    def transform(cls, data: PandasDataset, extra_args: Optional[Dict] = None) -> PandasDatasetDraft:
+### Component specification
 
-        # Reading data
-        index: List[str] = data.load_index()
-        my_data: Scanner = data.load("my_data_source")
+A component specification is a YAML file named `fondant_specification.yaml` that could look like this:
 
-        # Transforming data
-        table: pa.Table = my_data.to_table()
-        df: pd.DataFrame = table.to_pandas()
-        # ...
-        transformed_table = pa.Table.from_pandas(df)
+```
+name: Image filtering
+description: Component that filters images based on desired minimum width and height
+image: image_filtering:latest
 
-        # Returning output.
-        return data.extend() \
-            .with_index(in) \
-            .with_data_source("my_transformed_data_source", \
-                              Scanner.from_batches(table.to_batches())
+input_subsets:
+  images:
+    fields:
+      width:
+        type: int16
+      height:
+        type: int16
+
+args:
+  min_width:
+    description: Desired minimum width
+    type: int
+  min_height:
+    description: Desired minimum height
+    type: int
+```
+
+It lists the name, description of the component, the input subsets and output subsets that it expects, as well as custom arguments which are relevant for the core logic of the component.
+
+In the example above, the component expects the `images` subset of the dataset as input with the fields `width` and `height`. It doesn't specify any output subsets, which means that this component won't be adding any new subsets to the dataset. It lists 2 custom arguments (`args`), namely a minimum width and height to filter images.
+
+### Component implementation
+
+A component implementation is a Python script (`main.py`) that implements the core logic of the component. This script should always return a single [Dask dataframe](https://docs.dask.org/en/stable/dataframe.html). 
+
+A distinction is made between 2 components: a loading component, which is always the first one in a Fondant pipeline, and a transform component. A loading component loads some initial data and returns a single Dask dataframe, whereas a transform component takes in a single Dask dataframe as input, does some operations on it and returns another single Dask dataframe as output.
+
+Fondant offers the `FondantLoadComponent` and `FondantTransformComponent` classes that serve as boilerplate. To implement your own component, simply overwrite one of these 2 classes. In the example below, we leverage the `FondantTransformComponent` and overwrite its `transform` method.
+
+```
+from typing import Dict
+
+import dask.dataframe as dd
+
+from fondant.component import FondantTransformComponent
+
+class ImageFilterComponent(FondantTransformComponent):
+    """
+    Component that filters images based on height and width.
+    """
+
+    def transform(self, df: dd.DataFrame, args: Dict) -> dd.DataFrame:
+        """
+        Args:
+            df: Dask dataframe
+            args: args to pass to the function
+        
+        Returns:
+            dataset
+        """
+        logger.info("Filtering dataset...")
+        min_width, min_height = args.min_width, args.min_height
+        filtered_df = df[(df["images_width"] > min_width) & (df["images_height"] > min_height)]
+
+        return filtered_df
+
+
+if __name__ == "__main__":
+    component = ImageFilterComponent()
+    component.run()
 ```
 
 ## Components zoo
 
-Available components include:
-
-- Non-distributed Pandas components: `express.components.pandas_components.{PandasTransformComponent, PandasLoaderComponent}`
-
-Planned components include:
-
-- Spark-based components and base image.
-- HuggingFace Datasets components.
-
-With Kubeflow, it's possible to share and re-use components across different pipelines. To see an example, checkout this [sample notebook](https://github.com/Svendegroote91/kfp_samples/blob/master/Reusable%20Components%20101.ipynb) that showcases how you can save and load a component.
-
-Note that Google's [AI Hub](https://aihub.cloud.google.com) also contains components that you can easily re-use. Some interesting examples:
-
-- [Gather training data by querying BigQuery](https://aihub.cloud.google.com/p/products%2F4700cd7e-2826-4ce9-a1ad-33f4a5bf7433)
-- [Bigquery to TFRecords converter](https://aihub.cloud.google.com/p/products%2F28a006d0-c833-4c68-98ff-37358eeb7726)
-- [Executing an Apache Beam Python job in Cloud Dataflow](https://aihub.cloud.google.com/p/products%2F44999f4a-1668-4d42-a4e3-1269a8786840)
-- [Submitting a Cloud ML training job as a pipeline step](https://aihub.cloud.google.com/p/products%2Ffbe29250-9b67-4dfb-8900-d6ce41cdb85a)
-- [Deploying a trained model to Cloud Machine Learning Engine](https://aihub.cloud.google.com/p/products%2F7a08de6c-3864-4ccf-8151-4119e1b4e890)
-- [Batch predicting using Cloud Machine Learning Engine](https://aihub.cloud.google.com/p/products%2F3d5d2340-0eb2-4b03-aecc-ae34f6105822)
+To do: add ready-made components.
 
 ## Pipeline zoo
 
@@ -77,7 +127,7 @@ To do: add ready-made pipelines.
 
 ## Examples
 
-Example use cases of Express include:
+Example use cases of Fondant include:
 
 - collect additional image-text pairs based on a few seed images and fine-tune Stable Diffusion
 - filter an image-text dataset to only include "count" examples and fine-tune CLIP to improve its counting capabilities

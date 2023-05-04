@@ -7,8 +7,8 @@ from typing import Optional, Union, Dict
 import pandas as pd
 from datasets import Dataset, load_dataset
 
-from express.components.hf_datasets_components import HFDatasetsLoaderComponent, HFDatasetsDatasetDraft
-from express.logger import configure_logging
+from fondant.components.hf_datasets_components import HFDatasetsLoaderComponent, HFDatasetsDatasetDraft
+from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class SeedDatasetLoader(HFDatasetsLoaderComponent):
     def load(cls, extra_args: Optional[
         Dict[str, Union[str, int, float, bool]]] = None) -> HFDatasetsDatasetDraft:
         """
-        An example function showcasing the data loader component using Express functionalities
+        An example function showcasing the data loader component using Fondant functionalities
         Args:
             extra_args (Optional[Dict[str, Union[str, int, float, bool]]): optional args to pass to
              the function (e.g. seed data source)
