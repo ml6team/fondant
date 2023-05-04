@@ -8,6 +8,7 @@ components take care of processing, filtering and extending the data.
 import argparse
 import json
 import logging
+from pathlib import Path
 import typing as t
 from abc import ABC, abstractmethod
 
@@ -74,27 +75,42 @@ class FondantComponent(ABC):
         """Abstract method that returns the dataset manifest"""
 
     @abstractmethod
-    def _process_dataset(self, dataset: FondantDataset) -> FondantDataset:
-        """Abstract method that processes the input dataframe and updates the Fondant Dataset
-        with the new or loaded subsets"""
+    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
+        """Abstract method that processes the input dataframe of the `FondantDataset` and
+        returns another dataframe"""
 
     def run(self):
         """
         Runs the component.
         """
-        manifest = self._load_or_create_manifest()
-        dataset = FondantDataset(manifest)
-        dataset = self._process_dataset(dataset)
-        dataset.upload_manifest(save_path=self.args.output_manifest_path)
+        input_manifest = self._load_or_create_manifest()
+        input_dataset = FondantDataset(input_manifest)
+
+        df = self._process_dataset(input_dataset)
+
+        output_manifest = input_manifest.evolve(component_spec=self.spec)
+        output_dataset = FondantDataset(output_manifest)
+
+        # write index and output subsets to remote storage
+        output_dataset.write_index(df)
+        output_dataset.write_subsets(df, self.spec)
+
+        # write output manifest
+        self.upload_manifest(output_manifest, save_path=self.args.output_manifest_path)
+
+    def upload_manifest(self, manifest: Manifest, save_path: str):
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        manifest.to_file(save_path)
 
 
 class FondantLoadComponent(FondantComponent):
     """Abstract base class for a Fondant load component"""
 
     def _load_or_create_manifest(self) -> Manifest:
-        metadata = json.loads(self.args.metadata)
+        # create initial manifest
         # TODO ideally get rid of args.metadata by including them in the storage args, getting
-        #  run_id based on args.output_manifest_path
+        # run_id based on args.output_manifest_path
+        metadata = json.loads(self.args.metadata)
         manifest = Manifest.create(
             base_path=metadata["base_path"],
             run_id=metadata["run_id"],
@@ -107,23 +123,16 @@ class FondantLoadComponent(FondantComponent):
     def load(self, args: argparse.Namespace) -> dd.DataFrame:
         """Abstract method that loads the initial dataframe"""
 
-    def _process_dataset(self, dataset: FondantDataset) -> FondantDataset:
-        """This function takes in a FondantDataset object and processes the initial input dataframe
-         by loading it using the user-provided load function. It then adds an initial index and
-        subsets to the dataset, as specified by the component specification, and uploads
-         the updated dataset to remote storage. The function returns the updated FondantDataset
-         object
+    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
+        """This function loads the initial dataframe sing the user-provided `load` method.
+
         Returns:
-            A `FondantDataset` instance with updated data based on the applied data transformations.
+            A `dd.DataFrame` instance with initial data'.
         """
         # Load the dataframe according to the custom function provided to the user
         df = self.load(self.args)
 
-        # Upload index and subsets
-        dataset.upload_index(df)
-        dataset.upload_subsets(df, self.spec)
-
-        return dataset
+        return df
 
 
 class FondantTransformComponent(FondantComponent):
@@ -138,22 +147,16 @@ class FondantTransformComponent(FondantComponent):
     ) -> dd.DataFrame:
         """Abstract method for applying data transformations to the input dataframe"""
 
-    def _process_dataset(self, dataset: FondantDataset) -> FondantDataset:
-        """Applies data transformations to the input dataframe and updates the Fondant Dataset with
-         the new or loaded subsets.
-        Loads the input dataframe using the `load_data` method of the provided `FondantDataset`
-         instance, and  applies data transformations to it using the `transform` method implemented
-          by the derived class.
-
-        After data transformations, the index of the dataset may need to be updated or new subsets
-        may need to be added, depending on the component specification. Once the necessary updates
-        have been performed, the updated dataset is returned.
+    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
+        """
+        Loads the input dataframe using the `load_dataframe` method of the provided `FondantDataset`
+        instance, and  applies data transformations to it using the `transform` method implemented
+        by the derived class. Returns a single dataframe.
 
         Returns:
-            A `FondantDataset` instance with updated data based on the applied data transformations.
+            A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         df = dataset.load_dataframe(self.spec)
         df = self.transform(args=self.args, dataframe=df)
-        # TODO update index, potentially add new subsets (functionality still missing)
 
-        return dataset
+        return df

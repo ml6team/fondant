@@ -1,6 +1,4 @@
-"""This module defines the FondantDataset class, which is a wrapper around the manifest.
-It also defines the FondantComponent class, which uses the FondantDataset class to manipulate data.
-"""
+"""This module defines the FondantDataset class, which is a wrapper around the manifest."""
 
 import logging
 import typing as t
@@ -11,6 +9,8 @@ import dask.dataframe as dd
 from fondant.component_spec import FondantComponentSpec
 from fondant.manifest import Manifest, Index
 from fondant.schema import Type
+from fondant.manifest import Manifest
+from fondant.schema import Field
 
 logger = logging.getLogger(__name__)
 
@@ -84,12 +84,8 @@ class FondantDataset:
         # get remote path
         remote_path = index.location
 
-        index_df = dd.read_parquet(remote_path)
-
-        if list(index_df.columns) != ["id", "source"]:
-            raise ValueError(
-                f"Index columns should be 'id' and 'source', found {index_df.columns}"
-            )
+        # load index from parquet, expecting id and source columns
+        index_df = dd.read_parquet(remote_path, columns=["id", "source"])
 
         return index_df
 
@@ -234,12 +230,3 @@ class FondantDataset:
 
         # Run all write subset tasks in parallel
         dd.compute(*upload_subsets_tasks)
-
-    def upload_manifest(self, save_path: str):
-        """
-        Function that uploads the updated manifest to a remote storage
-        Args:
-            save_path: the path to upload the manifest to
-        """
-        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        self.manifest.to_file(save_path)
