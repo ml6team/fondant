@@ -86,7 +86,7 @@ class FondantComponentSpec:
     Class representing a Fondant component specification.
 
     Args:
-        specification: The component specification as a Python dict
+        specification: The fondant component specification as a Python dict
     """
 
     def __init__(self, specification: t.Dict[str, t.Any]) -> None:
@@ -200,7 +200,7 @@ class KubeflowComponentSpec:
     Class representing a Kubeflow component specification.
 
     Args:
-        specification: The component specification as a Python dict
+        specification: The kubeflow component specification as a Python dict
     """
 
     def __init__(self, specification: t.Dict[str, t.Any]) -> None:
@@ -276,6 +276,10 @@ class KubeflowComponentSpec:
                 default_flow_style=False,
                 sort_keys=False,
             )
+
+    def to_text(self) -> str:
+        """Return the component specification as a text string"""
+        return json.dumps(self._specification)
 
     @property
     def input_arguments(self) -> t.Mapping[str, Argument]:
