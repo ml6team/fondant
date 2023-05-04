@@ -41,34 +41,9 @@ class FondantComponent(ABC):
         component_arguments.update(kubeflow_component_spec.output_arguments)
         return component_arguments
 
+    @abstractmethod
     def _add_and_parse_args(self) -> argparse.Namespace:
         """Add and parses the component arguments"""
-        parser = argparse.ArgumentParser()
-        component_arguments = self._get_component_arguments()
-
-        for arg in component_arguments.values():
-            # Input manifest is not required for loading component
-            if arg.name == "input_manifest_path":
-                input_required = False
-            else:
-                input_required = True
-
-            parser.add_argument(
-                f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],
-                required=input_required,
-                help=arg.description,
-            )
-
-        # add metadata
-        parser.add_argument(
-            "--metadata",
-            type=str,
-            required=True,
-            help="The metadata associated with the pipeline run",
-        )
-
-        return parser.parse_args()
 
     @abstractmethod
     def _load_or_create_manifest(self) -> Manifest:
@@ -104,17 +79,45 @@ class FondantComponent(ABC):
 
 
 class FondantLoadComponent(FondantComponent):
-    """Abstract base class for a Fondant load component"""
+    """Base class for a Fondant load component"""
+
+    def _add_and_parse_args(self):
+        parser = argparse.ArgumentParser()
+        component_arguments = self._get_component_arguments()
+
+        for arg in component_arguments.values():
+            # Input manifest is not required for loading component
+            if arg.name == "input_manifest_path":
+                input_required = False
+            else:
+                input_required = True
+
+            parser.add_argument(
+                f"--{arg.name}",
+                type=kubeflow2python_type[arg.type],
+                required=input_required,
+                help=arg.description,
+            )
+
+        # add metadata
+        parser.add_argument(
+            "--metadata",
+            type=str,
+            required=True,
+            help="The metadata associated with the pipeline run",
+        )
+
+        return parser.parse_args()
 
     def _load_or_create_manifest(self) -> Manifest:
         # create initial manifest
-        # TODO ideally get rid of args.metadata by including them in the storage args, getting
-        # run_id based on args.output_manifest_path
+        # TODO ideally get rid of args.metadata by including them in the storage args
         metadata = json.loads(self.args.metadata)
+        component_id = self.spec.name.lower().replace(" ", "_")
         manifest = Manifest.create(
             base_path=metadata["base_path"],
             run_id=metadata["run_id"],
-            component_id=metadata["component_id"],
+            component_id=component_id,
         )
 
         return manifest
@@ -136,7 +139,21 @@ class FondantLoadComponent(FondantComponent):
 
 
 class FondantTransformComponent(FondantComponent):
-    """Abstract base class for a Fondant transform component"""
+    """Base class for a Fondant transform component"""
+
+    def _add_and_parse_args(self):
+        parser = argparse.ArgumentParser()
+        component_arguments = self._get_component_arguments()
+
+        for arg in component_arguments.values():
+            parser.add_argument(
+                f"--{arg.name}",
+                type=kubeflow2python_type[arg.type],
+                required=True,
+                help=arg.description,
+            )
+
+        return parser.parse_args()
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.args.input_manifest_path)
