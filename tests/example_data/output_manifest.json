@@ -1,6 +1,6 @@
 {
     "metadata": {
-      "base_path": "/home/philippe/Scripts/express/tests/example_data/subsets_output",
+      "base_path": "tests/example_data/subsets_output",
       "run_id": "12345",
       "component_id": "67890"
     },

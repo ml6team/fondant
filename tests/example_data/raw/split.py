@@ -12,13 +12,13 @@ from pathlib import Path
 import dask.dataframe as dd
 
 data_path = Path(__file__).parent
-output_path = Path(__file__).parent.parent / "subsets/"
+output_path = Path(__file__).parent.parent / "subsets_input/"
 
 
 def split_into_subsets():
     # read in complete dataset
     master_df = dd.read_parquet(path=data_path / "testset.parquet")
-    master_df =
+    master_df = master_df.astype({"source": "string"})
     # create index subset
     index_df = master_df[["id", "source"]]
     index_df.set_index("id")
