@@ -6,7 +6,7 @@ import typing as t
 import dask.dataframe as dd
 
 from fondant.component_spec import FondantComponentSpec
-from fondant.manifest import Manifest, Index
+from fondant.manifest import Manifest, Field
 
 logger = logging.getLogger(__name__)
 
@@ -19,23 +19,21 @@ class FondantDataset:
 
     def __init__(self, manifest: Manifest):
         self.manifest = manifest
-        self.mandatory_subset_columns = ["id", "source"]
+        self.index_fields = ["id", "source"]
         self.index_schema = {
             "source": "string",
             "id": "int64",
             "__null_dask_index__": "int64",
         }
 
-    def _load_subset(
-        self, subset_name: str, fields: t.List[str], index: t.Optional[Index] = None
-    ) -> dd.DataFrame:
+    def _load_subset(self, subset_name: str, fields: t.List[str]) -> dd.DataFrame:
         """
-        Function that loads the subset
+        Function that loads a subset from the manifest as a Dask dataframe.
+
         Args:
             subset_name: the name of the subset to load
             fields: the fields to load from the subset
-            index: optional index to filter the subset on. If not provided, the default manifest
-             index is used.
+
         Returns:
             The subset as a dask dataframe
         """
@@ -48,15 +46,6 @@ class FondantDataset:
         logger.info(f"Loading subset {subset_name} with fields {fields}...")
 
         subset_df = dd.read_parquet(remote_path, columns=fields)
-
-        # filter on default index of manifest if no index is provided
-        if index is None:
-            index_df = self._load_index()
-            ids = index_df["id"].compute()
-            sources = index_df["source"].compute()
-            subset_df = subset_df[
-                subset_df["id"].isin(ids) & subset_df["source"].isin(sources)
-            ]
 
         # add subset prefix to columns
         subset_df = subset_df.rename(
@@ -71,7 +60,8 @@ class FondantDataset:
 
     def _load_index(self) -> dd.DataFrame:
         """
-        Function that loads the index dataframe from the manifest
+        Function that loads the index from the manifest as a Dask dataframe.
+
         Returns:
             The index as a dask dataframe
         """
@@ -87,11 +77,15 @@ class FondantDataset:
 
     def load_dataframe(self, spec: FondantComponentSpec) -> dd.DataFrame:
         """
-        Function that loads the subsets defined in the component spec as a single dask dataframe
+        Function that loads the subsets defined in the component spec as a single Dask dataframe for
+          the user
+
         Args:
             spec: the fondant component spec
+
         Returns:
-            The dask dataframe with the field columns in the format (<subset>_<column_name>)
+            The Dask dataframe with the field columns in the format (<subset>_<column_name>)
+                as well as the index columns.
         """
         # load index into dataframe
         df = self._load_index()
@@ -112,20 +106,22 @@ class FondantDataset:
         """
         Creates a delayed Dask task to upload the given DataFrame to the remote storage location
          specified in the manifest.
+
         Args:
             df: The DataFrame to be uploaded.
             remote_path: the location to upload the subset to
             schema: the schema of the dataframe to write
+
         Returns:
              A delayed Dask task that uploads the DataFrame to the remote storage location when
               executed.
         """
 
         # Define task to upload index to remote storage
-        upload_index_task = dd.to_parquet(
-            df, remote_path, schema=schema, overwrite=True, compute=False
+        write_task = dd.to_parquet(
+            df, remote_path, schema=schema, overwrite=False, compute=False
         )
-        return upload_index_task
+        return write_task
 
     def write_index(self, df: dd.DataFrame):
         """
@@ -148,26 +144,27 @@ class FondantDataset:
 
     def write_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
         """
-        Write subset tasks to a remote location
+        Write all subsets of the Dask dataframe to a remote location.
 
         Args:
             df (dask.dataframe.DataFrame): The input Dask dataframe.
             spec (FondantComponentSpec): The specification of the output subsets.
 
         Raises:
-            ValueError: If a field defined in an output subset is not present in the input
+            ValueError: If a field defined in an output subset is not present in the user
              dataframe.
         """
 
-        def verify_subset_columns(subset_name, subset_fields, df):
+        def verify_subset_columns(
+            subset_name: str, subset_fields: t.Mapping[str, Field], df: dd.DataFrame
+        ) -> t.List[str]:
             """
             Verify that all the fields defined in the output subset are present in
-            the input dataframe
+            the output dataframe
             """
-
-            field_names = list(subset_fields.keys())
-            subset_columns = [f"{subset_name}_{field}" for field in field_names]
-            subset_columns.extend(self.mandatory_subset_columns)
+            # TODO: add logic for `additional fields`
+            subset_columns = [f"{subset_name}_{field}" for field in subset_fields]
+            subset_columns.extend(self.index_fields)
 
             for col in subset_columns:
                 if col not in df.columns:
@@ -178,7 +175,9 @@ class FondantDataset:
 
             return subset_columns
 
-        def create_subset_dataframe(subset_name, subset_columns, df):
+        def create_subset_dataframe(
+            subset_name: str, subset_columns: t.List[str], df: dd.DataFrame
+        ):
             """
             Create subset dataframe to save with the original field name as the column name
             """
@@ -191,7 +190,7 @@ class FondantDataset:
                 columns={
                     col: col[(len(prefix_to_replace)) :]
                     for col in subset_df.columns
-                    if col not in self.mandatory_subset_columns
+                    if col not in self.index_fields
                     and col.startswith(prefix_to_replace)
                 }
             )
@@ -203,7 +202,7 @@ class FondantDataset:
         # Loop through each output subset defined in the spec
         for subset_name, subset in spec.output_subsets.items():
             # Verify that all the fields defined in the output subset are present in the
-            # input dataframe
+            # output dataframe
             subset_columns = verify_subset_columns(subset_name, subset.fields, df)
 
             # Create a new dataframe with only the columns needed for the output subset
