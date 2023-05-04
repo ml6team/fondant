@@ -2,15 +2,11 @@
 
 import logging
 import typing as t
-from pathlib import Path
 
 import dask.dataframe as dd
 
 from fondant.component_spec import FondantComponentSpec
 from fondant.manifest import Manifest, Index
-from fondant.schema import Type
-from fondant.manifest import Manifest
-from fondant.schema import Field
 
 logger = logging.getLogger(__name__)
 
@@ -131,9 +127,9 @@ class FondantDataset:
         )
         return upload_index_task
 
-    def upload_index(self, df: dd.DataFrame):
+    def write_index(self, df: dd.DataFrame):
         """
-        Create a Dask task that uploads the index dataframe to a remote location.
+        Write the index dataframe to a remote location.
         Args:
             df: The input Dask dataframe.
         """
@@ -150,9 +146,9 @@ class FondantDataset:
         # Write index
         dd.compute(upload_index_task)
 
-    def upload_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
+    def write_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
         """
-        Create a list of Dask tasks for uploading the output subsets to remote locations.
+        Write subset tasks to a remote location
 
         Args:
             df (dask.dataframe.DataFrame): The input Dask dataframe.
