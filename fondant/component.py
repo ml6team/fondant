@@ -142,9 +142,7 @@ class FondantTransformComponent(FondantComponent):
         return Manifest.from_file(self.args.input_manifest_path)
 
     @abstractmethod
-    def transform(
-        self, args: argparse.Namespace, dataframe: dd.DataFrame
-    ) -> dd.DataFrame:
+    def transform(self, dataframe: dd.DataFrame, **kwargs) -> dd.DataFrame:
         """Abstract method for applying data transformations to the input dataframe"""
 
     def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
@@ -157,6 +155,7 @@ class FondantTransformComponent(FondantComponent):
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         df = dataset.load_dataframe(self.spec)
-        df = self.transform(args=self.args, dataframe=df)
+        kwargs = vars(self.args)
+        df = self.transform(dataframe=df, **kwargs)
 
         return df
