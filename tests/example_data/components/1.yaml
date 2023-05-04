@@ -15,21 +15,6 @@ input_subsets:
         type: "utf8"
       Type 2:
         type: "utf8"
-
-output_subsets:
-  properties:
-    fields:
-      Name:
-        type: "utf8"
-      HP:
-        type: "int32"
-  types:
-    fields:
-      Type 1:
-        type: "utf8"
-      Type 2:
-        type: "utf8"
-
 args:
   storage_args:
     description: Storage arguments

@@ -18,7 +18,7 @@ output_path = Path(__file__).parent.parent / "subsets/"
 def split_into_subsets():
     # read in complete dataset
     master_df = dd.read_parquet(path=data_path / "testset.parquet")
-    master_df = master_df.astype({"source": str})
+
     # create index subset
     index_df = master_df[["id", "source"]]
     index_df.set_index("id")
