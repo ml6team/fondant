@@ -79,6 +79,14 @@ class FondantComponent(ABC):
         """Abstract method that processes the input dataframe of the `FondantDataset` and
         returns another dataframe"""
 
+    def get_custom_args(self):
+        args = vars(self.args)
+        # only keep the custom args of the component
+        custom_args = [arg.name for arg in self.spec.args]
+        args = {key: value for key, value in args.items() if key in custom_args}
+
+        return args
+
     def run(self):
         """
         Runs the component.
@@ -120,7 +128,7 @@ class FondantLoadComponent(FondantComponent):
         return manifest
 
     @abstractmethod
-    def load(self, args: argparse.Namespace) -> dd.DataFrame:
+    def load(self, **kwargs) -> dd.DataFrame:
         """Abstract method that loads the initial dataframe"""
 
     def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
@@ -130,7 +138,8 @@ class FondantLoadComponent(FondantComponent):
             A `dd.DataFrame` instance with initial data'.
         """
         # Load the dataframe according to the custom function provided to the user
-        df = self.load(self.args)
+        custom_args = self.get_custom_args()
+        df = self.load(**custom_args)
 
         return df
 
@@ -155,7 +164,7 @@ class FondantTransformComponent(FondantComponent):
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         df = dataset.load_dataframe(self.spec)
-        kwargs = vars(self.args)
-        df = self.transform(dataframe=df, **kwargs)
+        custom_args = self.get_custom_args()
+        df = self.transform(dataframe=df, **custom_args)
 
         return df

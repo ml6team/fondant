@@ -22,7 +22,8 @@ class ImageFilterComponent(FondantTransformComponent):
         """
         Args:
             df: Dask dataframe
-            args: args to pass to the function
+            min_width: minimum width of the resulting images
+            min_height: minimum height of the resulting images
         
         Returns:
             Dask dataframe
