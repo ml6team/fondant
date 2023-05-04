@@ -54,6 +54,6 @@ def retrieve_image_urls(df):
     )
 
     # unpack list of urls
-    prompt_ddf = prompt_ddf.explode("image_urls")
+    df = prompt_ddf.explode("image_urls")
 
     return df
