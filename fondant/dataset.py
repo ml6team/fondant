@@ -127,7 +127,7 @@ class FondantDataset:
         """
         Write the index dataframe to a remote location.
         Args:
-            df: The input Dask dataframe.
+            df: The output Dask dataframe returned by the user.
         """
         remote_path = self.manifest.index.location
         index_columns = list(self.manifest.index.fields.keys())
@@ -147,8 +147,8 @@ class FondantDataset:
         Write all subsets of the Dask dataframe to a remote location.
 
         Args:
-            df (dask.dataframe.DataFrame): The input Dask dataframe.
-            spec (FondantComponentSpec): The specification of the output subsets.
+            df (dask.dataframe.DataFrame): The output Dask dataframe returned by the user.
+            spec (FondantComponentSpec): The component specification.
 
         Raises:
             ValueError: If a field defined in an output subset is not present in the user
