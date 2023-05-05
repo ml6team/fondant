@@ -1,0 +1,28 @@
+Bathroom
+Living room
+Entrance hall
+Kitchen
+Family room
+Master bedroom
+Bedroom
+Kids bedroom
+Laundry room
+Guest room
+Home office
+Library room
+Playroom
+Home Theater room
+Gym room
+Basement room
+Garage
+Walk-in closet
+Pantry
+Gaming room
+Attic
+Sunroom
+Storage room
+Study room
+Dining room
+Loft
+Studio room
+Apartment
