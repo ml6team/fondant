@@ -1,5 +1,6 @@
 """This module defines classes to represent a Fondant Pipeline."""
 import logging
+import yaml
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
@@ -52,9 +53,9 @@ class FondantComponentOperation(FondantComponentSpec):
     ephemeral_storage_size: t.Optional[str] = None
 
     def __post_init__(self):
-        super().__init__(
-            FondantComponentSpec.from_file(self.component_spec_path)._specification
-        )
+        with open(self.component_spec_path, encoding="utf-8") as file_:
+            specification = yaml.safe_load(file_)
+        super().__init__(specification)
 
 
 class FondantPipeline:
