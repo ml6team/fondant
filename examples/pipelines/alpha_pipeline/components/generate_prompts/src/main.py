@@ -5,6 +5,7 @@ import itertools
 import logging
 
 import dask.dataframe as dd
+import dask.array as da
 import pandas as pd
 
 from fondant.component import FondantLoadComponent
@@ -14,20 +15,73 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-interior_styles = ["art deco", "bauhaus", "bouclé", "maximalist", "brutalist", "coastal",
-                   "minimalist", "rustic", "hollywood regency", "midcentury modern",
-                   "modern organic", "contemporary", "modern", "scandinavian", "eclectic",
-                   "bohemiam", "industrial", "traditional", "transitional", "farmhouse",
-                   "country", "asian", "mediterranean", "rustic", "southwestern", "coastal",]
+interior_styles = [
+    "art deco",
+    "bauhaus",
+    "bouclé",
+    "maximalist",
+    "brutalist",
+    "coastal",
+    "minimalist",
+    "rustic",
+    "hollywood regency",
+    "midcentury modern",
+    "modern organic",
+    "contemporary",
+    "modern",
+    "scandinavian",
+    "eclectic",
+    "bohemiam",
+    "industrial",
+    "traditional",
+    "transitional",
+    "farmhouse",
+    "country",
+    "asian",
+    "mediterranean",
+    "rustic",
+    "southwestern",
+    "coastal",
+]
 
-interior_prefix = [ "comfortable", "luxurious", "simple",]
+interior_prefix = [
+    "comfortable",
+    "luxurious",
+    "simple",
+]
 
-rooms = ["Bathroom", "Living room", "Hotel room", "Lobby", "Entrance hall", "Kitchen",
-         "Family room", "Master bedroom", "Bedroom", "Kids bedroom", "Laundry room",
-         "Guest room", "Home office", "Library room", "Playroom", "Home Theater room",
-         "Gym room", "Basement room", "Garage", "Walk-in closet", "Pantry", "Gaming room",
-         "Attic", "Sunroom", "Storage room", "Study room", "Dining room", "Loft",
-         "Studio room", "Appartement",]
+rooms = [
+    "Bathroom",
+    "Living room",
+    "Hotel room",
+    "Lobby",
+    "Entrance hall",
+    "Kitchen",
+    "Family room",
+    "Master bedroom",
+    "Bedroom",
+    "Kids bedroom",
+    "Laundry room",
+    "Guest room",
+    "Home office",
+    "Library room",
+    "Playroom",
+    "Home Theater room",
+    "Gym room",
+    "Basement room",
+    "Garage",
+    "Walk-in closet",
+    "Pantry",
+    "Gaming room",
+    "Attic",
+    "Sunroom",
+    "Storage room",
+    "Study room",
+    "Dining room",
+    "Loft",
+    "Studio room",
+    "Appartement",
+]
 
 
 def make_interior_prompt(room: str, prefix: str, style: str) -> str:
@@ -46,22 +100,31 @@ def make_interior_prompt(room: str, prefix: str, style: str) -> str:
 
 
 class LoadPromptsComponent(FondantLoadComponent):
-
-    def load(self):
+    def load(self, dataset_name):
         """
+        Generate a set of initial prompts that will be used to retrieve images from the LAION-5B dataset.
+
         Returns:
             Dask dataframe
         """
         room_tuples = list(itertools.product(rooms, interior_prefix, interior_styles))
         prompts = list(map(lambda x: make_interior_prompt(*x), room_tuples))
 
-        df = pd.DataFrame(prompts, columns=['prompts_data'])
+        df = pd.DataFrame(prompts, columns=["prompts_text"])
 
-        df = dd.from_pandas(df, npartitions=1) # need to decide how npartitions should be set
+        df = dd.from_pandas(
+            df, npartitions=1
+        )  # need to decide how npartitions should be set
+
+        index_list = [idx for idx in range(len(df))]
+        source_list = ["hub" for _ in range(len(df))]
+
+        df["id"] = da.array(index_list)
+        df["source"] = da.array(source_list)
 
         return df
 
 
 if __name__ == "__main__":
-    component = LoadPromptsComponent()
+    component = LoadPromptsComponent.from_file("fondant_component.yaml")
     component.run()
