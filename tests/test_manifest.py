@@ -62,7 +62,9 @@ def test_manifest_creation():
     run_id = "run_id"
     component_id = "component_id"
 
-    manifest = Manifest.create(base_path=base_path, run_id=run_id, component_id=component_id)
+    manifest = Manifest.create(
+        base_path=base_path, run_id=run_id, component_id=component_id
+    )
     manifest.add_subset("images", [("width", Type.int32), ("height", Type.int32)])
     manifest.subsets["images"].add_field("data", Type.binary)
 
@@ -72,9 +74,7 @@ def test_manifest_creation():
             "run_id": run_id,
             "component_id": component_id,
         },
-        "index": {
-            "location": f"/{run_id}/{component_id}/index"
-        },
+        "index": {"location": f"/{run_id}/{component_id}/index"},
         "subsets": {
             "images": {
                 "location": f"/{run_id}/{component_id}/images",
@@ -87,10 +87,10 @@ def test_manifest_creation():
                     },
                     "data": {
                         "type": "binary",
-                    }
-                }
+                    },
+                },
             }
-        }
+        },
     }
 
 

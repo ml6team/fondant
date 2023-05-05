@@ -53,8 +53,9 @@ def convert_svg_to_jpeg(img_path: str, output_width: int, output_height: int) ->
         Image: Image in jpeg format
     """
     # SVG has to be converted to png first before converting to jpg
-    png_bytes = cairosvg.svg2png(url=img_path, output_width=output_width,
-                                 output_height=output_height)
+    png_bytes = cairosvg.svg2png(
+        url=img_path, output_width=output_width, output_height=output_height
+    )
     converted_image = img.open(io.BytesIO(png_bytes))
     converted_image = convert_png_to_jpeg(converted_image)
 
@@ -63,13 +64,20 @@ def convert_svg_to_jpeg(img_path: str, output_width: int, output_height: int) ->
 
 # pylint: disable=too-many-instance-attributes, too-few-public-methods
 class KfpPipelineImageConverter:
-    """kfp images conversion """
+    """kfp images conversion"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, parquet_dataset: ds.dataset, updated_parquet_dataset_path: str,
-                 destination_gcs_uri: str, tmp_img_path: str, file_extensions: list,
-                 index_ids: list, download_list_file_path: str,
-                 upload_list_file_path: str):
+    def __init__(
+        self,
+        parquet_dataset: ds.dataset,
+        updated_parquet_dataset_path: str,
+        destination_gcs_uri: str,
+        tmp_img_path: str,
+        file_extensions: list,
+        index_ids: list,
+        download_list_file_path: str,
+        upload_list_file_path: str,
+    ):
         """
         Class that structures the kfp images conversion loop
         Args:
@@ -101,36 +109,51 @@ class KfpPipelineImageConverter:
         """
         Function that writes the gcs download and upload list files for bulk download/upload
         """
-        with open(self.download_list_file_path, "w") as download_list_file, \
-                open(self.upload_list_file_path, "w") as upload_list_file:
+        with open(self.download_list_file_path, "w") as download_list_file, open(
+            self.upload_list_file_path, "w"
+        ) as upload_list_file:
             for batch in self.parquet_dataset.to_batches():
                 for row in batch.to_pylist():
-                    file_extension, file_id, file_uri = row['file_extension'], row['file_id'], row[
-                        'file_uri']
-                    if file_id in self.index_ids and file_extension in self.file_extensions:
+                    file_extension, file_id, file_uri = (
+                        row["file_extension"],
+                        row["file_id"],
+                        row["file_uri"],
+                    )
+                    if (
+                        file_id in self.index_ids
+                        and file_extension in self.file_extensions
+                    ):
                         converted_img_name = f"{io_helpers.get_file_name(file_uri)}.jpg"
-                        local_file_path = os.path.join(self.tmp_img_path, converted_img_name)
+                        local_file_path = os.path.join(
+                            self.tmp_img_path, converted_img_name
+                        )
                         download_list_file.write(file_uri + "\n")
                         upload_list_file.write(local_file_path + "\n")
 
-        LOGGER.info("GCS download file list written to %s", self.download_list_file_path)
+        LOGGER.info(
+            "GCS download file list written to %s", self.download_list_file_path
+        )
         LOGGER.info("GCS upload file list written to %s", self.upload_list_file_path)
 
     def _download_imgs_to_convert(self):
         """Function that download the images to be converted locally"""
         LOGGER.info("Downloading images to convert")
-        storage_helpers.copy_files_bulk(self.download_list_file_path,
-                                        self.tmp_img_path)
-        LOGGER.info("The images to be converted were successfully downloaded to %s",
-                    self.tmp_img_path)
+        storage_helpers.copy_files_bulk(self.download_list_file_path, self.tmp_img_path)
+        LOGGER.info(
+            "The images to be converted were successfully downloaded to %s",
+            self.tmp_img_path,
+        )
 
     def _upload_converted_imgs(self):
-        """Function that uploads the images to gcs """
+        """Function that uploads the images to gcs"""
 
         LOGGER.info("Uploading converted images")
-        storage_helpers.copy_files_bulk(self.upload_list_file_path,
-                                        self.destination_gcs_uri)
-        LOGGER.info("The converted images were uploaded to %s", self.destination_gcs_uri)
+        storage_helpers.copy_files_bulk(
+            self.upload_list_file_path, self.destination_gcs_uri
+        )
+        LOGGER.info(
+            "The converted images were uploaded to %s", self.destination_gcs_uri
+        )
 
     def _convert_images_to_jpeg(self, svg_image_width: int, svg_image_height: int):
         """
@@ -149,27 +172,40 @@ class KfpPipelineImageConverter:
             converted"""
             for batch in tqdm(self.parquet_dataset.to_batches()):
                 for row in tqdm(batch.to_pylist()):
-                    file_extension, file_id, file_uri, file_size = \
-                        row['file_extension'], row['file_id'], row['file_uri'], row['file_size']
+                    file_extension, file_id, file_uri, file_size = (
+                        row["file_extension"],
+                        row["file_id"],
+                        row["file_uri"],
+                        row["file_size"],
+                    )
 
-                    if file_id in self.index_ids and file_extension in self.file_extensions:
+                    if (
+                        file_id in self.index_ids
+                        and file_extension in self.file_extensions
+                    ):
                         img_name = os.path.basename(file_uri)
                         local_file_path = os.path.join(self.tmp_img_path, img_name)
                         # convert image
-                        if file_extension.lower() == 'png':
+                        if file_extension.lower() == "png":
                             image = convert_png_to_jpeg(local_file_path)
-                        elif file_extension.lower() == 'svg':
-                            image = convert_svg_to_jpeg(local_file_path, kwargs['svg_image_width'],
-                                                        kwargs['svg_image_height'])
+                        elif file_extension.lower() == "svg":
+                            image = convert_svg_to_jpeg(
+                                local_file_path,
+                                kwargs["svg_image_width"],
+                                kwargs["svg_image_height"],
+                            )
                         else:
                             raise NotImplementedError(
                                 f"Conversion to jpg for format {file_extension} is"
                                 f"not implemented. Available conversions are"
-                                f" 'png_to_jpeg' and 'svg_to_jpeg'")
+                                f" 'png_to_jpeg' and 'svg_to_jpeg'"
+                            )
 
                         # Store img_temp_save_path image locally
                         file_extension = "jpg"
-                        img_name = f"{io_helpers.get_file_name(file_uri)}.{file_extension}"
+                        img_name = (
+                            f"{io_helpers.get_file_name(file_uri)}.{file_extension}"
+                        )
                         img_temp_save_path = os.path.join(self.tmp_img_path, img_name)
                         image.save(img_temp_save_path)
                         file_size = os.path.getsize(img_temp_save_path)
@@ -181,10 +217,13 @@ class KfpPipelineImageConverter:
             dataset_parquet_path=self.updated_parquet_dataset_path,
             data_iterable_producer=_img_conversion_loop,
             svg_image_height=svg_image_height,
-            svg_image_width=svg_image_width)
+            svg_image_width=svg_image_width,
+        )
 
-        LOGGER.info("Updated dataset parquet file written to %s",
-                    self.updated_parquet_dataset_path)
+        LOGGER.info(
+            "Updated dataset parquet file written to %s",
+            self.updated_parquet_dataset_path,
+        )
         LOGGER.info("Image conversion completed")
 
     def start(self, svg_image_width: int, svg_image_height: int):
