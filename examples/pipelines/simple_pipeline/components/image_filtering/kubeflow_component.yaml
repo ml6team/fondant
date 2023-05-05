@@ -12,12 +12,7 @@ inputs:
     - name: min_height
       description: Desired minimum height
       type: Integer
-    
-    - name: metadata
-      description: Metadata arguments, passed as a json dict string
-      type: String
-    
-    
+   
 outputs:
     - name: output_manifest_path
       description: Path to the output manifest
@@ -30,6 +25,5 @@ implementation:
             --input_manifest_path,       {inputPath: input_manifest_path},
             --min_width,                 {inputValue: min_width},
             --min_height,                {inputValue: min_height},
-            --metadata,                  {inputValue: metadata},
             --output_manifest_path,      {outputPath: output_manifest_path},
         ]
