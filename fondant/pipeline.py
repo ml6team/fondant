@@ -1,5 +1,6 @@
 """This module defines classes to represent a Fondant Pipeline."""
 import logging
+import json
 import yaml
 import typing as t
 from dataclasses import dataclass
@@ -86,7 +87,7 @@ class FondantPipeline:
 
     @staticmethod
     def _validate_pipeline_definition(
-        fondant_components_operation: t.List[FondantComponentOperation],
+            fondant_components_operation: t.List[FondantComponentOperation],
     ):
         """
         Validates the pipeline definition by ensuring that the input and output subsets of each
@@ -102,8 +103,8 @@ class FondantPipeline:
         for fondant_component_operation in fondant_components_operation:
             if not load_component:
                 for (
-                    subset_name,
-                    subset,
+                        subset_name,
+                        subset,
                 ) in fondant_component_operation.input_subsets.items():
                     if subset_name not in available_subsets:
                         raise InvalidPipelineDefinition(
@@ -128,12 +129,13 @@ class FondantPipeline:
         logger.info("All pipeline component specifications match.")
 
     def compile_pipeline(
-        self,
-        *,
-        pipeline_name: str,
-        pipeline_description: str,
-        fondant_components_operation: t.List[FondantComponentOperation],
-        pipeline_package_path: str,
+            self,
+            *,
+            pipeline_name: str,
+            pipeline_description: str,
+            base_path: str,
+            fondant_components_operation: t.List[FondantComponentOperation],
+            pipeline_package_path: str,
     ):
         """
         Function that creates and compiles a Kubeflow Pipeline.
@@ -141,6 +143,7 @@ class FondantPipeline:
         Args:
             pipeline_name: The name of the pipeline.
             pipeline_description: A brief description of the pipeline.
+            base_path: The base path where to write the pipeline artifacts
             fondant_components_operation: A list of FondantComponent operations that define
              components used in the pipeline. The operations must be ordered in the order of
              execution.
@@ -157,8 +160,8 @@ class FondantPipeline:
             ]
 
             pipeline_function = create_pipeline(
-                name='MyPipeline',
-                 description='A description of my pipeline',
+                pipeline_name='MyPipeline',
+                pipeline_description='A description of my pipeline',
                 fondant_components_operations=fondant_components_operations,
                 pipeline_package_path='/path/to/pipeline/package/package.tgz'
             )
@@ -168,7 +171,7 @@ class FondantPipeline:
         """
 
         def _get_component_function(
-            fondant_component_operation: FondantComponentOperation,
+                fondant_component_operation: FondantComponentOperation,
         ) -> t.Callable:
             """
             Load the Kubeflow component based on the specification from the fondant component
@@ -205,6 +208,10 @@ class FondantPipeline:
         # Validate subset schema before defining the pipeline
         self._validate_pipeline_definition(fondant_components_operation)
 
+        # parse metadata argument required for the first component
+        run_id = "{{workflow.name}}"
+        metadata = json.dumps({"base_path": base_path, "run_id": run_id})
+
         @dsl.pipeline(name=pipeline_name, description=pipeline_description)
         def pipeline():
             # TODO: check if we want to have the manifest path empty for loading component or remove
@@ -218,10 +225,15 @@ class FondantPipeline:
                 # Execute the Kubeflow component and pass in the output manifest path from
                 # the previous component.
                 component_args = fondant_component_operation.arguments
-                component_task = component_op(
-                    input_manifest_path=manifest_path, **component_args
-                )
-
+                if previous_component_task is not None:
+                    component_task = component_op(
+                        input_manifest_path=manifest_path, **component_args
+                    )
+                else:
+                    # Add metadata to the first component
+                    component_task = component_op(
+                        input_manifest_path=manifest_path, metadata=metadata, **component_args
+                    )
                 # Set optional configurations
                 component_task = _set_task_configuration(
                     component_task, fondant_component_operation
@@ -243,11 +255,11 @@ class FondantPipeline:
         logger.info("Pipeline compiled successfully")
 
     def upload_pipeline(
-        self,
-        *,
-        pipeline_name: str,
-        pipeline_package_path: str,
-        delete_pipeline_package: t.Optional[bool] = False,
+            self,
+            *,
+            pipeline_name: str,
+            pipeline_package_path: str,
+            delete_pipeline_package: t.Optional[bool] = False,
     ):
         """
         Uploads a pipeline package to Kubeflow Pipelines and deletes any existing pipeline with the

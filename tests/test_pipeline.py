@@ -15,6 +15,7 @@ invalid_pipeline_path = Path(__file__).parent / "pipeline_examples/invalid_pipel
 def default_pipeline_args():
     return {
         'pipeline_name': 'pipeline',
+        'base_path': 'gcs://bucket/blob',
         'pipeline_description': 'pipeline_description'
     }
 
@@ -78,7 +79,7 @@ def test_invalid_argument(mock_host, default_pipeline_args, invalid_component_ar
     Test that an exception is raised when the passed invalid argument name or type to the fondant
     component does not match the ones specified in the fondant specifications
     """
-    components_spec_path = Path(valid_pipeline_path / "example_1"/"first_component.yaml")
+    components_spec_path = Path(valid_pipeline_path / "example_1" / "first_component.yaml")
     component_operation = FondantComponentOperation(components_spec_path, invalid_component_args)
     operations = [component_operation]
 
