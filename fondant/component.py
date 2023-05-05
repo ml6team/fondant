@@ -59,6 +59,7 @@ class FondantComponent(ABC):
 
     @property
     def user_arguments(self) -> t.Dict[str, t.Any]:
+        """Custom arguments defined by the user in the fondant component spec."""
         return {
             key: value
             for key, value in vars(self.args).items()
