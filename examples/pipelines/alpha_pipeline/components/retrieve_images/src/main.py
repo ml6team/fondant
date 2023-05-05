@@ -25,7 +25,7 @@ def load_url(url):
     try:
         resp = requests.get(url, headers=headers)
         resp.raise_for_status()
-        return str(resp.content)
+        return resp.content
     except requests.exceptions.RequestException:
         return None
 
