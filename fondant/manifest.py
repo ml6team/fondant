@@ -188,7 +188,9 @@ class Manifest:
 
         del self._specification["subsets"][name]
 
-    def evolve(self, component_spec: FondantComponentSpec) -> "Manifest":
+    def evolve(  # noqa : PLR0912 (too many branches)
+        self, component_spec: FondantComponentSpec
+    ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
         to the component defined by the component spec."""

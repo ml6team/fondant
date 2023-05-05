@@ -95,7 +95,7 @@ class FondantDataset:
             # left joins -> filter on index
             df = dd.merge(df, subset_df, on=["id", "source"], how="left")
 
-        logging.info("Columns of dataframe:", list(df.columns))
+        logging.info(f"Columns of dataframe: {list(df.columns)}")
 
         return df
 

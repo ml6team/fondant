@@ -47,7 +47,7 @@ def simple_pipeline(
     ).set_display_name("Load initial images")
 
     # Component 2
-    image_filter_task = image_filtering_op(
+    image_filtering_op(
         input_manifest_path=load_from_hub_task.outputs["output_manifest_path"],
         min_width=image_filter_min_width,
         min_height=image_filter_min_height,

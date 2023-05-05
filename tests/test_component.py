@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import tempfile
 import sys
 from pathlib import Path
 from unittest import mock
@@ -11,7 +10,6 @@ import dask.dataframe as dd
 import pytest
 
 from fondant.component import FondantLoadComponent, FondantTransformComponent
-from fondant.component_spec import FondantComponentSpec
 from fondant.dataset import FondantDataset
 
 
