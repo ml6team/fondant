@@ -1,4 +1,5 @@
 import json
+import pkgutil
 from pathlib import Path
 
 import pytest
@@ -42,7 +43,7 @@ def test_subset_init():
     assert subset.location == "/tmp/ABC/123/images"
     assert (
         subset.__repr__()
-        == "Subset({'location': '/ABC/123/images', 'fields': {'data': {'type': 'binary'}}}"
+        == "Subset({'location': '/ABC/123/images', 'fields': {'data': {'type': 'binary'}}})"
     )
 
 
@@ -151,6 +152,36 @@ def test_manifest_creation():
     }
 
 
+def test_manifest_repr():
+    manifest = Manifest.create(base_path="/", run_id="A", component_id="1")
+    print(manifest)
+    assert (
+        manifest.__repr__()
+        == "Manifest({'metadata': {'base_path': '/', 'run_id': 'A', 'component_id': '1'}, 'index': {'location': '/A/1/index'}, 'subsets': {}})"
+    )
+
+
+def test_manifest_alteration(valid_manifest):
+    """Test alteration functionalities of a manifest via the Manifest class"""
+    manifest = Manifest(valid_manifest)
+
+    # test adding a subset
+    manifest.add_subset("images2", [("width", Type.int32), ("height", Type.int32)])
+    assert "images2" in manifest.subsets
+
+    # test adding a duplicate subset
+    with pytest.raises(ValueError):
+        manifest.add_subset("images2", [("width", Type.int32), ("height", Type.int32)])
+
+    # test removing a subset
+    manifest.remove_subset("images2")
+    assert "images2" not in manifest.subsets
+
+    # test removing a nonexistant subset
+    with pytest.raises(ValueError):
+        manifest.remove_subset("pictures")
+
+
 def test_manifest_copy_and_adapt(valid_manifest):
     """Test that a manifest can be copied and adapted without changing the original."""
     manifest = Manifest(valid_manifest)
@@ -158,3 +189,9 @@ def test_manifest_copy_and_adapt(valid_manifest):
     new_manifest.remove_subset("images")
     assert manifest._specification == valid_manifest
     assert new_manifest._specification != valid_manifest
+
+
+def test_no_validate_schema(monkeypatch, valid_manifest):
+    monkeypatch.setattr(pkgutil, "get_data", lambda package, resource: None)
+    with pytest.raises(FileNotFoundError):
+        manifest = Manifest(valid_manifest)
