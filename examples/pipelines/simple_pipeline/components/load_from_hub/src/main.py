@@ -33,12 +33,11 @@ def extract_height(image_bytes):
 
 
 class LoadFromHubComponent(FondantLoadComponent):
-
     def load(self, args):
         """
         Args:
             args: additional arguments passed to the component
-        
+
         Returns:
             Dataset: HF dataset
         """
@@ -55,17 +54,22 @@ class LoadFromHubComponent(FondantLoadComponent):
         dask_df["source"] = da.array(source_list)
 
         # 3) Rename columns
-        dask_df = dask_df.rename(columns={"image": "images_data", "text": "captions_data"})
+        dask_df = dask_df.rename(
+            columns={"image": "images_data", "text": "captions_data"}
+        )
 
         # 4) Make sure images are bytes instead of dicts
-        dask_df["images_data"] = dask_df["images_data"].map(lambda x: x["bytes"],
-                                                            meta=("bytes", bytes))
+        dask_df["images_data"] = dask_df["images_data"].map(
+            lambda x: x["bytes"], meta=("bytes", bytes)
+        )
 
         # 5) Add width and height columns
-        dask_df['images_width'] = dask_df['images_data'].map(extract_width,
-                                                             meta=("images_width", int))
-        dask_df['images_height'] = dask_df['images_data'].map(extract_height,
-                                                              meta=("images_height", int))
+        dask_df["images_width"] = dask_df["images_data"].map(
+            extract_width, meta=("images_width", int)
+        )
+        dask_df["images_height"] = dask_df["images_data"].map(
+            extract_height, meta=("images_height", int)
+        )
 
         return dask_df
 

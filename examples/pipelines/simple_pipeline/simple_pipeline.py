@@ -18,8 +18,12 @@ run_id = "{{workflow.name}}"
 metadata = json.dumps({"base_path": base_path, "run_id": run_id})
 
 # Define component ops
-load_from_hub_op = comp.load_component("components/load_from_hub/kubeflow_component.yaml")
-image_filtering_op = comp.load_component("components/image_filtering/kubeflow_component.yaml")
+load_from_hub_op = comp.load_component(
+    "components/load_from_hub/kubeflow_component.yaml"
+)
+image_filtering_op = comp.load_component(
+    "components/image_filtering/kubeflow_component.yaml"
+)
 
 
 # Pipeline
@@ -35,7 +39,6 @@ def simple_pipeline(
     image_filter_min_width: int = ImageFilterConfig.MIN_WIDTH,
     image_filter_min_height: int = ImageFilterConfig.MIN_HEIGHT,
 ):
-
     # Component 1
     load_from_hub_task = load_from_hub_op(
         dataset_name=load_from_hub_dataset_name,

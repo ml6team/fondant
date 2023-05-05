@@ -20,11 +20,17 @@ Image.MAX_IMAGE_PIXELS = None
 
 # pylint: disable=too-many-instance-attributes, too-few-public-methods
 class KfpPipelineImageCaptioner:
-    """kfp image captioner """
+    """kfp image captioner"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, blip_model: BlipModel, parquet_dataset: Scanner, tmp_img_path: str,
-                 tmp_dir: str, namespace: str):
+    def __init__(
+        self,
+        blip_model: BlipModel,
+        parquet_dataset: Scanner,
+        tmp_img_path: str,
+        tmp_dir: str,
+        namespace: str,
+    ):
         """
         Class that structures the kfp images conversion loop
         Args:
@@ -37,8 +43,12 @@ class KfpPipelineImageCaptioner:
         self.blip_model = blip_model
         self.parquet_dataset = parquet_dataset
         self.tmp_img_path = tmp_img_path
-        self.caption_parquet_path = os.path.join(tmp_dir, f'captions_{namespace}.parquet')
-        self.download_list_file_path = os.path.join(tmp_dir, f'download_gcs_{namespace}.txt')
+        self.caption_parquet_path = os.path.join(
+            tmp_dir, f"captions_{namespace}.parquet"
+        )
+        self.download_list_file_path = os.path.join(
+            tmp_dir, f"download_gcs_{namespace}.txt"
+        )
 
     def _write_gcs_file_lists(self):
         """
@@ -47,18 +57,21 @@ class KfpPipelineImageCaptioner:
         with open(self.download_list_file_path, "w") as download_list_file:
             for batch in self.parquet_dataset.to_batches():
                 for row in batch.to_pylist():
-                    file_uri = row['file_uri']
+                    file_uri = row["file_uri"]
                     download_list_file.write(file_uri + "\n")
 
-        LOGGER.info("GCS download file list written to %s", self.download_list_file_path)
+        LOGGER.info(
+            "GCS download file list written to %s", self.download_list_file_path
+        )
 
     def _download_images_to_caption(self):
         """Function that download the images to caption locally"""
         LOGGER.info("Downloading images to caption")
-        storage_helpers.copy_files_bulk(self.download_list_file_path,
-                                        self.tmp_img_path)
-        LOGGER.info("The images to be captioned were successfully downloaded to %s",
-                    self.tmp_img_path)
+        storage_helpers.copy_files_bulk(self.download_list_file_path, self.tmp_img_path)
+        LOGGER.info(
+            "The images to be captioned were successfully downloaded to %s",
+            self.tmp_img_path,
+        )
 
     def _write_parquet_captions(self, min_length: int, max_length: int, beams: int):
         """
@@ -71,7 +84,6 @@ class KfpPipelineImageCaptioner:
         """
 
         def _img_caption_loop() -> Iterable[Tuple[str, str, List[str]]]:
-
             LOGGER.info("Starting image captioning")
             for batch in self.parquet_dataset.to_batches():
                 # pyarrow's batch_size approximates the number of batches to return
@@ -80,7 +92,7 @@ class KfpPipelineImageCaptioner:
                 if len(batch) > 0:
                     file_uris, file_ids, local_paths = [], [], []
                     for row in tqdm(batch.to_pylist()):
-                        file_uri, file_id = row['file_uri'], row['file_id']
+                        file_uri, file_id = row["file_uri"], row["file_id"]
                         file_name = os.path.basename(file_uri)
                         local_file_path = os.path.join(self.tmp_img_path, file_name)
                         file_ids.append(file_id)
@@ -91,18 +103,23 @@ class KfpPipelineImageCaptioner:
                         image_paths=local_paths,
                         min_length=min_length,
                         max_length=max_length,
-                        beams=beams)
-                    for file_id, file_uri, caption in zip(file_ids, file_uris, captions):
+                        beams=beams,
+                    )
+                    for file_id, file_uri, caption in zip(
+                        file_ids, file_uris, captions
+                    ):
                         # TODO: decide whether the caption field in caption parquet should be a str
                         #  or a list (many caption per image)
                         yield file_id, file_uri, [caption]
 
         parquet_helpers.write_captions_parquet(
             caption_parquet_path=self.caption_parquet_path,
-            data_iterable_producer=_img_caption_loop
+            data_iterable_producer=_img_caption_loop,
         )
 
-        LOGGER.info("Updated dataset parquet file written to %s", self.caption_parquet_path)
+        LOGGER.info(
+            "Updated dataset parquet file written to %s", self.caption_parquet_path
+        )
         LOGGER.info("Image conversion completed")
 
     def start(self, min_length: int, max_length: int, beams: int):
@@ -116,7 +133,9 @@ class KfpPipelineImageCaptioner:
         """
         self._write_gcs_file_lists()
         self._download_images_to_caption()
-        self._write_parquet_captions(min_length=min_length, max_length=max_length, beams=beams)
+        self._write_parquet_captions(
+            min_length=min_length, max_length=max_length, beams=beams
+        )
 
     def get_caption_path(self) -> str:
         """
