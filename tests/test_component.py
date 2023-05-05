@@ -16,14 +16,11 @@ from fondant.dataset import FondantDataset
 
 
 components_path = Path(__file__).parent / "example_specs/components"
+component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 
 
 class LoadFromHubComponent(FondantLoadComponent):
-    def __init__(self):
-        # overwrite to correctly point to the location of the yaml file
-        self.spec = FondantComponentSpec.from_file("tests/example_specs/valid_component/fondant_component.yaml")
-        self.args = self._add_and_parse_args()
-    
+
     def load(self, args):
         data = {"id": [0,1], "source": ["cloud", "cloud"], "captions_data": ["hello world", "this is another caption"]}
 
@@ -37,7 +34,7 @@ metadata = json.dumps({"base_path": ".", "run_id": "200"})
 @mock.patch('argparse.ArgumentParser.parse_args',
             return_value=argparse.Namespace(input_manifest_path=".", output_manifest_path="result.parquet", metadata=metadata))
 def test_component(mock_args):
-    component = LoadFromHubComponent()
+    component = LoadFromHubComponent.from_file(component_specs_path / "valid_component.yaml")
     
     # test component args
     component_args = component._get_component_arguments()
@@ -46,8 +43,7 @@ def test_component(mock_args):
     assert argparse.Namespace(input_manifest_path=".", output_manifest_path="result.parquet", metadata=metadata) == component._add_and_parse_args()
     
     # test custom args
-    component_spec_args = [arg.name for arg in component.spec.args]
-    assert component_spec_args == ["storage_args"]
+    assert list(component.spec.args) == ["storage_args"]
 
     # test manifest
     initial_manifest = component._load_or_create_manifest()
@@ -86,7 +82,6 @@ def test_transform_kwargs(monkeypatch):
         "--flag", "success",
         "--value", "1",
         "--output_manifest_path", "",
-        "--metadata", ""
     ]
 
     # Instantiate and run component
