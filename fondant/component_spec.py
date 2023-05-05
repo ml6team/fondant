@@ -117,7 +117,7 @@ class FondantComponentSpec:
             raise InvalidComponentSpec.create_from(e)
 
     @classmethod
-    def from_file(cls, path: str) -> "FondantComponentSpec":
+    def from_file(cls, path: t.Union[str, Path]) -> "FondantComponentSpec":
         """Load the component spec from the file specified by the provided path"""
         with open(path, encoding="utf-8") as file_:
             specification = yaml.safe_load(file_)
@@ -177,15 +177,15 @@ class FondantComponentSpec:
         )
 
     @property
-    def args(self) -> t.List[Argument]:
-        return [
-            Argument(
-                name=arg_name,
+    def args(self) -> t.Dict[str, Argument]:
+        return {
+            name: Argument(
+                name=name,
                 description=arg_info["description"],
                 type=arg_info["type"],
             )
-            for arg_name, arg_info in self._specification["args"].items()
-        ]
+            for name, arg_info in self._specification["args"].items()
+        }
 
     @property
     def kubeflow_specification(self) -> "KubeflowComponentSpec":
@@ -226,7 +226,7 @@ class KubeflowComponentSpec:
                         "description": arg.description,
                         "type": python2kubeflow_type[arg.type],
                     }
-                    for arg in fondant_component.args
+                    for arg in fondant_component.args.values()
                 ),
             ],
             "outputs": [
@@ -244,7 +244,7 @@ class KubeflowComponentSpec:
                         "main.py",
                         "--input-manifest-path",
                         {"inputPath": "input_manifest_path"},
-                        *cls._dump_args(fondant_component.args),
+                        *cls._dump_args(fondant_component.args.values()),
                         "--output-manifest-path",
                         {"outputPath": "output_manifest_path"},
                     ],
@@ -254,7 +254,7 @@ class KubeflowComponentSpec:
         return cls(specification)
 
     @staticmethod
-    def _dump_args(args: t.List[Argument]) -> KubeflowCommandArguments:
+    def _dump_args(args: t.Iterable[Argument]) -> KubeflowCommandArguments:
         """Dump Fondant specification arguments to kfp command arguments."""
         dumped_args: KubeflowCommandArguments = []
         for arg in args:

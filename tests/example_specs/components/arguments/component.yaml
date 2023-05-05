@@ -1,0 +1,11 @@
+name: Example component
+description: This is an example component
+image: example_component:latest
+
+args:
+  flag:
+    description: user argument
+    type: str
+  value:
+    description: integer value
+    type: int

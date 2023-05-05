@@ -7,25 +7,24 @@ from fondant.exceptions import InvalidComponentSpec
 from fondant.component_spec import FondantComponentSpec
 from fondant.schema import Type
 
-valid_path = Path(__file__).parent / "example_specs/valid_component"
-invalid_path = Path(__file__).parent / "example_specs/invalid_component"
+component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 
 
 @pytest.fixture
 def valid_fondant_schema() -> dict:
-    with open(valid_path / "fondant_component.yaml") as f:
+    with open(component_specs_path / "valid_component.yaml") as f:
         return yaml.safe_load(f)
 
 
 @pytest.fixture
 def valid_kubeflow_schema() -> dict:
-    with open(valid_path / "kubeflow_component.yaml") as f:
+    with open(component_specs_path / "kubeflow_component.yaml") as f:
         return yaml.safe_load(f)
 
 
 @pytest.fixture
 def invalid_fondant_schema() -> dict:
-    with open(invalid_path / "fondant_component.yaml") as f:
+    with open(component_specs_path / "invalid_component.yaml") as f:
         return yaml.safe_load(f)
 
 
