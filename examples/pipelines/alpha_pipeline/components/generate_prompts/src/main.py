@@ -1,64 +1,67 @@
 """
-This component generates prompts that will be used to retrieve images
- from the LAION-5B dataset.
+This component generates a set of initial prompts that will be used to retrieve images from the LAION-5B dataset.
 """
-import os
 import itertools
+import logging
+
+import dask.dataframe as dd
 import pandas as pd
-from dask import dataframe as dd
+
+from fondant.component import FondantLoadComponent
+from fondant.logger import configure_logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 
-def load_prompt_seeds(path_to_data):
-    """
-    Load seed lists for generating prompts to retrieve images from the
-    LAION-5B dataset.
+interior_styles = ["art deco", "bauhaus", "bouclé", "maximalist", "brutalist", "coastal",
+                   "minimalist", "rustic", "hollywood regency", "midcentury modern",
+                   "modern organic", "contemporary", "modern", "scandinavian", "eclectic",
+                   "bohemiam", "industrial", "traditional", "transitional", "farmhouse",
+                   "country", "asian", "mediterranean", "rustic", "southwestern", "coastal",]
 
-    Args:
-        path_to_data (str): Path to the directory containing text files with
-                            prompt seeds. The path should lead to three files:
-                            room_types.txt, interior_styles.txt, and
-                            interior_prefix.txt
+interior_prefix = [ "comfortable", "luxurious", "simple",]
 
-    Returns:
-        tuple: A tuple containing three lists of lowercase strings:
-            - rooms: A list of types of rooms.
-            - interior_styles: A list interior styles.
-            - interior_prefix: A list of prefixes for interior prompts.
-    """
-    with open(os.path.join(path_to_data, "room_types.txt")) as f:
-        rooms = [line.strip().lower() for line in f.readlines()]
-
-    with open(os.path.join(path_to_data, "interior_styles.txt")) as f:
-        interior_styles = [line.strip().lower() for line in f.readlines()]
-
-    with open(os.path.join(path_to_data, "interior_prefix.txt")) as f:
-        interior_prefix = [line.strip().lower() for line in f.readlines()]
-
-    return rooms, interior_styles, interior_prefix
+rooms = ["Bathroom", "Living room", "Hotel room", "Lobby", "Entrance hall", "Kitchen",
+         "Family room", "Master bedroom", "Bedroom", "Kids bedroom", "Laundry room",
+         "Guest room", "Home office", "Library room", "Playroom", "Home Theater room",
+         "Gym room", "Basement room", "Garage", "Walk-in closet", "Pantry", "Gaming room",
+         "Attic", "Sunroom", "Storage room", "Study room", "Dining room", "Loft",
+         "Studio room", "Appartement",]
 
 
-def generate_prompts(path_to_data):
-    """
-    Generate prompts for retrieving images from the LAION-5B dataset using the
-    given seed lists"
+def make_interior_prompt(room: str, prefix: str, style: str) -> str:
+    """Generate a prompt for the interior design model.
 
     Args:
-        path_to_data (str): Path to the directory containing text files with
-        prompt seeds.
+        room (str): room name
+        prefix (str): prefix for the room
+        style (str): interior style
 
     Returns:
-        dask.dataframe: A dask dataframe containing generated prompts.
+        str: prompt for the interior design model
     """
-    rooms, interior_styles, interior_prefix = load_prompt_seeds(path_to_data)
+    # TODO: add more variation in the prompt, multiple variants, ...
+    return f"{prefix.lower()} {room.lower()}, {style.lower()} interior design"
 
-    room_tuples = list(itertools.product(interior_prefix,
-                                         interior_styles,
-                                         rooms))
 
-    prompts_list = [" ".join(i) for i in room_tuples]
+class LoadPromptsComponent(FondantLoadComponent):
 
-    prompts_pdf = pd.DataFrame(prompts_list, columns=['prompts_data'])
+    def load(self):
+        """
+        Returns:
+            Dask dataframe
+        """
+        room_tuples = list(itertools.product(rooms, interior_prefix, interior_styles))
+        prompts = list(map(lambda x: make_interior_prompt(*x), room_tuples))
 
-    prompts_ddf = dd.from_pandas(prompts_pdf, npartitions=1) # need to decide how npartitions should be set
+        df = pd.DataFrame(prompts, columns=['prompts_data'])
 
-    return prompts_ddf
+        df = dd.from_pandas(df, npartitions=1) # need to decide how npartitions should be set
+
+        return df
+
+
+if __name__ == "__main__":
+    component = LoadPromptsComponent()
+    component.run()
