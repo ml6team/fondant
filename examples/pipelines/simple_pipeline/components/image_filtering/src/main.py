@@ -18,11 +18,14 @@ class ImageFilterComponent(FondantTransformComponent):
     Component that filters images based on height and width.
     """
 
-    def transform(self, dataframe: dd.DataFrame, args: Dict) -> dd.DataFrame:
+    def transform(
+        self, *, dataframe: dd.DataFrame, min_width: int, min_height: int
+    ) -> dd.DataFrame:
         """
         Args:
             df: Dask dataframe
-            args: args to pass to the function
+            min_width: min width to filter on
+            min_height: min height to filter on
 
         Returns:
             dataset
@@ -30,7 +33,6 @@ class ImageFilterComponent(FondantTransformComponent):
         logger.info("Length of the dataframe before filtering:", len(dataframe))
 
         logger.info("Filtering dataset...")
-        min_width, min_height = args.min_width, args.min_height
         filtered_df = dataframe[
             (dataframe["images_width"] > min_width)
             & (dataframe["images_height"] > min_height)
