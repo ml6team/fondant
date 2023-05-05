@@ -20,34 +20,58 @@ component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 
 
 class LoadFromHubComponent(FondantLoadComponent):
-
     def load(self, args):
-        data = {"id": [0,1], "source": ["cloud", "cloud"], "captions_data": ["hello world", "this is another caption"]}
+        data = {
+            "id": [0, 1],
+            "source": ["cloud", "cloud"],
+            "captions_data": ["hello world", "this is another caption"],
+        }
 
         df = dd.DataFrame.from_dict(data, npartitions=1)
-        
+
         return df
 
 
 # we mock the argparse arguments in order to run the tests without having to pass arguments
 metadata = json.dumps({"base_path": ".", "run_id": "200"})
-@mock.patch('argparse.ArgumentParser.parse_args',
-            return_value=argparse.Namespace(input_manifest_path=".", output_manifest_path="result.parquet", metadata=metadata))
+
+
+@mock.patch(
+    "argparse.ArgumentParser.parse_args",
+    return_value=argparse.Namespace(
+        input_manifest_path=".",
+        output_manifest_path="result.parquet",
+        metadata=metadata,
+    ),
+)
 def test_component(mock_args):
-    component = LoadFromHubComponent.from_file(component_specs_path / "valid_component.yaml")
-    
+    component = LoadFromHubComponent.from_file(
+        component_specs_path / "valid_component.yaml"
+    )
+
     # test component args
     component_args = component._get_component_arguments()
     assert "input_manifest_path" in component_args
     assert "output_manifest_path" in component_args
-    assert argparse.Namespace(input_manifest_path=".", output_manifest_path="result.parquet", metadata=metadata) == component._add_and_parse_args()
-    
+    assert (
+        argparse.Namespace(
+            input_manifest_path=".",
+            output_manifest_path="result.parquet",
+            metadata=metadata,
+        )
+        == component._add_and_parse_args()
+    )
+
     # test custom args
     assert list(component.spec.args) == ["storage_args"]
 
     # test manifest
     initial_manifest = component._load_or_create_manifest()
-    assert initial_manifest.metadata == {'base_path': '.', 'run_id': '200', 'component_id': 'example_component'}
+    assert initial_manifest.metadata == {
+        "base_path": ".",
+        "run_id": "200",
+        "component_id": "example_component",
+    }
 
 
 def test_transform_kwargs(monkeypatch):
@@ -69,7 +93,6 @@ def test_transform_kwargs(monkeypatch):
 
     # Implemented Component class
     class MyComponent(FondantTransformComponent):
-
         def transform(self, dataframe, *, flag, value):
             assert flag == "success"
             assert value == 1
@@ -78,10 +101,14 @@ def test_transform_kwargs(monkeypatch):
     # Mock CLI arguments
     sys.argv = [
         "",
-        "--input_manifest_path", str(input_manifest),
-        "--flag", "success",
-        "--value", "1",
-        "--output_manifest_path", "",
+        "--input_manifest_path",
+        str(input_manifest),
+        "--flag",
+        "success",
+        "--value",
+        "1",
+        "--output_manifest_path",
+        "",
     ]
 
     # Instantiate and run component

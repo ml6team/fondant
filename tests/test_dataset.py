@@ -48,9 +48,11 @@ def test_merge_subsets(input_manifest, component_spec):
 
 def test_write_subsets(input_manifest, output_manifest, component_spec):
     # Dictionary specifying the expected subsets to write and their column names
-    subset_columns_dict = {"index": ['id', 'source'],
-                           "properties": ['Name', 'HP', 'id', 'source'],
-                           "types": ['Type 1', 'Type 2', 'id', 'source']}
+    subset_columns_dict = {
+        "index": ["id", "source"],
+        "properties": ["Name", "HP", "id", "source"],
+        "types": ["Type 1", "Type 2", "id", "source"],
+    }
 
     # Load dataframe from input manifest
     input_fds = FondantDataset(manifest=input_manifest)

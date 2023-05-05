@@ -20,7 +20,9 @@ def input_manifest():
 def examples():
     """Returns examples as tuples of component and expected output_manifest"""
     for directory in (f for f in examples_path.iterdir() if f.is_dir()):
-        with open(directory / "component.yaml") as c, open(directory / "output_manifest.json") as o:
+        with open(directory / "component.yaml") as c, open(
+            directory / "output_manifest.json"
+        ) as o:
             yield yaml.safe_load(c), json.load(o)
 
 

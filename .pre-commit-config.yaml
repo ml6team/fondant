@@ -40,6 +40,7 @@ repos:
                 examples/pipelines/finetune_stable_diffusion/components/image_filter_component|
                 examples/pipelines/finetune_stable_diffusion/components/embedding_component|
                 examples/pipelines/finetune_stable_diffusion/dataset_creation_pipeline.py|
+                tests/.*|
             )$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
