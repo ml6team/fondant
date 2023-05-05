@@ -29,7 +29,9 @@ class FondantComponent(ABC):
         self.args = self._add_and_parse_args()
 
     @classmethod
-    def from_file(cls, path: t.Union[str, Path]) -> "FondantComponent":
+    def from_file(
+        cls, path: t.Union[str, Path] = "../fondant_component.yaml"
+    ) -> "FondantComponent":
         """Create a component from a component spec file
 
         Args:
