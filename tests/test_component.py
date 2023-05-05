@@ -12,7 +12,6 @@ import pytest
 from fondant.component import FondantLoadComponent, FondantTransformComponent
 from fondant.dataset import FondantDataset
 
-
 components_path = Path(__file__).parent / "example_specs/components"
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 

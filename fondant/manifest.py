@@ -12,7 +12,7 @@ from jsonschema.validators import RefResolver
 
 from fondant.component_spec import FondantComponentSpec
 from fondant.exceptions import InvalidManifest
-from fondant.schema import Type, Field
+from fondant.schema import Field, Type
 
 
 class Subset:

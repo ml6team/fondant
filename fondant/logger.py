@@ -1,8 +1,8 @@
 """Utils file with useful methods."""
 
 import logging
-import sys
 import os
+import sys
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", default="INFO")
 

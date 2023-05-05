@@ -1,7 +1,7 @@
 """General pipeline utils"""
 
-import os
 import logging
+import os
 from typing import Callable, Optional
 
 from fondant.import_utils import is_kfp_available

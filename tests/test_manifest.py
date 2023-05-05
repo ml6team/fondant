@@ -2,9 +2,9 @@ import json
 from pathlib import Path
 
 import pytest
+
 from fondant.exceptions import InvalidManifest
 from fondant.manifest import Manifest, Type
-
 
 manifest_path = Path(__file__).parent / "example_specs/manifests"
 

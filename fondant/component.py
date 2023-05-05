@@ -8,13 +8,13 @@ components take care of processing, filtering and extending the data.
 import argparse
 import json
 import logging
-from pathlib import Path
 import typing as t
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import dask.dataframe as dd
 
-from fondant.component_spec import FondantComponentSpec, kubeflow2python_type, Argument
+from fondant.component_spec import Argument, FondantComponentSpec, kubeflow2python_type
 from fondant.dataset import FondantDataset
 from fondant.manifest import Manifest
 

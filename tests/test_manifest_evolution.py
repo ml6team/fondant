@@ -7,7 +7,6 @@ import yaml
 from fondant.component_spec import FondantComponentSpec
 from fondant.manifest import Manifest
 
-
 examples_path = Path(__file__).parent / "example_specs/evolution_examples"
 
 

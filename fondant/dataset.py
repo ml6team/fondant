@@ -6,7 +6,7 @@ import typing as t
 import dask.dataframe as dd
 
 from fondant.component_spec import FondantComponentSpec
-from fondant.manifest import Manifest, Field
+from fondant.manifest import Field, Manifest
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,11 @@
 """Fondant component specs test"""
-import pytest
-import yaml
 from pathlib import Path
 
-from fondant.exceptions import InvalidComponentSpec
+import pytest
+import yaml
+
 from fondant.component_spec import FondantComponentSpec
+from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Type
 
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"

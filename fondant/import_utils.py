@@ -1,11 +1,11 @@
 """
 Import utils
 """
-import logging
-import importlib.util
 import importlib.metadata
-from pathlib import Path
+import importlib.util
+import logging
 import sys
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

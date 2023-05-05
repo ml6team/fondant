@@ -1,11 +1,12 @@
 import tempfile
-import pytest
-import dask.dataframe as dd
 from pathlib import Path
 
-from fondant.manifest import Manifest
-from fondant.dataset import FondantDataset
+import dask.dataframe as dd
+import pytest
+
 from fondant.component_spec import FondantComponentSpec
+from fondant.dataset import FondantDataset
+from fondant.manifest import Manifest
 
 input_manifest_path = Path(__file__).parent / "example_data/input_manifest.json"
 output_manifest_path = Path(__file__).parent / "example_data/output_manifest.json"

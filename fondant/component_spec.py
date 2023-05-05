@@ -1,19 +1,19 @@
 """This module defines classes to represent an Fondant component specification."""
 import copy
 import json
-import yaml
 import pkgutil
 import types
 import typing as t
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
 import jsonschema.exceptions
+import yaml
 from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
 from fondant.exceptions import InvalidComponentSpec
-from fondant.schema import Field, Type, KubeflowCommandArguments
+from fondant.schema import Field, KubeflowCommandArguments, Type
 
 # TODO: Change after upgrading to kfp v2
 # :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/

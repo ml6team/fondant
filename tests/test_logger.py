@@ -2,6 +2,7 @@
 Test scripts for logger functionalities
 """
 import logging
+
 import pytest
 
 from fondant.logger import configure_logging
