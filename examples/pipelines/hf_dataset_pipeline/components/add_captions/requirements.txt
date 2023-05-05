@@ -1,5 +1,0 @@
-# Add component requirements here
-git+https://github.com/ml6team/fondant.git@main
-transformers
-torch
-Pillow

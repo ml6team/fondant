@@ -1,1 +1,0 @@
-git+https://github.com/ml6team/fondant.git@main
