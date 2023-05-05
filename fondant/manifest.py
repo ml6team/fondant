@@ -149,6 +149,10 @@ class Manifest:
     def base_path(self) -> str:
         return self.metadata["base_path"]
 
+    @base_path.setter
+    def base_path(self, path: str) -> None:
+        self.metadata["base_path"] = path
+
     @property
     def run_id(self) -> str:
         return self.metadata["run_id"]
