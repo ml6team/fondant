@@ -80,7 +80,7 @@ def test_set_base_path(valid_manifest):
     """Test altering the base path in the manifest"""
     manifest = Manifest(valid_manifest)
     tmp_path = "/tmp/base_path"
-    manifest.base_path = tmp_path
+    manifest.update_metadata(key="base_path", value=tmp_path)
 
     assert manifest.base_path == tmp_path
     assert manifest._specification["metadata"]["base_path"] == tmp_path
