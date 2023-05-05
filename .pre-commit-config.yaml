@@ -9,11 +9,7 @@ repos:
         files:  |
             (?x)^(
                 fondant/.*|
-                examples/pipelines/hf_dataset_pipeline|
-                examples/pipelines/finetune_stable_diffusion/components/load_from_hub_component|
-                examples/pipelines/finetune_stable_diffusion/components/image_filter_component|
-                examples/pipelines/finetune_stable_diffusion/components/embedding_component|
-                examples/pipelines/finetune_stable_diffusion/dataset_creation_pipeline.py|
+                tests/.*|
             )$
         args: [--fix, --exit-non-zero-on-fix]
 
