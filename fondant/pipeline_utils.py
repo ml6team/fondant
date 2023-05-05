@@ -1,4 +1,4 @@
-"""General pipeline utils"""
+"""General pipeline utils."""
 
 import logging
 import os
@@ -17,12 +17,13 @@ def compile_and_upload_pipeline(
     pipeline: Callable[[], None], host: str, env: str, pipeline_id: Optional[str] = None
 ) -> None:
     """Upload pipeline to kubeflow.
+
     Args:
         pipeline: function that contains the pipeline definition
         host: the url host for kfp
         env: the project run environment (sbx, dev, prd)
         pipeline_id: pipeline id of existing component under the same name. Pass it on when you
-        want to delete current existing pipelines
+        want to delete current existing pipelines.
     """
     client = kfp.Client(host=host)
 

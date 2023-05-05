@@ -1,4 +1,4 @@
-"""Fondant component tests"""
+"""Fondant component tests."""
 
 import argparse
 import json
@@ -75,7 +75,7 @@ def test_transform_kwargs(monkeypatch):
     """Test that arguments are passed correctly to `Component.transform` method."""
 
     class EarlyStopException(Exception):
-        """Used to stop execution early instead of mocking all later functionality"""
+        """Used to stop execution early instead of mocking all later functionality."""
 
     # Mock `Dataset.load_dataframe` so no actual data is loaded
     def mocked_load_dataframe(self, spec):

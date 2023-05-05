@@ -1,6 +1,4 @@
-"""
-Test scripts for import module functionality
-"""
+"""Test scripts for import module functionality."""
 import pytest
 
 from fondant.import_utils import is_package_available
@@ -18,9 +16,7 @@ from fondant.import_utils import is_package_available
     ],
 )
 def test_is_package_available(package_name, import_error_msg, expected_result):
-    """
-    Test function for is_package_available().
-    """
+    """Test function for is_package_available()."""
     if isinstance(expected_result, bool):
         assert is_package_available(package_name, import_error_msg) == expected_result
     else:

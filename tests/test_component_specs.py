@@ -1,4 +1,4 @@
-"""Fondant component specs test"""
+"""Fondant component specs test."""
 from pathlib import Path
 
 import pytest
@@ -30,7 +30,7 @@ def invalid_fondant_schema() -> dict:
 
 
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
-    """Test that the manifest is validated correctly on instantiation"""
+    """Test that the manifest is validated correctly on instantiation."""
     FondantComponentSpec(valid_fondant_schema)
     with pytest.raises(InvalidComponentSpec):
         FondantComponentSpec(invalid_fondant_schema)
@@ -40,7 +40,7 @@ def test_attribute_access(valid_fondant_schema):
     """
     Test that attributes can be accessed as expected:
     - Fixed properties should be accessible as an attribute
-    - Dynamic properties should be accessible by lookup
+    - Dynamic properties should be accessible by lookup.
     """
     fondant_component = FondantComponentSpec(valid_fondant_schema)
 
@@ -50,9 +50,7 @@ def test_attribute_access(valid_fondant_schema):
 
 
 def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
-    """
-    Test that the created kubeflow component matches the expected kubeflow component
-    """
+    """Test that the created kubeflow component matches the expected kubeflow component."""
     fondant_component = FondantComponentSpec(valid_fondant_schema)
     kubeflow_component = fondant_component.kubeflow_specification
     assert kubeflow_component._specification == valid_kubeflow_schema

@@ -22,14 +22,14 @@ def invalid_manifest():
 
 
 def test_manifest_validation(valid_manifest, invalid_manifest):
-    """Test that the manifest is validated correctly on instantiation"""
+    """Test that the manifest is validated correctly on instantiation."""
     Manifest(valid_manifest)
     with pytest.raises(InvalidManifest):
         Manifest(invalid_manifest)
 
 
 def test_from_to_file(valid_manifest):
-    """Test reading from and writing to file"""
+    """Test reading from and writing to file."""
     tmp_path = "/tmp/manifest.json"
     with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(valid_manifest, f)
@@ -46,7 +46,7 @@ def test_attribute_access(valid_manifest):
     """
     Test that attributes can be accessed as expected:
     - Fixed properties should be accessible as an attribute
-    - Dynamic properties should be accessible by lookup
+    - Dynamic properties should be accessible by lookup.
     """
     manifest = Manifest(valid_manifest)
 
@@ -57,7 +57,7 @@ def test_attribute_access(valid_manifest):
 
 
 def test_manifest_creation():
-    """Test the stepwise creation of a manifest via the Manifest class"""
+    """Test the stepwise creation of a manifest via the Manifest class."""
     base_path = "gs://bucket"
     run_id = "run_id"
     component_id = "component_id"

@@ -40,7 +40,7 @@ kubeflow2python_type = {
 @dataclass
 class Argument:
     """
-    Kubeflow component argument
+    Kubeflow component argument.
 
     Args:
         name: name of the argument
@@ -94,11 +94,10 @@ class FondantComponentSpec:
         self._validate_spec()
 
     def _validate_spec(self) -> None:
-        """Validate a component specification against the component schema
+        """Validate a component specification against the component schema.
 
         Raises: InvalidComponent when the component specification is not valid.
         """
-
         spec_data = pkgutil.get_data("fondant", "schemas/component_spec.json")
 
         if spec_data is None:
@@ -118,13 +117,13 @@ class FondantComponentSpec:
 
     @classmethod
     def from_file(cls, path: t.Union[str, Path]) -> "FondantComponentSpec":
-        """Load the component spec from the file specified by the provided path"""
+        """Load the component spec from the file specified by the provided path."""
         with open(path, encoding="utf-8") as file_:
             specification = yaml.safe_load(file_)
             return cls(specification)
 
     def to_file(self, path) -> None:
-        """Dump the component spec to the file specified by the provided path"""
+        """Dump the component spec to the file specified by the provided path."""
         with open(path, "w", encoding="utf-8") as file_:
             yaml.dump(self._specification, file_)
 
@@ -142,7 +141,7 @@ class FondantComponentSpec:
 
     @property
     def input_subsets(self) -> t.Mapping[str, ComponentSubset]:
-        """The input subsets of the component as an immutable mapping"""
+        """The input subsets of the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
@@ -153,7 +152,7 @@ class FondantComponentSpec:
 
     @property
     def output_subsets(self) -> t.Mapping[str, ComponentSubset]:
-        """The output subsets of the component as an immutable mapping"""
+        """The output subsets of the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
@@ -267,7 +266,7 @@ class KubeflowComponentSpec:
         return dumped_args
 
     def to_file(self, path: t.Union[str, Path]) -> None:
-        """Dump the component specification to the file specified by the provided path"""
+        """Dump the component specification to the file specified by the provided path."""
         with open(path, "w", encoding="utf-8") as file_:
             yaml.dump(
                 self._specification,
@@ -279,7 +278,7 @@ class KubeflowComponentSpec:
 
     @property
     def input_arguments(self) -> t.Mapping[str, Argument]:
-        """The input arguments of the component as an immutable mapping"""
+        """The input arguments of the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 info["name"]: Argument(
@@ -293,7 +292,7 @@ class KubeflowComponentSpec:
 
     @property
     def output_arguments(self) -> t.Mapping[str, Argument]:
-        """The output arguments of the component as an immutable mapping"""
+        """The output arguments of the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 info["name"]: Argument(

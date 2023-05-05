@@ -37,7 +37,6 @@ class FondantDataset:
         Returns:
             The subset as a dask dataframe
         """
-
         subset = self.manifest.subsets[subset_name]
         remote_path = subset.location
         index_fields = list(self.manifest.index.fields.keys())
@@ -78,7 +77,7 @@ class FondantDataset:
     def load_dataframe(self, spec: FondantComponentSpec) -> dd.DataFrame:
         """
         Function that loads the subsets defined in the component spec as a single Dask dataframe for
-          the user
+          the user.
 
         Args:
             spec: the fondant component spec
@@ -116,7 +115,6 @@ class FondantDataset:
              A delayed Dask task that uploads the DataFrame to the remote storage location when
               executed.
         """
-
         # Define task to upload index to remote storage
         write_task = dd.to_parquet(
             df, remote_path, schema=schema, overwrite=False, compute=False
@@ -126,6 +124,7 @@ class FondantDataset:
     def write_index(self, df: dd.DataFrame):
         """
         Write the index dataframe to a remote location.
+
         Args:
             df: The output Dask dataframe returned by the user.
         """
@@ -163,7 +162,7 @@ class FondantDataset:
         ) -> t.List[str]:
             """
             Verify that all the fields defined in the output subset are present in
-            the output dataframe
+            the output dataframe.
             """
             # TODO: add logic for `additional fields`
             subset_columns = [f"{subset_name}_{field}" for field in subset_fields]
@@ -181,9 +180,7 @@ class FondantDataset:
         def create_subset_dataframe(
             subset_name: str, subset_columns: t.List[str], df: dd.DataFrame
         ):
-            """
-            Create subset dataframe to save with the original field name as the column name
-            """
+            """Create subset dataframe to save with the original field name as the column name."""
             # Create a new dataframe with only the columns needed for the output subset
             subset_df = df[subset_columns]
 
