@@ -53,7 +53,7 @@ class Subset:
         del self._specification["fields"][name]
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r}"
+        return f"{self.__class__.__name__}({self._specification!r})"
 
 
 class Index(Subset):
@@ -259,4 +259,4 @@ class Manifest:
         return evolved_manifest
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r}"
+        return f"{self.__class__.__name__}({self._specification!r})"
