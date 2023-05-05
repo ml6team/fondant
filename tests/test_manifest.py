@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 from fondant.exceptions import InvalidManifest
-from fondant.manifest import Manifest, Type
+from fondant.manifest import Subset, Manifest, Type
 
 
 manifest_path = Path(__file__).parent / "example_specs/manifests"
@@ -26,6 +26,63 @@ def test_manifest_validation(valid_manifest, invalid_manifest):
     Manifest(valid_manifest)
     with pytest.raises(InvalidManifest):
         Manifest(invalid_manifest)
+
+
+def test_subset_init():
+    """Test initializing a subset"""
+    subset_spec = {
+        "location": "/ABC/123/images",
+        "fields": {
+            "data": {
+                "type": "binary",
+            },
+        },
+    }
+    subset = Subset(specification=subset_spec, base_path="/tmp")
+    assert subset.location == "/tmp/ABC/123/images"
+    assert (
+        subset.__repr__()
+        == "Subset({'location': '/ABC/123/images', 'fields': {'data': {'type': 'binary'}}}"
+    )
+
+
+def test_subset_fields():
+    """Test manipulating subset fields"""
+    subset_spec = {
+        "location": "/ABC/123/images",
+        "fields": {
+            "data": {
+                "type": "binary",
+            },
+        },
+    }
+    subset = Subset(specification=subset_spec, base_path="/tmp")
+
+    # add a field
+    subset.add_field(name="data2", type_=Type.binary)
+    assert "data2" in subset.fields
+
+    # add a duplicate field
+    with pytest.raises(ValueError):
+        subset.add_field(name="data2", type_=Type.binary)
+
+    # add a duplicate field but overwrite
+    subset.add_field(name="data2", type_=Type.utf8, overwrite=True)
+    assert subset.fields["data2"].type == "utf8"
+
+    # remove a field
+    subset.remove_field(name="data2")
+    assert "data2" not in subset.fields
+
+
+def test_set_base_path(valid_manifest):
+    """Test altering the base path in the manifest"""
+    manifest = Manifest(valid_manifest)
+    tmp_path = "/tmp/base_path"
+    manifest.base_path = tmp_path
+
+    assert manifest.base_path == tmp_path
+    assert manifest._specification["metadata"]["base_path"] == tmp_path
 
 
 def test_from_to_file(valid_manifest):
@@ -62,7 +119,9 @@ def test_manifest_creation():
     run_id = "run_id"
     component_id = "component_id"
 
-    manifest = Manifest.create(base_path=base_path, run_id=run_id, component_id=component_id)
+    manifest = Manifest.create(
+        base_path=base_path, run_id=run_id, component_id=component_id
+    )
     manifest.add_subset("images", [("width", Type.int32), ("height", Type.int32)])
     manifest.subsets["images"].add_field("data", Type.binary)
 
@@ -72,9 +131,7 @@ def test_manifest_creation():
             "run_id": run_id,
             "component_id": component_id,
         },
-        "index": {
-            "location": f"/{run_id}/{component_id}/index"
-        },
+        "index": {"location": f"/{run_id}/{component_id}/index"},
         "subsets": {
             "images": {
                 "location": f"/{run_id}/{component_id}/images",
@@ -87,10 +144,10 @@ def test_manifest_creation():
                     },
                     "data": {
                         "type": "binary",
-                    }
-                }
+                    },
+                },
             }
-        }
+        },
     }
 
 
