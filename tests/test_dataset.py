@@ -27,12 +27,6 @@ def component_spec():
     return FondantComponentSpec.from_file(component_spec_path)
 
 
-@pytest.fixture
-def input_dataset():
-    manifest = Manifest.from_file(input_manifest_path)
-    return FondantDataset(manifest=manifest)
-
-
 def test_load_index(input_manifest):
     fds = FondantDataset(input_manifest)
     assert len(fds._load_index()) == 151
@@ -52,71 +46,29 @@ def test_merge_subsets(input_manifest, component_spec):
     ]
 
 
-# def test_write_subsets(input_manifest, output_manifest, component_spec):
-#     # Dictionary specifying the expected subsets to write and their column names
-#     subset_columns_dict = {
-#         "index": ["id", "source"],
-#         "properties": ["Name", "HP", "id", "source"],
-#         "types": ["Type 1", "Type 2", "id", "source"],
-#     }
+def test_write_subsets(input_manifest, output_manifest, component_spec):
+    # Dictionary specifying the expected subsets to write and their column names
+    subset_columns_dict = {
+        "index": ["id", "source"],
+        "properties": ["Name", "HP", "id", "source"],
+        "types": ["Type 1", "Type 2", "id", "source"],
+    }
 
-#     # Load dataframe from input manifest
-#     input_fds = FondantDataset(manifest=input_manifest)
-#     df = input_fds.load_dataframe(spec=component_spec)
+    # Load dataframe from input manifest
+    input_fds = FondantDataset(manifest=input_manifest)
+    df = input_fds.load_dataframe(spec=component_spec)
 
-#     # Write dataframe based on the output manifest and component spec
-#     output_fds = FondantDataset(manifest=output_manifest)
-#     output_base_path = Path(output_fds.manifest.base_path)
+    # Write dataframe based on the output manifest and component spec
+    output_fds = FondantDataset(manifest=output_manifest)
+    output_base_path = Path(output_fds.manifest.base_path)
 
-#     print(output_base_path)
-
-#     # Create temporary directory for writing the subset based on the manifest base path
-#     with tempfile.TemporaryDirectory(dir=output_base_path):
-#         tmp_dir_path = Path(output_base_path)
-#         output_fds.write_index(df)
-#         output_fds.write_subsets(df, spec=component_spec)
-#         for subset, subset_columns in subset_columns_dict.items():
-#             subset_path = Path(tmp_dir_path / subset)
-#             df = dd.read_parquet(subset_path)
-#             assert len(df) == 151
-#             assert list(df.columns) == subset_columns
-
-
-# @pytest.fixture
-# def input_dataset():
-#     manifest = Manifest.from_file(input_manifest_path)
-#     return FondantDataset(manifest=manifest)
-
-
-# @pytest.fixture
-# def output_dataset():
-#     manifest = Manifest.from_file(output_manifest_path)
-#     return FondantDataset(manifest=manifest)
-
-
-# def test_write_invalid_output():
-#     pass
-
-
-# def test_write_subsetss(input_dataset, output_dataset, component_spec):
-#     # Dictionary specifying the expected subsets to write and their column names
-#     subset_columns_dict = {
-#         "index": ["id", "source"],
-#         "properties": ["Name", "HP", "id", "source"],
-#         "types": ["Type 1", "Type 2", "id", "source"],
-#     }
-
-#     df = input_dataset.load_dataframe(spec=component_spec)
-#     # Write dataframe based on the output manifest and component spec
-#     output_base_path = Path(output_dataset.manifest.base_path)
-
-#     # Create temporary directory for writing the subset based on the manifest base path
-#     with tempfile.TemporaryDirectory(dir=output_base_path):
-#         tmp_dir_path = Path(output_base_path)
-#         output_fds.write_index(df)
-#         output_fds.write_subsets(df, spec=component_spec)
-#         for subset, subset_columns in subset_columns_dict.items():
-#             subset_path = Path(tmp_dir_path / subset)
-#             df = dd.read_parquet(subset_path)
-#             assert len(df) == 151
-#             assert list(df.columns) == subset_columns
+    # Create temporary directory for writing the subset based on the manifest base path
+    with tempfile.TemporaryDirectory(dir=output_base_path):
+        tmp_dir_path = Path(output_base_path)
+        output_fds.write_index(df)
+        output_fds.write_subsets(df, spec=component_spec)
+        for subset, subset_columns in subset_columns_dict.items():
+            subset_path = Path(tmp_dir_path / subset)
+            df = dd.read_parquet(subset_path)
+            assert len(df) == 151
+            assert list(df.columns) == subset_columns
