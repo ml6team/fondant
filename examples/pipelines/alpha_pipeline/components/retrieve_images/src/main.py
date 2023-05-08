@@ -1,8 +1,6 @@
-from dask import delayed
 import requests
 
 
-@delayed
 def load_url(url):
     """
     Given a URL, this function fetches the content of the URL using requests
@@ -17,10 +15,9 @@ def load_url(url):
                      fails
     """
     headers = {
-        'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) '
-            'AppleWebKit/537.36 (KHTML, like Gecko) '
-            'Chrome/56.0.2924.87 Safari/537.36'
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/56.0.2924.87 Safari/537.36"
     }
     try:
         resp = requests.get(url, headers=headers)
@@ -46,8 +43,6 @@ def retrieve_images(df):
                              the corresponding image URL in that row.
     """
     df["images"] = df.apply(
-        lambda x: load_url(x.image_urls),
-        axis=1,
-        meta=('images', object)
+        lambda x: load_url(x.image_urls), axis=1, meta=("images", object)
     )
     return df

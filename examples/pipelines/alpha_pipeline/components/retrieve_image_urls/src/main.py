@@ -41,7 +41,7 @@ def retrieve_image_urls(df):
     client = ClipClient(
         url="https://knn.laion.ai/knn-service",
         indice_name="laion5B-L-14",
-        num_images=1000,  # TODO: include as argument and increase for
+        num_images=2,  # TODO: include as argument and increase for
         # the purposes of scaling
         aesthetic_score=9,
         aesthetic_weight=0.5,
@@ -50,7 +50,7 @@ def retrieve_image_urls(df):
 
     df["image_urls"] = df["prompt_data"].map_partitions(
         lambda x: x.apply(query_clip_client, args=(client,)),
-        meta=("image_urls", "object"),
+        meta=("image_urls", "str"),
     )
 
     # unpack list of urls
