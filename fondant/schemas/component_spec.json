@@ -5,8 +5,7 @@
   "required": [
     "name",
     "description",
-    "image",
-    "args"
+    "image"
   ],
   "properties": {
     "name": {
@@ -59,6 +58,7 @@
     },
     "args": {
       "type": "object",
+      "minProperties": 1,
       "additionalProperties": {
         "type": "object",
         "properties": {
