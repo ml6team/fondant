@@ -52,6 +52,7 @@
           "type": "boolean"
         }
       },
+      "minProperties": 1,
       "additionalProperties": {
         "$ref": "#/definitions/subset"
       }
