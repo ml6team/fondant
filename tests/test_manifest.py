@@ -156,8 +156,8 @@ def test_manifest_repr():
     manifest = Manifest.create(base_path="/", run_id="A", component_id="1")
     assert (
         manifest.__repr__()
-        == "Manifest({'metadata': {'base_path': '/', 'run_id': 'A', 'component_id': '1'},"
-        " 'index': {'location': '/A/1/index'}, 'subsets': {}})"
+        == "Manifest({'metadata': {'base_path': '/', 'run_id': 'A', 'component_id': '1'}, "
+        "'index': {'location': '/A/1/index'}, 'subsets': {}})"
     )
 
 
