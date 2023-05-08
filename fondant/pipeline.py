@@ -6,8 +6,7 @@ import typing as t
 from dataclasses import dataclass
 from pathlib import Path
 
-from fondant.component import FondantComponentSpec
-from fondant.component_spec import ComponentSubset
+from fondant.component import FondantComponentSpec, Manifest
 from fondant.import_utils import is_kfp_available
 from fondant.exceptions import InvalidPipelineDefinition
 
@@ -86,45 +85,89 @@ class FondantPipeline:
         return [getattr(version, "id") for version in pipeline_versions]
 
     @staticmethod
+    def chain_operations(
+            *operations: FondantComponentOperation,
+    ) -> t.List[FondantComponentOperation]:
+        """
+        Function that accepts any number of operations in the order that they are supposed to run
+        in and chains them as a list of operations that will be run sequentially
+        Args:
+            *operations: the operations to run
+        Returns:
+            Ordered list of operations to run
+        """
+        return list(operations)
+
+    @staticmethod
     def _validate_pipeline_definition(
-            fondant_components_operation: t.List[FondantComponentOperation],
+            fondant_components_operations: t.List[FondantComponentOperation],
+            base_path: str,
+            run_id: str,
     ):
         """
-        Validates the pipeline definition by ensuring that the input and output subsets of each
-         component match and are invoked in the correct order
+        Validates the pipeline definition by ensuring that the input and output subsets and their associated
+        fields match and are invoked in the correct order
 
         Raises:
             InvalidPipelineDefinition: If a component is trying to invoke a subset that is not
              defined or created in previous components, or if an invoked subset's schema does not
               match the previously created subset definition.
+            base_path: the base path where to store the pipelines artifacts
+            run_id: the run id of the component
         """
+
         load_component = True
-        available_subsets: t.Dict[str, ComponentSubset] = {}
-        for fondant_component_operation in fondant_components_operation:
+        load_component_name = fondant_components_operations[0].name
+
+        # Create initial manifest
+        manifest = Manifest.create(
+            base_path=base_path, run_id=run_id, component_id=load_component_name
+        )
+        for fondant_component_operation in fondant_components_operations:
+            component_spec = FondantComponentSpec.from_file(
+                fondant_component_operation.component_spec_path
+            )
+            manifest = manifest.evolve(component_spec)
             if not load_component:
+                # Check subset exists
                 for (
-                        subset_name,
-                        subset,
+                        component_subset_name,
+                        component_subset,
                 ) in fondant_component_operation.input_subsets.items():
-                    if subset_name not in available_subsets:
+                    manifest_subset = manifest.subsets
+                    if component_subset_name not in manifest_subset:
                         raise InvalidPipelineDefinition(
                             f"Component '{fondant_component_operation.name}' "
-                            f"is trying to invoke the subset '{subset_name}', "
+                            f"is trying to invoke the subset '{component_subset_name}', "
                             f"which has not been defined or created in the previous components."
                         )
-                    if subset.fields != available_subsets[subset_name].fields:
-                        raise InvalidPipelineDefinition(
-                            f"The invoked subset '{subset_name}' of the"
-                            f" '{fondant_component_operation.name}' component does not match the"
-                            f" previously created subset definition.\n The '{subset_name}' schema "
-                            f"is currently defined with the following fields:\n"
-                            f"{available_subsets[subset_name].fields}\n"
-                            f"The current component to trying to invoke it with this schema:\n"
-                            f"{subset.fields}"
-                        )
-            else:
-                available_subsets.update(fondant_component_operation.input_subsets)
-            available_subsets.update(fondant_component_operation.output_subsets)
+
+                    # Get the corresponding manifest fields
+                    manifest_fields = manifest_subset[component_subset_name].fields
+
+                    # Check fields
+                    for field_name, subset_field in component_subset.fields.items():
+                        # Check if invoked field exists
+                        if field_name not in manifest_fields:
+                            raise InvalidPipelineDefinition(
+                                f"The invoked subset '{component_subset_name}' of the"
+                                f" '{fondant_component_operation.name}' component does not match "
+                                f"the previously created subset definition.\n The component is"
+                                f" trying to invoke the field '{field_name}' which has not been"
+                                f" previously defined. Current available fields are "
+                                f"{manifest_fields}\n"
+                            )
+                        # Check if the invoked field schema matches the current schema
+                        if subset_field != manifest_fields[field_name]:
+                            raise InvalidPipelineDefinition(
+                                f"The invoked subset '{component_subset_name}' of the"
+                                f" '{fondant_component_operation.name}' component does not match "
+                                f" the previously created subset definition.\n The '{field_name}'"
+                                f" field is currently defined with the following schema:\n"
+                                f"{manifest_fields[field_name]}\n"
+                                f"The current component to trying to invoke it with this schema:\n"
+                                f"{subset_field}"
+                            )
             load_component = False
         logger.info("All pipeline component specifications match.")
 
@@ -183,7 +226,7 @@ class FondantPipeline:
                 Callable: The Kubeflow component.
             """
             return kfp.components.load_component(
-                text=fondant_component_operation.kubeflow_specification.to_text()
+                text=fondant_component_operation.kubeflow_specification.to_string()
             )
 
         def _set_task_configuration(task, fondant_component_operation):
@@ -205,20 +248,26 @@ class FondantPipeline:
 
             return task
 
-        # Validate subset schema before defining the pipeline
-        self._validate_pipeline_definition(fondant_components_operation)
-
         # parse metadata argument required for the first component
         run_id = "{{workflow.name}}"
-        metadata = json.dumps({"base_path": base_path, "run_id": run_id})
+
+        # Validate subset schema before defining the pipeline
+        self._validate_pipeline_definition(
+            fondant_components_operation, base_path, run_id
+        )
 
         @dsl.pipeline(name=pipeline_name, description=pipeline_description)
         def pipeline():
             # TODO: check if we want to have the manifest path empty for loading component or remove
             #  it completely from the loading component
+            # TODO: check if we want to have the metadata arg empty for transform component or
+            #  remove it completely from the transform component
             manifest_path = ""
+            metadata = ""
+
             previous_component_task = None
             for fondant_component_operation in fondant_components_operation:
+                print(metadata)
                 # Get the Kubeflow component based on the fondant component operation.
                 component_op = _get_component_function(fondant_component_operation)
 
@@ -227,13 +276,19 @@ class FondantPipeline:
                 component_args = fondant_component_operation.arguments
                 if previous_component_task is not None:
                     component_task = component_op(
-                        input_manifest_path=manifest_path, **component_args
+                        input_manifest_path=manifest_path,
+                        metadata=metadata,
+                        **component_args
                     )
                 else:
+                    metadata = json.dumps({"base_path": base_path, "run_id": run_id})
                     # Add metadata to the first component
                     component_task = component_op(
-                        input_manifest_path=manifest_path, metadata=metadata, **component_args
+                        input_manifest_path=manifest_path,
+                        metadata=metadata,
+                        **component_args,
                     )
+                    metadata = ""
                 # Set optional configurations
                 component_task = _set_task_configuration(
                     component_task, fondant_component_operation
@@ -273,7 +328,7 @@ class FondantPipeline:
             Exception: If there was an error uploading the pipeline package.
         """
 
-        self.delete_pipeline(pipeline_name)
+        #self.delete_pipeline(pipeline_name)
         logger.info(f"Uploading pipeline: {pipeline_name}")
 
         try:

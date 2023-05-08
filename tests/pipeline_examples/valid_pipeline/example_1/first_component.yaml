@@ -9,6 +9,11 @@ input_subsets:
         type: binary
 
 output_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+
   captions:
     fields:
       data:
