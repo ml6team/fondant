@@ -16,7 +16,6 @@ def default_pipeline_args():
     return {
         'pipeline_name': 'pipeline',
         'base_path': 'gcs://bucket/blob',
-        'pipeline_description': 'pipeline_description'
     }
 
 
@@ -33,16 +32,21 @@ def test_valid_pipeline(mock_host, default_pipeline_args, valid_pipeline_example
     example_dir, component_names = valid_pipeline_example
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
-    operations = [FondantComponentOp(os.path.join(components_path, name), component_args) for
-                  name in component_names]
 
-    with mock.patch('fondant.pipeline.kfp.Client'):
-        pipeline = FondantPipeline(mock_host)
-        pipeline_package_path = os.path.join(tmp_path, "test.tgz")
-        pipeline.compile_pipeline(
-            fondant_components_operation=operations,
-            pipeline_package_path=pipeline_package_path,
-            **default_pipeline_args)
+    pipeline = FondantPipeline(**default_pipeline_args)
+
+    first_component_op = FondantComponentOp(Path(components_path/component_names[0]),
+                                            component_args)
+    second_component_op = FondantComponentOp(Path(components_path/component_names[1]),
+                                             component_args)
+    third_component_op = FondantComponentOp(Path(components_path/component_names[2]),
+                                            component_args)
+
+    pipeline.add_op(first_component_op)
+    pipeline.add_op(second_component_op, dependency=first_component_op)
+    pipeline.add_op(third_component_op, dependency=second_component_op)
+
+    pipeline.compile_pipeline()
 
 
 @pytest.mark.parametrize("invalid_pipeline_example", [
@@ -57,17 +61,19 @@ def test_invalid_pipeline(mock_host, default_pipeline_args, invalid_pipeline_exa
     example_dir, component_names = invalid_pipeline_example
     components_path = Path(invalid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
-    operations = [FondantComponentOp(os.path.join(components_path, name), component_args) for
-                  name in component_names]
 
-    with mock.patch('fondant.pipeline.kfp.Client'):
-        pipeline = FondantPipeline(mock_host)
-        pipeline_package_path = Path(tmp_path, "test.tgz")
-        with pytest.raises(InvalidPipelineDefinition):
-            pipeline.compile_pipeline(
-                fondant_components_operation=operations,
-                pipeline_package_path=pipeline_package_path,
-                **default_pipeline_args)
+    pipeline = FondantPipeline(**default_pipeline_args)
+
+    first_component_op = FondantComponentOp(Path(components_path/component_names[0]),
+                                            component_args)
+    second_component_op = FondantComponentOp(Path(components_path/component_names[1]),
+                                             component_args)
+
+    pipeline.add_op(first_component_op)
+    pipeline.add_op(second_component_op, dependency=first_component_op)
+
+    with pytest.raises(InvalidPipelineDefinition):
+        pipeline.compile_pipeline()
 
 
 @pytest.mark.parametrize("invalid_component_args", [
@@ -81,13 +87,10 @@ def test_invalid_argument(mock_host, default_pipeline_args, invalid_component_ar
     """
     components_spec_path = Path(valid_pipeline_path / "example_1" / "first_component.yaml")
     component_operation = FondantComponentOp(components_spec_path, invalid_component_args)
-    operations = [component_operation]
 
-    with mock.patch('fondant.pipeline.kfp.Client'):
-        pipeline = FondantPipeline(mock_host)
-        pipeline_package_path = Path(tmp_path, "test.tgz")
-        with pytest.raises((ValueError, TypeError)):
-            pipeline.compile_pipeline(
-                fondant_components_operation=operations,
-                pipeline_package_path=pipeline_package_path,
-                **default_pipeline_args)
+    pipeline = FondantPipeline(**default_pipeline_args)
+
+    pipeline.add_op(component_operation)
+
+    with pytest.raises((ValueError, TypeError)):
+        pipeline.compile_pipeline()
