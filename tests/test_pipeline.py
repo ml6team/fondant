@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest import mock
 
 from fondant.exceptions import InvalidPipelineDefinition
-from fondant.pipeline import FondantComponentOperation, FondantPipeline
+from fondant.pipeline import FondantComponentOp, FondantPipeline
 
 valid_pipeline_path = Path(__file__).parent / "pipeline_examples/valid_pipeline"
 invalid_pipeline_path = Path(__file__).parent / "pipeline_examples/invalid_pipeline"
@@ -33,7 +33,7 @@ def test_valid_pipeline(mock_host, default_pipeline_args, valid_pipeline_example
     example_dir, component_names = valid_pipeline_example
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
-    operations = [FondantComponentOperation(os.path.join(components_path, name), component_args) for
+    operations = [FondantComponentOp(os.path.join(components_path, name), component_args) for
                   name in component_names]
 
     with mock.patch('fondant.pipeline.kfp.Client'):
@@ -57,7 +57,7 @@ def test_invalid_pipeline(mock_host, default_pipeline_args, invalid_pipeline_exa
     example_dir, component_names = invalid_pipeline_example
     components_path = Path(invalid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
-    operations = [FondantComponentOperation(os.path.join(components_path, name), component_args) for
+    operations = [FondantComponentOp(os.path.join(components_path, name), component_args) for
                   name in component_names]
 
     with mock.patch('fondant.pipeline.kfp.Client'):
@@ -80,7 +80,7 @@ def test_invalid_argument(mock_host, default_pipeline_args, invalid_component_ar
     component does not match the ones specified in the fondant specifications
     """
     components_spec_path = Path(valid_pipeline_path / "example_1" / "first_component.yaml")
-    component_operation = FondantComponentOperation(components_spec_path, invalid_component_args)
+    component_operation = FondantComponentOp(components_spec_path, invalid_component_args)
     operations = [component_operation]
 
     with mock.patch('fondant.pipeline.kfp.Client'):

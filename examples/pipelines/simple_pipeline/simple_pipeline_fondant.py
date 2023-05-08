@@ -6,7 +6,7 @@ from config.components_config import (
 )
 import kfp
 
-from fondant.pipeline import FondantComponentOperation, FondantPipeline
+from fondant.pipeline import FondantComponentOp, FondantPipeline
 
 # General configs
 pipeline_name = "Test fondant pipeline"
@@ -17,13 +17,13 @@ pipeline_base_path = KubeflowConfig.BASE_PATH
 client = kfp.Client(host=pipeline_host)
 
 # Define component ops
-load_from_hub_op = FondantComponentOperation(
+load_from_hub_op = FondantComponentOp(
     component_spec_path="components/load_from_hub/fondant_component.yaml",
     arguments={"dataset_name": LoadFromHubConfig.DATASET_NAME}
 
 )
 
-image_filtering_op = FondantComponentOperation(
+image_filtering_op = FondantComponentOp(
     component_spec_path="components/image_filtering/fondant_component.yaml",
     arguments={"min_width": ImageFilterConfig.MIN_WIDTH,
                "min_height": ImageFilterConfig.MIN_HEIGHT}

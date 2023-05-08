@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class FondantComponentOperation(FondantComponentSpec):
+class FondantComponentOp(FondantComponentSpec):
     """
     Class representing an operation for a Fondant Component in a Kubeflow Pipeline. An operation
     is a representation of a function that will be executed as part of a pipeline.
@@ -86,8 +86,8 @@ class FondantPipeline:
 
     @staticmethod
     def chain_operations(
-        *operations: FondantComponentOperation,
-    ) -> t.List[FondantComponentOperation]:
+        *operations: FondantComponentOp,
+    ) -> t.List[FondantComponentOp]:
         """
         Function that accepts any number of operations in the order that they are supposed to run
         in and chains them as a list of operations that will be run sequentially
@@ -100,7 +100,7 @@ class FondantPipeline:
 
     @staticmethod
     def _validate_pipeline_definition(
-        fondant_components_operations: t.List[FondantComponentOperation],
+        fondant_components_operations: t.List[FondantComponentOp],
         base_path: str,
         run_id: str,
     ):
@@ -177,7 +177,7 @@ class FondantPipeline:
         pipeline_name: str,
         pipeline_description: str,
         base_path: str,
-        fondant_components_operation: t.List[FondantComponentOperation],
+        fondant_components_operation: t.List[FondantComponentOp],
         pipeline_package_path: str,
     ):
         """
@@ -194,12 +194,12 @@ class FondantPipeline:
              be generated.
 
         Example usage:
-            To create a pipeline, first define the pipeline components as fondantComponentOperation
+            To create a pipeline, first define the pipeline components as FondantComponentOp
              objects, then call this function to compile the pipeline function:
 
             fondant_components_operations = [
-                FondantComponentOperation(yaml_spec_path=<path_to_yaml>, args:{batch_size: 8, ...}),
-                FondantComponentOperation(...),
+                FondantComponentOp(yaml_spec_path=<path_to_yaml>, args:{batch_size: 8, ...}),
+                FondantComponentOp(...),
             ]
 
             pipeline_function = create_pipeline(
@@ -214,13 +214,13 @@ class FondantPipeline:
         """
 
         def _get_component_function(
-            fondant_component_operation: FondantComponentOperation,
+            fondant_component_operation: FondantComponentOp,
         ) -> t.Callable:
             """
             Load the Kubeflow component based on the specification from the fondant component
              operation.
             Args:
-                fondant_component_operation (FondantComponentOperation): The fondant component
+                fondant_component_operation (FondantComponentOp): The fondant component
                  operation.
             Returns:
                 Callable: The Kubeflow component.
@@ -364,3 +364,59 @@ class FondantPipeline:
 
     def run_pipeline(self):
         raise NotImplementedError
+
+
+#
+# comp_1 = "/home/philippe/Scripts/express/tests/pipeline_examples/valid_pipeline/example_1/first_component.yaml"
+# comp_2 = "/home/philippe/Scripts/express/tests/pipeline_examples/valid_pipeline/example_1/second_component.yaml"
+# comp_3 = "/home/philippe/Scripts/express/tests/pipeline_examples/valid_pipeline/example_1/third_component.yaml"
+#
+# #
+# # comp_1 = "/home/philippe/Scripts/express/tests/pipeline_examples/invalid_pipeline/example_2/first_component.yaml"
+# # comp_2 = "/home/philippe/Scripts/express/tests/pipeline_examples/invalid_pipeline/example_2/second_component.yaml"
+#
+# pipe_arg = {
+#     "pipeline_name": "pipeline",
+#     "base_path": "gcs://bucket/blob",
+#     "pipeline_description": "pipeline_description",
+# }
+#
+# component_args = {"storage_args": "a dummy string arg"}
+# comp_1_op = FondantComponentOp(comp_1, component_args)
+# comp_2_op = FondantComponentOp(comp_2, component_args)
+# comp_3_op = FondantComponentOp(comp_3, component_args)
+# run_id = "1234"
+# comp_1_name = comp_1_op.name
+# base_path = "1234"
+# operations = [comp_1_op, comp_2_op, comp_3_op]
+#
+# pipe = FondantPipeline("aa")
+# pipe._validate_pipeline_definition(operations, base_path, run_id)
+# from fondant.schema import Type
+#
+# manifest = Manifest.create(base_path=base_path, run_id=run_id, component_id=comp_1_name)
+# component_specification_1 = FondantComponentSpec.from_file(
+#     comp_1_op.component_spec_path
+# )
+# component_specification_2 = FondantComponentSpec.from_file(
+#     comp_2_op.component_spec_path
+# )
+# a = 2
+# print("evolution")
+# output_manifest_1 = manifest.evolve(component_specification_1)
+# output_manifest_2 = manifest.evolve(component_specification_2)
+# print("ading")
+# output_manifest_1.add_subset("a", [("width", Type.int32), ("height", Type.int32)])
+# # output_manifest_1.subsets["a"].add_field("data", Type.binary)
+# print(output_manifest_1)
+#
+# print("comp1")
+# print(component_specification_1.input_subsets)
+#
+# print("comp2")
+# print(component_specification_2.input_subsets["images"].fields)
+# a = 2
+# print("output_manifest_1")
+# print(output_manifest_1.subsets)
+# print("output_manifest_2")
+# print(output_manifest_2.subsets)
