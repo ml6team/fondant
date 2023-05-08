@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from fondant.exceptions import InvalidManifest
-from fondant.manifest import Subset, Manifest, Type
+from fondant.manifest import Manifest, Subset, Type
 
 manifest_path = Path(__file__).parent / "example_specs/manifests"
 
@@ -30,7 +30,7 @@ def test_manifest_validation(valid_manifest, invalid_manifest):
 
 
 def test_subset_init():
-    """Test initializing a subset"""
+    """Test initializing a subset."""
     subset_spec = {
         "location": "/ABC/123/images",
         "fields": {
@@ -48,7 +48,7 @@ def test_subset_init():
 
 
 def test_subset_fields():
-    """Test manipulating subset fields"""
+    """Test manipulating subset fields."""
     subset_spec = {
         "location": "/ABC/123/images",
         "fields": {
@@ -77,7 +77,7 @@ def test_subset_fields():
 
 
 def test_set_base_path(valid_manifest):
-    """Test altering the base path in the manifest"""
+    """Test altering the base path in the manifest."""
     manifest = Manifest(valid_manifest)
     tmp_path = "/tmp/base_path"
     manifest.update_metadata(key="base_path", value=tmp_path)
@@ -156,12 +156,13 @@ def test_manifest_repr():
     manifest = Manifest.create(base_path="/", run_id="A", component_id="1")
     assert (
         manifest.__repr__()
-        == "Manifest({'metadata': {'base_path': '/', 'run_id': 'A', 'component_id': '1'}, 'index': {'location': '/A/1/index'}, 'subsets': {}})"
+        == "Manifest({'metadata': {'base_path': '/', 'run_id': 'A', 'component_id': '1'}, "
+        "'index': {'location': '/A/1/index'}, 'subsets': {}})"
     )
 
 
 def test_manifest_alteration(valid_manifest):
-    """Test alteration functionalities of a manifest via the Manifest class"""
+    """Test alteration functionalities of a manifest via the Manifest class."""
     manifest = Manifest(valid_manifest)
 
     # test adding a subset
@@ -193,4 +194,4 @@ def test_manifest_copy_and_adapt(valid_manifest):
 def test_no_validate_schema(monkeypatch, valid_manifest):
     monkeypatch.setattr(pkgutil, "get_data", lambda package, resource: None)
     with pytest.raises(FileNotFoundError):
-        manifest = Manifest(valid_manifest)
+        Manifest(valid_manifest)
