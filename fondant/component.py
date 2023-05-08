@@ -190,7 +190,6 @@ class FondantTransformComponent(FondantComponent):
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         df = dataset.load_dataframe(self.spec)
-        print(self.user_arguments)
         df = self.transform(dataframe=df, **self.user_arguments)
 
         return df

@@ -246,12 +246,12 @@ class KubeflowComponentSpec:
                     "command": [
                         "python3",
                         "main.py",
-                        "--input_manifest_path",
+                        "--input-manifest-path",
                         {"inputPath": "input_manifest_path"},
                         "--metadata",
                         {"inputValue": "metadata"},
                         *cls._dump_args(fondant_component.args.values()),
-                        "--output_manifest_path",
+                        "--output-manifest-path",
                         {"outputPath": "output_manifest_path"},
                     ],
                 }
@@ -265,7 +265,7 @@ class KubeflowComponentSpec:
         dumped_args: KubeflowCommandArguments = []
         for arg in args:
             arg_name = arg.name.replace("-", "_").strip()
-            arg_name_cmd = f"--{arg.name}".strip()
+            arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
 
             dumped_args.append(arg_name_cmd)
             dumped_args.append({"inputValue": arg_name})
@@ -293,7 +293,7 @@ class KubeflowComponentSpec:
         return types.MappingProxyType(
             {
                 info["name"]: Argument(
-                    name=info["name"],
+                    name=info["name"].replace("_", "-"),
                     description=info["description"],
                     type=info["type"],
                 )
@@ -307,7 +307,7 @@ class KubeflowComponentSpec:
         return types.MappingProxyType(
             {
                 info["name"]: Argument(
-                    name=info["name"],
+                    name=info["name"].replace("_", "-"),
                     description=info["description"],
                     type=info["type"],
                 )
