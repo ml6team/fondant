@@ -200,7 +200,7 @@ class FondantPipeline:
 
         logger.info("All pipeline component specifications match.")
 
-    def compile_pipeline(self, pipeline_package_path: t.Optional[str] = None):
+    def compile_pipeline(self):
         """
         Function that creates and compiles a Kubeflow Pipeline.
         Once you have generated the pipeline function, you can use it to create an instance of
@@ -303,7 +303,7 @@ class FondantPipeline:
 
             return pipeline
 
-        kfp.compiler.Compiler().compile(pipeline, pipeline_package_path)
+        kfp.compiler.Compiler().compile(pipeline, self.pipeline_package_path)
 
         logger.info("Pipeline compiled successfully")
 

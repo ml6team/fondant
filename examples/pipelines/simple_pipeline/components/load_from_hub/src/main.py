@@ -75,5 +75,5 @@ class LoadFromHubComponent(FondantLoadComponent):
 
 
 if __name__ == "__main__":
-    component = LoadFromHubComponent.from_file("../fondant_component.yaml")
+    component = LoadFromHubComponent.from_file("fondant_component.yaml")
     component.run()
