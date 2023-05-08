@@ -53,7 +53,7 @@ class Subset:
         del self._specification["fields"][name]
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r}"
+        return f"{self.__class__.__name__}({self._specification!r})"
 
 
 class Index(Subset):
@@ -88,7 +88,7 @@ class Manifest:
         spec_data = pkgutil.get_data("fondant", "schemas/manifest.json")
 
         if spec_data is None:
-            raise FileNotFoundError("component_spec.json not found in fondant schema")
+            raise FileNotFoundError("schemas/manifest.json not found")
         else:
             spec_str = spec_data.decode("utf-8")
             spec_schema = json.loads(spec_str)
@@ -142,7 +142,7 @@ class Manifest:
     def metadata(self) -> t.Dict[str, t.Any]:
         return self._specification["metadata"]
 
-    def add_metadata(self, key: str, value: t.Any) -> None:
+    def update_metadata(self, key: str, value: t.Any) -> None:
         self.metadata[key] = value
 
     @property
@@ -197,7 +197,7 @@ class Manifest:
 
         # Update `component_id` of the metadata
         component_id = component_spec.name.lower().replace(" ", "_")
-        evolved_manifest.add_metadata(key="component_id", value=component_id)
+        evolved_manifest.update_metadata(key="component_id", value=component_id)
 
         # Update index location as this is currently always rewritten
         evolved_manifest.index._specification[
@@ -255,4 +255,4 @@ class Manifest:
         return evolved_manifest
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r}"
+        return f"{self.__class__.__name__}({self._specification!r})"
