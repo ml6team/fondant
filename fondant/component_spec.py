@@ -266,7 +266,7 @@ class KubeflowComponentSpec:
         dumped_args: KubeflowCommandArguments = []
         for arg in args:
             arg_name = arg.name.replace("-", "_").strip()
-            arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
+            arg_name_cmd = f'--{arg.name}'.strip()
 
             dumped_args.append(arg_name_cmd)
             dumped_args.append({"inputValue": arg_name})
@@ -284,8 +284,8 @@ class KubeflowComponentSpec:
                 sort_keys=False,
             )
 
-    def to_text(self) -> str:
-        """Return the component specification as a text string"""
+    def to_string(self) -> str:
+        """Return the component specification as a string"""
         return json.dumps(self._specification)
 
     @property
