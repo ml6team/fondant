@@ -20,10 +20,6 @@ output_subsets:
         type: utf8
 
 args:
-  metadata:
-    description: The component metadata containing the run id and artifact bucket
-    type: str
-
   storage_args:
     description: Storage arguments
     type: str
