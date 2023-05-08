@@ -29,7 +29,7 @@ class KubeflowConfig(GeneralConfig):
         HOST (str): kfp host url
     """
 
-    BASE_PATH = f"gcs://soy-audio-379412_kfp-artifacts/custom_artifact"
+    BASE_PATH = "gcs://soy-audio-379412_kfp-artifacts/custom_artifact"
     CLUSTER_NAME = "kfp-fondant"
     CLUSTER_ZONE = "europe-west4-a"
     HOST = "https://52074149b1563463-dot-europe-west1.pipelines.googleusercontent.com"

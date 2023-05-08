@@ -9,6 +9,7 @@ The data is the 151 first pokemon and the following fields are available:
 
 """
 from pathlib import Path
+
 import dask.dataframe as dd
 
 data_path = Path(__file__).parent

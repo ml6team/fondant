@@ -1,11 +1,9 @@
-"""
-Import utils
-"""
-import logging
-import importlib.util
+"""Import utils."""
 import importlib.metadata
-from pathlib import Path
+import importlib.util
+import logging
 import sys
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +34,8 @@ def is_package_available(package_name: str, import_error_msg: str) -> bool:
         package_name (str): the name of the package
         import_error_msg (str): the error message to return if the package is not found
     Returns:
-        bool: check if package is available
+        bool: check if package is available.
     """
-
     package_available = importlib.util.find_spec(package_name) is not None
 
     try:
@@ -54,15 +51,15 @@ def is_package_available(package_name: str, import_error_msg: str) -> bool:
 
 
 def is_datasets_available():
-    """Check if 'datasets' is available"""
+    """Check if 'datasets' is available."""
     return is_package_available("datasets", DATASETS_IMPORT_ERROR)
 
 
 def is_pandas_available():
-    """Check if 'pandas' is available"""
+    """Check if 'pandas' is available."""
     return is_package_available("pandas", PANDAS_IMPORT_ERROR)
 
 
 def is_kfp_available():
-    """Check if 'pandas' is available"""
+    """Check if 'pandas' is available."""
     return is_package_available("kfp", KFP_IMPORT_ERROR)

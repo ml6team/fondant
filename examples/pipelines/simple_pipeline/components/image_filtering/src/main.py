@@ -2,7 +2,6 @@
 This component filters images of the dataset based on image size (minimum height and width).
 """
 import logging
-from typing import Dict
 
 import dask.dataframe as dd
 

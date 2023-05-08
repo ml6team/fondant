@@ -1,8 +1,7 @@
-"""Fondant component tests"""
+"""Fondant component tests."""
 
 import argparse
 import json
-import tempfile
 import sys
 from pathlib import Path
 from unittest import mock
@@ -11,9 +10,7 @@ import dask.dataframe as dd
 import pytest
 
 from fondant.component import FondantLoadComponent, FondantTransformComponent
-from fondant.component_spec import FondantComponentSpec
 from fondant.dataset import FondantDataset
-
 
 components_path = Path(__file__).parent / "example_specs/components"
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"
@@ -78,7 +75,7 @@ def test_transform_kwargs(monkeypatch):
     """Test that arguments are passed correctly to `Component.transform` method."""
 
     class EarlyStopException(Exception):
-        """Used to stop execution early instead of mocking all later functionality"""
+        """Used to stop execution early instead of mocking all later functionality."""
 
     # Mock `Dataset.load_dataframe` so no actual data is loaded
     def mocked_load_dataframe(self, spec):

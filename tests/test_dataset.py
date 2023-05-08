@@ -1,15 +1,18 @@
 import tempfile
-import pytest
-import dask.dataframe as dd
 from pathlib import Path
 
-from fondant.manifest import Manifest
-from fondant.dataset import FondantDataset
+import dask.dataframe as dd
+import pytest
+
 from fondant.component_spec import FondantComponentSpec
+from fondant.dataset import FondantDataset
+from fondant.manifest import Manifest
 
 input_manifest_path = Path(__file__).parent / "example_data/input_manifest.json"
 output_manifest_path = Path(__file__).parent / "example_data/output_manifest.json"
 component_spec_path = Path(__file__).parent / "example_data/components/1.yaml"
+
+DATASET_SIZE = 151
 
 
 @pytest.fixture
@@ -29,13 +32,13 @@ def component_spec():
 
 def test_load_index(input_manifest):
     fds = FondantDataset(input_manifest)
-    assert len(fds._load_index()) == 151
+    assert len(fds._load_index()) == DATASET_SIZE
 
 
 def test_merge_subsets(input_manifest, component_spec):
     fds = FondantDataset(manifest=input_manifest)
     df = fds.load_dataframe(spec=component_spec)
-    assert len(df) == 151
+    assert len(df) == DATASET_SIZE
     assert list(df.columns) == [
         "id",
         "source",
@@ -70,5 +73,5 @@ def test_write_subsets(input_manifest, output_manifest, component_spec):
         for subset, subset_columns in subset_columns_dict.items():
             subset_path = Path(tmp_dir_path / subset)
             df = dd.read_parquet(subset_path)
-            assert len(df) == 151
+            assert len(df) == DATASET_SIZE
             assert list(df.columns) == subset_columns

@@ -1,7 +1,6 @@
-"""
-Test scripts for logger functionalities
-"""
+"""Test scripts for logger functionalities."""
 import logging
+
 import pytest
 
 from fondant.logger import configure_logging
@@ -18,7 +17,7 @@ from fondant.logger import configure_logging
     ],
 )
 def test_configure_logging(log_level, expected_level):
-    """Function to test"""
+    """Function to test."""
     configure_logging(log_level)
 
     logger = logging.getLogger(__name__)
