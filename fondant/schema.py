@@ -1,5 +1,6 @@
 """This module defines common schemas and datatypes used to define Fondant manifests, components
-and pipelines."""
+and pipelines.
+"""
 
 import enum
 import typing as t

@@ -13,7 +13,9 @@ def get_average_embedding(embedding_dir: str) -> np.array:
         np.array: the average embedding
     """
 
-    embeddings = [np.load(os.path.join(embedding_dir, embedding_file)) for embedding_file in
-                  os.listdir(embedding_dir)]
+    embeddings = [
+        np.load(os.path.join(embedding_dir, embedding_file))
+        for embedding_file in os.listdir(embedding_dir)
+    ]
     avg_embedding = np.array(embeddings).mean(axis=0)
     return avg_embedding

@@ -12,7 +12,7 @@ from jsonschema.validators import RefResolver
 
 from fondant.component_spec import FondantComponentSpec
 from fondant.exceptions import InvalidManifest
-from fondant.schema import Type, Field
+from fondant.schema import Field, Type
 
 
 class Subset:
@@ -30,7 +30,7 @@ class Subset:
 
     @property
     def location(self) -> str:
-        """The absolute location of the subset"""
+        """The absolute location of the subset."""
         return self._base_path + self._specification["location"]
 
     @property
@@ -53,11 +53,11 @@ class Subset:
         del self._specification["fields"][name]
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r}"
+        return f"{self.__class__.__name__}({self._specification!r})"
 
 
 class Index(Subset):
-    """Special case of a subset for the index, which has fixed fields"""
+    """Special case of a subset for the index, which has fixed fields."""
 
     @property
     def fields(self) -> t.Dict[str, Field]:
@@ -69,7 +69,7 @@ class Index(Subset):
 
 class Manifest:
     """
-    Class representing an Fondant manifest
+    Class representing an Fondant manifest.
 
     Args:
         specification: The manifest specification as a Python dict
@@ -80,15 +80,14 @@ class Manifest:
         self._validate_spec()
 
     def _validate_spec(self) -> None:
-        """Validate a manifest specification against the manifest schema
+        """Validate a manifest specification against the manifest schema.
 
         Raises: InvalidManifest when the manifest is not valid.
         """
-
         spec_data = pkgutil.get_data("fondant", "schemas/manifest.json")
 
         if spec_data is None:
-            raise FileNotFoundError("component_spec.json not found in fondant schema")
+            raise FileNotFoundError("schemas/manifest.json not found")
         else:
             spec_str = spec_data.decode("utf-8")
             spec_schema = json.loads(spec_str)
@@ -104,7 +103,7 @@ class Manifest:
 
     @classmethod
     def create(cls, *, base_path: str, run_id: str, component_id: str) -> "Manifest":
-        """Create an empty manifest
+        """Create an empty manifest.
 
         Args:
             base_path: The base path of the manifest
@@ -124,25 +123,25 @@ class Manifest:
 
     @classmethod
     def from_file(cls, path: str) -> "Manifest":
-        """Load the manifest from the file specified by the provided path"""
+        """Load the manifest from the file specified by the provided path."""
         with open(path, encoding="utf-8") as file_:
             specification = json.load(file_)
             return cls(specification)
 
     def to_file(self, path) -> None:
-        """Dump the manifest to the file specified by the provided path"""
+        """Dump the manifest to the file specified by the provided path."""
         with open(path, "w", encoding="utf-8") as file_:
             json.dump(self._specification, file_)
 
     def copy(self) -> "Manifest":
-        """Return a deep copy of itself"""
+        """Return a deep copy of itself."""
         return self.__class__(copy.deepcopy(self._specification))
 
     @property
     def metadata(self) -> t.Dict[str, t.Any]:
         return self._specification["metadata"]
 
-    def add_metadata(self, key: str, value: t.Any) -> None:
+    def update_metadata(self, key: str, value: t.Any) -> None:
         self.metadata[key] = value
 
     @property
@@ -163,7 +162,7 @@ class Manifest:
 
     @property
     def subsets(self) -> t.Mapping[str, Subset]:
-        """The subsets of the manifest as an immutable mapping"""
+        """The subsets of the manifest as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: Subset(subset, base_path=self.base_path)
@@ -188,16 +187,18 @@ class Manifest:
 
         del self._specification["subsets"][name]
 
-    def evolve(self, component_spec: FondantComponentSpec) -> "Manifest":
+    def evolve(  # noqa : PLR0912 (too many branches)
+        self, component_spec: FondantComponentSpec
+    ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
-        to the component defined by the component spec."""
-
+        to the component defined by the component spec.
+        """
         evolved_manifest = self.copy()
 
         # Update `component_id` of the metadata
         component_id = component_spec.name.lower().replace(" ", "_")
-        evolved_manifest.add_metadata(key="component_id", value=component_id)
+        evolved_manifest.update_metadata(key="component_id", value=component_id)
 
         # Update index location as this is currently always rewritten
         evolved_manifest.index._specification[
@@ -255,4 +256,4 @@ class Manifest:
         return evolved_manifest
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r}"
+        return f"{self.__class__.__name__}({self._specification!r})"

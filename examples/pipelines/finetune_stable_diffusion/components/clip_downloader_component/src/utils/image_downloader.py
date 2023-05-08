@@ -13,8 +13,9 @@ from helpers import parquet_helpers, storage_helpers, io_helpers
 logger = get_logger(name=__name__, level=logging.INFO)
 
 ImageDownloaderInput = namedtuple(
-    'ImageDownloaderInput',
-    ['source_url', 'dest_images', 'dest_dataset_parquet', 'namespace'])
+    "ImageDownloaderInput",
+    ["source_url", "dest_images", "dest_dataset_parquet", "namespace"],
+)
 
 
 class ImageDownloader:
@@ -24,7 +25,9 @@ class ImageDownloader:
     downloaded files to GCS
     """
 
-    def __init__(self, timeout: int, image_resize: int, min_image_size: int, max_image_area: int):
+    def __init__(
+        self, timeout: int, image_resize: int, min_image_size: int, max_image_area: int
+    ):
         """
         Image downloader
         Args:
@@ -56,24 +59,43 @@ class ImageDownloader:
             dest_img_tmp_path (str):  the root folder where the images will be downloaded
             (will contain different image shards)
         """
-        logger.info('Starting image download job')
-        subprocess.call(['img2dataset',  # nosec
-                         '--url_list', src_parquet_file,
-                         '--output_folder', dest_img_tmp_path,
-                         '--thread_count', '128',
-                         '--processes_count', '8',
-                         '--output_format', 'files',
-                         '--encode_format', 'jpg',
-                         '--timeout', str(self.timeout),
-                         '--image_size', str(self.image_resize),
-                         '--resize_mode', 'border',
-                         '--input_format', 'parquet',
-                         '--min_image_size', str(self.min_image_size),
-                         '--max_image_area', str(self.max_image_area),
-                         '--url_col', 'url',
-                         '--distributor', 'multiprocessing',
-                         '--number_sample_per_shard', '1000'])
-        logger.info('Download job complete')
+        logger.info("Starting image download job")
+        subprocess.call(
+            [
+                "img2dataset",  # nosec
+                "--url_list",
+                src_parquet_file,
+                "--output_folder",
+                dest_img_tmp_path,
+                "--thread_count",
+                "128",
+                "--processes_count",
+                "8",
+                "--output_format",
+                "files",
+                "--encode_format",
+                "jpg",
+                "--timeout",
+                str(self.timeout),
+                "--image_size",
+                str(self.image_resize),
+                "--resize_mode",
+                "border",
+                "--input_format",
+                "parquet",
+                "--min_image_size",
+                str(self.min_image_size),
+                "--max_image_area",
+                str(self.max_image_area),
+                "--url_col",
+                "url",
+                "--distributor",
+                "multiprocessing",
+                "--number_sample_per_shard",
+                "1000",
+            ]
+        )
+        logger.info("Download job complete")
 
     def _update_download_job_stats(self, dest_img_tmp_path: str):
         """
@@ -83,33 +105,36 @@ class ImageDownloader:
             dest_img_tmp_path (str): the root folder where the images will be downloaded
             (will contain different image shards)
         """
-        logger.info('Updating global stat dict')
+        logger.info("Updating global stat dict")
 
         def _update_status_dict():
-            for status_key, status_value in stat_dict['status_dict'].items():
-                if status_key in self.global_stat_dict['status_dict']:
-                    self.global_stat_dict['status_dict'][status_key] += status_value
+            for status_key, status_value in stat_dict["status_dict"].items():
+                if status_key in self.global_stat_dict["status_dict"]:
+                    self.global_stat_dict["status_dict"][status_key] += status_value
                 else:
-                    self.global_stat_dict['status_dict'][status_key] = status_value
+                    self.global_stat_dict["status_dict"][status_key] = status_value
 
         # multiple stat files are created for each shard
-        stats_files = [file for file in os.listdir(dest_img_tmp_path) if "stats.json" in file]
+        stats_files = [
+            file for file in os.listdir(dest_img_tmp_path) if "stats.json" in file
+        ]
         for stat_file in stats_files:
             with open(os.path.join(dest_img_tmp_path, stat_file)) as file:
                 stat_dict = json.load(file)
                 for key in self.global_stat_dict:
                     # Add detailed error logs
-                    if key == 'status_dict' and 'status_dict' in stat_dict:
+                    if key == "status_dict" and "status_dict" in stat_dict:
                         _update_status_dict()
                     # add global status logs
                     else:
                         self.global_stat_dict[key] += stat_dict[key]
 
-        logger.info('Update complete')
+        logger.info("Update complete")
 
     @staticmethod
-    def _rename_downloaded_images(dest_img_tmp_path: str, namespace: str, index_path: str,
-                                  tmp_dir: str):
+    def _rename_downloaded_images(
+        dest_img_tmp_path: str, namespace: str, index_path: str, tmp_dir: str
+    ):
         """
         Function that renames the downloaded images by appending a namespace to them. The new image
         ids are appended to the index parquet file.
@@ -120,33 +145,43 @@ class ImageDownloader:
             index_path (str): the path to the index parquet file
             tmp_dir (str): the path where to write the temporary parquet files
         """
-        logger.info('Renaming downloaded images in directory %s with namespace "%s" as prefix',
-                    dest_img_tmp_path, namespace)
+        logger.info(
+            'Renaming downloaded images in directory %s with namespace "%s" as prefix',
+            dest_img_tmp_path,
+            namespace,
+        )
 
         def _img_rename_loop():
-            sub_img_folders = [folder for folder in os.listdir(dest_img_tmp_path) if
-                               os.path.isdir(os.path.join(dest_img_tmp_path, folder))]
+            sub_img_folders = [
+                folder
+                for folder in os.listdir(dest_img_tmp_path)
+                if os.path.isdir(os.path.join(dest_img_tmp_path, folder))
+            ]
             for sub_img_folder in sub_img_folders:
                 sub_img_dir = os.path.join(dest_img_tmp_path, sub_img_folder)
                 for file in os.listdir(sub_img_dir):
-                    if file.endswith('.jpg'):
+                    if file.endswith(".jpg"):
                         new_file_name = f"{namespace}_{io_helpers.get_file_name(file)}"
                         src = os.path.join(*[dest_img_tmp_path, sub_img_folder, file])
                         dest = os.path.join(
-                            *[dest_img_tmp_path, sub_img_folder, f"{new_file_name}.jpg"])
+                            *[dest_img_tmp_path, sub_img_folder, f"{new_file_name}.jpg"]
+                        )
                         os.rename(src, dest)
                         yield new_file_name
 
         parquet_helpers.append_to_parquet_file(
-            parquet_path=index_path,
-            data_iterable=_img_rename_loop(),
-            tmp_path=tmp_dir)
+            parquet_path=index_path, data_iterable=_img_rename_loop(), tmp_path=tmp_dir
+        )
 
-        logger.info('Renaming task complete')
+        logger.info("Renaming task complete")
 
     @staticmethod
-    def _write_image_metadata(dest_img_tmp_path: str, dest_gcs_uri: str, dataset_path: str,
-                              upload_file_txt: str):
+    def _write_image_metadata(
+        dest_img_tmp_path: str,
+        dest_gcs_uri: str,
+        dataset_path: str,
+        upload_file_txt: str,
+    ):
         """
         Function that writes the parquet dataset (containing) metadata of newly downloaded images.
         Thos function also writes the url of images into a gcs text file to upload the images.
@@ -157,19 +192,27 @@ class ImageDownloader:
             dataset_path (str): the path to the dataset parquet path
             upload_file_txt (str): the path where to write the urls of files to upload
         """
-        logger.info('Writing metadata for images in directory %s to %s', dest_img_tmp_path,
-                    dataset_path)
+        logger.info(
+            "Writing metadata for images in directory %s to %s",
+            dest_img_tmp_path,
+            dataset_path,
+        )
 
         def _write_metadata_loop():
-            sub_img_folders = [folder for folder in os.listdir(dest_img_tmp_path) if
-                               os.path.isdir(os.path.join(dest_img_tmp_path, folder))]
+            sub_img_folders = [
+                folder
+                for folder in os.listdir(dest_img_tmp_path)
+                if os.path.isdir(os.path.join(dest_img_tmp_path, folder))
+            ]
             with open(upload_file_txt, "w") as upload_file:
                 for sub_img_folder in sub_img_folders:
                     sub_img_dir = os.path.join(dest_img_tmp_path, sub_img_folder)
                     for file in os.listdir(sub_img_dir):
-                        if file.endswith('.jpg'):
+                        if file.endswith(".jpg"):
                             file_id = io_helpers.get_file_name(file)
-                            local_uri = os.path.join(*[dest_img_tmp_path, sub_img_folder, file])
+                            local_uri = os.path.join(
+                                *[dest_img_tmp_path, sub_img_folder, file]
+                            )
                             file_size = os.path.getsize(local_uri)
                             file_uri = f"{dest_gcs_uri}/{file}"
                             upload_file.write(local_uri + "\n")
@@ -177,12 +220,18 @@ class ImageDownloader:
 
         parquet_helpers.write_dataset_parquet(
             dataset_parquet_path=dataset_path,
-            data_iterable_producer=_write_metadata_loop)
+            data_iterable_producer=_write_metadata_loop,
+        )
 
-        logger.info('Metadata written')
+        logger.info("Metadata written")
 
-    def run(self, image_downloader_tuple: ImageDownloaderInput, tmp_dir: str, dest_gcs_uri: str,
-            index_path: str):
+    def run(
+        self,
+        image_downloader_tuple: ImageDownloaderInput,
+        tmp_dir: str,
+        dest_gcs_uri: str,
+        index_path: str,
+    ):
         """
         Start and image download loop that downloads the images, uploads them to GCS under
             a new name space and updates the parquet files
@@ -194,24 +243,31 @@ class ImageDownloader:
             index_path (str): the path to the index parquet file
         """
 
-        source_url, dest_images, dest_parquet, namespace = image_downloader_tuple.source_url, \
-            image_downloader_tuple.dest_images, image_downloader_tuple.dest_dataset_parquet, \
-            image_downloader_tuple.namespace
+        source_url, dest_images, dest_parquet, namespace = (
+            image_downloader_tuple.source_url,
+            image_downloader_tuple.dest_images,
+            image_downloader_tuple.dest_dataset_parquet,
+            image_downloader_tuple.namespace,
+        )
         upload_file_txt = os.path.join(tmp_dir, f"gcs_upload_{namespace}.txt")
 
         self._start_download(source_url, dest_images)
         self._update_download_job_stats(dest_images)
-        self._rename_downloaded_images(dest_img_tmp_path=dest_images,
-                                       namespace=namespace,
-                                       index_path=index_path,
-                                       tmp_dir=tmp_dir)
-        self._write_image_metadata(dest_img_tmp_path=dest_images,
-                                   dest_gcs_uri=dest_gcs_uri,
-                                   dataset_path=dest_parquet,
-                                   upload_file_txt=upload_file_txt)
-        logger.info('Uploading downloaded images to %s', dest_gcs_uri)
+        self._rename_downloaded_images(
+            dest_img_tmp_path=dest_images,
+            namespace=namespace,
+            index_path=index_path,
+            tmp_dir=tmp_dir,
+        )
+        self._write_image_metadata(
+            dest_img_tmp_path=dest_images,
+            dest_gcs_uri=dest_gcs_uri,
+            dataset_path=dest_parquet,
+            upload_file_txt=upload_file_txt,
+        )
+        logger.info("Uploading downloaded images to %s", dest_gcs_uri)
         storage_helpers.copy_files_bulk(upload_file_txt, dest_gcs_uri)
-        logger.info('Upload complete')
+        logger.info("Upload complete")
 
     def get_job_stat_dict(self) -> Dict[str, int]:
         """

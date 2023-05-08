@@ -50,9 +50,9 @@ class ClipRetrievalLaion5B:
                 "use_arrow": True,
                 "enable_hdf5": False,
                 "reorder_metadata_by_ivf_index": False,
-                "columns_to_return": ['id', 'url'],
+                "columns_to_return": ["id", "url"],
                 "clip_model": "ViT-L/14",
-                "enable_mclip_option": False
+                "enable_mclip_option": False,
             }
         }
 
@@ -86,15 +86,21 @@ class ClipRetrievalLaion5B:
                 provide_safety_model=False,
                 provide_violence_detector=False,
                 provide_aesthetic_embeddings=True,
-            )
+            ),
         )
         # Setup KNN service object with clip resources
         knn_service = KnnService(clip_resources=clip_resources)
         return knn_service
 
     # pylint: disable=too-many-arguments
-    def run_query(self, nb_images_request: int, query: Dict[str, str], knn_service: KnnService,
-                  deduplicate: bool = True, benchmark: bool = True) -> List[Dict[str, str]]:
+    def run_query(
+        self,
+        nb_images_request: int,
+        query: Dict[str, str],
+        knn_service: KnnService,
+        deduplicate: bool = True,
+        benchmark: bool = True,
+    ) -> List[Dict[str, str]]:
         """
         Function that runs query on the KNN faiss backend
         Args:
@@ -117,30 +123,32 @@ class ClipRetrievalLaion5B:
         self.timer(f"Query for {nb_images_request} samples")
 
         with self.timer:
-            query_inputs = {'modality': "image",
-                            'indice_name': "laion5B",
-                            'num_images': int(nb_images_request),
-                            'deduplicate': deduplicate,
-                            'num_result_ids': int(nb_images_request)}
+            query_inputs = {
+                "modality": "image",
+                "indice_name": "laion5B",
+                "num_images": int(nb_images_request),
+                "deduplicate": deduplicate,
+                "num_result_ids": int(nb_images_request),
+            }
 
-            if 'image_file' in query:
-                image = Image.open(query['image_file'])
+            if "image_file" in query:
+                image = Image.open(query["image_file"])
                 buffer = io.BytesIO()
                 image.save(buffer, format="JPEG")
                 img_str = base64.b64encode(buffer.getvalue())
-                query_inputs['image_input'] = img_str
-            elif 'image_url' in query:
-                query_inputs['image_url_input'] = query['image_url']
-            elif 'text_query' in query:
-                query_inputs['text_input'] = query['text_query']
-            elif 'embedding_query' in query:
-                query_inputs['embedding_input'] = query['embedding_query']
+                query_inputs["image_input"] = img_str
+            elif "image_url" in query:
+                query_inputs["image_url_input"] = query["image_url"]
+            elif "text_query" in query:
+                query_inputs["text_input"] = query["text_query"]
+            elif "embedding_query" in query:
+                query_inputs["embedding_input"] = query["embedding_query"]
             else:
                 raise Exception("No text, image or embedding query found")
 
             results = knn_service.query(**query_inputs)
-            LOGGER.info('Query job complete')
-            LOGGER.info('A total of %s results were returned', len(results))
+            LOGGER.info("Query job complete")
+            LOGGER.info("A total of %s results were returned", len(results))
             return results
 
     @staticmethod
@@ -153,4 +161,4 @@ class ClipRetrievalLaion5B:
             tuple: clip retrieval results
         """
         for result in clip_results:
-            yield result['id'], result['url']
+            yield result["id"], result["url"]

@@ -33,18 +33,17 @@ def extract_height(image_bytes):
 
 
 class LoadFromHubComponent(FondantLoadComponent):
-
-    def load(self, args):
+    def load(self, *, dataset_name: str) -> dd.DataFrame:
         """
         Args:
-            args: additional arguments passed to the component
-        
+            dataset_name: name of the dataset to load
+
         Returns:
             Dataset: HF dataset
         """
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the hub...")
-        dask_df = dd.read_parquet(f"hf://datasets/{args.dataset_name}")
+        dask_df = dd.read_parquet(f"hf://datasets/{dataset_name}")
 
         # 2) Add index to the dataframe
         logger.info("Creating index...")
@@ -55,17 +54,22 @@ class LoadFromHubComponent(FondantLoadComponent):
         dask_df["source"] = da.array(source_list)
 
         # 3) Rename columns
-        dask_df = dask_df.rename(columns={"image": "images_data", "text": "captions_data"})
+        dask_df = dask_df.rename(
+            columns={"image": "images_data", "text": "captions_data"}
+        )
 
         # 4) Make sure images are bytes instead of dicts
-        dask_df["images_data"] = dask_df["images_data"].map(lambda x: x["bytes"],
-                                                            meta=("bytes", bytes))
+        dask_df["images_data"] = dask_df["images_data"].map(
+            lambda x: x["bytes"], meta=("bytes", bytes)
+        )
 
         # 5) Add width and height columns
-        dask_df['images_width'] = dask_df['images_data'].map(extract_width,
-                                                             meta=("images_width", int))
-        dask_df['images_height'] = dask_df['images_data'].map(extract_height,
-                                                              meta=("images_height", int))
+        dask_df["images_width"] = dask_df["images_data"].map(
+            extract_width, meta=("images_width", int)
+        )
+        dask_df["images_height"] = dask_df["images_data"].map(
+            extract_height, meta=("images_height", int)
+        )
 
         return dask_df
 

@@ -12,7 +12,7 @@ LOGGER = get_logger(name=__name__, level=logging.INFO)
 
 class CatchTime:
     """Helper class for timing and benchmarking pieces of code.
-     The benchmarks are saved in a list."""
+    The benchmarks are saved in a list."""
 
     def __init__(self):
         self.benchmarks = []
@@ -29,7 +29,7 @@ class CatchTime:
     def __exit__(self, type, value, traceback):
         if self.enabled:
             total = time.time() - self.begin
-            self.benchmarks.append({'name': self.name, 'time': total})
+            self.benchmarks.append({"name": self.name, "time": total})
             LOGGER.info(f"{self.name}:\t{total:.2f}s")
 
     def __call__(self, name):

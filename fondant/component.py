@@ -8,13 +8,13 @@ components take care of processing, filtering and extending the data.
 import argparse
 import json
 import logging
-from pathlib import Path
 import typing as t
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import dask.dataframe as dd
 
-from fondant.component_spec import FondantComponentSpec, kubeflow2python_type, Argument
+from fondant.component_spec import Argument, FondantComponentSpec, kubeflow2python_type
 from fondant.dataset import FondantDataset
 from fondant.manifest import Manifest
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class FondantComponent(ABC):
-    """Abstract base class for a Fondant component"""
+    """Abstract base class for a Fondant component."""
 
     def __init__(self, spec: FondantComponentSpec) -> None:
         self.spec = spec
@@ -32,7 +32,7 @@ class FondantComponent(ABC):
     def from_file(
         cls, path: t.Union[str, Path] = "../fondant_component.yaml"
     ) -> "FondantComponent":
-        """Create a component from a component spec file
+        """Create a component from a component spec file.
 
         Args:
             path: Path to the component spec file
@@ -55,7 +55,7 @@ class FondantComponent(ABC):
 
     @abstractmethod
     def _add_and_parse_args(self) -> argparse.Namespace:
-        """Abstract method to add and parse the component arguments"""
+        """Abstract method to add and parse the component arguments."""
 
     @property
     def user_arguments(self) -> t.Dict[str, t.Any]:
@@ -68,17 +68,16 @@ class FondantComponent(ABC):
 
     @abstractmethod
     def _load_or_create_manifest(self) -> Manifest:
-        """Abstract method that returns the dataset manifest"""
+        """Abstract method that returns the dataset manifest."""
 
     @abstractmethod
     def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
         """Abstract method that processes the input dataframe of the `FondantDataset` and
-        returns another dataframe"""
+        returns another dataframe.
+        """
 
     def run(self):
-        """
-        Runs the component.
-        """
+        """Runs the component."""
         input_manifest = self._load_or_create_manifest()
         input_dataset = FondantDataset(input_manifest)
 
@@ -100,7 +99,7 @@ class FondantComponent(ABC):
 
 
 class FondantLoadComponent(FondantComponent):
-    """Base class for a Fondant load component"""
+    """Base class for a Fondant load component."""
 
     def _add_and_parse_args(self):
         parser = argparse.ArgumentParser()
@@ -137,7 +136,7 @@ class FondantLoadComponent(FondantComponent):
 
     @abstractmethod
     def load(self, **kwargs) -> dd.DataFrame:
-        """Abstract method that loads the initial dataframe"""
+        """Abstract method that loads the initial dataframe."""
 
     def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
         """This function loads the initial dataframe sing the user-provided `load` method.
@@ -152,7 +151,7 @@ class FondantLoadComponent(FondantComponent):
 
 
 class FondantTransformComponent(FondantComponent):
-    """Base class for a Fondant transform component"""
+    """Base class for a Fondant transform component."""
 
     def _add_and_parse_args(self):
         parser = argparse.ArgumentParser()
@@ -179,7 +178,7 @@ class FondantTransformComponent(FondantComponent):
 
     @abstractmethod
     def transform(self, dataframe: dd.DataFrame, **kwargs) -> dd.DataFrame:
-        """Abstract method for applying data transformations to the input dataframe"""
+        """Abstract method for applying data transformations to the input dataframe."""
 
     def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
         """

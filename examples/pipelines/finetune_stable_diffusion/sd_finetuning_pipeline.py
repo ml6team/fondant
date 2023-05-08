@@ -6,10 +6,12 @@ import sys
 import os
 from typing import Optional
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(".."))
 
 from config import GeneralConfig, KubeflowConfig
-from pipelines_config.sd_finetuning_config import StableDiffusionFinetuningConfig as SDConfig
+from pipelines_config.sd_finetuning_config import (
+    StableDiffusionFinetuningConfig as SDConfig,
+)
 from fondant.pipeline_utils import compile_and_upload_pipeline
 from fondant.logger import configure_logging
 
@@ -22,36 +24,38 @@ configure_logging()
 LOGGER = logging.getLogger(__name__)
 
 sd_finetuning_component = comp.load_component(
-    'components/sd_finetuning_component/component.yaml')
+    "components/sd_finetuning_component/component.yaml"
+)
 
 
 # Pipeline
 @dsl.pipeline(
-    name='Stable Diffusion finetuning pipeline',
-    description='Pipeline that takes a data manifest as input, loads in the dataset and starts '
-                'finetuning a stable diffusion model.'
+    name="Stable Diffusion finetuning pipeline",
+    description="Pipeline that takes a data manifest as input, loads in the dataset and starts "
+    "finetuning a stable diffusion model.",
 )
 # pylint: disable=too-many-arguments, too-many-locals
 def sd_finetuning_pipeline(
-        data_manifest_gcs_path: str = SDConfig.DATA_MANIFEST_GCS_PATH,
-        pretrained_model_gcs_path: str = SDConfig.PRETRAINED_MODEL_GCS_PATH,
-        resume_from_checkpoint: Optional[str] = SDConfig.RESUME_FROM_CHECKPOINT,
-        seed: int = SDConfig.SEED,
-        resolution: int = SDConfig.RESOLUTION,
-        train_batch_size: int = SDConfig.TRAIN_BATCH_SIZE,
-        num_train_epochs: int = SDConfig.NUM_TRAIN_EPOCHS,
-        max_train_steps: Optional[int] = SDConfig.MAX_TRAIN_STEPS,
-        checkpointing_steps: Optional[int] = SDConfig.CHECKPOINTING_STEPS,
-        gradient_accumulation_steps: int = SDConfig.GRADIENT_ACCUMULATION_STEPS,
-        gradient_checkpointing: Optional[str] = SDConfig.GRADIENT_CHECKPOINTING,
-        learning_rate: float = SDConfig.LEARNING_RATE,
-        scale_lr: Optional[str] = SDConfig.SCALE_LR,
-        lr_scheduler: str = SDConfig.LR_SCHEDULER,
-        lr_warmup_steps: int = SDConfig.LR_WARMUP_STEPS,
-        use_ema: Optional[str] = SDConfig.USE_EMA,
-        mixed_precision: str = SDConfig.MIXED_PRECISION,
-        center_crop: Optional[str] = SDConfig.CENTER_CROP,
-        random_flip: Optional[str] = SDConfig.RANDOM_FLIP):
+    data_manifest_gcs_path: str = SDConfig.DATA_MANIFEST_GCS_PATH,
+    pretrained_model_gcs_path: str = SDConfig.PRETRAINED_MODEL_GCS_PATH,
+    resume_from_checkpoint: Optional[str] = SDConfig.RESUME_FROM_CHECKPOINT,
+    seed: int = SDConfig.SEED,
+    resolution: int = SDConfig.RESOLUTION,
+    train_batch_size: int = SDConfig.TRAIN_BATCH_SIZE,
+    num_train_epochs: int = SDConfig.NUM_TRAIN_EPOCHS,
+    max_train_steps: Optional[int] = SDConfig.MAX_TRAIN_STEPS,
+    checkpointing_steps: Optional[int] = SDConfig.CHECKPOINTING_STEPS,
+    gradient_accumulation_steps: int = SDConfig.GRADIENT_ACCUMULATION_STEPS,
+    gradient_checkpointing: Optional[str] = SDConfig.GRADIENT_CHECKPOINTING,
+    learning_rate: float = SDConfig.LEARNING_RATE,
+    scale_lr: Optional[str] = SDConfig.SCALE_LR,
+    lr_scheduler: str = SDConfig.LR_SCHEDULER,
+    lr_warmup_steps: int = SDConfig.LR_WARMUP_STEPS,
+    use_ema: Optional[str] = SDConfig.USE_EMA,
+    mixed_precision: str = SDConfig.MIXED_PRECISION,
+    center_crop: Optional[str] = SDConfig.CENTER_CROP,
+    random_flip: Optional[str] = SDConfig.RANDOM_FLIP,
+):
     """
     Pipeline that takes example images as input and returns an expanded dataset of
     similar images as outputs
@@ -97,7 +101,7 @@ def sd_finetuning_pipeline(
 
     """
     # pylint: disable=not-callable,unused-variable
-    run_id = '{{pod.name}}'
+    run_id = "{{pod.name}}"
     artifact_bucket = KubeflowConfig.ARTIFACT_BUCKET
 
     sd_finetuning_component(
@@ -123,16 +127,19 @@ def sd_finetuning_pipeline(
         use_ema=use_ema,
         center_crop=center_crop,
         random_flip=random_flip,
-        mixed_precision=mixed_precision) \
-        .set_display_name('SD finetuning') \
-        .set_gpu_limit(2) \
-        .add_node_selector_constraint('node_pool', 'model-training-pool') \
-        .add_toleration(
-        k8s_client.V1Toleration(effect='NoSchedule', key='reserved-pool', operator='Equal',
-                                value='true'))
+        mixed_precision=mixed_precision,
+    ).set_display_name("SD finetuning").set_gpu_limit(2).add_node_selector_constraint(
+        "node_pool", "model-training-pool"
+    ).add_toleration(
+        k8s_client.V1Toleration(
+            effect="NoSchedule", key="reserved-pool", operator="Equal", value="true"
+        )
+    )
 
 
-if __name__ == '__main__':
-    compile_and_upload_pipeline(pipeline=sd_finetuning_pipeline,
-                                host=KubeflowConfig.HOST,
-                                env=KubeflowConfig.ENV)
+if __name__ == "__main__":
+    compile_and_upload_pipeline(
+        pipeline=sd_finetuning_pipeline,
+        host=KubeflowConfig.HOST,
+        env=KubeflowConfig.ENV,
+    )
