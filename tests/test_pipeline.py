@@ -7,8 +7,8 @@ from unittest import mock
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import FondantComponentOp, FondantPipeline
 
-valid_pipeline_path = Path(__file__).parent / "pipeline_examples/valid_pipeline"
-invalid_pipeline_path = Path(__file__).parent / "pipeline_examples/invalid_pipeline"
+valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
+invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
 
 
 @pytest.fixture
