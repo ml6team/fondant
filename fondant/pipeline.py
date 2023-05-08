@@ -1,18 +1,19 @@
 """This module defines classes to represent a Fondant Pipeline."""
-import logging
 import json
-import yaml
+import logging
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
 from fondant.component import FondantComponentSpec, Manifest
-from fondant.import_utils import is_kfp_available
 from fondant.exceptions import InvalidPipelineDefinition
+from fondant.import_utils import is_kfp_available
 
 if is_kfp_available():
-    import kfp.dsl as dsl
     import kfp
+    from kfp import dsl
     from kubernetes import client as k8s_client
 
 logger = logging.getLogger(__name__)
@@ -62,7 +63,7 @@ class FondantComponentOp(FondantComponentSpec):
 
 
 class FondantClient:
-    """Class representing a Fondant Client"""
+    """Class representing a Fondant Client."""
 
     def __init__(self, host: str):
         """
@@ -78,12 +79,12 @@ class FondantClient:
         Args:
             pipeline_name: the name of the pipeline
         Returns:
-            The pipeline id
+            The pipeline id.
         """
         return self.client.get_pipeline_id(pipeline_name)
 
     def get_pipeline_version_ids(self, pipeline_id: str) -> t.List[str]:
-        """Function that returns the versions of a pipeline given a pipeline id"""
+        """Function that returns the versions of a pipeline given a pipeline id."""
         pipeline_versions = self.client.list_pipeline_versions(pipeline_id).versions
         return [getattr(version, "id") for version in pipeline_versions]
 
@@ -91,7 +92,7 @@ class FondantClient:
         """
         Function that deletes the pipeline name
         Args:
-            pipeline_name: the name of the pipeline to delete
+            pipeline_name: the name of the pipeline to delete.
         """
         pipeline_id = self.get_pipeline_id(pipeline_name)
         if pipeline_id is not None:
@@ -117,15 +118,16 @@ class FondantClient:
         """
         Uploads a pipeline package to Kubeflow Pipelines and deletes any existing pipeline with the
          same name.
+
         Args:
             pipeline_name: The name of the pipeline.
             pipeline_package_path: The path to the compiled package path.
             delete_pipeline_package: Whether to delete the pipeline package file
              after uploading. Defaults to False.
+
         Raises:
             Exception: If there was an error uploading the pipeline package.
         """
-
         # self.delete_pipeline(pipeline_name)
         logger.info(f"Uploading pipeline: {pipeline_name}")
 
@@ -148,7 +150,7 @@ class FondantClient:
 
 
 class FondantPipeline:
-    """Class representing a Fondant Pipeline"""
+    """Class representing a Fondant Pipeline."""
 
     def __init__(
         self,
@@ -193,9 +195,7 @@ class FondantPipeline:
         }
 
     def sort_graph(self):
-        """
-        Sort the graph topologically based on task dependencies.
-        """
+        """Sort the graph topologically based on task dependencies."""
         sorted_graph = []
         visited = set()
 
@@ -218,15 +218,13 @@ class FondantPipeline:
         self._graph = {node: self._graph[node] for node in sorted_graph}
 
     def __repr__(self) -> str:
-        """
-        Return a string representation of the FondantPipeline object.
-        """
+        """Return a string representation of the FondantPipeline object."""
         return f"{self.__class__.__name__}({self._graph!r}"
 
     def _validate_pipeline_definition(self, run_id: str):
         """
         Validates the pipeline definition by ensuring that the input and output subsets and their
-         associated fields match and are invoked in the correct order
+         associated fields match and are invoked in the correct order.
 
         Raises:
             InvalidPipelineDefinition: If a component is trying to invoke a subset that is not
@@ -235,7 +233,6 @@ class FondantPipeline:
             base_path: the base path where to store the pipelines artifacts
             run_id: the run id of the component
         """
-
         load_component = True
         load_component_name = list(self._graph.keys())[0]
 
@@ -306,9 +303,11 @@ class FondantPipeline:
             """
             Load the Kubeflow component based on the specification from the fondant component
              operation.
+
             Args:
                 fondant_component_operation (FondantComponentOp): The fondant component
                  operation.
+
             Returns:
                 Callable: The Kubeflow component.
             """

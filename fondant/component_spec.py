@@ -284,7 +284,7 @@ class KubeflowComponentSpec:
             )
 
     def to_string(self) -> str:
-        """Return the component specification as a string"""
+        """Return the component specification as a string."""
         return json.dumps(self._specification)
 
     @property
