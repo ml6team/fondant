@@ -5,10 +5,12 @@ import pytest
 
 from fondant.component_spec import FondantComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
-from fondant.manifest import Manifest, Type
+from fondant.manifest import Manifest
 
 manifest_path = Path(__file__).parent / "example_data/manifest.json"
 component_spec_path = Path(__file__).parent / "example_data/components/1.yaml"
+
+NUMBER_OF_TEST_ROWS = 151
 
 
 @pytest.fixture
@@ -30,22 +32,22 @@ def dataframe(manifest, component_spec):
 def test_load_index(manifest):
     """Test the loading of just the index."""
     dl = DaskDataLoader(manifest=manifest)
-    assert len(dl._load_index()) == 151
+    assert len(dl._load_index()) == NUMBER_OF_TEST_ROWS
 
 
 def test_load_subset(manifest):
-    """Test the loading of one field of a subset"""
+    """Test the loading of one field of a subset."""
     dl = DaskDataLoader(manifest=manifest)
     subset_df = dl._load_subset(subset_name="types", fields=["Type 1"])
-    assert len(subset_df) == 151
+    assert len(subset_df) == NUMBER_OF_TEST_ROWS
     assert list(subset_df.columns) == ["id", "source", "types_Type 1"]
 
 
 def test_load_dataframe(manifest, component_spec):
-    """Test merging of subsets in a dataframe based on a component_spec"""
+    """Test merging of subsets in a dataframe based on a component_spec."""
     dl = DaskDataLoader(manifest=manifest)
     df = dl.load_dataframe(spec=component_spec)
-    assert len(df) == 151
+    assert len(df) == NUMBER_OF_TEST_ROWS
     assert list(df.columns) == [
         "id",
         "source",
@@ -57,7 +59,7 @@ def test_load_dataframe(manifest, component_spec):
 
 
 def test_write_index(tmp_path_factory, dataframe, manifest):
-    """Test writing out the index"""
+    """Test writing out the index."""
     with tmp_path_factory.mktemp("temp") as fn:
         # override the base path of the manifest with the temp dir
         manifest.update_metadata("base_path", str(fn))
@@ -66,7 +68,7 @@ def test_write_index(tmp_path_factory, dataframe, manifest):
         dw.write_index(df=dataframe)
         # read written data and assert
         odf = dd.read_parquet(fn / "index")
-        assert len(odf) == 151
+        assert len(odf) == NUMBER_OF_TEST_ROWS
         assert list(odf.columns) == ["id", "source"]
 
 
@@ -89,7 +91,7 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
         # read written data and assert
         for subset, subset_columns in subset_columns_dict.items():
             df = dd.read_parquet(fn / subset)
-            assert len(df) == 151
+            assert len(df) == NUMBER_OF_TEST_ROWS
             assert list(df.columns) == subset_columns
 
 

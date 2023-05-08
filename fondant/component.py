@@ -75,7 +75,8 @@ class FondantComponent(ABC):
         self, dataset: t.Optional[DaskDataLoader] = None
     ) -> dd.DataFrame:
         """Abstract method that processes the input dataframe and
-        returns another dataframe"""
+        returns another dataframe.
+        """
 
     def run(self):
         """Runs the component."""
