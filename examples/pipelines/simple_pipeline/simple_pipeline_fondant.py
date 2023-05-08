@@ -34,6 +34,4 @@ pipeline = FondantPipeline(pipeline_name=pipeline_name, base_path=pipeline_base_
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(image_filtering_op, dependency=load_from_hub_op)
 
-pipeline.compile_pipeline()
-
-client.upload_pipeline(pipeline_name=pipeline_name)
+client.compile_and_upload(pipeline=pipeline)

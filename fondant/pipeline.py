@@ -62,93 +62,6 @@ class FondantComponentOp(FondantComponentSpec):
         return self.name
 
 
-class FondantClient:
-    """Class representing a Fondant Client."""
-
-    def __init__(self, host: str):
-        """
-        Args:
-            host: The `host` URL argument specifies the Kubeflow Pipelines API endpoint to
-             which the client should send requests.
-        """
-        self.client = kfp.Client(host=host)
-
-    def get_pipeline_id(self, pipeline_name: str) -> str:
-        """
-        Function that returns the id of a pipeline given a pipeline name
-        Args:
-            pipeline_name: the name of the pipeline
-        Returns:
-            The pipeline id.
-        """
-        return self.client.get_pipeline_id(pipeline_name)
-
-    def get_pipeline_version_ids(self, pipeline_id: str) -> t.List[str]:
-        """Function that returns the versions of a pipeline given a pipeline id."""
-        pipeline_versions = self.client.list_pipeline_versions(pipeline_id).versions
-        return [getattr(version, "id") for version in pipeline_versions]
-
-    def delete_pipeline(self, pipeline_name: str):
-        """
-        Function that deletes the pipeline name
-        Args:
-            pipeline_name: the name of the pipeline to delete.
-        """
-        pipeline_id = self.get_pipeline_id(pipeline_name)
-        if pipeline_id is not None:
-            pipeline_version_ids = self.get_pipeline_version_ids(pipeline_id)
-            # All versions need to be first deleted
-            for pipeline_version_id in pipeline_version_ids:
-                self.client.delete_pipeline_version(pipeline_version_id)
-            self.client.delete_pipeline(pipeline_id)
-
-            logger.info(
-                f"Pipeline {pipeline_name} already exists. Deleting old pipeline..."
-            )
-        else:
-            logger.info(f"No existing pipeline under `{pipeline_name}` name was found.")
-
-    def upload_pipeline(
-        self,
-        *,
-        pipeline_name: str,
-        pipeline_package_path: t.Optional[str] = None,
-        delete_pipeline_package: t.Optional[bool] = False,
-    ):
-        """
-        Uploads a pipeline package to Kubeflow Pipelines and deletes any existing pipeline with the
-         same name.
-
-        Args:
-            pipeline_name: The name of the pipeline.
-            pipeline_package_path: The path to the compiled package path.
-            delete_pipeline_package: Whether to delete the pipeline package file
-             after uploading. Defaults to False.
-
-        Raises:
-            Exception: If there was an error uploading the pipeline package.
-        """
-        # self.delete_pipeline(pipeline_name)
-        logger.info(f"Uploading pipeline: {pipeline_name}")
-
-        # Get pipeline package path
-        if pipeline_package_path is None:
-            pipeline_package_path = f"{pipeline_name}.tgz"
-        try:
-            self.client.upload_pipeline(
-                pipeline_package_path=pipeline_package_path, pipeline_name=pipeline_name
-            )
-        except Exception as e:
-            raise Exception(f"Error uploading pipeline package: {str(e)}")
-
-        # Delete the pipeline package file if specified.
-        if delete_pipeline_package:
-            Path(pipeline_package_path).unlink()
-
-    def run_pipeline(self):
-        raise NotImplementedError
-
-
 class FondantPipeline:
     """Class representing a Fondant Pipeline."""
 
@@ -169,6 +82,7 @@ class FondantPipeline:
         self.base_path = base_path
         self.pipeline_name = pipeline_name
         self.pipeline_description = pipeline_description
+        self.pipeline_package_path = f"{pipeline_name}.tgz"
         self._graph: t.Dict[str, t.Any] = {}
 
     def add_op(
@@ -212,14 +126,10 @@ class FondantPipeline:
                     depth_first_traversal(dependency)
                 sorted_graph.append(node)
 
-        for node in self._graph:
-            depth_first_traversal(node)
+        for graph_node in self._graph:
+            depth_first_traversal(graph_node)
 
         self._graph = {node: self._graph[node] for node in sorted_graph}
-
-    def __repr__(self) -> str:
-        """Return a string representation of the FondantPipeline object."""
-        return f"{self.__class__.__name__}({self._graph!r}"
 
     def _validate_pipeline_definition(self, run_id: str):
         """
@@ -337,10 +247,6 @@ class FondantPipeline:
         # Sort graph based on specified dependencies
         self.sort_graph()
 
-        # Get pipeline package path
-        if pipeline_package_path is None:
-            pipeline_package_path = f"{self.pipeline_name}.tgz"
-
         # parse metadata argument required for the first component
         run_id = "{{workflow.name}}"
 
@@ -400,3 +306,97 @@ class FondantPipeline:
         kfp.compiler.Compiler().compile(pipeline, pipeline_package_path)
 
         logger.info("Pipeline compiled successfully")
+
+    def __repr__(self) -> str:
+        """Return a string representation of the FondantPipeline object."""
+        return f"{self.__class__.__name__}({self._graph!r}"
+
+
+class FondantClient:
+    """Class representing a Fondant Client."""
+
+    def __init__(self, host: str):
+        """
+        Args:
+            host: The `host` URL argument specifies the Kubeflow Pipelines API endpoint to
+             which the client should send requests.
+        """
+        self.client = kfp.Client(host=host)
+
+    def get_pipeline_id(self, pipeline_name: str) -> str:
+        """
+        Function that returns the id of a pipeline given a pipeline name
+        Args:
+            pipeline_name: the name of the pipeline
+        Returns:
+            The pipeline id.
+        """
+        return self.client.get_pipeline_id(pipeline_name)
+
+    def get_pipeline_version_ids(self, pipeline_id: str) -> t.List[str]:
+        """Function that returns the versions of a pipeline given a pipeline id."""
+        pipeline_versions = self.client.list_pipeline_versions(pipeline_id).versions
+        return [getattr(version, "id") for version in pipeline_versions]
+
+    def delete_pipeline(self, pipeline_name: str):
+        """
+        Function that deletes the pipeline name
+        Args:
+            pipeline_name: the name of the pipeline to delete.
+        """
+        pipeline_id = self.get_pipeline_id(pipeline_name)
+        if pipeline_id is not None:
+            pipeline_version_ids = self.get_pipeline_version_ids(pipeline_id)
+            # All versions need to be first deleted
+            for pipeline_version_id in pipeline_version_ids:
+                self.client.delete_pipeline_version(pipeline_version_id)
+            self.client.delete_pipeline(pipeline_id)
+
+            logger.info(
+                f"Pipeline {pipeline_name} already exists. Deleting old pipeline..."
+            )
+        else:
+            logger.info(f"No existing pipeline under `{pipeline_name}` name was found.")
+
+    def compile_and_upload(
+        self,
+        *,
+        pipeline: FondantPipeline,
+        delete_pipeline_package: t.Optional[bool] = False,
+    ):
+        """
+        Uploads a pipeline package to Kubeflow Pipelines and deletes any existing pipeline with the
+         same name.
+
+        Args:
+            pipeline: The fondant pipeline to compile and upload
+            delete_pipeline_package: Whether to delete the pipeline package file
+             after uploading. Defaults to False.
+
+        Raises:
+            Exception: If there was an error uploading the pipeline package.
+        """
+        # self.delete_pipeline(pipeline_name)
+        pipeline_name = pipeline.pipeline_name
+        pipeline_package_path = pipeline.pipeline_package_path
+
+        logger.info(f"Compiling pipeline: {pipeline.pipeline_name}")
+        pipeline.compile_pipeline()
+
+        logger.info("Pipeline compiled")
+
+        logger.info(f"Uploading pipeline: {pipeline.pipeline_name}")
+
+        try:
+            self.client.upload_pipeline(
+                pipeline_package_path=pipeline_package_path, pipeline_name=pipeline_name
+            )
+        except Exception as e:
+            raise Exception(f"Error uploading pipeline package: {str(e)}")
+
+        # Delete the pipeline package file if specified.
+        if delete_pipeline_package:
+            Path(pipeline_package_path).unlink()
+
+    def run_pipeline(self):
+        raise NotImplementedError
