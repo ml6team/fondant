@@ -266,7 +266,7 @@ class KubeflowComponentSpec:
         dumped_args: KubeflowCommandArguments = []
         for arg in args:
             arg_name = arg.name.replace("-", "_").strip()
-            arg_name_cmd = f'--{arg.name}'.strip()
+            arg_name_cmd = f"--{arg.name}".strip()
 
             dumped_args.append(arg_name_cmd)
             dumped_args.append({"inputValue": arg_name})

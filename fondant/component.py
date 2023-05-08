@@ -30,7 +30,7 @@ class FondantComponent(ABC):
 
     @classmethod
     def from_file(
-            cls, path: t.Union[str, Path] = "../fondant_component.yaml"
+        cls, path: t.Union[str, Path] = "../fondant_component.yaml"
     ) -> "FondantComponent":
         """Create a component from a component spec file
 

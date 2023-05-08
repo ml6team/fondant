@@ -86,7 +86,7 @@ class FondantPipeline:
 
     @staticmethod
     def chain_operations(
-            *operations: FondantComponentOperation,
+        *operations: FondantComponentOperation,
     ) -> t.List[FondantComponentOperation]:
         """
         Function that accepts any number of operations in the order that they are supposed to run
@@ -100,13 +100,13 @@ class FondantPipeline:
 
     @staticmethod
     def _validate_pipeline_definition(
-            fondant_components_operations: t.List[FondantComponentOperation],
-            base_path: str,
-            run_id: str,
+        fondant_components_operations: t.List[FondantComponentOperation],
+        base_path: str,
+        run_id: str,
     ):
         """
-        Validates the pipeline definition by ensuring that the input and output subsets and their associated
-        fields match and are invoked in the correct order
+        Validates the pipeline definition by ensuring that the input and output subsets and their
+         associated fields match and are invoked in the correct order
 
         Raises:
             InvalidPipelineDefinition: If a component is trying to invoke a subset that is not
@@ -131,8 +131,8 @@ class FondantPipeline:
             if not load_component:
                 # Check subset exists
                 for (
-                        component_subset_name,
-                        component_subset,
+                    component_subset_name,
+                    component_subset,
                 ) in fondant_component_operation.input_subsets.items():
                     manifest_subset = manifest.subsets
                     if component_subset_name not in manifest_subset:
@@ -172,13 +172,13 @@ class FondantPipeline:
         logger.info("All pipeline component specifications match.")
 
     def compile_pipeline(
-            self,
-            *,
-            pipeline_name: str,
-            pipeline_description: str,
-            base_path: str,
-            fondant_components_operation: t.List[FondantComponentOperation],
-            pipeline_package_path: str,
+        self,
+        *,
+        pipeline_name: str,
+        pipeline_description: str,
+        base_path: str,
+        fondant_components_operation: t.List[FondantComponentOperation],
+        pipeline_package_path: str,
     ):
         """
         Function that creates and compiles a Kubeflow Pipeline.
@@ -214,7 +214,7 @@ class FondantPipeline:
         """
 
         def _get_component_function(
-                fondant_component_operation: FondantComponentOperation,
+            fondant_component_operation: FondantComponentOperation,
         ) -> t.Callable:
             """
             Load the Kubeflow component based on the specification from the fondant component
@@ -278,7 +278,7 @@ class FondantPipeline:
                     component_task = component_op(
                         input_manifest_path=manifest_path,
                         metadata=metadata,
-                        **component_args
+                        **component_args,
                     )
                 else:
                     metadata = json.dumps({"base_path": base_path, "run_id": run_id})
@@ -310,11 +310,11 @@ class FondantPipeline:
         logger.info("Pipeline compiled successfully")
 
     def upload_pipeline(
-            self,
-            *,
-            pipeline_name: str,
-            pipeline_package_path: str,
-            delete_pipeline_package: t.Optional[bool] = False,
+        self,
+        *,
+        pipeline_name: str,
+        pipeline_package_path: str,
+        delete_pipeline_package: t.Optional[bool] = False,
     ):
         """
         Uploads a pipeline package to Kubeflow Pipelines and deletes any existing pipeline with the
@@ -328,7 +328,7 @@ class FondantPipeline:
             Exception: If there was an error uploading the pipeline package.
         """
 
-        #self.delete_pipeline(pipeline_name)
+        # self.delete_pipeline(pipeline_name)
         logger.info(f"Uploading pipeline: {pipeline_name}")
 
         try:
