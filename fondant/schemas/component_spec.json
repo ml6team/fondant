@@ -38,7 +38,8 @@
           "$ref": "common.json#/definitions/fields"
         },
         "additionalFields": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         }
       },
       "required": [
@@ -49,7 +50,8 @@
       "type": "object",
       "properties": {
         "additionalSubsets": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         }
       },
       "minProperties": 1,
