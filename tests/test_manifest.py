@@ -69,7 +69,7 @@ def test_subset_fields():
 
     # add a duplicate field but overwrite
     subset.add_field(name="data2", type_=Type.utf8, overwrite=True)
-    assert subset.fields["data2"].type == "utf8"
+    assert subset.fields["data2"].type == Type.utf8
 
     # remove a field
     subset.remove_field(name="data2")
