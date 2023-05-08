@@ -1,6 +1,6 @@
 name: Load from hub
 description: Component that loads a dataset from the hub
-image: load_from_hub:latest
+image: ghcr.io/ml6team/load_from_hub:latest
 
 output_subsets:
   images:
@@ -20,6 +20,3 @@ args:
   dataset_name:
     description: Name of dataset on the hub
     type: str
-  batch_size:
-    description: Batch size to use to create image metadata
-    type: int
