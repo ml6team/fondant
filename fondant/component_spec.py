@@ -220,6 +220,11 @@ class KubeflowComponentSpec:
                     "description": "Path to the input manifest",
                     "type": "String",
                 },
+                {
+                    "name": "metadata",
+                    "description": "Metadata arguments containing the run id and base path",
+                    "type": "String",
+                },
                 *(
                     {
                         "name": arg.name,
@@ -242,10 +247,12 @@ class KubeflowComponentSpec:
                     "command": [
                         "python3",
                         "main.py",
-                        "--input-manifest-path",
+                        "--input_manifest_path",
                         {"inputPath": "input_manifest_path"},
+                        "--metadata",
+                        {"inputValue": "metadata"},
                         *cls._dump_args(fondant_component.args.values()),
-                        "--output-manifest-path",
+                        "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},
                     ],
                 }
