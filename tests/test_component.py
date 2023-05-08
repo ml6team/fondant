@@ -3,6 +3,7 @@
 import argparse
 import json
 import sys
+import tempfile
 from pathlib import Path
 from unittest import mock
 
@@ -10,7 +11,7 @@ import dask.dataframe as dd
 import pytest
 
 from fondant.component import FondantLoadComponent, FondantTransformComponent
-from fondant.dataset import FondantDataset
+from fondant.data_io import DaskDataLoader
 
 components_path = Path(__file__).parent / "example_specs/components"
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"
@@ -81,7 +82,7 @@ def test_transform_kwargs(monkeypatch):
     def mocked_load_dataframe(self, spec):
         return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
 
-    monkeypatch.setattr(FondantDataset, "load_dataframe", mocked_load_dataframe)
+    monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
 
     # Define paths to specs to instantiate component
     arguments_dir = components_path / "arguments"

@@ -15,7 +15,7 @@ from pathlib import Path
 import dask.dataframe as dd
 
 from fondant.component_spec import Argument, FondantComponentSpec, kubeflow2python_type
-from fondant.dataset import FondantDataset
+from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
@@ -71,20 +71,21 @@ class FondantComponent(ABC):
         """Abstract method that returns the dataset manifest."""
 
     @abstractmethod
-    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
-        """Abstract method that processes the input dataframe of the `FondantDataset` and
-        returns another dataframe.
-        """
+    def _process_dataset(
+        self, dataset: t.Optional[DaskDataLoader] = None
+    ) -> dd.DataFrame:
+        """Abstract method that processes the input dataframe and
+        returns another dataframe"""
 
     def run(self):
         """Runs the component."""
         input_manifest = self._load_or_create_manifest()
-        input_dataset = FondantDataset(input_manifest)
+        input_dataset = DaskDataLoader(input_manifest)
 
         df = self._process_dataset(input_dataset)
 
         output_manifest = input_manifest.evolve(component_spec=self.spec)
-        output_dataset = FondantDataset(output_manifest)
+        output_dataset = DaskDataWriter(output_manifest)
 
         # write index and output subsets to remote storage
         output_dataset.write_index(df)
@@ -146,7 +147,7 @@ class FondantLoadComponent(FondantComponent):
     def load(self, **kwargs) -> dd.DataFrame:
         """Abstract method that loads the initial dataframe."""
 
-    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
+    def _process_dataset(self, dataset=None) -> dd.DataFrame:
         """This function loads the initial dataframe sing the user-provided `load` method.
 
         Returns:
@@ -182,9 +183,9 @@ class FondantTransformComponent(FondantComponent):
     def transform(self, dataframe: dd.DataFrame, **kwargs) -> dd.DataFrame:
         """Abstract method for applying data transformations to the input dataframe."""
 
-    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
+    def _process_dataset(self, dataset: DaskDataLoader) -> dd.DataFrame:  # type: ignore[override]
         """
-        Loads the input dataframe using the `load_dataframe` method of the provided `FondantDataset`
+        Loads the input dataframe using the `load_dataframe` method of the provided DataLoader
         instance, and  applies data transformations to it using the `transform` method implemented
         by the derived class. Returns a single dataframe.
 
