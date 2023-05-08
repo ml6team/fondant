@@ -38,7 +38,7 @@ class Subset:
         """The fields of the subset returned as a immutable mapping."""
         return types.MappingProxyType(
             {
-                name: Field(name=name, type=field["type"])
+                name: Field(name=name, type=Type[field["type"]])
                 for name, field in self._specification["fields"].items()
             }
         )

@@ -219,7 +219,7 @@ class FondantDataset:
 
             # Create the expected schema for the output subset
             expected_schema = {
-                field.name: field.type.name for field in subset.fields.values()
+                field.name: field.type.value for field in subset.fields.values()
             }
             expected_schema.update(self.index_schema)
 

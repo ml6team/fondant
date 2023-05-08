@@ -53,7 +53,7 @@ def test_attribute_access(valid_manifest):
     assert manifest.metadata == valid_manifest["metadata"]
     assert manifest.index.location == "gs://bucket/index"
     assert manifest.subsets["images"].location == "gs://bucket/images"
-    assert manifest.subsets["images"].fields["data"].type == "binary"
+    assert manifest.subsets["images"].fields["data"].type == Type.binary
 
 
 def test_manifest_creation():
