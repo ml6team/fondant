@@ -6,6 +6,7 @@ components take care of processing, filtering and extending the data.
 """
 
 import argparse
+import ast
 import json
 import logging
 import typing as t
@@ -65,10 +66,10 @@ class FondantComponent(ABC):
         for arg_name, arg_value in vars(self.args).items():
             if arg_name in self.spec.args:
                 # Handle kubeflow datatypes passed as strings
-                if self.spec.args[arg_name].type in ["dict", "list", "tuple"]:
+                if self.spec.args[arg_name].type in ["dict", "list"]:
                     user_argument = json.loads(arg_value)
-                elif self.spec.args[arg_name].type == 'bool':
-                    user_argument = eval(arg_value)
+                elif self.spec.args[arg_name].type == "bool":
+                    user_argument = ast.literal_eval(arg_value)
                 else:
                     user_argument = arg_value
                 arg_dict[arg_name] = user_argument
