@@ -36,9 +36,8 @@ def is_disallowed(headers, user_agent_token, disallowed_header_directives):
     return False
 
 
-def download_image(row, timeout, user_agent_token, disallowed_header_directives):
+def download_image(url, timeout, user_agent_token, disallowed_header_directives):
     """Download an image with urllib"""
-    url = row.images_url
     img_stream = None
     user_agent_string = (
         "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0"
@@ -65,11 +64,11 @@ def download_image(row, timeout, user_agent_token, disallowed_header_directives)
 
 
 def download_image_with_retry(
-    row, timeout, retries, user_agent_token, disallowed_header_directives
+    url, timeout, retries, user_agent_token, disallowed_header_directives
 ):
     for _ in range(retries + 1):
         img_stream = download_image(
-            row, timeout, user_agent_token, disallowed_header_directives
+            url, timeout, user_agent_token, disallowed_header_directives
         )
         if img_stream is not None:
             return img_stream
@@ -96,7 +95,7 @@ class DownloadImagesComponent(FondantTransformComponent):
 
         dataframe["images_data"] = dataframe.apply(
             lambda example: download_image_with_retry(
-                example, timeout=timeout, retries=retries
+                example.images_url, timeout=timeout, retries=retries
             ),
             axis=1,
             meta=("images", object),
