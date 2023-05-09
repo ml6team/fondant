@@ -1,0 +1,23 @@
+name: Download images
+description: Component that downloads actual images based on URLs
+image: download_images:latest
+
+input_subsets:
+  images:
+    fields:
+      url:
+        type: utf8
+
+output_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+
+args:
+  timeout:
+    description: Maximum time (in seconds) to wait when trying to download an image
+    type: int
+  retries:
+    description: Number of times to retry downloading an image if it fails.
+    type: int

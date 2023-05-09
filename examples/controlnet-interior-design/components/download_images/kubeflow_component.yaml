@@ -1,0 +1,19 @@
+name: download_images
+description: Component that downloads actual images based on URLs
+nputs: 
+    - name: input_manifest_path
+      description: Path to the input manifest
+      type: String
+   
+outputs:
+    - name: output_manifest_path
+      description: Path to the output manifest
+
+implementation:
+    container:
+        image: ghcr.io/ml6team/image_filtering:latest
+        command: [
+            python3, main.py,
+            --input_manifest_path,       {inputPath: input_manifest_path},
+            --output_manifest_path,      {outputPath: output_manifest_path},
+        ]
