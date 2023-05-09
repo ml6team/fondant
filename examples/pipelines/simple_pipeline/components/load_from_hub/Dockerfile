@@ -9,11 +9,11 @@ RUN apt-get update && \
 COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy over src-files of the component
-COPY src /src
-COPY fondant_component.yaml /src
+# Set the working directory to the compoent folder
+WORKDIR /component/src
 
-# Set the working directory to the source folder
-WORKDIR /src
+# Copy over src-files and spec of the component
+COPY src/ .
+COPY fondant_component.yaml ../
 
 ENTRYPOINT ["python", "main.py"]

@@ -43,5 +43,5 @@ class ImageFilterComponent(FondantTransformComponent):
 
 
 if __name__ == "__main__":
-    component = ImageFilterComponent.from_file("fondant_component.yaml")
+    component = ImageFilterComponent.from_file()
     component.run()
