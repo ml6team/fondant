@@ -1,4 +1,4 @@
-"""This module defines classes to represent an Fondant manifest."""
+"""This module defines classes to represent a Fondant manifest."""
 import copy
 import json
 import pkgutil
@@ -17,7 +17,7 @@ from fondant.schema import Field, Type
 
 class Subset:
     """
-    Class representing an Fondant subset.
+    Class representing a Fondant subset.
 
     Args:
         specification: The part of the manifest json representing the subset
@@ -69,7 +69,7 @@ class Index(Subset):
 
 class Manifest:
     """
-    Class representing an Fondant manifest.
+    Class representing a Fondant manifest.
 
     Args:
         specification: The manifest specification as a Python dict

@@ -53,7 +53,7 @@ class Type(enum.Enum):
 
 
 class Field(t.NamedTuple):
-    """Class representing a single field or column in an Fondant subset."""
+    """Class representing a single field or column in a Fondant subset."""
 
     name: str
     type: Type
