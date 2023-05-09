@@ -23,20 +23,14 @@ client = FondantClient(host=pipeline_host)
 # Define component ops
 load_from_hub_op = FondantComponentOp(
     component_spec_path="components/load_from_hub/fondant_component.yaml",
-    arguments={"dataset_name": LoadFromHubConfig.DATASET_NAME},
-)
-
-image_filtering_op = FondantComponentOp(
-    component_spec_path="components/image_filtering/fondant_component.yaml",
-    arguments={
-        "min_width": ImageFilterConfig.MIN_WIDTH,
-        "min_height": ImageFilterConfig.MIN_HEIGHT,
-    },
+    arguments={"dataset_name": LoadFromHubConfig.DATASET_NAME,
+               "bool_name": True,
+               "list_name": ["1", "2"],
+               "dict_name": {"1": "one", "2": "two"}}
 )
 
 pipeline = FondantPipeline(pipeline_name=pipeline_name, base_path=pipeline_base_path)
 
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
 
 client.compile_and_run(pipeline=pipeline)

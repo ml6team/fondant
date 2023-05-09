@@ -22,10 +22,8 @@ python2kubeflow_type = {
     "int": "Integer",
     "float": "Float",
     "bool": "Boolean",
-    "dict": "Map",
-    "list": "List",
-    "tuple": "List",
-    "set": "Set",
+    "dict": "JsonObject",
+    "list": "JsonArray",
 }
 
 # TODO: remove after upgrading to kfpv2
@@ -34,6 +32,8 @@ kubeflow2python_type = {
     "Integer": int,
     "Float": float,
     "Boolean": bool,
+    "JsonObject": str,
+    "JsonArray": str,
 }
 
 
