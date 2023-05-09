@@ -7,8 +7,3 @@ output_subsets:
     fields:
       text:
         type: utf8
-
-args:
-  dataset_name:
-    description: Name of dataset on the hub
-    type: str

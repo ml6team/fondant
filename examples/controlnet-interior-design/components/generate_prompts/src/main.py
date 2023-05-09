@@ -100,7 +100,7 @@ def make_interior_prompt(room: str, prefix: str, style: str) -> str:
 
 
 class LoadPromptsComponent(FondantLoadComponent):
-    def load(self, dataset_name):
+    def load(self):
         """
         Generate a set of initial prompts that will be used to retrieve images from the LAION-5B dataset.
 
@@ -110,14 +110,12 @@ class LoadPromptsComponent(FondantLoadComponent):
         room_tuples = list(itertools.product(rooms, interior_prefix, interior_styles))
         prompts = list(map(lambda x: make_interior_prompt(*x), room_tuples))
 
-        df = pd.DataFrame(prompts, columns=["prompts_text"])
+        pandas_df = pd.DataFrame(prompts, columns=["prompts_text"])
 
-        df = dd.from_pandas(
-            df, npartitions=1
-        )  # need to decide how npartitions should be set
+        df = dd.from_pandas(pandas_df, npartitions=1)
 
         index_list = [idx for idx in range(len(df))]
-        source_list = ["hub" for _ in range(len(df))]
+        source_list = ["seed" for _ in range(len(df))]
 
         df["id"] = da.array(index_list)
         df["source"] = da.array(source_list)
