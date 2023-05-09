@@ -60,11 +60,18 @@ class FondantComponent(ABC):
     @property
     def user_arguments(self) -> t.Dict[str, t.Any]:
         """Custom arguments defined by the user in the fondant component spec."""
-        return {
-            key: value
-            for key, value in vars(self.args).items()
-            if key in self.spec.args
-        }
+        arg_dict: t.Dict[str, t.Any] = {}
+
+        for arg_name, arg_value in vars(self.args).items():
+            if arg_name in self.spec.args:
+                # Handle kubeflow datatypes passed as strings
+                if self.spec.args[arg_name].type in ["dict", "list"]:
+                    user_argument = json.loads(arg_value)
+                else:
+                    user_argument = arg_value
+                arg_dict[arg_name] = user_argument
+
+        return arg_dict
 
     @abstractmethod
     def _load_or_create_manifest(self) -> Manifest:

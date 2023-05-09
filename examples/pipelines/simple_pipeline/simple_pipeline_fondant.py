@@ -23,10 +23,12 @@ client = FondantClient(host=pipeline_host)
 # Define component ops
 load_from_hub_op = FondantComponentOp(
     component_spec_path="components/load_from_hub/fondant_component.yaml",
-    arguments={"dataset_name": LoadFromHubConfig.DATASET_NAME,
-               "bool_name": True,
-               "list_name": ["1", "2"],
-               "dict_name": {"1": "one", "2": "two"}}
+    arguments={
+        "dataset_name": LoadFromHubConfig.DATASET_NAME,
+        "bool_name": True,
+        "list_name": ["1", "2"],
+        "dict_name": {"1": "one", "2": "two"},
+    },
 )
 
 pipeline = FondantPipeline(pipeline_name=pipeline_name, base_path=pipeline_base_path)

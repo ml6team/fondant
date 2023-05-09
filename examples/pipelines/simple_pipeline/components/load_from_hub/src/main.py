@@ -33,7 +33,9 @@ def extract_height(image_bytes):
 
 
 class LoadFromHubComponent(FondantLoadComponent):
-    def load(self, *, dataset_name: str, bool_name:bool, list_name:list, dict_name:dict) -> dd.DataFrame:
+    def load(
+        self, *, dataset_name: str, bool_name: bool, list_name: list, dict_name: dict
+    ) -> dd.DataFrame:
         """
         Args:
             dataset_name: name of the dataset to load
@@ -41,12 +43,22 @@ class LoadFromHubComponent(FondantLoadComponent):
         Returns:
             Dataset: HF dataset
         """
+        import json
+        import ast
+
         print("bool")
         print(bool_name)
+        print(type(bool_name))
+
         print("dict")
         print(dict_name)
+        print(type(dict_name))
+        # print(type(json.loads(dict_name)))
         print("list")
         print(list_name)
+        print(type(list_name))
+        # print(type(ast.literal_eval("".join(list_name))))
+
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the hub...")
         dask_df = dd.read_parquet(f"hf://datasets/{dataset_name}")

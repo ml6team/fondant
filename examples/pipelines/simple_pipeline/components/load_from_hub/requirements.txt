@@ -1,5 +1,5 @@
 huggingface_hub==0.14.1
-git+https://github.com/ml6team/fondant.git@ecda7d501ef19621c3d6fb338392257a6c6bbf72
+git+https://github.com/ml6team/fondant.git@efbad530d0a6360df3f1aa25cd2a49e886f769ff
 pyarrow>=7.0
 Pillow==9.4.0
 gcsfs==2023.4.0
