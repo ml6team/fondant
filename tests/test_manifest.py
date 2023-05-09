@@ -32,7 +32,7 @@ def test_manifest_validation(valid_manifest, invalid_manifest):
 def test_subset_init():
     """Test initializing a subset."""
     subset_spec = {
-        "location": "/ABC/123/images",
+        "location": "/images/ABC/123",
         "fields": {
             "data": {
                 "type": "binary",
@@ -40,17 +40,17 @@ def test_subset_init():
         },
     }
     subset = Subset(specification=subset_spec, base_path="/tmp")
-    assert subset.location == "/tmp/ABC/123/images"
+    assert subset.location == "/tmp/images/ABC/123"
     assert (
         subset.__repr__()
-        == "Subset({'location': '/ABC/123/images', 'fields': {'data': {'type': 'binary'}}})"
+        == "Subset({'location': '/images/ABC/123', 'fields': {'data': {'type': 'binary'}}})"
     )
 
 
 def test_subset_fields():
     """Test manipulating subset fields."""
     subset_spec = {
-        "location": "/ABC/123/images",
+        "location": "/images/ABC/123",
         "fields": {
             "data": {
                 "type": "binary",
@@ -132,10 +132,10 @@ def test_manifest_creation():
             "run_id": run_id,
             "component_id": component_id,
         },
-        "index": {"location": f"/{run_id}/{component_id}/index"},
+        "index": {"location": f"/index/{run_id}/{component_id}"},
         "subsets": {
             "images": {
-                "location": f"/{run_id}/{component_id}/images",
+                "location": f"/images/{run_id}/{component_id}",
                 "fields": {
                     "width": {
                         "type": "int32",
@@ -157,7 +157,7 @@ def test_manifest_repr():
     assert (
         manifest.__repr__()
         == "Manifest({'metadata': {'base_path': '/', 'run_id': 'A', 'component_id': '1'}, "
-        "'index': {'location': '/A/1/index'}, 'subsets': {}})"
+        "'index': {'location': '/index/A/1'}, 'subsets': {}})"
     )
 
 
