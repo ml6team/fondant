@@ -61,14 +61,16 @@ tracks the location where it is saved:
 
 ### Subsets
 
-Each subset is a different view on the data contained in the dataset. Different subsets could 
-for instance be images, captions, and embeddings, all reflecting the same underlying data points.
+Each subset represents different features of the data contained in the dataset. Different subsets 
+could for instance be images, captions, and embeddings, all reflecting the same underlying data 
+points.
 
 Each subset is stored separately to prevent expensive operations to the whole row when a single 
 subset is added or modified.
 
 Each subset contains two properties:
-- A location which points to the location where the underlying data is stored
+- A location which points to the location where the underlying data is stored. It is relative to 
+  the base path defined in the manifest metadata.
 - A `"fields"` object which defines the columns available in the subset. Each field is defined 
   by a name and an [Arrow data type](https://arrow.apache.org/docs/python/api/datatypes.html). 
 
