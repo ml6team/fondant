@@ -13,6 +13,16 @@ output_subsets:
     fields:
       data:
         type: binary
+      width:
+        type: int
+      height:
+        type: int
+      original_width:
+        type: int
+      original_height:
+        type: int
+      error_message:
+        type: utf8
 
 args:
   timeout:

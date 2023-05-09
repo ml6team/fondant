@@ -1,5 +1,5 @@
 """
-This component downloads images based on URLs.
+This component downloads images based on URLs, and resizes them.
 
 Some functions here are directly taken from https://github.com/rom1504/img2dataset/blob/main/img2dataset/downloader.py.
 """
@@ -69,6 +69,7 @@ def download_image_with_retry(
     url,
     timeout,
     retries,
+    resizer,
     user_agent_token=None,
     disallowed_header_directives=None,
 ):
@@ -77,8 +78,9 @@ def download_image_with_retry(
             url, timeout, user_agent_token, disallowed_header_directives
         )
         if img_stream is not None:
-            return img_stream
-    return None
+            # resize the image
+            return resizer(img_stream)
+    return None, None, None, None, None, None
 
 
 class DownloadImagesComponent(FondantTransformComponent):
@@ -115,13 +117,29 @@ class DownloadImagesComponent(FondantTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
-        dataframe["images_data"] = dataframe.apply(
+        # retrieve and resize images
+        # source: https://stackoverflow.com/questions/41728527/how-to-apply-a-function-to-a-dask-dataframe-and-return-multiple-values
+        result = dataframe.apply(
             lambda example: download_image_with_retry(
-                example.images_url, timeout=timeout, retries=retries
+                url=example.images_url,
+                timeout=timeout,
+                retries=retries,
+                resizer=resizer,
             ),
             axis=1,
-            meta=("images", object),
+            result_type="expand",
+            meta={0: object, 1: int, 2: int, 3: int, 4: int, 5: str},
         )
+        result.columns = [
+            "images_data",
+            "images_width",
+            "images_height",
+            "images_original_width",
+            "images_original_height",
+            "images_error_message",
+        ]
+
+        dataframe = dataframe.merge(result, left_index=True, right_index=True)
 
         return dataframe
 
