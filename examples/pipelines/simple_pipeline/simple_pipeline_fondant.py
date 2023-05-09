@@ -25,7 +25,7 @@ load_from_hub_op = FondantComponentOp(
     component_spec_path="components/load_from_hub/fondant_component.yaml",
     arguments={
         "dataset_name": LoadFromHubConfig.DATASET_NAME,
-        "bool_name": True,
+        "bool_name": False,
         "list_name": ["1", "2"],
         "dict_name": {"1": "one", "2": "two"},
     },

@@ -67,6 +67,8 @@ class FondantComponent(ABC):
                 # Handle kubeflow datatypes passed as strings
                 if self.spec.args[arg_name].type in ["dict", "list"]:
                     user_argument = json.loads(arg_value)
+                elif self.spec.args[arg_name].type == 'bool':
+                    user_argument = eval(arg_value)
                 else:
                     user_argument = arg_value
                 arg_dict[arg_name] = user_argument

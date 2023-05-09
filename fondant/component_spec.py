@@ -31,7 +31,7 @@ kubeflow2python_type = {
     "String": str,
     "Integer": int,
     "Float": float,
-    "Boolean": bool,
+    "Boolean": str,
     "JsonObject": str,
     "JsonArray": str,
 }
