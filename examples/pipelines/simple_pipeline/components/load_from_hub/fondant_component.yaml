@@ -23,9 +23,6 @@ args:
   bool_name:
     description: Bool a
     type: bool
-  list_name:
+  tuple_name:
     description: List a
     type: list
-  dict_name:
-    description: Bool a
-    type: dict

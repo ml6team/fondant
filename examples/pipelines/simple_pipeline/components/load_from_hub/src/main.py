@@ -34,7 +34,7 @@ def extract_height(image_bytes):
 
 class LoadFromHubComponent(FondantLoadComponent):
     def load(
-        self, *, dataset_name: str, bool_name: bool, list_name: list, dict_name: dict
+        self, *, dataset_name: str, bool_name: bool, tuple_name: tuple
     ) -> dd.DataFrame:
         """
         Args:
@@ -50,13 +50,11 @@ class LoadFromHubComponent(FondantLoadComponent):
         print(bool_name)
         print(type(bool_name))
 
-        print("dict")
-        print(dict_name)
-        print(type(dict_name))
+        print("tuple")
+        print(tuple_name)
+        print(type(tuple_name))
         # print(type(json.loads(dict_name)))
-        print("list")
-        print(list_name)
-        print(type(list_name))
+
         # print(type(ast.literal_eval("".join(list_name))))
 
         # 1) Load data, read as Dask dataframe
