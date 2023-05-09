@@ -88,19 +88,19 @@ def make_interior_prompt(room: str, prefix: str, style: str) -> str:
     """Generate a prompt for the interior design model.
 
     Args:
-        room (str): room name
-        prefix (str): prefix for the room
-        style (str): interior style
+        room: room name
+        prefix: prefix for the room
+        style: interior style
 
     Returns:
-        str: prompt for the interior design model
+        prompt for the interior design model
     """
     # TODO: add more variation in the prompt, multiple variants, ...
     return f"{prefix.lower()} {room.lower()}, {style.lower()} interior design"
 
 
 class LoadPromptsComponent(FondantLoadComponent):
-    def load(self):
+    def load(self) -> dd.DataFrame:
         """
         Generate a set of initial prompts that will be used to retrieve images from the LAION-5B dataset.
 
