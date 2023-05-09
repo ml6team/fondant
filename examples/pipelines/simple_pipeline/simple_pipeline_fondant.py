@@ -1,4 +1,6 @@
 """Pipeline used to create a stable diffusion dataset from a set of given images."""
+import logging
+
 from config.general_config import KubeflowConfig
 from config.components_config import (
     LoadFromHubConfig,
@@ -6,7 +8,10 @@ from config.components_config import (
 )
 
 from fondant.pipeline import FondantComponentOp, FondantPipeline, FondantClient
+from fondant.logger import configure_logging
 
+configure_logging()
+logger = logging.getLogger(__name__)
 # General configs
 pipeline_name = "Test fondant pipeline"
 pipeline_description = "A test pipeline"
@@ -34,4 +39,4 @@ pipeline = FondantPipeline(pipeline_name=pipeline_name, base_path=pipeline_base_
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(image_filtering_op, dependency=load_from_hub_op)
 
-client.compile_and_upload(pipeline=pipeline)
+client.compile_and_run(pipeline=pipeline)
