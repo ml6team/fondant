@@ -29,7 +29,7 @@ class KubeflowConfig(GeneralConfig):
         HOST (str): the kfp host url
     """
 
-    ARTIFACT_BUCKET = f"{GeneralConfig.GCP_PROJECT_ID}-kfp-output"
+    BASE_PATH = f"{GeneralConfig.GCP_PROJECT_ID}-kfp-output"
     CLUSTER_NAME = "kfp-fondant"
     CLUSTER_ZONE = "europe-west4-a"
     HOST = "https://52074149b1563463-dot-europe-west1.pipelines.googleusercontent.com/"

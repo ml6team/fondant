@@ -99,7 +99,7 @@ def make_interior_prompt(room: str, prefix: str, style: str) -> str:
     return f"{prefix.lower()} {room.lower()}, {style.lower()} interior design"
 
 
-class LoadPromptsComponent(FondantLoadComponent):
+class GeneratePromptsComponent(FondantLoadComponent):
     def load(self) -> dd.DataFrame:
         """
         Generate a set of initial prompts that will be used to retrieve images from the LAION-5B dataset.
@@ -124,5 +124,5 @@ class LoadPromptsComponent(FondantLoadComponent):
 
 
 if __name__ == "__main__":
-    component = LoadPromptsComponent.from_file()
+    component = GeneratePromptsComponent.from_file()
     component.run()

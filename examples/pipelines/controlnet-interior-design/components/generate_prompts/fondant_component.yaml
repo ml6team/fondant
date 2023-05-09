@@ -7,3 +7,5 @@ output_subsets:
     fields:
       text:
         type: utf8
+
+args:
