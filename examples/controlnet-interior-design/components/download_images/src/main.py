@@ -10,6 +10,8 @@ import urllib
 
 import dask.dataframe as dd
 
+from .resizer import Resizer
+
 from fondant.component import FondantTransformComponent
 from fondant.logger import configure_logging
 
@@ -64,7 +66,11 @@ def download_image(url, timeout, user_agent_token, disallowed_header_directives)
 
 
 def download_image_with_retry(
-    url, timeout, retries, user_agent_token, disallowed_header_directives
+    url,
+    timeout,
+    retries,
+    user_agent_token=None,
+    disallowed_header_directives=None,
 ):
     for _ in range(retries + 1):
         img_stream = download_image(
@@ -81,7 +87,16 @@ class DownloadImagesComponent(FondantTransformComponent):
     """
 
     def transform(
-        self, *, dataframe: dd.DataFrame, timeout: int = 10, retries: int = 0
+        self,
+        *,
+        dataframe: dd.DataFrame,
+        timeout: int = 10,
+        retries: int = 0,
+        image_size: int = 256,
+        resize_mode: str = "border",
+        resize_only_if_bigger: bool = False,
+        min_image_size: int = 0,
+        max_aspect_ratio: float = float("inf"),
     ) -> dd.DataFrame:
         """
         Args:
@@ -92,6 +107,13 @@ class DownloadImagesComponent(FondantTransformComponent):
         Returns:
             Dask dataframe
         """
+        resizer = Resizer(
+            image_size=image_size,
+            resize_mode=resize_mode,
+            resize_only_if_bigger=resize_only_if_bigger,
+            min_image_size=min_image_size,
+            max_aspect_ratio=max_aspect_ratio,
+        )
 
         dataframe["images_data"] = dataframe.apply(
             lambda example: download_image_with_retry(

@@ -21,3 +21,18 @@ args:
   retries:
     description: Number of times to retry downloading an image if it fails.
     type: int
+  image_size:
+    description: Size of the images.
+    type: int
+  resize_mode:
+    description: Resize mode to use.
+    type: utf8
+  resize_only_if_bigger: 
+    description: If True, resize only if image is bigger than image_size.
+    type: bool
+  min_image_size:
+    description: Minimum size of the images.
+    type: int
+  max_aspect_ratio:
+    description: Maximum aspect ratio of the images.
+    type: float
