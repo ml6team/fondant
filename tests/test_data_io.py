@@ -25,20 +25,20 @@ def component_spec():
 
 @pytest.fixture
 def dataframe(manifest, component_spec):
-    dl = DaskDataLoader(manifest=manifest)
-    return dl.load_dataframe(spec=component_spec)
+    data_loader = DaskDataLoader(manifest=manifest)
+    return data_loader.load_dataframe(spec=component_spec)
 
 
 def test_load_index(manifest):
     """Test the loading of just the index."""
-    dl = DaskDataLoader(manifest=manifest)
-    assert len(dl._load_index()) == NUMBER_OF_TEST_ROWS
+    data_loader = DaskDataLoader(manifest=manifest)
+    assert len(data_loader._load_index()) == NUMBER_OF_TEST_ROWS
 
 
 def test_load_subset(manifest):
     """Test the loading of one field of a subset."""
-    dl = DaskDataLoader(manifest=manifest)
-    subset_df = dl._load_subset(subset_name="types", fields=["Type 1"])
+    data_loader = DaskDataLoader(manifest=manifest)
+    subset_df = data_loader._load_subset(subset_name="types", fields=["Type 1"])
     assert len(subset_df) == NUMBER_OF_TEST_ROWS
     assert list(subset_df.columns) == ["id", "source", "types_Type 1"]
 
@@ -63,13 +63,13 @@ def test_write_index(tmp_path_factory, dataframe, manifest):
     with tmp_path_factory.mktemp("temp") as fn:
         # override the base path of the manifest with the temp dir
         manifest.update_metadata("base_path", str(fn))
-        dw = DaskDataWriter(manifest=manifest)
+        data_writer = DaskDataWriter(manifest=manifest)
         # write out index to temp dir
-        dw.write_index(df=dataframe)
+        data_writer.write_index(df=dataframe)
         # read written data and assert
-        odf = dd.read_parquet(fn / "index")
-        assert len(odf) == NUMBER_OF_TEST_ROWS
-        assert list(odf.columns) == ["id", "source"]
+        df = dd.read_parquet(fn / "index")
+        assert len(df) == NUMBER_OF_TEST_ROWS
+        assert list(df.columns) == ["id", "source"]
 
 
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
@@ -83,11 +83,11 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
     with tmp_path_factory.mktemp("temp") as fn:
         # override the base path of the manifest with the temp dir
         manifest.update_metadata("base_path", str(fn))
-        dw = DaskDataWriter(manifest=manifest)
+        data_writer = DaskDataWriter(manifest=manifest)
         # write out index to temp dir
-        dw.write_index(df=dataframe)
+        data_writer.write_index(df=dataframe)
         # write out subsets to temp dir
-        dw.write_subsets(df=dataframe, spec=component_spec)
+        data_writer.write_subsets(df=dataframe, spec=component_spec)
         # read written data and assert
         for subset, subset_columns in subset_columns_dict.items():
             df = dd.read_parquet(fn / subset)
@@ -102,7 +102,7 @@ def test_write_subsets_invalid(tmp_path_factory, dataframe, manifest, component_
         manifest.update_metadata("base_path", str(fn))
         # Drop one of the columns required in the output
         dataframe = dataframe.drop(["types_Type 2"], axis=1)
-        dw = DaskDataWriter(manifest=manifest)
-        dw.write_index(df=dataframe)
+        data_writer = DaskDataWriter(manifest=manifest)
+        data_writer.write_index(df=dataframe)
         with pytest.raises(ValueError):
-            dw.write_subsets(df=dataframe, spec=component_spec)
+            data_writer.write_subsets(df=dataframe, spec=component_spec)
