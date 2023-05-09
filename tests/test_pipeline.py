@@ -18,11 +18,6 @@ def default_pipeline_args():
     }
 
 
-@pytest.fixture
-def mock_host():
-    return "http://mock-host-url"
-
-
 @pytest.mark.parametrize(
     "valid_pipeline_example",
     [
@@ -32,9 +27,7 @@ def mock_host():
         ),
     ],
 )
-def test_valid_pipeline(
-    mock_host, default_pipeline_args, valid_pipeline_example, tmp_path
-):
+def test_valid_pipeline(default_pipeline_args, valid_pipeline_example, tmp_path):
     """Test that a valid pipeline definition can be compiled without errors."""
     example_dir, component_names = valid_pipeline_example
     component_args = {"storage_args": "a dummy string arg"}
@@ -52,9 +45,19 @@ def test_valid_pipeline(
         Path(components_path / component_names[2]), component_args
     )
 
+    pipeline.add_op(third_component_op, dependencies=second_component_op)
     pipeline.add_op(first_component_op)
-    pipeline.add_op(second_component_op, dependency=first_component_op)
-    pipeline.add_op(third_component_op, dependency=second_component_op)
+    pipeline.add_op(second_component_op, dependencies=first_component_op)
+
+    pipeline.sort_graph()
+    assert list(pipeline._graph.keys()) == [
+        "First component",
+        "Second component",
+        "Third component",
+    ]
+    assert pipeline._graph["First component"]["dependencies"] == []
+    assert pipeline._graph["Second component"]["dependencies"] == ["First component"]
+    assert pipeline._graph["Third component"]["dependencies"] == ["Second component"]
 
     pipeline.compile_pipeline()
 
@@ -66,9 +69,7 @@ def test_valid_pipeline(
         ("example_2", ["first_component.yaml", "second_component.yaml"]),
     ],
 )
-def test_invalid_pipeline(
-    mock_host, default_pipeline_args, invalid_pipeline_example, tmp_path
-):
+def test_invalid_pipeline(default_pipeline_args, invalid_pipeline_example, tmp_path):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to compile
     an invalid pipeline definition.
@@ -87,7 +88,7 @@ def test_invalid_pipeline(
     )
 
     pipeline.add_op(first_component_op)
-    pipeline.add_op(second_component_op, dependency=first_component_op)
+    pipeline.add_op(second_component_op, dependencies=first_component_op)
 
     with pytest.raises(InvalidPipelineDefinition):
         pipeline.compile_pipeline()
@@ -100,9 +101,7 @@ def test_invalid_pipeline(
         {"args": 1, "storage_args": "a dummy string arg"},
     ],
 )
-def test_invalid_argument(
-    mock_host, default_pipeline_args, invalid_component_args, tmp_path
-):
+def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_path):
     """
     Test that an exception is raised when the passed invalid argument name or type to the fondant
     component does not match the ones specified in the fondant specifications.

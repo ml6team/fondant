@@ -2,6 +2,8 @@
 import json
 import logging
 import typing as t
+import warnings
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -66,10 +68,10 @@ class FondantPipeline:
     """Class representing a Fondant Pipeline."""
 
     def __init__(
-            self,
-            base_path: str,
-            pipeline_name: str,
-            pipeline_description: t.Optional[str] = None,
+        self,
+        base_path: str,
+        pipeline_name: str,
+        pipeline_description: t.Optional[str] = None,
     ):
         """
         Initialize the FondantPipeline object.
@@ -83,25 +85,38 @@ class FondantPipeline:
         self.name = pipeline_name
         self.description = pipeline_description
         self.package_path = f"{pipeline_name}.tgz"
-        self._graph: t.Dict[str, t.Any] = {}
+        self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
 
     def add_op(
-            self,
-            task: FondantComponentOp,
-            dependency: t.Optional[FondantComponentOp] = None,
+        self,
+        task: FondantComponentOp,
+        dependencies: t.Optional[
+            t.Union[FondantComponentOp, t.List[FondantComponentOp]]
+        ] = None,
     ):
         """
         Add a task to the pipeline with an optional dependency.
 
         Args:
             task: The task to add to the pipeline.
-            dependency: Optional dependency task that needs to be completed before the task can run.
+            dependencies: Optional task dependencies that needs to be completed before the task
+             can run.
         """
-        # TODO allow dependencies to be a list of operations instead of one
-        if dependency is None:
+        if dependencies is None:
             dependencies = []
-        else:
-            dependencies = [dependency.name]
+        elif not isinstance(dependencies, list):
+            dependencies = [dependencies]
+
+        if len(dependencies) > 1:
+            warnings.warn(
+                f"Multiple component dependencies provided for component `{task.name}`. "
+                f"The current version of Fondant can only handle components with a single "
+                f"dependency. Please note that the behavior of the pipeline may be unpredictable"
+                f" or incorrect."
+            )
+        if dependencies:
+            dependencies = [dependency.name for dependency in dependencies]
+
         task_name = task.name
         self._graph[task_name] = {
             "fondant_component_op": task,
@@ -129,7 +144,7 @@ class FondantPipeline:
         for graph_node in self._graph:
             depth_first_traversal(graph_node)
 
-        self._graph = {node: self._graph[node] for node in sorted_graph}
+        self._graph = OrderedDict((node, self._graph[node]) for node in sorted_graph)
 
     def _validate_pipeline_definition(self, run_id: str):
         """
@@ -159,8 +174,8 @@ class FondantPipeline:
             if not load_component:
                 # Check subset exists
                 for (
-                        component_subset_name,
-                        component_subset,
+                    component_subset_name,
+                    component_subset,
                 ) in fondant_component_op.input_subsets.items():
                     manifest_subset = manifest.subsets
                     if component_subset_name not in manifest_subset:
@@ -208,7 +223,7 @@ class FondantPipeline:
         """
 
         def _get_component_function(
-                fondant_component_operation: FondantComponentOp,
+            fondant_component_operation: FondantComponentOp,
         ) -> t.Callable:
             """
             Load the Kubeflow component based on the specification from the fondant component
@@ -362,10 +377,10 @@ class FondantClient:
             logger.info(f"No existing pipeline under `{pipeline_name}` name was found.")
 
     def compile_and_upload(
-            self,
-            *,
-            pipeline: FondantPipeline,
-            delete_pipeline_package: t.Optional[bool] = False,
+        self,
+        *,
+        pipeline: FondantPipeline,
+        delete_pipeline_package: t.Optional[bool] = False,
     ):
         """
         Uploads a pipeline package to Kubeflow Pipelines and deletes any existing pipeline with the
@@ -379,12 +394,7 @@ class FondantClient:
         Raises:
             Exception: If there was an error uploading the pipeline package.
         """
-
-        pipeline_name = pipeline.name
-        pipeline_package_path = pipeline.package_path
-
-        self.delete_pipeline(pipeline_name)
-
+        self.delete_pipeline(pipeline.name)
 
         pipeline.compile_pipeline()
 
@@ -392,19 +402,21 @@ class FondantClient:
 
         try:
             self.client.upload_pipeline(
-                pipeline_package_path=pipeline_package_path, pipeline_name=pipeline_name
+                pipeline_package_path=pipeline.package_path, pipeline_name=pipeline.name
             )
         except Exception as e:
             raise Exception(f"Error uploading pipeline package: {str(e)}")
 
         # Delete the pipeline package file if specified.
         if delete_pipeline_package:
-            Path(pipeline_package_path).unlink()
+            Path(pipeline.package_path).unlink()
 
-    def compile_and_run(self,
-                        pipeline: FondantPipeline,
-                        run_name: t.Optional[str] = None,
-                        experiment_name: t.Optional[str] = "Default"):
+    def compile_and_run(
+        self,
+        pipeline: FondantPipeline,
+        run_name: t.Optional[str] = None,
+        experiment_name: t.Optional[str] = "Default",
+    ):
         """
         Compiles and runs the specified pipeline.
 
@@ -415,7 +427,6 @@ class FondantClient:
             experiment_name: The name of the experiment where the pipeline will be run.
             Default is 'Default'.
         """
-
         pipeline.compile_pipeline()
 
         try:
@@ -424,11 +435,13 @@ class FondantClient:
             experiment = self.client.create_experiment(experiment_name)
 
         if run_name is None:
-            run_name = pipeline.name + ' run'
+            run_name = pipeline.name + " run"
 
-        pipeline_spec = self.client.run_pipeline(experiment_id=experiment.id,
-                                                 job_name=run_name,
-                                                 pipeline_package_path=pipeline.package_path)
+        pipeline_spec = self.client.run_pipeline(
+            experiment_id=experiment.id,
+            job_name=run_name,
+            pipeline_package_path=pipeline.package_path,
+        )
 
         pipeline_url = f"{self.host}/#/runs/details/{pipeline_spec.id}"
         logger.info(f"Pipeline is running at: {pipeline_url}")

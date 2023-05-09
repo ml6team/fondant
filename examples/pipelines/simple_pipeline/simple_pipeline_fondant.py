@@ -37,6 +37,6 @@ image_filtering_op = FondantComponentOp(
 pipeline = FondantPipeline(pipeline_name=pipeline_name, base_path=pipeline_base_path)
 
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(image_filtering_op, dependency=load_from_hub_op)
+pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
 
 client.compile_and_run(pipeline=pipeline)
