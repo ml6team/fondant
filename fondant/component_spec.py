@@ -1,4 +1,4 @@
-"""This module defines classes to represent an Fondant component specification."""
+"""This module defines classes to represent a Fondant component specification."""
 import copy
 import json
 import pkgutil
