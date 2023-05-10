@@ -13,6 +13,7 @@ output_subsets:
     fields:
       url:
         type: utf8
+  additionalSubsets: false
 
 args:
   num_images:
