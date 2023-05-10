@@ -1,0 +1,34 @@
+name: retrieve_images
+description: A component that retrieves image URLs from LAION-5B based on a set of seed prompts
+inputs: 
+    - name: input_manifest_path
+      description: Path to the input manifest
+      type: String
+    
+    - name: num_images
+      description: Number of images to retrieve for each prompt
+      type: Integer
+
+    - name: aesthetic_score
+      description: Ranking score for aesthetic, higher is prettier
+      type: Integer
+
+    - name: aesthetic_weight
+      description: Weight of the aesthetic score, between 0 and 1
+      type: Float
+   
+outputs:
+    - name: output_manifest_path
+      description: Path to the output manifest
+
+implementation:
+    container:
+        image: ghcr.io/ml6team/image_filtering:latest
+        command: [
+            python3, main.py,
+            --input_manifest_path,       {inputPath: input_manifest_path},
+            --num_images,                {inputValue: num_images},
+            --aesthetic_score,           {inputValue: aesthetic_score},
+            --aesthetic_weight,          {inputValue: aesthetic_weight},
+            --output_manifest_path,      {outputPath: output_manifest_path},
+        ]

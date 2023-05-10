@@ -1,0 +1,26 @@
+name: Retrieve images
+description: A component that retrieves image URLs from LAION-5B based on a set of seed prompts
+image: generate_prompts::latest
+
+input_subsets:
+  prompts:
+    fields:
+      text:
+        type: utf8
+
+output_subsets:
+  images:
+    fields:
+      url:
+        type: utf8
+
+args:
+  num_images:
+    description: Number of images to retrieve for each prompt
+    type: int
+  aesthetic_score:
+    description: Ranking score for aesthetic, higher is prettier
+    type: int
+  aesthetic_weight:
+    description: Weight of the aesthetic score, between 0 and 1
+    type: float
