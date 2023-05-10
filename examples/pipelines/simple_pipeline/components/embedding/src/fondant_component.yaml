@@ -1,6 +1,6 @@
 name: Embedding
 description: Component that embeds images using CLIP
-image: embedding:latest
+image: ghcr.io/ml6team/embedding:latest
 
 input_subsets:
   images:

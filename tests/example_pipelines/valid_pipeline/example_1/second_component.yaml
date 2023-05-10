@@ -1,0 +1,20 @@
+name: Second component
+description: This is an example component
+image: example_component:latest
+
+input_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+
+output_subsets:
+  embeddings:
+    fields:
+      data:
+        type: binary
+
+args:
+  storage_args:
+    description: Storage arguments
+    type: str

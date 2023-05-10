@@ -1,0 +1,31 @@
+name: Third component
+description: This is an example component
+image: example_component:latest
+
+input_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+
+  captions:
+    fields:
+      data:
+        type: utf8
+
+  embeddings:
+    fields:
+      data:
+        type: binary
+
+output_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+  additionalSubsets: false
+
+args:
+  storage_args:
+    description: Storage arguments
+    type: str

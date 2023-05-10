@@ -4,6 +4,9 @@ inputs:
 -   name: input_manifest_path
     description: Path to the input manifest
     type: String
+-   name: metadata
+    description: Metadata arguments containing the run id and base path
+    type: String
 -   name: storage_args
     description: Storage arguments
     type: String
@@ -17,9 +20,11 @@ implementation:
         command:
         - python3
         - main.py
-        - --input-manifest-path
+        - --input_manifest_path
         -   inputPath: input_manifest_path
-        - --storage-args
+        - --metadata
+        -   inputValue: metadata
+        - --storage_args
         -   inputValue: storage_args
-        - --output-manifest-path
+        - --output_manifest_path
         -   outputPath: output_manifest_path

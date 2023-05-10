@@ -121,14 +121,6 @@ class FondantLoadComponent(FondantComponent):
                 help=arg.description,
             )
 
-        # add metadata
-        parser.add_argument(
-            "--metadata",
-            type=str,
-            required=True,
-            help="The metadata associated with the pipeline run",
-        )
-
         return parser.parse_args()
 
     def _load_or_create_manifest(self) -> Manifest:
@@ -168,10 +160,16 @@ class FondantTransformComponent(FondantComponent):
         component_arguments = self._get_component_arguments()
 
         for arg in component_arguments.values():
+            # Metadata is not required for loading component
+            if arg.name == "metadata":
+                input_required = False
+            else:
+                input_required = True
+
             parser.add_argument(
                 f"--{arg.name}",
                 type=kubeflow2python_type[arg.type],
-                required=True,
+                required=input_required,
                 help=arg.description,
             )
 
@@ -181,7 +179,7 @@ class FondantTransformComponent(FondantComponent):
         return Manifest.from_file(self.args.input_manifest_path)
 
     @abstractmethod
-    def transform(self, dataframe: dd.DataFrame, **kwargs) -> dd.DataFrame:
+    def transform(self, *, dataframe: dd.DataFrame, **kwargs) -> dd.DataFrame:
         """Abstract method for applying data transformations to the input dataframe."""
 
     def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
@@ -195,6 +193,6 @@ class FondantTransformComponent(FondantComponent):
         """
         data_loader = DaskDataLoader(manifest=manifest)
         df = data_loader.load_dataframe(self.spec)
-        df = self.transform(df, **self.user_arguments)
+        df = self.transform(dataframe=df, **self.user_arguments)
 
         return df

@@ -1,4 +1,5 @@
-"""This module defines classes to represent a Fondant component specification."""
+"""This module defines classes to represent an Fondant component specification."""
+import ast
 import copy
 import json
 import pkgutil
@@ -15,6 +16,15 @@ from jsonschema.validators import RefResolver
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Field, KubeflowCommandArguments, Type
 
+# TODO: remove after upgrading to kfpv2
+kubeflow2python_type = {
+    "String": str,
+    "Integer": int,
+    "Float": float,
+    "Boolean": ast.literal_eval,
+    "JsonObject": json.loads,
+    "JsonArray": json.loads,
+}
 # TODO: Change after upgrading to kfp v2
 # :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
 python2kubeflow_type = {
@@ -22,18 +32,8 @@ python2kubeflow_type = {
     "int": "Integer",
     "float": "Float",
     "bool": "Boolean",
-    "dict": "Map",
-    "list": "List",
-    "tuple": "List",
-    "set": "Set",
-}
-
-# TODO: remove after upgrading to kfpv2
-kubeflow2python_type = {
-    "String": str,
-    "Integer": int,
-    "Float": float,
-    "Boolean": bool,
+    "dict": "JsonObject",
+    "list": "JsonArray",
 }
 
 
@@ -86,7 +86,7 @@ class FondantComponentSpec:
     Class representing a Fondant component specification.
 
     Args:
-        specification: The component specification as a Python dict
+        specification: The fondant component specification as a Python dict
     """
 
     def __init__(self, specification: t.Dict[str, t.Any]) -> None:
@@ -199,7 +199,7 @@ class KubeflowComponentSpec:
     Class representing a Kubeflow component specification.
 
     Args:
-        specification: The component specification as a Python dict
+        specification: The kubeflow component specification as a Python dict
     """
 
     def __init__(self, specification: t.Dict[str, t.Any]) -> None:
@@ -217,6 +217,11 @@ class KubeflowComponentSpec:
                 {
                     "name": "input_manifest_path",
                     "description": "Path to the input manifest",
+                    "type": "String",
+                },
+                {
+                    "name": "metadata",
+                    "description": "Metadata arguments containing the run id and base path",
                     "type": "String",
                 },
                 *(
@@ -241,10 +246,12 @@ class KubeflowComponentSpec:
                     "command": [
                         "python3",
                         "main.py",
-                        "--input-manifest-path",
+                        "--input_manifest_path",
                         {"inputPath": "input_manifest_path"},
+                        "--metadata",
+                        {"inputValue": "metadata"},
                         *cls._dump_args(fondant_component.args.values()),
-                        "--output-manifest-path",
+                        "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},
                     ],
                 }
@@ -257,8 +264,8 @@ class KubeflowComponentSpec:
         """Dump Fondant specification arguments to kfp command arguments."""
         dumped_args: KubeflowCommandArguments = []
         for arg in args:
-            arg_name = arg.name.replace("-", "_").strip()
-            arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
+            arg_name = arg.name.strip().replace(" ", "_")
+            arg_name_cmd = f"--{arg_name}"
 
             dumped_args.append(arg_name_cmd)
             dumped_args.append({"inputValue": arg_name})
@@ -275,6 +282,10 @@ class KubeflowComponentSpec:
                 default_flow_style=False,
                 sort_keys=False,
             )
+
+    def to_string(self) -> str:
+        """Return the component specification as a string."""
+        return json.dumps(self._specification)
 
     @property
     def input_arguments(self) -> t.Mapping[str, Argument]:

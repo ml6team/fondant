@@ -41,6 +41,7 @@ class LoadFromHubComponent(FondantLoadComponent):
         Returns:
             Dataset: HF dataset
         """
+
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the hub...")
         dask_df = dd.read_parquet(f"hf://datasets/{dataset_name}")
@@ -75,5 +76,5 @@ class LoadFromHubComponent(FondantLoadComponent):
 
 
 if __name__ == "__main__":
-    component = LoadFromHubComponent.from_file("../fondant_component.yaml")
+    component = LoadFromHubComponent.from_file()
     component.run()

@@ -69,7 +69,7 @@ def test_subset_fields():
 
     # add a duplicate field but overwrite
     subset.add_field(name="data2", type_=Type.utf8, overwrite=True)
-    assert subset.fields["data2"].type == "utf8"
+    assert subset.fields["data2"].type == Type.utf8
 
     # remove a field
     subset.remove_field(name="data2")
@@ -111,7 +111,7 @@ def test_attribute_access(valid_manifest):
     assert manifest.metadata == valid_manifest["metadata"]
     assert manifest.index.location == "gs://bucket/index"
     assert manifest.subsets["images"].location == "gs://bucket/images"
-    assert manifest.subsets["images"].fields["data"].type == "binary"
+    assert manifest.subsets["images"].fields["data"].type == Type.binary
 
 
 def test_manifest_creation():

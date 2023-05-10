@@ -22,7 +22,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install poetry==1.4.0
-          poetry install
+          poetry install --all-extras
       - name: Test with pre-commit
         run: poetry run pre-commit run --all-files --show-diff-on-failure
       - name: Check licenses

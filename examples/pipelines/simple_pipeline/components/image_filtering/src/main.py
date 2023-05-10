@@ -22,14 +22,14 @@ class ImageFilterComponent(FondantTransformComponent):
     ) -> dd.DataFrame:
         """
         Args:
-            df: Dask dataframe
+            dataframe: Dask dataframe
             min_width: min width to filter on
             min_height: min height to filter on
 
         Returns:
             dataset
         """
-        logger.info("Length of the dataframe before filtering:", len(dataframe))
+        logger.info("Length of the dataframe before filtering: %s", len(dataframe))
 
         logger.info("Filtering dataset...")
         filtered_df = dataframe[
@@ -37,11 +37,11 @@ class ImageFilterComponent(FondantTransformComponent):
             & (dataframe["images_height"] > min_height)
         ]
 
-        logger.info("Length of the dataframe after filtering:", len(filtered_df))
+        logger.info("Length of the dataframe after filtering: %s", len(filtered_df))
 
         return filtered_df
 
 
 if __name__ == "__main__":
-    component = ImageFilterComponent.from_file("../fondant_component.yaml")
+    component = ImageFilterComponent.from_file()
     component.run()
