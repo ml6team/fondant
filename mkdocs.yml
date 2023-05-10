@@ -3,6 +3,7 @@ theme:
     name: material
 nav:
     - Home: index.md
+    - Manifest: manifest.md
 
 markdown_extensions:
 - pymdownx.snippets:

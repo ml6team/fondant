@@ -183,7 +183,7 @@ class FondantComponentSpec:
                 description=arg_info["description"],
                 type=arg_info["type"],
             )
-            for name, arg_info in self._specification["args"].items()
+            for name, arg_info in self._specification.get("args", {}).items()
         }
 
     @property

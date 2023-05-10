@@ -116,7 +116,7 @@ class Manifest:
                 "run_id": run_id,
                 "component_id": component_id,
             },
-            "index": {"location": f"/{run_id}/{component_id}/index"},
+            "index": {"location": f"/index/{run_id}/{component_id}"},
             "subsets": {},
         }
         return cls(specification)
@@ -177,7 +177,7 @@ class Manifest:
             raise ValueError(f"A subset with name {name} already exists")
 
         self._specification["subsets"][name] = {
-            "location": f"/{self.run_id}/{self.component_id}/{name}",
+            "location": f"/{name}/{self.run_id}/{self.component_id}",
             "fields": {name: {"type": type_.value} for name, type_ in fields},
         }
 
@@ -203,7 +203,7 @@ class Manifest:
         # Update index location as this is currently always rewritten
         evolved_manifest.index._specification[
             "location"
-        ] = f"/{self.run_id}/{component_id}/index"
+        ] = f"/index/{self.run_id}/{component_id}"
 
         # If additionalSubsets is False in component input subsets,
         # Remove all subsets from the manifest that are not listed

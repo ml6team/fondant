@@ -5,11 +5,11 @@
     "component_id": "67890"
   },
   "index": {
-    "location": "/index"
+    "location": "/index/12345/example_component"
   },
   "subsets": {
     "images": {
-      "location": "/images",
+      "location": "/images/12345/example_component",
       "fields": {
         "width": {
           "type": "int32"
@@ -23,7 +23,7 @@
       }
     },
     "captions": {
-      "location": "/captions",
+      "location": "/captions/12345/example_component",
       "fields": {
         "data": {
           "type": "binary"
