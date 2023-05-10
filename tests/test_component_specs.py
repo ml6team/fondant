@@ -18,6 +18,12 @@ def valid_fondant_schema() -> dict:
 
 
 @pytest.fixture
+def valid_fondant_schema_no_args() -> dict:
+    with open(component_specs_path / "valid_component_no_args.yaml") as f:
+        return yaml.safe_load(f)
+
+
+@pytest.fixture
 def valid_kubeflow_schema() -> dict:
     with open(component_specs_path / "kubeflow_component.yaml") as f:
         return yaml.safe_load(f)
@@ -54,3 +60,12 @@ def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     fondant_component = FondantComponentSpec(valid_fondant_schema)
     kubeflow_component = fondant_component.kubeflow_specification
     assert kubeflow_component._specification == valid_kubeflow_schema
+
+
+def test_component_spec_no_args(valid_fondant_schema_no_args):
+    """Test that a component spec without args is supported."""
+    fondant_component = FondantComponentSpec(valid_fondant_schema_no_args)
+
+    assert fondant_component.name == "Example component"
+    assert fondant_component.description == "This is an example component"
+    assert fondant_component.args == {}
