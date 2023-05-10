@@ -60,7 +60,7 @@ class RetrieveImagesComponent(FondantTransformComponent):
             url="https://knn.laion.ai/knn-service",
             indice_name="laion5B-L-14",
             num_images=num_images,
-            aesthetic_score=9,
+            aesthetic_score=aesthetic_score,
             aesthetic_weight=0.5,
             modality=Modality.IMAGE,
         )
