@@ -70,8 +70,6 @@ class FondantPipeline:
             pipeline_description: t.Optional[str] = None,
     ):
         """
-        Initialize the FondantPipeline object.
-
         Args:
             base_path: The base path for the pipeline where the artifacts are stored.
             pipeline_name: The name of the pipeline.
@@ -82,6 +80,7 @@ class FondantPipeline:
         self.description = pipeline_description
         self.package_path = f"{pipeline_name}.tgz"
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
+        self.task_without_dependencies_added = False
 
     def add_op(
             self,
@@ -98,25 +97,30 @@ class FondantPipeline:
             dependencies: Optional task dependencies that needs to be completed before the task
              can run.
         """
+
         if dependencies is None:
+            if self.task_without_dependencies_added:
+                raise InvalidPipelineDefinition("At most one task can be defined without "
+                                                "dependencies.")
             dependencies = []
+            self.task_without_dependencies_added = True
         elif not isinstance(dependencies, list):
             dependencies = [dependencies]
 
         if len(dependencies) > 1:
-            warnings.warn(
+            raise InvalidPipelineDefinition(
                 f"Multiple component dependencies provided for component"
                 f" `{task.component_spec.name}`. "
                 f"The current version of Fondant can only handle components with a single "
                 f"dependency. Please note that the behavior of the pipeline may be unpredictable"
                 f" or incorrect."
             )
-        if dependencies:
-            dependencies = [dependency.component_spec.name for dependency in dependencies]
+
+        dependencies_names = [dependency.component_spec.name for dependency in dependencies]
 
         self._graph[task.component_spec.name] = {
             "fondant_component_op": task,
-            "dependencies": dependencies,
+            "dependencies": dependencies_names,
         }
 
     def sort_graph(self):

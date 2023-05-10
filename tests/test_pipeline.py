@@ -22,8 +22,8 @@ def default_pipeline_args():
     "valid_pipeline_example",
     [
         (
-            "example_1",
-            ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
+                "example_1",
+                ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
         ),
     ],
 )
@@ -63,13 +63,49 @@ def test_valid_pipeline(default_pipeline_args, valid_pipeline_example, tmp_path)
 
 
 @pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+                "example_1",
+                ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
+        ),
+    ],
+)
+def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_example, tmp_path):
+    """
+    Test that an InvalidPipelineDefinition exception is raised when attempting to create a pipeline
+    with more than one operation defined without dependencies
+    """
+    example_dir, component_names = valid_pipeline_example
+    components_path = Path(valid_pipeline_path / example_dir)
+    component_args = {"storage_args": "a dummy string arg"}
+
+    pipeline = FondantPipeline(**default_pipeline_args)
+
+    first_component_op = FondantComponentOp(
+        Path(components_path / component_names[0]), component_args
+    )
+    second_component_op = FondantComponentOp(
+        Path(components_path / component_names[1]), component_args
+    )
+    third_component_op = FondantComponentOp(
+        Path(components_path / component_names[2]), component_args
+    )
+
+    pipeline.add_op(third_component_op, dependencies=second_component_op)
+    pipeline.add_op(second_component_op)
+    with pytest.raises(InvalidPipelineDefinition):
+        pipeline.add_op(first_component_op)
+
+
+@pytest.mark.parametrize(
     "invalid_pipeline_example",
     [
         ("example_1", ["first_component.yaml", "second_component.yaml"]),
         ("example_2", ["first_component.yaml", "second_component.yaml"]),
     ],
 )
-def test_invalid_pipeline(default_pipeline_args, invalid_pipeline_example, tmp_path):
+def test_invalid_pipeline_compilation(default_pipeline_args, invalid_pipeline_example, tmp_path):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to compile
     an invalid pipeline definition.
