@@ -59,10 +59,13 @@ class CaptionImagesComponent(FondantTransformComponent):
     Component that captions images using a model from the Hugging Face hub.
     """
 
-    def transform(self, dataframe: dd.DataFrame, batch_size: int) -> dd.DataFrame:
+    def transform(
+        self, dataframe: dd.DataFrame, model_id: str, batch_size: int
+    ) -> dd.DataFrame:
         """
         Args:
             df: Dask dataframe
+            model_id: id of the model on the Hugging Face hub
             batch_size: batch size to use
 
         Returns:
@@ -70,8 +73,8 @@ class CaptionImagesComponent(FondantTransformComponent):
         """
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        processor = AutoProcessor.from_pretrained("microsoft/git-base-coco")
-        model = AutoModelForCausalLM.from_pretrained("microsoft/git-base-coco")
+        processor = AutoProcessor.from_pretrained(model_id)
+        model = AutoModelForCausalLM.from_pretrained(model_id)
 
         # load and transform the images
         images = dataframe["images_data"]

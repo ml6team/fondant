@@ -4,6 +4,10 @@ inputs:
     - name: input_manifest_path
       description: Path to the input manifest
       type: String
+
+    - name: model_id
+      description: Id of the model on the Hugging Face hub
+      type: String
     
     - name: batch_size
       description: Batch size to use
@@ -19,6 +23,7 @@ implementation:
         command: [
             python3, main.py,
             --input_manifest_path,       {inputPath: input_manifest_path},
+            --model_id,                  {inputValue: model_id},
             --batch_size,                {inputValue: batch_size},
             --output_manifest_path,      {outputPath: output_manifest_path},
         ]
