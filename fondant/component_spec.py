@@ -177,17 +177,14 @@ class FondantComponentSpec:
 
     @property
     def args(self) -> t.Dict[str, Argument]:
-        if "args" in self._specification:
-            return {
-                name: Argument(
-                    name=name,
-                    description=arg_info["description"],
-                    type=arg_info["type"],
-                )
-                for name, arg_info in self._specification["args"].items()
-            }
-        else:
-            return {}
+        return {
+            name: Argument(
+                name=name,
+                description=arg_info["description"],
+                type=arg_info["type"],
+            )
+            for name, arg_info in self._specification.get("args", {}).items()
+        }
 
     @property
     def kubeflow_specification(self) -> "KubeflowComponentSpec":
