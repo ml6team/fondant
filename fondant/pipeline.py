@@ -168,7 +168,6 @@ class FondantPipeline:
         for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["fondant_component_op"]
             component_spec = fondant_component_op.component_spec
-            manifest = manifest.evolve(component_spec)
             if not load_component:
                 # Check subset exists
                 for (
@@ -208,6 +207,7 @@ class FondantPipeline:
                                 f"The current component to trying to invoke it with this schema:\n"
                                 f"{subset_field}"
                             )
+            manifest = manifest.evolve(component_spec)
             load_component = False
 
         logger.info("All pipeline component specifications match.")
