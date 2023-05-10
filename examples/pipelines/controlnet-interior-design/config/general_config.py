@@ -23,13 +23,13 @@ class KubeflowConfig(GeneralConfig):
     """
     Configs for the Kubeflow cluster
     Params:
-        ARTIFACT_BUCKET (str): the GCS bucket used to store the artifacts
+        BASE_PATH (str): the base path used to store the artifacts
         CLUSTER_NAME (str): the name of the k8 cluster hosting KFP
         CLUSTER_ZONE (str): the zone of the k8 cluster hosting KFP
         HOST (str): the kfp host url
     """
 
-    ARTIFACT_BUCKET = f"{GeneralConfig.GCP_PROJECT_ID}-kfp-output"
+    BASE_PATH = "gcs://soy-audio-379412_kfp-artifacts/custom_artifact"
     CLUSTER_NAME = "kfp-fondant"
     CLUSTER_ZONE = "europe-west4-a"
     HOST = "https://52074149b1563463-dot-europe-west1.pipelines.googleusercontent.com/"
