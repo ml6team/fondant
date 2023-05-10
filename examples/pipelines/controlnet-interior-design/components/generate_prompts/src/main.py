@@ -121,7 +121,9 @@ class GeneratePromptsComponent(FondantLoadComponent):
                 "comfortable bathroom, bauhaus interior design",
             ]
         }
-        df = pd.DataFrame.from_dict(data)
+        pandas_df = pd.DataFrame.from_dict(data)
+        df = dd.from_pandas(pandas_df, npartitions=1)
+        # end of TODO
 
         index_list = [idx for idx in range(len(df))]
         source_list = ["seed" for _ in range(len(df))]
