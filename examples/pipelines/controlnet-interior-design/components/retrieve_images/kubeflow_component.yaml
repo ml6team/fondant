@@ -1,4 +1,4 @@
-name: retrieve_images
+name: laion_retrieval
 description: A component that retrieves image URLs from LAION-5B based on a set of seed prompts
 inputs: 
     - name: input_manifest_path
@@ -23,7 +23,7 @@ outputs:
 
 implementation:
     container:
-        image: ghcr.io/ml6team/retrieve_images:latest
+        image: ghcr.io/ml6team/laion_retrieval:latest
         command: [
             python3, main.py,
             --input_manifest_path,       {inputPath: input_manifest_path},

@@ -18,8 +18,8 @@ metadata = json.dumps({"base_path": base_path, "run_id": run_id})
 generate_prompts_op = comp.load_component(
     "components/generate_prompts/kubeflow_component.yaml"
 )
-retrieve_images_op = comp.load_component(
-    "components/retrieve_images/kubeflow_component.yaml"
+laion_retrieval_op = comp.load_component(
+    "components/laion_retrieval/kubeflow_component.yaml"
 )
 
 
@@ -31,9 +31,9 @@ retrieve_images_op = comp.load_component(
 # pylint: disable=too-many-arguments, too-many-locals
 def controlnet_pipeline(
     metadata: str = metadata,
-    retrieve_images_num_images: int = RetrieveImagesConfig.NUM_IMAGES,
-    retrieve_images_aesthetic_score: int = RetrieveImagesConfig.AESTHETIC_SCORE,
-    retrieve_images_aesthetic_weight: float = RetrieveImagesConfig.AESTHETIC_WEIGHT,
+    laion_retrieval_num_images: int = RetrieveImagesConfig.NUM_IMAGES,
+    laion_retrieval_aesthetic_score: int = RetrieveImagesConfig.AESTHETIC_SCORE,
+    laion_retrieval_aesthetic_weight: float = RetrieveImagesConfig.AESTHETIC_WEIGHT,
 ):
     # Component 1
     generate_prompts_task = generate_prompts_op(metadata=metadata).set_display_name(
@@ -41,11 +41,11 @@ def controlnet_pipeline(
     )
 
     # Component 2
-    retrieve_images_task = retrieve_images_op(
+    laion_retrieval_task = laion_retrieval_op(
         input_manifest_path=generate_prompts_task.outputs["output_manifest_path"],
-        num_images=retrieve_images_num_images,
-        aesthetic_score=retrieve_images_aesthetic_score,
-        aesthetic_weight=retrieve_images_aesthetic_weight,
+        num_images=laion_retrieval_num_images,
+        aesthetic_score=laion_retrieval_aesthetic_score,
+        aesthetic_weight=laion_retrieval_aesthetic_weight,
     ).set_display_name("Retrieve image URLs")
 
 

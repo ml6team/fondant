@@ -34,7 +34,7 @@ def query_clip_client(text: str, client: ClipClient) -> List[str]:
     return results
 
 
-class RetrieveImagesComponent(FondantTransformComponent):
+class LAIONRetrievalComponent(FondantTransformComponent):
     """
     Component that retrieves image URLs from LAION-5B based on a set of prompts.
     """
@@ -85,5 +85,5 @@ class RetrieveImagesComponent(FondantTransformComponent):
 
 
 if __name__ == "__main__":
-    component = RetrieveImagesComponent.from_file("../fondant_component.yaml")
+    component = LAIONRetrievalComponent.from_file("../fondant_component.yaml")
     component.run()
