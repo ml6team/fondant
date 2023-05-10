@@ -246,12 +246,12 @@ class KubeflowComponentSpec:
                     "command": [
                         "python3",
                         "main.py",
-                        "--input-manifest-path",
+                        "--input_manifest_path",
                         {"inputPath": "input_manifest_path"},
                         "--metadata",
                         {"inputValue": "metadata"},
                         *cls._dump_args(fondant_component.args.values()),
-                        "--output-manifest-path",
+                        "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},
                     ],
                 }
@@ -264,8 +264,8 @@ class KubeflowComponentSpec:
         """Dump Fondant specification arguments to kfp command arguments."""
         dumped_args: KubeflowCommandArguments = []
         for arg in args:
-            arg_name = arg.name.replace("-", "_").strip()
-            arg_name_cmd = f'--{arg.name.replace("_", "-")}'.strip()
+            arg_name = arg.name.strip().replace(" ", "_")
+            arg_name_cmd = f"--{arg_name}"
 
             dumped_args.append(arg_name_cmd)
             dumped_args.append({"inputValue": arg_name})

@@ -98,13 +98,13 @@ def test_transform_kwargs(monkeypatch):
     # Mock CLI arguments
     sys.argv = [
         "",
-        "--input-manifest-path",
+        "--input_manifest_path",
         str(input_manifest),
         "--flag",
         "success",
         "--value",
         "1",
-        "--output-manifest-path",
+        "--output_manifest_path",
         "",
     ]
 

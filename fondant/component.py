@@ -115,7 +115,7 @@ class FondantLoadComponent(FondantComponent):
                 input_required = True
 
             parser.add_argument(
-                f"--{arg.name.replace('_', '-')}",
+                f"--{arg.name}",
                 type=kubeflow2python_type[arg.type],
                 required=input_required,
                 help=arg.description,
@@ -167,7 +167,7 @@ class FondantTransformComponent(FondantComponent):
                 input_required = True
 
             parser.add_argument(
-                f"--{arg.name.replace('_', '-')}",
+                f"--{arg.name}",
                 type=kubeflow2python_type[arg.type],
                 required=input_required,
                 help=arg.description,

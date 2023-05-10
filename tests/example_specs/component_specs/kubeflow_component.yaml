@@ -20,11 +20,11 @@ implementation:
         command:
         - python3
         - main.py
-        - --input-manifest-path
+        - --input_manifest_path
         -   inputPath: input_manifest_path
         - --metadata
         -   inputValue: metadata
-        - --storage-args
+        - --storage_args
         -   inputValue: storage_args
-        - --output-manifest-path
+        - --output_manifest_path
         -   outputPath: output_manifest_path
