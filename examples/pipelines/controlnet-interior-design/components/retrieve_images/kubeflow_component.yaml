@@ -23,7 +23,7 @@ outputs:
 
 implementation:
     container:
-        image: ghcr.io/ml6team/image_filtering:latest
+        image: ghcr.io/ml6team/retrieve_images:latest
         command: [
             python3, main.py,
             --input_manifest_path,       {inputPath: input_manifest_path},

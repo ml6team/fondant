@@ -43,7 +43,6 @@ def controlnet_pipeline(
     # Component 2
     retrieve_images_task = retrieve_images_op(
         input_manifest_path=generate_prompts_task.outputs["output_manifest_path"],
-        metadata=metadata,
         num_images=retrieve_images_num_images,
         aesthetic_score=retrieve_images_aesthetic_score,
         aesthetic_weight=retrieve_images_aesthetic_weight,
@@ -55,5 +54,5 @@ if __name__ == "__main__":
         pipeline=controlnet_pipeline,
         host=KubeflowConfig.HOST,
         env=KubeflowConfig.ENV,
-        pipeline_id="0ddc9b2d-eb47-439c-a460-0bff8d3f621f",
+        pipeline_id="176770b4-0c12-4e57-8c2a-5b9c2af56ec6",
     )
