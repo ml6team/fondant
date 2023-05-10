@@ -1,4 +1,5 @@
 """This module defines classes to represent an Fondant component specification."""
+import ast
 import copy
 import json
 import pkgutil
@@ -15,6 +16,15 @@ from jsonschema.validators import RefResolver
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Field, KubeflowCommandArguments, Type
 
+# TODO: remove after upgrading to kfpv2
+kubeflow2python_type = {
+    "String": str,
+    "Integer": int,
+    "Float": float,
+    "Boolean": ast.literal_eval,
+    "JsonObject": json.loads,
+    "JsonArray": json.loads,
+}
 # TODO: Change after upgrading to kfp v2
 # :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
 python2kubeflow_type = {
@@ -25,17 +35,6 @@ python2kubeflow_type = {
     "dict": "JsonObject",
     "list": "JsonArray",
 }
-
-# TODO: remove after upgrading to kfpv2
-kubeflow2python_type = {
-    "String": str,
-    "Integer": int,
-    "Float": float,
-    "Boolean": str,
-    "JsonObject": str,
-    "JsonArray": str,
-}
-
 
 @dataclass
 class Argument:

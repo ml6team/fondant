@@ -31,7 +31,7 @@ class FondantComponent(ABC):
 
     @classmethod
     def from_file(
-        cls, path: t.Union[str, Path] = "../fondant_component.yaml"
+            cls, path: t.Union[str, Path] = "../fondant_component.yaml"
     ) -> "FondantComponent":
         """Create a component from a component spec file.
 
@@ -61,20 +61,11 @@ class FondantComponent(ABC):
     @property
     def user_arguments(self) -> t.Dict[str, t.Any]:
         """Custom arguments defined by the user in the fondant component spec."""
-        arg_dict: t.Dict[str, t.Any] = {}
-
-        for arg_name, arg_value in vars(self.args).items():
-            if arg_name in self.spec.args:
-                # Handle kubeflow datatypes passed as strings
-                if self.spec.args[arg_name].type in ["dict", "list"]:
-                    user_argument = json.loads(arg_value)
-                elif self.spec.args[arg_name].type == "bool":
-                    user_argument = ast.literal_eval(arg_value)
-                else:
-                    user_argument = arg_value
-                arg_dict[arg_name] = user_argument
-
-        return arg_dict
+        return {
+            key: value
+            for key, value in vars(self.args).items()
+            if key in self.spec.args
+        }
 
     @abstractmethod
     def _load_or_create_manifest(self) -> Manifest:
