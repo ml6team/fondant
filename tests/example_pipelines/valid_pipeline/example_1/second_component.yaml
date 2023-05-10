@@ -8,23 +8,7 @@ input_subsets:
       data:
         type: binary
 
-  captions:
-    fields:
-      data:
-        type: utf8
-
 output_subsets:
-
-  images:
-    fields:
-      data:
-        type: binary
-
-  captions:
-    fields:
-      data:
-        type: utf8
-
   embeddings:
     fields:
       data:

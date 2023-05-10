@@ -22,8 +22,8 @@ def default_pipeline_args():
     "valid_pipeline_example",
     [
         (
-                "example_1",
-                ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
+            "example_1",
+            ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
         ),
     ],
 )
@@ -59,22 +59,24 @@ def test_valid_pipeline(default_pipeline_args, valid_pipeline_example, tmp_path)
     assert pipeline._graph["Second component"]["dependencies"] == ["First component"]
     assert pipeline._graph["Third component"]["dependencies"] == ["Second component"]
 
-    pipeline.compile_pipeline()
+    pipeline.compile()
 
 
 @pytest.mark.parametrize(
     "valid_pipeline_example",
     [
         (
-                "example_1",
-                ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
+            "example_1",
+            ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
         ),
     ],
 )
-def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_example, tmp_path):
+def test_invalid_pipeline_dependencies(
+    default_pipeline_args, valid_pipeline_example, tmp_path
+):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to create a pipeline
-    with more than one operation defined without dependencies
+    with more than one operation defined without dependencies.
     """
     example_dir, component_names = valid_pipeline_example
     components_path = Path(valid_pipeline_path / example_dir)
@@ -105,7 +107,9 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
         ("example_2", ["first_component.yaml", "second_component.yaml"]),
     ],
 )
-def test_invalid_pipeline_compilation(default_pipeline_args, invalid_pipeline_example, tmp_path):
+def test_invalid_pipeline_compilation(
+    default_pipeline_args, invalid_pipeline_example, tmp_path
+):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to compile
     an invalid pipeline definition.
@@ -127,7 +131,7 @@ def test_invalid_pipeline_compilation(default_pipeline_args, invalid_pipeline_ex
     pipeline.add_op(second_component_op, dependencies=first_component_op)
 
     with pytest.raises(InvalidPipelineDefinition):
-        pipeline.compile_pipeline()
+        pipeline.compile()
 
 
 @pytest.mark.parametrize(
@@ -154,4 +158,4 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
     pipeline.add_op(component_operation)
 
     with pytest.raises((ValueError, TypeError)):
-        pipeline.compile_pipeline()
+        pipeline.compile()

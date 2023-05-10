@@ -2,7 +2,7 @@
 import logging
 import sys
 
-sys.path.append('../')
+sys.path.append("../")
 
 from pipeline_configs import PipelineConfigs
 
@@ -41,5 +41,5 @@ pipeline = FondantPipeline(pipeline_name=pipeline_name, base_path=pipeline_base_
 
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
-
-client.compile_and_run(pipeline=pipeline)
+pipeline.compile()
+client.compile_and_run(pipeline=pipeline, experiment_name="aa")

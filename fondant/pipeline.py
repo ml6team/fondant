@@ -2,12 +2,9 @@
 import json
 import logging
 import typing as t
-import warnings
 from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
-
-import yaml
 
 from fondant.component import FondantComponentSpec, Manifest
 from fondant.exceptions import InvalidPipelineDefinition
@@ -64,10 +61,10 @@ class FondantPipeline:
     """Class representing a Fondant Pipeline."""
 
     def __init__(
-            self,
-            base_path: str,
-            pipeline_name: str,
-            pipeline_description: t.Optional[str] = None,
+        self,
+        base_path: str,
+        pipeline_name: str,
+        pipeline_description: t.Optional[str] = None,
     ):
         """
         Args:
@@ -83,11 +80,11 @@ class FondantPipeline:
         self.task_without_dependencies_added = False
 
     def add_op(
-            self,
-            task: FondantComponentOp,
-            dependencies: t.Optional[
-                t.Union[FondantComponentOp, t.List[FondantComponentOp]]
-            ] = None,
+        self,
+        task: FondantComponentOp,
+        dependencies: t.Optional[
+            t.Union[FondantComponentOp, t.List[FondantComponentOp]]
+        ] = None,
     ):
         """
         Add a task to the pipeline with an optional dependency.
@@ -97,11 +94,11 @@ class FondantPipeline:
             dependencies: Optional task dependencies that needs to be completed before the task
              can run.
         """
-
         if dependencies is None:
             if self.task_without_dependencies_added:
-                raise InvalidPipelineDefinition("At most one task can be defined without "
-                                                "dependencies.")
+                raise InvalidPipelineDefinition(
+                    "At most one task can be defined without " "dependencies."
+                )
             dependencies = []
             self.task_without_dependencies_added = True
         elif not isinstance(dependencies, list):
@@ -116,7 +113,9 @@ class FondantPipeline:
                 f" or incorrect."
             )
 
-        dependencies_names = [dependency.component_spec.name for dependency in dependencies]
+        dependencies_names = [
+            dependency.component_spec.name for dependency in dependencies
+        ]
 
         self._graph[task.component_spec.name] = {
             "fondant_component_op": task,
@@ -158,6 +157,7 @@ class FondantPipeline:
             base_path: the base path where to store the pipelines artifacts
             run_id: the run id of the component
         """
+        # TODO: change later if we decide to run 2 fondan pipelines after each other
         load_component = True
         load_component_name = list(self._graph.keys())[0]
 
@@ -165,18 +165,17 @@ class FondantPipeline:
         manifest = Manifest.create(
             base_path=self.base_path, run_id=run_id, component_id=load_component_name
         )
-        for _, operation_specs in self._graph.items():
+        for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["fondant_component_op"]
             component_spec = fondant_component_op.component_spec
             manifest = manifest.evolve(component_spec)
             if not load_component:
                 # Check subset exists
                 for (
-                        component_subset_name,
-                        component_subset,
+                    component_subset_name,
+                    component_subset,
                 ) in component_spec.input_subsets.items():
-                    manifest_subset = manifest.subsets
-                    if component_subset_name not in manifest_subset:
+                    if component_subset_name not in manifest.subsets:
                         raise InvalidPipelineDefinition(
                             f"Component '{component_spec.name}' "
                             f"is trying to invoke the subset '{component_subset_name}', "
@@ -184,7 +183,7 @@ class FondantPipeline:
                         )
 
                     # Get the corresponding manifest fields
-                    manifest_fields = manifest_subset[component_subset_name].fields
+                    manifest_fields = manifest.subsets[component_subset_name].fields
 
                     # Check fields
                     for field_name, subset_field in component_subset.fields.items():
@@ -213,7 +212,7 @@ class FondantPipeline:
 
         logger.info("All pipeline component specifications match.")
 
-    def compile_pipeline(self):
+    def compile(self):
         """
         Function that creates and compiles a Kubeflow Pipeline.
         Once you have generated the pipeline function, you can use it to create an instance of
@@ -221,7 +220,7 @@ class FondantPipeline:
         """
 
         def _get_component_function(
-                fondant_component_operation: FondantComponentOp,
+            fondant_component_operation: FondantComponentOp,
         ) -> t.Callable:
             """
             Load the Kubeflow component based on the specification from the fondant component
@@ -275,8 +274,8 @@ class FondantPipeline:
             manifest_path = ""
             metadata = ""
             previous_component_task = None
-            for _, operation_specs in self._graph.items():
-                fondant_component_op = operation_specs["fondant_component_op"]
+            for operation in self._graph.values():
+                fondant_component_op = operation["fondant_component_op"]
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
 
@@ -375,10 +374,9 @@ class FondantClient:
             logger.info(f"No existing pipeline under `{pipeline_name}` name was found.")
 
     def compile_and_upload(
-            self,
-            *,
-            pipeline: FondantPipeline,
-            delete_pipeline_package: t.Optional[bool] = False,
+        self,
+        pipeline: FondantPipeline,
+        delete_pipeline_package: t.Optional[bool] = False,
     ):
         """
         Uploads a pipeline package to Kubeflow Pipelines and deletes any existing pipeline with the
@@ -394,7 +392,7 @@ class FondantClient:
         """
         self.delete_pipeline(pipeline.name)
 
-        pipeline.compile_pipeline()
+        pipeline.compile()
 
         logger.info(f"Uploading pipeline: {pipeline.name}")
 
@@ -410,10 +408,10 @@ class FondantClient:
             Path(pipeline.package_path).unlink()
 
     def compile_and_run(
-            self,
-            pipeline: FondantPipeline,
-            run_name: t.Optional[str] = None,
-            experiment_name: t.Optional[str] = "Default",
+        self,
+        pipeline: FondantPipeline,
+        run_name: t.Optional[str] = None,
+        experiment_name: t.Optional[str] = "Default",
     ):
         """
         Compiles and runs the specified pipeline.
@@ -425,11 +423,15 @@ class FondantClient:
             experiment_name: The name of the experiment where the pipeline will be run.
             Default is 'Default'.
         """
-        pipeline.compile_pipeline()
+        pipeline.compile()
 
         try:
             experiment = self.client.get_experiment(experiment_name=experiment_name)
         except ValueError:
+            logger.info(
+                f"Defined experiment '{experiment_name}' not found. Creating new experiment"
+                f"under this name"
+            )
             experiment = self.client.create_experiment(experiment_name)
 
         if run_name is None:
