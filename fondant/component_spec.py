@@ -36,6 +36,7 @@ python2kubeflow_type = {
     "list": "JsonArray",
 }
 
+
 @dataclass
 class Argument:
     """
