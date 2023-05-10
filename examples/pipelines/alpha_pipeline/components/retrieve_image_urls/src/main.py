@@ -1,6 +1,16 @@
 from clip_retrieval.clip_client import ClipClient, Modality
 from dask import dataframe as dd
 
+# creating a single instance of the clip client saves some dask overhead
+client = ClipClient(
+    url="https://knn.laion.ai/knn-service",
+    indice_name="laion5B-L-14",
+    num_images=1000,
+    aesthetic_score=9,
+    aesthetic_weight=0.5,
+    modality=Modality.IMAGE,
+)
+
 
 def query_clip_client(text, client):
     """
@@ -22,7 +32,7 @@ def query_clip_client(text, client):
     return results
 
 
-def retrieve_image_urls(df):
+def retrieve_image_urls(df, client=client):
     """
     Given a Pandas DataFrame containing a column "prompt_data" with text
     queries, this function retrieves image URLs related to each query from the
@@ -37,16 +47,6 @@ def retrieve_image_urls(df):
                              "image_urls", where each row contains a list of
                              URLs of images related to the query in that row
     """
-
-    client = ClipClient(
-        url="https://knn.laion.ai/knn-service",
-        indice_name="laion5B-L-14",
-        num_images=2,  # TODO: include as argument and increase for
-        # the purposes of scaling
-        aesthetic_score=9,
-        aesthetic_weight=0.5,
-        modality=Modality.IMAGE,
-    )
 
     df["image_urls"] = df["prompt_data"].map_partitions(
         lambda x: x.apply(query_clip_client, args=(client,)),
