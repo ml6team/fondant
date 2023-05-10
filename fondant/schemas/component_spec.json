@@ -5,8 +5,7 @@
   "required": [
     "name",
     "description",
-    "image",
-    "args"
+    "image"
   ],
   "properties": {
     "name": {
@@ -39,7 +38,8 @@
           "$ref": "common.json#/definitions/fields"
         },
         "additionalFields": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         }
       },
       "required": [
@@ -50,15 +50,18 @@
       "type": "object",
       "properties": {
         "additionalSubsets": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         }
       },
+      "minProperties": 1,
       "additionalProperties": {
         "$ref": "#/definitions/subset"
       }
     },
     "args": {
       "type": "object",
+      "minProperties": 1,
       "additionalProperties": {
         "type": "object",
         "properties": {

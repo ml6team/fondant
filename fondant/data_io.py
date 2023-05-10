@@ -1,5 +1,3 @@
-"""This module defines the FondantDataset class, which is a wrapper around the manifest."""
-
 import logging
 import typing as t
 
@@ -11,12 +9,7 @@ from fondant.manifest import Field, Manifest
 logger = logging.getLogger(__name__)
 
 
-class FondantDataset:
-    """Wrapper around the manifest to download and upload data into a specific framework.
-
-    Uses Dask Dataframes for the moment.
-    """
-
+class DataIO:
     def __init__(self, manifest: Manifest):
         self.manifest = manifest
         self.index_fields = ["id", "source"]
@@ -26,6 +19,8 @@ class FondantDataset:
             "__null_dask_index__": "int64",
         }
 
+
+class DaskDataLoader(DataIO):
     def _load_subset(self, subset_name: str, fields: t.List[str]) -> dd.DataFrame:
         """
         Function that loads a subset from the manifest as a Dask dataframe.
@@ -98,6 +93,8 @@ class FondantDataset:
 
         return df
 
+
+class DaskDataWriter(DataIO):
     @staticmethod
     def _create_write_dataframe_task(
         *, df: dd.DataFrame, remote_path: str, schema: t.Dict[str, str]
@@ -119,6 +116,7 @@ class FondantDataset:
         write_task = dd.to_parquet(
             df, remote_path, schema=schema, overwrite=False, compute=False
         )
+        logging.info(f"Creating write task for: {remote_path}")
         return write_task
 
     def write_index(self, df: dd.DataFrame):
@@ -167,7 +165,6 @@ class FondantDataset:
             # TODO: add logic for `additional fields`
             subset_columns = [f"{subset_name}_{field}" for field in subset_fields]
             subset_columns.extend(self.index_fields)
-
             for col in subset_columns:
                 if col not in df.columns:
                     raise ValueError(

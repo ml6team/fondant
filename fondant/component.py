@@ -15,7 +15,7 @@ from pathlib import Path
 import dask.dataframe as dd
 
 from fondant.component_spec import Argument, FondantComponentSpec, kubeflow2python_type
-from fondant.dataset import FondantDataset
+from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
@@ -71,26 +71,28 @@ class FondantComponent(ABC):
         """Abstract method that returns the dataset manifest."""
 
     @abstractmethod
-    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
-        """Abstract method that processes the input dataframe of the `FondantDataset` and
+    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+        """Abstract method that processes the manifest and
         returns another dataframe.
         """
+
+    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
+        """Create a data writer given a manifest and writes out the index and subsets."""
+        data_writer = DaskDataWriter(manifest)
+
+        data_writer.write_index(dataframe)
+        data_writer.write_subsets(df=dataframe, spec=self.spec)
 
     def run(self):
         """Runs the component."""
         input_manifest = self._load_or_create_manifest()
-        input_dataset = FondantDataset(input_manifest)
 
-        df = self._process_dataset(input_dataset)
+        output_df = self._process_dataset(manifest=input_manifest)
 
         output_manifest = input_manifest.evolve(component_spec=self.spec)
-        output_dataset = FondantDataset(output_manifest)
 
-        # write index and output subsets to remote storage
-        output_dataset.write_index(df)
-        output_dataset.write_subsets(df, self.spec)
+        self._write_data(dataframe=output_df, manifest=output_manifest)
 
-        # write output manifest
         self.upload_manifest(output_manifest, save_path=self.args.output_manifest_path)
 
     def upload_manifest(self, manifest: Manifest, save_path: str):
@@ -138,7 +140,7 @@ class FondantLoadComponent(FondantComponent):
     def load(self, **kwargs) -> dd.DataFrame:
         """Abstract method that loads the initial dataframe."""
 
-    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
+    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
         """This function loads the initial dataframe sing the user-provided `load` method.
 
         Returns:
@@ -180,16 +182,17 @@ class FondantTransformComponent(FondantComponent):
     def transform(self, *, dataframe: dd.DataFrame, **kwargs) -> dd.DataFrame:
         """Abstract method for applying data transformations to the input dataframe."""
 
-    def _process_dataset(self, dataset: FondantDataset) -> dd.DataFrame:
+    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
         """
-        Loads the input dataframe using the `load_dataframe` method of the provided `FondantDataset`
-        instance, and  applies data transformations to it using the `transform` method implemented
-        by the derived class. Returns a single dataframe.
+        Creates a DataLoader using the provided manifest and loads the input dataframe using the
+        `load_dataframe` instance, and  applies data transformations to it using the `transform`
+        method implemented by the derived class. Returns a single dataframe.
 
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        df = dataset.load_dataframe(self.spec)
+        data_loader = DaskDataLoader(manifest=manifest)
+        df = data_loader.load_dataframe(self.spec)
         df = self.transform(dataframe=df, **self.user_arguments)
 
         return df
