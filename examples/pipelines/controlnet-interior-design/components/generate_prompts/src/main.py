@@ -114,6 +114,15 @@ class GeneratePromptsComponent(FondantLoadComponent):
 
         df = dd.from_pandas(pandas_df, npartitions=1)
 
+        # TODO remove, just use a tiny df for testing purposes
+        data = {
+            "prompts_text": [
+                "comfortable bathroom, art deco interior design",
+                "comfortable bathroom, bauhaus interior design",
+            ]
+        }
+        df = pd.DataFrame.from_dict(data)
+
         index_list = [idx for idx in range(len(df))]
         source_list = ["seed" for _ in range(len(df))]
 
