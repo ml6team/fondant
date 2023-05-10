@@ -23,6 +23,7 @@ output_subsets:
     fields:
       data:
         type: binary
+  additionalSubsets: false
 
 args:
   storage_args:
