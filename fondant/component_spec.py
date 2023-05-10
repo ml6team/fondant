@@ -293,7 +293,7 @@ class KubeflowComponentSpec:
         return types.MappingProxyType(
             {
                 info["name"]: Argument(
-                    name=info["name"].replace("_", "-"),
+                    name=info["name"],
                     description=info["description"],
                     type=info["type"],
                 )
@@ -307,7 +307,7 @@ class KubeflowComponentSpec:
         return types.MappingProxyType(
             {
                 info["name"]: Argument(
-                    name=info["name"].replace("_", "-"),
+                    name=info["name"],
                     description=info["description"],
                     type=info["type"],
                 )

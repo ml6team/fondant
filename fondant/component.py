@@ -30,7 +30,7 @@ class FondantComponent(ABC):
 
     @classmethod
     def from_file(
-        cls, path: t.Union[str, Path] = "../fondant_component.yaml"
+            cls, path: t.Union[str, Path] = "../fondant_component.yaml"
     ) -> "FondantComponent":
         """Create a component from a component spec file.
 
@@ -113,7 +113,7 @@ class FondantLoadComponent(FondantComponent):
                 input_required = True
 
             parser.add_argument(
-                f"--{arg.name}",
+                f"--{arg.name.replace('_', '-')}",
                 type=kubeflow2python_type[arg.type],
                 required=input_required,
                 help=arg.description,
@@ -165,7 +165,7 @@ class FondantTransformComponent(FondantComponent):
                 input_required = True
 
             parser.add_argument(
-                f"--{arg.name}",
+                f"--{arg.name.replace('_', '-')}",
                 type=kubeflow2python_type[arg.type],
                 required=input_required,
                 help=arg.description,
