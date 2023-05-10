@@ -20,3 +20,9 @@ args:
   dataset_name:
     description: Name of dataset on the hub
     type: str
+  bool_name:
+    description: Bool a
+    type: bool
+  dict_name:
+    description: List a
+    type: dict
