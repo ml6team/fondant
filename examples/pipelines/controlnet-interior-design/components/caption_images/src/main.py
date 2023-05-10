@@ -64,7 +64,7 @@ class CaptionImagesComponent(FondantTransformComponent):
     ) -> dd.DataFrame:
         """
         Args:
-            df: Dask dataframe
+            dataframe: Dask dataframe
             model_id: id of the model on the Hugging Face hub
             batch_size: batch size to use
 
