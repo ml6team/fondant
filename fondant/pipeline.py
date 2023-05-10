@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class FondantComponentOp(FondantComponentSpec):
+class FondantComponentOp:
     """
     Class representing an operation for a Fondant Component in a Kubeflow Pipeline. An operation
     is a representation of a function that will be executed as part of a pipeline.
@@ -55,23 +55,19 @@ class FondantComponentOp(FondantComponentSpec):
     p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None
     ephemeral_storage_size: t.Optional[str] = None
 
-    def __post_init__(self):
-        with open(self.component_spec_path, encoding="utf-8") as file_:
-            specification = yaml.safe_load(file_)
-        super().__init__(specification)
-
-    def __name__(self):
-        return self.name
+    @property
+    def component_spec(self) -> FondantComponentSpec:
+        return FondantComponentSpec.from_file(self.component_spec_path)
 
 
 class FondantPipeline:
     """Class representing a Fondant Pipeline."""
 
     def __init__(
-        self,
-        base_path: str,
-        pipeline_name: str,
-        pipeline_description: t.Optional[str] = None,
+            self,
+            base_path: str,
+            pipeline_name: str,
+            pipeline_description: t.Optional[str] = None,
     ):
         """
         Initialize the FondantPipeline object.
@@ -88,11 +84,11 @@ class FondantPipeline:
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
 
     def add_op(
-        self,
-        task: FondantComponentOp,
-        dependencies: t.Optional[
-            t.Union[FondantComponentOp, t.List[FondantComponentOp]]
-        ] = None,
+            self,
+            task: FondantComponentOp,
+            dependencies: t.Optional[
+                t.Union[FondantComponentOp, t.List[FondantComponentOp]]
+            ] = None,
     ):
         """
         Add a task to the pipeline with an optional dependency.
@@ -109,16 +105,16 @@ class FondantPipeline:
 
         if len(dependencies) > 1:
             warnings.warn(
-                f"Multiple component dependencies provided for component `{task.name}`. "
+                f"Multiple component dependencies provided for component"
+                f" `{task.component_spec.name}`. "
                 f"The current version of Fondant can only handle components with a single "
                 f"dependency. Please note that the behavior of the pipeline may be unpredictable"
                 f" or incorrect."
             )
         if dependencies:
-            dependencies = [dependency.name for dependency in dependencies]
+            dependencies = [dependency.component_spec.name for dependency in dependencies]
 
-        task_name = task.name
-        self._graph[task_name] = {
+        self._graph[task.component_spec.name] = {
             "fondant_component_op": task,
             "dependencies": dependencies,
         }
@@ -167,20 +163,18 @@ class FondantPipeline:
         )
         for _, operation_specs in self._graph.items():
             fondant_component_op = operation_specs["fondant_component_op"]
-            component_spec = FondantComponentSpec.from_file(
-                fondant_component_op.component_spec_path
-            )
+            component_spec = fondant_component_op.component_spec
             manifest = manifest.evolve(component_spec)
             if not load_component:
                 # Check subset exists
                 for (
-                    component_subset_name,
-                    component_subset,
-                ) in fondant_component_op.input_subsets.items():
+                        component_subset_name,
+                        component_subset,
+                ) in component_spec.input_subsets.items():
                     manifest_subset = manifest.subsets
                     if component_subset_name not in manifest_subset:
                         raise InvalidPipelineDefinition(
-                            f"Component '{fondant_component_op.name}' "
+                            f"Component '{component_spec.name}' "
                             f"is trying to invoke the subset '{component_subset_name}', "
                             f"which has not been defined or created in the previous components."
                         )
@@ -194,7 +188,7 @@ class FondantPipeline:
                         if field_name not in manifest_fields:
                             raise InvalidPipelineDefinition(
                                 f"The invoked subset '{component_subset_name}' of the"
-                                f" '{fondant_component_op.name}' component does not match "
+                                f" '{component_spec.name}' component does not match "
                                 f"the previously created subset definition.\n The component is"
                                 f" trying to invoke the field '{field_name}' which has not been"
                                 f" previously defined. Current available fields are "
@@ -204,7 +198,7 @@ class FondantPipeline:
                         if subset_field != manifest_fields[field_name]:
                             raise InvalidPipelineDefinition(
                                 f"The invoked subset '{component_subset_name}' of the"
-                                f" '{fondant_component_op.name}' component does not match "
+                                f" '{component_spec.name}' component does not match "
                                 f" the previously created subset definition.\n The '{field_name}'"
                                 f" field is currently defined with the following schema:\n"
                                 f"{manifest_fields[field_name]}\n"
@@ -223,7 +217,7 @@ class FondantPipeline:
         """
 
         def _get_component_function(
-            fondant_component_operation: FondantComponentOp,
+                fondant_component_operation: FondantComponentOp,
         ) -> t.Callable:
             """
             Load the Kubeflow component based on the specification from the fondant component
@@ -237,7 +231,7 @@ class FondantPipeline:
                 Callable: The Kubeflow component.
             """
             return kfp.components.load_component(
-                text=fondant_component_operation.kubeflow_specification.to_string()
+                text=fondant_component_operation.component_spec.kubeflow_specification.to_string()
             )
 
         def _set_task_configuration(task, fondant_component_operation):
@@ -377,10 +371,10 @@ class FondantClient:
             logger.info(f"No existing pipeline under `{pipeline_name}` name was found.")
 
     def compile_and_upload(
-        self,
-        *,
-        pipeline: FondantPipeline,
-        delete_pipeline_package: t.Optional[bool] = False,
+            self,
+            *,
+            pipeline: FondantPipeline,
+            delete_pipeline_package: t.Optional[bool] = False,
     ):
         """
         Uploads a pipeline package to Kubeflow Pipelines and deletes any existing pipeline with the
@@ -412,10 +406,10 @@ class FondantClient:
             Path(pipeline.package_path).unlink()
 
     def compile_and_run(
-        self,
-        pipeline: FondantPipeline,
-        run_name: t.Optional[str] = None,
-        experiment_name: t.Optional[str] = "Default",
+            self,
+            pipeline: FondantPipeline,
+            run_name: t.Optional[str] = None,
+            experiment_name: t.Optional[str] = "Default",
     ):
         """
         Compiles and runs the specified pipeline.
