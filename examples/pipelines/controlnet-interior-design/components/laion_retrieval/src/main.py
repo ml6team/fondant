@@ -74,11 +74,12 @@ class LAIONRetrievalComponent(FondantTransformComponent):
         # unpack list of urls
         dataframe = dataframe.explode("images_url")
 
-        # add index
-        index_list = [idx for idx in range(len(dataframe))]
+        # add id and source columns
+        df = df.reset_index().rename(columns={"index": "id"})
+        df["source"] = "seed"
 
-        dataframe["id"] = da.array(index_list)
-        dataframe["source"] = "seed"
+        # reorder columns
+        df = df[["id", "source", "images_url"]]
 
         return dataframe
 

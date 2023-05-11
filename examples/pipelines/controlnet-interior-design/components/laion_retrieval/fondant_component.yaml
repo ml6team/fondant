@@ -20,8 +20,8 @@ args:
     description: Number of images to retrieve for each prompt
     type: int
   aesthetic_score:
-    description: Ranking score for the aesthetic embedding, higher is prettier, between 0 and 9.
+    description: Aesthetic embedding to add to the query embedding, between 0 and 9 (higher is prettier).
     type: int
   aesthetic_weight:
-    description: Weight of the aesthetic embedding to add to the query, between 0 and 1
+    description: Weight of the aesthetic embedding when added to the query, between 0 and 1
     type: float

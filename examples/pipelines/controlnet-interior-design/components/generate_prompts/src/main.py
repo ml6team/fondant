@@ -125,10 +125,12 @@ class GeneratePromptsComponent(FondantLoadComponent):
         df = dd.from_pandas(pandas_df, npartitions=1)
         # end of TODO
 
-        index_list = [idx for idx in range(len(df))]
-
-        df["id"] = da.array(index_list)
+        # add id and source columns
+        df = df.reset_index().rename(columns={"index": "id"})
         df["source"] = "seed"
+
+        # reorder columns
+        df = df[["id", "source", "prompts_text"]]
 
         return df
 
