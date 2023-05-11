@@ -1,5 +1,5 @@
 name: download_images
-description: Component that downloads actual images based on URLs
+description: Component that downloads images based on URLs
 inputs: 
     - name: input_manifest_path
       description: Path to the input manifest

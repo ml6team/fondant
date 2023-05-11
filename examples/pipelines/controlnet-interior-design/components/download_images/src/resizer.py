@@ -1,6 +1,10 @@
 """resizer module handle image resizing.
 
 Source: https://github.com/rom1504/img2dataset/blob/main/img2dataset/resizer.py.
+
+MIT License
+
+Copyright (c) 2021 Romain Beaumont
 """
 
 import albumentations as A
@@ -142,7 +146,7 @@ class Resizer:
     def __call__(self, img_stream, blurring_bbox_list=None):
         """
         input: an image stream, optionally a list of bounding boxes to blur.
-        output: img_str, width, height, original_width, original_height, err
+        output: img_str, width, height
         """
         try:
             if self.disable_all_reencoding:
@@ -247,7 +251,7 @@ class Resizer:
                     )[1].tobytes()
                 else:
                     img_str = img_buf.tobytes()
-                return img_str, width, height, original_width, original_height, None
+                return img_str, width, height
 
         except Exception as err:  # pylint: disable=broad-except
-            return None, None, None, None, None, str(err)
+            return None, None, None

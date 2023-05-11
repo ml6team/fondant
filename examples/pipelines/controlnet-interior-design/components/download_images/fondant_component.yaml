@@ -1,5 +1,5 @@
 name: Download images
-description: Component that downloads actual images based on URLs
+description: Component that downloads images based on URLs
 image: download_images:latest
 
 input_subsets:
@@ -17,12 +17,6 @@ output_subsets:
         type: int
       height:
         type: int
-      original_width:
-        type: int
-      original_height:
-        type: int
-      error_message:
-        type: utf8
 
 args:
   timeout:

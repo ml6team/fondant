@@ -128,15 +128,12 @@ class DownloadImagesComponent(FondantTransformComponent):
             ),
             axis=1,
             result_type="expand",
-            meta={0: object, 1: int, 2: int, 3: int, 4: int, 5: str},
+            meta={0: object, 1: int, 2: int},
         )
         result.columns = [
             "images_data",
             "images_width",
             "images_height",
-            "images_original_width",
-            "images_original_height",
-            "images_error_message",
         ]
 
         dataframe = dataframe.merge(result, left_index=True, right_index=True)
@@ -145,5 +142,5 @@ class DownloadImagesComponent(FondantTransformComponent):
 
 
 if __name__ == "__main__":
-    component = DownloadImagesComponent.from_file("../fondant_component.yaml")
+    component = DownloadImagesComponent.from_file()
     component.run()
