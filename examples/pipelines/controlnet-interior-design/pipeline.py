@@ -1,58 +1,38 @@
 """Pipeline used to create a stable diffusion dataset from a set of initial prompts."""
 # pylint: disable=import-error
-import json
+import logging
+import sys
 
-from kfp import components as comp
-from kfp import dsl
+sys.path.append("../")
 
-from config.general_config import KubeflowConfig
-from config.components_config import RetrieveImagesConfig
-from fondant.pipeline_utils import compile_and_upload_pipeline
+from pipeline_configs import PipelineConfigs
 
-# Define metadata
-base_path = KubeflowConfig.BASE_PATH
-run_id = "{{workflow.name}}"
-metadata = json.dumps({"base_path": base_path, "run_id": run_id})
+from fondant.pipeline import FondantComponentOp, FondantPipeline, FondantClient
+from fondant.logger import configure_logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
+# General configs
+pipeline_name = "controlnet-pipeline"
+pipeline_description = "Pipeline that collects data to train ControlNet"
+
+client = FondantClient(host=PipelineConfigs.HOST)
 
 # Define component ops
-generate_prompts_op = comp.load_component(
-    "components/generate_prompts/kubeflow_component.yaml"
-)
-laion_retrieval_op = comp.load_component(
-    "components/laion_retrieval/kubeflow_component.yaml"
+generate_prompts_op = FondantComponentOp(
+    component_spec_path="components/generate_prompts/fondant_component.yaml"
 )
 
-
-# Pipeline
-@dsl.pipeline(
-    name="controlnet-pipeline",
-    description="Pipeline that collects data to train ControlNet",
+laion_retrieval_op = FondantComponentOp(
+    component_spec_path="components/laion_retrieval/fondant_component.yaml",
+    arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
 )
-# pylint: disable=too-many-arguments, too-many-locals
-def controlnet_pipeline(
-    metadata: str = metadata,
-    laion_retrieval_num_images: int = RetrieveImagesConfig.NUM_IMAGES,
-    laion_retrieval_aesthetic_score: int = RetrieveImagesConfig.AESTHETIC_SCORE,
-    laion_retrieval_aesthetic_weight: float = RetrieveImagesConfig.AESTHETIC_WEIGHT,
-):
-    # Component 1
-    generate_prompts_task = generate_prompts_op(metadata=metadata).set_display_name(
-        "Generate initial prompts"
-    )
 
-    # Component 2
-    laion_retrieval_task = laion_retrieval_op(
-        input_manifest_path=generate_prompts_task.outputs["output_manifest_path"],
-        num_images=laion_retrieval_num_images,
-        aesthetic_score=laion_retrieval_aesthetic_score,
-        aesthetic_weight=laion_retrieval_aesthetic_weight,
-    ).set_display_name("Retrieve image URLs")
+pipeline = FondantPipeline(
+    pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH
+)
 
+pipeline.add_op(generate_prompts_op)
+pipeline.add_op(laion_retrieval_op, dependencies=generate_prompts_op)
 
-if __name__ == "__main__":
-    compile_and_upload_pipeline(
-        pipeline=controlnet_pipeline,
-        host=KubeflowConfig.HOST,
-        env=KubeflowConfig.ENV,
-        pipeline_id="44b4ca29-9531-4f1a-9951-65a31bdeeed5",
-    )
+client.compile_and_run(pipeline=pipeline)

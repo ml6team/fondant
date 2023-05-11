@@ -14,10 +14,8 @@ logger = logging.getLogger(__name__)
 # General configs
 pipeline_name = "Test fondant pipeline"
 pipeline_description = "A test pipeline"
-pipeline_host = PipelineConfigs.HOST
-pipeline_base_path = PipelineConfigs.BASE_PATH
 
-client = FondantClient(host=pipeline_host)
+client = FondantClient(host=PipelineConfigs.HOST)
 
 # Define component ops
 load_from_hub_op = FondantComponentOp(
@@ -37,9 +35,11 @@ image_filtering_op = FondantComponentOp(
 # MODEL_ID = "openai/clip-vit-large-patch14"
 # BATCH_SIZE = 10
 
-pipeline = FondantPipeline(pipeline_name=pipeline_name, base_path=pipeline_base_path)
+pipeline = FondantPipeline(
+    pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH
+)
 
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
-pipeline.compile()
-client.compile_and_run(pipeline=pipeline, experiment_name="aa")
+
+client.compile_and_run(pipeline=pipeline)
