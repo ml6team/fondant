@@ -76,10 +76,9 @@ class LAIONRetrievalComponent(FondantTransformComponent):
 
         # add index
         index_list = [idx for idx in range(len(dataframe))]
-        source_list = ["seed" for _ in range(len(dataframe))]
 
         dataframe["id"] = da.array(index_list)
-        dataframe["source"] = da.array(source_list)
+        dataframe["source"] = "seed"
 
         return dataframe
 

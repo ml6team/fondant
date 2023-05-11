@@ -126,10 +126,9 @@ class GeneratePromptsComponent(FondantLoadComponent):
         # end of TODO
 
         index_list = [idx for idx in range(len(df))]
-        source_list = ["seed" for _ in range(len(df))]
 
         df["id"] = da.array(index_list)
-        df["source"] = da.array(source_list)
+        df["source"] = "seed"
 
         return df
 
