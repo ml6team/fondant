@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "fondant"
 version = "0.1.dev0"
-description = "Fondant - Composable pipelines for foundation model finetuning"
+description = "Fondant - Sweet data-centric foundation model fine-tuning"
 readme = "README.md"
-keywords = ["data", "machine learning", "finetuning", "foundation models"]
+keywords = ["data", "machine learning", "fine-tuning", "foundation models"]
 license = "Apache-2.0"
 authors = [
+    "ML6 <fondant@ml6.eu>",
     "Simon Slangen <simon.slangen@ml6.eu>",
     "Philippe Moussalli <philippe.moussalli@ml6.eu>",
     "Robbe Sneyders <robbe.sneyders@ml6.eu>",
@@ -13,6 +14,7 @@ authors = [
     "Niels Rogge <niels.rogge@ml6.eu>",
 ]
 maintainers = [
+    "ML6 <fondant@ml6.eu>",
     "Philippe Moussalli <philippe.moussalli@ml6.eu>",
     "Robbe Sneyders <robbe.sneyders@ml6.eu>",
     "Georges Lorré <georges.lorré@ml6.eu>",
