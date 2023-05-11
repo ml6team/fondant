@@ -114,11 +114,23 @@ class GeneratePromptsComponent(FondantLoadComponent):
 
         df = dd.from_pandas(pandas_df, npartitions=1)
 
-        index_list = [idx for idx in range(len(df))]
-        source_list = ["seed" for _ in range(len(df))]
+        # TODO remove, just use a tiny df for testing purposes
+        data = {
+            "prompts_text": [
+                "comfortable bathroom, art deco interior design",
+                "comfortable bathroom, bauhaus interior design",
+            ]
+        }
+        pandas_df = pd.DataFrame.from_dict(data)
+        df = dd.from_pandas(pandas_df, npartitions=1)
+        # end of TODO
 
-        df["id"] = da.array(index_list)
-        df["source"] = da.array(source_list)
+        # add id and source columns
+        df["id"] = df.assign(id=1).id.cumsum()
+        df["source"] = "seed"
+
+        # reorder columns
+        df = df[["id", "source", "prompts_text"]]
 
         return df
 

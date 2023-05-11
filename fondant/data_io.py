@@ -2,6 +2,7 @@ import logging
 import typing as t
 
 import dask.dataframe as dd
+from dask.diagnostics import ProgressBar
 
 from fondant.component_spec import FondantComponentSpec
 from fondant.manifest import Field, Manifest
@@ -140,7 +141,9 @@ class DaskDataWriter(DataIO):
         )
 
         # Write index
-        dd.compute(upload_index_task)
+        with ProgressBar():
+            logging.info("Writing index...")
+            dd.compute(upload_index_task)
 
     def write_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
         """
@@ -224,4 +227,6 @@ class DaskDataWriter(DataIO):
             upload_subsets_tasks.append(upload_subset_task)
 
         # Run all write subset tasks in parallel
-        dd.compute(*upload_subsets_tasks)
+        with ProgressBar():
+            logging.info("Writing subsets...")
+            dd.compute(*upload_subsets_tasks)
