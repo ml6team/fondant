@@ -1,0 +1,44 @@
+name: Publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+  release:
+    types:
+      - published
+jobs:
+  build-n-publish:
+    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+
+    - name: Update version in pyproject.toml with tag version
+      run: sed -i "s/^version = .*/version = '${{github.ref_name}}'/" pyproject.toml
+
+    - name: Build a binary wheel and a source tarball
+      run: |
+        pip install poetry
+        poetry build
+
+    - name: Publish distribution 📦 to Test PyPI
+      if: github.event_name == 'push'
+      uses: pypa/gh-action-pypi-publish@v1.8.6
+      with:
+        name: testpypi
+        repository_url: https://test.pypi.org/legacy/
+        url: https://test.pypi.org/p/fondant
+
+    - name: Publish distribution 📦 to PyPI if triggered by release
+      if: github.event_name == 'release'
+      uses: pypa/gh-action-pypi-publish@v1.8.6
+      with:
+        name: pypi
+        url: https://pypi.org/p/fondant
