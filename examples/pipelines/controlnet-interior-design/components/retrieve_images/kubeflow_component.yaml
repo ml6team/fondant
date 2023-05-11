@@ -10,11 +10,11 @@ inputs:
       type: Integer
 
     - name: aesthetic_score
-      description: Ranking score for aesthetic, higher is prettier
+      description: Ranking score for aesthetic, higher is prettier (9 being the highest)
       type: Integer
 
     - name: aesthetic_weight
-      description: Weight of the aesthetic score, between 0 and 1
+      description: Weight of the aesthetic embedding to add to the query, between 0 and 1
       type: Float
    
 outputs:

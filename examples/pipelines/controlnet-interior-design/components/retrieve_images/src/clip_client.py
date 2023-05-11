@@ -1,6 +1,10 @@
 """Clip client is a simple python module that allows you to query the backend remotely.
 
 Copied from: https://github.com/rom1504/clip-retrieval/blob/main/clip_retrieval/clip_client.py.
+
+MIT License
+
+Copyright (c) 2021 Romain Beaumont
 """
 
 import base64

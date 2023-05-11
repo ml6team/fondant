@@ -142,7 +142,7 @@ class DaskDataWriter(DataIO):
 
         # Write index
         with ProgressBar():
-            logging.info("Computing index...")
+            logging.info("Writing index...")
             dd.compute(upload_index_task)
 
     def write_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
@@ -228,5 +228,5 @@ class DaskDataWriter(DataIO):
 
         # Run all write subset tasks in parallel
         with ProgressBar():
-            logging.info("Computing subsets...")
+            logging.info("Writing subsets...")
             dd.compute(*upload_subsets_tasks)

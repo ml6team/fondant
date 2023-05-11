@@ -52,7 +52,7 @@ class LAIONRetrievalComponent(FondantTransformComponent):
             dataframe: Dask dataframe
             num_images: number of images to retrieve for each prompt
             aesthetic_score: ranking score for aesthetic, higher is prettier.
-            aesthetic_weight: weight of the aesthetic score, between 0 and 1.
+            aesthetic_weight: weight of the aesthetic embedding to add to the query, between 0 and 1.
 
         Returns:
             Dask dataframe
@@ -85,5 +85,5 @@ class LAIONRetrievalComponent(FondantTransformComponent):
 
 
 if __name__ == "__main__":
-    component = LAIONRetrievalComponent.from_file("../fondant_component.yaml")
+    component = LAIONRetrievalComponent.from_file()
     component.run()
