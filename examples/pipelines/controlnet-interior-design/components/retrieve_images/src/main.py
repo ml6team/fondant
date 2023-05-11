@@ -66,8 +66,8 @@ class LAIONRetrievalComponent(FondantTransformComponent):
             modality=Modality.IMAGE,
         )
 
-        dataframe["images_url"] = dataframe["prompts_text"].map_partitions(
-            lambda example: example.apply(query_clip_client, args=(client,)),
+        dataframe["images_url"] = dataframe["prompts_text"].apply(
+            lambda example: query_clip_client(example, client),
             meta=("images_url", "str"),
         )
 
