@@ -51,7 +51,7 @@ class LAIONRetrievalComponent(FondantTransformComponent):
         Args:
             dataframe: Dask dataframe
             num_images: number of images to retrieve for each prompt
-            aesthetic_score: ranking score for aesthetic, higher is prettier.
+            aesthetic_score: ranking score for aesthetic embedding, higher is prettier, between 0 and 9.
             aesthetic_weight: weight of the aesthetic embedding to add to the query, between 0 and 1.
 
         Returns:

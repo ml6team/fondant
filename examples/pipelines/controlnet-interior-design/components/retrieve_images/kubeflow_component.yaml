@@ -10,7 +10,7 @@ inputs:
       type: Integer
 
     - name: aesthetic_score
-      description: Ranking score for aesthetic, higher is prettier (9 being the highest)
+      description: Ranking score for aesthetic embedding, higher is prettier, between 0 and 9.
       type: Integer
 
     - name: aesthetic_weight
