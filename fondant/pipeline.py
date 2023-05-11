@@ -342,7 +342,6 @@ class Pipeline:
                 if previous_component_task is not None:
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
-                        metadata=metadata,
                         **component_args,
                     )
                 else:
