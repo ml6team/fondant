@@ -48,7 +48,7 @@ class Component(ABC):
             Input and output arguments of the component.
         """
         component_arguments: t.Dict[str, Argument] = {}
-        kubeflow_component_spec = self.spec.kubeflow_specification
+        kubeflow_component_spec = self.spec.get_kubeflow_specification()
         component_arguments.update(kubeflow_component_spec.input_arguments)
         component_arguments.update(kubeflow_component_spec.output_arguments)
         return component_arguments
@@ -160,7 +160,7 @@ class TransformComponent(Component):
         component_arguments = self._get_component_arguments()
 
         for arg in component_arguments.values():
-            # Metadata is not required for loading component
+            # Metadata is not required for transform component
             if arg.name == "metadata":
                 input_required = False
             else:

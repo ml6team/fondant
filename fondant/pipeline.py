@@ -281,12 +281,15 @@ class Pipeline:
             Args:
                 fondant_component_operation (ComponentOp): The fondant component
                  operation.
+                is_load: Whether the component is a loading component
 
             Returns:
                 Callable: The Kubeflow component.
             """
             return kfp.components.load_component(
-                text=fondant_component_operation.component_spec.kubeflow_specification.to_string()
+                text=fondant_component_operation.component_spec.get_kubeflow_specification(
+                    is_load=is_load
+                ).to_string()
             )
 
         def _set_task_configuration(task, fondant_component_operation):
@@ -326,10 +329,12 @@ class Pipeline:
             manifest_path = ""
             metadata = ""
             previous_component_task = None
-            for operation in self._graph.values():
+            for idx, operation in enumerate(self._graph.values()):
                 fondant_component_op = operation["fondant_component_op"]
                 # Get the Kubeflow component based on the fondant component operation.
-                kubeflow_component_op = _get_component_function(fondant_component_op)
+                kubeflow_component_op = _get_component_function(
+                    fondant_component_op, is_load=idx == 0
+                )
 
                 # Execute the Kubeflow component and pass in the output manifest path from
                 # the previous component.
@@ -442,7 +447,7 @@ class Client:
         Raises:
             Exception: If there was an error uploading the pipeline package.
         """
-        self.delete_pipeline(pipeline.name)
+        # self.delete_pipeline(pipeline.name)
 
         pipeline.compile()
 
