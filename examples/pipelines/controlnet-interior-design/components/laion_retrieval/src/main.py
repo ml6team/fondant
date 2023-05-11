@@ -27,13 +27,11 @@ def query_clip_client(text: str, client: ClipClient) -> List[str]:
 
     Returns:
         urls: a list of strings, each representing a URL of an image related to the query
-        ids: a list of integers, each representing an id in the LAION-5B dataset
     """
     results = client.query(text=text)
     urls = [i["url"] for i in results]
-    ids = [i["id"] for i in results]
 
-    return urls, ids
+    return urls
 
 
 class LAIONRetrievalComponent(FondantTransformComponent):
@@ -68,24 +66,17 @@ class LAIONRetrievalComponent(FondantTransformComponent):
             modality=Modality.IMAGE,
         )
 
-        # dataframe["images_url"] = dataframe["prompts_text"].apply(
-        #     lambda example: query_clip_client(example, client),
-        #     meta=("images_url", "str"),
-        # )
-
-        dataframe = dataframe["prompts_text"].apply(
-            lambda example: query_clip_client(text=example, client=client),
-            axis=1,
-            result_type="expand",
-            meta={0: str, 1: int},
+        dataframe["images_url"] = dataframe["prompts_text"].apply(
+            lambda example: query_clip_client(example, client),
+            meta=("images_url", "str"),
         )
-        dataframe.columns = ["images_url", "id"]
 
-        # unpack list of urls and ids
+        # unpack list of urls
         dataframe = dataframe.explode("images_url")
-        dataframe = dataframe.explode("id")
 
-        # add source column
+        # add id and source columns
+        # TODO use LAION id instead
+        dataframe["id"] = dataframe.assign(id=1).id.cumsum()
         dataframe["source"] = "laion"
 
         # reorder columns

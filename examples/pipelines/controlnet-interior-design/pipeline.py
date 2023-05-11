@@ -54,5 +54,5 @@ if __name__ == "__main__":
         pipeline=controlnet_pipeline,
         host=KubeflowConfig.HOST,
         env=KubeflowConfig.ENV,
-        pipeline_id="6c5aa669-3521-422a-97b6-e7e75bef3eb8",
+        pipeline_id="44b4ca29-9531-4f1a-9951-65a31bdeeed5",
     )
