@@ -1,6 +1,6 @@
 name: LAION retrieval
 description: A component that retrieves image URLs from LAION-5B based on a set of seed prompts
-image: laion_retrieval:latest
+image: ghcr.io/ml6team/laion_retrieval:latest
 
 input_subsets:
   prompts:

@@ -3,7 +3,7 @@ import json
 import logging
 import typing as t
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from fondant.component import FondantComponentSpec, Manifest
@@ -46,7 +46,7 @@ class FondantComponentOp:
     """
 
     component_spec_path: str
-    arguments: t.Dict[str, t.Any]
+    arguments: t.Dict[str, t.Any] = field(default_factory=dict)
     number_of_gpus: t.Optional[int] = None
     node_pool_name: t.Optional[str] = None
     p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None
