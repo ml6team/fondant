@@ -26,6 +26,9 @@ client = Client(host=PipelineConfigs.HOST)
 generate_prompts_op = ComponentOp(
     component_spec_path="components/generate_prompts/fondant_component.yaml"
 )
+download_images_op = comp.load_component(
+    "components/download_images/kubeflow_component.yaml"
+)
 
 laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
