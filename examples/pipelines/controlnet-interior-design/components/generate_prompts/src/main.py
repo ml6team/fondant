@@ -126,7 +126,7 @@ class GeneratePromptsComponent(FondantLoadComponent):
         # end of TODO
 
         # add id and source columns
-        df = df.reset_index().rename(columns={"index": "id"})
+        df["id"] = df.assign(id=1).id.cumsum()
         df["source"] = "seed"
 
         # reorder columns

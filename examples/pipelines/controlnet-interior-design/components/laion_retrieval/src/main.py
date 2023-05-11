@@ -19,19 +19,21 @@ logger = logging.getLogger(__name__)
 def query_clip_client(text: str, client: ClipClient) -> List[str]:
     """
     Given a text query and a ClipClient instance, this function retrieves
-    image URLs related to the query.
+    image URLs and their LAION ids related to the query.
 
     Args:
         text: the text query
         client (ClipClient): an instance of ClipClient used to query the images
 
     Returns:
-        results: a list of strings, each representing a URL of an image related to the query
+        urls: a list of strings, each representing a URL of an image related to the query
+        ids: a list of integers, each representing an id in the LAION-5B dataset
     """
     results = client.query(text=text)
-    results = [i["url"] for i in results]
+    urls = [i["url"] for i in results]
+    ids = [i["id"] for i in results]
 
-    return results
+    return urls, ids
 
 
 class LAIONRetrievalComponent(FondantTransformComponent):
@@ -66,20 +68,28 @@ class LAIONRetrievalComponent(FondantTransformComponent):
             modality=Modality.IMAGE,
         )
 
-        dataframe["images_url"] = dataframe["prompts_text"].apply(
-            lambda example: query_clip_client(example, client),
-            meta=("images_url", "str"),
+        # dataframe["images_url"] = dataframe["prompts_text"].apply(
+        #     lambda example: query_clip_client(example, client),
+        #     meta=("images_url", "str"),
+        # )
+
+        dataframe = dataframe["prompts_text"].apply(
+            lambda example: query_clip_client(text=example, client=client),
+            axis=1,
+            result_type="expand",
+            meta={0: str, 1: int},
         )
+        dataframe.columns = ["images_url", "id"]
 
-        # unpack list of urls
+        # unpack list of urls and ids
         dataframe = dataframe.explode("images_url")
+        dataframe = dataframe.explode("id")
 
-        # add id and source columns
-        df = df.reset_index().rename(columns={"index": "id"})
-        df["source"] = "seed"
+        # add source column
+        dataframe["source"] = "laion"
 
         # reorder columns
-        df = df[["id", "source", "images_url"]]
+        dataframe = dataframe[["id", "source", "images_url"]]
 
         return dataframe
 
