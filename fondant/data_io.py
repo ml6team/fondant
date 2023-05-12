@@ -127,7 +127,7 @@ class DaskDataWriter(DataIO):
         index_columns = list(self.manifest.index.fields.keys())
 
         # load index dataframe
-        index_df = df[index_columns]
+        index_df = df.copy[index_columns]
 
         divisions = list(df.divisions) if df.known_divisions else None
 
