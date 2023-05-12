@@ -28,8 +28,11 @@ def query_clip_client(text: str, client: ClipClient) -> List[str]:
     Returns:
         urls: a list of strings, each representing a URL of an image related to the query
     """
-    results = client.query(text=text)
-    urls = [i["url"] for i in results]
+    try:
+        results = client.query(text=text)
+        urls = [i["url"] for i in results]
+    except:
+        urls = ["" for _ in range(client.num_images)]
 
     return urls
 

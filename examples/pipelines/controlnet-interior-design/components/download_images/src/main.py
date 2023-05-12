@@ -142,7 +142,7 @@ class DownloadImagesComponent(FondantTransformComponent):
             result, left_index=True, right_index=True
         )
 
-        logger.info("Columns of final dataframe:", dataframe.columns)
+        logger.info("Columns of final dataframe:", list(dataframe.columns))
 
         return dataframe
 

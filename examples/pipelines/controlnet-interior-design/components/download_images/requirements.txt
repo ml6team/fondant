@@ -1,4 +1,4 @@
-git+https://github.com/ml6team/fondant.git@de355d894a203f150bb5a9e87e8ed668fd16c22f
+git+https://github.com/ml6team/fondant.git@ee6ab513f50417009476f69aaff178a7c1bd823a
 albumentations
 opencv-python-headless>=4.5.5.62,<5
 gcsfs==2023.4.0

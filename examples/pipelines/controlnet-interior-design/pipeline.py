@@ -40,7 +40,7 @@ download_images_op = ComponentOp(
         "image_size": 512,
         "resize_mode": "center_crop",
         "resize_only_if_bigger": False,
-        "min_image_size": 512,
+        "min_image_size": 0,
         "max_aspect_ratio": 2.5,
     },
 )
