@@ -1,1 +1,3 @@
 git+https://github.com/ml6team/fondant.git
+albumentations
+opencv-python-headless>=4.5.5.62,<5

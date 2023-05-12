@@ -1,5 +1,5 @@
 """
-This component downloads images based on URLs, and resizes them.
+This component downloads images based on URLs, and resizes them based on various settings like minimum image size and aspect ratio.
 
 Some functions here are directly taken from https://github.com/rom1504/img2dataset/blob/main/img2dataset/downloader.py.
 """
@@ -10,7 +10,7 @@ import urllib
 
 import dask.dataframe as dd
 
-from .resizer import Resizer
+from resizer import Resizer
 
 from fondant.component import FondantTransformComponent
 from fondant.logger import configure_logging
@@ -80,7 +80,7 @@ def download_image_with_retry(
         if img_stream is not None:
             # resize the image
             return resizer(img_stream)
-    return None, None, None, None, None, None
+    return None, None, None
 
 
 class DownloadImagesComponent(FondantTransformComponent):
@@ -90,8 +90,8 @@ class DownloadImagesComponent(FondantTransformComponent):
 
     def transform(
         self,
-        *,
         dataframe: dd.DataFrame,
+        *,
         timeout: int = 10,
         retries: int = 0,
         image_size: int = 256,
