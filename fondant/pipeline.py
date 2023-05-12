@@ -83,12 +83,15 @@ class ReusableComponentOp:
                 “T”, “G”, “M”, “K”. (e.g. 2T for 2 Terabytes)
 
         """
-        component_spec_path = pkgutil.get_data(
-            "fondant", f"components/{name}/fondant_component.yaml"
-        )
+        try:
+            component_spec_path = pkgutil.get_data(
+                "fondant", f"components/{name}/fondant_component.yaml"
+            )
+        except FileNotFoundError:
+            raise ValueError(f"No reusable component with name {name} found.")
 
         if component_spec_path is None:
-            raise ValueError(f"No reusable component with name {name} found.")
+            raise ImportError("fondant package could not be found")  # pragma: no cover
 
         return FondantComponentOp(
             component_spec_path.decode("utf-8"),

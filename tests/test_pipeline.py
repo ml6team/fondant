@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from fondant.exceptions import InvalidPipelineDefinition
-from fondant.pipeline import FondantComponentOp, FondantPipeline
+from fondant.pipeline import FondantComponentOp, FondantPipeline, ReusableComponentOp
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
 invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
@@ -159,3 +159,16 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
 
     with pytest.raises((ValueError, TypeError)):
         pipeline.compile()
+
+
+def test_reusable_component_op():
+    laion_retrieval_op = ReusableComponentOp(
+        name="prompt_based_laion_retrieval",
+        arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
+    )
+    assert isinstance(laion_retrieval_op, FondantComponentOp)
+
+    with pytest.raises(ValueError):
+        ReusableComponentOp(
+            name="this_component_does_not_exist",
+        )
