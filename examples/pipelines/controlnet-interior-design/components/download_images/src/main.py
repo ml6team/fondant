@@ -109,6 +109,7 @@ class DownloadImagesComponent(FondantTransformComponent):
         Returns:
             Dask dataframe
         """
+        logger.info("Instantiating resizer...")
         resizer = Resizer(
             image_size=image_size,
             resize_mode=resize_mode,
@@ -119,6 +120,7 @@ class DownloadImagesComponent(FondantTransformComponent):
 
         # retrieve and resize images
         # source: https://stackoverflow.com/questions/41728527/how-to-apply-a-function-to-a-dask-dataframe-and-return-multiple-values
+        logger.info("Downloading and resizing images...")
         result = dataframe.apply(
             lambda example: download_image_with_retry(
                 url=example.images_url,
