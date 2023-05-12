@@ -1,2 +1,2 @@
-git+https://github.com/ml6team/fondant.git@2abeabe07412266b78e3b2a4055e0b10d62168cb
+fondant
 gcsfs==2023.4.0
