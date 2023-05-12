@@ -103,6 +103,10 @@ class CaptionImagesComponent(FondantTransformComponent):
         delayed_series = dd.from_delayed(captions, meta=pd.Series(dtype="str"))
         captions_df = delayed_series.to_frame(name="captions_text")
 
+        # add index columns
+        captions_df["id"] = dataframe["id"].reset_index(drop=True)
+        captions_df["source"] = dataframe["source"].reset_index(drop=True)
+
         return captions_df
 
 
