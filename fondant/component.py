@@ -48,7 +48,7 @@ class Component(ABC):
             Input and output arguments of the component.
         """
         component_arguments: t.Dict[str, Argument] = {}
-        kubeflow_component_spec = self.spec.get_kubeflow_specification()
+        kubeflow_component_spec = self.spec.kubeflow_specification
         component_arguments.update(kubeflow_component_spec.input_arguments)
         component_arguments.update(kubeflow_component_spec.output_arguments)
         return component_arguments
@@ -96,8 +96,6 @@ class Component(ABC):
         self.upload_manifest(output_manifest, save_path=self.args.output_manifest_path)
 
     def upload_manifest(self, manifest: Manifest, save_path: str):
-        print("Output manifest:", manifest)
-        print("Path to save the output manifest:", save_path)
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         manifest.to_file(save_path)
 
@@ -162,7 +160,7 @@ class TransformComponent(Component):
         component_arguments = self._get_component_arguments()
 
         for arg in component_arguments.values():
-            # Metadata is not required for transform component
+            # Metadata is not required for loading component
             if arg.name == "metadata":
                 input_required = False
             else:

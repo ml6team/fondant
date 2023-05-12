@@ -186,10 +186,9 @@ class ComponentSpec:
             for name, arg_info in self._specification.get("args", {}).items()
         }
 
-    def get_kubeflow_specification(
-        self, is_load: bool = False
-    ) -> "KubeflowComponentSpec":
-        return KubeflowComponentSpec.from_fondant_component_spec(self, is_load=is_load)
+    @property
+    def kubeflow_specification(self) -> "KubeflowComponentSpec":
+        return KubeflowComponentSpec.from_fondant_component_spec(self)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r}"
@@ -211,26 +210,20 @@ class KubeflowComponentSpec:
         cls, fondant_component: ComponentSpec
     ) -> "KubeflowComponentSpec":
         """Create a Kubeflow component spec from a Fondant component spec."""
-        # define inputs
-        inputs = [
-            {
-                "name": "input_manifest_path",
-                "description": "Path to the input manifest",
-                "type": "String",
-            },
-        ]
-
-        if is_load:
-            inputs.append(
+        specification = {
+            "name": fondant_component.name,
+            "description": fondant_component.description,
+            "inputs": [
+                {
+                    "name": "input_manifest_path",
+                    "description": "Path to the input manifest",
+                    "type": "String",
+                },
                 {
                     "name": "metadata",
                     "description": "Metadata arguments containing the run id and base path",
                     "type": "String",
                 },
-            )
-
-        inputs.extend(
-            [
                 *(
                     {
                         "name": arg.name,
@@ -239,31 +232,7 @@ class KubeflowComponentSpec:
                     }
                     for arg in fondant_component.args.values()
                 ),
-            ]
-        )
-
-        # define command
-        command = [
-            "python3",
-            "main.py",
-            "--input_manifest_path",
-            {"inputPath": "input_manifest_path"},
-        ]
-        if is_load:
-            command.extend(["--metadata", {"inputValue": "metadata"}])
-
-        command.extend(
-            [
-                *cls._dump_args(fondant_component.args.values()),
-                "--output_manifest_path",
-                {"outputPath": "output_manifest_path"},
-            ]
-        )
-
-        specification = {
-            "name": fondant_component.name,
-            "description": fondant_component.description,
-            "inputs": inputs,
+            ],
             "outputs": [
                 {
                     "name": "output_manifest_path",
@@ -274,7 +243,17 @@ class KubeflowComponentSpec:
             "implementation": {
                 "container": {
                     "image": fondant_component.image,
-                    "command": command,
+                    "command": [
+                        "python3",
+                        "main.py",
+                        "--input_manifest_path",
+                        {"inputPath": "input_manifest_path"},
+                        "--metadata",
+                        {"inputValue": "metadata"},
+                        *cls._dump_args(fondant_component.args.values()),
+                        "--output_manifest_path",
+                        {"outputPath": "output_manifest_path"},
+                    ],
                 }
             },
         }

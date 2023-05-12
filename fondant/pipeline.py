@@ -281,15 +281,12 @@ class Pipeline:
             Args:
                 fondant_component_operation (ComponentOp): The fondant component
                  operation.
-                is_load: Whether the component is a loading component
 
             Returns:
                 Callable: The Kubeflow component.
             """
             return kfp.components.load_component(
-                text=fondant_component_operation.component_spec.get_kubeflow_specification(
-                    is_load=is_load
-                ).to_string()
+                text=fondant_component_operation.component_spec.kubeflow_specification.to_string()
             )
 
         def _set_task_configuration(task, fondant_component_operation):
@@ -329,12 +326,10 @@ class Pipeline:
             manifest_path = ""
             metadata = ""
             previous_component_task = None
-            for idx, operation in enumerate(self._graph.values()):
+            for operation in self._graph.values():
                 fondant_component_op = operation["fondant_component_op"]
                 # Get the Kubeflow component based on the fondant component operation.
-                kubeflow_component_op = _get_component_function(
-                    fondant_component_op, is_load=idx == 0
-                )
+                kubeflow_component_op = _get_component_function(fondant_component_op)
 
                 # Execute the Kubeflow component and pass in the output manifest path from
                 # the previous component.
@@ -342,6 +337,7 @@ class Pipeline:
                 if previous_component_task is not None:
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
+                        metadata=metadata,
                         **component_args,
                     )
                 else:
