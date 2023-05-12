@@ -13,11 +13,9 @@ logger = logging.getLogger(__name__)
 class DataIO:
     def __init__(self, manifest: Manifest):
         self.manifest = manifest
-        self.index_fields = ["id", "source"]
+        self.index_fields = ["source"]
         self.index_schema = {
             "source": "string",
-            "id": "int64",
-            "__null_dask_index__": "int64",
         }
 
 
@@ -35,8 +33,6 @@ class DaskDataLoader(DataIO):
         """
         subset = self.manifest.subsets[subset_name]
         remote_path = subset.location
-        index_fields = list(self.manifest.index.fields.keys())
-        fields = index_fields + fields
 
         logger.info(f"Loading subset {subset_name} with fields {fields}...")
 
@@ -44,11 +40,7 @@ class DaskDataLoader(DataIO):
 
         # add subset prefix to columns
         subset_df = subset_df.rename(
-            columns={
-                col: subset_name + "_" + col
-                for col in subset_df.columns
-                if col not in index_fields
-            }
+            columns={col: subset_name + "_" + col for col in subset_df.columns}
         )
 
         return subset_df
@@ -66,7 +58,7 @@ class DaskDataLoader(DataIO):
         remote_path = index.location
 
         # load index from parquet, expecting id and source columns
-        index_df = dd.read_parquet(remote_path, columns=["id", "source"])
+        index_df = dd.read_parquet(remote_path, columns=["source"])
 
         return index_df
 
@@ -88,7 +80,13 @@ class DaskDataLoader(DataIO):
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
             # left joins -> filter on index
-            df = dd.merge(df, subset_df, on=["id", "source"], how="left")
+            df = dd.merge(
+                df,
+                subset_df,
+                left_index=True,
+                right_index=True,
+                how="left",
+            )
 
         logging.info(f"Columns of dataframe: {list(df.columns)}")
 
@@ -134,7 +132,7 @@ class DaskDataWriter(DataIO):
         index_df = df[index_columns]
 
         # set index
-        index_df.set_index("id")
+        index_df = index_df.set_index("id")
 
         upload_index_task = self._create_write_dataframe_task(
             df=index_df, remote_path=remote_path, schema=self.index_schema
@@ -209,7 +207,7 @@ class DaskDataWriter(DataIO):
             subset_df = create_subset_dataframe(subset_name, subset_columns, df)
 
             # set index
-            subset_df.set_index("id")
+            subset_df = subset_df.set_index("id")
 
             # Get the remote path where the output subset should be uploaded
             remote_path = self.manifest.subsets[subset_name].location

@@ -62,7 +62,6 @@ class Index(Subset):
     @property
     def fields(self) -> t.Dict[str, Field]:
         return {
-            "id": Field(name="id", type=Type.utf8),
             "source": Field(name="source", type=Type.utf8),
         }
 

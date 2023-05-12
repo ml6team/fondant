@@ -22,17 +22,17 @@ def split_into_subsets():
     master_df = master_df.astype({"source": "string"})
     # create index subset
     index_df = master_df[["id", "source"]]
-    index_df.set_index("id")
+    index_df = index_df.set_index("id")
     index_df.to_parquet(output_path / "index")
 
     # create properties subset
-    properies_df = master_df[["id", "source", "Name", "HP"]]
-    properies_df.set_index("id")
-    properies_df.to_parquet(output_path / "properties")
+    properties_df = master_df[["id", "source", "Name", "HP"]]
+    properties_df = properties_df.set_index("id")
+    properties_df.to_parquet(output_path / "properties")
 
     # create types subset
     types_df = master_df[["id", "source", "Type 1", "Type 2"]]
-    types_df.set_index("id")
+    types_df = types_df.set_index("id")
     types_df.to_parquet(output_path / "types")
 
 
