@@ -84,10 +84,14 @@ class ReusableComponentOp:
 
         """
         component_spec_path = pkgutil.get_data(
-            f"fondant/components/{name}/fondant_component.yaml"
+            "fondant", f"components/{name}/fondant_component.yaml"
         )
+
+        if component_spec_path is None:
+            raise ValueError(f"No reusable component with name {name} found.")
+
         return FondantComponentOp(
-            component_spec_path,
+            component_spec_path.decode("utf-8"),
             arguments=arguments,
             number_of_gpus=number_of_gpus,
             node_pool_name=node_pool_name,
