@@ -16,8 +16,11 @@ output_subsets:
 
 args:
   model_id:
-    description: Id of the model on the Hugging Face hub
+    description: id of the model on the Hugging Face hub
     type: utf8
   batch_size:
-    description: Batch size to use
+    description: batch size to use
+    type: int
+  max_new_tokens:
+    description: maximum token length of each caption
     type: int

@@ -6,17 +6,17 @@ import itertools
 import logging
 import toolz
 
+from PIL import Image
+
 import dask
 import dask.dataframe as dd
 import pandas as pd
 
-from fondant.component import FondantTransformComponent
-from fondant.logger import configure_logging
-
 from transformers import AutoProcessor, AutoModelForCausalLM
 import torch
 
-from PIL import Image
+from fondant.component import FondantTransformComponent
+from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -42,8 +42,8 @@ def collate(examples):
 
 
 @dask.delayed
-def caption(batch, model, processor):
-    generated_ids = model.generate(pixel_values=batch, max_length=50)
+def caption(batch, model, processor, max_new_tokens):
+    generated_ids = model.generate(pixel_values=batch, max_new_tokens=max_new_tokens)
     generated_captions = processor.batch_decode(generated_ids, skip_special_tokens=True)
 
     return generated_captions
@@ -60,13 +60,18 @@ class CaptionImagesComponent(FondantTransformComponent):
     """
 
     def transform(
-        self, dataframe: dd.DataFrame, model_id: str, batch_size: int
+        self,
+        dataframe: dd.DataFrame,
+        model_id: str,
+        batch_size: int,
+        max_new_tokens: int,
     ) -> dd.DataFrame:
         """
         Args:
             dataframe: Dask dataframe
             model_id: id of the model on the Hugging Face hub
             batch_size: batch size to use
+            max_new_tokens: maximum token length of each caption
 
         Returns:
             Dask dataframe
@@ -91,7 +96,7 @@ class CaptionImagesComponent(FondantTransformComponent):
 
         # caption images
         gpu_model = dask.delayed(model.to(device))
-        captions = [caption(batch, gpu_model) for batch in batches]
+        captions = [caption(batch, gpu_model, max_new_tokens) for batch in batches]
 
         # join lists into a single Dask delayed object
         captions = flatten(captions)
@@ -102,5 +107,5 @@ class CaptionImagesComponent(FondantTransformComponent):
 
 
 if __name__ == "__main__":
-    component = CaptionImagesComponent.from_file("../fondant_component.yaml")
+    component = CaptionImagesComponent.from_file()
     component.run()
