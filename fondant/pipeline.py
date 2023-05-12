@@ -1,6 +1,7 @@
 """This module defines classes to represent a Fondant Pipeline."""
 import json
 import logging
+import pkgutil
 import typing as t
 from collections import OrderedDict
 from dataclasses import dataclass, field
@@ -31,7 +32,7 @@ class FondantComponentOp:
         node_pool_name: The name of the node pool to which the operation will be assigned.
         p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount paths,
          values are Kubernetes volumes or inherited types(e.g. PipelineVolumes).
-        ephemeral_storage_request = Used ephemeral-storage request (minimum) for the operation.
+        ephemeral_storage_size: Used ephemeral-storage size (minimum) for the operation.
          Defined by string which can be a number or a number followed by one of “E”, “P”, “T”, “G”,
          “M”, “K”. (e.g. 2T for 2 Terabytes)
 
@@ -55,6 +56,44 @@ class FondantComponentOp:
     @property
     def component_spec(self) -> FondantComponentSpec:
         return FondantComponentSpec.from_file(self.component_spec_path)
+
+
+class ReusableComponentOp:
+    def __new__(
+        cls,
+        name: str,
+        *,
+        arguments: t.Dict[str, t.Any] = field(default_factory=dict),
+        number_of_gpus: t.Optional[int] = None,
+        node_pool_name: t.Optional[str] = None,
+        p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
+        ephemeral_storage_size: t.Optional[str] = None,
+    ):
+        """Load a reusable component by its name.
+
+        Args:
+            name: Name of the component to load
+            arguments: A dictionary containing the argument name and value for the operation.
+            number_of_gpus: The number of gpus to assign to the operation
+            node_pool_name: The name of the node pool to which the operation will be assigned.
+            p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount
+                paths, values are Kubernetes volumes or inherited types(e.g. PipelineVolumes).
+            ephemeral_storage_size: Used ephemeral-storage request (minimum) for the operation.
+                Defined by string which can be a number or a number followed by one of “E”, “P”,
+                “T”, “G”, “M”, “K”. (e.g. 2T for 2 Terabytes)
+
+        """
+        component_spec_path = pkgutil.get_data(
+            f"fondant/components/{name}/fondant_component.yaml"
+        )
+        return FondantComponentOp(
+            component_spec_path,
+            arguments=arguments,
+            number_of_gpus=number_of_gpus,
+            node_pool_name=node_pool_name,
+            p_volumes=p_volumes,
+            ephemeral_storage_size=ephemeral_storage_size,
+        )
 
 
 class FondantPipeline:

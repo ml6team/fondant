@@ -21,6 +21,10 @@ maintainers = [
     "Niels Rogge <niels.rogge@ml6.eu>",
 ]
 repository = "https://github.com/ml6-team/fondant"
+packages = [
+    { include = "fondant" },
+    { include = "components" },
+]
 include = ["*.txt", "*.rst", "*.md"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
