@@ -138,6 +138,8 @@ class DownloadImagesComponent(FondantTransformComponent):
 
         dataframe = dataframe.merge(result, left_index=True, right_index=True)
 
+        logger.info("Columns of final dataframe:", dataframe.columns)
+
         return dataframe
 
 
