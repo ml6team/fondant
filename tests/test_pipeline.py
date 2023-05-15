@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from fondant.exceptions import InvalidPipelineDefinition
-from fondant.pipeline import FondantComponentOp, FondantPipeline, ReusableComponentOp
+from fondant.pipeline import FondantComponentOp, FondantPipeline
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
 invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
@@ -36,13 +36,13 @@ def test_valid_pipeline(default_pipeline_args, valid_pipeline_example, tmp_path)
     pipeline = FondantPipeline(**default_pipeline_args)
 
     first_component_op = FondantComponentOp(
-        Path(components_path / component_names[0]), component_args
+        Path(components_path / component_names[0]), arguments=component_args
     )
     second_component_op = FondantComponentOp(
-        Path(components_path / component_names[1]), component_args
+        Path(components_path / component_names[1]), arguments=component_args
     )
     third_component_op = FondantComponentOp(
-        Path(components_path / component_names[2]), component_args
+        Path(components_path / component_names[2]), arguments=component_args
     )
 
     pipeline.add_op(third_component_op, dependencies=second_component_op)
@@ -85,13 +85,13 @@ def test_invalid_pipeline_dependencies(
     pipeline = FondantPipeline(**default_pipeline_args)
 
     first_component_op = FondantComponentOp(
-        Path(components_path / component_names[0]), component_args
+        Path(components_path / component_names[0]), arguments=component_args
     )
     second_component_op = FondantComponentOp(
-        Path(components_path / component_names[1]), component_args
+        Path(components_path / component_names[1]), arguments=component_args
     )
     third_component_op = FondantComponentOp(
-        Path(components_path / component_names[2]), component_args
+        Path(components_path / component_names[2]), arguments=component_args
     )
 
     pipeline.add_op(third_component_op, dependencies=second_component_op)
@@ -121,10 +121,10 @@ def test_invalid_pipeline_compilation(
     pipeline = FondantPipeline(**default_pipeline_args)
 
     first_component_op = FondantComponentOp(
-        Path(components_path / component_names[0]), component_args
+        Path(components_path / component_names[0]), arguments=component_args
     )
     second_component_op = FondantComponentOp(
-        Path(components_path / component_names[1]), component_args
+        Path(components_path / component_names[1]), arguments=component_args
     )
 
     pipeline.add_op(first_component_op)
@@ -150,7 +150,7 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
         valid_pipeline_path / "example_1" / "first_component.yaml"
     )
     component_operation = FondantComponentOp(
-        components_spec_path, invalid_component_args
+        components_spec_path, arguments=invalid_component_args
     )
 
     pipeline = FondantPipeline(**default_pipeline_args)
@@ -162,13 +162,13 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
 
 
 def test_reusable_component_op():
-    laion_retrieval_op = ReusableComponentOp(
+    laion_retrieval_op = FondantComponentOp.from_registry(
         name="prompt_based_laion_retrieval",
         arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
     )
-    assert isinstance(laion_retrieval_op, FondantComponentOp)
+    assert laion_retrieval_op.component_spec, "component_spec_path could not be loaded"
 
     with pytest.raises(ValueError):
-        ReusableComponentOp(
+        FondantComponentOp.from_registry(
             name="this_component_does_not_exist",
         )

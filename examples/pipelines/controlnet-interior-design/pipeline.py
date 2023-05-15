@@ -11,7 +11,6 @@ from fondant.pipeline import (
     FondantComponentOp,
     FondantPipeline,
     FondantClient,
-    ReusableComponentOp,
 )
 from fondant.logger import configure_logging
 
@@ -28,7 +27,7 @@ generate_prompts_op = FondantComponentOp(
     component_spec_path="components/generate_prompts/fondant_component.yaml"
 )
 
-laion_retrieval_op = ReusableComponentOp(
+laion_retrieval_op = FondantComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
     arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
 )
