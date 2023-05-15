@@ -179,8 +179,14 @@ class FondantTransformComponent(FondantComponent):
         return Manifest.from_file(self.args.input_manifest_path)
 
     @abstractmethod
-    def transform(self, *, dataframe: dd.DataFrame, **kwargs) -> dd.DataFrame:
-        """Abstract method for applying data transformations to the input dataframe."""
+    def transform(self, *args, **kwargs) -> dd.DataFrame:
+        """
+        Abstract method for applying data transformations to the input dataframe.
+
+        Args:
+            args: The dataframe will be passed in as a positional argument
+            kwargs: Arguments provided to the component are passed as keyword arguments
+        """
 
     def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
         """

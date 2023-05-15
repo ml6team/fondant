@@ -3,8 +3,12 @@ import json
 import logging
 import typing as t
 from collections import OrderedDict
-from dataclasses import dataclass, field
 from pathlib import Path
+
+try:
+    from importlib.resources import files  # type: ignore
+except ImportError:
+    from importlib_resources import files  # type: ignore
 
 from fondant.component import FondantComponentSpec, Manifest
 from fondant.exceptions import InvalidPipelineDefinition
@@ -18,7 +22,6 @@ if is_kfp_available():
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class FondantComponentOp:
     """
     Class representing an operation for a Fondant Component in a Kubeflow Pipeline. An operation
@@ -31,7 +34,7 @@ class FondantComponentOp:
         node_pool_name: The name of the node pool to which the operation will be assigned.
         p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount paths,
          values are Kubernetes volumes or inherited types(e.g. PipelineVolumes).
-        ephemeral_storage_request = Used ephemeral-storage request (minimum) for the operation.
+        ephemeral_storage_size: Used ephemeral-storage size (minimum) for the operation.
          Defined by string which can be a number or a number followed by one of “E”, “P”, “T”, “G”,
          “M”, “K”. (e.g. 2T for 2 Terabytes)
 
@@ -45,16 +48,67 @@ class FondantComponentOp:
              https://kubeflow-pipelines.readthedocs.io/en/1.8.13/source/kfp.dsl.html
     """
 
-    component_spec_path: str
-    arguments: t.Dict[str, t.Any] = field(default_factory=dict)
-    number_of_gpus: t.Optional[int] = None
-    node_pool_name: t.Optional[str] = None
-    p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None
-    ephemeral_storage_size: t.Optional[str] = None
+    def __init__(
+        self,
+        component_spec_path: t.Union[str, Path],
+        *,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        number_of_gpus: t.Optional[int] = None,
+        node_pool_name: t.Optional[str] = None,
+        p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
+        ephemeral_storage_size: t.Optional[str] = None,
+    ):
+        self.component_spec_path = component_spec_path
+        self.arguments = arguments or {}
+        self.number_of_gpus = number_of_gpus
+        self.node_pool_name = node_pool_name
+        self.p_volumes = p_volumes
+        self.ephemeral_storage_size = ephemeral_storage_size
 
     @property
     def component_spec(self) -> FondantComponentSpec:
         return FondantComponentSpec.from_file(self.component_spec_path)
+
+    @classmethod
+    def from_registry(
+        cls,
+        name: str,
+        *,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        number_of_gpus: t.Optional[int] = None,
+        node_pool_name: t.Optional[str] = None,
+        p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
+        ephemeral_storage_size: t.Optional[str] = None,
+    ) -> "FondantComponentOp":
+        """Load a reusable component by its name.
+
+        Args:
+            name: Name of the component to load
+            arguments: A dictionary containing the argument name and value for the operation.
+            number_of_gpus: The number of gpus to assign to the operation
+            node_pool_name: The name of the node pool to which the operation will be assigned.
+            p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount
+                paths, values are Kubernetes volumes or inherited types(e.g. PipelineVolumes).
+            ephemeral_storage_size: Used ephemeral-storage request (minimum) for the operation.
+                Defined by string which can be a number or a number followed by one of “E”, “P”,
+                “T”, “G”, “M”, “K”. (e.g. 2T for 2 Terabytes)
+        """
+        component_spec_path = (
+            files("fondant") / f"components/{name}/fondant_component.yaml"
+        )
+        component_spec_path = t.cast(Path, component_spec_path)
+
+        if not (component_spec_path.exists() and component_spec_path.is_file()):
+            raise ValueError(f"No reusable component with name {name} found.")
+
+        return FondantComponentOp(
+            component_spec_path,
+            arguments=arguments,
+            number_of_gpus=number_of_gpus,
+            node_pool_name=node_pool_name,
+            p_volumes=p_volumes,
+            ephemeral_storage_size=ephemeral_storage_size,
+        )
 
 
 class FondantPipeline:

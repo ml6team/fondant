@@ -7,6 +7,8 @@ MIT License
 Copyright (c) 2021 Romain Beaumont
 """
 
+# mypy: ignore-errors
+
 import base64
 import enum
 import json

@@ -20,12 +20,16 @@ jobs:
       with:
         python-version: 3.9
 
+    - name: Build components
+      run: ./scripts/build_components.sh -t $GITHUB_REF
+
     - name: Update version in pyproject.toml with tag version
       run: sed -i "s/^version = .*/version = '${{github.ref_name}}'/" pyproject.toml
 
     - name: Build a binary wheel and a source tarball
       run: |
         pip install poetry
+        ./scripts/pre-build.sh
         poetry build
 
     - name: Publish distribution 📦 to Test PyPI
