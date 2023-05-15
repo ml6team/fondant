@@ -77,6 +77,21 @@ def test_write_index(tmp_path_factory, dataframe, manifest):
         assert df.index.name == "uid"
 
 
+def test_rewrite_index(tmp_path_factory, dataframe, manifest):
+    """Test writing out the index subset without a dask index."""
+    # drop the current index
+    dataframe = dataframe.reset_index(drop=True)
+    with tmp_path_factory.mktemp("temp") as fn:
+        # override the base path of the manifest with the temp dir
+        manifest.update_metadata("base_path", str(fn))
+        data_writer = DaskDataWriter(manifest=manifest)
+        # write out index to temp dir
+        data_writer.write_index(df=dataframe)
+        # read written data and assert
+        df = dd.read_parquet(fn / "index")
+        assert df.index.name == "uid"
+
+
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
     """Test writing out subsets."""
     # Dictionary specifying the expected subsets to write and their column names
@@ -98,6 +113,21 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
             df = dd.read_parquet(fn / subset)
             assert len(df) == NUMBER_OF_TEST_ROWS
             assert list(df.columns) == subset_columns
+            assert df.index.name == "uid"
+
+
+def test_write_subsets_set_index(tmp_path_factory, dataframe, manifest, component_spec):
+    """Test writing out a dataframe without index into subsets."""
+    dataframe = dataframe.reset_index(drop=True)
+    with tmp_path_factory.mktemp("temp") as fn:
+        # override the base path of the manifest with the temp dir
+        manifest.update_metadata("base_path", str(fn))
+        data_writer = DaskDataWriter(manifest=manifest)
+        # write out subsets to temp dir
+        data_writer.write_subsets(df=dataframe, spec=component_spec)
+        # read written data and assert
+        for subset in ["properties", "types"]:
+            df = dd.read_parquet(fn / subset)
             assert df.index.name == "uid"
 
 
