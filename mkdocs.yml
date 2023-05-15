@@ -4,6 +4,7 @@ theme:
 nav:
     - Home: index.md
     - Manifest: manifest.md
+    - License: license.md
 
 markdown_extensions:
 - pymdownx.snippets:

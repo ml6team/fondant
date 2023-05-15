@@ -134,6 +134,26 @@ Example use cases of Fondant include:
 
 Check out the [examples folder](examples) for some illustrations.
 
+## License
+
+Fondant is distributed under the OpenRAIL-S license, which stands for "Open Responsible AI 
+License for Source code". 
+
+This is a permissive license that allows for commercial and non-commercial usage. This license is 
+focused on ethical and legal use of the software as your responsibility and must accompany any 
+distribution of the software. The license is similar to Apache 2.0, but includes specific use case 
+restrictions.
+
+Versions of the OpenRAIL licenses have already been adopted by 
+[Hugging Face](https://huggingface.co/blog/open_rail), 
+[BigScience](https://bigscience.huggingface.co/blog/the-bigscience-rail-license), and 
+[stability.ai](https://stability.ai/blog/stable-diffusion-public-release#:~:text=The%20model,service%20on%20it.) 
+for the release of their open source models.
+
+For more information on the license, check:
+- Our [LICENSE](LICENSE) file
+- Our [license documentation](https://fondant.readthedocs.io/en/latest/license/)
+
 ## Contributing
 
 We use [poetry](https://python-poetry.org/docs/) and pre-commit to enable a smooth developer flow. Run the following commands to 
