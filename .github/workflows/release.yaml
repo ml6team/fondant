@@ -21,7 +21,7 @@ jobs:
         python-version: 3.9
 
     - name: Build components
-      run: ./scripts/build_components.sh -t $GITHUB_REF
+      run: ./scripts/build_components.sh -t $GITHUB_REF_NAME
 
     - name: Update version in pyproject.toml with tag version
       run: sed -i "s/^version = .*/version = '${{github.ref_name}}'/" pyproject.toml
