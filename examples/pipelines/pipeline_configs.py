@@ -13,5 +13,5 @@ class PipelineConfigs:
         HOST (str): the kfp host url
     """
 
-    BASE_PATH = "soy-audio-379412-kfp-output"
+    BASE_PATH = "gs://soy-audio-379412_kfp-artifacts/custom_artifact"
     HOST = "https://52074149b1563463-dot-europe-west1.pipelines.googleusercontent.com/"
