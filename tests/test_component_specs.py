@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from fondant.component_spec import FondantComponentSpec
+from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Type
 
@@ -37,9 +37,9 @@ def invalid_fondant_schema() -> dict:
 
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
     """Test that the manifest is validated correctly on instantiation."""
-    FondantComponentSpec(valid_fondant_schema)
+    ComponentSpec(valid_fondant_schema)
     with pytest.raises(InvalidComponentSpec):
-        FondantComponentSpec(invalid_fondant_schema)
+        ComponentSpec(invalid_fondant_schema)
 
 
 def test_attribute_access(valid_fondant_schema):
@@ -48,7 +48,7 @@ def test_attribute_access(valid_fondant_schema):
     - Fixed properties should be accessible as an attribute
     - Dynamic properties should be accessible by lookup.
     """
-    fondant_component = FondantComponentSpec(valid_fondant_schema)
+    fondant_component = ComponentSpec(valid_fondant_schema)
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
@@ -57,14 +57,14 @@ def test_attribute_access(valid_fondant_schema):
 
 def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     """Test that the created kubeflow component matches the expected kubeflow component."""
-    fondant_component = FondantComponentSpec(valid_fondant_schema)
+    fondant_component = ComponentSpec(valid_fondant_schema)
     kubeflow_component = fondant_component.kubeflow_specification
     assert kubeflow_component._specification == valid_kubeflow_schema
 
 
 def test_component_spec_no_args(valid_fondant_schema_no_args):
     """Test that a component spec without args is supported."""
-    fondant_component = FondantComponentSpec(valid_fondant_schema_no_args)
+    fondant_component = ComponentSpec(valid_fondant_schema_no_args)
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"

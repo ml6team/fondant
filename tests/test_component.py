@@ -9,14 +9,14 @@ from unittest import mock
 import dask.dataframe as dd
 import pytest
 
-from fondant.component import FondantLoadComponent, FondantTransformComponent
+from fondant.component import LoadComponent, WriteComponent
 from fondant.data_io import DaskDataLoader
 
 components_path = Path(__file__).parent / "example_specs/components"
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 
 
-class LoadFromHubComponent(FondantLoadComponent):
+class LoadFromHubComponent(LoadComponent):
     def load(self, args):
         data = {
             "id": [0, 1],
@@ -89,7 +89,7 @@ def test_transform_kwargs(monkeypatch):
     input_manifest = arguments_dir / "input_manifest.json"
 
     # Implemented Component class
-    class MyComponent(FondantTransformComponent):
+    class MyComponent(WriteComponent):
         def transform(self, dataframe, *, flag, value):
             assert flag == "success"
             assert value == 1

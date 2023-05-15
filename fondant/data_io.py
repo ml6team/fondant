@@ -4,7 +4,7 @@ import typing as t
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
-from fondant.component_spec import FondantComponentSpec
+from fondant.component_spec import ComponentSpec
 from fondant.manifest import Field, Manifest
 
 logger = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ class DaskDataLoader(DataIO):
 
         return index_df
 
-    def load_dataframe(self, spec: FondantComponentSpec) -> dd.DataFrame:
+    def load_dataframe(self, spec: ComponentSpec) -> dd.DataFrame:
         """
         Function that loads the subsets defined in the component spec as a single Dask dataframe for
           the user.
@@ -145,13 +145,13 @@ class DaskDataWriter(DataIO):
             logging.info("Writing index...")
             dd.compute(upload_index_task)
 
-    def write_subsets(self, df: dd.DataFrame, spec: FondantComponentSpec):
+    def write_subsets(self, df: dd.DataFrame, spec: ComponentSpec):
         """
         Write all subsets of the Dask dataframe to a remote location.
 
         Args:
             df (dask.dataframe.DataFrame): The output Dask dataframe returned by the user.
-            spec (FondantComponentSpec): The component specification.
+            spec (ComponentSpec): The component specification.
 
         Raises:
             ValueError: If a field defined in an output subset is not present in the user

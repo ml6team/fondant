@@ -81,7 +81,7 @@ class ComponentSubset:
         return self._specification.get("additionalFields", True)
 
 
-class FondantComponentSpec:
+class ComponentSpec:
     """
     Class representing a Fondant component specification.
 
@@ -116,7 +116,7 @@ class FondantComponentSpec:
             raise InvalidComponentSpec.create_from(e)
 
     @classmethod
-    def from_file(cls, path: t.Union[str, Path]) -> "FondantComponentSpec":
+    def from_file(cls, path: t.Union[str, Path]) -> "ComponentSpec":
         """Load the component spec from the file specified by the provided path."""
         with open(path, encoding="utf-8") as file_:
             specification = yaml.safe_load(file_)
@@ -207,7 +207,7 @@ class KubeflowComponentSpec:
 
     @classmethod
     def from_fondant_component_spec(
-        cls, fondant_component: FondantComponentSpec
+        cls, fondant_component: ComponentSpec
     ) -> "KubeflowComponentSpec":
         """Create a Kubeflow component spec from a Fondant component spec."""
         specification = {
