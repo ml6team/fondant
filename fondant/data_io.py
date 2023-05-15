@@ -13,10 +13,8 @@ logger = logging.getLogger(__name__)
 class DataIO:
     def __init__(self, manifest: Manifest):
         self.manifest = manifest
-        self.index_fields = ["source"]
-        self.index_schema = {
-            "source": "string",
-        }
+        self.index_fields = ["id", "source"]
+        self.index_schema = {"source": "string", "id": "int64"}
 
 
 class DaskDataLoader(DataIO):
@@ -58,7 +56,7 @@ class DaskDataLoader(DataIO):
         remote_path = index.location
 
         # load index from parquet, expecting id and source columns
-        index_df = dd.read_parquet(remote_path, columns=["source"])
+        index_df = dd.read_parquet(remote_path, columns=["id", "source"])
 
         return index_df
 
@@ -132,7 +130,9 @@ class DaskDataWriter(DataIO):
         index_df = df[index_columns]
 
         # set index
-        index_df = index_df.set_index("id")
+        if index_df.index.name != "uid":
+            index_df["uid"] = index_df["id"].astype("str") + "_" + index_df["source"]
+            index_df = index_df.set_index("uid")
 
         upload_index_task = self._create_write_dataframe_task(
             df=index_df, remote_path=remote_path, schema=self.index_schema
@@ -207,7 +207,11 @@ class DaskDataWriter(DataIO):
             subset_df = create_subset_dataframe(subset_name, subset_columns, df)
 
             # set index
-            subset_df = subset_df.set_index("id")
+            if subset_df.index.name != "uid":
+                subset_df["uid"] = (
+                    subset_df["id"].astype("str") + "_" + subset_df["source"]
+                )
+                subset_df = subset_df.set_index("uid")
 
             # Get the remote path where the output subset should be uploaded
             remote_path = self.manifest.subsets[subset_name].location

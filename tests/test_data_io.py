@@ -34,7 +34,7 @@ def test_load_index(manifest):
     data_loader = DaskDataLoader(manifest=manifest)
     index_df = data_loader._load_index()
     assert len(index_df) == NUMBER_OF_TEST_ROWS
-    assert index_df.index.name == "id"
+    assert index_df.index.name == "uid"
 
 
 def test_load_subset(manifest):
@@ -43,6 +43,7 @@ def test_load_subset(manifest):
     subset_df = data_loader._load_subset(subset_name="types", fields=["Type 1"])
     assert len(subset_df) == NUMBER_OF_TEST_ROWS
     assert list(subset_df.columns) == ["types_Type 1"]
+    assert subset_df.index.name == "uid"
 
 
 def test_load_dataframe(manifest, component_spec):
@@ -51,12 +52,14 @@ def test_load_dataframe(manifest, component_spec):
     df = dl.load_dataframe(spec=component_spec)
     assert len(df) == NUMBER_OF_TEST_ROWS
     assert list(df.columns) == [
+        "id",
         "source",
         "properties_Name",
         "properties_HP",
         "types_Type 1",
         "types_Type 2",
     ]
+    assert df.index.name == "uid"
 
 
 def test_write_index(tmp_path_factory, dataframe, manifest):
@@ -70,17 +73,17 @@ def test_write_index(tmp_path_factory, dataframe, manifest):
         # read written data and assert
         df = dd.read_parquet(fn / "index")
         assert len(df) == NUMBER_OF_TEST_ROWS
-        assert list(df.columns) == ["source"]
-        assert df.index.name == "id"
+        assert list(df.columns) == ["id", "source"]
+        assert df.index.name == "uid"
 
 
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
     """Test writing out subsets."""
     # Dictionary specifying the expected subsets to write and their column names
     subset_columns_dict = {
-        "index": ["source"],
-        "properties": ["Name", "HP", "source"],
-        "types": ["Type 1", "Type 2", "source"],
+        "index": ["id", "source"],
+        "properties": ["Name", "HP", "id", "source"],
+        "types": ["Type 1", "Type 2", "id", "source"],
     }
     with tmp_path_factory.mktemp("temp") as fn:
         # override the base path of the manifest with the temp dir
@@ -95,7 +98,7 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
             df = dd.read_parquet(fn / subset)
             assert len(df) == NUMBER_OF_TEST_ROWS
             assert list(df.columns) == subset_columns
-            assert df.index.name == "id"
+            assert df.index.name == "uid"
 
 
 def test_write_subsets_invalid(tmp_path_factory, dataframe, manifest, component_spec):

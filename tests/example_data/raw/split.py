@@ -20,19 +20,21 @@ def split_into_subsets():
     # read in complete dataset
     master_df = dd.read_parquet(path=data_path / "testset.parquet")
     master_df = master_df.astype({"source": "string"})
+    master_df["uid"] = master_df["id"].astype("str") + "_" + master_df["source"]
+
     # create index subset
-    index_df = master_df[["id", "source"]]
-    index_df = index_df.set_index("id")
+    index_df = master_df[["uid", "id", "source"]]
+    index_df = index_df.set_index("uid")
     index_df.to_parquet(output_path / "index")
 
     # create properties subset
-    properties_df = master_df[["id", "source", "Name", "HP"]]
-    properties_df = properties_df.set_index("id")
+    properties_df = master_df[["uid", "Name", "HP"]]
+    properties_df = properties_df.set_index("uid")
     properties_df.to_parquet(output_path / "properties")
 
     # create types subset
-    types_df = master_df[["id", "source", "Type 1", "Type 2"]]
-    types_df = types_df.set_index("id")
+    types_df = master_df[["uid", "Type 1", "Type 2"]]
+    types_df = types_df.set_index("uid")
     types_df.to_parquet(output_path / "types")
 
 
