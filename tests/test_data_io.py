@@ -78,7 +78,9 @@ def test_write_index(tmp_path_factory, dataframe, manifest):
 
 
 def test_rewrite_index(tmp_path_factory, dataframe, manifest):
-    """Test writing out the index subset without a dask index."""
+    """Test writing out the index subset that has no dask index and checking
+    if the uid index was created.
+    """
     # drop the current index
     dataframe = dataframe.reset_index(drop=True)
     with tmp_path_factory.mktemp("temp") as fn:
@@ -117,7 +119,9 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
 
 
 def test_write_subsets_set_index(tmp_path_factory, dataframe, manifest, component_spec):
-    """Test writing out a dataframe without index into subsets."""
+    """Test writing out the subsets that have no dask index and checking
+    if the uid index was created.
+    """
     dataframe = dataframe.reset_index(drop=True)
     with tmp_path_factory.mktemp("temp") as fn:
         # override the base path of the manifest with the temp dir

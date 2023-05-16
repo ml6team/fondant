@@ -14,7 +14,7 @@ class DataIO:
     def __init__(self, manifest: Manifest):
         self.manifest = manifest
         self.index_fields = ["id", "source"]
-        self.index_schema = {"source": "string", "id": "int64"}
+        self.index_schema = {"source": "string", "id": "string"}
 
 
 class DaskDataLoader(DataIO):
@@ -131,7 +131,7 @@ class DaskDataWriter(DataIO):
 
         # set index
         if index_df.index.name != "uid":
-            index_df["uid"] = index_df["id"].astype("str") + "_" + index_df["source"]
+            index_df["uid"] = index_df["source"] + "_" + index_df["id"].astype("str")
             index_df = index_df.set_index("uid")
 
         upload_index_task = self._create_write_dataframe_task(
@@ -209,7 +209,7 @@ class DaskDataWriter(DataIO):
             # set index
             if subset_df.index.name != "uid":
                 subset_df["uid"] = (
-                    subset_df["id"].astype("str") + "_" + subset_df["source"]
+                    subset_df["source"] + "_ " + subset_df["id"].astype("str")
                 )
                 subset_df = subset_df.set_index("uid")
 
