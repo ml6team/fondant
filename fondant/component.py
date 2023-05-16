@@ -96,8 +96,6 @@ class Component(ABC):
         self.upload_manifest(output_manifest, save_path=self.args.output_manifest_path)
 
     def upload_manifest(self, manifest: Manifest, save_path: str):
-        print("Output manifest:", manifest)
-        print("Save path:", save_path)
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         manifest.to_file(save_path)
 

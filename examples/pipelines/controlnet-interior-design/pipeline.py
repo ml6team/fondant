@@ -26,12 +26,10 @@ client = Client(host=PipelineConfigs.HOST)
 generate_prompts_op = ComponentOp(
     component_spec_path="components/generate_prompts/fondant_component.yaml"
 )
-
-laion_retrieval_op = ComponentOp.from_registry(
-    name="prompt_based_laion_retrieval",
+laion_retrieval_op = ComponentOp(
+    component_spec_path="components/laion_retrieval/fondant_component.yaml",
     arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
 )
-
 download_images_op = ComponentOp(
     component_spec_path="components/download_images/fondant_component.yaml",
     arguments={
