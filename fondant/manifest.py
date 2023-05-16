@@ -251,6 +251,8 @@ class Manifest:
                     )
 
                 # Update subset location as this is currently always rewritten
+                print("Updating location of subset", subset_name)
+                print("Component id:", component_id)
                 evolved_manifest.subsets[subset_name]._specification[
                     "location"
                 ] = f"/{subset_name}/{self.run_id}/{component_id}"
