@@ -249,6 +249,12 @@ class Manifest:
                     evolved_manifest.subsets[subset_name].add_field(
                         field.name, field.type, overwrite=True
                     )
+
+                # Update subset location as this is currently always rewritten
+                evolved_manifest.subsets[subset_name]._specification[
+                    "location"
+                ] = f"/{subset_name}/{self.run_id}/{component_id}"
+
             # Subset is not yet in manifest, add it
             else:
                 evolved_manifest.add_subset(subset_name, subset.fields.values())
