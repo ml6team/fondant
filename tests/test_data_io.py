@@ -3,7 +3,7 @@ from pathlib import Path
 import dask.dataframe as dd
 import pytest
 
-from fondant.component_spec import FondantComponentSpec
+from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
@@ -20,7 +20,7 @@ def manifest():
 
 @pytest.fixture
 def component_spec():
-    return FondantComponentSpec.from_file(component_spec_path)
+    return ComponentSpec.from_file(component_spec_path)
 
 
 @pytest.fixture
@@ -32,7 +32,9 @@ def dataframe(manifest, component_spec):
 def test_load_index(manifest):
     """Test the loading of just the index."""
     data_loader = DaskDataLoader(manifest=manifest)
-    assert len(data_loader._load_index()) == NUMBER_OF_TEST_ROWS
+    index_df = data_loader._load_index()
+    assert len(index_df) == NUMBER_OF_TEST_ROWS
+    assert index_df.index.name == "uid"
 
 
 def test_load_subset(manifest):
@@ -40,7 +42,8 @@ def test_load_subset(manifest):
     data_loader = DaskDataLoader(manifest=manifest)
     subset_df = data_loader._load_subset(subset_name="types", fields=["Type 1"])
     assert len(subset_df) == NUMBER_OF_TEST_ROWS
-    assert list(subset_df.columns) == ["id", "source", "types_Type 1"]
+    assert list(subset_df.columns) == ["types_Type 1"]
+    assert subset_df.index.name == "uid"
 
 
 def test_load_dataframe(manifest, component_spec):
@@ -56,6 +59,7 @@ def test_load_dataframe(manifest, component_spec):
         "types_Type 1",
         "types_Type 2",
     ]
+    assert df.index.name == "uid"
 
 
 def test_write_index(tmp_path_factory, dataframe, manifest):
@@ -70,6 +74,7 @@ def test_write_index(tmp_path_factory, dataframe, manifest):
         df = dd.read_parquet(fn / "index")
         assert len(df) == NUMBER_OF_TEST_ROWS
         assert list(df.columns) == ["id", "source"]
+        assert df.index.name == "uid"
 
 
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
@@ -93,6 +98,45 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
             df = dd.read_parquet(fn / subset)
             assert len(df) == NUMBER_OF_TEST_ROWS
             assert list(df.columns) == subset_columns
+            assert df.index.name == "uid"
+
+
+def test_write_reset_index(tmp_path_factory, dataframe, manifest, component_spec):
+    """Test writing out the index and subsets that have no dask index and checking
+    if the uid index was created.
+    """
+    dataframe = dataframe.reset_index(drop=True)
+    with tmp_path_factory.mktemp("temp") as fn:
+        manifest.update_metadata("base_path", str(fn))
+
+        data_writer = DaskDataWriter(manifest=manifest)
+        data_writer.write_index(df=dataframe)
+        data_writer.write_subsets(df=dataframe, spec=component_spec)
+
+        for subset in ["properties", "types", "index"]:
+            df = dd.read_parquet(fn / subset)
+            assert df.index.name == "uid"
+
+
+@pytest.mark.parametrize("partitions", list(range(1, 5)))
+def test_write_divisions(
+    tmp_path_factory, dataframe, manifest, component_spec, partitions
+):
+    """Test writing out index and subsets and asserting they have the divisions of the dataframe."""
+    # repartition the dataframe (default is 3 partitions)
+    dataframe = dataframe.repartition(npartitions=partitions)
+
+    with tmp_path_factory.mktemp("temp") as fn:
+        manifest.update_metadata("base_path", str(fn))
+
+        data_writer = DaskDataWriter(manifest=manifest)
+        data_writer.write_index(df=dataframe)
+        data_writer.write_subsets(df=dataframe, spec=component_spec)
+
+        for target in ["properties", "types", "index"]:
+            df = dd.read_parquet(fn / target)
+            assert df.index.name == "uid"
+            assert df.npartitions == partitions
 
 
 def test_write_subsets_invalid(tmp_path_factory, dataframe, manifest, component_spec):

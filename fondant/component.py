@@ -14,30 +14,30 @@ from pathlib import Path
 
 import dask.dataframe as dd
 
-from fondant.component_spec import Argument, FondantComponentSpec, kubeflow2python_type
+from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
 
 
-class FondantComponent(ABC):
+class Component(ABC):
     """Abstract base class for a Fondant component."""
 
-    def __init__(self, spec: FondantComponentSpec) -> None:
+    def __init__(self, spec: ComponentSpec) -> None:
         self.spec = spec
         self.args = self._add_and_parse_args()
 
     @classmethod
     def from_file(
         cls, path: t.Union[str, Path] = "../fondant_component.yaml"
-    ) -> "FondantComponent":
+    ) -> "Component":
         """Create a component from a component spec file.
 
         Args:
             path: Path to the component spec file
         """
-        component_spec = FondantComponentSpec.from_file(path)
+        component_spec = ComponentSpec.from_file(path)
         return cls(component_spec)
 
     def _get_component_arguments(self) -> t.Dict[str, Argument]:
@@ -100,7 +100,7 @@ class FondantComponent(ABC):
         manifest.to_file(save_path)
 
 
-class FondantLoadComponent(FondantComponent):
+class LoadComponent(Component):
     """Base class for a Fondant load component."""
 
     def _add_and_parse_args(self):
@@ -152,7 +152,7 @@ class FondantLoadComponent(FondantComponent):
         return df
 
 
-class FondantTransformComponent(FondantComponent):
+class TransformComponent(Component):
     """Base class for a Fondant transform component."""
 
     def _add_and_parse_args(self):
@@ -160,16 +160,10 @@ class FondantTransformComponent(FondantComponent):
         component_arguments = self._get_component_arguments()
 
         for arg in component_arguments.values():
-            # Metadata is not required for loading component
-            if arg.name == "metadata":
-                input_required = False
-            else:
-                input_required = True
-
             parser.add_argument(
                 f"--{arg.name}",
                 type=kubeflow2python_type[arg.type],
-                required=input_required,
+                required=True,
                 help=arg.description,
             )
 

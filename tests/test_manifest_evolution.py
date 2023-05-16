@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from fondant.component_spec import FondantComponentSpec
+from fondant.component_spec import ComponentSpec
 from fondant.manifest import Manifest
 
 examples_path = Path(__file__).parent / "example_specs/evolution_examples"
@@ -28,7 +28,24 @@ def examples():
 @pytest.mark.parametrize("component_spec, output_manifest", list(examples()))
 def test_evolution(input_manifest, component_spec, output_manifest):
     manifest = Manifest(input_manifest)
-    component_spec = FondantComponentSpec(component_spec)
+    component_spec = ComponentSpec(component_spec)
     evolved_manifest = manifest.evolve(component_spec=component_spec)
 
     assert evolved_manifest._specification == output_manifest
+
+
+def test_component_spec_location_update():
+    with open(examples_path / "input_manifest.json") as f:
+        input_manifest = json.load(f)
+
+    with open(examples_path / "7/component.yaml") as f:
+        specification = yaml.safe_load(f)
+
+    manifest = Manifest(input_manifest)
+    component_spec = ComponentSpec(specification)
+    evolved_manifest = manifest.evolve(component_spec=component_spec)
+
+    assert (
+        evolved_manifest._specification["subsets"]["images"]["location"]
+        == "/images/12345/example_component"
+    )

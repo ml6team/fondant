@@ -10,7 +10,7 @@ try:
 except ImportError:
     from importlib_resources import files  # type: ignore
 
-from fondant.component import FondantComponentSpec, Manifest
+from fondant.component import ComponentSpec, Manifest
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.import_utils import is_kfp_available
 
@@ -22,7 +22,7 @@ if is_kfp_available():
 logger = logging.getLogger(__name__)
 
 
-class FondantComponentOp:
+class ComponentOp:
     """
     Class representing an operation for a Fondant Component in a Kubeflow Pipeline. An operation
     is a representation of a function that will be executed as part of a pipeline.
@@ -66,8 +66,8 @@ class FondantComponentOp:
         self.ephemeral_storage_size = ephemeral_storage_size
 
     @property
-    def component_spec(self) -> FondantComponentSpec:
-        return FondantComponentSpec.from_file(self.component_spec_path)
+    def component_spec(self) -> ComponentSpec:
+        return ComponentSpec.from_file(self.component_spec_path)
 
     @classmethod
     def from_registry(
@@ -79,7 +79,7 @@ class FondantComponentOp:
         node_pool_name: t.Optional[str] = None,
         p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
         ephemeral_storage_size: t.Optional[str] = None,
-    ) -> "FondantComponentOp":
+    ) -> "ComponentOp":
         """Load a reusable component by its name.
 
         Args:
@@ -101,7 +101,7 @@ class FondantComponentOp:
         if not (component_spec_path.exists() and component_spec_path.is_file()):
             raise ValueError(f"No reusable component with name {name} found.")
 
-        return FondantComponentOp(
+        return ComponentOp(
             component_spec_path,
             arguments=arguments,
             number_of_gpus=number_of_gpus,
@@ -111,7 +111,7 @@ class FondantComponentOp:
         )
 
 
-class FondantPipeline:
+class Pipeline:
     """Class representing a Fondant Pipeline."""
 
     def __init__(
@@ -135,10 +135,8 @@ class FondantPipeline:
 
     def add_op(
         self,
-        task: FondantComponentOp,
-        dependencies: t.Optional[
-            t.Union[FondantComponentOp, t.List[FondantComponentOp]]
-        ] = None,
+        task: ComponentOp,
+        dependencies: t.Optional[t.Union[ComponentOp, t.List[ComponentOp]]] = None,
     ):
         """
         Add a task to the pipeline with an optional dependency.
@@ -274,14 +272,14 @@ class FondantPipeline:
         """
 
         def _get_component_function(
-            fondant_component_operation: FondantComponentOp,
+            fondant_component_operation: ComponentOp,
         ) -> t.Callable:
             """
             Load the Kubeflow component based on the specification from the fondant component
              operation.
 
             Args:
-                fondant_component_operation (FondantComponentOp): The fondant component
+                fondant_component_operation (ComponentOp): The fondant component
                  operation.
 
             Returns:
@@ -380,7 +378,7 @@ class FondantPipeline:
         return f"{self.__class__.__name__}({self._graph!r}"
 
 
-class FondantClient:
+class Client:
     """Class representing a Fondant Client."""
 
     def __init__(self, host: str):
@@ -429,7 +427,7 @@ class FondantClient:
 
     def compile_and_upload(
         self,
-        pipeline: FondantPipeline,
+        pipeline: Pipeline,
         delete_pipeline_package: t.Optional[bool] = False,
     ):
         """
@@ -444,7 +442,7 @@ class FondantClient:
         Raises:
             Exception: If there was an error uploading the pipeline package.
         """
-        self.delete_pipeline(pipeline.name)
+        # self.delete_pipeline(pipeline.name)
 
         pipeline.compile()
 
@@ -463,7 +461,7 @@ class FondantClient:
 
     def compile_and_run(
         self,
-        pipeline: FondantPipeline,
+        pipeline: Pipeline,
         run_name: t.Optional[str] = None,
         experiment_name: t.Optional[str] = "Default",
     ):

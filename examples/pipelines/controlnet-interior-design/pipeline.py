@@ -8,9 +8,9 @@ sys.path.append("../")
 from pipeline_configs import PipelineConfigs
 
 from fondant.pipeline import (
-    FondantComponentOp,
-    FondantPipeline,
-    FondantClient,
+    ComponentOp,
+    Pipeline,
+    Client,
 )
 from fondant.logger import configure_logging
 
@@ -20,23 +20,33 @@ logger = logging.getLogger(__name__)
 pipeline_name = "controlnet-pipeline"
 pipeline_description = "Pipeline that collects data to train ControlNet"
 
-client = FondantClient(host=PipelineConfigs.HOST)
+client = Client(host=PipelineConfigs.HOST)
 
 # Define component ops
-generate_prompts_op = FondantComponentOp(
+generate_prompts_op = ComponentOp(
     component_spec_path="components/generate_prompts/fondant_component.yaml"
 )
-
-laion_retrieval_op = FondantComponentOp.from_registry(
+laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
     arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
 )
-
-pipeline = FondantPipeline(
-    pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH
+download_images_op = ComponentOp(
+    component_spec_path="components/download_images/fondant_component.yaml",
+    arguments={
+        "timeout": 10,
+        "retries": 0,
+        "image_size": 512,
+        "resize_mode": "center_crop",
+        "resize_only_if_bigger": False,
+        "min_image_size": 0,
+        "max_aspect_ratio": 2.5,
+    },
 )
+
+pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
 pipeline.add_op(generate_prompts_op)
 pipeline.add_op(laion_retrieval_op, dependencies=generate_prompts_op)
+pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
 
 client.compile_and_run(pipeline=pipeline)
