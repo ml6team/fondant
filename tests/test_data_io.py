@@ -3,7 +3,7 @@ from pathlib import Path
 import dask.dataframe as dd
 import pytest
 
-from fondant.component_spec import FondantComponentSpec
+from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
@@ -20,7 +20,7 @@ def manifest():
 
 @pytest.fixture
 def component_spec():
-    return FondantComponentSpec.from_file(component_spec_path)
+    return ComponentSpec.from_file(component_spec_path)
 
 
 @pytest.fixture

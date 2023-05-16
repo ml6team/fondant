@@ -8,7 +8,7 @@ import dask.dataframe as dd
 import dask.array as da
 import pandas as pd
 
-from fondant.component import FondantLoadComponent
+from fondant.component import LoadComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -99,7 +99,7 @@ def make_interior_prompt(room: str, prefix: str, style: str) -> str:
     return f"{prefix.lower()} {room.lower()}, {style.lower()} interior design"
 
 
-class GeneratePromptsComponent(FondantLoadComponent):
+class GeneratePromptsComponent(LoadComponent):
     def load(self) -> dd.DataFrame:
         """
         Generate a set of initial prompts that will be used to retrieve images from the LAION-5B dataset.

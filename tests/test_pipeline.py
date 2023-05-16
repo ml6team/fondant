@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from fondant.exceptions import InvalidPipelineDefinition
-from fondant.pipeline import FondantComponentOp, FondantPipeline
+from fondant.pipeline import ComponentOp, Pipeline
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
 invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
@@ -33,15 +33,15 @@ def test_valid_pipeline(default_pipeline_args, valid_pipeline_example, tmp_path)
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
 
-    pipeline = FondantPipeline(**default_pipeline_args)
+    pipeline = Pipeline(**default_pipeline_args)
 
-    first_component_op = FondantComponentOp(
+    first_component_op = ComponentOp(
         Path(components_path / component_names[0]), arguments=component_args
     )
-    second_component_op = FondantComponentOp(
+    second_component_op = ComponentOp(
         Path(components_path / component_names[1]), arguments=component_args
     )
-    third_component_op = FondantComponentOp(
+    third_component_op = ComponentOp(
         Path(components_path / component_names[2]), arguments=component_args
     )
 
@@ -82,15 +82,15 @@ def test_invalid_pipeline_dependencies(
     components_path = Path(valid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
 
-    pipeline = FondantPipeline(**default_pipeline_args)
+    pipeline = Pipeline(**default_pipeline_args)
 
-    first_component_op = FondantComponentOp(
+    first_component_op = ComponentOp(
         Path(components_path / component_names[0]), arguments=component_args
     )
-    second_component_op = FondantComponentOp(
+    second_component_op = ComponentOp(
         Path(components_path / component_names[1]), arguments=component_args
     )
-    third_component_op = FondantComponentOp(
+    third_component_op = ComponentOp(
         Path(components_path / component_names[2]), arguments=component_args
     )
 
@@ -118,12 +118,12 @@ def test_invalid_pipeline_compilation(
     components_path = Path(invalid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
 
-    pipeline = FondantPipeline(**default_pipeline_args)
+    pipeline = Pipeline(**default_pipeline_args)
 
-    first_component_op = FondantComponentOp(
+    first_component_op = ComponentOp(
         Path(components_path / component_names[0]), arguments=component_args
     )
-    second_component_op = FondantComponentOp(
+    second_component_op = ComponentOp(
         Path(components_path / component_names[1]), arguments=component_args
     )
 
@@ -149,11 +149,11 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
     components_spec_path = Path(
         valid_pipeline_path / "example_1" / "first_component.yaml"
     )
-    component_operation = FondantComponentOp(
+    component_operation = ComponentOp(
         components_spec_path, arguments=invalid_component_args
     )
 
-    pipeline = FondantPipeline(**default_pipeline_args)
+    pipeline = Pipeline(**default_pipeline_args)
 
     pipeline.add_op(component_operation)
 
@@ -162,13 +162,13 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
 
 
 def test_reusable_component_op():
-    laion_retrieval_op = FondantComponentOp.from_registry(
+    laion_retrieval_op = ComponentOp.from_registry(
         name="prompt_based_laion_retrieval",
         arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
     )
     assert laion_retrieval_op.component_spec, "component_spec_path could not be loaded"
 
     with pytest.raises(ValueError):
-        FondantComponentOp.from_registry(
+        ComponentOp.from_registry(
             name="this_component_does_not_exist",
         )

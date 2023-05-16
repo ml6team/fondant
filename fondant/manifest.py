@@ -10,7 +10,7 @@ import jsonschema.exceptions
 from jsonschema import Draft4Validator
 from jsonschema.validators import RefResolver
 
-from fondant.component_spec import FondantComponentSpec
+from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidManifest
 from fondant.schema import Field, Type
 
@@ -188,7 +188,7 @@ class Manifest:
         del self._specification["subsets"][name]
 
     def evolve(  # noqa : PLR0912 (too many branches)
-        self, component_spec: FondantComponentSpec
+        self, component_spec: ComponentSpec
     ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
