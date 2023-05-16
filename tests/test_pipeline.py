@@ -159,3 +159,16 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
 
     with pytest.raises((ValueError, TypeError)):
         pipeline.compile()
+
+
+def test_reusable_component_op():
+    laion_retrieval_op = ComponentOp.from_registry(
+        name="prompt_based_laion_retrieval",
+        arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
+    )
+    assert laion_retrieval_op.component_spec, "component_spec_path could not be loaded"
+
+    with pytest.raises(ValueError):
+        ComponentOp.from_registry(
+            name="this_component_does_not_exist",
+        )
