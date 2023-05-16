@@ -7,6 +7,7 @@ RUN apt-get update && \
 
 # install requirements
 COPY requirements.txt /
+RUN python3 -m pip install --upgrade pip
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Set the working directory to the component folder
