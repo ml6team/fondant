@@ -129,10 +129,12 @@ class DaskDataWriter(DataIO):
         # load index dataframe
         index_df = df[index_columns]
 
+        divisions = list(df.divisions) if df.known_divisions else None
+
         # set index
         if index_df.index.name != "uid":
             index_df["uid"] = index_df["source"] + "_" + index_df["id"].astype("str")
-            index_df = index_df.set_index("uid")
+            index_df = index_df.set_index("uid", divisions=divisions)
 
         upload_index_task = self._create_write_dataframe_task(
             df=index_df, remote_path=remote_path, schema=self.index_schema
@@ -197,6 +199,8 @@ class DaskDataWriter(DataIO):
 
         upload_subsets_tasks = []
 
+        divisions = list(df.divisions) if df.known_divisions else None
+
         # Loop through each output subset defined in the spec
         for subset_name, subset in spec.output_subsets.items():
             # Verify that all the fields defined in the output subset are present in the
@@ -211,7 +215,7 @@ class DaskDataWriter(DataIO):
                 subset_df["uid"] = (
                     subset_df["source"] + "_ " + subset_df["id"].astype("str")
                 )
-                subset_df = subset_df.set_index("uid")
+                subset_df = subset_df.set_index("uid", divisions=divisions)
 
             # Get the remote path where the output subset should be uploaded
             remote_path = self.manifest.subsets[subset_name].location

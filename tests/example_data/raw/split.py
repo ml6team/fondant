@@ -19,6 +19,8 @@ output_path = Path(__file__).parent.parent / "subsets_input/"
 def split_into_subsets():
     # read in complete dataset
     master_df = dd.read_parquet(path=data_path / "testset.parquet")
+    master_df = master_df.set_index("id", drop=False, sorted=True)
+    master_df = master_df.repartition(divisions=[0, 50, 100, 151], force=True)
     master_df = master_df.astype({"source": "string", "id": "string"})
     master_df["uid"] = master_df["source"] + "_" + master_df["id"].astype("str")
 

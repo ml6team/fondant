@@ -77,23 +77,6 @@ def test_write_index(tmp_path_factory, dataframe, manifest):
         assert df.index.name == "uid"
 
 
-def test_rewrite_index(tmp_path_factory, dataframe, manifest):
-    """Test writing out the index subset that has no dask index and checking
-    if the uid index was created.
-    """
-    # drop the current index
-    dataframe = dataframe.reset_index(drop=True)
-    with tmp_path_factory.mktemp("temp") as fn:
-        # override the base path of the manifest with the temp dir
-        manifest.update_metadata("base_path", str(fn))
-        data_writer = DaskDataWriter(manifest=manifest)
-        # write out index to temp dir
-        data_writer.write_index(df=dataframe)
-        # read written data and assert
-        df = dd.read_parquet(fn / "index")
-        assert df.index.name == "uid"
-
-
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
     """Test writing out subsets."""
     # Dictionary specifying the expected subsets to write and their column names
@@ -118,21 +101,42 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
             assert df.index.name == "uid"
 
 
-def test_write_subsets_set_index(tmp_path_factory, dataframe, manifest, component_spec):
-    """Test writing out the subsets that have no dask index and checking
+def test_write_reset_index(tmp_path_factory, dataframe, manifest, component_spec):
+    """Test writing out the index and subsets that have no dask index and checking
     if the uid index was created.
     """
     dataframe = dataframe.reset_index(drop=True)
     with tmp_path_factory.mktemp("temp") as fn:
-        # override the base path of the manifest with the temp dir
         manifest.update_metadata("base_path", str(fn))
+
         data_writer = DaskDataWriter(manifest=manifest)
-        # write out subsets to temp dir
+        data_writer.write_index(df=dataframe)
         data_writer.write_subsets(df=dataframe, spec=component_spec)
-        # read written data and assert
-        for subset in ["properties", "types"]:
+
+        for subset in ["properties", "types", "index"]:
             df = dd.read_parquet(fn / subset)
             assert df.index.name == "uid"
+
+
+@pytest.mark.parametrize("partitions", list(range(1, 5)))
+def test_write_divisions(
+    tmp_path_factory, dataframe, manifest, component_spec, partitions
+):
+    """Test writing out index and subsets and asserting they have the divisions of the dataframe."""
+    # repartition the dataframe (default is 3 partitions)
+    dataframe = dataframe.repartition(npartitions=partitions)
+
+    with tmp_path_factory.mktemp("temp") as fn:
+        manifest.update_metadata("base_path", str(fn))
+
+        data_writer = DaskDataWriter(manifest=manifest)
+        data_writer.write_index(df=dataframe)
+        data_writer.write_subsets(df=dataframe, spec=component_spec)
+
+        for target in ["properties", "types", "index"]:
+            df = dd.read_parquet(fn / target)
+            assert df.index.name == "uid"
+            assert df.npartitions == partitions
 
 
 def test_write_subsets_invalid(tmp_path_factory, dataframe, manifest, component_spec):
