@@ -17,6 +17,7 @@ output_subsets:
         type: int16
       height:
         type: int16
+    additionalFields: false
 
 args:
   timeout:
