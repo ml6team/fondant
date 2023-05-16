@@ -1,5 +1,5 @@
 """
-This component write an images dataset to the hub.
+This component writes an image dataset to the hub.
 """
 import logging
 
@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 class WriteToHubComponent(FondantTransformComponent):
     def transform(
         self,
-        *,
         dataframe: dd.DataFrame,
+        *,
         hf_token: str,
         username: str,
         dataset_name: str,
@@ -35,18 +35,26 @@ class WriteToHubComponent(FondantTransformComponent):
         # login
         huggingface_hub.login(token=hf_token)
 
-        # Create hub
+        # Create HF dataset repository
         repo_id = f"{username}/{dataset_name}"
         repo_path = f"hf://datasets/{repo_id}"
         logger.info(f"Creating HF dataset repository under ID: '{repo_id}'")
         huggingface_hub.create_repo(repo_id=repo_id, repo_type="dataset", exist_ok=True)
 
-        dataframe_hub = dataframe[["images_data", "captions_data"]]
-        dataframe_hub = dataframe_hub.rename(
-            columns={"images_data": "images", "captions_data": "captions"}
-        )
+        # Get columns to write and schema
+        write_columns = []
+        schema = {}
+        for subset_name, subset in self.spec.input_subsets.items():
+            write_columns.extend([f"{subset_name}_{field}" for field in subset.fields])
+            # Get schema
+            subset_schema = {
+                f"{subset_name}_{field.name}": field.type.value
+                for field in subset.fields.values()
+            }
 
-        schema = {"images": "binary", "captions": "string"}
+            schema.update(subset_schema)
+
+        dataframe_hub = dataframe[write_columns]
         dd.to_parquet(dataframe_hub, path=f"{repo_path}/data", schema=schema)
 
         return dataframe
