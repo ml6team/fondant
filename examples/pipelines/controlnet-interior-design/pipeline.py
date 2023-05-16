@@ -43,9 +43,7 @@ download_images_op = ComponentOp(
     },
 )
 
-pipeline = Pipeline(
-    pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH
-)
+pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
 pipeline.add_op(generate_prompts_op)
 pipeline.add_op(laion_retrieval_op, dependencies=generate_prompts_op)
