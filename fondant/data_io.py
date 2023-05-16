@@ -133,7 +133,7 @@ class DaskDataWriter(DataIO):
 
         # set index
         if index_df.index.name != "uid":
-            index_df["uid"] = index_df["source"] + "_" + index_df["id"].astype("str")
+            index_df["uid"] = index_df["source"] + "_" + index_df["id"]
             index_df = index_df.set_index("uid", divisions=divisions)
 
         upload_index_task = self._create_write_dataframe_task(
@@ -212,9 +212,7 @@ class DaskDataWriter(DataIO):
 
             # set index
             if subset_df.index.name != "uid":
-                subset_df["uid"] = (
-                    subset_df["source"] + "_ " + subset_df["id"].astype("str")
-                )
+                subset_df["uid"] = subset_df["source"] + "_ " + subset_df["id"]
                 subset_df = subset_df.set_index("uid", divisions=divisions)
 
             # Get the remote path where the output subset should be uploaded
