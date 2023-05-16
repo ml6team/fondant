@@ -5,14 +5,14 @@ import logging
 
 import dask.dataframe as dd
 
-from fondant.component import WriteComponent
+from fondant.component import TransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 
-class ImageFilterComponent(WriteComponent):
+class ImageFilterComponent(TransformComponent):
     """
     Component that filters images based on height and width.
     """

@@ -9,7 +9,7 @@ import dask.array as da
 
 from clip_client import ClipClient, Modality
 
-from fondant.component import WriteComponent
+from fondant.component import TransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -34,7 +34,7 @@ def query_clip_client(text: str, client: ClipClient) -> List[str]:
     return urls
 
 
-class LAIONRetrievalComponent(WriteComponent):
+class LAIONRetrievalComponent(TransformComponent):
     """
     Component that retrieves image URLs from LAION-5B based on a set of prompts.
     """

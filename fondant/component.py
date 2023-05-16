@@ -152,7 +152,7 @@ class LoadComponent(Component):
         return df
 
 
-class WriteComponent(Component):
+class TransformComponent(Component):
     """Base class for a Fondant transform component."""
 
     def _add_and_parse_args(self):
