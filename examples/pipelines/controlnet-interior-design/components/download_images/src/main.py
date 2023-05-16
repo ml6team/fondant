@@ -105,6 +105,11 @@ class DownloadImagesComponent(FondantTransformComponent):
             dataframe: Dask dataframe
             timeout: Maximum time (in seconds) to wait when trying to download an image.
             retries: Number of times to retry downloading an image if it fails.
+            image_size: Size of the images after resizing.
+            resize_mode: Resize mode to use. One of "no", "keep_ratio", "center_crop", "border".
+            resize_only_if_bigger: If True, resize only if image is bigger than image_size.
+            min_image_size: Minimum size of the images.
+            max_aspect_ratio: Maximum aspect ratio of the images.
 
         Returns:
             Dask dataframe

@@ -69,19 +69,10 @@ class LAIONRetrievalComponent(TransformComponent):
             modality=Modality.IMAGE,
         )
 
-        # dataframe["images_url"] = dataframe["prompts_text"].apply(
-        #     lambda example: query_clip_client(example, client),
-        #     meta=("images_url", "str"),
-        # )
-
-        data = {
-            "images_url": [
-                "https://placekitten.com/200/305",
-                "https://placekitten.com/200/304",
-            ]
-        }
-        pandas_df = pd.DataFrame.from_dict(data)
-        df = dd.from_pandas(pandas_df, npartitions=1)
+        dataframe["images_url"] = dataframe["prompts_text"].apply(
+            lambda example: query_clip_client(example, client),
+            meta=("images_url", "str"),
+        )
 
         # unpack list of urls
         dataframe = dataframe.explode("images_url")
