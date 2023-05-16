@@ -42,7 +42,7 @@ def test_component_spec_location_update():
         specification = yaml.safe_load(f)
 
     manifest = Manifest(input_manifest)
-    component_spec = FondantComponentSpec(specification)
+    component_spec = ComponentSpec(specification)
     evolved_manifest = manifest.evolve(component_spec=component_spec)
 
     assert (
