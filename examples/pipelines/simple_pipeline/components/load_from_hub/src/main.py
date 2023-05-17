@@ -48,7 +48,7 @@ class LoadFromHubComponent(LoadComponent):
 
         # 2) Add index to the dataframe
         logger.info("Creating index...")
-        index_list = [idx for idx in range(len(dask_df))]
+        index_list = [str(idx) for idx in range(len(dask_df))]
         source_list = ["hub" for _ in range(len(dask_df))]
 
         dask_df["id"] = da.array(index_list)

@@ -7,13 +7,9 @@ input_subsets:
     fields:
       data:
         type: binary
-      width:
-        type: int16
-      height:
-        type: int16
 
 output_subsets:
-  images:
+  images_crop:
     fields:
       data:
         type: binary
@@ -21,3 +17,14 @@ output_subsets:
         type: int16
       height:
         type: int16
+
+args:
+  scale:
+    description: Scale parameter used for detecting borders
+    type: float
+  offset:
+    description: Offset parameter used for detecting borders
+    type: int
+  padding:
+    description: Padding for the image cropping
+    type: int
