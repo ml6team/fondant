@@ -47,6 +47,7 @@ class LoadFromHubComponent(LoadComponent):
 
         # 2) Add index to the dataframe
         dask_df["id"] = dask_df.assign(id=1).id.cumsum()
+        dask_df = dask_df.astype({"id": "string"})
         dask_df["source"] = "hub"
 
         # 3) Rename columns
@@ -61,7 +62,7 @@ class LoadFromHubComponent(LoadComponent):
 
         # 5) Add width and height columns
         dask_df["images_width"] = dask_df["images_data"].map(
-            extract_width, meta=("image_width", int)
+            extract_width, meta=("images_width", int)
         )
         dask_df["images_height"] = dask_df["images_data"].map(
             extract_height, meta=("images_height", int)

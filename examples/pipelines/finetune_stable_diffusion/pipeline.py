@@ -20,7 +20,15 @@ client = Client(host=PipelineConfigs.HOST)
 # Define component ops
 load_from_hub_op = ComponentOp(
     component_spec_path="components/load_from_hub/fondant_component.yaml",
-    arguments={"dataset_name": "lambdalabs/pokemon-blip-captions"},
+    arguments={"dataset_name": "logo-wizard/modern-logo-dataset"},
+)
+
+image_embedding_op = ComponentOp(
+    component_spec_path="components/image_embedding/fondant_component.yaml",
+    arguments={
+        "min_width": 600,
+        "min_height": 600,
+    },
 )
 
 image_filtering_op = ComponentOp(
@@ -31,7 +39,8 @@ image_filtering_op = ComponentOp(
     },
 )
 
-write_to_hub_op = FondantComponentOp(
+
+write_to_hub_op = ComponentOp(
     component_spec_path="components/write_to_hub/fondant_component.yaml",
     arguments={
         "username": "philippemo",
@@ -44,5 +53,8 @@ pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_
 
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
+pipeline.add_op(image_embedding_op, dependencies=load_from_hub_op)
+# pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
+pipeline.add_op(write_to_hub_op, dependencies=image_embedding_op)
 
 client.compile_and_run(pipeline=pipeline)
