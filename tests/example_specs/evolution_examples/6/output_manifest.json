@@ -12,7 +12,7 @@
       "location": "/images/12345/example_component",
       "fields": {
         "encoding": {
-          "type": "utf8"
+          "type": "string"
         }
       }
     }

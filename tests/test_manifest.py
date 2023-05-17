@@ -68,8 +68,8 @@ def test_subset_fields():
         subset.add_field(name="data2", type_=Type.binary)
 
     # add a duplicate field but overwrite
-    subset.add_field(name="data2", type_=Type.utf8, overwrite=True)
-    assert subset.fields["data2"].type == Type.utf8
+    subset.add_field(name="data2", type_=Type.string, overwrite=True)
+    assert subset.fields["data2"].type == Type.string
 
     # remove a field
     subset.remove_field(name="data2")
