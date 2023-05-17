@@ -64,12 +64,12 @@ class ImageCroppingComponent(TransformComponent):
             dd.DataFrame: Dask dataframe with cropped images
         """
         # crop images
-        dataframe["images_data"] = dataframe["images_data"].map(lambda x: remove_borders(x, scale, offset, padding),
-                                                                meta=("images_crop", "bytes"))
+        dataframe["images_crop_data"] = dataframe["images_data"].map(lambda x: remove_borders(x, scale, offset, padding),
+                                                                     meta=("images_crop_data", "bytes"))
 
         # extract width and height
-        dataframe["images_width"] = dataframe["images_data"].map(extract_width, meta=("images_width", int))
-        dataframe["images_height"] = dataframe["images_data"].map(extract_height, meta=("images_height", int))
+        dataframe["images_crop_width"] = dataframe["images_data"].map(extract_width, meta=("images_crop_width", int))
+        dataframe["images_crop_height"] = dataframe["images_data"].map(extract_height, meta=("images_crop_height", int))
         return dataframe
 
 
