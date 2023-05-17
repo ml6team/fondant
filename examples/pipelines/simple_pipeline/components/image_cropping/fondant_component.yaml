@@ -1,5 +1,5 @@
 name: Image cropping
-description: Component that crops images based on desired minimum width and height
+description: Component that removes single-colored borders around images and crops them appropriately
 image: ghcr.io/ml6team/image_cropping:latest
 
 input_subsets:
