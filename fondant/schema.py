@@ -49,36 +49,9 @@ class Type(enum.Enum):
 
     binary = pa.binary()
 
-    bool_list = pa.bool_()
-
     int8_list = pa.list_(pa.int8())
-    int16_list = pa.list_(pa.int16())
-    int32_list = pa.list_(pa.int32())
-    int64_list = pa.list_(pa.int64())
-
-    uint8_list = pa.list_(pa.uint8())
-    uint16_list = pa.list_(pa.uint16())
-    uint32_list = pa.list_(pa.uint32())
-    uint64_list = pa.list_(pa.uint64())
 
     float16_list = pa.list_(pa.float16())
-    float32_list = pa.list_(pa.float32())
-    float64_list = pa.list_(pa.float64())
-
-    decimal_list = pa.list_(pa.decimal128(38))
-
-    time32_list = pa.list_(pa.time32("s"))
-    time64_list = pa.list_(pa.time64("us"))
-    timestamp_list = pa.list_(pa.timestamp("us"))
-
-    date32_list = pa.list_(pa.date32())
-    date64_list = pa.list_(pa.date64())
-    duration_list = pa.list_(pa.duration("us"))
-
-    string_list = pa.list_(pa.string())
-    utf8_list = pa.list_(pa.utf8())
-
-    binary_list = pa.list_(pa.binary())
 
 
 class Field(t.NamedTuple):
@@ -86,8 +59,3 @@ class Field(t.NamedTuple):
 
     name: str
     type: Type
-
-
-Field("a", Type.string_list)
-
-a = 2
