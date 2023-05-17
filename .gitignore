@@ -81,3 +81,4 @@ MANIFEST
 
 # Poetry
 *.lock
+development/

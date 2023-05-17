@@ -1,0 +1,23 @@
+name: Image cropping
+description: Component that crops images based on desired minimum width and height
+image: ghcr.io/ml6team/image_cropping:latest
+
+input_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+      width:
+        type: int16
+      height:
+        type: int16
+
+output_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+      width:
+        type: int16
+      height:
+        type: int16
