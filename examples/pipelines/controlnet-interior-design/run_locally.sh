@@ -16,4 +16,4 @@ python main.py --metadata "$METADATA" --output_manifest_path /Users/nielsrogge/D
 cd ..
 cd ..
 cd caption_images/src
-python main.py --metadata "$METADATA" --output_manifest_path /Users/nielsrogge/Documents/fondant_artifacts/manifest/caption_images/manifest.txt --input_manifest_path /Users/nielsrogge/Documents/fondant_artifacts/manifest/download_images/manifest.txt --model_id "microsoft/git-base-coco" --batch_size 2 --max_new_tokens 50
+python main.py --metadata "$METADATA" --output_manifest_path /Users/nielsrogge/Documents/fondant_artifacts/manifest/caption_images/manifest.txt --input_manifest_path /Users/nielsrogge/Documents/fondant_artifacts/manifest/download_images/manifest.txt --model_id "Salesforce/blip-image-captioning-base" --batch_size 2 --max_new_tokens 50

@@ -12,7 +12,7 @@ import dask
 import dask.dataframe as dd
 import pandas as pd
 
-from transformers import AutoProcessor, AutoModelForCausalLM
+from transformers import AutoProcessor, BlipForConditionalGeneration
 import torch
 
 from fondant.component import TransformComponent
@@ -78,11 +78,13 @@ class CaptionImagesComponent(TransformComponent):
             Dask dataframe
         """
         device = "cuda" if torch.cuda.is_available() else "cpu"
+        logger.info("Device:", device)
 
         processor = AutoProcessor.from_pretrained(model_id)
-        model = AutoModelForCausalLM.from_pretrained(model_id)
+        model = BlipForConditionalGeneration.from_pretrained(model_id)
 
         print("Length of the input dataframe:", len(dataframe))
+        print("First rows of dataframe:", dataframe.head(2))
 
         # load and transform the images
         images = dataframe["images_data"]

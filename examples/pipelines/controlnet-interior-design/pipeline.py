@@ -45,7 +45,7 @@ download_images_op = ComponentOp(
 caption_images_op = ComponentOp(
     component_spec_path="components/caption_images/fondant_component.yaml",
     arguments={
-        "model_id": "microsoft/git-base-coco",
+        "model_id": "Salesforce/blip-image-captioning-base",
         "batch_size": 2,
         "max_new_tokens": 50,
     },
