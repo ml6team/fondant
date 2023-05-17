@@ -27,26 +27,7 @@
         "list",
         "struct",
         "int8_list",
-        "int16_list",
-        "int32_list",
-        "int64_list",
-        "uint8_list",
-        "uint16_list",
-        "uint32_list",
-        "uint64_list",
-        "float16_list",
-        "float32_list",
-        "float64_list",
-        "decimal_list",
-        "time32_list",
-        "time64_list",
-        "timestamp_list",
-        "date32_list",
-        "date64_list",
-        "duration_list",
-        "string_list",
-        "utf8_list",
-        "binary_list"
+        "float16_list"
       ]
     },
     "field": {
