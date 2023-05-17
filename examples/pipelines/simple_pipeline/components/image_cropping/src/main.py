@@ -26,9 +26,7 @@ def extract_width(image_bytes: bytes) -> np.in16:
     Returns:
         np.int16: width of the image
     """
-    return np.int16(
-        Image.open(io.BytesIO(image_bytes)).size[0]
-    )
+    return np.int16(Image.open(io.BytesIO(image_bytes)).size[0])
 
 
 def extract_height(image_bytes: bytes) -> np.int16:
@@ -40,9 +38,7 @@ def extract_height(image_bytes: bytes) -> np.int16:
     Returns:
         np.int16: height of the image
     """
-    return np.int16(
-        Image.open(io.BytesIO(image_bytes)).size[1]
-    )
+    return np.int16(Image.open(io.BytesIO(image_bytes)).size[1])
 
 
 class ImageCroppingComponent(TransformComponent):
@@ -51,7 +47,12 @@ class ImageCroppingComponent(TransformComponent):
     """
 
     def transform(
-        self, *, dataframe: dd.DataFrame, scale: float = 2.0, offset: int = -100, padding: int = 10
+        self,
+        *,
+        dataframe: dd.DataFrame,
+        scale: float = 2.0,
+        offset: int = -100,
+        padding: int = 10
     ) -> dd.DataFrame:
         """
         Args:
@@ -64,12 +65,18 @@ class ImageCroppingComponent(TransformComponent):
             dd.DataFrame: Dask dataframe with cropped images
         """
         # crop images
-        dataframe["images_crop_data"] = dataframe["images_data"].map(lambda x: remove_borders(x, scale, offset, padding),
-                                                                     meta=("images_crop_data", "bytes"))
+        dataframe["images_crop_data"] = dataframe["images_data"].map(
+            lambda x: remove_borders(x, scale, offset, padding),
+            meta=("images_crop_data", "bytes"),
+        )
 
         # extract width and height
-        dataframe["images_crop_width"] = dataframe["images_data"].map(extract_width, meta=("images_crop_width", int))
-        dataframe["images_crop_height"] = dataframe["images_data"].map(extract_height, meta=("images_crop_height", int))
+        dataframe["images_crop_width"] = dataframe["images_data"].map(
+            extract_width, meta=("images_crop_width", int)
+        )
+        dataframe["images_crop_height"] = dataframe["images_data"].map(
+            extract_height, meta=("images_crop_height", int)
+        )
         return dataframe
 
 

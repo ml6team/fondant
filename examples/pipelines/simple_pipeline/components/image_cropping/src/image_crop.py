@@ -32,11 +32,12 @@ def get_image_borders(image: Image.Image) -> Tuple:
     image = np.array(image)
 
     # get the colors of the image border
-    border_colors = [*image[:, 0, :].tolist(),
-                     *image[:, -1, :].tolist(),
-                     *image[0, :, :].tolist(),
-                     *image[-1, :, :].tolist()
-                     ]
+    border_colors = [
+        *image[:, 0, :].tolist(),
+        *image[:, -1, :].tolist(),
+        *image[0, :, :].tolist(),
+        *image[-1, :, :].tolist(),
+    ]
 
     # map the colors to RGB tuples
     border_colors = tuple(map(tuple, border_colors))
@@ -47,10 +48,9 @@ def get_image_borders(image: Image.Image) -> Tuple:
     return tuple(color_common)
 
 
-def remove_borders(image_bytes: bytes,
-                   scale: float = 2.0,
-                   offset: int = -100,
-                   padding: int = 10) -> bytes:
+def remove_borders(
+    image_bytes: bytes, scale: float = 2.0, offset: int = -100, padding: int = 10
+) -> bytes:
     """This method removes borders by checking the overlap between
     a color and the original image. By subtracting these two
     it finds the minimal bounding box.
@@ -77,10 +77,12 @@ def remove_borders(image_bytes: bytes,
     if not bbox:
         return image_bytes
 
-    bbox = (np.max([0, bbox[0] - padding]),
-            np.max([0, bbox[1] - padding]),
-            np.min([width, bbox[2] + padding]),
-            np.min([height, bbox[3] + padding]))
+    bbox = (
+        np.max([0, bbox[0] - padding]),
+        np.max([0, bbox[1] - padding]),
+        np.min([width, bbox[2] + padding]),
+        np.min([height, bbox[3] + padding]),
+    )
 
     image_crop = image.crop(bbox)
 
@@ -89,10 +91,14 @@ def remove_borders(image_bytes: bytes,
     if image_crop.size[0] != image_crop.size[1]:
         if image_crop.size[0] > image_crop.size[1]:
             padding = int((image_crop.size[0] - image_crop.size[1]) / 2)
-            image_crop = ImageOps.expand(image_crop, border=(0, padding), fill=color_common)
+            image_crop = ImageOps.expand(
+                image_crop, border=(0, padding), fill=color_common
+            )
         else:
             padding = int((image_crop.size[1] - image_crop.size[0]) / 2)
-            image_crop = ImageOps.expand(image_crop, border=(padding, 0), fill=color_common)
+            image_crop = ImageOps.expand(
+                image_crop, border=(padding, 0), fill=color_common
+            )
 
     # serialize image to JPEG
     crop_bytes = io.BytesIO()
