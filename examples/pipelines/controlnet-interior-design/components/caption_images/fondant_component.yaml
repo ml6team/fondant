@@ -17,7 +17,7 @@ output_subsets:
 args:
   model_id:
     description: id of the model on the Hugging Face hub
-    type: utf8
+    type: str
   batch_size:
     description: batch size to use
     type: int
