@@ -31,9 +31,14 @@ image_filtering_op = ComponentOp(
     },
 )
 
-# TODO: ADD Arguments for embedding component later on
-# MODEL_ID = "openai/clip-vit-large-patch14"
-# BATCH_SIZE = 10
+write_to_hub_op = FondantComponentOp(
+    component_spec_path="components/write_to_hub/fondant_component.yaml",
+    arguments={
+        "username": "philippemo",
+        "dataset_name": "test",
+        "hf_token": "",
+    },
+)
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 

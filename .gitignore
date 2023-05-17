@@ -82,3 +82,6 @@ MANIFEST
 # Poetry
 *.lock
 development/
+
+# kubeflow artifacts
+pipeline.tgz
