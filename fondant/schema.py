@@ -51,7 +51,7 @@ class Type(enum.Enum):
 
     int8_list = pa.list_(pa.int8())
 
-    float16_list = pa.list_(pa.float16())
+    float32_list = pa.list_(pa.float16())
 
 
 class Field(t.NamedTuple):
