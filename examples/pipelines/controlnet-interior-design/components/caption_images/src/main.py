@@ -82,7 +82,7 @@ class CaptionImagesComponent(TransformComponent):
         processor = AutoProcessor.from_pretrained(model_id)
         model = AutoModelForCausalLM.from_pretrained(model_id)
 
-        print("Length of the dataframe:", len(dataframe))
+        print("Length of the input dataframe:", len(dataframe))
 
         # load and transform the images
         images = dataframe["images_data"]
@@ -112,6 +112,11 @@ class CaptionImagesComponent(TransformComponent):
         # add index columns
         captions_df["id"] = dataframe["id"].reset_index(drop=True)
         captions_df["source"] = dataframe["source"].reset_index(drop=True)
+
+        captions_df = captions_df.reset_index(drop=True)
+
+        print("Final dataframe:", captions_df.head(4))
+        print("Length of the final dataframe:", len(captions_df))
 
         return captions_df
 

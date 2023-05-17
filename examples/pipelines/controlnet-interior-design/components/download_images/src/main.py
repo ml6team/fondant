@@ -152,6 +152,8 @@ class DownloadImagesComponent(TransformComponent):
             result, left_index=True, right_index=True
         )
 
+        dataframe = dataframe.reset_index(drop=True)
+
         print("Final dataframe:", dataframe.head(4))
         print("Length of the final dataframe:", len(dataframe))
 

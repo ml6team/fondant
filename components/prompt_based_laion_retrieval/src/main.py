@@ -91,6 +91,7 @@ class LAIONRetrievalComponent(TransformComponent):
         dataframe = dataframe.astype({'id': 'string', 'source': 'string'})
 
         print("Final dataframe:", dataframe.head(4))
+        dataframe = dataframe.reset_index(drop=True)
 
         return dataframe
 
