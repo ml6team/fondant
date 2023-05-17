@@ -49,6 +49,8 @@ caption_images_op = ComponentOp(
         "batch_size": 2,
         "max_new_tokens": 50,
     },
+    number_of_gpus=1,
+    node_pool_name="model-inference-pool",
 )
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
