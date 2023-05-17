@@ -1,3 +1,6 @@
+"""
+This file contains the image cropping logic
+"""
 import io
 from typing import List, Tuple
 

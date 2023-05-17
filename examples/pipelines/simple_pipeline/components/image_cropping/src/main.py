@@ -1,5 +1,5 @@
 """
-This component filters images of the dataset based on image size (minimum height and width).
+This component crops images by removing the borders.
 """
 import io
 import logging
