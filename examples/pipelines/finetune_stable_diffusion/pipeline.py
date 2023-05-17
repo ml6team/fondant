@@ -23,20 +23,22 @@ load_from_hub_op = ComponentOp(
     arguments={"dataset_name": "logo-wizard/modern-logo-dataset"},
 )
 
+# image_filtering_op = ComponentOp(
+#     component_spec_path="components/image_filtering/fondant_component.yaml",
+#     arguments={
+#         "min_width": 600,
+#         "min_height": 600,
+#     },
+# )
+
 image_embedding_op = ComponentOp(
     component_spec_path="components/image_embedding/fondant_component.yaml",
     arguments={
-        "min_width": 600,
-        "min_height": 600,
+        "model_id": "openai/clip-vit-large-patch14",
+        "batch_size": 10,
     },
-)
-
-image_filtering_op = ComponentOp(
-    component_spec_path="components/image_filtering/fondant_component.yaml",
-    arguments={
-        "min_width": 600,
-        "min_height": 600,
-    },
+    number_of_gpus=1,
+    node_pool_name="model-inference-pool",
 )
 
 write_to_hub_op = ComponentOp(
@@ -51,8 +53,8 @@ write_to_hub_op = ComponentOp(
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
-#pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
-pipeline.add_op(write_to_hub_op, dependencies=image_filtering_op)
+pipeline.add_op(image_embedding_op, dependencies=load_from_hub_op)
+# pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
+pipeline.add_op(write_to_hub_op, dependencies=image_embedding_op)
 
 client.compile_and_run(pipeline=pipeline)
