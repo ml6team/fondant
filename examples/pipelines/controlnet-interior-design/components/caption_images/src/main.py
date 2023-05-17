@@ -15,7 +15,7 @@ import pandas as pd
 from transformers import AutoProcessor, AutoModelForCausalLM
 import torch
 
-from fondant.component import FondantTransformComponent
+from fondant.component import TransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -43,6 +43,7 @@ def collate(examples):
 
 @dask.delayed
 def caption(batch, model, processor, max_new_tokens):
+    logger.info("Generating caption...")
     generated_ids = model.generate(pixel_values=batch, max_new_tokens=max_new_tokens)
     generated_captions = processor.batch_decode(generated_ids, skip_special_tokens=True)
 
@@ -54,7 +55,7 @@ def flatten(lst):
     return pd.Series(itertools.chain(*lst))
 
 
-class CaptionImagesComponent(FondantTransformComponent):
+class CaptionImagesComponent(TransformComponent):
     """
     Component that captions images using a model from the Hugging Face hub.
     """
@@ -81,6 +82,8 @@ class CaptionImagesComponent(FondantTransformComponent):
         processor = AutoProcessor.from_pretrained(model_id)
         model = AutoModelForCausalLM.from_pretrained(model_id)
 
+        print("Length of the dataframe:", len(dataframe))
+
         # load and transform the images
         images = dataframe["images_data"]
         loaded_images = [load(image) for image in images]
@@ -96,7 +99,10 @@ class CaptionImagesComponent(FondantTransformComponent):
 
         # caption images
         delayed_model = dask.delayed(model.to(device))
-        captions = [caption(batch, delayed_model, max_new_tokens) for batch in batches]
+        captions = [
+            caption(batch, delayed_model, processor, max_new_tokens)
+            for batch in batches
+        ]
 
         # join lists into a single Dask delayed object
         captions = flatten(captions)

@@ -12,7 +12,7 @@ import dask.dataframe as dd
 
 from resizer import Resizer
 
-from fondant.component import FondantTransformComponent
+from fondant.component import TransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -83,7 +83,7 @@ def download_image_with_retry(
     return None, None, None
 
 
-class DownloadImagesComponent(FondantTransformComponent):
+class DownloadImagesComponent(TransformComponent):
     """
     Component that downloads images based on URLs.
     """
@@ -123,6 +123,9 @@ class DownloadImagesComponent(FondantTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
+        print("Input dataframe:", dataframe.head(4))
+        print("Length of the input dataframe:", len(dataframe))
+
         # retrieve and resize images
         # source: https://stackoverflow.com/questions/41728527/how-to-apply-a-function-to-a-dask-dataframe-and-return-multiple-values
         logger.info("Downloading and resizing images...")
@@ -143,11 +146,14 @@ class DownloadImagesComponent(FondantTransformComponent):
             "images_height",
         ]
 
+        print("Length of the final dataframe before merging:", len(result))
+
         dataframe = dataframe[["id", "source"]].merge(
             result, left_index=True, right_index=True
         )
 
-        logger.info("Columns of final dataframe:", list(dataframe.columns))
+        print("Final dataframe:", dataframe.head(4))
+        print("Length of the final dataframe:", len(dataframe))
 
         return dataframe
 
