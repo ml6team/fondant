@@ -160,16 +160,10 @@ class TransformComponent(Component):
         component_arguments = self._get_component_arguments()
 
         for arg in component_arguments.values():
-            # Metadata is not required for loading component
-            if arg.name == "metadata":
-                input_required = False
-            else:
-                input_required = True
-
             parser.add_argument(
                 f"--{arg.name}",
                 type=kubeflow2python_type[arg.type],
-                required=input_required,
+                required=True,
                 help=arg.description,
             )
 

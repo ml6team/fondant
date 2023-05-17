@@ -100,6 +100,8 @@ def test_transform_kwargs(monkeypatch):
         "",
         "--input_manifest_path",
         str(input_manifest),
+        "--metadata",
+        "",
         "--flag",
         "success",
         "--value",

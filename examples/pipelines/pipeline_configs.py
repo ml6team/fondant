@@ -1,6 +1,4 @@
 """Dataset creation pipeline config"""
-import os
-
 from dataclasses import dataclass
 
 
@@ -9,7 +7,7 @@ class PipelineConfigs:
     """
     General Pipeline Configs
     Params:
-        ARTIFACT_BUCKET (str): the GCS bucket used to store the artifacts
+        BASE_PATH (str): the base path used to store the artifacts
         HOST (str): the kfp host url
     """
 

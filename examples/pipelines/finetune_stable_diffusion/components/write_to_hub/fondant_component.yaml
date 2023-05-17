@@ -1,0 +1,25 @@
+name: Write to hub
+description: Component that writes a dataset to the hub
+image: ghcr.io/ml6team/write_to_hub:latest
+
+input_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+
+  captions:
+    fields:
+      data:
+        type: utf8
+
+args:
+  hf_token:
+    description: The hugging face token used to write to the hub
+    type: str
+  username:
+    description: The username under which to upload the dataset
+    type: str
+  dataset_name:
+    description: The name of the dataset to upload
+    type: str

@@ -27,13 +27,18 @@ def default_pipeline_args():
         ),
     ],
 )
-def test_valid_pipeline(default_pipeline_args, valid_pipeline_example, tmp_path):
+def test_valid_pipeline(
+    default_pipeline_args, valid_pipeline_example, tmp_path, monkeypatch
+):
     """Test that a valid pipeline definition can be compiled without errors."""
     example_dir, component_names = valid_pipeline_example
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
 
     pipeline = Pipeline(**default_pipeline_args)
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
     first_component_op = ComponentOp(
         Path(components_path / component_names[0]), arguments=component_args

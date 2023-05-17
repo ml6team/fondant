@@ -35,7 +35,7 @@ class Subset:
 
     @property
     def fields(self) -> t.Mapping[str, Field]:
-        """The fields of the subset returned as a immutable mapping."""
+        """The fields of the subset returned as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: Field(name=name, type=Type[field["type"]])
@@ -62,8 +62,8 @@ class Index(Subset):
     @property
     def fields(self) -> t.Dict[str, Field]:
         return {
-            "id": Field(name="id", type=Type.utf8),
-            "source": Field(name="source", type=Type.utf8),
+            "id": Field(name="id", type=Type.string),
+            "source": Field(name="source", type=Type.string),
         }
 
 
@@ -178,7 +178,7 @@ class Manifest:
 
         self._specification["subsets"][name] = {
             "location": f"/{name}/{self.run_id}/{self.component_id}",
-            "fields": {name: {"type": type_.value} for name, type_ in fields},
+            "fields": {name: {"type": type_.name} for name, type_ in fields},
         }
 
     def remove_subset(self, name: str) -> None:
@@ -249,6 +249,12 @@ class Manifest:
                     evolved_manifest.subsets[subset_name].add_field(
                         field.name, field.type, overwrite=True
                     )
+
+                # Update subset location as this is currently always rewritten
+                evolved_manifest.subsets[subset_name]._specification[
+                    "location"
+                ] = f"/{subset_name}/{self.run_id}/{component_id}"
+
             # Subset is not yet in manifest, add it
             else:
                 evolved_manifest.add_subset(subset_name, subset.fields.values())

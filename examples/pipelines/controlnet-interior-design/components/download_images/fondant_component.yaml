@@ -1,0 +1,43 @@
+name: Download images
+description: Component that downloads images based on URLs
+image: ghcr.io/ml6team/download_images:latest
+
+input_subsets:
+  images:
+    fields:
+      url:
+        type: string
+
+output_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+      width:
+        type: int16
+      height:
+        type: int16
+    additionalFields: false
+
+args:
+  timeout:
+    description: Maximum time (in seconds) to wait when trying to download an image
+    type: int
+  retries:
+    description: Number of times to retry downloading an image if it fails.
+    type: int
+  image_size:
+    description: Size of the images after resizing.
+    type: int
+  resize_mode:
+    description: Resize mode to use. One of "no", "keep_ratio", "center_crop", "border".
+    type: str
+  resize_only_if_bigger: 
+    description: If True, resize only if image is bigger than image_size.
+    type: bool
+  min_image_size:
+    description: Minimum size of the images.
+    type: int
+  max_aspect_ratio:
+    description: Maximum aspect ratio of the images.
+    type: float

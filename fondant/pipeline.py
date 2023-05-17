@@ -442,7 +442,7 @@ class Client:
         Raises:
             Exception: If there was an error uploading the pipeline package.
         """
-        self.delete_pipeline(pipeline.name)
+        # self.delete_pipeline(pipeline.name)
 
         pipeline.compile()
 
