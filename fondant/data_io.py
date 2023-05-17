@@ -212,7 +212,7 @@ class DaskDataWriter(DataIO):
 
             # set index
             if subset_df.index.name != "uid":
-                subset_df["uid"] = subset_df["source"] + "_ " + subset_df["id"]
+                subset_df["uid"] = subset_df["source"] + "_" + subset_df["id"]
                 subset_df = subset_df.set_index("uid", divisions=divisions)
 
             # Get the remote path where the output subset should be uploaded
