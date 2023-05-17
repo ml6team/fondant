@@ -5,9 +5,8 @@ import io
 import logging
 
 import numpy as np
-import dask
+from PIL import Image
 import dask.dataframe as dd
-from PIL import Image, ImageChops
 
 from fondant.component import TransformComponent
 from fondant.logger import configure_logging
