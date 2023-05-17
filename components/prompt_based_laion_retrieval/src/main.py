@@ -28,8 +28,14 @@ def query_clip_client(text: str, client: ClipClient) -> List[str]:
     Returns:
         urls: a list of strings, each representing a URL of an image related to the query
     """
+    print("Client number of images:", client.num_images)
+    print("Text:", text)
     results = client.query(text=text)
-    urls = [i["url"] for i in results]
+    print("Results:", results)
+    try:
+        urls = [i["url"] for i in results]
+    except:
+        urls = ["" for _ in range(len(results))]
 
     return urls
 
@@ -66,6 +72,8 @@ class LAIONRetrievalComponent(TransformComponent):
             modality=Modality.IMAGE,
         )
 
+        print("Dataframe:", dataframe.head(2))
+
         dataframe["images_url"] = dataframe["prompts_text"].apply(
             lambda example: query_clip_client(example, client),
             meta=("images_url", "str"),
@@ -81,6 +89,8 @@ class LAIONRetrievalComponent(TransformComponent):
 
         # reorder columns
         dataframe = dataframe[["id", "source", "images_url"]]
+
+        dataframe = dataframe.astype({'id': 'string', 'source': 'string'})
 
         return dataframe
 

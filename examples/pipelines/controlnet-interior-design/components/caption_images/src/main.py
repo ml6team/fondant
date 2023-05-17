@@ -95,8 +95,8 @@ class CaptionImagesComponent(FondantTransformComponent):
         ]
 
         # caption images
-        gpu_model = dask.delayed(model.to(device))
-        captions = [caption(batch, gpu_model, max_new_tokens) for batch in batches]
+        delayed_model = dask.delayed(model.to(device))
+        captions = [caption(batch, delayed_model, max_new_tokens) for batch in batches]
 
         # join lists into a single Dask delayed object
         captions = flatten(captions)
