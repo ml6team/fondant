@@ -12,7 +12,7 @@ output_subsets:
   embeddings:
     fields:
       data:
-        type: float16_list
+        type: float32_list
 
 args:
   model_id:
