@@ -58,6 +58,8 @@ segment_images_op = ComponentOp(
         "model_id": "openmmlab/upernet-convnext-small",
         "batch_size": 2,
     },
+    number_of_gpus=1,
+    node_pool_name="model-inference-pool",
 )
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)

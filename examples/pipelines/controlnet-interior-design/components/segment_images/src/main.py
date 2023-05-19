@@ -6,13 +6,11 @@ import itertools
 import logging
 import toolz
 
-from PIL import Image
-
 import dask
 import dask.dataframe as dd
+from PIL import Image
 import pandas as pd
 import numpy as np
-
 from transformers import AutoImageProcessor, AutoModelForSemanticSegmentation
 import torch
 
@@ -25,7 +23,16 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def convert_to_rgb(seg):
+def convert_to_rgb(seg: np.array):
+    """
+    Converts a 2D segmentation to a RGB one which makes it possible to visualize it.
+
+    Args:
+        seg: 2D segmentation map as a NumPy array.
+
+    Returns:
+        color_seg: 3D segmentation map contain RGB values for each pixel.
+    """
     color_seg = np.zeros(
         (seg.shape[0], seg.shape[1], 3), dtype=np.uint8
     )  # height, width, 3
@@ -104,9 +111,6 @@ class SegmentImagesComponent(TransformComponent):
 
         processor = AutoImageProcessor.from_pretrained(model_id)
         model = AutoModelForSemanticSegmentation.from_pretrained(model_id)
-
-        print("Length of the input dataframe:", len(dataframe))
-        print("First rows of dataframe:", dataframe.head(2))
 
         # load and transform the images
         images = dataframe["images_data"]

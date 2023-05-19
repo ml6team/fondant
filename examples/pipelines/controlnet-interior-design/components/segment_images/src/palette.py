@@ -1,3 +1,11 @@
+"""
+Color palette which maps each class of the ADE20k dataset to a color.
+
+There are 150 classes in total.
+
+Source: https://huggingface.co/lllyasviel/sd-controlnet-seg#example.
+"""
+
 import numpy as np
 
 palette = np.asarray(
