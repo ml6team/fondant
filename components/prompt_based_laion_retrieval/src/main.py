@@ -2,6 +2,7 @@
 This component retrieves image URLs from LAION-5B based on a set of seed prompts.
 """
 import logging
+from requests.exceptions import ConnectionError
 from typing import List
 
 import dask.dataframe as dd
@@ -29,7 +30,10 @@ def query_clip_client(text: str, client: ClipClient) -> List[str]:
         urls: a list of strings, each representing a URL of an image related to the query
     """
     results = client.query(text=text)
-    urls = [i["url"] for i in results]
+    try:
+        urls = [i["url"] for i in results]
+    except ConnectionError as e:
+        urls = ["" for _ in range(len(results))]
 
     return urls
 
@@ -66,6 +70,9 @@ class LAIONRetrievalComponent(TransformComponent):
             modality=Modality.IMAGE,
         )
 
+        print("Input dataframe:", dataframe.head(2))
+
+        logger.info("Retrieving URLs...")
         dataframe["images_url"] = dataframe["prompts_text"].apply(
             lambda example: query_clip_client(example, client),
             meta=("images_url", "str"),
@@ -81,6 +88,11 @@ class LAIONRetrievalComponent(TransformComponent):
 
         # reorder columns
         dataframe = dataframe[["id", "source", "images_url"]]
+
+        dataframe = dataframe.astype({'id': 'string', 'source': 'string'})
+
+        print("Final dataframe:", dataframe.head(4))
+        dataframe = dataframe.reset_index(drop=True)
 
         return dataframe
 
