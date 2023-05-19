@@ -101,6 +101,6 @@ def remove_borders(
 
     # serialize image to JPEG
     crop_bytes = io.BytesIO()
-    image_crop.save(crop_bytes, format="JPEG")
+    image_crop.save(crop_bytes)
 
     return crop_bytes.getvalue()
