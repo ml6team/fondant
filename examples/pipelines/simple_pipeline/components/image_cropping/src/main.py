@@ -17,28 +17,19 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def extract_width(image_bytes: bytes) -> np.in16:
-    """Extract the width of an image
+def extract_dimensions(image_df: dd.DataFrame) -> [np.int16, np.int16]:
+    """Extract the width and height of an image
 
     Args:
-        image_bytes (bytes): input image in bytes
+        image_df (dd.DataFrame): input dataframe with images_data column
 
     Returns:
         np.int16: width of the image
-    """
-    return np.int16(Image.open(io.BytesIO(image_bytes)).size[0])
-
-
-def extract_height(image_bytes: bytes) -> np.int16:
-    """Extract the height of an image
-
-    Args:
-        image_bytes (bytes): input image in bytes
-
-    Returns:
         np.int16: height of the image
     """
-    return np.int16(Image.open(io.BytesIO(image_bytes)).size[1])
+    image = Image.open(io.BytesIO(image_df["images_data"]))
+
+    return [np.int16(image.size[0]), np.int16(image.size[1])]
 
 
 class ImageCroppingComponent(TransformComponent):
@@ -50,33 +41,31 @@ class ImageCroppingComponent(TransformComponent):
         self,
         *,
         dataframe: dd.DataFrame,
-        scale: float = 2.0,
-        offset: int = -100,
+        cropping_threshold: int = -30,
         padding: int = 10
     ) -> dd.DataFrame:
         """
         Args:
             dataframe (dd.DataFrame): Dask dataframe
-            scale (float): scale parameter used for detecting borders
-            offset (int): scale parameter used for detecting borders
+            cropping_threshold (int): threshold parameter used for detecting borders
             padding (int): padding for the image cropping
 
         Returns:
             dd.DataFrame: Dask dataframe with cropped images
         """
         # crop images
-        dataframe["images_crop_data"] = dataframe["images_data"].map(
-            lambda x: remove_borders(x, scale, offset, padding),
-            meta=("images_crop_data", "bytes"),
+        dataframe["images_data"] = dataframe["images_data"].map(
+            lambda x: remove_borders(x, cropping_threshold, padding),
+            meta=("images_data", "bytes"),
         )
 
         # extract width and height
-        dataframe["images_crop_width"] = dataframe["images_data"].map(
-            extract_width, meta=("images_crop_width", int)
-        )
-        dataframe["images_crop_height"] = dataframe["images_data"].map(
-            extract_height, meta=("images_crop_height", int)
-        )
+        dataframe[["images_width", "images_height"]] = dataframe[
+            [
+                "images_data",
+            ]
+        ].apply(extract_dimensions, axis=1, result_type="expand", meta={0: int, 1: int})
+
         return dataframe
 
 

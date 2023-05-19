@@ -9,7 +9,7 @@ input_subsets:
         type: binary
 
 output_subsets:
-  images_crop:
+  images:
     fields:
       data:
         type: binary
@@ -19,11 +19,8 @@ output_subsets:
         type: int16
 
 args:
-  scale:
-    description: Scale parameter used for detecting borders
-    type: float
-  offset:
-    description: Offset parameter used for detecting borders
+  cropping_threshold:
+    description: Threshold parameter used for detecting borders. A lower (negative) parameter results in a more performant border detection, but can cause overcropping. Default is -30
     type: int
   padding:
     description: Padding for the image cropping

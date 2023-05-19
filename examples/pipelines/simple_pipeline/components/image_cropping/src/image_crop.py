@@ -49,7 +49,7 @@ def get_image_borders(image: Image.Image) -> Tuple:
 
 
 def remove_borders(
-    image_bytes: bytes, scale: float = 2.0, offset: int = -100, padding: int = 10
+    image_bytes: bytes, cropping_threshold: int = -30, padding: int = 10
 ) -> bytes:
     """This method removes borders by checking the overlap between
     a color and the original image. By subtracting these two
@@ -57,8 +57,7 @@ def remove_borders(
 
     Args:
         image_bytes (bytes): input images in bytes
-        scale (float): scale parameter used for detecting borders
-        offset (int): scale parameter used for detecting borders
+        cropping_threshold (int): threshold parameter used for detecting borders
         padding (int): padding for the image cropping
 
     Returns:
@@ -71,7 +70,7 @@ def remove_borders(
     background = Image.new(image.mode, image.size, color_common)
 
     diff = ImageChops.difference(image, background)
-    diff = ImageChops.add(diff, diff, scale, offset)
+    diff = ImageChops.add(diff, diff, 1.0, cropping_threshold)
 
     bbox = diff.getbbox()
     if not bbox:
