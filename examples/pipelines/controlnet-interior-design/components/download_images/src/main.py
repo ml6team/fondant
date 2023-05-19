@@ -123,9 +123,6 @@ class DownloadImagesComponent(TransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
-        print("Input dataframe:", dataframe.head(4))
-        print("Length of the input dataframe:", len(dataframe))
-
         # retrieve and resize images
         # source: https://stackoverflow.com/questions/41728527/how-to-apply-a-function-to-a-dask-dataframe-and-return-multiple-values
         logger.info("Downloading and resizing images...")
@@ -146,16 +143,11 @@ class DownloadImagesComponent(TransformComponent):
             "images_height",
         ]
 
-        print("Length of the final dataframe before merging:", len(result))
-
         dataframe = dataframe[["id", "source"]].merge(
             result, left_index=True, right_index=True
         )
 
         dataframe = dataframe.reset_index(drop=True)
-
-        print("Final dataframe:", dataframe.head(4))
-        print("Length of the final dataframe:", len(dataframe))
 
         return dataframe
 
