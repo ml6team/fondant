@@ -16,7 +16,14 @@ IMPORTANT 3: You should never run a script without inspecting it so please famil
 
 If you already have setup a kubernetes cluster and you have configured kubectl you can install kubeflow pipelines following this [guide](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/#deploying-kubeflow-pipelines)
 
-## Fondant on GCP
+## Fondant on Google Cloud
+
+There are several ways to get up and running with kubeflow pipelines on Google Cloud.
+- [On the GCP marketplace](https://console.cloud.google.com/marketplace/details/google-cloud-ai-platform/kubeflow-pipelines?project=thematic-lore-290312)
+- [How to do a standalone deployment of kubeflow pipelines on GKE](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/)
+- [Customizable deployments through overlays](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/#customizing-kubeflow-pipelines)
+
+### OR you can use the scripts we provide to get a simple setup going
 
 1. If you don't already have a google cloud project ready you can follow this [guide](https://v1-5-branch.kubeflow.org/docs/distributions/gke/deploy/project-setup/) to set one up, you will need to have set up billing.
 
@@ -33,7 +40,7 @@ If you already have setup a kubernetes cluster and you have configured kubectl y
 - Install kubeflow pipelines on the cluster
 
 ### More Information
-- [How to do a standalone deployment of kubeflow pipelines on GKE](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/)
+
 - [Official documentation on cluster creation](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-zonal-cluster)
 - [Provision a GKE cluster with terraform](https://developer.hashicorp.com/terraform/tutorials/kubernetes/gke)
 - [use kubespray to setup a cluster](https://github.com/kubernetes-sigs/kubespray)
@@ -45,5 +52,25 @@ https://awslabs.github.io/kubeflow-manifests/docs/deployment/
 
 ## Fondant on a local machine
 
+### Using Minikube
+
+1. Install Minikube following [this official installation guide](https://minikube.sigs.k8s.io/docs/start/)
+
+2. Make sure you have docker [installed](https://docs.docker.com/desktop/) and the deamon is running
+
+2. Run the makefile which will do the following:
+- start a minikube cluster with 4 cpu's and 8gb of ram
+- install kubeflow
+
+
+
 is only for development
 microk8s
+
+- you can run components individually by 
+
+```cd /your_component_folder```
+
+and then calling the python code by running:
+
+```python main.py --metadata '{"run_id":"YOUR RUN ID", "base_path": "/SOME_PATH"}' --output_manifest_path /SOME_PATH/manifest/manifest.txt```
