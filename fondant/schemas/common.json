@@ -27,7 +27,7 @@
         "list",
         "struct",
         "int8_list",
-        "float16_list"
+        "float32_list"
       ]
     },
     "field": {
