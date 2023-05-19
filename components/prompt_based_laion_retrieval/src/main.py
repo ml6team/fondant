@@ -2,7 +2,6 @@
 This component retrieves image URLs from LAION-5B based on a set of seed prompts.
 """
 import logging
-from requests.exceptions import ConnectionError
 from typing import List
 
 import dask.dataframe as dd
@@ -32,7 +31,7 @@ def query_clip_client(text: str, client: ClipClient) -> List[str]:
     results = client.query(text=text)
     try:
         urls = [i["url"] for i in results]
-    except ConnectionError as e:
+    except:
         urls = ["" for _ in range(len(results))]
 
     return urls
