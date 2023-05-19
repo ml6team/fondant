@@ -83,4 +83,4 @@ MANIFEST
 *.lock
 
 # kubeflow artifacts
-pipeline.tgz
+*.tgz
