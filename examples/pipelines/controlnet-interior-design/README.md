@@ -18,7 +18,7 @@ There are 5 components in total, these are:
 
 3. **Download Images**: This component downloads the actual images based on the URLs retrieved by the previous component. It takes in the URLs as input and returns the actual images, along with some metadata (like their height and width).
 
-4. **Add Captions**: This component captions all images using a captioning model like [BLIP](https://huggingface.co/docs/transformers/model_doc/blip) or [GIT](https://huggingface.co/docs/transformers/model_doc/git). Note that various decoding strategies can be used here like greedy decoding vs. beam search (depending on the performance requirements, one can choose one over the other).
+4. **Add Captions**: This component captions all images using a captioning model like [BLIP](https://huggingface.co/docs/transformers/model_doc/blip) or [GIT](https://huggingface.co/docs/transformers/model_doc/git).
 
 5. **Add Segmentation Maps**: This component segments the images using the [UPerNet](https://huggingface.co/docs/transformers/model_doc/upernet) model. Each segmentation map contains segments of 150 possible categories listed [here](https://huggingface.co/openmmlab/upernet-convnext-small/blob/main/config.json#L110).
 
