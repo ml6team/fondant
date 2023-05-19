@@ -83,9 +83,6 @@ class CaptionImagesComponent(TransformComponent):
         processor = AutoProcessor.from_pretrained(model_id)
         model = BlipForConditionalGeneration.from_pretrained(model_id)
 
-        print("Length of the input dataframe:", len(dataframe))
-        print("First rows of dataframe:", dataframe.head(2))
-
         # load and transform the images
         images = dataframe["images_data"]
         loaded_images = [load(image) for image in images]
@@ -116,9 +113,6 @@ class CaptionImagesComponent(TransformComponent):
         captions_df["source"] = dataframe["source"].reset_index(drop=True)
 
         captions_df = captions_df.reset_index(drop=True)
-
-        print("Final dataframe:", captions_df.head(4))
-        print("Length of the final dataframe:", len(captions_df))
 
         return captions_df
 
