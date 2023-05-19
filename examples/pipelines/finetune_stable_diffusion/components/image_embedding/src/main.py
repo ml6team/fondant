@@ -89,6 +89,7 @@ class EmbedImagesComponent(TransformComponent):
 
         # load and transform the images
         images = dataframe["images_data"]
+
         loaded_images = [load(image) for image in images]
         transformed_images = [
             transform(image, processor, device) for image in loaded_images

@@ -50,6 +50,7 @@ class LoadFromHubComponent(LoadComponent):
         dask_df = dask_df.astype({"id": "string"})
         dask_df["source"] = "hub"
 
+        dask_df = dask_df.sample(frac=0.05)
         # 3) Rename columns
         dask_df = dask_df.rename(
             columns={"image": "images_data", "text": "captions_data"}
