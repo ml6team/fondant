@@ -25,7 +25,7 @@
 
 ## :mouse_trap: Why Fondant?
 
-Foundation models simplify inference by solving a plethora of tasks across modalities with a 
+Foundation models simplify inference by solving multiple tasks across modalities with a simple
 prompt-based interface. But what they've gained in the front, they've lost in the back. 
 **These models require enormous amounts of data, moving complexity towards data preparation**, and 
 leaving few parties able to train their own models.
@@ -233,7 +233,9 @@ speed up your data preparation work.
 - Data lineage and experiment tracking
 - Distributed execution, both on and off cluster
 - Support other dataframe libraries such as HF Datasets, Polars, Spark
-- Move reusable components to decentralized component registry
+- Move reusable components into a decentralized component registry
+- Create datasets of copy-right free data for fine-tuning
+- Create reusable components for bias detection and mitigation
 
 The roadmap and priority are defined based on community feedback. To provide input, you can join 
 [our discord](https://discord.gg/HnTdWhydGp) or submit an idea in our 
