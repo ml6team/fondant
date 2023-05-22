@@ -5,7 +5,6 @@ import io
 import logging
 
 import dask.dataframe as dd
-import dask.array as da
 import numpy as np
 from PIL import Image
 
@@ -47,12 +46,9 @@ class LoadFromHubComponent(LoadComponent):
         dask_df = dd.read_parquet(f"hf://datasets/{dataset_name}")
 
         # 2) Add index to the dataframe
-        logger.info("Creating index...")
-        index_list = [idx for idx in range(len(dask_df))]
-        source_list = ["hub" for _ in range(len(dask_df))]
-
-        dask_df["id"] = da.array(index_list)
-        dask_df["source"] = da.array(source_list)
+        dask_df["id"] = dask_df.assign(id=1).id.cumsum()
+        dask_df = dask_df.astype({"id": "string"})
+        dask_df["source"] = "hub"
 
         # 3) Rename columns
         dask_df = dask_df.rename(
