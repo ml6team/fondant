@@ -1,5 +1,11 @@
 # ControlNet Interior Design Pipeline
 
+# Table of Contents
+1. [Introduction](#introduction)
+2. [Pipeline Overview](#pipeline-overview)
+3. [Install and Run](#install-and-run)
+4. [Reusing this pipeline](#reusing-this-pipeline)
+
 ## Introduction
 This example demonstrates an end-to-end fondant pipeline to collect and process data for the training of a [ControlNet](https://github.com/lllyasviel/ControlNet) model, focusing on images related to interior design.
 
@@ -58,3 +64,8 @@ bash build_images.sh -c all
 ```
 python pipeline.py
 ```
+
+
+## Reusing this pipeline
+
+Adapt this pipeline for your own use case is simply a matter of editing the generate_prompts [component](./components/generate_prompts/src/main.py).
