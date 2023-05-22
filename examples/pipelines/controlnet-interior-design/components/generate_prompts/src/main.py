@@ -1,11 +1,11 @@
 """
-This component generates a set of initial prompts that will be used to retrieve images from the LAION-5B dataset.
+This component generates a set of initial prompts that will be used to retrieve images from the
+LAION-5B dataset.
 """
 import itertools
 import logging
 
 import dask.dataframe as dd
-import dask.array as da
 import pandas as pd
 
 from fondant.component import LoadComponent
@@ -95,7 +95,6 @@ def make_interior_prompt(room: str, prefix: str, style: str) -> str:
     Returns:
         prompt for the interior design model
     """
-    # TODO: add more variation in the prompt, multiple variants, ...
     return f"{prefix.lower()} {room.lower()}, {style.lower()} interior design"
 
 
@@ -107,11 +106,10 @@ class GeneratePromptsComponent(LoadComponent):
         Returns:
             Dask dataframe
         """
-        room_tuples = list(itertools.product(rooms, interior_prefix, interior_styles))
-        prompts = list(map(lambda x: make_interior_prompt(*x), room_tuples))
+        room_tuples = itertools.product(rooms, interior_prefix, interior_styles)
+        prompts = map(lambda x: make_interior_prompt(*x), room_tuples)
 
         pandas_df = pd.DataFrame(prompts, columns=["prompts_text"])
-
         df = dd.from_pandas(pandas_df, npartitions=1)
 
         # TODO remove, just use a tiny df for testing purposes
@@ -124,14 +122,6 @@ class GeneratePromptsComponent(LoadComponent):
         pandas_df = pd.DataFrame.from_dict(data)
         df = dd.from_pandas(pandas_df, npartitions=1)
         # end of TODO
-
-        # add id and source columns
-        df["id"] = df.assign(id=1).id.cumsum()
-        df["source"] = "seed"
-
-        # reorder columns
-        df = df[["id", "source", "prompts_text"]]
-        df = df.astype({"id": "string"})
 
         return df
 

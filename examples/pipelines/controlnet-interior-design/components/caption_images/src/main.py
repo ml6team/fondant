@@ -51,8 +51,14 @@ def caption(batch, model, processor, max_new_tokens):
 
 
 @dask.delayed
-def flatten(lst):
-    return pd.Series(itertools.chain(*lst))
+def flatten(list_of_tuples):
+    tuple_of_lists = zip(*list_of_tuples)
+    ids, captions = (itertools.chain(*lst) for lst in tuple_of_lists)
+    return (
+        pd.DataFrame({"id": ids, "captions_text": captions})
+        .astype("string")
+        .set_index("id")
+    )
 
 
 class CaptionImagesComponent(TransformComponent):
@@ -78,41 +84,39 @@ class CaptionImagesComponent(TransformComponent):
             Dask dataframe
         """
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        logger.info("Device:", device)
+        logger.info(f"Device: {device}")
 
         processor = AutoProcessor.from_pretrained(model_id)
         model = BlipForConditionalGeneration.from_pretrained(model_id)
 
         # load and transform the images
-        images = dataframe["images_data"]
-        loaded_images = [load(image) for image in images]
-        transformed_images = [
-            transform(image, processor, device) for image in loaded_images
-        ]
+        loaded_images = (
+            (index, load(row["images_data"])) for index, row in dataframe.iterrows()
+        )
+        transformed_images = (
+            (index, transform(image, processor, device))
+            for index, image in loaded_images
+        )
 
         # batch images together
-        batches = [
-            collate(batch)
-            for batch in toolz.partition_all(batch_size, transformed_images)
-        ]
+        batches = (
+            zip(*batch) for batch in toolz.partition(batch_size, transformed_images)
+        )
+        batched_ids, batched_images = zip(*batches)
+        batched_images = (collate(batch) for batch in batched_images)
 
         # caption images
         delayed_model = dask.delayed(model.to(device))
         captions = [
-            caption(batch, delayed_model, processor, max_new_tokens)
-            for batch in batches
+            (id_batch, caption(image_batch, delayed_model, processor, max_new_tokens))
+            for id_batch, image_batch in zip(batched_ids, batched_images)
         ]
 
         # join lists into a single Dask delayed object
         captions = flatten(captions)
-        delayed_series = dd.from_delayed(captions, meta=pd.Series(dtype="str"))
-        captions_df = delayed_series.to_frame(name="captions_text")
-
-        # add index columns
-        captions_df["id"] = dataframe["id"].reset_index(drop=True)
-        captions_df["source"] = dataframe["source"].reset_index(drop=True)
-
-        captions_df = captions_df.reset_index(drop=True)
+        captions_df = dd.from_delayed(
+            captions, meta=pd.DataFrame(columns=["captions_text"], dtype="string")
+        )
 
         return captions_df
 

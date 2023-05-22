@@ -1,13 +1,13 @@
 """
 This component retrieves image URLs from LAION-5B based on a set of seed prompts.
 """
+import asyncio
+import concurrent.futures
 import logging
-from requests.exceptions import ConnectionError
-from typing import List
+import typing as t
 
 import dask.dataframe as dd
-import dask.array as da
-
+import pandas as pd
 from clip_client import ClipClient, Modality
 
 from fondant.component import TransformComponent
@@ -17,25 +17,37 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def query_clip_client(text: str, client: ClipClient) -> List[str]:
+def query_clip_client(dataframe: pd.DataFrame, client: ClipClient) -> pd.DataFrame:
     """
-    Given a text query and a ClipClient instance, this function retrieves
-    image URLs and their LAION ids related to the query.
+    Asynchronously retrieve image URLs and ids based on prompts in the provided dataframe.
 
     Args:
-        text: the text query
+        dataframe: dataframe containing a `prompts_text` column
         client (ClipClient): an instance of ClipClient used to query the images
 
     Returns:
-        urls: a list of strings, each representing a URL of an image related to the query
+        urls: A dataframe with the image urls and the LAION ids as index
     """
-    results = client.query(text=text)
-    try:
-        urls = [i["url"] for i in results]
-    except ConnectionError as e:
-        urls = ["" for _ in range(len(results))]
 
-    return urls
+    async def async_query():
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+            futures = [
+                loop.run_in_executor(
+                    executor,
+                    client.query,
+                    prompt
+                )
+                for prompt in dataframe.prompts_text
+            ]
+            for response in await asyncio.gather(*futures):
+                results.extend(response)
+
+    results: t.List[t.Tuple[str]] = []
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(async_query())
+
+    results_df = pd.DataFrame(results)[["id", "url"]]
+    return results_df.set_index("id")
 
 
 class LAIONRetrievalComponent(TransformComponent):
@@ -70,29 +82,16 @@ class LAIONRetrievalComponent(TransformComponent):
             modality=Modality.IMAGE,
         )
 
-        print("Input dataframe:", dataframe.head(2))
+        meta_df = pd.DataFrame(columns=["id", "url"], dtype="string")
+        meta_df = meta_df.set_index("id")
 
-        logger.info("Retrieving URLs...")
-        dataframe["images_url"] = dataframe["prompts_text"].apply(
-            lambda example: query_clip_client(example, client),
-            meta=("images_url", "str"),
+        dataframe = dataframe.map_partitions(
+            query_clip_client,
+            client=client,
+            meta=meta_df
         )
 
-        # unpack list of urls
-        dataframe = dataframe.explode("images_url")
-
-        # add id and source columns
-        # TODO use LAION id instead
-        dataframe["id"] = dataframe.assign(id=1).id.cumsum()
-        dataframe["source"] = "laion"
-
-        # reorder columns
-        dataframe = dataframe[["id", "source", "images_url"]]
-
-        dataframe = dataframe.astype({'id': 'string', 'source': 'string'})
-
-        print("Final dataframe:", dataframe.head(4))
-        dataframe = dataframe.reset_index(drop=True)
+        dataframe = dataframe.rename(columns={"url": "images_url"})
 
         return dataframe
 
