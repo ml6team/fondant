@@ -1,4 +1,6 @@
-<h1 align="center">:chocolate_bar: Fondant</h1>
+<p align="center">
+    <img src="docs/art/fondant_banner.svg" height="250px"/>
+</p>
 <p align="center">
     <i>Sweet data-centric foundation model fine-tuning</i>
     <br>
@@ -53,7 +55,7 @@ Curious to see what Fondant can do? Have a look at our example pipelines:
 
 | Input image                                                    | Output image                                                     |
 |----------------------------------------------------------------|------------------------------------------------------------------|
-| ![input image](docs/art/interior-design-controlnet-input1.png) | ![output image](docs/art/interior-design-controlnet-output1.png) |
+| ![input image](docs/art/interior_design_controlnet_input1.png) | ![output image](docs/art/interior_design_controlnet_output1.png) |
 
 Want to try out the resulting model yourself, head over to our 
 [Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
