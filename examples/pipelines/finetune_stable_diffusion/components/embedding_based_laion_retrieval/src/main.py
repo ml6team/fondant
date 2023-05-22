@@ -3,6 +3,7 @@ This component retrieves image URLs from LAION-5B based on a set of seed prompts
 """
 import logging
 from typing import List
+from requests.exceptions import ConnectionError
 
 import dask.dataframe as dd
 import dask.array as da
@@ -28,8 +29,11 @@ def query_clip_client(embedding_input, client: ClipClient) -> List[str]:
     Returns:
         urls: a list of strings, each representing a URL of an image related to the query
     """
-    results = client.query(embedding_input=embedding_input.tolist())
-    urls = [i["url"] for i in results]
+    try:
+        results = client.query(embedding_input=embedding_input.tolist())
+        urls = [i["url"] for i in results]
+    except ConnectionError as e:
+        urls = ["" for _ in range(len(results))]
 
     return urls
 
@@ -65,31 +69,28 @@ class LAIONRetrievalComponent(TransformComponent):
             aesthetic_weight=aesthetic_weight,
             modality=Modality.IMAGE,
         )
-        dataframe = dataframe.sample(frac=0.2)
-        dataframe["images_url"] = dataframe["embeddings_data"].apply(
+        dataframe = dataframe.sample(frac=0.05)
+
+        # retrieve images from laion based on the input embeddings
+        dataframe['images_url'] = dataframe["embeddings_data"].apply(
             lambda example: query_clip_client(example, client),
-            meta=("images_url", "str"),
+            meta=("images_url", str),
         )
 
-        # # unpack list of urls
-        dataframe = dataframe.explode("images_url")
-
-        # drop NaN rows for images_url column
-        dataframe = dataframe.dropna(subset=["images_url"])
+        # unpack list of urls
+        dataframe = dataframe\
+            .explode("images_url")\
+            .dropna(subset=["images_url"])
 
         # add id and source columns
-        dataframe["id"] = dataframe.assign(id=1).id.cumsum()
+        # the id is an incremental number starting from 1
+        # the source is the laion search engine
+        dataframe["id"] = dataframe.assign(id=1).id.cumsum().astype(str)
         dataframe["source"] = "laion"
-        dataframe = dataframe.astype({'id': 'string', 'source': 'string', 'images_url': 'string'})
 
         # reorder columns
         dataframe = dataframe[["id", "source", "images_url"]]
-        dataframe = dataframe.reset_index(drop=True)
-        print(type(dataframe))
-        # uid index is id+"_"+source
-        dataframe["uid"] = dataframe["id"] + "_" + dataframe["source"]
-        # set as index
-        dataframe = dataframe.set_index("uid")
+
         return dataframe
 
 

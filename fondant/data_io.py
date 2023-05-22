@@ -110,8 +110,6 @@ class DaskDataWriter(DataIO):
               executed.
         """
         # Define task to upload index to remote storage
-        print(df)
-        print(schema)
         write_task = dd.to_parquet(
             df, remote_path, schema=schema, overwrite=False, compute=False
         )
@@ -137,9 +135,7 @@ class DaskDataWriter(DataIO):
         if index_df.index.name != "uid":
             index_df["uid"] = index_df["source"] + "_" + index_df["id"]
             index_df = index_df.set_index("uid", divisions=divisions)
-        print(index_df.compute())
-        print("schema")
-        print(self.index_schema)
+
         upload_index_task = self._create_write_dataframe_task(
             df=index_df, remote_path=remote_path, schema=self.index_schema
         )
