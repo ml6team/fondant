@@ -1,142 +1,262 @@
-# Fondant
+<p align="center">
+    <img src="docs/art/fondant_banner.svg" height="250px"/>
+</p>
+<p align="center">
+    <i>Sweet data-centric foundation model fine-tuning</i>
+    <br>
+    <a href="https://fondant.readthedocs.io/en/latest/"><strong>Explore the docs »</strong></a>
+    <br>
+    <br>
+    <a href="https://discord.gg/HnTdWhydGp"><img alt="Discord" src="https://img.shields.io/discord/1108377020821405707?label=discord&style=flat-square"></a>
+    <a href="https://pypi.org/project/fondant/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/fondant?color=brightgreen&style=flat-square"></a>
+    <a href="https://fondant.readthedocs.io/en/latest/license/"><img alt="License" src="https://img.shields.io/github/license/ml6team/fondant?style=flat-square&color=brightgreen"></a>
+    <a href="https://github.com/ml6team/fondant/actions/workflows/pipeline.yaml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/ml6team/fondant/pipeline.yaml?style=flat-square"></a>
+    <a href="https://coveralls.io/github/ml6team/fondant?branch=main"><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/ml6team/fondant?style=flat-square"></a>
+</p>
 
-Fondant is a data-centric framework to fine-tune [Foundation Models](https://fsi.stanford.edu/publication/opportunities-and-risks-foundation-models) such as:
+---
+**Fondant helps you create high quality datasets to fine-tune foundation models such as:**
 
-- Stable Diffusion
-- CLIP
-- Large Language Models (LLMs like GPT-3)
-- Segment Anything (SAM)
-- etc.
+- :art: Stable Diffusion  
+- :page_facing_up: GPT-like Large Language Models (LLMs)  
+- :mag_right: CLIP  
+- :scissors: Segment Anything (SAM)  
+- :heavy_plus_sign: And many more
 
-Fondant focuses on data preparation to fine-tune these models.
+## :mouse_trap: Why Fondant?
 
-## Installation
+Foundation models simplify inference by solving multiple tasks across modalities with a simple
+prompt-based interface. But what they've gained in the front, they've lost in the back. 
+**These models require enormous amounts of data, moving complexity towards data preparation**, and 
+leaving few parties able to train their own models.
 
-Fondant can be installed from source using pip:
+We believe that **innovation is a group effort**, requiring collaboration. While the community has 
+been building and sharing models, everyone is still building their data preparation from scratch.
+**Fondant is the platform where we meet to build and share data preparation workflows.**
+
+Fondant offers a framework to build **composable data preparation pipelines, with reusable 
+components, optimized to handle massive datasets**. Stop building from scratch, and start 
+reusing components to:
+- Extend your data with public datasets
+- Generate new modalities using captioning, segmentation, translation, image generation, ...
+- Distill knowledge from existing foundation models
+- Filter out low quality data
+- Deduplicate data
+
+And create high quality datasets to fine-tune your own foundation models.
+
+<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
+
+## :magic_wand: Example pipelines
+
+Curious to see what Fondant can do? Have a look at our example pipelines:
+
+### Fine-tuning ControlNet
+
+Our 
+[example pipeline to generate data for ControlNet fine-tuning](examples/pipelines/controlnet-interior-design) 
+allows you to create models that you can control using inpainting, segmentation, and 
+regeneration. All you need to get started is a set of prompts describing the type of images to 
+generate.
+
+For instance, using our ControlNet model fine-tuned on interior design images, allows you to 
+generate the room of your dreams:
+
+| Input image                                                    | Output image                                                     |
+|----------------------------------------------------------------|------------------------------------------------------------------|
+| ![input image](docs/art/interior_design_controlnet_input1.png) | ![output image](docs/art/interior_design_controlnet_output1.jpg) |
+
+Want to try out the resulting model yourself, head over to our 
+[Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
+
+### Fine-tuning Stable Diffusion
+
+Using our 
+[example pipeline to fine-tune Stable Diffusion](examples/pipelines/finetune_stable_diffusion) 
+allows you to create models that generate better images within a specific domain. All you need to 
+get started is a small seed dataset of example images.
+
+Eg. generating logos:
+
+| Stable Diffusion 1.5                                | Fine-tuned Stable Diffusion 1.5               |
+|-----------------------------------------------------|-----------------------------------------------|
+| ![input image](docs/art/logo_stable_diffusion.jpeg) | ![output image](docs/art/logo_finetuned.jpeg) |
+
+<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
+
+## :jigsaw: Reusable components
+
+Fondant comes with a library of reusable components, which can jumpstart your pipeline.
+
+TODO: add links
+
+| Component                       | Description                                                      |
+|---------------------------------|------------------------------------------------------------------|
+| load_from_hf_hub                | Load a dataset from the Hugging Face Hub                         |
+| image_clip_embedding            | Create CLIP embeddings for images                                |
+| embedding_based_laion_retrieval | Retrieve images-text pairs from LAION using embedding similarity |
+| prompt_based_laion_retrieval    | Retrieve images-text pairs from LAION using prompt similarity    |
+| image_downloading               | Download images from urls                                        |
+| image_resolution_filtering      | Filter images based on their resolution                          |
+| captioning                      | Generate captions for images                                     |
+| segmentation                    | Generate segmentation maps for images                            |
+| write_to_hf_hub                 | Write a dataset to the Hugging Face Hub.                         |
+
+<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
+
+## :hammer_and_pick: Installation
+
+Fondant can be installed using pip:
+
+```
+pip install fondant
+```
+
+For the latest development version, you might want to install from source instead:
 
 ```
 pip install git+https://github.com/ml6team/fondant.git
 ```
 
-## Introduction
+### Deploying Fondant
 
-Fondant is built upon [KubeFlow pipelines](https://www.kubeflow.org/docs/components/pipelines/), a cloud-agnostic and open-source framework built by Google to run machine learning workflows on Kubernetes.
+TODO
 
-Fondant consists of a pipeline that runs a sequence of components (steps) one after the other. Each step implements one logical piece of a data processing pipeline, like image filtering, image embedding, text deduplication, etc.
+<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
-A Fondant pipeline always includes a loading component as first component, followed by one or more transform components. The loading component loads some initial seed data, with the transform components making transformations on them (like enrichment, filtering, transformation).
+## :man_technologist: Usage
 
-## Fondant Components
+#### Pipeline
 
-To implement a new component, one needs to implement 4 things:
+Fondant allows you to easily define data pipelines comprised of both reusable and custom 
+components. The following pipeline for instance uses the reusable `load_from_hf_hub` component 
+to load a dataset from the Hugging Face Hub and process it using a custom component:
 
-- a component specification (YAML file), which lists the name and description of the component, the input and output subsets of the component, as well as custom arguments (like the batch size to use in case the component embeds images)
-- a component implementation (Python script), which implements the core logic of the component in plain Python
-- a Docker container image, which packages the component's code
-- a requirements.txt file which lists the Python dependencies of the component.
 
-The structure of each component should look like this:
+```python
+from fondant.pipeline import ComponentOp, Pipeline, Client
 
+
+def build_pipeline():
+    pipeline = Pipeline(pipeline_name="example pipeline", base_path="fs://bucket")
+
+    load_from_hub_op = ComponentOp.from_registry(
+        name="load_from_hf_hub",
+        arguments={"dataset_name": "lambdalabs/pokemon-blip-captions"},
+    )
+    pipeline.add_op(load_from_hub_op)
+
+    custom_op = ComponentOp(
+        component_spec_path="components/custom_component/fondant_component.yaml",
+        arguments={
+            "min_width": 600,
+            "min_height": 600,
+        },
+    )
+    pipeline.add_op(custom_op, dependencies=load_from_hub_op)
+
+    return pipeline
+    
+
+if __name__ == "__main__":
+    client = Client(host="https://kfp-host.com/")
+    pipeline = build_pipeline()
+    client.compile_and_run(pipeline=pipeline)
 ```
-src
-__init__.py
-Dockerfile
-requirements.txt
-```
 
-The `src` folder should contain the component specification and implementation, both are explained below.
+#### Component
 
-### Component specification
+To create a custom component, you first need to describe its contract as a yaml specification. 
+It defines the data consumed and produced by the component and any arguments it takes.
 
-A component specification is a YAML file named `fondant_specification.yaml` that could look like this:
-
-```
-name: Image filtering
-description: Component that filters images based on desired minimum width and height
-image: image_filtering:latest
+```yaml
+name: Custom component
+description: This is a custom component
+image: custom_component:latest
 
 consumes:
   images:
     fields:
-      width:
-        type: int16
-      height:
-        type: int16
+      data:
+        type: binary
+
+produces:
+  captions:
+    fields:
+      data:
+        type: utf8
 
 args:
-  min_width:
-    description: Desired minimum width
-    type: int
-  min_height:
-    description: Desired minimum height
-    type: int
+  argument1:
+    description: An argument passed to the component at runtime
+    type: str
+  argument2:
+    description: Another argument passed to the component at runtime
+    type: str
 ```
 
-It lists the name, description of the component, the input subsets and output subsets that it expects, as well as custom arguments which are relevant for the core logic of the component.
+Once you have your component specification, all you need to do is implement a single `.transform` 
+method and Fondant will do the rest. You will get the data defined in your specification as a 
+[Dask](https://www.dask.org/) dataframe, which is evaluated lazily.
 
-In the example above, the component expects the `images` subset of the dataset as input with the fields `width` and `height`. It doesn't specify any output subsets, which means that this component won't be adding any new subsets to the dataset. It lists 2 custom arguments (`args`), namely a minimum width and height to filter images.
+```python
+from fondant.component import TransformComponent
 
-### Component implementation
+class ExampleComponent(TransformComponent):
 
-A component implementation is a Python script (`main.py`) that implements the core logic of the component. This script should always return a single [Dask dataframe](https://docs.dask.org/en/stable/dataframe.html). 
-
-A distinction is made between 2 components: a loading component, which is always the first one in a Fondant pipeline, and a transform component. A loading component loads some initial data and returns a single Dask dataframe, whereas a transform component takes in a single Dask dataframe as input, does some operations on it and returns another single Dask dataframe as output.
-
-Fondant offers the `FondantLoadComponent` and `FondantTransformComponent` classes that serve as boilerplate. To implement your own component, simply overwrite one of these 2 classes. In the example below, we leverage the `FondantTransformComponent` and overwrite its `transform` method.
-
-```
-from typing import Dict
-
-import dask.dataframe as dd
-
-from fondant.component import FondantTransformComponent
-
-class ImageFilterComponent(FondantTransformComponent):
-    """
-    Component that filters images based on height and width.
-    """
-
-    def transform(self, df: dd.DataFrame, args: Dict) -> dd.DataFrame:
-        """
-        Args:
-            df: Dask dataframe
-            args: args to pass to the function
+    def transform(self, dataframe, *, argument1, argument2):
+        """Implement your custom logic in this single method
         
-        Returns:
-            dataset
+        Args:
+            dataframe: A Dask dataframe containing the data
+            argumentX: An argument passed to the component
         """
-        logger.info("Filtering dataset...")
-        min_width, min_height = args.min_width, args.min_height
-        filtered_df = df[(df["images_width"] > min_width) & (df["images_height"] > min_height)]
-
-        return filtered_df
-
-
-if __name__ == "__main__":
-    component = ImageFilterComponent()
-    component.run()
 ```
 
-## Components zoo
+<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
-To do: add ready-made components.
+## :construction: Current state and roadmap
 
-## Pipeline zoo
+Fondant is currently in the alpha stage, offering a minimal viable interface. While you should 
+expect to run into rough edges, the foundations are ready and Fondant should already be able to 
+speed up your data preparation work.
 
-To do: add ready-made pipelines.
+**The following topics are on our roadmap**
+- Local pipeline execution
+- Non-linear pipeline DAGs
+- LLM-focused example pipelines and reusable components
+- Static validation, caching, and partial execution of pipelines
+- Data lineage and experiment tracking
+- Distributed execution, both on and off cluster
+- Support other dataframe libraries such as HF Datasets, Polars, Spark
+- Move reusable components into a decentralized component registry
+- Create datasets of copy-right free data for fine-tuning
+- Create reusable components for bias detection and mitigation
 
-## Examples
+The roadmap and priority are defined based on community feedback. To provide input, you can join 
+[our discord](https://discord.gg/HnTdWhydGp) or submit an idea in our 
+[Github Discussions](https://github.com/ml6team/fondant/discussions/categories/ideas).
 
-Example use cases of Fondant include:
+For a detailed view on the roadmap and day to day development, you can check our [github project 
+board](https://github.com/orgs/ml6team/projects/1).
 
-- collect additional image-text pairs based on a few seed images and fine-tune Stable Diffusion
-- filter an image-text dataset to only include "count" examples and fine-tune CLIP to improve its counting capabilities
+<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
-Check out the [examples folder](examples) for some illustrations.
+## :two_women_holding_hands: Contributing
 
-## Contributing
+We welcome contributions of different kinds:
 
-We use [poetry](https://python-poetry.org/docs/) and pre-commit to enable a smooth developer flow. Run the following commands to 
+|                                  |                                                                                                                                                                                                                                                                                                                           |
+|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Issues**                       | If you encounter any issue or bug, please submit them as a [Github issue](https://github.com/ml6team/fondant/issues). You can also submit a pull request directly to fix any clear bugs.                                                                                                                                  |
+| **Suggestions and feedback**     | If you have any suggestions or feedback, please reach out via our [Discord server](https://discord.gg/HnTdWhydGp) or [Github Discussions](https://github.com/ml6team/fondant/discussions)!                                                                                                                                |
+| **Framework code contributions** | If you want to help with the development of the Fondant framework, have a look at the issues marked with the [good first issue](https://github.com/ml6team/fondant/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label. If you want to add additional functionality, please submit an issue for it first. |
+| **Reusable components**          | Extending our library of reusable components is a great way to contribute. If you built a component which would be useful for other users, please submit a PR adding them to the [components/](https://github.com/ml6team/fondant/tree/main/components) directory.                                                        |
+| **Example pipelines**            | If you built a pipeline with Fondant which can serve as an example to other users, please submit a PR adding them to the [examples/](https://github.com/ml6team/fondant/tree/main/examples) directory.                                                                                                                    |
+
+### Environment setup
+
+We use [poetry](https://python-poetry.org/docs/) and [pre-commit](https://pre-commit.com/) to enable a smooth developer flow. Run the following commands to
 set up your development environment:
 
 ```commandline
@@ -144,3 +264,5 @@ pip install poetry
 poetry install
 pre-commit install
 ```
+
+<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
