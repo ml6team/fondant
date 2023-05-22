@@ -53,6 +53,9 @@ Curious to see what Fondant can do? Have a look at our example pipelines:
 
 ### [Fine-tuning ControlNet for interior design](examples/pipelines/controlnet-interior-design)
 
+Using our ControlNet model fine-tuned on interior design images allows you to generate the room 
+of your dreams using inpainting, segmentation, and regeneration.
+
 | Input image                                                    | Output image                                                     |
 |----------------------------------------------------------------|------------------------------------------------------------------|
 | ![input image](docs/art/interior_design_controlnet_input1.png) | ![output image](docs/art/interior_design_controlnet_output1.jpg) |
