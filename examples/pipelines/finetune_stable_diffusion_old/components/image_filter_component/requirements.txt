@@ -1,2 +1,0 @@
-datasets==2.10.1
-git+https://github.com/ml6team/fondant.git@2d630255f82c6a9d7d15e7be23ff3d9b9ba16723

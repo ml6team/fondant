@@ -18,43 +18,55 @@ pipeline_description = "A test pipeline"
 client = Client(host=PipelineConfigs.HOST)
 
 # Define component ops
-load_from_hub_op = ComponentOp(
-    component_spec_path="components/load_from_hub/fondant_component.yaml",
+load_from_hub_op = ComponentOp.from_registry(
+    name="load_from_hf_hub",
     arguments={"dataset_name": "logo-wizard/modern-logo-dataset"},
 )
 
-image_embedding_op = ComponentOp(
-    component_spec_path="components/image_embedding/fondant_component.yaml",
+image_embedding_op = ComponentOp.from_registry(
+    name="image_embedding",
     arguments={
         "model_id": "openai/clip-vit-large-patch14",
         "batch_size": 10,
     },
 )
 
-image_filtering_op = ComponentOp(
-    component_spec_path="components/image_filtering/fondant_component.yaml",
+laion_retrieval_op = ComponentOp.from_registry(
+    name="embedding_based_laion_retrieval",
+    arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
+)
+
+download_images_op = ComponentOp.from_registry(
+    name="download_images",
     arguments={
-        "min_width": 600,
-        "min_height": 600,
+        "timeout": 10,
+        "retries": 0,
+        "image_size": 512,
+        "resize_mode": "center_crop",
+        "resize_only_if_bigger": False,
+        "min_image_size": 0,
+        "max_aspect_ratio": 2.5,
     },
 )
 
-
-write_to_hub_op = ComponentOp(
-    component_spec_path="components/write_to_hub/fondant_component.yaml",
+caption_images_op = ComponentOp.from_registry(
+    name="caption_images",
     arguments={
-        "username": "test-user",
-        "dataset_name": "test",
-        "hf_token": "",
+        "model_id": "Salesforce/blip-image-captioning-base",
+        "batch_size": 2,
+        "max_new_tokens": 50,
     },
+    number_of_gpus=1,
+    node_pool_name="model-inference-pool",
 )
+
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
 pipeline.add_op(image_embedding_op, dependencies=load_from_hub_op)
-# pipeline.add_op(image_filtering_op, dependencies=load_from_hub_op)
-pipeline.add_op(write_to_hub_op, dependencies=image_embedding_op)
+pipeline.add_op(laion_retrieval_op, dependencies=image_embedding_op)
+pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
+pipeline.add_op(caption_images_op, dependencies=download_images_op)
 
 client.compile_and_run(pipeline=pipeline)

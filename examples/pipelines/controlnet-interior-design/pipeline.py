@@ -30,8 +30,8 @@ laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
     arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
 )
-download_images_op = ComponentOp(
-    component_spec_path="components/download_images/fondant_component.yaml",
+download_images_op = ComponentOp.from_registry(
+    name="download_images",
     arguments={
         "timeout": 10,
         "retries": 0,
@@ -42,8 +42,8 @@ download_images_op = ComponentOp(
         "max_aspect_ratio": 2.5,
     },
 )
-caption_images_op = ComponentOp(
-    component_spec_path="components/caption_images/fondant_component.yaml",
+caption_images_op = ComponentOp.from_registry(
+    name="caption_images",
     arguments={
         "model_id": "Salesforce/blip-image-captioning-base",
         "batch_size": 2,
@@ -52,8 +52,8 @@ caption_images_op = ComponentOp(
     number_of_gpus=1,
     node_pool_name="model-inference-pool",
 )
-segment_images_op = ComponentOp(
-    component_spec_path="components/segment_images/fondant_component.yaml",
+segment_images_op = ComponentOp.from_registry(
+    name="segment_images",
     arguments={
         "model_id": "openmmlab/upernet-convnext-small",
         "batch_size": 2,
