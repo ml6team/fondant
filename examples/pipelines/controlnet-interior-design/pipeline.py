@@ -42,11 +42,22 @@ download_images_op = ComponentOp(
         "max_aspect_ratio": 2.5,
     },
 )
+caption_images_op = ComponentOp(
+    component_spec_path="components/caption_images/fondant_component.yaml",
+    arguments={
+        "model_id": "Salesforce/blip-image-captioning-base",
+        "batch_size": 2,
+        "max_new_tokens": 50,
+    },
+    number_of_gpus=1,
+    node_pool_name="model-inference-pool",
+)
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
 pipeline.add_op(generate_prompts_op)
 pipeline.add_op(laion_retrieval_op, dependencies=generate_prompts_op)
 pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
+pipeline.add_op(caption_images_op, dependencies=download_images_op)
 
 client.compile_and_run(pipeline=pipeline)

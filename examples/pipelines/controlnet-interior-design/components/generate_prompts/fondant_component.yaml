@@ -6,4 +6,4 @@ output_subsets:
   prompts:
     fields:
       text:
-        type: utf8
+        type: string

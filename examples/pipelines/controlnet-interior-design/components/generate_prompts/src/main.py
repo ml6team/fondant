@@ -131,6 +131,7 @@ class GeneratePromptsComponent(LoadComponent):
 
         # reorder columns
         df = df[["id", "source", "prompts_text"]]
+        df = df.astype({"id": "string"})
 
         return df
 

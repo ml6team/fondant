@@ -6,7 +6,7 @@ input_subsets:
   images:
     fields:
       url:
-        type: utf8
+        type: string
 
 output_subsets:
   images:

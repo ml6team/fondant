@@ -11,7 +11,7 @@ input_subsets:
   caption:
     fields:
       data:
-        type: utf8
+        type: string
 
 output_subsets:
   embeddings:
