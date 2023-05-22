@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.8-slim
+FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
 
 ## System dependencies
 RUN apt-get update && \
@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install git -y
 
 # install requirements
-COPY requirements.txt /
+COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Set the working directory to the compoent folder
