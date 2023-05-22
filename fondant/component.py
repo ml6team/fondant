@@ -137,7 +137,7 @@ class LoadComponent(Component):
         return manifest
 
     @abstractmethod
-    def load(self, **kwargs) -> dd.DataFrame:
+    def load(self, *args, **kwargs) -> dd.DataFrame:
         """Abstract method that loads the initial dataframe."""
 
     def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:

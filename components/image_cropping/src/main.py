@@ -3,6 +3,7 @@ This component crops images by removing the borders.
 """
 import io
 import logging
+import typing as t
 
 import numpy as np
 from PIL import Image
@@ -17,7 +18,7 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def extract_dimensions(image_df: dd.DataFrame) -> [np.int16, np.int16]:
+def extract_dimensions(image_df: dd.DataFrame) -> t.Tuple[np.int16, np.int16]:
     """Extract the width and height of an image
 
     Args:
@@ -29,7 +30,7 @@ def extract_dimensions(image_df: dd.DataFrame) -> [np.int16, np.int16]:
     """
     image = Image.open(io.BytesIO(image_df["images_data"]))
 
-    return [np.int16(image.size[0]), np.int16(image.size[1])]
+    return np.int16(image.size[0]), np.int16(image.size[1])
 
 
 class ImageCroppingComponent(TransformComponent):

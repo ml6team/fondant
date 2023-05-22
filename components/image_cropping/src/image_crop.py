@@ -2,13 +2,13 @@
 This file contains the image cropping logic
 """
 import io
-from typing import List, Tuple
+import typing as t
 
 import numpy as np
 from PIL import Image, ImageChops, ImageOps
 
 
-def most_common(lst: List) -> object:
+def most_common(lst: t.Sequence[t.Tuple]) -> t.Tuple:
     """Get the most common element from a list
 
     Args:
@@ -20,7 +20,7 @@ def most_common(lst: List) -> object:
     return max(set(lst), key=lst.count)
 
 
-def get_image_borders(image: Image.Image) -> Tuple:
+def get_image_borders(image: Image.Image) -> t.Tuple:
     """Get the most common color from the image borders
 
     Args:
@@ -40,10 +40,10 @@ def get_image_borders(image: Image.Image) -> Tuple:
     ]
 
     # map the colors to RGB tuples
-    border_colors = tuple(map(tuple, border_colors))
+    rgb_border_colors = tuple(map(tuple, border_colors))
 
     # calculate most common RGB color
-    color_common = most_common(border_colors)
+    color_common = most_common(rgb_border_colors)
 
     return tuple(color_common)
 
