@@ -2,13 +2,13 @@ name: Download images
 description: Component that downloads images based on URLs
 image: ghcr.io/ml6team/download_images:latest
 
-input_subsets:
+consumes:
   images:
     fields:
       url:
         type: string
 
-output_subsets:
+produces:
   images:
     fields:
       data:

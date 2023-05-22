@@ -44,7 +44,7 @@ class WriteToHubComponent(FondantTransformComponent):
         # Get columns to write and schema
         write_columns = []
         schema = {}
-        for subset_name, subset in self.spec.input_subsets.items():
+        for subset_name, subset in self.spec.consumes.items():
             write_columns.extend([f"{subset_name}_{field}" for field in subset.fields])
             # Get schema
             subset_schema = {

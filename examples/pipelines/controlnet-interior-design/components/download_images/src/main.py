@@ -123,6 +123,8 @@ class DownloadImagesComponent(TransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
+        print(dataframe.head())
+
         # retrieve and resize images
         # source: https://stackoverflow.com/questions/41728527/how-to-apply-a-function-to-a-dask-dataframe-and-return-multiple-values
         logger.info("Downloading and resizing images...")
@@ -148,6 +150,8 @@ class DownloadImagesComponent(TransformComponent):
         )
 
         dataframe = dataframe.reset_index(drop=True)
+
+        print(dataframe.head())
 
         return dataframe
 

@@ -20,10 +20,10 @@
       "type": "string",
       "description": "Docker image for the component"
     },
-    "input_subsets": {
+    "consumes": {
       "$ref": "#/definitions/subsets"
     },
-    "output_subsets": {
+    "produces": {
       "$ref": "#/definitions/subsets"
     },
     "args": {

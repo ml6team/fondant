@@ -74,7 +74,7 @@ class DaskDataLoader(DataIO):
         """
         # load index into dataframe
         df = self._load_index()
-        for name, subset in spec.input_subsets.items():
+        for name, subset in spec.consumes.items():
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
             # left joins -> filter on index
@@ -202,7 +202,7 @@ class DaskDataWriter(DataIO):
         divisions = list(df.divisions) if df.known_divisions else None
 
         # Loop through each output subset defined in the spec
-        for subset_name, subset in spec.output_subsets.items():
+        for subset_name, subset in spec.produces.items():
             # Verify that all the fields defined in the output subset are present in the
             # output dataframe
             subset_columns = verify_subset_columns(subset_name, subset.fields, df)

@@ -2,7 +2,7 @@ name: Load from hub
 description: Component that loads a dataset from the hub
 image: ghcr.io/ml6team/load_from_hub:latest
 
-output_subsets:
+produces:
   images:
     fields:
       data:

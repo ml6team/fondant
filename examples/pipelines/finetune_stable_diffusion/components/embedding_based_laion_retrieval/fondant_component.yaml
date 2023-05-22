@@ -2,13 +2,13 @@ name: LAION retrieval
 description: A component that retrieves image URLs from LAION-5B based on a set of CLIP embeddings
 image: ghcr.io/ml6team/embedding_based_laion_retrieval:latest
 
-input_subsets:
+consumes:
   embeddings:
     fields:
       data:
         type: float32_list
 
-output_subsets:
+produces:
   images:
     fields:
       url:

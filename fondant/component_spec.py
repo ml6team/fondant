@@ -140,40 +140,34 @@ class ComponentSpec:
         return self._specification["image"]
 
     @property
-    def input_subsets(self) -> t.Mapping[str, ComponentSubset]:
-        """The input subsets of the component as an immutable mapping."""
+    def consumes(self) -> t.Mapping[str, ComponentSubset]:
+        """The subsets consumed by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._specification.get("input_subsets", {}).items()
+                for name, subset in self._specification.get("consumes", {}).items()
                 if name != "additionalSubsets"
             }
         )
 
     @property
-    def output_subsets(self) -> t.Mapping[str, ComponentSubset]:
-        """The output subsets of the component as an immutable mapping."""
+    def produces(self) -> t.Mapping[str, ComponentSubset]:
+        """The subsets produced by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: ComponentSubset(subset)
-                for name, subset in self._specification.get(
-                    "output_subsets", {}
-                ).items()
+                for name, subset in self._specification.get("produces", {}).items()
                 if name != "additionalSubsets"
             }
         )
 
     @property
     def accepts_additional_subsets(self) -> bool:
-        return self._specification.get("input_subsets", {}).get(
-            "additionalSubsets", True
-        )
+        return self._specification.get("consumes", {}).get("additionalSubsets", True)
 
     @property
-    def produces_additional_subsets(self) -> bool:
-        return self._specification.get("output_subsets", {}).get(
-            "additionalSubsets", True
-        )
+    def outputs_additional_subsets(self) -> bool:
+        return self._specification.get("produces", {}).get("additionalSubsets", True)
 
     @property
     def args(self) -> t.Dict[str, Argument]:
