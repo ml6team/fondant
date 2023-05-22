@@ -11,7 +11,7 @@ output_subsets:
   captions:
     fields:
       data:
-        type: utf8
+        type: string
 
 args:
   storage_args:

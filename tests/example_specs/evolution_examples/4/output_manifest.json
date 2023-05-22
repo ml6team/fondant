@@ -21,7 +21,7 @@
           "type": "binary"
         },
         "encoding": {
-          "type": "utf8"
+          "type": "string"
         }
       }
     },

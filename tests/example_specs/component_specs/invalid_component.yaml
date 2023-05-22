@@ -8,7 +8,7 @@ input_subsets:
 
 output_subsets:
   captions:
-    data: utf8
+    data: string
 
 Arguments:
   storage_args:
