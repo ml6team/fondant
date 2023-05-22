@@ -62,6 +62,17 @@ segment_images_op = ComponentOp(
     node_pool_name="model-inference-pool",
 )
 
+write_to_hub_controlnet = ComponentOp(
+    component_spec_path="components/write_to_hub_controlnet/fondant_component.yaml",
+    arguments={
+        "username": "test-user",
+        "dataset_name": "segmentation_kfp",
+        "hf_token": "hf_token"
+    },
+    number_of_gpus=1,
+    node_pool_name="model-inference-pool",
+)
+
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
 pipeline.add_op(generate_prompts_op)
@@ -69,5 +80,6 @@ pipeline.add_op(laion_retrieval_op, dependencies=generate_prompts_op)
 pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
 pipeline.add_op(caption_images_op, dependencies=download_images_op)
 pipeline.add_op(segment_images_op, dependencies=caption_images_op)
+pipeline.add_op(write_to_hub_controlnet, dependencies=segment_images_op)
 
 client.compile_and_run(pipeline=pipeline)
