@@ -92,10 +92,10 @@ class SegmentImagesComponent(TransformComponent):
     """
 
     def transform(
-        self,
-        dataframe: dd.DataFrame,
-        model_id: str,
-        batch_size: int,
+            self,
+            dataframe: dd.DataFrame,
+            model_id: str,
+            batch_size: int,
     ) -> dd.DataFrame:
         """
         Args:
@@ -139,9 +139,6 @@ class SegmentImagesComponent(TransformComponent):
         segmentations_df["source"] = dataframe["source"].reset_index(drop=True)
 
         segmentations_df = segmentations_df.reset_index(drop=True)
-
-        print("Final dataframe:", segmentations_df.head(4))
-        print("Length of the final dataframe:", len(segmentations_df))
 
         return segmentations_df
 
