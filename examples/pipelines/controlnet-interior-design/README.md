@@ -7,7 +7,7 @@ This example demonstrates an end-to-end fondant pipeline to collect and process 
 
 The image below shows the entire pipeline and its workflow.
 
-![Image](./assets/controlnet-interior-design-pipeline.png)
+![Image](../../../docs/art/controlnet-interior-design-pipeline.png)
 
 
 There are 5 components in total, these are:
