@@ -7,17 +7,11 @@ The component specification is used for a couple of things:
 - To validate compatibility with other components.
 - To execute the component with the correct parameters
 
-
-A Fondant manifest describes the contents of a dataset and is used as a reference to the dataset
-to be passed between Fondant components.
-
-Creating the manifest is handled by Fondant, as each component will automatically generate the
-manifest that represents its output dataset. While you should not have to create the manifest
-yourself, it is still useful to understand how it works.
+The component specification should be provided by the author of the component
 
 ## Contents
 
-A manifest consists of the following sections
+A component spec(ification) consists of the following sections
 
 ```yaml
 name: ...
@@ -36,8 +30,8 @@ args:
 
 ### Metadata
 
-The metadata tracks metadata about the component, such as its name, description, and the image 
-used to run it.
+The metadata tracks metadata about the component, such as its name, description, and the 
+docker image used to run it.
 
 ```yaml
 name: Example component
@@ -61,7 +55,7 @@ consumes:
         type: binary
   captions:
     fields:
-      data:
+      text:
         type: string
 
 produces:
@@ -124,7 +118,8 @@ Please check the [examples](#examples) below to build a better understanding.
 
 ### Args
 
-The `args` section describes which arguments the component takes.
+The `args` section describes which arguments the component takes. Each argument is defined by a 
+`description` and a `type`, which should be one of the builtin Python types.
 
 ```yaml
 args:
