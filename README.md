@@ -36,7 +36,7 @@ been building and sharing models, everyone is still building their data preparat
 
 Fondant offers a framework to build **composable data preparation pipelines, with reusable 
 components, optimized to handle massive datasets**. Stop building from scratch, and start 
-leveraging reusable components instead to:
+reusing components to:
 - Extend your data with public datasets
 - Generate new modalities using captioning, segmentation, translation, image generation, ...
 - Distill knowledge from existing foundation models
@@ -59,8 +59,8 @@ allows you to create models that you can control using inpainting, segmentation,
 regeneration. All you need to get started is a set of prompts describing the type of images to 
 generate.
 
-Using our ControlNet model fine-tuned on interior design images for instance allows you to generate 
-the room of your dreams:
+For instance, using our ControlNet model fine-tuned on interior design images, allows you to 
+generate the room of your dreams:
 
 | Input image                                                    | Output image                                                     |
 |----------------------------------------------------------------|------------------------------------------------------------------|
@@ -73,7 +73,7 @@ Want to try out the resulting model yourself, head over to our
 
 Using our 
 [example pipeline to fine-tune Stable Diffusion](examples/pipelines/finetune_stable_diffusion) 
-allows you create models that generate better images within a specific domain. All you need to 
+allows you to create models that generate better images within a specific domain. All you need to 
 get started is a small seed dataset of example images.
 
 Eg. generating logos:
@@ -81,10 +81,6 @@ Eg. generating logos:
 | Stable Diffusion 1.5                                | Fine-tuned Stable Diffusion 1.5               |
 |-----------------------------------------------------|-----------------------------------------------|
 | ![input image](docs/art/logo_stable_diffusion.jpeg) | ![output image](docs/art/logo_finetuned.jpeg) |
-
-
-
-
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
