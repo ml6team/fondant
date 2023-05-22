@@ -47,7 +47,7 @@ class Subset:
         if not overwrite and name in self._specification["fields"]:
             raise ValueError(f"A field with name {name} already exists")
 
-        self._specification["fields"][name] = {"type": type_.value}
+        self._specification["fields"][name] = {"type": type_.name}
 
     def remove_field(self, name: str) -> None:
         del self._specification["fields"][name]
