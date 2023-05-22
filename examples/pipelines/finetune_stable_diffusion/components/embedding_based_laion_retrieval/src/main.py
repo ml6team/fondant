@@ -68,15 +68,13 @@ class LAIONRetrievalComponent(TransformComponent):
         )
 
         # retrieve images from laion based on the input embeddings
-        dataframe['images_url'] = dataframe["embeddings_data"].apply(
+        dataframe["images_url"] = dataframe["embeddings_data"].apply(
             lambda example: query_clip_client(example, client),
             meta=("images_url", str),
         )
 
         # unpack list of urls
-        dataframe = dataframe\
-            .explode("images_url")\
-            .dropna(subset=["images_url"])
+        dataframe = dataframe.explode("images_url").dropna(subset=["images_url"])
 
         # add id and source columns
         # the id is an incremental number starting from 1
