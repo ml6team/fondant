@@ -1,6 +1,6 @@
-name: Embedding
+name: Image embedding
 description: Component that embeds images using CLIP
-image: ghcr.io/ml6team/embedding:latest
+image: ghcr.io/ml6team/image_embedding:latest
 
 input_subsets:
   images:
@@ -12,11 +12,11 @@ output_subsets:
   embeddings:
     fields:
       data:
-        type: float
+        type: float32_list
 
 args:
   model_id:
-    description: Model id on the Hugging Face hub
+    description: Model id on the Hugging Face hub  (e.g. "openai/clip-vit-large-patch14")
     type: str
   batch_size:
     description: Batch size to use when embedding
