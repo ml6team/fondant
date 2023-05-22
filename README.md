@@ -51,10 +51,16 @@ And create high quality datasets to fine-tune your own foundation models.
 
 Curious to see what Fondant can do? Have a look at our example pipelines:
 
-### [Fine-tuning ControlNet for interior design](examples/pipelines/controlnet-interior-design)
+### Fine-tuning ControlNet
 
-Using our ControlNet model fine-tuned on interior design images allows you to generate the room 
-of your dreams using inpainting, segmentation, and regeneration.
+Our 
+[example pipeline to generate data for ControlNet fine-tuning](examples/pipelines/controlnet-interior-design) 
+allows you to create models that you can control using inpainting, segmentation, and 
+regeneration. All you need to get started is a set of prompts describing the type of images to 
+generate.
+
+Using our ControlNet model fine-tuned on interior design images for instance allows you to generate 
+the room of your dreams:
 
 | Input image                                                    | Output image                                                     |
 |----------------------------------------------------------------|------------------------------------------------------------------|
@@ -63,9 +69,22 @@ of your dreams using inpainting, segmentation, and regeneration.
 Want to try out the resulting model yourself, head over to our 
 [Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
 
-### Fine-tuning Stable Diffusion on a specific domain
+### Fine-tuning Stable Diffusion
 
-TODO
+Using our 
+[example pipeline to fine-tune Stable Diffusion](examples/pipelines/finetune_stable_diffusion) 
+allows you create models that generate better images within a specific domain. All you need to 
+get started is a small seed dataset of example images.
+
+Eg. generating logos:
+
+| Stable Diffusion 1.5                                | Fine-tuned Stable Diffusion 1.5               |
+|-----------------------------------------------------|-----------------------------------------------|
+| ![input image](docs/art/logo_stable_diffusion.jpeg) | ![output image](docs/art/logo_finetuned.jpeg) |
+
+
+
+
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
