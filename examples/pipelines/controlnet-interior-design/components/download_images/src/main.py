@@ -12,7 +12,7 @@ import dask.dataframe as dd
 
 from resizer import Resizer
 
-from fondant.component import FondantTransformComponent
+from fondant.component import TransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -83,7 +83,7 @@ def download_image_with_retry(
     return None, None, None
 
 
-class DownloadImagesComponent(FondantTransformComponent):
+class DownloadImagesComponent(TransformComponent):
     """
     Component that downloads images based on URLs.
     """
@@ -147,7 +147,7 @@ class DownloadImagesComponent(FondantTransformComponent):
             result, left_index=True, right_index=True
         )
 
-        logger.info("Columns of final dataframe:", list(dataframe.columns))
+        dataframe = dataframe.reset_index(drop=True)
 
         return dataframe
 

@@ -1,0 +1,26 @@
+name: Caption images
+description: Component that captions images using a model from the Hugging Face hub
+image: ghcr.io/ml6team/caption_images:latest
+
+input_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+
+output_subsets:
+  captions:
+    fields:
+      text:
+        type: utf8
+
+args:
+  model_id:
+    description: id of the model on the Hugging Face hub
+    type: str
+  batch_size:
+    description: batch size to use
+    type: int
+  max_new_tokens:
+    description: maximum token length of each caption
+    type: int

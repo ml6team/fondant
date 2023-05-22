@@ -12,7 +12,7 @@ output_subsets:
   images:
     fields:
       encoding:
-        type: utf8
+        type: string
     additionalFields: false
   additionalSubsets: false
 
