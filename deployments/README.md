@@ -1,6 +1,5 @@
 # 
-
-In order to run fondant properly we'll need a couple of things:
+Fondant is built on top of Kubeflow Pipelines, so to run it we'll need:
 
 - A kubernetes cluster
 - (OPTIONAL) A nodepool with GPU's available
@@ -36,8 +35,31 @@ There are several ways to get up and running with kubeflow pipelines on Google C
 4. Run Makefile which will do the following:
 - Setup all gcp services needed 
 - Start a GKE cluster
+- Create a google storage bucket for data artifact storage
 - Authenticate the local machine 
 - Install kubeflow pipelines on the cluster
+
+To run the complete makefile use (note this might take some time to complete):
+```
+make -f gcp.mk
+```
+Or run specific steps:
+```
+make -f gcp.mk authenticate-gcp-cluster
+```
+
+### Getting the variables for your pipeline
+
+Running the following command:
+```
+make -f gcp.mk kubeflow-ui
+```
+Will print out the BASE_PATH and HOST which you can use to configure your pipeline. The HOST url will also allow you to use the kubeflow ui when opened in a browser.
+
+### In order to delete the setup:
+```
+make -f gcp.mk delete
+```
 
 ### More Information
 
