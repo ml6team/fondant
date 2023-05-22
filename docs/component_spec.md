@@ -1,8 +1,5 @@
 # Component specification
 
-A Fondant component specification defines a component by describing its interface. It is used by 
-Fondant to pass in 
-
 Each fondant component is defined by a component specification which describes its interface. 
 The component specification is used for a couple of things:
 - To define which input data Fondant should pass to the component, and which output data it should 
