@@ -16,7 +16,7 @@ output_subsets:
 
 args:
   model_id:
-    description: Model id on the Hugging Face hub
+    description: Model id on the Hugging Face hub  (e.g. "openai/clip-vit-large-patch14")
     type: str
   batch_size:
     description: Batch size to use when embedding

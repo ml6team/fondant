@@ -26,8 +26,8 @@ load_from_hub_op = ComponentOp(
 image_embedding_op = ComponentOp(
     component_spec_path="components/image_embedding/fondant_component.yaml",
     arguments={
-        "min_width": 600,
-        "min_height": 600,
+        "model_id": "openai/clip-vit-large-patch14",
+        "batch_size": 10,
     },
 )
 
@@ -43,7 +43,7 @@ image_filtering_op = ComponentOp(
 write_to_hub_op = ComponentOp(
     component_spec_path="components/write_to_hub/fondant_component.yaml",
     arguments={
-        "username": "philippemo",
+        "username": "test-user",
         "dataset_name": "test",
         "hf_token": "",
     },

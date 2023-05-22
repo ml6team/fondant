@@ -5,6 +5,7 @@ import io
 import itertools
 import logging
 import toolz
+import typing as t
 
 from PIL import Image
 import torch
@@ -21,27 +22,69 @@ logger = logging.getLogger(__name__)
 
 
 @dask.delayed
-def load(example):
+def load(example: bytes) -> Image:
+    """
+    Load the bytestring as an image
+
+    Args:
+        example: A byte string representing the image.
+
+    Returns:
+        The loaded image.
+    """
     bytes = io.BytesIO(example)
     image = Image.open(bytes).convert("RGB")
     return image
 
 
 @dask.delayed
-def transform(image, processor, device):
+def transform(image: Image, processor: CLIPProcessor, device: str) -> torch.Tensor:
+    """
+    Transform the image to a tensor using a clip processor and move it to the specified device.
+
+    Args:
+        image: The input image.
+        processor: The processor object for transforming the image.
+        device: The device to move the transformed image to.
+
+    Returns:
+        The transformed image.
+    """
     inputs = processor(images=image, return_tensors="pt").to(device)
 
     return inputs
 
 
 @dask.delayed
-def collate(examples):
+def collate(examples: t.List[t.Dict[str, torch.Tensor]]) -> torch.Tensor:
+    """
+    Collate a list of examples into a single torch.Tensor.
+
+    Args:
+        examples: A list of examples, where each example is a dictionary containing a
+         "pixel_values" tensor.
+
+    Returns:
+        torch.Tensor: The concatenated tensor of pixel values from all examples.
+    """
     return torch.cat([ex["pixel_values"] for ex in examples])
 
 
 @dask.delayed
 @torch.no_grad()
-def embed(batch, model):
+def embed(
+    batch: torch.Tensor, model: CLIPVisionModelWithProjection
+) -> t.List[t.List[float]]:
+    """
+    Embed a batch of images using a given model.
+
+    Args:
+        batch: The batch of images.
+        model: The embedding model.
+
+    Returns:
+        The embeddings as a list of lists.
+    """
     # embed to get (batch_size, hidden_size) embeddings
     outputs = model(batch)
     image_embeds = outputs.image_embeds
@@ -53,7 +96,16 @@ def embed(batch, model):
 
 
 @dask.delayed
-def flatten(lst):
+def flatten(lst: t.List[t.List[t.Any]]) -> pd.Series:
+    """
+    Flatten a nested list into a pandas Series.
+
+    Parameters:
+        lst: The nested list to flatten.
+
+    Returns:
+        The flattened Series.
+    """
     return pd.Series(itertools.chain(*lst))
 
 
@@ -110,8 +162,9 @@ class EmbedImagesComponent(TransformComponent):
         embeddings_df = delayed_series.to_frame(name="embeddings_data")
 
         # add index columns
-        embeddings_df["id"] = dataframe["id"].reset_index(drop=True)
-        embeddings_df["source"] = dataframe["source"].reset_index(drop=True)
+        dataframe = dataframe.reset_index(drop=True)
+        embeddings_df["id"] = dataframe["id"]
+        embeddings_df["source"] = dataframe["source"]
 
         embeddings_df = embeddings_df.reset_index(drop=True)
 
