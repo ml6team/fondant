@@ -1,7 +1,7 @@
 # caption_images
 
 ### Description
-This component captions all images using a captioning model like [BLIP](https://huggingface.co/docs/transformers/model_doc/blip).
+This component captions inputted images using [BLIP](https://huggingface.co/docs/transformers/model_doc/blip).
 
 ### **Inputs/Outputs**
 
