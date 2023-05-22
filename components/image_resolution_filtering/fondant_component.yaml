@@ -1,6 +1,6 @@
 name: Image filtering
 description: Component that filters images based on desired minimum width and height
-image: ghcr.io/ml6team/image_filtering:latest
+image: ghcr.io/ml6team/image_resolution_filtering:latest
 
 consumes:
   images:
