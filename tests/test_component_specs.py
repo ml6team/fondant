@@ -53,12 +53,11 @@ def test_attribute_access(valid_fondant_schema):
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
-    assert fondant_component.input_subsets["images"].fields["data"].type == Type.binary
+    assert fondant_component.consumes["images"].fields["data"].type == Type.binary
     assert (
-        fondant_component.input_subsets["embeddings"].fields["data"].type
-        == Type.int8_list
+        fondant_component.consumes["embeddings"].fields["data"].type == Type.int8_list
     )
-    assert fondant_component.input_subsets["embeddings"].fields[
+    assert fondant_component.consumes["embeddings"].fields[
         "data"
     ].type.value == pa.list_(pa.int8())
 

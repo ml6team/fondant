@@ -122,6 +122,8 @@ class GeneratePromptsComponent(LoadComponent):
         df = df[["id", "source", "prompts_text"]]
         df = df.astype({"id": "string"})
 
+        df = dd.from_pandas(df.head(), npartitions=1)
+
         return df
 
 

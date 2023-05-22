@@ -199,8 +199,8 @@ class Pipeline:
 
     def _validate_pipeline_definition(self, run_id: str):
         """
-        Validates the pipeline definition by ensuring that the input and output subsets and their
-         associated fields match and are invoked in the correct order.
+        Validates the pipeline definition by ensuring that the consumed and produced subsets and
+        their associated fields match and are invoked in the correct order.
 
         Raises:
             InvalidPipelineDefinition: If a component is trying to invoke a subset that is not
@@ -225,7 +225,7 @@ class Pipeline:
                 for (
                     component_subset_name,
                     component_subset,
-                ) in component_spec.input_subsets.items():
+                ) in component_spec.consumes.items():
                     if component_subset_name not in manifest.subsets:
                         raise InvalidPipelineDefinition(
                             f"Component '{component_spec.name}' "

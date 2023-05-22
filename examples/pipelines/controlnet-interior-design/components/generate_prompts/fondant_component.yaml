@@ -2,7 +2,7 @@ name: Generate prompts
 description: Component that generates a set of seed prompts
 image: ghcr.io/ml6team/generate_prompts:latest
 
-output_subsets:
+produces:
   prompts:
     fields:
       text:

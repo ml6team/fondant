@@ -55,7 +55,7 @@ name: Image filtering
 description: Component that filters images based on desired minimum width and height
 image: image_filtering:latest
 
-input_subsets:
+consumes:
   images:
     fields:
       width:

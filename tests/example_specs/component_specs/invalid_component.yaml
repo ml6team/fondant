@@ -2,11 +2,11 @@ name: Example component
 description: This is an example component
 image: example_component:latest
 
-input_subsets:
+consumes:
   images:
     data: binary
 
-output_subsets:
+produces:
   captions:
     data: string
 

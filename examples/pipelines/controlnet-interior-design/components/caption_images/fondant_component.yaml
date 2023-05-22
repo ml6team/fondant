@@ -2,13 +2,13 @@ name: Caption images
 description: Component that captions images using a model from the Hugging Face hub
 image: ghcr.io/ml6team/caption_images:latest
 
-input_subsets:
+consumes:
   images:
     fields:
       data:
         type: binary
 
-output_subsets:
+produces:
   captions:
     fields:
       text:

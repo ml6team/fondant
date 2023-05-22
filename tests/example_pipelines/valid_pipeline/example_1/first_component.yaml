@@ -2,7 +2,7 @@ name: First component
 description: This is an example component
 image: example_component:latest
 
-output_subsets:
+produces:
   images:
     fields:
       data:
