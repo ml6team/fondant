@@ -1,17 +1,19 @@
 site_name: Fondant
 theme:
     name: material
+    features:
+        - content.code.copy
 nav:
     - Home: index.md
     - Manifest: manifest.md
     - Component spec: component_spec.md
 
 markdown_extensions:
-  - pymdownx.snippets:
-      check_paths: true
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.superfences
+    - pymdownx.snippets:
+        check_paths: true
+    - pymdownx.highlight:
+        anchor_linenums: true
+        line_spans: __span
+        pygments_lang_class: true
+    - pymdownx.inlinehilite
+    - pymdownx.superfences
