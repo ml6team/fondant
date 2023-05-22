@@ -1,0 +1,23 @@
+name: Segment images
+description: Component that creates segmentation masks for images using a model from the Hugging Face hub
+image: ghcr.io/ml6team/segment_images:latest
+
+input_subsets:
+  images:
+    fields:
+      data:
+        type: binary
+
+output_subsets:
+  segmentations:
+    fields:
+      data:
+        type: binary
+
+args:
+  model_id:
+    description: id of the model on the Hugging Face hub
+    type: str
+  batch_size:
+    description: batch size to use
+    type: int

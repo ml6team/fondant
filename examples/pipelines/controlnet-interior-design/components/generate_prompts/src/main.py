@@ -114,17 +114,6 @@ class GeneratePromptsComponent(LoadComponent):
 
         df = dd.from_pandas(pandas_df, npartitions=1)
 
-        # TODO remove, just use a tiny df for testing purposes
-        data = {
-            "prompts_text": [
-                "comfortable bathroom, art deco interior design",
-                "comfortable bathroom, bauhaus interior design",
-            ]
-        }
-        pandas_df = pd.DataFrame.from_dict(data)
-        df = dd.from_pandas(pandas_df, npartitions=1)
-        # end of TODO
-
         # add id and source columns
         df["id"] = df.assign(id=1).id.cumsum()
         df["source"] = "seed"

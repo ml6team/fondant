@@ -44,12 +44,12 @@ class LAIONRetrievalComponent(TransformComponent):
     """
 
     def transform(
-        self,
-        dataframe: dd.DataFrame,
-        *,
-        num_images: int,
-        aesthetic_score: int,
-        aesthetic_weight: float
+            self,
+            dataframe: dd.DataFrame,
+            *,
+            num_images: int,
+            aesthetic_score: int,
+            aesthetic_weight: float
     ) -> dd.DataFrame:
         """
         Args:
@@ -70,8 +70,6 @@ class LAIONRetrievalComponent(TransformComponent):
             modality=Modality.IMAGE,
         )
 
-        print("Input dataframe:", dataframe.head(2))
-
         logger.info("Retrieving URLs...")
         dataframe["images_url"] = dataframe["prompts_text"].apply(
             lambda example: query_clip_client(example, client),
@@ -91,7 +89,6 @@ class LAIONRetrievalComponent(TransformComponent):
 
         dataframe = dataframe.astype({'id': 'string', 'source': 'string'})
 
-        print("Final dataframe:", dataframe.head(4))
         dataframe = dataframe.reset_index(drop=True)
 
         return dataframe
