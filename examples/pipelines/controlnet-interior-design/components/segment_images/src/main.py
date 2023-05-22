@@ -92,10 +92,10 @@ class SegmentImagesComponent(TransformComponent):
     """
 
     def transform(
-            self,
-            dataframe: dd.DataFrame,
-            model_id: str,
-            batch_size: int,
+        self,
+        dataframe: dd.DataFrame,
+        model_id: str,
+        batch_size: int,
     ) -> dd.DataFrame:
         """
         Args:

@@ -67,7 +67,7 @@ write_to_hub_controlnet = ComponentOp(
     arguments={
         "username": "test-user",
         "dataset_name": "segmentation_kfp",
-        "hf_token": "hf_token"
+        "hf_token": "hf_token",
     },
     number_of_gpus=1,
     node_pool_name="model-inference-pool",
