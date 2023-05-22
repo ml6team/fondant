@@ -1,10 +1,42 @@
 site_name: Fondant
+repo_url: https://github.com/ml6team/fondant
+repo_name: ml6team/fondant
 theme:
-    name: material
+  name: material
+  favicon: art/fondant_logo_single_letter.svg
+  logo: art/fondant_logo_single_letter.svg
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      media: "(prefers-color-scheme: light)"
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      media: "(prefers-color-scheme: dark)"
+      primary: orange
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.copy
+    - navigation.tracking
 nav:
-    - Home: index.md
-    - Manifest: manifest.md
+  - Home: index.md
+  - Manifest: manifest.md
+  - Component spec: component_spec.md
 
 markdown_extensions:
-- pymdownx.snippets:
-    check_paths: true
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
