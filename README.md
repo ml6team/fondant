@@ -15,11 +15,11 @@
 ---
 **Fondant helps you create high quality datasets to fine-tune foundation models such as:**
 
-:art: Stable Diffusion  
-:page_facing_up: GPT-like Large Language Models (LLMs)  
-:mag_right: CLIP  
-:scissors: Segment Anything (SAM)  
-:heavy_plus_sign: And many more
+- :art: Stable Diffusion  
+- :page_facing_up: GPT-like Large Language Models (LLMs)  
+- :mag_right: CLIP  
+- :scissors: Segment Anything (SAM)  
+- :heavy_plus_sign: And many more
 
 ## :mouse_trap: Why Fondant?
 
@@ -49,9 +49,14 @@ And create high quality datasets to fine-tune your own foundation models.
 
 Curious to see what Fondant can do? Have a look at our example pipelines:
 
-### Fine-tuning ControlNet for interior design
+### [Fine-tuning ControlNet for interior design](examples/pipelines/controlnet-interior-design)
 
-TODO
+| Input image                                                    | Output image                                                     |
+|----------------------------------------------------------------|------------------------------------------------------------------|
+| ![input image](docs/art/interior-design-controlnet-input1.png) | ![output image](docs/art/interior-design-controlnet-output1.png) |
+
+Want to try out the resulting model yourself, head over to our 
+[Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
 
 ### Fine-tuning Stable Diffusion on a specific domain
 
