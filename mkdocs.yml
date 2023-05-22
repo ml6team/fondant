@@ -1,5 +1,6 @@
 site_name: Fondant
 repo_url: https://github.com/ml6team/fondant
+repo_name: ml6team/fondant
 theme:
   name: material
   favicon: art/fondant_logo_single_letter.svg
