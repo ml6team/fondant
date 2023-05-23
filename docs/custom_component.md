@@ -1,15 +1,15 @@
 # Custom component
 
-The goal of Fondant is to make it easy for people to define new components which can be incorporated, shared and reused for data preparation pipelines.
+The goal of Fondant is to make it easy for people to define new components which can be incorporated into data preparation pipelines. This allows to share and reuse them as building blocks when preparing data for Foundation models.
 
-A Fondant component should implement one logical piece of data preprocessing, like captioning images or deduplicating text. It's important to not include too much logic into a single component, as it might be beneficial to split up the logic into 2 separate components in that case.
+A Fondant component should implement one logical piece of data preprocessing, like captioning images or removing PPI from text. It's important to not include too much logic into a single component, as it might be beneficial to split up the logic into 2 separate components in that case.
 
 To implement a custom component, a couple of files need to be defined:
 
-- Fondant component specification
-- main.py script in a `src` folder
-- Dockerfile
-- requirements.txt
+- [Fondant component specification](#fondant-component-specification)
+- [main.py script in a `src` folder](#mainpy-script)
+- [Dockerfile](#dockerfile)
+- [requirements.txt](#requirementstxt)
 
 To see an overview of all custom components which Fondant already provides, have a look [here](https://github.com/ml6team/fondant/tree/main/components).
 
@@ -35,7 +35,9 @@ class ExampleComponent(TransformComponent):
         """
 ```
 
-The idea is that Fondant provides a single dataframe to the user based on the component's specification. Next, the user can manipulate this dataframe. Finally, the user should return a single dataframe, which Fondant will then use to update the [manifest](manifest) and potentially write new data to the cloud. Fondant will also verify that the output dataframe matches with the `produces` section of the component specificaton.
+The idea is that Fondant provides a single dataframe to the user based on the component's specification. The column names of the dataframe always have the format `subset_field`. This means that if a component defines the `images` subset with the `data` field in its `consumes` [section](component_spec) for instance, the dataframe will contain a column called `images_data`.
+
+Next, the user can manipulate this dataframe. Finally, the user should return a single dataframe, which Fondant will then use to update the [manifest](manifest) and potentially write new data to the cloud. Fondant will also verify that the output dataframe matches with the `produces` [section](component_spec) of the component specificaton.
 
 Note that the `transform` method can include additional custom arguments (`argument1` and `argument2` in the example above). These should match with the `args` section defined in the [Fondant specification](component_spec). Examples include the batch size when captioning images, the minimum width and height when filtering images, and so on.
 
