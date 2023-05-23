@@ -115,11 +115,11 @@ For the latest development version, you might want to install from source instea
 pip install git+https://github.com/ml6team/fondant.git
 ```
 
-### Deploying Fondant
+### :bricks: Deploying Fondant
 
 Fondant is flexible and works by leveraging [kubeflow pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/) on any kubernetes cluster. All fondant needs is an url pointing to the kubeflow pipeline host and a Object Storage provider (S3, GCS, etc) to store data produced in the pipeline between steps.
 
-We have compiled some references and created some scripts to [get you started](infrastructure.md) with setting up the required infrastructure.
+We have compiled some references and created some scripts to [get you started](https://fondant.readthedocs.io/en/latest/infrastructure) with setting up the required infrastructure.
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
