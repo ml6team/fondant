@@ -76,7 +76,7 @@ def segment(batch, model, processor):
         outputs, target_sizes=batch["image_sizes"]
     )
     # turn into RGB images
-    segmentations = [convert_to_rgb(seg.numpy()) for seg in segmentations]
+    segmentations = [convert_to_rgb(seg.cpu().numpy()) for seg in segmentations]
 
     return segmentations
 
