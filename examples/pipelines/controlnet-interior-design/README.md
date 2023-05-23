@@ -140,7 +140,12 @@ Running the pipeline then consists of two steps:
 
 1. Building the images for each of the pipeline components
 ```
-bash build_images.sh -c all 
+bash build_images.sh --namespace <NAMESPACE> --repo <REPO> -C all
+```
+
+For help with the build_images.sh script, run:
+```
+bash build_images.sh --help
 ```
 
 2. Running the pipeline:
