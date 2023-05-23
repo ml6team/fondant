@@ -1,12 +1,5 @@
 # Setting up infrastructure for using fondant
 
-## Table of Contents
-1. [Introduction](#introduction)
-2. [If you already have a kubernetes cluster](#If-you-already-have-a-kubernetes-luster)
-3. [Fondant on AWS](#fondant-on-aws)
-4. [Fondant on Google Cloud](#fondant-on-google-cloud)
-5. [Fondant on a local machine Using Minikube](#fondant-on-a-local-machine-using-minikube)
-
 ## Introduction
 Fondant is built on top of [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/), so to run it we'll need:
 
@@ -16,11 +9,10 @@ Fondant is built on top of [Kubeflow Pipelines](https://www.kubeflow.org/docs/co
 
 This can be on any kubernetes cluster, if you don't have access to a setup like this or you feel uncomfortable to setup your own we have provided some basic scripts to get you started on GCP or on a small scale locally.
 
-**IMPORTANT: These script serve just a kickstart to help you start using fondant fast, these are not production ready environments.**
-
-**IMPORTANT 2: Spinning up a cluster on a cloud vendor will incur a cost.**
-
-**IMPORTANT 3: You should never run a script without inspecting it so please familiarize yourself with the commands defined in the Makefiles and adapt it to your own needs.**
+!!! note "IMPORTANT"
+    - These script serve just a kickstart to help you start using fondant fast, these are not production ready environments.
+    - Spinning up a cluster on a cloud vendor will incur a cost.
+    - You should never run a script without inspecting it so please familiarize yourself with the commands defined in the Makefiles and adapt it to your own needs.
 
 ## If you already have a kubernetes cluster
  
@@ -30,6 +22,7 @@ If you already have setup a kubernetes cluster and you have configured kubectl y
 ## Fondant on AWS
 
 There are multiple guides on how to setup kubeflow pipelines on AWS:
+
 - [official kubeflow distribution](https://awslabs.github.io/kubeflow-manifests/)
 - [Kubeflow Pipelines on AWS](https://docs.aws.amazon.com/sagemaker/latest/dg/kubernetes-sagemaker-components-install.html)
 - [deployment guide by kubeflow](https://awslabs.github.io/kubeflow-manifests/docs/deployment/)
@@ -42,6 +35,7 @@ The BASE_PATH can be an [S3 bucket](https://docs.aws.amazon.com/AmazonS3/latest/
 ## Fondant on Google Cloud
 
 There are several ways to get up and running with kubeflow pipelines on Google Cloud.
+
 - [On the GCP marketplace](https://console.cloud.google.com/marketplace/details/google-cloud-ai-platform/kubeflow-pipelines?project=thematic-lore-290312)
 - [How to do a standalone deployment of kubeflow pipelines on GKE](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/)
 - [Customizable deployments through overlays](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/#customizing-kubeflow-pipelines)
@@ -56,7 +50,7 @@ There are several ways to get up and running with kubeflow pipelines on Google C
 
 3. Install [kubectl](https://kubernetes.io/docs/tasks/tools/) 
 
-4. Run Makefile which will do the following:
+4. Run gcp.mk Makefile (located in the `scripts/` folder) which will do the following:
 - Setup all gcp services needed 
 - Start a GKE cluster
 - Create a google storage bucket for data artifact storage
@@ -102,11 +96,11 @@ This local setup is meant as a way to experiment with small samples or debug pip
 
 3. Install [kubectl](https://kubernetes.io/docs/tasks/tools/) 
 
-4. Run the makefile which will do the following:
+4. Run the local.mk makefile (located in the `scripts/` folder) which will do the following:
 - start a minikube cluster with 4 cpu's and 8gb of ram using docker
 - install kubeflow
 
-To run the complete makefile use (note this might take some time to complete):
+To run the complete makefile  use (note this might take some time to complete):
 ```
 make -f local.mk
 ```
@@ -126,7 +120,7 @@ This will proxy to kubeflow ui allowing you to visit the UI at `http://localhost
 For running the fondant pipeline you can supply the following pipeline configuration:
 ```
 HOST = "http://localhost:8005"
-BASE_PATH = ""
+BASE_PATH = "PATH TO OBJECT STORAGE"
 ```
 
 ### Kubernetes dashboard
