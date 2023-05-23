@@ -61,6 +61,7 @@ In order to train a Controlnet model we need three inputs: an `image`, a `captio
 
 It's important that the dataset has enough quality images and captions and contains all three inputs for each sample.
 
+![Multi modal dataset](../../../docs/art/interior_design/multi_modal_dataset.png)
 
 ### LAION-5B
 When building your dataset, the images are the main component, since they are the starting point for getting captions and conditioning maps. One way of getting your dataset is by using a ready-to-go dataset, such as your own private dataset or a public dataset.
