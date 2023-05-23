@@ -11,14 +11,15 @@ function usage {
 
 # Parse the arguments
 while [[ "$#" -gt 0 ]]; do case $1 in
-  -t|--tag) tag="$2"; shift;;
+  -o|--old-tag) old_tag="$2"; shift;;
+  -n|--new-tag) new_tag="$2"; shift;;
   -h|--help) usage; exit;;
   *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
 # Check for required argument
-if [ -z "${tag}" ]; then
-  echo "Error: tag parameter is required"
+if [ -z "${old_tag}" ] || [ -z "${new_tag}" ]; then
+  echo "Error: missing parameter"
   usage
   exit 1
 fi
@@ -37,7 +38,7 @@ for dir in "$component_dir"/*/; do
 
   BASENAME=${dir%/}
   BASENAME=${BASENAME##*/}
-  old_image_name=ghcr.io/${namespace}/${BASENAME}:${new_tag}
+  old_image_name=ghcr.io/${namespace}/${BASENAME}:${old_tag}
   new_image_name=ghcr.io/${namespace}/${BASENAME}:${new_tag}
   echo "$old_image_name"
   echo "$new_image_name"
