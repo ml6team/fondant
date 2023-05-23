@@ -2,7 +2,7 @@
 
 The goal of Fondant is to make it easy for people to define new components which can be incorporated into data preparation pipelines. This allows to share and reuse them as building blocks when preparing data for Foundation models.
 
-A Fondant component should implement one logical piece of data preprocessing, like captioning images or removing PPI from text. It's important to not include too much logic into a single component, as it might be beneficial to split up the logic into 2 separate components in that case.
+A Fondant component should implement one logical piece of data preprocessing, like captioning images or removing Personal Identifiable Information (PII) from text. It's important to not include too much logic into a single component, as it might be beneficial to split up the logic into 2 separate components in that case.
 
 To implement a custom component, a couple of files need to be defined:
 
