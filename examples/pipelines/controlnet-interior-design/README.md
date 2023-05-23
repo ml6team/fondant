@@ -20,9 +20,11 @@ This example demonstrates an end-to-end fondant pipeline to collect and process 
 
 The resulting model allows you to generate the room of your dreams:
 
+
 | Input image                                                    | Output image                                                     |
 |----------------------------------------------------------------|------------------------------------------------------------------|
-| ![input image](docs/art/interior_design_controlnet_input1.png) | ![output image](docs/art/interior_design_controlnet_output1.jpg) |
+| ![input image](../../../docs/art/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/interior_design/interior_output_0.jpg) |
+| ![input image](../../../docs/art/interior_design/interior_input_0.jpg) | ![output image](../../../docs/art/interior_design/interior_output_3.jpg) |
 
 Want to try out the resulting model yourself, head over to our 
 [Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
@@ -90,12 +92,6 @@ If you want to test ControlNet yourself, you can use the following examples:
 
 
 
-| Input image                                                    | Output image                                                     |
-|----------------------------------------------------------------|------------------------------------------------------------------|
-| ![input image](../../../docs/art/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/interior_design/interior_output_0.jpg) |
-| ![input image](../../../docs/art/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/interior_design/interior_output_1.jpg) |
-| ![input image](../../../docs/art/interior_design/interior_input_0.jpg) | ![output image](../../../docs/art/interior_design/interior_output_2.jpg) |
-| ![input image](../../../docs/art/interior_design/interior_input_0.jpg) | ![output image](../../../docs/art/interior_design/interior_output_3.jpg) |
 
 
 ## Pipeline Overview
