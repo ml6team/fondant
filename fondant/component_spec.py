@@ -140,6 +140,12 @@ class ComponentSpec:
         return self._specification["image"]
 
     @property
+    def index(self):
+        return ComponentSubset(
+            {"fields": {"id": {"type": "string"}, "source": {"type": "string"}}}
+        )
+
+    @property
     def consumes(self) -> t.Mapping[str, ComponentSubset]:
         """The subsets consumed by the component as an immutable mapping."""
         return types.MappingProxyType(

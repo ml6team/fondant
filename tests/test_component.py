@@ -78,7 +78,7 @@ def test_transform_kwargs(monkeypatch):
         """Used to stop execution early instead of mocking all later functionality."""
 
     # Mock `Dataset.load_dataframe` so no actual data is loaded
-    def mocked_load_dataframe(self, spec):
+    def mocked_load_dataframe(self):
         return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
 
     monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
