@@ -34,7 +34,7 @@ def test_load_index(manifest, component_spec):
     data_loader = DaskDataLoader(manifest=manifest, component_spec=component_spec)
     index_df = data_loader._load_index()
     assert len(index_df) == NUMBER_OF_TEST_ROWS
-    assert index_df.index.name == "uid"
+    assert index_df.index.name == "id"
 
 
 def test_load_subset(manifest, component_spec):
@@ -43,7 +43,7 @@ def test_load_subset(manifest, component_spec):
     subset_df = data_loader._load_subset(subset_name="types", fields=["Type 1"])
     assert len(subset_df) == NUMBER_OF_TEST_ROWS
     assert list(subset_df.columns) == ["types_Type 1"]
-    assert subset_df.index.name == "uid"
+    assert subset_df.index.name == "id"
 
 
 def test_load_dataframe(manifest, component_spec):
@@ -52,14 +52,12 @@ def test_load_dataframe(manifest, component_spec):
     df = dl.load_dataframe()
     assert len(df) == NUMBER_OF_TEST_ROWS
     assert list(df.columns) == [
-        "id",
-        "source",
         "properties_Name",
         "properties_HP",
         "types_Type 1",
         "types_Type 2",
     ]
-    assert df.index.name == "uid"
+    assert df.index.name == "id"
 
 
 def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
@@ -73,15 +71,14 @@ def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
         # read written data and assert
         df = dd.read_parquet(fn / "index")
         assert len(df) == NUMBER_OF_TEST_ROWS
-        assert list(df.columns) == ["id", "source"]
-        assert df.index.name == "uid"
+        assert df.index.name == "id"
 
 
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
     """Test writing out subsets."""
     # Dictionary specifying the expected subsets to write and their column names
     subset_columns_dict = {
-        "index": ["id", "source"],
+        "index": [],
         "properties": ["Name", "HP"],
         "types": ["Type 1", "Type 2"],
     }
@@ -96,12 +93,12 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
             df = dd.read_parquet(fn / subset)
             assert len(df) == NUMBER_OF_TEST_ROWS
             assert list(df.columns) == subset_columns
-            assert df.index.name == "uid"
+            assert df.index.name == "id"
 
 
 def test_write_reset_index(tmp_path_factory, dataframe, manifest, component_spec):
     """Test writing out the index and subsets that have no dask index and checking
-    if the uid index was created.
+    if the id index was created.
     """
     dataframe = dataframe.reset_index(drop=True)
     with tmp_path_factory.mktemp("temp") as fn:
@@ -112,7 +109,7 @@ def test_write_reset_index(tmp_path_factory, dataframe, manifest, component_spec
 
         for subset in ["properties", "types", "index"]:
             df = dd.read_parquet(fn / subset)
-            assert df.index.name == "uid"
+            assert df.index.name == "id"
 
 
 @pytest.mark.parametrize("partitions", list(range(1, 5)))
@@ -131,7 +128,7 @@ def test_write_divisions(
 
         for target in ["properties", "types", "index"]:
             df = dd.read_parquet(fn / target)
-            assert df.index.name == "uid"
+            assert df.index.name == "id"
             assert df.npartitions == partitions
 
 
