@@ -161,13 +161,6 @@ class EmbedImagesComponent(TransformComponent):
         delayed_series = dd.from_delayed(embeddings, meta=pd.Series(dtype="object"))
         embeddings_df = delayed_series.to_frame(name="embeddings_data")
 
-        # add index columns
-        dataframe = dataframe.reset_index(drop=True)
-        embeddings_df["id"] = dataframe["id"]
-        embeddings_df["source"] = dataframe["source"]
-
-        embeddings_df = embeddings_df.reset_index(drop=True)
-
         return embeddings_df
 
 

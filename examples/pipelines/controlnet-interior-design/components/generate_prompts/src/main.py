@@ -95,7 +95,6 @@ def make_interior_prompt(room: str, prefix: str, style: str) -> str:
     Returns:
         prompt for the interior design model
     """
-    # TODO: add more variation in the prompt, multiple variants, ...
     return f"{prefix.lower()} {room.lower()}, {style.lower()} interior design"
 
 
@@ -107,21 +106,14 @@ class GeneratePromptsComponent(LoadComponent):
         Returns:
             Dask dataframe
         """
-        room_tuples = list(itertools.product(rooms, interior_prefix, interior_styles))
-        prompts = list(map(lambda x: make_interior_prompt(*x), room_tuples))
+        room_tuples = itertools.product(rooms, interior_prefix, interior_styles)
+        prompts = map(lambda x: make_interior_prompt(*x), room_tuples)
 
         pandas_df = pd.DataFrame(prompts, columns=["prompts_text"])
 
         df = dd.from_pandas(pandas_df, npartitions=1)
 
-        # add id and source columns
-        df["id"] = df.assign(id=1).id.cumsum()
-        df["source"] = "seed"
-
-        # reorder columns
-        df = df[["id", "source", "prompts_text"]]
-        df = df.astype({"id": "string"})
-
+        # TODO: remove
         df = dd.from_pandas(df.head(), npartitions=1)
 
         return df

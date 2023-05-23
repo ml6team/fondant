@@ -141,9 +141,7 @@ class ComponentSpec:
 
     @property
     def index(self):
-        return ComponentSubset(
-            {"fields": {"id": {"type": "string"}, "source": {"type": "string"}}}
-        )
+        return ComponentSubset({"fields": {}})
 
     @property
     def consumes(self) -> t.Mapping[str, ComponentSubset]:
