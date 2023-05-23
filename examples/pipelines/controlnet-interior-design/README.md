@@ -24,6 +24,7 @@ The resulting model allows you to generate the room of your dreams:
 | Input image                                                    | Output image                                                     |
 |----------------------------------------------------------------|------------------------------------------------------------------|
 | ![input image](../../../docs/art/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/interior_design/interior_output_0.jpg) |
+| ![input image](../../../docs/art/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/interior_design/interior_output_1.jpg) |
 | ![input image](../../../docs/art/interior_design/interior_input_0.jpg) | ![output image](../../../docs/art/interior_design/interior_output_3.jpg) |
 
 Want to try out the resulting model yourself, head over to our 
