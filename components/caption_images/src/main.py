@@ -78,7 +78,7 @@ class CaptionImagesComponent(TransformComponent):
             Dask dataframe
         """
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        logger.info("Device:", device)
+        logger.info(f"Device: {device}")
 
         processor = AutoProcessor.from_pretrained(model_id)
         model = BlipForConditionalGeneration.from_pretrained(model_id)
@@ -107,12 +107,6 @@ class CaptionImagesComponent(TransformComponent):
         captions = flatten(captions)
         delayed_series = dd.from_delayed(captions, meta=pd.Series(dtype="str"))
         captions_df = delayed_series.to_frame(name="captions_text")
-
-        # add index columns
-        captions_df["id"] = dataframe["id"].reset_index(drop=True)
-        captions_df["source"] = dataframe["source"].reset_index(drop=True)
-
-        captions_df = captions_df.reset_index(drop=True)
 
         return captions_df
 

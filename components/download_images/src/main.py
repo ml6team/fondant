@@ -145,11 +145,9 @@ class DownloadImagesComponent(TransformComponent):
             "images_height",
         ]
 
-        dataframe = dataframe[["id", "source"]].merge(
+        dataframe = dataframe.merge(
             result, left_index=True, right_index=True
         )
-
-        dataframe = dataframe.reset_index(drop=True)
 
         print(dataframe.head())
 

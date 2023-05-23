@@ -45,22 +45,17 @@ class LoadFromHubComponent(LoadComponent):
         logger.info("Loading dataset from the hub...")
         dask_df = dd.read_parquet(f"hf://datasets/{dataset_name}")
 
-        # 2) Add index to the dataframe
-        dask_df["id"] = dask_df.assign(id=1).id.cumsum()
-        dask_df = dask_df.astype({"id": "string"})
-        dask_df["source"] = "hub"
-
-        # 3) Rename columns
+        # 2) Rename columns
         dask_df = dask_df.rename(
             columns={"image": "images_data", "text": "captions_data"}
         )
 
-        # 4) Make sure images are bytes instead of dicts
+        # 3) Make sure images are bytes instead of dicts
         dask_df["images_data"] = dask_df["images_data"].map(
             lambda x: x["bytes"], meta=("bytes", bytes)
         )
 
-        # 5) Add width and height columns
+        # 4) Add width and height columns
         dask_df["images_width"] = dask_df["images_data"].map(
             extract_width, meta=("images_width", int)
         )

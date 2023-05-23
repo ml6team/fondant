@@ -107,7 +107,7 @@ class SegmentImagesComponent(TransformComponent):
             Dask dataframe
         """
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        logger.info("Device:", device)
+        logger.info(f"Device: {device}")
 
         processor = AutoImageProcessor.from_pretrained(model_id)
         model = AutoModelForSemanticSegmentation.from_pretrained(model_id)
@@ -133,12 +133,6 @@ class SegmentImagesComponent(TransformComponent):
         segmentations = flatten(segmentations)
         delayed_series = dd.from_delayed(segmentations, meta=pd.Series(dtype="object"))
         segmentations_df = delayed_series.to_frame(name="segmentations_data")
-
-        # add index columns
-        segmentations_df["id"] = dataframe["id"].reset_index(drop=True)
-        segmentations_df["source"] = dataframe["source"].reset_index(drop=True)
-
-        segmentations_df = segmentations_df.reset_index(drop=True)
 
         return segmentations_df
 

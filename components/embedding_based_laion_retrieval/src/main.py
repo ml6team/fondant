@@ -76,15 +76,6 @@ class LAIONRetrievalComponent(TransformComponent):
         # unpack list of urls
         dataframe = dataframe.explode("images_url").dropna(subset=["images_url"])
 
-        # add id and source columns
-        # the id is an incremental number starting from 1
-        # the source is the laion search engine
-        dataframe["id"] = dataframe.assign(id=1).id.cumsum().astype(str)
-        dataframe["source"] = "laion"
-
-        # reorder columns
-        dataframe = dataframe[["id", "source", "images_url"]]
-
         return dataframe
 
 

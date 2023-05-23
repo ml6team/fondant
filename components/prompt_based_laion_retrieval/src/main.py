@@ -78,17 +78,6 @@ class LAIONRetrievalComponent(TransformComponent):
 
         # unpack list of urls
         dataframe = dataframe.explode("images_url")
-
-        # add id and source columns
-        # TODO use LAION id instead
-        dataframe["id"] = dataframe.assign(id=1).id.cumsum()
-        dataframe["source"] = "laion"
-
-        # reorder columns
-        dataframe = dataframe[["id", "source", "images_url"]]
-
-        dataframe = dataframe.astype({'id': 'string', 'source': 'string'})
-
         dataframe = dataframe.reset_index(drop=True)
 
         return dataframe

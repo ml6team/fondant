@@ -91,16 +91,10 @@ class DaskDataWriter(DataIO):
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
         write_tasks = []
 
-        divisions = list(dataframe.divisions) if dataframe.known_divisions else None
+        dataframe.index = dataframe.index.rename("id").astype("string")
 
-        # set index
-        if dataframe.index.name != "uid":
-            dataframe["uid"] = dataframe["source"] + "_" + dataframe["id"]
-            dataframe = dataframe.set_index("uid", divisions=divisions)
-
-        # load index dataframe
-        index_columns = list(self.manifest.index.fields.keys())
-        index_df = dataframe[index_columns]
+        # Turn index into an empty dataframe so we can write it
+        index_df = dataframe.index.to_frame().drop(columns=["id"])
         write_index_task = self._write_subset(
             index_df, subset_name="index", subset_spec=self.component_spec.index
         )
