@@ -69,7 +69,7 @@ generate the room of your dreams:
 Want to try out the resulting model yourself, head over to our 
 [Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
 
-### Fine-tuning Stable Diffusion
+### Fine-tuning Stable Diffusion (:construction:)
 
 Using our 
 [example pipeline to fine-tune Stable Diffusion](examples/pipelines/finetune_stable_diffusion) 
@@ -88,19 +88,16 @@ Eg. generating logos:
 
 Fondant comes with a library of reusable components, which can jumpstart your pipeline.
 
-TODO: add links
-
-| Component                       | Description                                                      |
-|---------------------------------|------------------------------------------------------------------|
-| load_from_hf_hub                | Load a dataset from the Hugging Face Hub                         |
-| image_clip_embedding            | Create CLIP embeddings for images                                |
-| embedding_based_laion_retrieval | Retrieve images-text pairs from LAION using embedding similarity |
-| prompt_based_laion_retrieval    | Retrieve images-text pairs from LAION using prompt similarity    |
-| image_downloading               | Download images from urls                                        |
-| image_resolution_filtering      | Filter images based on their resolution                          |
-| captioning                      | Generate captions for images                                     |
-| segmentation                    | Generate segmentation maps for images                            |
-| write_to_hf_hub                 | Write a dataset to the Hugging Face Hub.                         |
+| Component                                                                                                                  | Description                                                         |
+|----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| [load_from_hf_hub](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub)                               | Load a dataset from the Hugging Face Hub                            |
+| [image_embedding](https://github.com/ml6team/fondant/tree/main/components/image_embedding)                                 | Create embeddings for images using a model from the HF Hub          |
+| [embedding_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/embedding_based_laion_retrieval) | Retrieve images-text pairs from LAION using embedding similarity    |
+| [prompt_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval)       | Retrieve images-text pairs from LAION using prompt similarity       |
+| [download_images](https://github.com/ml6team/fondant/tree/main/components/download_images)                                 | Download images from urls                                           |
+| [image_resolution_filtering](https://github.com/ml6team/fondant/tree/main/components/image_resolution_filtering)           | Filter images based on their resolution                             |
+| [caption images](https://github.com/ml6team/fondant/tree/main/components/caption_images)                                   | Generate captions for images using a model from the HF Hub          |
+| [segment_images](https://github.com/ml6team/fondant/tree/main/components/segment_images)                                   | Generate segmentation maps for images using a model from the HF Hub |
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 

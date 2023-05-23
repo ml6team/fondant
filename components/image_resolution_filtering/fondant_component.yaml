@@ -1,0 +1,19 @@
+name: Image filtering
+description: Component that filters images based on desired minimum width and height
+image: ghcr.io/ml6team/image_resolution_filtering:latest
+
+consumes:
+  images:
+    fields:
+      width:
+        type: int16
+      height:
+        type: int16
+
+args:
+  min_width:
+    description: Desired minimum width
+    type: int
+  min_height:
+    description: Desired minimum height
+    type: int

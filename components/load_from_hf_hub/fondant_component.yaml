@@ -1,0 +1,22 @@
+name: Load from hub
+description: Component that loads a dataset from the hub
+image: ghcr.io/ml6team/load_from_hf_hub:latest
+
+produces:
+  images:
+    fields:
+      data:
+        type: binary
+      width:
+        type: int16
+      height:
+        type: int16
+  captions:
+    fields:
+      data:
+        type: string
+
+args:
+  dataset_name:
+    description: Name of dataset on the hub
+    type: str
