@@ -1,4 +1,4 @@
-# Custom component
+# Creating custom components
 
 The goal of Fondant is to make it easy for people to define new components which can be incorporated into data preparation pipelines. This allows to share and reuse them as building blocks when preparing data for Foundation models.
 
@@ -7,11 +7,11 @@ A Fondant component should implement one logical piece of data preprocessing, li
 To implement a custom component, a couple of files need to be defined:
 
 - [Fondant component specification](#fondant-component-specification)
-- [main.py script in a `src` folder](#mainpy-script)
+- [`main.py` script in a `src` folder](#mainpy-script)
 - [Dockerfile](#dockerfile)
 - [requirements.txt](#requirementstxt)
 
-To see an overview of all custom components which Fondant already provides, have a look [here](https://github.com/ml6team/fondant/tree/main/components).
+To see an overview of all reusable components which Fondant already provides, have a look [here](https://github.com/ml6team/fondant/tree/main/components).
 
 ## Fondant component specification
 
@@ -19,7 +19,7 @@ Each Fondant component is defined by a specification which describes its interfa
 
 ## Main.py script
 
-The core logic of the component should be implemented in a `main.py` script in a folder called `src`. The component itself should be implemented as a class, inheriting from Fondant's `TransformComponent` class. The logic itself should be defined in the `transform` method, which the user can overwrite. This method defines the processing logic. It gets a single dataframe as input and should return a single Dask dataframe.
+The core logic of the component should be implemented in a `main.py` script in a folder called `src`. The component itself should be implemented as a class, inheriting from Fondant's `TransformComponent` class. The logic itself should be defined in the `transform` method, which the user can overwrite. This method defines the processing logic. It gets a single Dask dataframe as input and should return a single Dask dataframe.
 
 ```python
 from fondant.component import TransformComponent
@@ -45,7 +45,7 @@ Note that the `main.py` script can be split up into several Python scripts in ca
 
 ## Dockerfile
 
-A Dockerfile defines all the commands a user could call on the command line to assemble a Docker image. Docker uses this file to build the Docker image automatically by reading the instructions. An example Dockerfile is defined below.
+The `Dockerfile` defines how to build the component into a Docker image. An example Dockerfile is defined below.
 
 ```bash
 FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
