@@ -29,7 +29,12 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build components
+      if: github.event_name == 'push'
       run: ./scripts/build_components.sh -t $GITHUB_REF_NAME
+
+    - name: Tag components
+      if: github.event_name == 'release'
+      run: ./scripts/tag_components.sh -o $GITHUB_REF_NAME -n latest
 
     - name: Update version in pyproject.toml with tag version
       run: sed -i "s/^version = .*/version = '${{github.ref_name}}'/" pyproject.toml

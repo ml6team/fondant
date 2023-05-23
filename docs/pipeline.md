@@ -1,4 +1,4 @@
-# Pipelinegit 
+# Pipeline 
 
 A Fondant pipeline is a tool for building complex workflows by creating a Directed Acyclic Graph (DAG) of different components that need to be executed. With Fondant, you can use both reusable components and custom components to construct your pipeline. Fondant extends the functionality of Kubeflow and provides additional features to simplify pipeline development.
 
