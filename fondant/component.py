@@ -78,10 +78,8 @@ class Component(ABC):
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
-        data_writer = DaskDataWriter(manifest)
-
-        data_writer.write_index(dataframe)
-        data_writer.write_subsets(df=dataframe, spec=self.spec)
+        data_writer = DaskDataWriter(manifest=manifest, component_spec=self.spec)
+        data_writer.write_dataframe(dataframe)
 
     def run(self):
         """Runs the component."""
@@ -191,8 +189,8 @@ class TransformComponent(Component):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        data_loader = DaskDataLoader(manifest=manifest)
-        df = data_loader.load_dataframe(self.spec)
+        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        df = data_loader.load_dataframe()
         df = self.transform(dataframe=df, **self.user_arguments)
 
         return df
