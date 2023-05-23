@@ -15,12 +15,12 @@ logger = logging.getLogger(__name__)
 
 class WriteToHubComponent(TransformComponent):
     def transform(
-            self,
-            dataframe: dd.DataFrame,
-            *,
-            hf_token: str,
-            username: str,
-            dataset_name: str,
+        self,
+        dataframe: dd.DataFrame,
+        *,
+        hf_token: str,
+        username: str,
+        dataset_name: str,
     ) -> dd.DataFrame:
         """
         Args:
