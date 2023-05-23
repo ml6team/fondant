@@ -37,7 +37,7 @@ class ExampleComponent(TransformComponent):
 
 The idea is that Fondant provides a single dataframe to the user based on the component's specification. The column names of the dataframe always have the format `subset_field`. This means that if a component defines the `images` subset with the `data` field in its `consumes` [section](component_spec) for instance, the dataframe will contain a column called `images_data`.
 
-Next, the user can manipulate this dataframe. Finally, the user should return a single dataframe, which Fondant will then use to update the [manifest](manifest) and potentially write new data to the cloud. Fondant will also verify that the output dataframe matches with the `produces` [section](component_spec) of the component specificaton.
+Next, the user can manipulate this dataframe. Finally, the user should return a single dataframe. Fondant expects that the columns of the returned dataframe also comply to the `subset_field` format. Fondant will verify that the columns match with the `produces` [section](component_spec) of the component specificaton. Fondant takes care of updating the [manifest](manifest) and potentially write new data to the cloud.
 
 Note that the `transform` method can include additional custom arguments (`argument1` and `argument2` in the example above). These should match with the `args` section defined in the [Fondant specification](component_spec). Examples include the batch size when captioning images, the minimum width and height when filtering images, and so on.
 
