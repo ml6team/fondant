@@ -16,10 +16,18 @@
 4. [Reusing this pipeline](#reusing-this-pipeline)
 
 ## Introduction
-This example demonstrates an end-to-end fondant pipeline to collect and process data for the training of a [ControlNet](https://github.com/lllyasviel/ControlNet) model, focusing on images related to interior design.
+This example demonstrates an end-to-end fondant pipeline to collect and process data for the fine-tuning of a [ControlNet](https://github.com/lllyasviel/ControlNet) model, focusing on images related to interior design.
 
-### What is Controlnet?
+The resulting model allows you to generate the room of your dreams:
 
+| Input image                                                    | Output image                                                     |
+|----------------------------------------------------------------|------------------------------------------------------------------|
+| ![input image](docs/art/interior_design_controlnet_input1.png) | ![output image](docs/art/interior_design_controlnet_output1.jpg) |
+
+Want to try out the resulting model yourself, head over to our 
+[Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
+
+### What is ControlNet?
 ControlNet is an image generation model developed by [Zhang etl a., 2023](https://arxiv.org/abs/2302.05543) that gives the user more control over the image generation process. It is based on the [Stable Diffusion](https://stability.ai/blog/stable-diffusion-public-release) model, which generates images based on text and an optional image. The ControlNet model adds a third input, a conditioning image, that can be used for specifying specific wanted elements in the generated image.
 
 The Controlnet architecture is made so that it can be used for a wide variety of tasks and conditionings, such as segmentation maps, edge maps, scribbles, depth maps and more. A big benefit of Controlnet is that it can be trained with a relatively small dataset, since it reuses a lot of the weights from the Stable Diffusion model. This makes it very accessible for people with limited access to big amounts of compute and data.
@@ -38,6 +46,7 @@ Conditioning examples:
 
 
 Useful links:
+
 * https://github.com/lllyasviel/ControlNet
 * https://huggingface.co/docs/diffusers/main/en/api/pipelines/stable_diffusion/controlnet
 * https://arxiv.org/abs/2302.05543
@@ -58,8 +67,7 @@ Where to find a ready-to-go image dataset:
 * https://www.kaggle.com/datasets
 * ...
 
-
-However, if you want some more specific data, this is not always possible. Luckily, [LAION](https://laion.ai/) has invested a lot of brain power and resources to open source some great tools and data such as [LAION-5B](https://laion.ai/blog/laion-5b/) and [clip-retrieval](https://github.com/rom1504/clip-retrieval). They build the LAION-5B dataset by scraping and filtering Common Crawl in a smart way (using CLIP and filters) and compiled it into a [FAISS](https://github.com/facebookresearch/faiss) Semantic Search index. This index can be used to retrieve images based on a visual and textual input, which results in an incredible powerful and efficient way of getting images for your dataset.
+However, if you want some more specific data, this is not always possible. Luckily, [LAION](https://laion.ai/) has invested a lot of brain power and resources to open source some great tools and data such as [LAION-5B](https://laion.ai/blog/laion-5b/) and [clip-retrieval](https://github.com/rom1504/clip-retrieval). They built the LAION-5B dataset by scraping and filtering Common Crawl in a smart way (using CLIP and filters) and compiled it into a [FAISS](https://github.com/facebookresearch/faiss) Semantic Search index. This index can be used to retrieve images based on a visual and textual input, which results in an incredible powerful and efficient way of getting images for your dataset.
 
 To explore the LAION-5B dataset you can use the [clip frontend website](https://rom1504.github.io/clip-retrieval/?back=https%3A%2F%2Fknn.laion.ai&index=laion5B-H-14&useMclip=false).
 
@@ -67,7 +75,7 @@ For retrieving images, you need to have a small set of textual descriptions or e
 
 
 ### How to use controlnet
-ControlNet is currently supported in multiple frameworks, such as PyTorch and JAX, by the [Diffusers](https://github.com/huggingface/diffusers) library from [Hugging Face](https://huggingface.co/docs/diffusers/index). The Diffusers library has build some awesome tools around Diffusion models in general, and supports all the functionality that you need to train and use a Controlnet model, such as inpainting, img2img, sampling schedulers, etc.
+ControlNet is currently supported in multiple frameworks, such as PyTorch and JAX, by the [Diffusers](https://github.com/huggingface/diffusers) library from [Hugging Face](https://huggingface.co/docs/diffusers/index). The Diffusers library has built some awesome tools around Diffusion models in general, and supports all the functionality that you need to train and use a Controlnet model, such as inpainting, img2img, sampling schedulers, etc.
 
 Another great repository is [this one](https://github.com/lllyasviel/ControlNet), that contains multiple training scripts and examples. This repository also contains models that are compatible with the well-known `Stable-Diffusion WebUI` from [AUTOMATIC1111](https://github.com/AUTOMATIC1111/stable-diffusion-webui).
 
@@ -131,4 +139,4 @@ python pipeline.py
 
 ## Reusing this pipeline
 
-Adapt this pipeline for your own use case is simply a matter of editing the generate_prompts [component](./components/generate_prompts/src/main.py).
+Adapt this pipeline for your own use case is simply a matter of editing the generate_prompts [component](./components/generate_prompts/src/main.py). You can leverage the existing structure, but generate prompts covering a different domain.
