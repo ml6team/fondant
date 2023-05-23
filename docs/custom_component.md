@@ -41,6 +41,8 @@ Next, the user can manipulate this dataframe. Finally, the user should return a 
 
 Note that the `transform` method can include additional custom arguments (`argument1` and `argument2` in the example above). These should match with the `args` section defined in the [Fondant specification](component_spec). Examples include the batch size when captioning images, the minimum width and height when filtering images, and so on.
 
+Note that the `main.py` script can be split up into several Python scripts in case it would become prohibitively long. See the [prompt based LAION retrieval component](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval/src) as an example: the CLIP client itself is defined in a separate script called `clip_client`, which is then imported in the `main.py` script.
+
 ## Dockerfile
 
 A Dockerfile defines all the commands a user could call on the command line to assemble a Docker image. Docker uses this file to build the Docker image automatically by reading the instructions. An example Dockerfile is defined below.
