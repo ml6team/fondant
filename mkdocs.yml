@@ -31,6 +31,7 @@ nav:
   - Manifest: manifest.md
   - Component spec: component_spec.md
   - Creating custom components: custom_component.md
+  - Building a pipeline: pipeline.md
   - Infrastructure: infrastructure.md
 
 markdown_extensions:
