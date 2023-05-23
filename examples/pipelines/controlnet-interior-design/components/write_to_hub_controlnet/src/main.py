@@ -48,13 +48,14 @@ class WriteToHubComponent(TransformComponent):
             write_columns.extend([f"{subset_name}_{field}" for field in subset.fields])
             # Get schema
             subset_schema = {
-                f"{subset_name}_{field.name}": field.type.value
+                f"{subset_name}_{field.name}": field.type.name
                 for field in subset.fields.values()
             }
 
             schema.update(subset_schema)
 
         dataframe_hub = dataframe[write_columns]
+
         dd.to_parquet(dataframe_hub, path=f"{repo_path}/data", schema=schema)
 
         return dataframe

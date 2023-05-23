@@ -14,7 +14,6 @@ from fondant.logger import configure_logging
 configure_logging()
 logger = logging.getLogger(__name__)
 
-
 interior_styles = [
     "art deco",
     "bauhaus",
@@ -112,9 +111,6 @@ class GeneratePromptsComponent(LoadComponent):
         pandas_df = pd.DataFrame(prompts, columns=["prompts_text"])
 
         df = dd.from_pandas(pandas_df, npartitions=1)
-
-        # TODO: remove
-        df = dd.from_pandas(df.head(), npartitions=1)
 
         return df
 
