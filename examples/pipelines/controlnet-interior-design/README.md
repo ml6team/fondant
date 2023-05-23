@@ -33,6 +33,7 @@ ControlNet is an image generation model developed by [Zhang etl a., 2023](https:
 The Controlnet architecture is made so that it can be used for a wide variety of tasks and conditionings, such as segmentation maps, edge maps, scribbles, depth maps and more. A big benefit of Controlnet is that it can be trained with a relatively small dataset, since it reuses a lot of the weights from the Stable Diffusion model. This makes it very accessible for people with limited access to big amounts of compute and data.
 
 Conditioning examples:
+
 * Semantic segmentation maps
 * Scribbles
 * Depth maps
@@ -42,7 +43,7 @@ Conditioning examples:
 * Human Pose
 * Normal Maps
 * Anime Line Drawings
-* ...
+* Whatever you imagination can come up with!
 
 
 Useful links:
@@ -62,10 +63,11 @@ It's important that the dataset has enough quality images and captions and conta
 When building your dataset, the images are the main component, since they are the starting point for getting captions and conditioning maps. One way of getting your dataset is by using a ready-to-go dataset, such as your own private dataset or a public dataset.
 
 Where to find a ready-to-go image dataset:
+
 * https://huggingface.co/docs/datasets/index
 * https://pytorch.org/vision/stable/datasets.html
 * https://www.kaggle.com/datasets
-* ...
+
 
 However, if you want some more specific data, this is not always possible. Luckily, [LAION](https://laion.ai/) has invested a lot of brain power and resources to open source some great tools and data such as [LAION-5B](https://laion.ai/blog/laion-5b/) and [clip-retrieval](https://github.com/rom1504/clip-retrieval). They built the LAION-5B dataset by scraping and filtering Common Crawl in a smart way (using CLIP and filters) and compiled it into a [FAISS](https://github.com/facebookresearch/faiss) Semantic Search index. This index can be used to retrieve images based on a visual and textual input, which results in an incredible powerful and efficient way of getting images for your dataset.
 
@@ -74,13 +76,27 @@ To explore the LAION-5B dataset you can use the [clip frontend website](https://
 For retrieving images, you need to have a small set of textual descriptions or example images. The LAION-5B dataset will then retrieve the URLs of the most similar images based on the CLIP embeddings of the input. These URLs can then be used to download the actual images.
 
 
-### How to use controlnet
-ControlNet is currently supported in multiple frameworks, such as PyTorch and JAX, by the [Diffusers](https://github.com/huggingface/diffusers) library from [Hugging Face](https://huggingface.co/docs/diffusers/index). The Diffusers library has built some awesome tools around Diffusion models in general, and supports all the functionality that you need to train and use a Controlnet model, such as inpainting, img2img, sampling schedulers, etc.
+### How to use ControlNet
+ControlNet is currently supported in multiple frameworks, such as PyTorch and JAX, by the [Diffusers](https://github.com/huggingface/diffusers) library from [Hugging Face](https://huggingface.co/docs/diffusers/index). The Diffusers library has built some awesome tools around Diffusion models in general, and supports all the functionality that you need to train and use a ControlNet model, such as inpainting, img2img, sampling schedulers, etc.
 
 Another great repository is [this one](https://github.com/lllyasviel/ControlNet), that contains multiple training scripts and examples. This repository also contains models that are compatible with the well-known `Stable-Diffusion WebUI` from [AUTOMATIC1111](https://github.com/AUTOMATIC1111/stable-diffusion-webui).
 
 ### Examples
-TODO: show input-output examples
+If you want to test ControlNet yourself, you can use the following examples:
+
+* [Hugging Face - ControlNet for Interior Design](https://huggingface.co/spaces/ml6team/controlnet-interior-design)
+* [Demo of Fondant]()
+* [AUTOMATIC1111 colab](https://colab.research.google.com/github/TheLastBen/fast-stable-diffusion/blob/main/fast_stable_diffusion_AUTOMATIC1111.ipynb)
+
+
+
+| Input image                                                    | Output image                                                     |
+|----------------------------------------------------------------|------------------------------------------------------------------|
+| ![input image](../../../docs/art/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/interior_design/interior_output_0.jpg) |
+| ![input image](../../../docs/art/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/interior_design/interior_output_1.jpg) |
+| ![input image](../../../docs/art/interior_design/interior_input_0.jpg) | ![output image](../../../docs/art/interior_design/interior_output_2.jpg) |
+| ![input image](../../../docs/art/interior_design/interior_input_0.jpg) | ![output image](../../../docs/art/interior_design/interior_output_3.jpg) |
+
 
 ## Pipeline Overview
 
@@ -93,7 +109,7 @@ There are 5 components in total, these are:
 
 1. **Prompt Generation**: This component generates a set of seed prompts using a rule-based approach that combines various rooms and styles together, like “a photo of a {room_type} in the style of {style_type}”. As input, it takes in a list of room types (bedroom, kitchen, laundry room, ..), a list of room styles (contemporary, minimalist, art deco, ...) and a list of prefixes (comfortable, luxurious, simple). These lists can be easily adapted to other domains. The output of this component is a list of seed prompts.
 
-2. **Image URL Retrieval**: This component retrieves images from the LAION-5B dataset based on the seed prompts. The retrieval itself is done based on CLIP embeddings similarity between the prompt sentences and the captions in the LAION dataset. This component doesn’t return the actual images yet, only the URLs. The next component in the pipeline will then download these images.
+2. **Image URL Retrieval**: This component retrieves images from the [LAION-5B](https://laion.ai/blog/laion-5b/) dataset based on the seed prompts. The retrieval itself is done based on CLIP embeddings similarity between the prompt sentences and the captions in the LAION dataset. This component doesn’t return the actual images yet, only the URLs. The next component in the pipeline will then download these images.
 
 3. **Download Images**: This component downloads the actual images based on the URLs retrieved by the previous component. It takes in the URLs as input and returns the actual images, along with some metadata (like their height and width).
 
