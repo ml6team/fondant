@@ -9,7 +9,7 @@ yourself, it is still useful to understand how it works.
 
 ## Contents
 
-A manifest consists of the following sections
+A manifest consists of the following sections:
 
 ```json
 {
@@ -49,7 +49,9 @@ pipeline caching.
 The index represents which data points are part of the dataset. The index is tracked separately 
 from the data, so data points can be filtered out of a dataset without actually having to touch 
 the underlying data. The index is stored in a fixed format, which is why the manifest only 
-tracks the location where it is saved:
+tracks the location where it is saved.
+
+Note that the `location` of the index is relative to the `base_path` defined in the manifest metadata.
 
 ```json
 {
@@ -70,7 +72,7 @@ subset is added or modified.
 
 Each subset contains two properties:
 - A location which points to the location where the underlying data is stored. It is relative to 
-  the base path defined in the manifest metadata.
+  the `base_path` defined in the manifest metadata.
 - A `"fields"` object which defines the columns available in the subset. Each field is defined 
   by a name and an [Arrow data type](https://arrow.apache.org/docs/python/api/datatypes.html). 
 

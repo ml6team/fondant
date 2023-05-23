@@ -30,6 +30,7 @@ nav:
   - Home: index.md
   - Manifest: manifest.md
   - Component spec: component_spec.md
+  - Custom component: custom_component.md
 
 markdown_extensions:
   - pymdownx.snippets:

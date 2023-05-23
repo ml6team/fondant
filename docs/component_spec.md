@@ -1,17 +1,18 @@
 # Component specification
 
-Each fondant component is defined by a component specification which describes its interface. 
+Each Fondant component is defined by a component specification which describes its interface. 
 The component specification is used for a couple of things:
-- To define which input data Fondant should pass to the component, and which output data it should 
+
+- To define which input data Fondant should provide to the component, and which output data it should 
   write to storage.
 - To validate compatibility with other components.
-- To execute the component with the correct parameters
+- To execute the component with the correct parameters.
 
-The component specification should be provided by the author of the component
+The component specification should be defined by the author of the component.
 
 ## Contents
 
-A component spec(ification) consists of the following sections
+A component spec(ification) consists of the following sections:
 
 ```yaml
 name: ...
@@ -30,8 +31,7 @@ args:
 
 ### Metadata
 
-The metadata tracks metadata about the component, such as its name, description, and the 
-docker image used to run it.
+The metadata tracks metadata about the component, such as its name, description, and the URL of the [Docker](https://www.docker.com/) image used to run it.
 
 ```yaml
 name: Example component
@@ -56,7 +56,7 @@ consumes:
   captions:
     fields:
       text:
-        type: string
+        type: utf8
 
 produces:
   embeddings:
@@ -80,7 +80,7 @@ consumes/produces:
 
 #### Subsets
 
-A component consumes or produces `subset`s which match the `subset`s from 
+A component consumes or produces `subsets` which match the `subsets` from 
 [the manifest](manifest.md). 
 - Only those subsets defined in the `consumes` section of the 
 component specification are read and passed to the component implementation.
