@@ -115,7 +115,7 @@ If you want to test ControlNet yourself, you can use the following examples:
 
 The image below shows the entire pipeline and its workflow. Note that this workflow is currently adapted to the interior design domain, but can be easily adapted to other domains by changing the prompt generation component.
 
-![Image](../../../docs/art/controlnet-interior-design-pipeline.png)
+![Image](../../../docs/art/interior_design/controlnet-interior-design-pipeline.png)
 
 
 There are 5 components in total, these are:
