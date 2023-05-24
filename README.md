@@ -80,7 +80,7 @@ Eg. generating logos:
 
 | Stable Diffusion 1.5                                | Fine-tuned Stable Diffusion 1.5               |
 |-----------------------------------------------------|-----------------------------------------------|
-| ![input image](docs/art/logo_stable_diffusion.jpeg) | ![output image](docs/art/logo_finetuned.jpeg) |
+| ![input image](docs/art/logo_stable_diffusion.jpg) | ![output image](docs/art/logo_finetuned.jpeg) |
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
