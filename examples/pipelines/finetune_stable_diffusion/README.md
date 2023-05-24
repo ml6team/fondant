@@ -35,13 +35,18 @@
 ## Introduction
 
 ### What is Stable Diffusion?
-TODO
+Stable Diffusion is a text-to-image model released by StabilityAI. It's based on the latent diffusion architecture from [Robin Rombach et al.](https://arxiv.org/abs/2112.10752), which is an efficient diffusion model that works in the latent space. It consists of a text encoder that encodes the text into a latent vector, an Autoencoder, that projects the input image into a lower resolution latent space (and reconstructs the original image from it) and a Unet that drives the diffusion process in latent space.
+
+![Image](../../../docs/art/stable_diffusion/latent-diffusion.png)
+
+The latent diffusion model was trained on a big dataset of text-image pairs for text-conditioned image generation. The model is available on the Hugging Face model hub ([SD v1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5), [SD v2.0](https://huggingface.co/stabilityai/stable-diffusion-2), [SD v2.1](https://huggingface.co/stabilityai/stable-diffusion-2-1)).
+
 
 ### Multi-Modal dataset
 TODO
 
 ### LAION-5B
-When building your dataset, the images are the main component, since they are the starting point for getting captions and conditioning maps. One way of getting your dataset is by using a ready-to-go dataset, such as your own private dataset or a public dataset.
+When building your dataset, the images are the main component, since they are the starting point for getting text-image pairs. One way of getting your dataset is by using a ready-to-go dataset, such as your own private dataset or a public dataset.
 
 Where to find a ready-to-go image dataset:
 
@@ -58,7 +63,7 @@ For retrieving images, you need to have a small set of textual descriptions or e
 
 
 ### Examples
-
+TODO
 
 ## Pipeline Overview
 
