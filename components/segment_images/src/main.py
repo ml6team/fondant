@@ -2,16 +2,14 @@
 This component that segments images using a model from the Hugging Face hub.
 """
 import io
-import itertools
 import logging
-import toolz
+import typing as t
 
-import dask
 import dask.dataframe as dd
 from PIL import Image
 import pandas as pd
 import numpy as np
-from transformers import AutoImageProcessor, AutoModelForSemanticSegmentation
+from transformers import BatchFeature, SegformerImageProcessor, AutoModelForSemanticSegmentation
 import torch
 
 from palette import palette
@@ -45,45 +43,63 @@ def convert_to_rgb(seg: np.array):
     return color_seg
 
 
-@dask.delayed
-def load(example):
-    bytes = io.BytesIO(example)
-    image = Image.open(bytes).convert("RGB")
-    return image
+def process_image(image: bytes, *, processor: SegformerImageProcessor, device: str) -> torch.Tensor:
+    """
+    Process the image to a tensor.
+
+    Args:
+        image: The input image as a byte string.
+        processor: The processor object for transforming the image.
+        device: The device to move the transformed image to.
+    """
+    def load(img: bytes) -> Image:
+        """Load the bytestring as an image"""
+        bytes_ = io.BytesIO(img)
+        return Image.open(bytes_).convert("RGB")
+
+    def transform(img: Image) -> BatchFeature:
+        """
+        Transform the image to a tensor using a clip processor and move it to the specified device.
+        """
+        return processor(images=img, return_tensors="pt").to(device)
+
+    return transform(load(image))["pixel_values"]
 
 
-@dask.delayed
-def transform(image, processor, device):
-    inputs = processor(images=image, return_tensors="pt")
-    pixel_values = inputs.pixel_values.to(device)
-
-    return pixel_values, image.size
-
-
-@dask.delayed
-def collate(examples):
-    encoding = {}
-    encoding["pixel_values"] = torch.cat([ex[0] for ex in examples])
-    encoding["image_sizes"] = [ex[1] for ex in examples]
-    return encoding
-
-
-@dask.delayed
 @torch.no_grad()
-def segment(batch, model, processor):
-    outputs = model(batch["pixel_values"])
-    segmentations = processor.post_process_semantic_segmentation(
-        outputs, target_sizes=batch["image_sizes"]
+def segment_image_batch(image_batch: pd.DataFrame, *, model: AutoModelForSemanticSegmentation,
+                        processor: SegformerImageProcessor) -> pd.Series:
+    """Embed a batch of images"""
+    input_batch = torch.cat(image_batch.tolist())
+    output_batch = model(input_batch)
+    post_processed_batch = processor.post_process_semantic_segmentation(
+        output_batch
     )
-    # turn into RGB images
-    segmentations = [convert_to_rgb(seg.cpu().numpy()) for seg in segmentations]
-
-    return segmentations
+    segmentations_batch = [convert_to_rgb(seg.cpu().numpy()) for seg in post_processed_batch]
+    return pd.Series(segmentations_batch, index=image_batch.index)
 
 
-@dask.delayed
-def flatten(lst):
-    return pd.Series(itertools.chain(*lst))
+def segment_images(
+        images: pd.Series,
+        *,
+        model: AutoModelForSemanticSegmentation,
+        processor: SegformerImageProcessor,
+        batch_size: int,
+        device: str,
+):
+    """Segment a pandas series of images"""
+    images = images.apply(process_image, processor=processor, device=device)
+    results: t.List[pd.Series] = []
+    for batch in np.split(images, np.arange(batch_size, len(images), batch_size)):
+        if not batch.empty:
+            results.append(
+                segment_image_batch(
+                    batch,
+                    model=model,
+                    processor=processor,
+                ).T
+            )
+    return pd.concat(results).to_frame()
 
 
 class SegmentImagesComponent(TransformComponent):
@@ -109,32 +125,22 @@ class SegmentImagesComponent(TransformComponent):
         device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Device: {device}")
 
-        processor = AutoImageProcessor.from_pretrained(model_id)
+        processor = SegformerImageProcessor.from_pretrained(model_id)
         model = AutoModelForSemanticSegmentation.from_pretrained(model_id)
 
-        # load and transform the images
-        images = dataframe["images_data"]
-        loaded_images = [load(image) for image in images]
-        transformed_images = [
-            transform(image, processor, device) for image in loaded_images
-        ]
+        dataframe = dataframe["images_data"].map_partitions(
+            segment_images,
+            model=model,
+            processor=processor,
+            batch_size=batch_size,
+            device=device,
+            meta={0: object}
+        )
+        dataframe.columns = ["segmentations_data"]
 
-        # batch images together
-        batches = [
-            collate(batch)
-            for batch in toolz.partition_all(batch_size, transformed_images)
-        ]
+        print(dataframe.head())
 
-        # caption images
-        delayed_model = dask.delayed(model.to(device))
-        segmentations = [segment(batch, delayed_model, processor) for batch in batches]
-
-        # join lists into a single Dask delayed object
-        segmentations = flatten(segmentations)
-        delayed_series = dd.from_delayed(segmentations, meta=pd.Series(dtype="object"))
-        segmentations_df = delayed_series.to_frame(name="segmentations_data")
-
-        return segmentations_df
+        return dataframe
 
 
 if __name__ == "__main__":
