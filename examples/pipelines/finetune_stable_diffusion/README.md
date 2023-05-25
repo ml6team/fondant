@@ -37,7 +37,7 @@ The latent diffusion model was trained on a big dataset of text-image pairs for 
 
 
 ### Multi-Modal dataset
-TODO
+Since Stable Diffusion is a text-to-image model, it is trained on text-image pairs that contain a similar content. These text-image pairs can be found on the internet, by looking for the caption of images, since they should describe the content of the image. Another way of getting these pairs is by human annotation, which can produce very high quality data, but is also very expensive and time consuming. Luckily, researchers and organisations have spend plenty of time researching the domain of image captioning and have created some great datasets and models, such as [BLIP](https://huggingface.co/docs/transformers/model_doc/blip) by SalesForce, [GIT](https://github.com/microsoft/GenerativeImage2Text) by Microsoft and many more. These models can be used to generate captions for images, which can then be used to create text-image pairs for your own multi-modal dataset!
 
 ### LAION-5B
 When building your dataset, the images are the main component, since they are the starting point for getting text-image pairs. One way of getting your dataset is by using a ready-to-go dataset, such as your own private dataset or a public dataset.
@@ -57,7 +57,11 @@ For retrieving images, you need to have a small set of textual descriptions or e
 
 
 ### Examples
-TODO
+If you want to test out Stable Diffusion, you can use the following demos:
+
+* [RunwayML](https://runwayml.com/ai-magic-tools/text-to-image/)
+* [Stable Diffusion v2.1 - Hugging Face space](https://huggingface.co/spaces/stabilityai/stable-diffusion)
+* [Stable Diffusion v1.5 - Hugging Face space](https://huggingface.co/spaces/runwayml/stable-diffusion-v1-5)
 
 ## Pipeline Overview
 
@@ -120,4 +124,8 @@ python pipeline.py
 
 
 ## Reusing this pipeline
-TODO
+You can reuse this pipeline by adapting the following components:
+
+- **Load from hub**: This component loads a dataset from the Hugging Face dataset hub. You can change this dataset to any other compatible dataset on the Hugging Face dataset hub. If the image column of the dataset is called something else than `image`, you can adapt this naming in the code of the Load From Hub component.
+
+Feel free to swap out components of the pipeline with our other components, try building your own custom Filtering component or use different captioning models than our example! Let us know if you have any questions or feedback, we are happy to help!
