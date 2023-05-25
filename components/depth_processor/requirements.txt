@@ -1,0 +1,5 @@
+git+https://github.com/ml6team/fondant.git@main
+gcsfs==2023.4.0
+transformers==4.29.2
+Pillow==9.4.0
+torch==2.0.1
