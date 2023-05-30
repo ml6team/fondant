@@ -17,13 +17,13 @@
 ---
 **Fondant helps you create high quality datasets to fine-tune foundation models such as:**
 
-- :art: Stable Diffusion  
-- :page_facing_up: GPT-like Large Language Models (LLMs)  
-- :mag_right: CLIP  
-- :scissors: Segment Anything (SAM)  
-- :heavy_plus_sign: And many more
+- 🎨 Stable Diffusion  
+- 📄 GPT-like Large Language Models (LLMs)  
+- 🔎 CLIP  
+- ✂️ Segment Anything (SAM)  
+- ➕ And many more
 
-## :mouse_trap: Why Fondant?
+## 🪤 Why Fondant?
 
 Foundation models simplify inference by solving multiple tasks across modalities with a simple
 prompt-based interface. But what they've gained in the front, they've lost in the back. 
@@ -47,7 +47,7 @@ And create high quality datasets to fine-tune your own foundation models.
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
-## :magic_wand: Example pipelines
+## 🪄 Example pipelines
 
 Curious to see what Fondant can do? Have a look at our example pipelines:
 
@@ -84,7 +84,7 @@ Eg. generating logos:
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
-## :jigsaw: Reusable components
+## 🧩 Reusable components
 
 Fondant comes with a library of reusable components, which can jumpstart your pipeline.
 
@@ -101,7 +101,7 @@ Fondant comes with a library of reusable components, which can jumpstart your pi
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
-## :hammer_and_pick: Installation
+## ⚒️ Installation
 
 Fondant can be installed using pip:
 
@@ -115,7 +115,7 @@ For the latest development version, you might want to install from source instea
 pip install git+https://github.com/ml6team/fondant.git
 ```
 
-### :bricks: Deploying Fondant
+### 🧱 Deploying Fondant
 
 Fondant is flexible and works by leveraging [kubeflow pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/) on any kubernetes cluster. All fondant needs is an url pointing to the kubeflow pipeline host and a Object Storage provider (S3, GCS, etc) to store data produced in the pipeline between steps.
 
@@ -123,7 +123,7 @@ We have compiled some references and created some scripts to [get you started](h
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
-## :man_technologist: Usage
+## 👨‍💻 Usage
 
 #### Pipeline
 
@@ -214,7 +214,7 @@ class ExampleComponent(TransformComponent):
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
-## :construction: Current state and roadmap
+## 🚧 Current state and roadmap
 
 Fondant is currently in the alpha stage, offering a minimal viable interface. While you should 
 expect to run into rough edges, the foundations are ready and Fondant should already be able to 
@@ -241,7 +241,7 @@ board](https://github.com/orgs/ml6team/projects/1).
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
-## :two_women_holding_hands: Contributing
+## 👭 Contributing
 
 We welcome contributions of different kinds:
 
