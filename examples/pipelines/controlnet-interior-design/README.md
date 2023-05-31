@@ -16,7 +16,8 @@
     1. [What is Controlnet?](#what-is-controlnet)
     2. [Multi-Modal dataset](#multi-modal-dataset)
     3. [LAION-5B](#laion-5b)
-    4. [Examples](#examples)
+    4. [How to use ControlNet](#how-to-use-controlnet)
+    5. [Examples](#examples)
 2. [Pipeline Overview](#pipeline-overview)
     1. [Prompt Generation](#prompt-generation)
     2. [Image URL Retrieval](#image-url-retrieval)
@@ -109,7 +110,7 @@ If you want to test ControlNet yourself, you can use the following examples:
 
 The image below shows the entire pipeline and its workflow. Note that this workflow is currently adapted to the interior design domain, but can be easily adapted to other domains by changing the prompt generation component.
 
-![Image](../../../docs/art/controlnet-interior-design-pipeline.png)
+![Image](../../../docs/art/interior_design/controlnet-interior-design-pipeline.png)
 
 
 There are 5 components in total, these are:
