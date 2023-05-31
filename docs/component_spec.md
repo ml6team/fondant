@@ -267,7 +267,7 @@ produces:
 </tr>
 </table>
 
-### Example 2: `additionalSubsets: false` in `comsumes`
+### Example 2: `additionalSubsets: false` in `consumes`
 
 When changing `additionalSubsets` in `consumes` to `false`, the unused `captions` subset is 
 dropped.

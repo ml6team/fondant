@@ -1,12 +1,13 @@
 """
 This component retrieves image URLs from LAION-5B based on a set of seed prompts.
 """
+import asyncio
+import concurrent.futures
 import logging
-from typing import List
-from requests.exceptions import ConnectionError
+import typing as t
 
 import dask.dataframe as dd
-import dask.array as da
+import pandas as pd
 
 from clip_client import ClipClient, Modality
 
@@ -17,23 +18,35 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def query_clip_client(embedding_input, client: ClipClient) -> List[str]:
+def query_clip_client(embeddings: pd.Series, client: ClipClient) -> pd.DataFrame:
     """
-    Given a text query and a ClipClient instance, this function retrieves
-    image URLs and their LAION ids related to the query.
+    Asynchronously retrieve image URLs and ids based on prompts in the provided dataframe.
     Args:
-        embedding_input (TODO): TODO
+        embeddings: Series containing embedding
         client (ClipClient): an instance of ClipClient used to query the images
     Returns:
-        urls: a list of strings, each representing a URL of an image related to the query
+        urls: A dataframe with the image urls and the LAION ids as index
     """
-    try:
-        results = client.query(embedding_input=embedding_input.tolist())
-        urls = [i["url"] for i in results]
-    except ConnectionError as e:
-        urls = ["" for _ in range(len(results))]
 
-    return urls
+    async def async_query():
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+            futures = [
+                loop.run_in_executor(
+                    executor,
+                    client.query,
+                    embedding
+                )
+                for embedding in embeddings
+            ]
+            for response in await asyncio.gather(*futures):
+                results.extend(response)
+
+    results: t.List[t.Tuple[str]] = []
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(async_query())
+
+    results_df = pd.DataFrame(results)[["id", "url"]]
+    return results_df.set_index("id")
 
 
 class LAIONRetrievalComponent(TransformComponent):
@@ -67,16 +80,19 @@ class LAIONRetrievalComponent(TransformComponent):
             modality=Modality.IMAGE,
         )
 
-        # retrieve images from laion based on the input embeddings
-        dataframe["images_url"] = dataframe["embeddings_data"].apply(
-            lambda example: query_clip_client(example, client),
-            meta=("images_url", str),
+        meta_df = pd.DataFrame(columns=["id", "url"], dtype="string")
+        meta_df = meta_df.set_index("id")
+
+        dataframe = dataframe["embeddings_data"].map_partitions(
+            query_clip_client,
+            client=client,
+            meta=meta_df
         )
 
-        # unpack list of urls
-        dataframe = dataframe.explode("images_url").dropna(subset=["images_url"])
+        dataframe = dataframe.rename(columns={"url": "images_url"})
 
         return dataframe
+
 
 
 if __name__ == "__main__":

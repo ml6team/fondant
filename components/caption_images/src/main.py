@@ -2,18 +2,15 @@
 This component that captions images using a model from the Hugging Face hub.
 """
 import io
-import itertools
 import logging
-import toolz
+import typing as t
 
-from PIL import Image
-
-import dask
 import dask.dataframe as dd
+import numpy as np
 import pandas as pd
-
-from transformers import AutoProcessor, BlipForConditionalGeneration
 import torch
+from PIL import Image
+from transformers import BatchEncoding, BlipProcessor, BlipForConditionalGeneration
 
 from fondant.component import TransformComponent
 from fondant.logger import configure_logging
@@ -22,37 +19,67 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-@dask.delayed
-def load(example):
-    bytes = io.BytesIO(example)
-    image = Image.open(bytes).convert("RGB")
-    return image
+def process_image(image: bytes, *, processor: BlipProcessor, device: str) -> torch.Tensor:
+    """
+    Process the image to a tensor.
+
+    Args:
+        image: The input image as a byte string.
+        processor: The processor object for transforming the image.
+        device: The device to move the transformed image to.
+    """
+    def load(img: bytes) -> Image:
+        """Load the bytestring as an image"""
+        bytes_ = io.BytesIO(img)
+        return Image.open(bytes_).convert("RGB")
+
+    def transform(img: Image) -> BatchEncoding:
+        """
+        Transform the image to a tensor using a processor and move it to the specified device.
+        """
+        return processor(images=img, return_tensors="pt").to(device)
+
+    return transform(load(image))["pixel_values"]
 
 
-@dask.delayed
-def transform(image, processor, device):
-    inputs = processor(images=image, return_tensors="pt").to(device)
+def caption_image_batch(
+    image_batch: pd.DataFrame,
+    *,
+    model: BlipForConditionalGeneration,
+    processor: BlipProcessor,
+    max_new_tokens: int
+) -> pd.Series:
+    """Caption a batch of images"""
+    input_batch = torch.cat(image_batch.tolist())
+    output_batch = model.generate(pixel_values=input_batch, max_new_tokens=max_new_tokens)
+    captions_batch = processor.batch_decode(output_batch, skip_special_tokens=True)
 
-    return inputs
-
-
-@dask.delayed
-def collate(examples):
-    return torch.cat([ex["pixel_values"] for ex in examples])
-
-
-@dask.delayed
-def caption(batch, model, processor, max_new_tokens):
-    logger.info("Generating caption...")
-    generated_ids = model.generate(pixel_values=batch, max_new_tokens=max_new_tokens)
-    generated_captions = processor.batch_decode(generated_ids, skip_special_tokens=True)
-
-    return generated_captions
+    return pd.Series(captions_batch, index=image_batch.index)
 
 
-@dask.delayed
-def flatten(lst):
-    return pd.Series(itertools.chain(*lst))
+def caption_images(
+    images: pd.Series,
+    *,
+    model: BlipForConditionalGeneration,
+    processor: BlipProcessor,
+    batch_size: int,
+    max_new_tokens: int,
+    device: str,
+) -> pd.DataFrame:
+    """Caption a pandas series of images"""
+    images = images.apply(process_image, processor=processor, device=device)
+    results: t.List[pd.Series] = []
+    for batch in np.split(images, np.arange(batch_size, len(images), batch_size)):
+        if not batch.empty:
+            results.append(
+                caption_image_batch(
+                    batch,
+                    model=model,
+                    processor=processor,
+                    max_new_tokens=max_new_tokens
+                ).T
+            )
+    return pd.concat(results).to_frame()
 
 
 class CaptionImagesComponent(TransformComponent):
@@ -80,35 +107,21 @@ class CaptionImagesComponent(TransformComponent):
         device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Device: {device}")
 
-        processor = AutoProcessor.from_pretrained(model_id)
+        processor = BlipProcessor.from_pretrained(model_id)
         model = BlipForConditionalGeneration.from_pretrained(model_id)
 
-        # load and transform the images
-        images = dataframe["images_data"]
-        loaded_images = [load(image) for image in images]
-        transformed_images = [
-            transform(image, processor, device) for image in loaded_images
-        ]
+        dataframe = dataframe["images_data"].map_partitions(
+            caption_images,
+            model=model,
+            processor=processor,
+            batch_size=batch_size,
+            max_new_tokens=max_new_tokens,
+            device=device,
+            meta={0: str}
+        )
+        dataframe.columns = ["captions_text"]
 
-        # batch images together
-        batches = [
-            collate(batch)
-            for batch in toolz.partition_all(batch_size, transformed_images)
-        ]
-
-        # caption images
-        delayed_model = dask.delayed(model.to(device))
-        captions = [
-            caption(batch, delayed_model, processor, max_new_tokens)
-            for batch in batches
-        ]
-
-        # join lists into a single Dask delayed object
-        captions = flatten(captions)
-        delayed_series = dd.from_delayed(captions, meta=pd.Series(dtype="str"))
-        captions_df = delayed_series.to_frame(name="captions_text")
-
-        return captions_df
+        return dataframe
 
 
 if __name__ == "__main__":

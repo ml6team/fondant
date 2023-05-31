@@ -9,6 +9,7 @@ import traceback
 import urllib
 
 import dask.dataframe as dd
+import pandas as pd
 
 from resizer import Resizer
 
@@ -123,10 +124,7 @@ class DownloadImagesComponent(TransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
-        print(dataframe.head())
-
         # retrieve and resize images
-        # source: https://stackoverflow.com/questions/41728527/how-to-apply-a-function-to-a-dask-dataframe-and-return-multiple-values
         logger.info("Downloading and resizing images...")
         result = dataframe.apply(
             lambda example: download_image_with_retry(
@@ -148,8 +146,6 @@ class DownloadImagesComponent(TransformComponent):
         dataframe = dataframe.merge(
             result, left_index=True, right_index=True
         )
-
-        print(dataframe.head())
 
         return dataframe
 
