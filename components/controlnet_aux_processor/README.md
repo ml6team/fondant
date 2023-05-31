@@ -5,6 +5,10 @@ tags:
   - computer-vision
   - controlnet
   - image-to-image
+  - conditioning
+pipelines:
+  - SD Pipeline
+  - Controlnet Pipeline
 ```
 
 
