@@ -138,8 +138,6 @@ class SegmentImagesComponent(TransformComponent):
         )
         dataframe.columns = ["segmentations_data"]
 
-        print(dataframe.head())
-
         return dataframe
 
 

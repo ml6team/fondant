@@ -35,7 +35,7 @@ def process_image(image: bytes, *, processor: BlipProcessor, device: str) -> tor
 
     def transform(img: Image) -> BatchEncoding:
         """
-        Transform the image to a tensor using a clip processor and move it to the specified device.
+        Transform the image to a tensor using a processor and move it to the specified device.
         """
         return processor(images=img, return_tensors="pt").to(device)
 
@@ -65,7 +65,7 @@ def caption_images(
     batch_size: int,
     max_new_tokens: int,
     device: str,
-):
+) -> pd.DataFrame:
     """Caption a pandas series of images"""
     images = images.apply(process_image, processor=processor, device=device)
     results: t.List[pd.Series] = []
