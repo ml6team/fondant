@@ -29,15 +29,17 @@
 ## Introduction
 
 ### What is Stable Diffusion?
-Stable Diffusion is a text-to-image model released by StabilityAI. It's based on the latent diffusion architecture from [Robin Rombach et al.](https://arxiv.org/abs/2112.10752), which is an efficient diffusion model that works in the latent space. It consists of a text encoder that encodes the text into a latent vector, an Autoencoder, that projects the input image into a lower resolution latent space (and reconstructs the original image from it) and a Unet that drives the diffusion process in latent space.
+Stable Diffusion is a text-to-image model released by Stability AI. It's based on the latent diffusion architecture from [Robin Rombach et al.](https://arxiv.org/abs/2112.10752), which is an efficient diffusion model that works in the latent space. It consists of a text encoder that encodes the text into a latent vector, an Autoencoder, that projects the input image into a lower resolution latent space (and reconstructs the original image from it) and a U-Net that drives the diffusion process in latent space.
+
 
 ![Image](../../../docs/art/stable_diffusion/latent-diffusion.png)
 
-The latent diffusion model was trained on a big dataset of text-image pairs for text-conditioned image generation. The model is available on the Hugging Face model hub ([SD v1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5), [SD v2.0](https://huggingface.co/stabilityai/stable-diffusion-2), [SD v2.1](https://huggingface.co/stabilityai/stable-diffusion-2-1)).
+The latent diffusion model was trained on a large dataset of text-image pairs for text-conditioned image generation. The model is available on the Hugging Face model hub ([SD v1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5), [SD v2.0](https://huggingface.co/stabilityai/stable-diffusion-2), [SD v2.1](https://huggingface.co/stabilityai/stable-diffusion-2-1)).
 
 
 ### Multi-Modal dataset
-Since Stable Diffusion is a text-to-image model, it is trained on text-image pairs that contain a similar content. These text-image pairs can be found on the internet, by looking for the caption of images, since they should describe the content of the image. Another way of getting these pairs is by human annotation, which can produce very high quality data, but is also very expensive and time consuming. Luckily, researchers and organisations have spend plenty of time researching the domain of image captioning and have created some great datasets and models, such as [BLIP](https://huggingface.co/docs/transformers/model_doc/blip) by SalesForce, [GIT](https://github.com/microsoft/GenerativeImage2Text) by Microsoft and many more. These models can be used to generate captions for images, which can then be used to create text-image pairs for your own multi-modal dataset!
+Since Stable Diffusion is a text-to-image model, it is trained on text-image pairs that contain a similar content. These text-image pairs can be found on the internet, by looking for the caption of images, since they should describe the content of the image. Another way of getting these pairs is by human annotation, which can produce very high quality data, but is also very expensive and time consuming. Luckily, researchers and organisations have spend plenty of time researching the domain of image captioning and have created some great datasets and models, such as [BLIP](https://huggingface.co/docs/transformers/model_doc/blip) by SalesForce, [GIT](https://huggingface.co/docs/transformers/model_doc/git) by Microsoft and many more. These models can be used to generate captions for images, which can then be used to create text-image pairs for your own multi-modal dataset!
+
 
 ### LAION-5B
 When building your dataset, the images are the main component, since they are the starting point for getting text-image pairs. One way of getting your dataset is by using a ready-to-go dataset, such as your own private dataset or a public dataset.
@@ -89,7 +91,6 @@ There are 5 components in total, these are:
 ### Requirements
 
 ```
-pip install git+https://github.com/ml6team/fondant.git
 pip install fondant[pipelines]
 ```
 
@@ -128,4 +129,4 @@ You can reuse this pipeline by adapting the following components:
 
 - **Load from hub**: This component loads a dataset from the Hugging Face dataset hub. You can change this dataset to any other compatible dataset on the Hugging Face dataset hub. If the image column of the dataset is called something else than `image`, you can adapt this naming in the code of the Load From Hub component.
 
-Feel free to swap out components of the pipeline with our other components, try building your own custom Filtering component or use different captioning models than our example! Let us know if you have any questions or feedback, we are happy to help!
+Feel free to swap out components of the pipeline with our other components, try building your own custom filtering component or use different captioning models than our example! Let us know if you have any questions or feedback, we are happy to help!
