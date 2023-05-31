@@ -1,6 +1,6 @@
-name: Canny edge processor
-description: Component that creates a canny edge map for input images
-image: ghcr.io/ml6team/canny_edge_processor:latest
+name: Depth processor
+description: Component that creates a depth map for input images
+image: ghcr.io/ml6team/depth_processor:latest
 
 consumes:
   images:

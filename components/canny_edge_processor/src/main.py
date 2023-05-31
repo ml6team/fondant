@@ -11,8 +11,6 @@ import dask.dataframe as dd
 from PIL import Image
 import pandas as pd
 import numpy as np
-# from controlnet_aux import OpenposeDetector
-# import torch
 import cv2
 
 from fondant.component import TransformComponent

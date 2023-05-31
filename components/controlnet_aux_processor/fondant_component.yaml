@@ -1,0 +1,20 @@
+name: Controlnet aux processor
+description: Component that processes image with controlnet aux processors
+image: ghcr.io/ml6team/controlnet_aux_processor:latest
+
+consumes:
+  images:
+    fields:
+      data:
+        type: binary
+
+produces:
+  conditioning:
+    fields:
+      data:
+        type: binary
+
+args:
+  processor_id:
+    description: Processor id of the controlnet_aux library
+    type: str

@@ -1,0 +1,15 @@
+name: Openpose processor
+description: Component that creates an openpose map for input images
+image: ghcr.io/ml6team/openpose_processor:latest
+
+consumes:
+  images:
+    fields:
+      data:
+        type: binary
+
+produces:
+  openpose:
+    fields:
+      data:
+        type: binary
