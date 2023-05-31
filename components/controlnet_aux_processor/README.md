@@ -27,5 +27,6 @@ Examples of image cropping by removing the single-color border. Left side is ori
 |------------------------------------------|----------------------------|---------------------------|
 | ![input image](/docs/art/components/controlnet_aux/input.jpg) | ![output image](/docs/art/components/controlnet_aux/output_canny.jpg) | ![output image](/docs/art/components/controlnet_aux/output_mlsd.jpg) | 
 | Content shuffle                              | HED                      | Lineart                      |
-|------------------------------------------|----------------------------|---------------------------|
 | ![input image](/docs/art/components/controlnet_aux/output_content_shuffle.jpg) | ![output image](/docs/art/components/controlnet_aux/output_hed.jpg) | ![output image](/docs/art/components/controlnet_aux/output_lineart.jpg) | 
+| normalbae                              | openpose                      | pidinet                      |
+| ![input image](/docs/art/components/controlnet_aux/output_content_normalbae.jpg) | ![output image](/docs/art/components/controlnet_aux/output_openpose.jpg) | ![output image](/docs/art/components/controlnet_aux/output_pidinet.jpg) | 
