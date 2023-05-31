@@ -1,0 +1,24 @@
+name: Filter metadata
+description: Component that filters code based on metadata
+image: europe-west4-docker.pkg.dev/boreal-array-387713/boreal-array-387713-default-repository/components/filter_metadata:latest
+
+consumes:
+  code:
+    fields:
+      avg_line_length:
+        type: float64
+      max_line_length:
+        type: int32
+      alphanum_fraction:
+        type: float64
+
+args:
+  avg_line_length_threshold:
+    description: Name of dataset on the hub
+    type: int
+  max_line_length_threshold:
+    description: Name of dataset on the hub
+    type: int
+  alphanum_fraction_threshold:
+    description: Name of dataset on the hub
+    type: float

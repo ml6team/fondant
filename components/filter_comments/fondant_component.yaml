@@ -1,0 +1,18 @@
+name: Filter comments
+description: Component that filters code based on the code to comment ratio
+image: europe-west4-docker.pkg.dev/boreal-array-387713/boreal-array-387713-default-repository/components/comments_filtering:latest
+
+consumes:
+  code:
+    fields:
+      content:
+        type: string
+
+
+args:
+  min_comments_ratio:
+    description: The minimum code to comment ratio
+    type: float
+  max_comments_ratio:
+    description: The maximum code to comment ratio
+    type: float
