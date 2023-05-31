@@ -26,8 +26,8 @@ load_from_hub_op = ComponentOp(
     component_spec_path="components/load_from_hub_stack/fondant_component.yaml",
     arguments={"dataset_name": "ml6team/the-stack-smol-python"},
 )
-filter_metadata_op = ComponentOp.from_registry(
-    name="filter_metadata",
+filter_line_length_op = ComponentOp.from_registry(
+    name="filter_line_length",
     arguments={
         "avg_line_length_threshold": 10,
         "max_line_length_threshold": 100,
@@ -44,8 +44,8 @@ pii_redaction_op = ComponentOp.from_registry(
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(filter_metadata_op, dependencies=load_from_hub_op)
-pipeline.add_op(filter_comments_op, dependencies=filter_metadata_op)
+pipeline.add_op(filter_line_length_op, dependencies=load_from_hub_op)
+pipeline.add_op(filter_comments_op, dependencies=filter_line_length_op)
 pipeline.add_op(pii_redaction_op, dependencies=load_from_hub_op)
 
 # compile

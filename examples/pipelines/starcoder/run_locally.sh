@@ -13,11 +13,11 @@ python main.py \
  --dataset_name "ml6team/the-stack-smol-python"
 
 cd ../..
-cd filter_metadata/src
+cd filter_line_length/src
 python main.py \
  --metadata "$METADATA" \
  --input_manifest_path  ${BASE_PATH}/manifest/load_from_hub_stack/manifest.txt \
- --output_manifest_path ${BASE_PATH}/manifest/filter_metadata/manifest.txt \
+ --output_manifest_path ${BASE_PATH}/manifest/filter_line_length/manifest.txt \
  --avg_line_length_threshold 10 \
  --max_line_length_threshold 100 \
  --alphanum_fraction_threshold 0.25
@@ -26,7 +26,7 @@ cd ../..
 cd filter_comments/src
 python main.py \
  --metadata "$METADATA" \
- --input_manifest_path  ${BASE_PATH}/manifest/filter_metadata/manifest.txt \
+ --input_manifest_path  ${BASE_PATH}/manifest/filter_line_length/manifest.txt \
  --output_manifest_path ${BASE_PATH}/manifest/filter_comments/manifest.txt \
  --min_comments_ratio 0.1 \
  --max_comments_ratio 0.9

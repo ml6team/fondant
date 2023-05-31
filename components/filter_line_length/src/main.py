@@ -12,9 +12,10 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-class FilterMetadataComponent(TransformComponent):
+class FilterLineLengthComponent(TransformComponent):
     """
-    This component filters code based on a set of metadata associated with it.
+    This component filters code based on a set of metadata associated with it:
+    average line length, maximum line length and alphanum fraction.
     """
 
     def transform(
@@ -45,5 +46,5 @@ class FilterMetadataComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = FilterMetadataComponent.from_file()
+    component = FilterLineLengthComponent.from_file()
     component.run()
