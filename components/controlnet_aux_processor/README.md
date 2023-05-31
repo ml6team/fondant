@@ -1,10 +1,11 @@
+```
 name: Controlnet aux processor
 developer: Bert Christiaens
 tags:
   - computer-vision
   - controlnet
   - image-to-image
-
+```
 
 
 ## Description
@@ -29,4 +30,4 @@ Examples of image cropping by removing the single-color border. Left side is ori
 | Content shuffle                              | HED                      | Lineart                      |
 | ![input image](/docs/art/components/controlnet_aux/output_content_shuffle.jpg) | ![output image](/docs/art/components/controlnet_aux/output_hed.jpg) | ![output image](/docs/art/components/controlnet_aux/output_lineart.jpg) | 
 | normalbae                              | openpose                      | pidinet                      |
-| ![input image](/docs/art/components/controlnet_aux/output_content_normalbae.jpg) | ![output image](/docs/art/components/controlnet_aux/output_openpose.jpg) | ![output image](/docs/art/components/controlnet_aux/output_pidinet.jpg) | 
+| ![input image](/docs/art/components/controlnet_aux/output_normalbae.jpg) | ![output image](/docs/art/components/controlnet_aux/output_openpose.jpg) | ![output image](/docs/art/components/controlnet_aux/output_pidinet.jpg) | 
