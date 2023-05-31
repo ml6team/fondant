@@ -25,4 +25,4 @@ Examples of image cropping by removing the single-color border. Left side is ori
 
 | Input image                                          | Canny                                           |
 |------------------------------------------------------|--------------------------------------------------------|
-| ![input image](../../../docs/art/interior_design_controlnet_input1.png) | ![output image](../../../docs/art/components/controlnet_aux/output_canny.jpg) |
+| ![input image](/docs/art/interior_design_controlnet_input1.png) | ![output image](/docs/art/components/controlnet_aux/output_canny.jpg) |
