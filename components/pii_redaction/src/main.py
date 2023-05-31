@@ -1,4 +1,6 @@
-"""A component that detects and redacts Personal Identifiable Information (PII) in code."""
+"""
+A component that detects and redacts Personal Identifiable Information (PII) in code.
+"""
 
 import json
 import logging

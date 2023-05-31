@@ -97,7 +97,7 @@ def get_docstrings(source: str) -> t.List[str]:
     return results
 
 
-def get_text_python(source: str, comments=True) -> str:
+def get_text_python(source: str, comments: bool = True) -> str:
     """Extract all natural text in source: comments + docstrings
     the extraction fails in case of syntax errors in the file
     Args:
