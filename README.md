@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/art/fondant_banner.svg" height="250px"/>
+    <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" height="250px"/>
 </p>
 <p align="center">
     <i>Sweet data-centric foundation model fine-tuning</i>
@@ -62,9 +62,9 @@ generate.
 For instance, using our ControlNet model fine-tuned on interior design images, allows you to 
 generate the room of your dreams:
 
-| Input image                                                    | Output image                                                     |
-|----------------------------------------------------------------|------------------------------------------------------------------|
-| ![input image](docs/art/interior_design_controlnet_input1.png) | ![output image](docs/art/interior_design_controlnet_output1.jpg) |
+| Input image                                                                                                          | Output image                                                                                                           |
+|----------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/interior_design_controlnet_input1.png?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/interior_design_controlnet_output1.jpg?raw=true) |
 
 Want to try out the resulting model yourself, head over to our 
 [Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
@@ -78,9 +78,9 @@ get started is a small seed dataset of example images.
 
 Eg. generating logos:
 
-| Stable Diffusion 1.5                                | Fine-tuned Stable Diffusion 1.5               |
-|-----------------------------------------------------|-----------------------------------------------|
-| ![input image](docs/art/logo_stable_diffusion.jpg) | ![output image](docs/art/logo_finetuned.jpeg) |
+| Stable Diffusion 1.5                                                                                     | Fine-tuned Stable Diffusion 1.5              |
+|----------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_stable_diffusion.jpg?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_finetuned.jpeg?raw=true) |
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 

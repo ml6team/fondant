@@ -33,11 +33,11 @@ This example demonstrates an end-to-end fondant pipeline to collect and process 
 The resulting model allows you to generate the room of your dreams:
 
 
-| Input image                                                    | Output image                                                     |
-|----------------------------------------------------------------|------------------------------------------------------------------|
-| ![input image](../../../docs/art/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/interior_design/interior_output_0.jpg) |
-| ![input image](../../../docs/art/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/interior_design/interior_output_1.jpg) |
-| ![input image](../../../docs/art/interior_design/interior_input_0.jpg) | ![output image](../../../docs/art/interior_design/interior_output_3.jpg) |
+| Input image                                                                      | Output image                                                     |
+|----------------------------------------------------------------------------------|------------------------------------------------------------------|
+| ![input image](../../../docs/art/pipelines/interior_design/interior_input_1.jpg) | ![output image](../../../docs/art/pipelines/interior_design/interior_output_0.jpg) |
+| ![input image](../../../docs/art/pipelines/interior_design/interior_input_1.jpg)           | ![output image](../../../docs/art/pipelines/interior_design/interior_output_1.jpg) |
+| ![input image](../../../docs/art/pipelines/interior_design/interior_input_0.jpg)           | ![output image](../../../docs/art/pipelines/interior_design/interior_output_3.jpg) |
 
 Want to try out the resulting model yourself, head over to our 
 [Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
@@ -73,7 +73,7 @@ In order to train a Controlnet model we need three inputs: an `image`, a `captio
 
 It's important that the dataset has enough quality images and captions and contains all three inputs for each sample.
 
-![Multi modal dataset](../../../docs/art/interior_design/multi_modal_dataset.png)
+![Multi modal dataset](../../../docs/art/pipelines/interior_design/multi_modal_dataset.png)
 
 ### LAION-5B
 When building your dataset, the images are the main component, since they are the starting point for getting captions and conditioning maps. One way of getting your dataset is by using a ready-to-go dataset, such as your own private dataset or a public dataset.
@@ -110,7 +110,7 @@ If you want to test ControlNet yourself, you can use the following examples:
 
 The image below shows the entire pipeline and its workflow. Note that this workflow is currently adapted to the interior design domain, but can be easily adapted to other domains by changing the prompt generation component.
 
-![Image](../../../docs/art/interior_design/controlnet-interior-design-pipeline.png)
+![Image](../../../docs/art/pipelines/interior_design/controlnet-interior-design-pipeline.png)
 
 
 There are 5 components in total, these are:

@@ -10,7 +10,7 @@ The resulting crop will always be square. If a crop is not possible, the compone
 ## Examples
 Examples of image cropping by removing the single-color border. Left side is original image, right side is border-cropped image.
 
-![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](/docs/art/component_border_crop_1.png)
-![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](/docs/art/component_border_crop_0.png)
+![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)
+![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)
 
 
