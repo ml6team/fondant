@@ -32,7 +32,7 @@
 Stable Diffusion is a text-to-image model released by Stability AI. It's based on the latent diffusion architecture from [Robin Rombach et al.](https://arxiv.org/abs/2112.10752), which is an efficient diffusion model that works in the latent space. It consists of a text encoder that encodes the text into a latent vector, an Autoencoder, that projects the input image into a lower resolution latent space (and reconstructs the original image from it) and a U-Net that drives the diffusion process in latent space.
 
 
-![Image](../../../docs/art/stable_diffusion/latent-diffusion.png)
+![Image](../../../docs/art/pipelines/stable_diffusion/latent-diffusion.png)
 
 The latent diffusion model was trained on a large dataset of text-image pairs for text-conditioned image generation. The model is available on the Hugging Face model hub ([SD v1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5), [SD v2.0](https://huggingface.co/stabilityai/stable-diffusion-2), [SD v2.1](https://huggingface.co/stabilityai/stable-diffusion-2-1)).
 
@@ -69,7 +69,7 @@ If you want to test out Stable Diffusion, you can use the following demos:
 
 The image below shows the entire pipeline and its workflow. Note that this workflow is currently adapted to the interior design domain, but can be easily adapted to other domains by changing the prompt generation component.
 
-![Image](../../../docs/art/stable_diffusion/stable-diffusion-pipeline.png)
+![Image](../../../docs/art/pipelines/stable_diffusion/stable-diffusion-pipeline.png)
 
 
 There are 5 components in total, these are:
