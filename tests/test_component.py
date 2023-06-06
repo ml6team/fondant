@@ -83,7 +83,7 @@ def test_component(mock_args):
     }
 
 
-def test_transform_kwargs_from_file(monkeypatch):
+def test_valid_transform_kwargs(monkeypatch):
     """Test that arguments are passed correctly to `Component.transform` method."""
 
     class EarlyStopException(Exception):
@@ -130,3 +130,49 @@ def test_transform_kwargs_from_file(monkeypatch):
     component = MyComponent.from_args()
     with pytest.raises(EarlyStopException):
         component.run()
+
+
+def test_invalid_transform_kwargs(monkeypatch):
+    """Test that arguments are passed correctly to `Component.transform` method."""
+
+    class EarlyStopException(Exception):
+        """Used to stop execution early instead of mocking all later functionality."""
+
+    # Mock `Dataset.load_dataframe` so no actual data is loaded
+    def mocked_load_dataframe(self):
+        return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
+
+    monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
+
+    # Define paths to specs to instantiate component
+    arguments_dir = components_path / "arguments"
+    component_spec = arguments_dir / "component.yaml"
+    input_manifest = arguments_dir / "input_manifest.json"
+
+    yaml_file_to_json_string(component_spec)
+
+    # Implemented Component class
+    class MyComponent(TransformComponent):
+        def transform(self, dataframe, *, flag, value):
+            assert flag == "success"
+            assert value == 1
+            raise EarlyStopException()
+
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        str(input_manifest),
+        "--metadata",
+        "",
+        "--flag",
+        "success",
+        "--value",
+        "1",
+        "--output_manifest_path",
+        "",
+    ]
+
+    # Instantiate and run component
+    with pytest.raises(ValueError):
+        MyComponent.from_args()
