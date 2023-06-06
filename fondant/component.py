@@ -40,6 +40,19 @@ class Component(ABC):
         component_spec = ComponentSpec.from_file(path)
         return cls(component_spec)
 
+    @classmethod
+    def from_args(cls) -> "Component":
+        """Create a component from a passed argument containing the specification as a dict."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--component_spec", type=json.loads)
+        args, _ = parser.parse_known_args()
+
+        if not args.component_spec:
+            raise ValueError("Error: The --component_spec argument is required.")
+
+        component_spec = ComponentSpec(args.component_spec)
+        return cls(component_spec)
+
     def _get_component_arguments(self) -> t.Dict[str, Argument]:
         """
         Get the component arguments as a dictionary representation containing both input and output
