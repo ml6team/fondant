@@ -112,5 +112,5 @@ class EmbedImagesComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = EmbedImagesComponent.from_file()
+    component = EmbedImagesComponent.from_args()
     component.run()
