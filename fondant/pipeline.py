@@ -328,16 +328,20 @@ class Pipeline:
             previous_component_task = None
             for operation in self._graph.values():
                 fondant_component_op = operation["fondant_component_op"]
+                component_spec_dict = fondant_component_op.component_spec._specification
+
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
 
                 # Execute the Kubeflow component and pass in the output manifest path from
                 # the previous component.
                 component_args = fondant_component_op.arguments
+
                 if previous_component_task is not None:
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
                         metadata=metadata,
+                        component_spec=component_spec_dict,
                         **component_args,
                     )
                 else:
@@ -348,6 +352,7 @@ class Pipeline:
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
                         metadata=metadata,
+                        component_spec=component_spec_dict,
                         **component_args,
                     )
                     metadata = ""
