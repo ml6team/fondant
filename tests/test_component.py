@@ -8,12 +8,24 @@ from unittest import mock
 
 import dask.dataframe as dd
 import pytest
+import yaml
 
 from fondant.component import LoadComponent, TransformComponent
 from fondant.data_io import DaskDataLoader
 
 components_path = Path(__file__).parent / "example_specs/components"
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"
+
+
+def yaml_file_to_json_string(file_path):
+    with open(file_path, "r") as file:
+        # Load YAML data from file
+        data = yaml.safe_load(file)
+
+        # Convert to JSON string
+        json_string = json.dumps(data)
+
+    return json_string
 
 
 class LoadFromHubComponent(LoadComponent):
@@ -71,7 +83,7 @@ def test_component(mock_args):
     }
 
 
-def test_transform_kwargs(monkeypatch):
+def test_transform_kwargs_from_file(monkeypatch):
     """Test that arguments are passed correctly to `Component.transform` method."""
 
     class EarlyStopException(Exception):
@@ -87,6 +99,8 @@ def test_transform_kwargs(monkeypatch):
     arguments_dir = components_path / "arguments"
     component_spec = arguments_dir / "component.yaml"
     input_manifest = arguments_dir / "input_manifest.json"
+
+    component_spec_string = yaml_file_to_json_string(component_spec)
 
     # Implemented Component class
     class MyComponent(TransformComponent):
@@ -108,9 +122,11 @@ def test_transform_kwargs(monkeypatch):
         "1",
         "--output_manifest_path",
         "",
+        "--component_spec",
+        f"{component_spec_string}",
     ]
 
     # Instantiate and run component
-    component = MyComponent.from_file(component_spec)
+    component = MyComponent.from_args()
     with pytest.raises(EarlyStopException):
         component.run()
