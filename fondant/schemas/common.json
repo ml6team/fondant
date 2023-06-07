@@ -26,6 +26,7 @@
         "binary",
         "list",
         "struct",
+        "array",
         "int8_list",
         "float32_list"
       ]
@@ -36,15 +37,26 @@
         "type": {
           "type": "string",
           "$ref": "#/definitions/subset_data_type"
+        },
+        "items": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/field"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/field"
+              }
+            }
+          ]
         }
       },
-      "required": [
-        "type"
-      ]
+      "required": ["type"],
+      "additionalProperties": false
     },
     "fields": {
       "type": "object",
-      "minProperties": 1,
       "additionalProperties": {
         "$ref": "#/definitions/field"
       }

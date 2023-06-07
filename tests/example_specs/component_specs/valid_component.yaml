@@ -11,7 +11,9 @@ consumes:
   embeddings:
     fields:
       data:
-        type: int8_list
+        type: array
+        items:
+          type: int8
 
 produces:
   captions:
