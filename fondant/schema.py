@@ -53,9 +53,26 @@ class Type(enum.Enum):
 
     float32_list = pa.list_(pa.float32())
 
+    @classmethod
+    def list(cls, data_type: "Type") -> pa.DataType:
+        """
+        Create a list type from the given data type. Allows creating nested values
+        Args:
+            data_type: The data type of the elements in the list.
+
+        Returns:
+            The list type.
+        """
+        if isinstance(data_type, Type):
+            return pa.list_(data_type.value)
+        elif isinstance(data_type, pa.DataType):
+            return pa.list_(data_type)
+        else:
+            raise ValueError("Invalid data type")
+
 
 class Field(t.NamedTuple):
     """Class representing a single field or column in a Fondant subset."""
 
     name: str
-    type: Type
+    type: t.Union[Type, pa.DataType]
