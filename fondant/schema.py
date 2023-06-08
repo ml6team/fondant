@@ -8,7 +8,13 @@ import pyarrow as pa
 
 KubeflowCommandArguments = t.List[t.Union[str, t.Dict[str, str]]]
 
+"""
+Types based on:
+- https://arrow.apache.org/docs/python/api/datatypes.html#api-types
+- https://pola-rs.github.io/polars/py-polars/html/reference/datatypes.html
+"""
 _TYPES: t.Dict[str, pa.DataType] = {
+    "null": pa.null(),
     "bool": pa.bool_(),
     "int8": pa.int8(),
     "int16": pa.int16(),
@@ -21,7 +27,7 @@ _TYPES: t.Dict[str, pa.DataType] = {
     "float16": pa.float16(),
     "float32": pa.float32(),
     "float64": pa.float64(),
-    "decimal": pa.decimal128(38),
+    "decimal128": pa.decimal128(38),
     "time32": pa.time32("s"),
     "time64": pa.time64("us"),
     "timestamp": pa.timestamp("us"),
@@ -31,10 +37,17 @@ _TYPES: t.Dict[str, pa.DataType] = {
     "string": pa.string(),
     "utf8": pa.utf8(),
     "binary": pa.binary(),
+    "large_binary": pa.large_binary(),
+    "large_utf8": pa.large_utf8(),
 }
 
 
 class Type:
+    """
+    The `Type` class provides a way to define and validate data types for various purposes. It
+      supports different data types including primitive types and complex types like lists.
+    """
+
     def __init__(self, data_type: t.Union[str, pa.DataType]):
         self.value = self._validate_data_type(data_type)
 

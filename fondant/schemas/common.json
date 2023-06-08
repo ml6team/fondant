@@ -55,6 +55,7 @@
     },
     "fields": {
       "type": "object",
+      "minProperties": 1,
       "additionalProperties": {
         "$ref": "#/definitions/field"
       }
