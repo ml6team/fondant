@@ -52,7 +52,7 @@ class Type:
         self.value = self._validate_data_type(data_type)
 
     @staticmethod
-    def _validate_data_type(data_type: t.Union[str, pa.DataType]):
+    def _validate_data_type(data_type: t.Union[str, pa.DataType]) -> pa.DataType:
         """
         Validates the provided data type and returns the corresponding data type object.
 
@@ -110,6 +110,26 @@ class Type:
                 return cls.list(Type.from_json(items))
         else:
             raise ValueError(f"Invalid schema provided: {json_schema}")
+
+    def to_json(self) -> dict:
+        """
+        Converts the `Type` instance to its JSON representation.
+
+        Returns:
+            A dictionary representing the JSON schema of the data type.
+        """
+        if isinstance(self.value, pa.ListType):
+            items = self.value.value_type
+            if isinstance(items, pa.DataType):
+                return {"type": "array", "items": Type(items).to_json()}
+            else:
+                raise ValueError(f"Invalid schema provided: {self.value}")
+
+        for type_name, data_type in _TYPES.items():
+            if self.value.equals(data_type):
+                return {"type": type_name}
+
+        raise ValueError(f"Invalid schema provided: {self.value}")
 
     @property
     def name(self):

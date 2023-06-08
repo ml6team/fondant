@@ -34,7 +34,10 @@
       "location": "/embeddings/12345/example_component",
       "fields": {
         "data": {
-          "type": "binary"
+          "type": "array",
+          "items": {
+            "type": "float32"
+          }
         }
       }
     }

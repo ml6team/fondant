@@ -9,6 +9,11 @@ def test_valid_type():
     assert Type("int8").value == pa.int8()
     assert Type.list(Type("int8")).value == pa.list_(pa.int8())
     assert Type.list(Type.list(Type("string"))).value == pa.list_(pa.list_(pa.string()))
+    assert Type("int8").to_json() == {"type": "int8"}
+    assert Type.list("float32").to_json() == {
+        "type": "array",
+        "items": {"type": "float32"},
+    }
 
 
 def test_valid_json_schema():

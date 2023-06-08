@@ -62,7 +62,9 @@ produces:
   embeddings:
     fields:
       data:
-        type: int8_list
+        type: array
+        items:
+          type: float32
 ...
 ```
 
@@ -220,7 +222,9 @@ produces:
   embeddings:
     fields:
       data:
-        type: binary
+        type: array
+        items:
+          type: float32
 ```
 
 </td>
@@ -326,7 +330,9 @@ produces:
   embeddings:
     fields:
       data:
-        type: binary
+        type: array
+        items:
+          type: float32
 ```
 
 </td>
@@ -425,7 +431,9 @@ produces:
   embeddings:
     fields:
       data:
-        type: binary
+        type: array
+        items:
+          type: float32
 ```
 
 </td>
@@ -516,7 +524,9 @@ produces:
   embeddings:
     fields:
       data:
-        type: binary
+        type: array
+        items:
+          type: float32
   additionalSubsets: false
 ```
 

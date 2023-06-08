@@ -54,7 +54,7 @@ def test_attribute_access(valid_fondant_schema):
     assert fondant_component.description == "This is an example component"
     assert fondant_component.consumes["images"].fields["data"].type == Type("binary")
     assert fondant_component.consumes["embeddings"].fields["data"].type == Type.list(
-        Type("binary")
+        Type("float32")
     )
 
 

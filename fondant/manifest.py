@@ -47,7 +47,7 @@ class Subset:
         if not overwrite and name in self._specification["fields"]:
             raise ValueError(f"A field with name {name} already exists")
 
-        self._specification["fields"][name] = {"type": type_.name}
+        self._specification["fields"][name] = type_.to_json()
 
     def remove_field(self, name: str) -> None:
         del self._specification["fields"][name]
@@ -178,7 +178,7 @@ class Manifest:
 
         self._specification["subsets"][name] = {
             "location": f"/{name}/{self.run_id}/{self.component_id}",
-            "fields": {name: {"type": type_.name} for name, type_ in fields},
+            "fields": {name: type_.to_json() for name, type_ in fields},
         }
 
     def remove_subset(self, name: str) -> None:
