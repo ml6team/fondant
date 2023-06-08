@@ -16,7 +16,9 @@ consumes:
   segmentations:
     fields:
       data:
-        type: binary
+        type: array
+        items:
+          type: binary
 
 args:
   hf_token:

@@ -12,7 +12,9 @@ produces:
   embeddings:
     fields:
       data:
-        type: float32_list
+        type: array
+        items:
+          type: float32
 
 args:
   model_id:

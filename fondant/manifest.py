@@ -38,7 +38,7 @@ class Subset:
         """The fields of the subset returned as an immutable mapping."""
         return types.MappingProxyType(
             {
-                name: Field(name=name, type=Type[field["type"]])
+                name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification["fields"].items()
             }
         )
@@ -62,8 +62,8 @@ class Index(Subset):
     @property
     def fields(self) -> t.Dict[str, Field]:
         return {
-            "id": Field(name="id", type=Type.string),
-            "source": Field(name="source", type=Type.string),
+            "id": Field(name="id", type=Type("string")),
+            "source": Field(name="source", type=Type("string")),
         }
 
 

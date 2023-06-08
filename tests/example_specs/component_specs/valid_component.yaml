@@ -13,7 +13,7 @@ consumes:
       data:
         type: array
         items:
-          type: int8
+          type: binary
 
 produces:
   captions:
