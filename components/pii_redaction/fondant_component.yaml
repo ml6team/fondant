@@ -1,6 +1,6 @@
 name: PII redaction
 description: A component that detects and redacts Personal Identifiable Information (PII) from code.
-image: europe-west4-docker.pkg.dev/boreal-array-387713/boreal-array-387713-default-repository/components/pii_redaction:latest
+image: ghcr.io/ml6team/pii_redaction:latest
 
 consumes:
   code:

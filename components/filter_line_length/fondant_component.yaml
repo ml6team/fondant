@@ -1,6 +1,6 @@
 name: Filter line length
 description: Component that filters code based on line length
-image: europe-west4-docker.pkg.dev/boreal-array-387713/boreal-array-387713-default-repository/components/filter_line_length:latest
+image: ghcr.io/ml6team/filter_line_length:latest
 
 consumes:
   code:

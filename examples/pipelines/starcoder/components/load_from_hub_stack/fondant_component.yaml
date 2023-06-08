@@ -1,6 +1,6 @@
 name: Load code dataset from hub
 description: Component that loads the stack dataset from the hub
-image: europe-west4-docker.pkg.dev/boreal-array-387713/boreal-array-387713-default-repository/components/load_from_hub_stack:latest
+image: ghcr.io/ml6team/load_from_hub_stack:latest
 
 produces:
   code:
