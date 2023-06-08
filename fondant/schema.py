@@ -6,6 +6,8 @@ import typing as t
 
 import pyarrow as pa
 
+from fondant.exceptions import InvalidTypeSchema
+
 KubeflowCommandArguments = t.List[t.Union[str, t.Dict[str, str]]]
 
 """
@@ -66,7 +68,7 @@ class Type:
             try:
                 data_type = _TYPES[data_type]
             except KeyError:
-                raise ValueError(
+                raise InvalidTypeSchema(
                     f"Invalid schema provided. Current available data types are:"
                     f" {_TYPES.keys()}"
                 )
@@ -101,15 +103,12 @@ class Type:
         Returns:
             A new `Type` instance representing the specified data type.
         """
-        if json_schema["type"] in _TYPES:
-            return Type(json_schema["type"])
-
-        elif json_schema["type"] == "array":
+        if json_schema["type"] == "array":
             items = json_schema["items"]
             if isinstance(items, dict):
                 return cls.list(Type.from_json(items))
         else:
-            raise ValueError(f"Invalid schema provided: {json_schema}")
+            return Type(json_schema["type"])
 
     def to_json(self) -> dict:
         """
@@ -122,14 +121,14 @@ class Type:
             items = self.value.value_type
             if isinstance(items, pa.DataType):
                 return {"type": "array", "items": Type(items).to_json()}
-            else:
-                raise ValueError(f"Invalid schema provided: {self.value}")
 
+        type_ = None
         for type_name, data_type in _TYPES.items():
             if self.value.equals(data_type):
-                return {"type": type_name}
+                type_ = type_name
+                break
 
-        raise ValueError(f"Invalid schema provided: {self.value}")
+        return {"type": type_}
 
     @property
     def name(self):
