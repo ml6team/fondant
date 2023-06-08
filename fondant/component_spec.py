@@ -185,6 +185,10 @@ class ComponentSpec:
         }
 
     @property
+    def specification(self) -> t.Dict[str, t.Any]:
+        return copy.deepcopy(self._specification)
+
+    @property
     def kubeflow_specification(self) -> "KubeflowComponentSpec":
         return KubeflowComponentSpec.from_fondant_component_spec(self)
 

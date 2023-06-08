@@ -50,16 +50,17 @@ class Component(ABC):
         """
         component_spec = ComponentSpec.from_file(path)
         args_dict = vars(cls._add_and_parse_args(component_spec))
-        user_arguments = cls.get_user_arguments(args_dict, component_spec)
+        input_manifest_path = args_dict.pop("input_manifest_path")
+        output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
         metadata = json.loads(metadata) if metadata else {}
 
         return cls(
             component_spec,
-            input_manifest_path=args_dict.pop("input_manifest_path"),
-            output_manifest_path=args_dict.pop("output_manifest_path"),
+            input_manifest_path=input_manifest_path,
+            output_manifest_path=output_manifest_path,
             metadata=metadata,
-            user_arguments=user_arguments,
+            user_arguments=args_dict,
         )
 
     @classmethod
@@ -75,16 +76,18 @@ class Component(ABC):
         component_spec = ComponentSpec(args.component_spec)
 
         args_dict = vars(cls._add_and_parse_args(component_spec))
-        user_arguments = cls.get_user_arguments(args_dict, component_spec)
+        input_manifest_path = args_dict.pop("input_manifest_path")
+        output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
+        args_dict.pop("component_spec")
         metadata = json.loads(metadata) if metadata else {}
 
         return cls(
             component_spec,
-            input_manifest_path=args_dict.pop("input_manifest_path"),
-            output_manifest_path=args_dict.pop("output_manifest_path"),
+            input_manifest_path=input_manifest_path,
+            output_manifest_path=output_manifest_path,
             metadata=metadata,
-            user_arguments=user_arguments,
+            user_arguments=args_dict,
         )
 
     @staticmethod
@@ -107,13 +110,6 @@ class Component(ABC):
     @abstractmethod
     def _add_and_parse_args(cls, spec: ComponentSpec) -> argparse.Namespace:
         """Abstract method to add and parse the component arguments."""
-
-    @staticmethod
-    def get_user_arguments(
-        args: t.Dict[str, t.Any], spec: ComponentSpec
-    ) -> t.Dict[str, t.Any]:
-        """Custom arguments defined by the user in the fondant component spec."""
-        return {key: value for key, value in args.items() if key in spec.args}
 
     @abstractmethod
     def _load_or_create_manifest(self) -> Manifest:
