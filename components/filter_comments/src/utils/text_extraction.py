@@ -97,12 +97,12 @@ def get_docstrings(source: str) -> t.List[str]:
     return results
 
 
-def get_text_python(source: str, comments: bool = True) -> str:
+def get_text_python(source: str, extract_comments: bool = True) -> str:
     """Extract all natural text in source: comments + docstrings
     the extraction fails in case of syntax errors in the file
     Args:
         source: the code to parse
-        comments: if True extract comments two
+        comments: if True extract comments too
     Returns:
         A string with concatenated docstrings and comments"""
 
@@ -114,12 +114,12 @@ def get_text_python(source: str, comments: bool = True) -> str:
             "code couldn't be parsed due to compilation failure, no docstring is extracted"
         )
 
-    if comments:
+    if extract_comments:
         try:
             comments = get_comments(source)
         except:
             comments = ""
-            warnings.warn("tokenization error, no comment is extracted")
+            warnings.warn("tokenization error, no comments are extracted")
     else:
         comments = ""
 
