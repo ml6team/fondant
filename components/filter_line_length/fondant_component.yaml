@@ -14,11 +14,11 @@ consumes:
 
 args:
   avg_line_length_threshold:
-    description: Name of dataset on the hub
+    description: Threshold for average line length to filter on
     type: int
   max_line_length_threshold:
-    description: Name of dataset on the hub
+    description: Threshold for maximum line length to filter on
     type: int
   alphanum_fraction_threshold:
-    description: Name of dataset on the hub
+    description: Alphanum fraction to filter on
     type: float

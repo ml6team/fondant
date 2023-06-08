@@ -29,9 +29,9 @@ class FilterLineLengthComponent(TransformComponent):
         """
         Args:
             dataframe: Dask dataframe
-            avg_line_length_threshold: threshold for average line length to filter on
-            max_line_length_threshold: threshold for max line length to filter on
-            alphanum_fraction_threshold: alphanum fraction to filter on
+            avg_line_length_threshold: Threshold for average line length to filter on
+            max_line_length_threshold: Threshold for max line length to filter on
+            alphanum_fraction_threshold: Alphanum fraction to filter on
         Returns:
             Filtered dask dataframe
         """
