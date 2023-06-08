@@ -59,17 +59,9 @@ def test_component(mock_args):
     )
 
     # test component args
-    component_args = component._get_component_arguments()
-    assert "input_manifest_path" in component_args
-    assert "output_manifest_path" in component_args
-    assert (
-        argparse.Namespace(
-            input_manifest_path=".",
-            output_manifest_path="result.parquet",
-            metadata=metadata,
-        )
-        == component._add_and_parse_args()
-    )
+    assert component.input_manifest_path == "."
+    assert component.output_manifest_path == "result.parquet"
+    assert component.metadata == json.loads(metadata)
 
     # test custom args
     assert list(component.spec.args) == ["storage_args"]

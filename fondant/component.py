@@ -24,9 +24,20 @@ logger = logging.getLogger(__name__)
 class Component(ABC):
     """Abstract base class for a Fondant component."""
 
-    def __init__(self, spec: ComponentSpec) -> None:
+    def __init__(
+        self,
+        spec: ComponentSpec,
+        *,
+        input_manifest_path: t.Union[str, Path],
+        output_manifest_path: t.Union[str, Path],
+        metadata: t.Dict[str, t.Any],
+        user_arguments: t.Dict[str, Argument],
+    ) -> None:
         self.spec = spec
-        self.args = self._add_and_parse_args()
+        self.input_manifest_path = input_manifest_path
+        self.output_manifest_path = output_manifest_path
+        self.metadata = metadata
+        self.user_arguments = user_arguments
 
     @classmethod
     def from_file(
@@ -38,7 +49,18 @@ class Component(ABC):
             path: Path to the component spec file
         """
         component_spec = ComponentSpec.from_file(path)
-        return cls(component_spec)
+        args_dict = vars(cls._add_and_parse_args(component_spec))
+        user_arguments = cls.get_user_arguments(args_dict, component_spec)
+        metadata = args_dict.pop("metadata")
+        metadata = json.loads(metadata) if metadata else {}
+
+        return cls(
+            component_spec,
+            input_manifest_path=args_dict.pop("input_manifest_path"),
+            output_manifest_path=args_dict.pop("output_manifest_path"),
+            metadata=metadata,
+            user_arguments=user_arguments,
+        )
 
     @classmethod
     def from_args(cls) -> "Component":
@@ -51,33 +73,47 @@ class Component(ABC):
             raise ValueError("Error: The --component_spec argument is required.")
 
         component_spec = ComponentSpec(args.component_spec)
-        return cls(component_spec)
 
-    def _get_component_arguments(self) -> t.Dict[str, Argument]:
+        args_dict = vars(cls._add_and_parse_args(component_spec))
+        user_arguments = cls.get_user_arguments(args_dict, component_spec)
+        metadata = args_dict.pop("metadata")
+        metadata = json.loads(metadata) if metadata else {}
+
+        return cls(
+            component_spec,
+            input_manifest_path=args_dict.pop("input_manifest_path"),
+            output_manifest_path=args_dict.pop("output_manifest_path"),
+            metadata=metadata,
+            user_arguments=user_arguments,
+        )
+
+    @staticmethod
+    def _get_component_arguments(spec: ComponentSpec) -> t.Dict[str, Argument]:
         """
         Get the component arguments as a dictionary representation containing both input and output
             arguments of a component
+        Args:
+            spec: the component spec
         Returns:
             Input and output arguments of the component.
         """
         component_arguments: t.Dict[str, Argument] = {}
-        kubeflow_component_spec = self.spec.kubeflow_specification
+        kubeflow_component_spec = spec.kubeflow_specification
         component_arguments.update(kubeflow_component_spec.input_arguments)
         component_arguments.update(kubeflow_component_spec.output_arguments)
         return component_arguments
 
+    @classmethod
     @abstractmethod
-    def _add_and_parse_args(self) -> argparse.Namespace:
+    def _add_and_parse_args(cls, spec: ComponentSpec) -> argparse.Namespace:
         """Abstract method to add and parse the component arguments."""
 
-    @property
-    def user_arguments(self) -> t.Dict[str, t.Any]:
+    @staticmethod
+    def get_user_arguments(
+        args: t.Dict[str, t.Any], spec: ComponentSpec
+    ) -> t.Dict[str, t.Any]:
         """Custom arguments defined by the user in the fondant component spec."""
-        return {
-            key: value
-            for key, value in vars(self.args).items()
-            if key in self.spec.args
-        }
+        return {key: value for key, value in args.items() if key in spec.args}
 
     @abstractmethod
     def _load_or_create_manifest(self) -> Manifest:
@@ -104,7 +140,7 @@ class Component(ABC):
 
         self._write_data(dataframe=output_df, manifest=output_manifest)
 
-        self.upload_manifest(output_manifest, save_path=self.args.output_manifest_path)
+        self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
     def upload_manifest(self, manifest: Manifest, save_path: str):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
@@ -114,9 +150,10 @@ class Component(ABC):
 class LoadComponent(Component):
     """Base class for a Fondant load component."""
 
-    def _add_and_parse_args(self):
+    @classmethod
+    def _add_and_parse_args(cls, spec: ComponentSpec):
         parser = argparse.ArgumentParser()
-        component_arguments = self._get_component_arguments()
+        component_arguments = cls._get_component_arguments(spec)
 
         for arg in component_arguments.values():
             # Input manifest is not required for loading component
@@ -127,7 +164,7 @@ class LoadComponent(Component):
 
             parser.add_argument(
                 f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],
+                type=kubeflow2python_type[arg.type],  # type: ignore
                 required=input_required,
                 help=arg.description,
             )
@@ -137,11 +174,11 @@ class LoadComponent(Component):
     def _load_or_create_manifest(self) -> Manifest:
         # create initial manifest
         # TODO ideally get rid of args.metadata by including them in the storage args
-        metadata = json.loads(self.args.metadata)
+
         component_id = self.spec.name.lower().replace(" ", "_")
         manifest = Manifest.create(
-            base_path=metadata["base_path"],
-            run_id=metadata["run_id"],
+            base_path=self.metadata["base_path"],
+            run_id=self.metadata["run_id"],
             component_id=component_id,
         )
 
@@ -166,14 +203,15 @@ class LoadComponent(Component):
 class TransformComponent(Component):
     """Base class for a Fondant transform component."""
 
-    def _add_and_parse_args(self):
+    @classmethod
+    def _add_and_parse_args(cls, spec: ComponentSpec):
         parser = argparse.ArgumentParser()
-        component_arguments = self._get_component_arguments()
+        component_arguments = cls._get_component_arguments(spec)
 
         for arg in component_arguments.values():
             parser.add_argument(
                 f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],
+                type=kubeflow2python_type[arg.type],  # type: ignore
                 required=True,
                 help=arg.description,
             )
@@ -181,7 +219,7 @@ class TransformComponent(Component):
         return parser.parse_args()
 
     def _load_or_create_manifest(self) -> Manifest:
-        return Manifest.from_file(self.args.input_manifest_path)
+        return Manifest.from_file(self.input_manifest_path)
 
     @abstractmethod
     def transform(self, *args, **kwargs) -> dd.DataFrame:
