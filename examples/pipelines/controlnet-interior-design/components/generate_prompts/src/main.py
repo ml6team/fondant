@@ -116,5 +116,5 @@ class GeneratePromptsComponent(LoadComponent):
 
 
 if __name__ == "__main__":
-    component = GeneratePromptsComponent.from_file()
+    component = GeneratePromptsComponent.from_args()
     component.run()

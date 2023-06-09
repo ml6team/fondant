@@ -49,19 +49,7 @@ class Component(ABC):
             path: Path to the component spec file
         """
         component_spec = ComponentSpec.from_file(path)
-        args_dict = vars(cls._add_and_parse_args(component_spec))
-        input_manifest_path = args_dict.pop("input_manifest_path")
-        output_manifest_path = args_dict.pop("output_manifest_path")
-        metadata = args_dict.pop("metadata")
-        metadata = json.loads(metadata) if metadata else {}
-
-        return cls(
-            component_spec,
-            input_manifest_path=input_manifest_path,
-            output_manifest_path=output_manifest_path,
-            metadata=metadata,
-            user_arguments=args_dict,
-        )
+        return cls.from_spec(component_spec)
 
     @classmethod
     def from_args(cls) -> "Component":
@@ -75,11 +63,19 @@ class Component(ABC):
 
         component_spec = ComponentSpec(args.component_spec)
 
+        return cls.from_spec(component_spec)
+
+    @classmethod
+    def from_spec(cls, component_spec: ComponentSpec) -> "Component":
+        """Create a component from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
+
+        if "component_spec" in args_dict:
+            args_dict.pop("component_spec")
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
-        args_dict.pop("component_spec")
+
         metadata = json.loads(metadata) if metadata else {}
 
         return cls(
