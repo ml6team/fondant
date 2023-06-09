@@ -38,7 +38,7 @@ class Subset:
         """The fields of the subset returned as an immutable mapping."""
         return types.MappingProxyType(
             {
-                name: Field(name=name, type=Type[field["type"]])
+                name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification["fields"].items()
             }
         )
@@ -47,7 +47,7 @@ class Subset:
         if not overwrite and name in self._specification["fields"]:
             raise ValueError(f"A field with name {name} already exists")
 
-        self._specification["fields"][name] = {"type": type_.name}
+        self._specification["fields"][name] = type_.to_json()
 
     def remove_field(self, name: str) -> None:
         del self._specification["fields"][name]
@@ -62,8 +62,8 @@ class Index(Subset):
     @property
     def fields(self) -> t.Dict[str, Field]:
         return {
-            "id": Field(name="id", type=Type.string),
-            "source": Field(name="source", type=Type.string),
+            "id": Field(name="id", type=Type("string")),
+            "source": Field(name="source", type=Type("string")),
         }
 
 
@@ -178,7 +178,7 @@ class Manifest:
 
         self._specification["subsets"][name] = {
             "location": f"/{name}/{self.run_id}/{self.component_id}",
-            "fields": {name: {"type": type_.name} for name, type_ in fields},
+            "fields": {name: type_.to_json() for name, type_ in fields},
         }
 
     def remove_subset(self, name: str) -> None:

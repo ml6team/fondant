@@ -16,7 +16,9 @@ consumes:
   embeddings:
     fields:
       data:
-        type: binary
+        type: array
+        items:
+          type: float32
 
 produces:
   images:

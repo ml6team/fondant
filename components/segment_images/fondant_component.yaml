@@ -12,7 +12,9 @@ produces:
   segmentations:
     fields:
       data:
-        type: binary
+        type: array
+        items:
+          type: binary
 
 args:
   model_id:

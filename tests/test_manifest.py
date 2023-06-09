@@ -60,16 +60,16 @@ def test_subset_fields():
     subset = Subset(specification=subset_spec, base_path="/tmp")
 
     # add a field
-    subset.add_field(name="data2", type_=Type.binary)
+    subset.add_field(name="data2", type_=Type("binary"))
     assert "data2" in subset.fields
 
     # add a duplicate field
     with pytest.raises(ValueError):
-        subset.add_field(name="data2", type_=Type.binary)
+        subset.add_field(name="data2", type_=Type("binary"))
 
     # add a duplicate field but overwrite
-    subset.add_field(name="data2", type_=Type.string, overwrite=True)
-    assert subset.fields["data2"].type == Type.string
+    subset.add_field(name="data2", type_=Type("string"), overwrite=True)
+    assert subset.fields["data2"].type == Type("string")
 
     # remove a field
     subset.remove_field(name="data2")
@@ -111,7 +111,7 @@ def test_attribute_access(valid_manifest):
     assert manifest.metadata == valid_manifest["metadata"]
     assert manifest.index.location == "gs://bucket/index"
     assert manifest.subsets["images"].location == "gs://bucket/images"
-    assert manifest.subsets["images"].fields["data"].type == Type.binary
+    assert manifest.subsets["images"].fields["data"].type == Type("binary")
 
 
 def test_manifest_creation():
@@ -123,8 +123,8 @@ def test_manifest_creation():
     manifest = Manifest.create(
         base_path=base_path, run_id=run_id, component_id=component_id
     )
-    manifest.add_subset("images", [("width", Type.int32), ("height", Type.int32)])
-    manifest.subsets["images"].add_field("data", Type.binary)
+    manifest.add_subset("images", [("width", Type("int32")), ("height", Type("int32"))])
+    manifest.subsets["images"].add_field("data", Type("binary"))
 
     assert manifest._specification == {
         "metadata": {
@@ -166,12 +166,16 @@ def test_manifest_alteration(valid_manifest):
     manifest = Manifest(valid_manifest)
 
     # test adding a subset
-    manifest.add_subset("images2", [("width", Type.int32), ("height", Type.int32)])
+    manifest.add_subset(
+        "images2", [("width", Type("int32")), ("height", Type("int32"))]
+    )
     assert "images2" in manifest.subsets
 
     # test adding a duplicate subset
     with pytest.raises(ValueError):
-        manifest.add_subset("images2", [("width", Type.int32), ("height", Type.int32)])
+        manifest.add_subset(
+            "images2", [("width", Type("int32")), ("height", Type("int32"))]
+        )
 
     # test removing a subset
     manifest.remove_subset("images2")
