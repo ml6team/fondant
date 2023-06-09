@@ -43,5 +43,5 @@ class ImageFilterComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = ImageFilterComponent.from_file()
+    component = ImageFilterComponent.from_args()
     component.run()

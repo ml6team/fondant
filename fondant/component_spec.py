@@ -185,6 +185,10 @@ class ComponentSpec:
         }
 
     @property
+    def specification(self) -> t.Dict[str, t.Any]:
+        return copy.deepcopy(self._specification)
+
+    @property
     def kubeflow_specification(self) -> "KubeflowComponentSpec":
         return KubeflowComponentSpec.from_fondant_component_spec(self)
 
@@ -222,6 +226,11 @@ class KubeflowComponentSpec:
                     "description": "Metadata arguments containing the run id and base path",
                     "type": "String",
                 },
+                {
+                    "name": "component_spec",
+                    "description": "The component specification as a dictionary",
+                    "type": "JsonObject",
+                },
                 *(
                     {
                         "name": arg.name,
@@ -248,6 +257,8 @@ class KubeflowComponentSpec:
                         {"inputPath": "input_manifest_path"},
                         "--metadata",
                         {"inputValue": "metadata"},
+                        "--component_spec",
+                        {"inputValue": "component_spec"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},

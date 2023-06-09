@@ -62,5 +62,5 @@ class WriteToHubComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = WriteToHubComponent.from_file()
+    component = WriteToHubComponent.from_args()
     component.run()

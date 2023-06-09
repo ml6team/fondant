@@ -8,12 +8,24 @@ from unittest import mock
 
 import dask.dataframe as dd
 import pytest
+import yaml
 
 from fondant.component import LoadComponent, TransformComponent
 from fondant.data_io import DaskDataLoader
 
 components_path = Path(__file__).parent / "example_specs/components"
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"
+
+
+def yaml_file_to_json_string(file_path):
+    with open(file_path, "r") as file:
+        # Load YAML data from file
+        data = yaml.safe_load(file)
+
+        # Convert to JSON string
+        json_string = json.dumps(data)
+
+    return json_string
 
 
 class LoadFromHubComponent(LoadComponent):
@@ -47,17 +59,9 @@ def test_component(mock_args):
     )
 
     # test component args
-    component_args = component._get_component_arguments()
-    assert "input_manifest_path" in component_args
-    assert "output_manifest_path" in component_args
-    assert (
-        argparse.Namespace(
-            input_manifest_path=".",
-            output_manifest_path="result.parquet",
-            metadata=metadata,
-        )
-        == component._add_and_parse_args()
-    )
+    assert component.input_manifest_path == "."
+    assert component.output_manifest_path == "result.parquet"
+    assert component.metadata == json.loads(metadata)
 
     # test custom args
     assert list(component.spec.args) == ["storage_args"]
@@ -71,7 +75,7 @@ def test_component(mock_args):
     }
 
 
-def test_transform_kwargs(monkeypatch):
+def test_valid_transform_kwargs(monkeypatch):
     """Test that arguments are passed correctly to `Component.transform` method."""
 
     class EarlyStopException(Exception):
@@ -87,6 +91,57 @@ def test_transform_kwargs(monkeypatch):
     arguments_dir = components_path / "arguments"
     component_spec = arguments_dir / "component.yaml"
     input_manifest = arguments_dir / "input_manifest.json"
+
+    component_spec_string = yaml_file_to_json_string(component_spec)
+
+    # Implemented Component class
+    class MyComponent(TransformComponent):
+        def transform(self, dataframe, *, flag, value):
+            assert flag == "success"
+            assert value == 1
+            raise EarlyStopException()
+
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        str(input_manifest),
+        "--metadata",
+        "",
+        "--flag",
+        "success",
+        "--value",
+        "1",
+        "--output_manifest_path",
+        "",
+        "--component_spec",
+        f"{component_spec_string}",
+    ]
+
+    # Instantiate and run component
+    component = MyComponent.from_args()
+    with pytest.raises(EarlyStopException):
+        component.run()
+
+
+def test_invalid_transform_kwargs(monkeypatch):
+    """Test that arguments are passed correctly to `Component.transform` method."""
+
+    class EarlyStopException(Exception):
+        """Used to stop execution early instead of mocking all later functionality."""
+
+    # Mock `Dataset.load_dataframe` so no actual data is loaded
+    def mocked_load_dataframe(self):
+        return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
+
+    monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
+
+    # Define paths to specs to instantiate component
+    arguments_dir = components_path / "arguments"
+    component_spec = arguments_dir / "component.yaml"
+    input_manifest = arguments_dir / "input_manifest.json"
+
+    yaml_file_to_json_string(component_spec)
 
     # Implemented Component class
     class MyComponent(TransformComponent):
@@ -111,6 +166,5 @@ def test_transform_kwargs(monkeypatch):
     ]
 
     # Instantiate and run component
-    component = MyComponent.from_file(component_spec)
-    with pytest.raises(EarlyStopException):
-        component.run()
+    with pytest.raises(ValueError):
+        MyComponent.from_args()

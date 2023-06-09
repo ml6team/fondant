@@ -96,5 +96,5 @@ class LAIONRetrievalComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = LAIONRetrievalComponent.from_file()
+    component = LAIONRetrievalComponent.from_args()
     component.run()
