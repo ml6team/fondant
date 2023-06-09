@@ -48,5 +48,5 @@ class FilterCommentsComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = FilterCommentsComponent.from_file()
+    component = FilterCommentsComponent.from_args()
     component.run()
