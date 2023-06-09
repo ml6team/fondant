@@ -151,5 +151,5 @@ class DownloadImagesComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = DownloadImagesComponent.from_file()
+    component = DownloadImagesComponent.from_args()
     component.run()

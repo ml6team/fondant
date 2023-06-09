@@ -142,5 +142,5 @@ class SegmentImagesComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = SegmentImagesComponent.from_file()
+    component = SegmentImagesComponent.from_args()
     component.run()
