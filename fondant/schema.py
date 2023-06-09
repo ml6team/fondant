@@ -13,7 +13,6 @@ KubeflowCommandArguments = t.List[t.Union[str, t.Dict[str, str]]]
 """
 Types based on:
 - https://arrow.apache.org/docs/python/api/datatypes.html#api-types
-- https://pola-rs.github.io/polars/py-polars/html/reference/datatypes.html
 """
 _TYPES: t.Dict[str, pa.DataType] = {
     "null": pa.null(),
@@ -64,13 +63,13 @@ class Type:
         Returns:
             The validated `pa.DataType` object.
         """
-        if isinstance(data_type, str):
+        if not isinstance(data_type, (Type, pa.DataType)):
             try:
                 data_type = _TYPES[data_type]
             except KeyError:
                 raise InvalidTypeSchema(
-                    f"Invalid schema provided. Current available data types are:"
-                    f" {_TYPES.keys()}"
+                    f"Invalid schema provided {data_type} with type {type(data_type)}."
+                    f" Current available data types are: {_TYPES.keys()}"
                 )
         return data_type
 
@@ -106,9 +105,9 @@ class Type:
         if json_schema["type"] == "array":
             items = json_schema["items"]
             if isinstance(items, dict):
-                return cls.list(Type.from_json(items))
+                return cls.list(cls.from_json(items))
         else:
-            return Type(json_schema["type"])
+            return cls(json_schema["type"])
 
     def to_json(self) -> dict:
         """
