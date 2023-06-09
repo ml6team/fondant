@@ -46,5 +46,5 @@ class FilterLineLengthComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = FilterLineLengthComponent.from_file()
+    component = FilterLineLengthComponent.from_args()
     component.run()

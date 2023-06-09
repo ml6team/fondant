@@ -35,5 +35,5 @@ class LoadFromHubComponent(LoadComponent):
 
 
 if __name__ == "__main__":
-    component = LoadFromHubComponent.from_file()
+    component = LoadFromHubComponent.from_args()
     component.run()
