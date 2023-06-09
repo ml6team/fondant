@@ -27,10 +27,12 @@ class DockerCompiler(Compiler):
 
     def compile(self, package_path: str = "docker-compose.yml") -> None:
         """Compile a pipeline to docker-compose spec that is saved on the package_path."""
+        logger.info(f"Compiling {self.pipeline.name} to docker-compose.yml")
         self._patch_path()
         spec = self._generate_spec()
         with open(package_path, "w") as outfile:
             yaml.safe_dump(spec, outfile)
+        logger.info(f"Successfully compiled to {package_path}")
 
     @staticmethod
     def _safe_component_name(component_name: str) -> str:
@@ -52,6 +54,7 @@ class DockerCompiler(Compiler):
                 "target": f"/{base_path.stem}",
             }
             self.path = f"/{base_path.stem}"
+            logger.info(f"Base path set to: {self.path}")
         else:
             self.volume = None
             self.path = self.pipeline.base_path
@@ -62,6 +65,7 @@ class DockerCompiler(Compiler):
         """
         services = {}
         for component_name, component in self.pipeline._graph.items():
+            logger.info(f"Compiling service for {component_name}")
             safe_component_name = self._safe_component_name(component_name)
             services[safe_component_name] = self.compose_service(
                 component["fondant_component_op"], component["dependencies"]
