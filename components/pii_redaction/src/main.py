@@ -64,8 +64,6 @@ class RemovePIIComponent(TransformComponent):
             ["code_secrets", "code_has_secrets", "code_number_secrets"], axis=1
         )
 
-        print("Final dataframe:", dataframe.head(2))
-
         return dataframe
 
 
