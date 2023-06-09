@@ -112,7 +112,7 @@ class Component(ABC):
         """Abstract method that returns the dataset manifest."""
 
     @abstractmethod
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+    def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
         """Abstract method that processes the manifest and
         returns another dataframe.
         """
@@ -223,7 +223,7 @@ class TransformComponent(Component):
             kwargs: Arguments provided to the component are passed as keyword arguments
         """
 
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+    def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
         """
         Creates a DataLoader using the provided manifest and loads the input dataframe using the
         `load_dataframe` instance, and  applies data transformations to it using the `transform`
@@ -237,3 +237,57 @@ class TransformComponent(Component):
         df = self.transform(dataframe=df, **self.user_arguments)
 
         return df
+
+
+class WriteComponent(Component):
+    """Base class for a Fondant write component."""
+
+    @classmethod
+    def _add_and_parse_args(cls, spec: ComponentSpec):
+        parser = argparse.ArgumentParser()
+        component_arguments = cls._get_component_arguments(spec)
+
+        for arg in component_arguments.values():
+            parser.add_argument(
+                f"--{arg.name}",
+                type=kubeflow2python_type[arg.type],  # type: ignore
+                required=True,
+                help=arg.description,
+            )
+
+        return parser.parse_args()
+
+    def _load_or_create_manifest(self) -> Manifest:
+        return Manifest.from_file(self.input_manifest_path)
+
+    @abstractmethod
+    def write(self, *args, **kwargs):
+        """
+        Abstract method to write a dataframe to a final custom location.
+
+        Args:
+            args: The dataframe will be passed in as a positional argument
+            kwargs: Arguments provided to the component are passed as keyword arguments
+        """
+
+    def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+        """
+        Creates a DataLoader using the provided manifest and loads the input dataframe using the
+        `load_dataframe` instance, and  applies data transformations to it using the `transform`
+        method implemented by the derived class. Returns a single dataframe.
+
+        Returns:
+            A `dd.DataFrame` instance with updated data based on the applied data transformations.
+        """
+        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        df = data_loader.load_dataframe()
+        self.write(dataframe=df, **self.user_arguments)
+
+        return None
+
+    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
+        """Create a data writer given a manifest and writes out the index and subsets."""
+        pass
+
+    def upload_manifest(self, manifest: Manifest, save_path: str):
+        pass
