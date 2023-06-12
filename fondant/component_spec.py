@@ -71,7 +71,7 @@ class ComponentSubset:
     def fields(self) -> t.Mapping[str, Field]:
         return types.MappingProxyType(
             {
-                name: Field(name=name, type=Type[field["type"]])
+                name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification["fields"].items()
             }
         )

@@ -13,7 +13,9 @@ produces:
   embeddings:
     fields:
       data:
-        type: binary
+        type: array
+        items:
+          type: float32
 
 args:
   storage_args:
