@@ -193,8 +193,8 @@ def test_write_component(tmp_path_factory, monkeypatch):
 
 
 def test_default_args_component(tmp_path_factory, monkeypatch):
-    """Test that arguments are passed correctly to `Component.write` method and that valid
-    errors are returned when required arguments are missing.
+    """Test that default arguments defined in the fondant spec are passed correctly and have the
+    proper data type.
     """
 
     # Mock `Dataset.load_dataframe` so no actual data is loaded
