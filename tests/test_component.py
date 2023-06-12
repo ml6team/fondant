@@ -222,6 +222,7 @@ def test_default_args_component(tmp_path_factory, monkeypatch):
             bool_default_arg,
             list_default_arg,
             dict_default_arg,
+            override_default_string_arg,
         ):
             float_const = 3.14
             # Mock write function that sinks final data to a local directory
@@ -231,6 +232,7 @@ def test_default_args_component(tmp_path_factory, monkeypatch):
             assert bool_default_arg is False
             assert list_default_arg == ["foo", "bar"]
             assert dict_default_arg == {"foo": 1, "bar": 2}
+            assert override_default_string_arg == "bar"
 
     # Mock CLI arguments
     sys.argv = [
@@ -243,6 +245,8 @@ def test_default_args_component(tmp_path_factory, monkeypatch):
         "",
         "--component_spec",
         f"{component_spec_string}",
+        "--override_default_string_arg",
+        "bar",
     ]
 
     # # Instantiate and run component

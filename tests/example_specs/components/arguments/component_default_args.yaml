@@ -27,3 +27,7 @@ args:
     description: default dict argument
     type: dict
     default: '{"foo":1, "bar":2}'
+  override_default_string_arg:
+    description: default argument that can be overriden
+    type: str
+    default: foo
