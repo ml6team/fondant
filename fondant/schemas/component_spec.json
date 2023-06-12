@@ -80,6 +80,49 @@
           },
           "description": {
             "type": "string"
+          },
+          "default_value": {
+            "oneOf": [
+              {
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number",
+                "format": "float"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "array",
+                    "string",
+                    "integer",
+                    {
+                      "type": "number",
+                      "format": "float"
+                    },
+                    "boolean",
+                    "object"
+                  ]
+                },
+                "uniqueItems": true
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
