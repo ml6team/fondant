@@ -242,7 +242,7 @@ class WriteComponent(Component):
 
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
-        return []
+        return ["output_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.input_manifest_path)
