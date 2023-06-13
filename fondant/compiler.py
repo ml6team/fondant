@@ -26,7 +26,7 @@ class DockerCompiler(Compiler):
     """Compiler that creates a docker-compose spec from a pipeline."""
 
     def compile(self, package_path: str = "docker-compose.yml") -> None:
-        """Compile a pipeline to docker-compose spec that is saved on the package_path."""
+        """Compile a pipeline to docker-compose spec and save it to a specified package_path."""
         logger.info(f"Compiling {self.pipeline.name} to docker-compose.yml")
         self._patch_path()
         spec = self._generate_spec()
