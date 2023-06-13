@@ -47,13 +47,14 @@ class Argument:
         description: argument description
         type: the python argument type (str, int, ...)
         default: default value of the argument (defaults to None)
-
+        optional: whether an argument is optional or not (defaults to False)
     """
 
     name: str
     description: str
     type: str
     default: t.Optional[str] = None
+    optional: t.Optional[bool] = False
 
 
 class ComponentSubset:
@@ -184,6 +185,7 @@ class ComponentSpec:
                 description=arg_info["description"],
                 type=arg_info["type"],
                 default=arg_info["default"] if "default" in arg_info else None,
+                optional=True if "optional" in arg_info else False,
             )
             for name, arg_info in self._specification.get("args", {}).items()
         }
@@ -241,6 +243,11 @@ class KubeflowComponentSpec:
                         "description": arg.description,
                         "type": python2kubeflow_type[arg.type],
                         **({"default": arg.default} if arg.default is not None else {}),
+                        **(
+                            {"optional": str(arg.optional)}
+                            if arg.optional is True
+                            else {}
+                        ),
                     }
                     for arg in fondant_component.args.values()
                 ),
@@ -311,6 +318,7 @@ class KubeflowComponentSpec:
                     description=info["description"],
                     type=info["type"],
                     default=info["default"] if "default" in info else None,
+                    optional=True if "optional" in info else False,
                 )
                 for info in self._specification["inputs"]
             }

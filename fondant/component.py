@@ -92,10 +92,17 @@ class Component(ABC):
 
         for arg in component_arguments.values():
             # Input manifest is not required for loading component
-            if arg.name in cls.optional_fondant_arguments():
+            if arg.name in cls.optional_fondant_arguments() or (
+                not arg.default and arg.optional is True
+            ):
+                # Input is optional and no default argument is provided, set input_required to
+                # False. This bypasses providing the argument as a command-line argument. Value will
+                # be None
                 input_required = False
                 default = None
-            elif arg.default:
+            elif arg.default and arg.optional is False:
+                # Input is required but a default argument is provided, set input_required to False.
+                # Value of the argument will be the default value
                 input_required = False
                 default = arg.default
             else:
