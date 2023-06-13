@@ -10,7 +10,7 @@ import dask.dataframe as dd
 import pytest
 import yaml
 
-from fondant.component import LoadComponent, TransformComponent
+from fondant.component import LoadComponent, TransformComponent, WriteComponent
 from fondant.data_io import DaskDataLoader
 
 components_path = Path(__file__).parent / "example_specs/components"
@@ -75,8 +75,10 @@ def test_component(mock_args):
     }
 
 
-def test_valid_transform_kwargs(monkeypatch):
-    """Test that arguments are passed correctly to `Component.transform` method."""
+def test_transform_component(monkeypatch):
+    """Test that arguments are passed correctly to `Component.transform` method and that valid
+    errors are returned when required arguments are missing.
+    """
 
     class EarlyStopException(Exception):
         """Used to stop execution early instead of mocking all later functionality."""
@@ -120,12 +122,23 @@ def test_valid_transform_kwargs(monkeypatch):
 
     # Instantiate and run component
     component = MyComponent.from_args()
+
     with pytest.raises(EarlyStopException):
         component.run()
 
+    # Remove component specs from arguments
+    component_spec_index = sys.argv.index("--component_spec")
+    del sys.argv[component_spec_index : component_spec_index + 2]
 
-def test_invalid_transform_kwargs(monkeypatch):
-    """Test that arguments are passed correctly to `Component.transform` method."""
+    # Instantiate and run component
+    with pytest.raises(ValueError):
+        MyComponent.from_args()
+
+
+def test_write_component(tmp_path_factory, monkeypatch):
+    """Test that arguments are passed correctly to `Component.write` method and that valid
+    errors are returned when required arguments are missing.
+    """
 
     class EarlyStopException(Exception):
         """Used to stop execution early instead of mocking all later functionality."""
@@ -141,14 +154,16 @@ def test_invalid_transform_kwargs(monkeypatch):
     component_spec = arguments_dir / "component.yaml"
     input_manifest = arguments_dir / "input_manifest.json"
 
-    yaml_file_to_json_string(component_spec)
+    component_spec_string = yaml_file_to_json_string(component_spec)
 
     # Implemented Component class
-    class MyComponent(TransformComponent):
-        def transform(self, dataframe, *, flag, value):
+    class MyComponent(WriteComponent):
+        def write(self, dataframe, *, flag, value):
             assert flag == "success"
             assert value == 1
-            raise EarlyStopException()
+            # Mock write function that sinks final data to a local directory
+            with tmp_path_factory.mktemp("temp") as fn:
+                dataframe.to_parquet(fn)
 
     # Mock CLI arguments
     sys.argv = [
@@ -163,7 +178,17 @@ def test_invalid_transform_kwargs(monkeypatch):
         "1",
         "--output_manifest_path",
         "",
+        "--component_spec",
+        f"{component_spec_string}",
     ]
+
+    # # Instantiate and run component
+    component = MyComponent.from_args()
+    component.run()
+
+    # Remove component specs from arguments
+    component_spec_index = sys.argv.index("--component_spec")
+    del sys.argv[component_spec_index : component_spec_index + 2]
 
     # Instantiate and run component
     with pytest.raises(ValueError):
