@@ -125,5 +125,5 @@ class CaptionImagesComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = CaptionImagesComponent.from_file()
+    component = CaptionImagesComponent.from_args()
     component.run()

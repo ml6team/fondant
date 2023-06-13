@@ -1,7 +1,6 @@
 """Fondant component specs test."""
 from pathlib import Path
 
-import pyarrow as pa
 import pytest
 import yaml
 
@@ -53,13 +52,10 @@ def test_attribute_access(valid_fondant_schema):
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
-    assert fondant_component.consumes["images"].fields["data"].type == Type.binary
-    assert (
-        fondant_component.consumes["embeddings"].fields["data"].type == Type.int8_list
+    assert fondant_component.consumes["images"].fields["data"].type == Type("binary")
+    assert fondant_component.consumes["embeddings"].fields["data"].type == Type.list(
+        Type("float32")
     )
-    assert fondant_component.consumes["embeddings"].fields[
-        "data"
-    ].type.value == pa.list_(pa.int8())
 
 
 def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):

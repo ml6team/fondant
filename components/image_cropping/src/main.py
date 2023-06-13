@@ -71,5 +71,5 @@ class ImageCroppingComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = ImageCroppingComponent.from_file()
+    component = ImageCroppingComponent.from_args()
     component.run()
