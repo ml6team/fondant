@@ -137,9 +137,8 @@ args:
     default: bar
 ``` 
 
-These arguments are passed in when the component is instantiated. Notice that we are not passing the
-default argument specified above. You could override the default value in the component spec by passing
-it as an argument to the component.
+These arguments are passed in when the component is instantiated. 
+If an argument is not explicitly provided, the default value will be used instead if available.```
 ```python
 from fondant.pipeline import ComponentOp
 
