@@ -90,11 +90,28 @@
                 "type": "number"
               }
             ]
+          },
+          "optional": {
+            "type": "boolean"
           }
         },
         "required": [
           "type"
-        ]
+        ],
+        "if": {
+          "properties": {
+            "default": {
+              "not": {}
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "accepts_optional": {
+              "const": true
+            }
+          }
+        }
       }
     }
   }
