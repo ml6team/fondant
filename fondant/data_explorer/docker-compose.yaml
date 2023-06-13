@@ -1,6 +1,0 @@
-version: '3'
-services:
-  data_explorer:
-    build: ./
-    ports:
-      - "8501:8501"

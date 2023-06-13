@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.8-slim
+FROM --platform=linux/amd64/v3 python:3.8-slim
 
 ## System dependencies
 RUN apt-get update && \
@@ -14,5 +14,6 @@ WORKDIR /component/src
 
 # Copy over src-files
 COPY src/ .
+COPY fondant_component.yaml /component/src/fondant_component.yaml
 
 ENTRYPOINT ["python", "main.py"]

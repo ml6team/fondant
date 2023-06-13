@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional, Tuple, Union
 
 import dask.dataframe as dd
@@ -7,12 +8,9 @@ from data import load_manifest
 from numeric_analysis import make_numeric_plot, make_numeric_statistics_table
 from st_aggrid import AgGrid, ColumnsAutoSizeMode, GridOptionsBuilder
 from table import configure_image_builder, convert_image_column
-
-MANIFEST_PATH = (
-    "/Users/bertchristiaens/Bitbucket/fondant_ml6/"
-    "local_artifact/logo_manifest_embed_retrieval.json"
-)
-
+from PIL import Image
+import logging
+LOGGER = logging.getLogger(__name__)
 
 def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[List[str]]]:
     """
@@ -24,14 +22,19 @@ def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[List[str]]]:
     """
     # text field for manifest path
     st.sidebar.title("Subset loader")
-    manifest_path = st.sidebar.text_input("Manifest path", MANIFEST_PATH)
+    manifest_path = st.sidebar.text_input("Manifest path", '/artifacts/manifest.txt')
 
     # load manifest
     if not manifest_path:
         st.warning("Please provide a manifest path")
         manifest = None
     else:
-        manifest = load_manifest(manifest_path)
+        if os.path.exists(manifest_path):
+            manifest = load_manifest(manifest_path)
+            LOGGER.warning(manifest)
+        else:
+            st.warning("This file path does not exist")
+            manifest = None
 
     # choose subset
     if manifest:
@@ -43,11 +46,13 @@ def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[List[str]]]:
     # filter on subset fields
     if subset:
         fields = manifest.subsets[subset].fields
+        LOGGER.warning(fields)
         fields = st.sidebar.multiselect("Fields", fields, default=fields)
+        field_types = {f"{field}": manifest.subsets[subset].fields[field].type.name for field in fields}
     else:
-        fields = None
+        field_types = None
 
-    return manifest_path, subset, fields
+    return manifest_path, subset, field_types
 
 
 def build_explorer_table(
@@ -63,7 +68,12 @@ def build_explorer_table(
     st.write("In this table, you can explore the dataframe")
 
     # get the first rows of the dataframe
-    rows = st.slider("Dataframe rows to load", 1, len(dataframe), 10)
+    cols = st.columns(2)
+    with cols[0]:
+        rows = st.slider("Dataframe rows to load", 1, len(dataframe), min(len(dataframe), 20))
+    with cols[1]:
+        rows_per_page = st.slider("Amount of rows per page", 5, 50, 10)
+
     dataframe_explorer = dataframe.head(rows)
     for field in image_fields:
         dataframe_explorer = convert_image_column(dataframe_explorer, field)
@@ -83,7 +93,7 @@ def build_explorer_table(
 
     # configure pagination and side bar
     options_builder.configure_pagination(
-        paginationPageSize=5, paginationAutoPageSize=False
+        paginationPageSize=rows_per_page, paginationAutoPageSize=False
     )
     options_builder.configure_side_bar()
 
@@ -131,7 +141,6 @@ def build_numeric_analysis_plots(
 ) -> None:
     """Build the numeric analysis plots.
 
-
     Args:
         dataframe (Union[dd.DataFrame, pd.DataFrame]): dataframe to explore
         numeric_fields (List[str]): list of numeric fields
@@ -139,15 +148,38 @@ def build_numeric_analysis_plots(
     st.write("## Show numeric distributions")
 
     # choose a numeric field in dropdown
-    numeric_field = st.selectbox("Field", numeric_fields)
+    cols = st.columns(2)
+    with cols[0]:
+        numeric_field = st.selectbox("Field", numeric_fields)
+    with cols[1]:
+        plot_type = st.selectbox("Plot type",
+                                 ["histogram", "violin", "density", "categorical"])
 
-    col1, col2 = st.columns(2)
+    make_numeric_plot(dataframe, numeric_field, plot_type)
 
-    with col1:
-        plot_type = st.selectbox("Plot type", ["bar", "line", "area"])
-    with col2:
-        aggregation_type = st.selectbox(
-            "Aggregation type", ["histogram", "cumulative", "categorical"]
-        )
 
-    make_numeric_plot(dataframe, numeric_field, plot_type, aggregation_type)
+def build_image_explorer(dataframe: dd.DataFrame, image_fields: List[str]):
+    """Build the image explorer
+    This explorer shows a gallery of the images in a certain column.
+    
+    Args:
+        dataframe (dd.DataFrame): dataframe to explore
+        image_fields (List[str]): list of image fields
+    """
+    st.write("## Image explorer")
+    st.write("In this table, you can explore the images")
+    
+    if len(image_fields) == 0:
+        st.warning("There are no image fields in this subset")
+    else:
+        image_field = st.selectbox("Image field", image_fields)
+
+        images = dataframe[image_field].compute()
+        images = [Image.open(io.BytesIO(x)).resize((256, 256)) for x in images]
+
+        image_slider = st.slider("image range", 0, len(images), (0, 10))
+
+        # show images in a gallery
+        cols = st.columns(5)
+        for i, image in enumerate(images[image_slider[0]: image_slider[1]]):
+            cols[i % 5].image(image, use_column_width=True)

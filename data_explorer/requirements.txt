@@ -1,0 +1,6 @@
+streamlit==1.23.1
+fondant==0.1.2
+streamlit-aggrid==0.3.4
+pyarrow>=7.0
+matplotlib==3.7.1
+plotly==5.15.0

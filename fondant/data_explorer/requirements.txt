@@ -1,6 +1,0 @@
-streamlit
-pandas
-graphviz
-fondant==0.1.2
-dask==2023.6.0
-streamlit-aggrid==0.3.4

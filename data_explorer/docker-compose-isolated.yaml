@@ -1,0 +1,12 @@
+services:
+  data_explorer:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - &id001
+        source: /Users/bertchristiaens/Bitbucket/fondant_ml6/artifacts
+        target: /artifacts
+        type: bind
+
+version: '3.8'
