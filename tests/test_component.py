@@ -192,9 +192,9 @@ def test_write_component(tmp_path_factory, monkeypatch):
         MyComponent.from_args()
 
 
-def test_default_args_component(tmp_path_factory, monkeypatch):
-    """Test that default arguments defined in the fondant spec are passed correctly and have the
-    proper data type.
+def test_default_and_optional_args_component(tmp_path_factory, monkeypatch):
+    """Test that default arguments and optional defined in the fondant spec are passed correctly
+    and have the proper data type and assigned value.
     """
 
     # Mock `Dataset.load_dataframe` so no actual data is loaded
@@ -223,6 +223,9 @@ def test_default_args_component(tmp_path_factory, monkeypatch):
             list_default_arg,
             dict_default_arg,
             override_default_string_arg,
+            non_optional_with_default,
+            non_optional_without_default,
+            optional_without_default,
         ):
             float_const = 3.14
             # Mock write function that sinks final data to a local directory
@@ -233,6 +236,9 @@ def test_default_args_component(tmp_path_factory, monkeypatch):
             assert list_default_arg == ["foo", "bar"]
             assert dict_default_arg == {"foo": 1, "bar": 2}
             assert override_default_string_arg == "bar"
+            assert non_optional_with_default == "foo"
+            assert non_optional_without_default == "bar"
+            assert optional_without_default is None
 
     # Mock CLI arguments
     sys.argv = [
@@ -246,6 +252,8 @@ def test_default_args_component(tmp_path_factory, monkeypatch):
         "--component_spec",
         f"{component_spec_string}",
         "--override_default_string_arg",
+        "bar",
+        "--non_optional_without_default",
         "bar",
     ]
 

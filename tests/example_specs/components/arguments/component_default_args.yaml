@@ -31,3 +31,14 @@ args:
     description: default argument that can be overriden
     type: str
     default: foo
+  non_optional_with_default:
+    description: this should return the default
+    type: str
+    default: foo
+  non_optional_without_default:
+    description: this input is required and should be specified otherwise an error would occur
+    type: str
+  optional_without_default:
+    description: this input is optional and without default, if not specified it should return None
+    type: str
+    optional: true
