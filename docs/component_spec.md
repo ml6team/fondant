@@ -122,9 +122,7 @@ Please check the [examples](#examples) below to build a better understanding.
 
 The `args` section describes which arguments the component takes. Each argument is defined by a 
 `description` and a `type`, which should be one of the builtin Python types. Additionally, you can 
-pass an optional argument in the optional `default` field of the arguments. This can be useful in case
-your function has many arguments that could be set to default and that don't need to be explicitly defined when
-initializing your component. 
+set an optional `default` value for each argument.
 
 _Note:_ default iterable arguments such as `dict` and `list` have to be passed as a string 
 (e.g. `'{"foo":1, "bar":2}`, `'["foo","bar]'`)
