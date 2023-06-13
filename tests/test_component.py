@@ -140,9 +140,6 @@ def test_write_component(tmp_path_factory, monkeypatch):
     errors are returned when required arguments are missing.
     """
 
-    class EarlyStopException(Exception):
-        """Used to stop execution early instead of mocking all later functionality."""
-
     # Mock `Dataset.load_dataframe` so no actual data is loaded
     def mocked_load_dataframe(self):
         return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
@@ -193,3 +190,65 @@ def test_write_component(tmp_path_factory, monkeypatch):
     # Instantiate and run component
     with pytest.raises(ValueError):
         MyComponent.from_args()
+
+
+def test_default_args_component(tmp_path_factory, monkeypatch):
+    """Test that default arguments defined in the fondant spec are passed correctly and have the
+    proper data type.
+    """
+
+    # Mock `Dataset.load_dataframe` so no actual data is loaded
+    def mocked_load_dataframe(self):
+        return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
+
+    monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
+
+    # Define paths to specs to instantiate component
+    arguments_dir = components_path / "arguments"
+    component_spec = arguments_dir / "component_default_args.yaml"
+    input_manifest = arguments_dir / "input_manifest.json"
+
+    component_spec_string = yaml_file_to_json_string(component_spec)
+
+    # Implemented Component class
+    class MyComponent(WriteComponent):
+        def write(
+            self,
+            dataframe,
+            *,
+            string_default_arg,
+            integer_default_arg,
+            float_default_arg,
+            bool_default_arg,
+            list_default_arg,
+            dict_default_arg,
+            override_default_string_arg,
+        ):
+            float_const = 3.14
+            # Mock write function that sinks final data to a local directory
+            assert string_default_arg == "foo"
+            assert integer_default_arg == 1
+            assert float_default_arg == float_const
+            assert bool_default_arg is False
+            assert list_default_arg == ["foo", "bar"]
+            assert dict_default_arg == {"foo": 1, "bar": 2}
+            assert override_default_string_arg == "bar"
+
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        str(input_manifest),
+        "--metadata",
+        "",
+        "--output_manifest_path",
+        "",
+        "--component_spec",
+        f"{component_spec_string}",
+        "--override_default_string_arg",
+        "bar",
+    ]
+
+    # # Instantiate and run component
+    component = MyComponent.from_args()
+    component.run()

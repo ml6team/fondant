@@ -77,7 +77,6 @@ class Component(ABC):
         metadata = args_dict.pop("metadata")
 
         metadata = json.loads(metadata) if metadata else {}
-
         return cls(
             component_spec,
             input_manifest_path=input_manifest_path,
@@ -85,6 +84,38 @@ class Component(ABC):
             metadata=metadata,
             user_arguments=args_dict,
         )
+
+    @classmethod
+    def _add_and_parse_args(cls, spec: ComponentSpec):
+        parser = argparse.ArgumentParser()
+        component_arguments = cls._get_component_arguments(spec)
+
+        for arg in component_arguments.values():
+            # Input manifest is not required for loading component
+            if arg.name in cls.optional_fondant_arguments():
+                input_required = False
+                default = None
+            elif arg.default:
+                input_required = False
+                default = arg.default
+            else:
+                input_required = True
+                default = None
+
+            parser.add_argument(
+                f"--{arg.name}",
+                type=kubeflow2python_type[arg.type],  # type: ignore
+                required=input_required,
+                default=default,
+                help=arg.description,
+            )
+
+        return parser.parse_args()
+
+    @staticmethod
+    @abstractmethod
+    def optional_fondant_arguments() -> t.List[str]:
+        pass
 
     @staticmethod
     def _get_component_arguments(spec: ComponentSpec) -> t.Dict[str, Argument]:
@@ -101,11 +132,6 @@ class Component(ABC):
         component_arguments.update(kubeflow_component_spec.input_arguments)
         component_arguments.update(kubeflow_component_spec.output_arguments)
         return component_arguments
-
-    @classmethod
-    @abstractmethod
-    def _add_and_parse_args(cls, spec: ComponentSpec) -> argparse.Namespace:
-        """Abstract method to add and parse the component arguments."""
 
     @abstractmethod
     def _load_or_create_manifest(self) -> Manifest:
@@ -142,26 +168,9 @@ class Component(ABC):
 class LoadComponent(Component):
     """Base class for a Fondant load component."""
 
-    @classmethod
-    def _add_and_parse_args(cls, spec: ComponentSpec):
-        parser = argparse.ArgumentParser()
-        component_arguments = cls._get_component_arguments(spec)
-
-        for arg in component_arguments.values():
-            # Input manifest is not required for loading component
-            if arg.name == "input_manifest_path":
-                input_required = False
-            else:
-                input_required = True
-
-            parser.add_argument(
-                f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],  # type: ignore
-                required=input_required,
-                help=arg.description,
-            )
-
-        return parser.parse_args()
+    @staticmethod
+    def optional_fondant_arguments() -> t.List[str]:
+        return ["input_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
         # create initial manifest
@@ -195,20 +204,9 @@ class LoadComponent(Component):
 class TransformComponent(Component):
     """Base class for a Fondant transform component."""
 
-    @classmethod
-    def _add_and_parse_args(cls, spec: ComponentSpec):
-        parser = argparse.ArgumentParser()
-        component_arguments = cls._get_component_arguments(spec)
-
-        for arg in component_arguments.values():
-            parser.add_argument(
-                f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],  # type: ignore
-                required=True,
-                help=arg.description,
-            )
-
-        return parser.parse_args()
+    @staticmethod
+    def optional_fondant_arguments() -> t.List[str]:
+        return []
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.input_manifest_path)
@@ -242,20 +240,9 @@ class TransformComponent(Component):
 class WriteComponent(Component):
     """Base class for a Fondant write component."""
 
-    @classmethod
-    def _add_and_parse_args(cls, spec: ComponentSpec):
-        parser = argparse.ArgumentParser()
-        component_arguments = cls._get_component_arguments(spec)
-
-        for arg in component_arguments.values():
-            parser.add_argument(
-                f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],  # type: ignore
-                required=True,
-                help=arg.description,
-            )
-
-        return parser.parse_args()
+    @staticmethod
+    def optional_fondant_arguments() -> t.List[str]:
+        return ["output_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.input_manifest_path)

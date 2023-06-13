@@ -121,41 +121,49 @@ Please check the [examples](#examples) below to build a better understanding.
 ### Args
 
 The `args` section describes which arguments the component takes. Each argument is defined by a 
-`description` and a `type`, which should be one of the builtin Python types.
+`description` and a `type`, which should be one of the builtin Python types. Additionally, you can 
+set an optional `default` value for each argument.
 
+_Note:_ default iterable arguments such as `dict` and `list` have to be passed as a string 
+(e.g. `'{"foo":1, "bar":2}`, `'["foo","bar]'`)
 ```yaml
 args:
   custom_argument:
     description: A custom argument
     type: str
+  default_argument:
+    description: A default argument
+    type: str
+    default: bar
 ``` 
 
-These arguments are passed in when the component is instantiated:
-
+These arguments are passed in when the component is instantiated. 
+If an argument is not explicitly provided, the default value will be used instead if available.```
 ```python
 from fondant.pipeline import ComponentOp
 
 custom_op = ComponentOp(
     component_spec_path="components/custom_component/fondant_component.yaml",
     arguments={
-        "custom_argument": "foobar"
+        "custom_argument": "foo"
     },
 )
 ```
 
-And passed as a keyword argument to the `transform()` method of the component.
+Afterwards, we pass all keyword arguments to the `transform()` method of the component.
 
 ```python
 from fondant.component import TransformComponent
 
 class ExampleComponent(TransformComponent):
 
-    def transform(self, dataframe, *, custom_argument):
+    def transform(self, dataframe, *, custom_argument, default_argument):
         """Implement your custom logic in this single method
         
         Args:
             dataframe: A Dask dataframe containing the data
             custom_argument: An argument passed to the component
+            default_argument: A default argument passed to the components
         """
 ```
 
