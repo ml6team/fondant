@@ -92,3 +92,13 @@ compiler.compile()
 ```
 
 The DockerCompiler will try to see if the `base_path` of the pipeline is local or remote. If local the base_path will be mounted as a bind volume on every service/component.
+
+
+#### Running a Docker compiled pipeline
+
+Navigate to the folder where your docker compose is located and run (you need to have [docker-compose](https://docs.docker.com/compose/install/) installed)
+```bash
+docker compose up
+```
+
+This will start the pipeline and provide logs per component(service)
