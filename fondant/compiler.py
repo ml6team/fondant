@@ -126,10 +126,17 @@ class DockerCompiler(Compiler):
             volumes = [asdict(volume)] if volume else []
 
             services[safe_component_name] = {
-                "image": component_op.component_spec.image,
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
             }
 
+            if component_op.local_component:
+                services[safe_component_name][
+                    "build"
+                ] = f"./{Path(component_op.component_spec_path).parent}"
+            else:
+                services[safe_component_name][
+                    "image"
+                ] = component_op.component_spec.image
         return {"version": "3.8", "services": services}
