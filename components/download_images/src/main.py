@@ -9,11 +9,10 @@ import traceback
 import urllib
 
 import dask.dataframe as dd
-import pandas as pd
 
 from resizer import Resizer
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -84,7 +83,7 @@ def download_image_with_retry(
     return None, None, None
 
 
-class DownloadImagesComponent(TransformComponent):
+class DownloadImagesComponent(DaskTransformComponent):
     """
     Component that downloads images based on URLs.
     """

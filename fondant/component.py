@@ -231,6 +231,27 @@ class TransformComponent(Component):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
+
+
+class DaskTransformComponent(TransformComponent):
+    @abstractmethod
+    def transform(self, *args, **kwargs) -> dd.DataFrame:
+        """
+        Abstract method for applying data transformations to the input dataframe.
+
+        Args:
+            args: A Dask dataframe will be passed in as a positional argument
+            kwargs: Arguments provided to the component are passed as keyword arguments
+        """
+
+    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+        """
+        Load the data based on the manifest using a DaskDataloader and call the transform method to
+        process it.
+
+        Returns:
+            A `dd.DataFrame` instance with updated data based on the applied data transformations.
+        """
         data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
         df = data_loader.load_dataframe()
         df = self.transform(dataframe=df, **self.user_arguments)

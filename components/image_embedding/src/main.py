@@ -12,7 +12,7 @@ import pandas as pd
 import dask.dataframe as dd
 from transformers import CLIPProcessor, CLIPVisionModelWithProjection
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -69,7 +69,7 @@ def embed_images(
     return pd.concat(results).to_frame()
 
 
-class EmbedImagesComponent(TransformComponent):
+class EmbedImagesComponent(DaskTransformComponent):
     """
     Component that captions images using a model from the Hugging Face hub.
     """

@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 import dask.dataframe as dd
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 from image_crop import remove_borders
@@ -33,7 +33,7 @@ def extract_dimensions(image_df: dd.DataFrame) -> t.Tuple[np.int16, np.int16]:
     return np.int16(image.size[0]), np.int16(image.size[1])
 
 
-class ImageCroppingComponent(TransformComponent):
+class ImageCroppingComponent(DaskTransformComponent):
     """
     Component that crops images
     """

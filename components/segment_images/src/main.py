@@ -14,7 +14,7 @@ import torch
 
 from palette import palette
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -102,7 +102,7 @@ def segment_images(
     return pd.concat(results).to_frame()
 
 
-class SegmentImagesComponent(TransformComponent):
+class SegmentImagesComponent(DaskTransformComponent):
     """
     Component that segments images using a model from the Hugging Face hub.
     """
