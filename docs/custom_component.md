@@ -30,9 +30,9 @@ The core logic of the component should be implemented in a `main.py` script in a
 The logic should be implemented as a class, inheriting from one of the base `Component` classes 
 offered by Fondant.
 There are three large types of components:
-- **`LoadComponent`**: Load data into your pipeline
+- **`LoadComponent`**: Load data into your pipeline from an external data source
 - **`TransformComponent`**: Implement a single transformation step in your pipeline
-- **`WriteComponent`**: Write the results of your pipeline
+- **`WriteComponent`**: Write the results of your pipeline to an external data sink
 
 The easiest way to implement a `TransformComponent` is to subclass the provided 
 `PandasTransformComponent`. This component streams your data and offers it in memory-sized 

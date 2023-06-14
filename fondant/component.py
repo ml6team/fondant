@@ -223,7 +223,7 @@ class TransformComponent(Component):
             kwargs: Arguments provided to the component are passed as keyword arguments
         """
 
-    def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
         """
         Load the data based on the manifest using a DaskDataloader and call the transform method to
         process it.
@@ -345,7 +345,7 @@ class WriteComponent(Component):
             kwargs: Arguments provided to the component are passed as keyword arguments
         """
 
-    def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+    def _process_dataset(self, manifest: Manifest) -> None:
         """
         Creates a DataLoader using the provided manifest and loads the input dataframe using the
         `load_dataframe` instance, and  applies data transformations to it using the `transform`
@@ -357,8 +357,6 @@ class WriteComponent(Component):
         data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
         df = data_loader.load_dataframe()
         self.write(dataframe=df, **self.user_arguments)
-
-        return None
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
