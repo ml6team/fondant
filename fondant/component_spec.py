@@ -47,7 +47,6 @@ class Argument:
         description: argument description
         type: the python argument type (str, int, ...)
         default: default value of the argument (defaults to None)
-        optional: whether an argument is optional or not (defaults to False)
     """
 
     name: str
@@ -234,6 +233,7 @@ class KubeflowComponentSpec:
                     "name": "component_spec",
                     "description": "The component specification as a dictionary",
                     "type": "JsonObject",
+                    "default": "None",
                 },
                 *(
                     {
