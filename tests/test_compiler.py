@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline
@@ -49,10 +50,10 @@ def pipeline(request, tmp_path, monkeypatch):
 
 def test_docker_compiler(pipeline, tmp_path_factory):
     """Test compiling a pipeline to docker-compose."""
-    compiler = DockerCompiler(pipeline=pipeline)
+    compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(package_path=output_path)
+        compiler.compile(pipeline=pipeline, output_path=output_path)
         with open(output_path, "r") as src, open(VALID_DOCKER_PIPELINE, "r") as truth:
             assert src.read() == truth.read()
 
@@ -64,10 +65,13 @@ def test_docker_local_path(pipeline, tmp_path_factory):
         # this is the directory mounted in the container
         work_dir = f"/{fn.stem}"
         pipeline.base_path = str(fn)
-        compiler = DockerCompiler(pipeline=pipeline)
-        compiler._patch_path()
-        assert compiler.path == work_dir
-        spec = compiler._generate_spec()
+        compiler = DockerCompiler()
+        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
+
+        # read the generated docker-compose file
+        with open(fn / "docker-compose.yml") as f_spec:
+            spec = yaml.safe_load(f_spec)
+
         for service in spec["services"].values():
             # check if volumes are defined correctly
             assert service["volumes"] == [
@@ -86,21 +90,25 @@ def test_docker_local_path(pipeline, tmp_path_factory):
                 assert command in service["command"]
 
 
-def test_docker_remote_path(pipeline):
+def test_docker_remote_path(pipeline, tmp_path_factory):
     """Test that a remote path is applied correctly in the arguments and no volume."""
     remote_dir = "gs://somebucket/artifacts"
     pipeline.base_path = remote_dir
-    compiler = DockerCompiler(pipeline=pipeline)
-    compiler._patch_path()
-    assert compiler.path == remote_dir
-    spec = compiler._generate_spec()
-    for service in spec["services"].values():
-        # check that no volumes are created
-        assert service["volumes"] == []
-        # check if commands are patched to use the remote dir
-        commands_with_dir = [
-            f"{remote_dir}/manifest.txt",
-            f'{{"run_id": "test_pipeline", "base_path": "{remote_dir}"}}',
-        ]
-        for command in commands_with_dir:
-            assert command in service["command"]
+    compiler = DockerCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
+
+        # read the generated docker-compose file
+        with open(fn / "docker-compose.yml") as f_spec:
+            spec = yaml.safe_load(f_spec)
+
+        for service in spec["services"].values():
+            # check that no volumes are created
+            assert service["volumes"] == []
+            # check if commands are patched to use the remote dir
+            commands_with_dir = [
+                f"{remote_dir}/manifest.txt",
+                f'{{"run_id": "test_pipeline", "base_path": "{remote_dir}"}}',
+            ]
+            for command in commands_with_dir:
+                assert command in service["command"]
