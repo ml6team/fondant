@@ -1,0 +1,17 @@
+name: PII redaction
+description: A component that detects and redacts Personal Identifiable Information (PII) from code.
+image: ghcr.io/ml6team/pii_redaction:latest
+
+consumes:
+  code:
+    fields:
+      content:
+        type: string
+
+produces:
+  code:
+    fields:
+      content:
+        type: string
+    additionalFields: False
+  additionalSubsets: False
