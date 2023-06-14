@@ -310,7 +310,7 @@ class PandasTransformComponent(TransformComponent):
 
         return df
 
-    def _infer_index_change(self):
+    def _infer_index_change(self) -> bool:
         """Infer if this component changes the index based on its component spec."""
         if not self.spec.accepts_additional_subsets:
             return True
