@@ -9,10 +9,13 @@ consumes:
         type: binary
 
 produces:
-  images:
+  embeddings:
     fields:
-      encoding:
-        type: string
+      data:
+        type: array
+        items:
+          type: float32
+
 
 args:
   flag:

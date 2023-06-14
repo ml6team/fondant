@@ -288,8 +288,10 @@ class PandasTransformComponent(TransformComponent):
         meta_dict = {"id": pd.Series(dtype="object")}
         for subset_name, subset in self.spec.produces.items():
             for field_name, field in subset.fields.items():
+                print(field.type.value)
                 meta_dict[f"{subset_name}_{field_name}"] = pd.Series(
-                    dtype=f"{field.type.value}[pyarrow]"
+                    # dtype=f"{field.type.value}[pyarrow]"
+                    dtype=pd.ArrowDtype(field.type.value)
                 )
         meta_df = pd.DataFrame(meta_dict).set_index("id")
 
