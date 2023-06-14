@@ -7,10 +7,16 @@ from pathlib import Path
 from unittest import mock
 
 import dask.dataframe as dd
+import pandas as pd
 import pytest
 import yaml
 
-from fondant.component import LoadComponent, TransformComponent, WriteComponent
+from fondant.component import (
+    DaskTransformComponent,
+    LoadComponent,
+    PandasTransformComponent,
+    WriteComponent,
+)
 from fondant.data_io import DaskDataLoader
 
 components_path = Path(__file__).parent / "example_specs/components"
@@ -75,7 +81,7 @@ def test_component(mock_args):
     }
 
 
-def test_transform_component(monkeypatch):
+def test_dask_transform_component(monkeypatch):
     """Test that arguments are passed correctly to `Component.transform` method and that valid
     errors are returned when required arguments are missing.
     """
@@ -97,11 +103,75 @@ def test_transform_component(monkeypatch):
     component_spec_string = yaml_file_to_json_string(component_spec)
 
     # Implemented Component class
-    class MyComponent(TransformComponent):
+    class MyComponent(DaskTransformComponent):
         def transform(self, dataframe, *, flag, value):
             assert flag == "success"
             assert value == 1
             raise EarlyStopException()
+
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        str(input_manifest),
+        "--metadata",
+        "",
+        "--flag",
+        "success",
+        "--value",
+        "1",
+        "--output_manifest_path",
+        "",
+        "--component_spec",
+        f"{component_spec_string}",
+    ]
+
+    # Instantiate and run component
+    component = MyComponent.from_args()
+
+    with pytest.raises(EarlyStopException):
+        component.run()
+
+    # Remove component specs from arguments
+    component_spec_index = sys.argv.index("--component_spec")
+    del sys.argv[component_spec_index : component_spec_index + 2]
+
+    # Instantiate and run component
+    with pytest.raises(ValueError):
+        MyComponent.from_args()
+
+
+def test_pandas_transform_component(monkeypatch):
+    """Test that arguments are passed correctly to `Component.setup` method, that valid
+    errors are returned when required arguments are missing, and a pandas dataframe is passed to
+    the transform method.
+    """
+
+    class EarlyStopException(Exception):
+        """Used to stop execution early instead of mocking all later functionality."""
+
+    # Mock `Dataset.load_dataframe` so no actual data is loaded
+    def mocked_load_dataframe(self):
+        return dd.from_dict({"a": [1, 2, 3]}, npartitions=2)
+
+    monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
+
+    # Define paths to specs to instantiate component
+    arguments_dir = components_path / "arguments"
+    component_spec = arguments_dir / "component.yaml"
+    input_manifest = arguments_dir / "input_manifest.json"
+
+    component_spec_string = yaml_file_to_json_string(component_spec)
+
+    # Implemented Component class
+    class MyComponent(PandasTransformComponent):
+        def setup(self, *, flag, value):
+            assert flag == "success"
+            assert value == 1
+
+        def transform(self, dataframe):
+            assert isinstance(dataframe, pd.DataFrame)
+            raise EarlyStopException
 
     # Mock CLI arguments
     sys.argv = [
