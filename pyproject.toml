@@ -55,7 +55,7 @@ pandas = { version = ">= 1.3.5", optional = true }
 pipelines = ["kfp", "kubernetes"]
 
 [tool.poetry.scripts]
-data_explorer = 'fondant.cli:run_data_explorer'
+fondant-explorer = 'fondant.cli:run_data_explorer'
 
 
 [tool.poetry.group.test.dependencies]
