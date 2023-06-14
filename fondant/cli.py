@@ -31,9 +31,7 @@ def run_data_explorer():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Run the data explorer container.")
-    parser.add_argument(
-        "--source", "-s", required=True, help="Path to the source directory."
-    )
+    parser.add_argument("--source", "-s", help="Path to the source directory.")
     parser.add_argument(
         "--registry", "-r", default=DEFAULT_REGISTRY, help="Docker registry to use."
     )

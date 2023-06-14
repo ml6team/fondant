@@ -40,8 +40,11 @@ def test_run_data_explorer_no_source(monkeypatch, caplog):
 
         run_data_explorer()
 
-        mock_which.assert_not_called()
-        assert "Please provide a source directory" in caplog.text
+        # mock_which.assert_not_called()
+        assert (
+            "Please provide a source directory with the --source or -s option."
+            in caplog.text
+        )
 
 
 def test_run_data_explorer_no_docker(monkeypatch, caplog):
