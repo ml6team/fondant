@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64/v3 python:3.8-slim
+FROM --platform=linux/arm64 python:3.8-slim
 
 ## System dependencies
 RUN apt-get update && \

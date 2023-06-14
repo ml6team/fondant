@@ -1,14 +1,15 @@
 """This file contains logic for numeric data analysis"""
-import streamlit as st
-import dask
+import logging
 from typing import List
+
 import dask.dataframe as dd
 import pandas as pd
+import streamlit as st
 
-import logging
 LOGGER = logging.getLogger(__name__)
 
 pd.options.plotting.backend = "plotly"
+
 
 def make_numeric_statistics_table(dataframe: dd.DataFrame,
                                   fields: List[str]) -> pd.DataFrame:
@@ -20,12 +21,10 @@ def make_numeric_statistics_table(dataframe: dd.DataFrame,
 
     Returns:
         pd.DataFrame: dataframe with column statistics
-    """    
+    """
     # make a new dataframe with statistics
     # (min, max, mean, std, median, mode)
     # for each numeric field
-    statistics = []
-
     statistics = dataframe[fields].describe().compute()
     statistics = statistics.transpose()
     # add a column with the field name
@@ -60,7 +59,7 @@ def make_numeric_plot(dataframe: dd.DataFrame,
         ValueError: error if plot type is not in the options
     """
     if plot_type == "histogram":
-        data = dataframe[numeric_field].compute()#.hist(bins=30)
+        data = dataframe[numeric_field].compute()  # .hist(bins=30)
         st.plotly_chart(data.hist(), use_container_width=True)
 
     elif plot_type == "violin":
@@ -71,7 +70,6 @@ def make_numeric_plot(dataframe: dd.DataFrame,
         data = dataframe[numeric_field].compute()
         st.plotly_chart(data.plot(kind='density_heatmap'), use_container_width=True)
 
-    
     elif plot_type == "strip":
         data = dataframe[numeric_field].compute()
         st.plotly_chart(data.plot(kind='strip'), use_container_width=True)

@@ -1,8 +1,8 @@
 """Methods for rendering image data in AgGrid tables"""
 import base64
 import io
-
 from typing import Tuple
+
 from PIL import Image
 from st_aggrid.shared import JsCode
 

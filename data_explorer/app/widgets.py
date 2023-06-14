@@ -1,23 +1,27 @@
+"""Methods for building widget tabs and tables"""
+import io
+import logging
 import os
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import dask.dataframe as dd
 import pandas as pd
 import streamlit as st
 from data import load_manifest
 from numeric_analysis import make_numeric_plot, make_numeric_statistics_table
+from PIL import Image
 from st_aggrid import AgGrid, ColumnsAutoSizeMode, GridOptionsBuilder
 from table import configure_image_builder, convert_image_column
-from PIL import Image
-import logging
+
 LOGGER = logging.getLogger(__name__)
 
-def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[List[str]]]:
+
+def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[Dict]]:
     """
     Build the sidebar for the data explorer app.
 
     Returns:
-        Tuple[Optional[str], Optional[str], Optional[List[str]]]: Tuple with manifest path,
+        Tuple[Optional[str], Optional[str], Optional[Dict]: Tuple with manifest path,
         subset name and fields
     """
     # text field for manifest path
@@ -48,7 +52,8 @@ def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[List[str]]]:
         fields = manifest.subsets[subset].fields
         LOGGER.warning(fields)
         fields = st.sidebar.multiselect("Fields", fields, default=fields)
-        field_types = {f"{field}": manifest.subsets[subset].fields[field].type.name for field in fields}
+        field_types = {
+            f"{field}": manifest.subsets[subset].fields[field].type.name for field in fields}
     else:
         field_types = None
 
@@ -161,14 +166,14 @@ def build_numeric_analysis_plots(
 def build_image_explorer(dataframe: dd.DataFrame, image_fields: List[str]):
     """Build the image explorer
     This explorer shows a gallery of the images in a certain column.
-    
+
     Args:
         dataframe (dd.DataFrame): dataframe to explore
         image_fields (List[str]): list of image fields
     """
     st.write("## Image explorer")
     st.write("In this table, you can explore the images")
-    
+
     if len(image_fields) == 0:
         st.warning("There are no image fields in this subset")
     else:

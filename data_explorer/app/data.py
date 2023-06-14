@@ -1,5 +1,6 @@
 """This file contains data loading logic"""
 from typing import List
+
 import dask.dataframe as dd
 import streamlit as st
 

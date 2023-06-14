@@ -1,6 +1,8 @@
-from render import image_renderer, load_image, make_render_image_template
-import dask.dataframe as dd
+"""Logic for constructing and configuring AgGrid tables"""
 from typing import Dict, List
+
+import dask.dataframe as dd
+from render import image_renderer, load_image, make_render_image_template
 from st_aggrid import GridOptionsBuilder
 
 

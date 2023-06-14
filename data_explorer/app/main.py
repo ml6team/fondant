@@ -1,25 +1,24 @@
 """Main file of the data explorer interface"""
-import io
 import logging
 
 import streamlit as st
-from data import load_dataframe
-from PIL import Image
-from table import get_image_fields, get_numeric_fields
-from widgets import (build_explorer_table, build_numeric_analysis_plots, build_image_explorer,
-                     build_numeric_analysis_table, build_sidebar)
+
+from .data import load_dataframe
+from .table import get_image_fields, get_numeric_fields
+from .widgets import (build_explorer_table, build_image_explorer,
+                      build_numeric_analysis_plots,
+                      build_numeric_analysis_table, build_sidebar)
 
 LOGGER = logging.getLogger(__name__)
 # streamlit wide
 st.set_page_config(layout="wide")
 
 
-
 if __name__ == "__main__":
     # make sidebar with input fields for manifest path, subset and fields
     manifest_path, subset, fields = build_sidebar()
 
-    if fields:
+    if fields and manifest_path and subset:
         # load dataframe
         dataframe_ = load_dataframe(manifest_path, subset, list(fields.keys()))
 
@@ -39,12 +38,16 @@ if __name__ == "__main__":
             ["Data explorer", "Numeric analysis", "Image explorer"]
         )
 
+        # explorer tab with table of the dataset
         with tab_explorer:
             build_explorer_table(dataframe, image_fields)
 
+        # numerical analysis tab with plots and statistics
+        # of numerical columns
         with tab_numeric:
             build_numeric_analysis_table(dataframe, numeric_fields)
             build_numeric_analysis_plots(dataframe, numeric_fields)
 
+        # tab for displaying image data
         with tab_images:
             build_image_explorer(dataframe, image_fields)
