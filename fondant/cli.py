@@ -69,7 +69,3 @@ def run_data_explorer():
     logging.info(f"Access the explorer at http://localhost:{args.port}")
 
     subprocess.call(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)  # nosec
-
-
-if __name__ == "__main__":
-    run_data_explorer()
