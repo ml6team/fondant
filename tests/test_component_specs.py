@@ -112,3 +112,17 @@ def test_kubeflow_component_spec_to_file(valid_kubeflow_schema):
 
         # check if the written data is the same as the original data
         assert written_data == valid_kubeflow_schema
+
+
+def test_component_spec_repr(valid_fondant_schema):
+    """Test that the __repr__ method of ComponentSpec returns the expected string."""
+    fondant_component = ComponentSpec(valid_fondant_schema)
+    expected_repr = f"ComponentSpec({valid_fondant_schema!r})"
+    assert repr(fondant_component) == expected_repr
+
+
+def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
+    """Test that the __repr__ method of KubeflowComponentSpec returns the expected string."""
+    kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)
+    expected_repr = f"KubeflowComponentSpec({valid_kubeflow_schema!r})"
+    assert repr(kubeflow_component_spec) == expected_repr

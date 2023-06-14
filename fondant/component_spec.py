@@ -197,7 +197,7 @@ class ComponentSpec:
         return KubeflowComponentSpec.from_fondant_component_spec(self)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r}"
+        return f"{self.__class__.__name__}({self._specification!r})"
 
 
 class KubeflowComponentSpec:
@@ -331,4 +331,4 @@ class KubeflowComponentSpec:
         )
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r}"
+        return f"{self.__class__.__name__}({self._specification!r})"
