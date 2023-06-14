@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from fondant.component_spec import ComponentSpec, KubeflowComponentSpec
+from fondant.component_spec import ComponentSpec, ComponentSubset, KubeflowComponentSpec
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Type
 
@@ -126,3 +126,15 @@ def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
     kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)
     expected_repr = f"KubeflowComponentSpec({valid_kubeflow_schema!r})"
     assert repr(kubeflow_component_spec) == expected_repr
+
+
+def test_component_subset_repr():
+    """Test that the __repr__ method of ComponentSubset returns the expected string."""
+    component_subset_schema = {
+        "name": "Example subset",
+        "description": "This is an example subset",
+    }
+
+    component_subset = ComponentSubset(component_subset_schema)
+    expected_repr = f"ComponentSubset({component_subset_schema!r})"
+    assert repr(component_subset) == expected_repr
