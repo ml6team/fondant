@@ -58,7 +58,7 @@ TODO: update this once kubeflow compiler is implemented
 ~~Once the pipeline is built, you need to initialize the client with the kubeflow host path (more info about the host path can be found in the [infrastructure documentation](https://github.com/ml6team/fondant/blob/main/docs/infrastructure.md))
 and use it to compile and run the pipeline with the `compile_and_run()` method. This performs static checking to ensure that all required arguments are provided to the components and that the required input data subsets are available. If the checks pass, a URL will be provided, allowing you to visualize and monitor the execution of your pipeline.~~
 
-### Docker-compose
+### Docker-Compose
 
 The DockerCompiler will take your pipeline and create a docker-compose.yml file where every component is added as a service with the correct dependencies by leveraging the `depends_on` functionality and the `service_completed_successfully` status. See the basic example below:
 
@@ -87,11 +87,11 @@ In order to compile your pipeline to a `docker-compose` spec you need to import 
 ```python
 from fondant.compiler import DockerCompiler
 
-compiler = DockerCompiler(pipeline=pipeline)
-compiler.compile()
+compiler = DockerCompiler()
+compiler.compile(pipeline=pipeline)
 ```
 
-The DockerCompiler will try to see if the `base_path` of the pipeline is local or remote. If local the base_path will be mounted as a bind volume on every service/component.
+The DockerCompiler will try to see if the `base_path` of the pipeline is local or remote. If local the `base_path` will be mounted as a bind volume on every service/component.
 
 
 #### Running a Docker compiled pipeline

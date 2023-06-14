@@ -22,6 +22,14 @@ class Compiler(ABC):
 
 @dataclass
 class DockerVolume:
+    """Dataclass representing a DockerVolume.
+    (https://docs.docker.com/compose/compose-file/05-services/#volumes)
+    Params:
+        type (str): the mount type volume (bind, volume)
+        source (str): the source of the mount, a path on the host for a bind mount
+        target (str): the path in the container where the volume is mounted.
+    """
+
     type: str
     source: str
     target: str
@@ -29,6 +37,12 @@ class DockerVolume:
 
 @dataclass
 class MetaData:
+    """Dataclass representing the metadata arguments of a pipeline.
+    Params:
+        run_id (str): identifier of the current pipeline run
+        base_path (str): the base path used to store the artifacts.
+    """
+
     run_id: str
     base_path: str
 
@@ -37,14 +51,14 @@ class DockerCompiler(Compiler):
     """Compiler that creates a docker-compose spec from a pipeline."""
 
     def compile(
-        self, pipeline: Pipeline, package_path: str = "docker-compose.yml"
+        self, pipeline: Pipeline, output_path: str = "docker-compose.yml"
     ) -> None:
-        """Compile a pipeline to docker-compose spec and save it to a specified package_path."""
+        """Compile a pipeline to docker-compose spec and save it to a specified output path."""
         logger.info(f"Compiling {pipeline.name} to docker-compose.yml")
         spec = self._generate_spec(pipeline=pipeline)
-        with open(package_path, "w") as outfile:
+        with open(output_path, "w") as outfile:
             yaml.safe_dump(spec, outfile)
-        logger.info(f"Successfully compiled to {package_path}")
+        logger.info(f"Successfully compiled to {output_path}")
 
     @staticmethod
     def _safe_component_name(component_name: str) -> str:

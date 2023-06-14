@@ -53,7 +53,7 @@ def test_docker_compiler(pipeline, tmp_path_factory):
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, package_path=output_path)
+        compiler.compile(pipeline=pipeline, output_path=output_path)
         with open(output_path, "r") as src, open(VALID_DOCKER_PIPELINE, "r") as truth:
             assert src.read() == truth.read()
 
@@ -66,7 +66,7 @@ def test_docker_local_path(pipeline, tmp_path_factory):
         work_dir = f"/{fn.stem}"
         pipeline.base_path = str(fn)
         compiler = DockerCompiler()
-        compiler.compile(pipeline=pipeline, package_path=fn / "docker-compose.yml")
+        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
 
         # read the generated docker-compose file
         with open(fn / "docker-compose.yml") as f_spec:
@@ -96,7 +96,7 @@ def test_docker_remote_path(pipeline, tmp_path_factory):
     pipeline.base_path = remote_dir
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
-        compiler.compile(pipeline=pipeline, package_path=fn / "docker-compose.yml")
+        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
 
         # read the generated docker-compose file
         with open(fn / "docker-compose.yml") as f_spec:
