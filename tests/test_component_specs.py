@@ -35,12 +35,6 @@ def invalid_fondant_schema() -> dict:
         return yaml.safe_load(f)
 
 
-@pytest.fixture
-def invalid_fondant_schema_arg_definition() -> dict:
-    with open(component_specs_path / "invalid_component_args.yaml") as f:
-        return yaml.safe_load(f)
-
-
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
     """Test that the manifest is validated correctly on instantiation."""
     ComponentSpec(valid_fondant_schema)
@@ -78,11 +72,3 @@ def test_component_spec_no_args(valid_fondant_schema_no_args):
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
     assert fondant_component.args == {}
-
-
-def test_component_spec_invalid_args(invalid_fondant_schema_arg_definition):
-    """Test that a component spec with both default and optional arguments are
-    validated correctly.
-    """
-    with pytest.raises(InvalidComponentSpec):
-        ComponentSpec(invalid_fondant_schema_arg_definition)

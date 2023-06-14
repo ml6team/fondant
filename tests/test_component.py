@@ -219,26 +219,38 @@ def test_default_and_optional_args_component(tmp_path_factory, monkeypatch):
             string_default_arg,
             integer_default_arg,
             float_default_arg,
-            bool_default_arg,
+            bool_true_default_arg,
+            bool_false_default_arg,
             list_default_arg,
             dict_default_arg,
-            override_default_string_arg,
-            non_optional_with_default,
-            non_optional_without_default,
-            optional_without_default,
+            string_default_arg_none,
+            integer_default_arg_none,
+            float_default_arg_none,
+            bool_default_arg_none,
+            list_default_arg_none,
+            dict_default_arg_none,
+            override_default_arg,
+            override_default_none_arg,
+            override_default_arg_with_none,
         ):
             float_const = 3.14
             # Mock write function that sinks final data to a local directory
             assert string_default_arg == "foo"
             assert integer_default_arg == 1
             assert float_default_arg == float_const
-            assert bool_default_arg is False
+            assert bool_false_default_arg is False
+            assert bool_true_default_arg is True
             assert list_default_arg == ["foo", "bar"]
             assert dict_default_arg == {"foo": 1, "bar": 2}
-            assert override_default_string_arg == "bar"
-            assert non_optional_with_default == "foo"
-            assert non_optional_without_default == "bar"
-            assert optional_without_default is None
+            assert string_default_arg_none is None
+            assert integer_default_arg_none is None
+            assert float_default_arg_none is None
+            assert bool_default_arg_none is None
+            assert list_default_arg_none is None
+            assert dict_default_arg_none is None
+            assert override_default_arg == "bar"
+            assert override_default_none_arg == float_const
+            assert override_default_arg_with_none is None
 
     # Mock CLI arguments
     sys.argv = [
@@ -251,10 +263,12 @@ def test_default_and_optional_args_component(tmp_path_factory, monkeypatch):
         "",
         "--component_spec",
         f"{component_spec_string}",
-        "--override_default_string_arg",
+        "--override_default_arg",
         "bar",
-        "--non_optional_without_default",
-        "bar",
+        "--override_default_none_arg",
+        "3.14",
+        "--override_default_arg_with_none",
+        "None",
     ]
 
     # # Instantiate and run component

@@ -18,12 +18,12 @@ from fondant.schema import Field, KubeflowCommandArguments, Type
 
 # TODO: remove after upgrading to kfpv2
 kubeflow2python_type = {
-    "String": str,
-    "Integer": int,
-    "Float": float,
-    "Boolean": ast.literal_eval,
-    "JsonObject": json.loads,
-    "JsonArray": json.loads,
+    "String": lambda value: str(value) if value != "None" else None,
+    "Integer": lambda value: int(value) if value != "None" else None,
+    "Float": lambda value: float(value) if value != "None" else None,
+    "Boolean": lambda value: ast.literal_eval(value) if value != "None" else None,
+    "JsonObject": lambda value: json.loads(value) if value != "None" else None,
+    "JsonArray": lambda value: json.loads(value) if value != "None" else None,
 }
 # TODO: Change after upgrading to kfp v2
 # :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
@@ -54,7 +54,6 @@ class Argument:
     description: str
     type: str
     default: t.Optional[str] = None
-    optional: t.Optional[bool] = False
 
 
 class ComponentSubset:
@@ -185,7 +184,6 @@ class ComponentSpec:
                 description=arg_info["description"],
                 type=arg_info["type"],
                 default=arg_info["default"] if "default" in arg_info else None,
-                optional=arg_info["optional"] if "optional" in arg_info else False,
             )
             for name, arg_info in self._specification.get("args", {}).items()
         }
@@ -243,11 +241,6 @@ class KubeflowComponentSpec:
                         "description": arg.description,
                         "type": python2kubeflow_type[arg.type],
                         **({"default": arg.default} if arg.default is not None else {}),
-                        **(
-                            {"optional": str(arg.optional)}
-                            if arg.optional is True
-                            else {}
-                        ),
                     }
                     for arg in fondant_component.args.values()
                 ),
@@ -318,9 +311,6 @@ class KubeflowComponentSpec:
                     description=info["description"],
                     type=info["type"],
                     default=info["default"] if "default" in info else None,
-                    optional=ast.literal_eval(info["optional"])
-                    if "optional" in info
-                    else False,
                 )
                 for info in self._specification["inputs"]
             }
