@@ -1,26 +1,21 @@
-"""
-A component that detects and redacts Personal Identifiable Information (PII) in code.
-"""
+"""A component that detects and redacts Personal Identifiable Information (PII) in code."""
 
 import json
 import logging
 
 import dask.dataframe as dd
+from pii_detection import scan_pii
+from pii_redaction import redact_pii
 
 from fondant.component import TransformComponent
 from fondant.logger import configure_logging
-
-from pii_detection import scan_pii
-from pii_redaction import redact_pii
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 
 class RemovePIIComponent(TransformComponent):
-    """
-    Component that detects and redacts PII from code.
-    """
+    """Component that detects and redacts PII from code."""
 
     def transform(
         self,
@@ -29,7 +24,7 @@ class RemovePIIComponent(TransformComponent):
     ) -> dd.DataFrame:
         """
         Args:
-            dataframe: Dask dataframe
+            dataframe: Dask dataframe.
 
         Returns:
             Dask dataframe

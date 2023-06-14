@@ -4,6 +4,7 @@ MIT License
 Copyright (c) 2021 Romain Beaumont
 """
 
+# ruff: noqa
 # mypy: ignore-errors
 
 import base64

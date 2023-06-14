@@ -1,8 +1,7 @@
+import ipaddress
 import json
 import random
 import string
-import ipaddress
-
 
 # List of random private IP addresses to use as replacements
 REPLACEMENTS_IP = {
@@ -49,7 +48,7 @@ def load_json(sample):
 
 
 def random_replacements(n=10):
-    """Build dictionaries of random replacements for PII (key, email, IP address)
+    """Build dictionaries of random replacements for PII (key, email, IP address).
 
     Emails: replace with one of n [random string of 5 characters + @example.com]
     IP addresses: replace with one of n synthetic private IP addresses (IPv4 or IPv6)
@@ -71,7 +70,7 @@ def random_replacements(n=10):
 
 
 def replace_ip(value, replacements_dict):
-    """Replace an IP address with a synthetic IP address of the same format"""
+    """Replace an IP address with a synthetic IP address of the same format."""
     try:
         ipaddress.IPv4Address(value)
         return random.choice(replacements_dict["IP_ADDRESS"]["IPv4"])
@@ -86,7 +85,7 @@ def replace_ip(value, replacements_dict):
 
 
 def is_private_ip(ip):
-    """Check if an IP address is allocated for private networks"""
+    """Check if an IP address is allocated for private networks."""
     ip = ipaddress.ip_address(ip)
     return ip.is_private
 
@@ -100,7 +99,7 @@ def redact_pii_text(text, secrets, replacements, add_references=False):
         add_references (bool): whether to add references to the redacted text (delimiters to PII)
         for visualization
     Returns:
-        text (str): new text with redacted secrets
+        text (str): new text with redacted secrets.
     """
     secrets = load_json(secrets)
     modified = False
@@ -158,7 +157,6 @@ def redact_pii(text, secrets, has_secrets, replacements):
 
     Slightly modified to only return the potentially updated text.
     """
-
     if has_secrets:
         new_text, _ = redact_pii_text(text, secrets, replacements)
         return new_text

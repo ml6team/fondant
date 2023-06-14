@@ -1,13 +1,10 @@
-"""
-This component retrieves image URLs from LAION-5B based on a set of CLIP embeddings.
-"""
+"""This component retrieves image URLs from LAION-5B based on a set of CLIP embeddings."""
 import asyncio
 import concurrent.futures
 import logging
 import typing as t
 
 import pandas as pd
-
 from clip_client import ClipClient, Modality
 
 from fondant.component import PandasTransformComponent
@@ -18,9 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class LAIONRetrievalComponent(PandasTransformComponent):
-    """
-    Component that retrieves image URLs from LAION-5B based on a set of CLIP embeddings.
-    """
+    """Component that retrieves image URLs from LAION-5B based on a set of CLIP embeddings."""
 
     def setup(
             self,
@@ -33,8 +28,10 @@ class LAIONRetrievalComponent(PandasTransformComponent):
 
         Args:
             num_images: number of images to retrieve for each prompt
-            aesthetic_score: ranking score for aesthetic embedding, higher is prettier, between 0 and 9.
-            aesthetic_weight: weight of the aesthetic embedding to add to the query, between 0 and 1.
+            aesthetic_score: ranking score for aesthetic embedding, higher is prettier,
+                between 0 and 9.
+            aesthetic_weight: weight of the aesthetic embedding to add to the query,
+                between 0 and 1.
         """
         self.client = ClipClient(
             url="https://knn.laion.ai/knn-service",
@@ -49,13 +46,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
             self,
             dataframe: pd.DataFrame,
     ) -> pd.DataFrame:
-        """
-        Args:
-            dataframe: Pandas dataframe
-
-        Returns:
-            Dask dataframe
-        """
+        """Asynchronously retrieve image URLs and ids based on prompts in the provided dataframe."""
         results: t.List[t.Tuple[str]] = []
         loop = asyncio.new_event_loop()
 
