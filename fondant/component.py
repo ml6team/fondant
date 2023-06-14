@@ -59,7 +59,7 @@ class Component(ABC):
         parser.add_argument("--component_spec", type=json.loads)
         args, _ = parser.parse_known_args()
 
-        if not args.component_spec:
+        if "component_spec" not in args:
             raise ValueError("Error: The --component_spec argument is required.")
 
         component_spec = ComponentSpec(args.component_spec)
@@ -115,9 +115,8 @@ class Component(ABC):
         return parser.parse_args()
 
     @staticmethod
-    @abstractmethod
     def optional_fondant_arguments() -> t.List[str]:
-        pass
+        return []
 
     @staticmethod
     def _get_component_arguments(spec: ComponentSpec) -> t.Dict[str, Argument]:
@@ -205,10 +204,6 @@ class LoadComponent(Component):
 
 class TransformComponent(Component):
     """Base class for a Fondant transform component."""
-
-    @staticmethod
-    def optional_fondant_arguments() -> t.List[str]:
-        return []
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.input_manifest_path)

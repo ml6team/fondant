@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "base_path": "/tmp/bucket",
+    "base_path": "/bucket",
     "run_id": "12345",
     "component_id": "67890"
   },

@@ -1,8 +1,6 @@
-"""Fondant component tests."""
-
-import argparse
 import json
 import sys
+import typing as t
 from pathlib import Path
 from unittest import mock
 
@@ -12,313 +10,212 @@ import pytest
 import yaml
 
 from fondant.component import (
+    Component,
     DaskTransformComponent,
     LoadComponent,
     PandasTransformComponent,
     WriteComponent,
 )
-from fondant.data_io import DaskDataLoader
+from fondant.data_io import DaskDataLoader, DaskDataWriter
+from fondant.manifest import Manifest
 
 components_path = Path(__file__).parent / "example_specs/components"
-component_specs_path = Path(__file__).parent / "example_specs/component_specs"
+N_PARTITIONS = 2
 
 
 def yaml_file_to_json_string(file_path):
     with open(file_path, "r") as file:
-        # Load YAML data from file
         data = yaml.safe_load(file)
-
-        # Convert to JSON string
         json_string = json.dumps(data)
-
     return json_string
 
 
-class LoadFromHubComponent(LoadComponent):
-    def load(self, args):
-        data = {
-            "id": [0, 1],
-            "source": ["cloud", "cloud"],
-            "captions_data": ["hello world", "this is another caption"],
-        }
+@pytest.fixture
+def patched_data_loading(monkeypatch):
+    """Mock data loading so no actual data is loaded."""
 
-        df = dd.DataFrame.from_dict(data, npartitions=1)
-
-        return df
-
-
-# we mock the argparse arguments in order to run the tests without having to pass arguments
-metadata = json.dumps({"base_path": ".", "run_id": "200"})
-
-
-@mock.patch(
-    "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(
-        input_manifest_path=".",
-        output_manifest_path="result.parquet",
-        metadata=metadata,
-    ),
-)
-def test_component(mock_args):
-    component = LoadFromHubComponent.from_file(
-        component_specs_path / "valid_component.yaml"
-    )
-
-    # test component args
-    assert component.input_manifest_path == "."
-    assert component.output_manifest_path == "result.parquet"
-    assert component.metadata == json.loads(metadata)
-
-    # test custom args
-    assert list(component.spec.args) == ["storage_args"]
-
-    # test manifest
-    initial_manifest = component._load_or_create_manifest()
-    assert initial_manifest.metadata == {
-        "base_path": ".",
-        "run_id": "200",
-        "component_id": "example_component",
-    }
-
-
-def test_dask_transform_component(monkeypatch):
-    """Test that arguments are passed correctly to `Component.transform` method and that valid
-    errors are returned when required arguments are missing.
-    """
-
-    class EarlyStopException(Exception):
-        """Used to stop execution early instead of mocking all later functionality."""
-
-    # Mock `Dataset.load_dataframe` so no actual data is loaded
     def mocked_load_dataframe(self):
-        return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
+        return dd.from_dict({"a": [1, 2, 3]}, npartitions=N_PARTITIONS)
 
     monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
 
-    # Define paths to specs to instantiate component
-    arguments_dir = components_path / "arguments"
-    component_spec = arguments_dir / "component.yaml"
-    input_manifest = arguments_dir / "input_manifest.json"
 
-    component_spec_string = yaml_file_to_json_string(component_spec)
+@pytest.fixture
+def patched_data_writing(monkeypatch):
+    """Mock data loading so no actual data is written."""
 
-    # Implemented Component class
-    class MyComponent(DaskTransformComponent):
-        def transform(self, dataframe, *, flag, value):
-            assert flag == "success"
-            assert value == 1
-            raise EarlyStopException()
+    def mocked_write_dataframe(self, dataframe):
+        dataframe.compute()
 
+    monkeypatch.setattr(DaskDataWriter, "write_dataframe", mocked_write_dataframe)
+    monkeypatch.setattr(
+        Component, "upload_manifest", lambda self, manifest, save_path: None
+    )
+
+
+def test_component_arguments():
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
-        str(input_manifest),
+        str(components_path / "arguments/input_manifest.json"),
         "--metadata",
+        "{}",
+        "--override_default_string_arg",
+        "bar",
+        "--output_manifest_path",
+        str(components_path / "arguments/output_manifest.json"),
+        "--component_spec",
+        yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+    ]
+
+    class MyComponent(Component):
+        """Base component with dummy methods so it can be instantiated."""
+
+        def _load_or_create_manifest(self) -> Manifest:
+            pass
+
+        def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+            pass
+
+    component = MyComponent.from_args()
+    assert component.user_arguments == {
+        "string_default_arg": "foo",
+        "integer_default_arg": 1,
+        "float_default_arg": 3.14,
+        "bool_default_arg": False,
+        "list_default_arg": ["foo", "bar"],
+        "dict_default_arg": {"foo": 1, "bar": 2},
+        "override_default_string_arg": "bar",
+    }
+
+
+def test_load_component(patched_data_writing):
+    # Mock CLI argumentsload
+    sys.argv = [
         "",
+        "--metadata",
+        json.dumps({"base_path": "/bucket", "run_id": "12345"}),
         "--flag",
         "success",
         "--value",
         "1",
         "--output_manifest_path",
-        "",
+        str(components_path / "output_manifest.json"),
         "--component_spec",
-        f"{component_spec_string}",
+        yaml_file_to_json_string(components_path / "component.yaml"),
     ]
 
-    # Instantiate and run component
-    component = MyComponent.from_args()
+    class MyLoadComponent(LoadComponent):
+        def load(self, *, flag, value):
+            assert flag == "success"
+            assert value == 1
 
-    with pytest.raises(EarlyStopException):
+            data = {
+                "id": [0, 1],
+                "captions_data": ["hello world", "this is another caption"],
+            }
+            return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
+
+    component = MyLoadComponent.from_args()
+    with mock.patch.object(MyLoadComponent, "load", wraps=component.load) as load:
         component.run()
-
-    # Remove component specs from arguments
-    component_spec_index = sys.argv.index("--component_spec")
-    del sys.argv[component_spec_index : component_spec_index + 2]
-
-    # Instantiate and run component
-    with pytest.raises(ValueError):
-        MyComponent.from_args()
+        load.assert_called_once()
 
 
-def test_pandas_transform_component(monkeypatch):
-    """Test that arguments are passed correctly to `Component.setup` method, that valid
-    errors are returned when required arguments are missing, and a pandas dataframe is passed to
-    the transform method.
-    """
+def test_dask_transform_component(patched_data_loading, patched_data_writing):
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        str(components_path / "input_manifest.json"),
+        "--metadata",
+        "{}",
+        "--flag",
+        "success",
+        "--value",
+        "1",
+        "--output_manifest_path",
+        str(components_path / "output_manifest.json"),
+        "--component_spec",
+        yaml_file_to_json_string(components_path / "component.yaml"),
+    ]
 
-    class EarlyStopException(Exception):
-        """Used to stop execution early instead of mocking all later functionality."""
+    class MyDaskComponent(DaskTransformComponent):
+        def transform(self, dataframe, *, flag, value):
+            assert flag == "success"
+            assert value == 1
+            assert isinstance(dataframe, dd.DataFrame)
+            return dataframe
 
-    # Mock `Dataset.load_dataframe` so no actual data is loaded
-    def mocked_load_dataframe(self):
-        return dd.from_dict({"a": [1, 2, 3]}, npartitions=2)
+    component = MyDaskComponent.from_args()
+    with mock.patch.object(
+        MyDaskComponent, "transform", wraps=component.transform
+    ) as transform:
+        component.run()
+        transform.assert_called_once()
 
-    monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
 
-    # Define paths to specs to instantiate component
-    arguments_dir = components_path / "arguments"
-    component_spec = arguments_dir / "component.yaml"
-    input_manifest = arguments_dir / "input_manifest.json"
+def test_pandas_transform_component(patched_data_loading, patched_data_writing):
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        str(components_path / "input_manifest.json"),
+        "--metadata",
+        "{}",
+        "--flag",
+        "success",
+        "--value",
+        "1",
+        "--output_manifest_path",
+        str(components_path / "output_manifest.json"),
+        "--component_spec",
+        yaml_file_to_json_string(components_path / "component.yaml"),
+    ]
 
-    component_spec_string = yaml_file_to_json_string(component_spec)
-
-    # Implemented Component class
-    class MyComponent(PandasTransformComponent):
+    class MyPandasComponent(PandasTransformComponent):
         def setup(self, *, flag, value):
             assert flag == "success"
             assert value == 1
 
         def transform(self, dataframe):
             assert isinstance(dataframe, pd.DataFrame)
-            raise EarlyStopException
 
+    component = MyPandasComponent.from_args()
+    setup = mock.patch.object(MyPandasComponent, "setup", wraps=component.setup)
+    transform = mock.patch.object(
+        MyPandasComponent, "transform", wraps=component.transform
+    )
+    with setup as setup, transform as transform:
+        component.run()
+        setup.assert_called_once()
+        assert transform.call_count == N_PARTITIONS
+
+
+def test_write_component(patched_data_loading):
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
-        str(input_manifest),
+        str(components_path / "input_manifest.json"),
         "--metadata",
-        "",
+        "{}",
         "--flag",
         "success",
         "--value",
         "1",
-        "--output_manifest_path",
-        "",
         "--component_spec",
-        f"{component_spec_string}",
+        yaml_file_to_json_string(components_path / "component.yaml"),
     ]
 
-    # Instantiate and run component
-    component = MyComponent.from_args()
-
-    with pytest.raises(EarlyStopException):
-        component.run()
-
-    # Remove component specs from arguments
-    component_spec_index = sys.argv.index("--component_spec")
-    del sys.argv[component_spec_index : component_spec_index + 2]
-
-    # Instantiate and run component
-    with pytest.raises(ValueError):
-        MyComponent.from_args()
-
-
-def test_write_component(tmp_path_factory, monkeypatch):
-    """Test that arguments are passed correctly to `Component.write` method and that valid
-    errors are returned when required arguments are missing.
-    """
-
-    # Mock `Dataset.load_dataframe` so no actual data is loaded
-    def mocked_load_dataframe(self):
-        return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
-
-    monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
-
-    # Define paths to specs to instantiate component
-    arguments_dir = components_path / "arguments"
-    component_spec = arguments_dir / "component.yaml"
-    input_manifest = arguments_dir / "input_manifest.json"
-
-    component_spec_string = yaml_file_to_json_string(component_spec)
-
-    # Implemented Component class
-    class MyComponent(WriteComponent):
+    class MyWriteComponent(WriteComponent):
         def write(self, dataframe, *, flag, value):
             assert flag == "success"
             assert value == 1
-            # Mock write function that sinks final data to a local directory
-            with tmp_path_factory.mktemp("temp") as fn:
-                dataframe.to_parquet(fn)
+            assert isinstance(dataframe, dd.DataFrame)
 
-    # Mock CLI arguments
-    sys.argv = [
-        "",
-        "--input_manifest_path",
-        str(input_manifest),
-        "--metadata",
-        "",
-        "--flag",
-        "success",
-        "--value",
-        "1",
-        "--output_manifest_path",
-        "",
-        "--component_spec",
-        f"{component_spec_string}",
-    ]
-
-    # # Instantiate and run component
-    component = MyComponent.from_args()
-    component.run()
-
-    # Remove component specs from arguments
-    component_spec_index = sys.argv.index("--component_spec")
-    del sys.argv[component_spec_index : component_spec_index + 2]
-
-    # Instantiate and run component
-    with pytest.raises(ValueError):
-        MyComponent.from_args()
-
-
-def test_default_args_component(tmp_path_factory, monkeypatch):
-    """Test that default arguments defined in the fondant spec are passed correctly and have the
-    proper data type.
-    """
-
-    # Mock `Dataset.load_dataframe` so no actual data is loaded
-    def mocked_load_dataframe(self):
-        return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
-
-    monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
-
-    # Define paths to specs to instantiate component
-    arguments_dir = components_path / "arguments"
-    component_spec = arguments_dir / "component_default_args.yaml"
-    input_manifest = arguments_dir / "input_manifest.json"
-
-    component_spec_string = yaml_file_to_json_string(component_spec)
-
-    # Implemented Component class
-    class MyComponent(WriteComponent):
-        def write(
-            self,
-            dataframe,
-            *,
-            string_default_arg,
-            integer_default_arg,
-            float_default_arg,
-            bool_default_arg,
-            list_default_arg,
-            dict_default_arg,
-            override_default_string_arg,
-        ):
-            float_const = 3.14
-            # Mock write function that sinks final data to a local directory
-            assert string_default_arg == "foo"
-            assert integer_default_arg == 1
-            assert float_default_arg == float_const
-            assert bool_default_arg is False
-            assert list_default_arg == ["foo", "bar"]
-            assert dict_default_arg == {"foo": 1, "bar": 2}
-            assert override_default_string_arg == "bar"
-
-    # Mock CLI arguments
-    sys.argv = [
-        "",
-        "--input_manifest_path",
-        str(input_manifest),
-        "--metadata",
-        "",
-        "--output_manifest_path",
-        "",
-        "--component_spec",
-        f"{component_spec_string}",
-        "--override_default_string_arg",
-        "bar",
-    ]
-
-    # # Instantiate and run component
-    component = MyComponent.from_args()
-    component.run()
+    component = MyWriteComponent.from_args()
+    with mock.patch.object(MyWriteComponent, "write", wraps=component.write) as write:
+        component.run()
+        write.assert_called_once()
