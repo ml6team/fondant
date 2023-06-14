@@ -56,7 +56,7 @@ class DockerCompiler(Compiler):
         self, pipeline: Pipeline, output_path: str = "docker-compose.yml"
     ) -> None:
         """Compile a pipeline to docker-compose spec and save it to a specified output path."""
-        logger.info(f"Compiling {pipeline.name} to docker-compose.yml")
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
         spec = self._generate_spec(pipeline=pipeline)
         with open(output_path, "w") as outfile:
             yaml.safe_dump(spec, outfile)

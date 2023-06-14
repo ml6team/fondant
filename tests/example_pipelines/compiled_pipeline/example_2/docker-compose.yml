@@ -1,6 +1,6 @@
 services:
   first_component:
-    build: .//Users/georgeslorre/ML6/internal/express/tests/example_pipelines/valid_pipeline/example_1
+    build: ./tests/example_pipelines/valid_pipeline/example_1
     command:
     - --metadata
     - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'

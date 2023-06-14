@@ -6,9 +6,9 @@ import yaml
 from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 
-COMPONENTS_PATH = Path(__file__).parent / "example_pipelines/valid_pipeline"
+COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
 
-VALID_DOCKER_PIPELINE = Path(__file__).parent / "example_pipelines/compiled_pipeline/"
+VALID_DOCKER_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
 
 TEST_PIPELINES = [
     (
