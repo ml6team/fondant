@@ -51,7 +51,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
     ) -> pd.DataFrame:
         """
         Args:
-            dataframe: Dask dataframe
+            dataframe: Pandas dataframe
 
         Returns:
             Dask dataframe
