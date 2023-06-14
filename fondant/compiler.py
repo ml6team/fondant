@@ -23,11 +23,12 @@ class Compiler(ABC):
 @dataclass
 class DockerVolume:
     """Dataclass representing a DockerVolume.
-    (https://docs.docker.com/compose/compose-file/05-services/#volumes)
-    Params:
-        type (str): the mount type volume (bind, volume)
-        source (str): the source of the mount, a path on the host for a bind mount
-        target (str): the path in the container where the volume is mounted.
+    (https://docs.docker.com/compose/compose-file/05-services/#volumes).
+
+    Args:
+        type: the mount type volume (bind, volume)
+        source: the source of the mount, a path on the host for a bind mount
+        target: the path in the container where the volume is mounted.
     """
 
     type: str
@@ -38,9 +39,10 @@ class DockerVolume:
 @dataclass
 class MetaData:
     """Dataclass representing the metadata arguments of a pipeline.
-    Params:
-        run_id (str): identifier of the current pipeline run
-        base_path (str): the base path used to store the artifacts.
+
+    Args:
+        run_id: identifier of the current pipeline run
+        base_path: the base path used to store the artifacts.
     """
 
     run_id: str

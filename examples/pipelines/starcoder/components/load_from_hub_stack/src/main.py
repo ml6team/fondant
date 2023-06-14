@@ -6,7 +6,6 @@ import logging
 
 import dask.dataframe as dd
 
-import fondant
 from fondant.component import LoadComponent
 from fondant.logger import configure_logging
 
@@ -36,7 +35,5 @@ class LoadFromHubComponent(LoadComponent):
 
 
 if __name__ == "__main__":
-    component = LoadFromHubComponent.from_file(
-        path="/component/src/fondant_component.yaml"
-    )
+    component = LoadFromHubComponent.from_args()
     component.run()

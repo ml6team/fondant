@@ -80,6 +80,16 @@
           },
           "description": {
             "type": "string"
+          },
+          "default": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
           }
         },
         "required": [

@@ -10,7 +10,7 @@ import dask.dataframe as dd
 import pytest
 import yaml
 
-from fondant.component import LoadComponent, TransformComponent
+from fondant.component import LoadComponent, TransformComponent, WriteComponent
 from fondant.data_io import DaskDataLoader
 
 components_path = Path(__file__).parent / "example_specs/components"
@@ -75,8 +75,10 @@ def test_component(mock_args):
     }
 
 
-def test_valid_transform_kwargs(monkeypatch):
-    """Test that arguments are passed correctly to `Component.transform` method."""
+def test_transform_component(monkeypatch):
+    """Test that arguments are passed correctly to `Component.transform` method and that valid
+    errors are returned when required arguments are missing.
+    """
 
     class EarlyStopException(Exception):
         """Used to stop execution early instead of mocking all later functionality."""
@@ -120,15 +122,23 @@ def test_valid_transform_kwargs(monkeypatch):
 
     # Instantiate and run component
     component = MyComponent.from_args()
+
     with pytest.raises(EarlyStopException):
         component.run()
 
+    # Remove component specs from arguments
+    component_spec_index = sys.argv.index("--component_spec")
+    del sys.argv[component_spec_index : component_spec_index + 2]
 
-def test_invalid_transform_kwargs(monkeypatch):
-    """Test that arguments are passed correctly to `Component.transform` method."""
+    # Instantiate and run component
+    with pytest.raises(ValueError):
+        MyComponent.from_args()
 
-    class EarlyStopException(Exception):
-        """Used to stop execution early instead of mocking all later functionality."""
+
+def test_write_component(tmp_path_factory, monkeypatch):
+    """Test that arguments are passed correctly to `Component.write` method and that valid
+    errors are returned when required arguments are missing.
+    """
 
     # Mock `Dataset.load_dataframe` so no actual data is loaded
     def mocked_load_dataframe(self):
@@ -141,14 +151,16 @@ def test_invalid_transform_kwargs(monkeypatch):
     component_spec = arguments_dir / "component.yaml"
     input_manifest = arguments_dir / "input_manifest.json"
 
-    yaml_file_to_json_string(component_spec)
+    component_spec_string = yaml_file_to_json_string(component_spec)
 
     # Implemented Component class
-    class MyComponent(TransformComponent):
-        def transform(self, dataframe, *, flag, value):
+    class MyComponent(WriteComponent):
+        def write(self, dataframe, *, flag, value):
             assert flag == "success"
             assert value == 1
-            raise EarlyStopException()
+            # Mock write function that sinks final data to a local directory
+            with tmp_path_factory.mktemp("temp") as fn:
+                dataframe.to_parquet(fn)
 
     # Mock CLI arguments
     sys.argv = [
@@ -163,8 +175,80 @@ def test_invalid_transform_kwargs(monkeypatch):
         "1",
         "--output_manifest_path",
         "",
+        "--component_spec",
+        f"{component_spec_string}",
     ]
+
+    # # Instantiate and run component
+    component = MyComponent.from_args()
+    component.run()
+
+    # Remove component specs from arguments
+    component_spec_index = sys.argv.index("--component_spec")
+    del sys.argv[component_spec_index : component_spec_index + 2]
 
     # Instantiate and run component
     with pytest.raises(ValueError):
         MyComponent.from_args()
+
+
+def test_default_args_component(tmp_path_factory, monkeypatch):
+    """Test that default arguments defined in the fondant spec are passed correctly and have the
+    proper data type.
+    """
+
+    # Mock `Dataset.load_dataframe` so no actual data is loaded
+    def mocked_load_dataframe(self):
+        return dd.from_dict({"a": [1, 2, 3]}, npartitions=1)
+
+    monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
+
+    # Define paths to specs to instantiate component
+    arguments_dir = components_path / "arguments"
+    component_spec = arguments_dir / "component_default_args.yaml"
+    input_manifest = arguments_dir / "input_manifest.json"
+
+    component_spec_string = yaml_file_to_json_string(component_spec)
+
+    # Implemented Component class
+    class MyComponent(WriteComponent):
+        def write(
+            self,
+            dataframe,
+            *,
+            string_default_arg,
+            integer_default_arg,
+            float_default_arg,
+            bool_default_arg,
+            list_default_arg,
+            dict_default_arg,
+            override_default_string_arg,
+        ):
+            float_const = 3.14
+            # Mock write function that sinks final data to a local directory
+            assert string_default_arg == "foo"
+            assert integer_default_arg == 1
+            assert float_default_arg == float_const
+            assert bool_default_arg is False
+            assert list_default_arg == ["foo", "bar"]
+            assert dict_default_arg == {"foo": 1, "bar": 2}
+            assert override_default_string_arg == "bar"
+
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        str(input_manifest),
+        "--metadata",
+        "",
+        "--output_manifest_path",
+        "",
+        "--component_spec",
+        f"{component_spec_string}",
+        "--override_default_string_arg",
+        "bar",
+    ]
+
+    # # Instantiate and run component
+    component = MyComponent.from_args()
+    component.run()
