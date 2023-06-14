@@ -8,5 +8,5 @@ bash scripts/build_explorer.sh
 
 To run the container use the command
 ```
-data_explorer --source LOCAL_FOLDER_TO_MOUNT [--port PORT --registry REGISTRY --tag TAG]
+fondant-explorer --source LOCAL_FOLDER_TO_MOUNT [--port PORT --registry REGISTRY --tag TAG]
 ```

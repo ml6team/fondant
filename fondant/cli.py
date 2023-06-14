@@ -1,3 +1,20 @@
+"""This file contains CLI script for the fondant package.
+
+To add a script, add a function to this file and add it to `pyproject.toml` file
+under the `[tool.poetry.scripts]` section.
+To add a script, use the following format:
+
+    [tool.poetry.scripts]
+    script_name = "fondant.cli:script_function"
+
+When installing the fondant package, the script will be available in the
+environment.
+
+e.g.
+
+    'fondant-explorer --source /path/to/data'
+    'script_name --arg1 --arg2''
+"""
 import argparse
 import logging
 import shlex
