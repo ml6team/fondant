@@ -35,7 +35,6 @@ def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[Dict]]:
     else:
         if os.path.exists(manifest_path):
             manifest = load_manifest(manifest_path)
-            LOGGER.warning(manifest)
         else:
             st.warning("This file path does not exist")
             manifest = None
@@ -50,7 +49,6 @@ def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[Dict]]:
     # filter on subset fields
     if subset:
         fields = manifest.subsets[subset].fields
-        LOGGER.warning(fields)
         fields = st.sidebar.multiselect("Fields", fields, default=fields)
         field_types = {
             f"{field}": manifest.subsets[subset].fields[field].type.name for field in fields}

@@ -2,12 +2,11 @@
 import logging
 
 import streamlit as st
-
-from .data import load_dataframe
-from .table import get_image_fields, get_numeric_fields
-from .widgets import (build_explorer_table, build_image_explorer,
-                      build_numeric_analysis_plots,
-                      build_numeric_analysis_table, build_sidebar)
+from data import load_dataframe
+from table import get_image_fields, get_numeric_fields
+from widgets import (build_explorer_table, build_image_explorer,
+                     build_numeric_analysis_plots,
+                     build_numeric_analysis_table, build_sidebar)
 
 LOGGER = logging.getLogger(__name__)
 # streamlit wide
