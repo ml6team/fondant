@@ -12,7 +12,7 @@ import torch
 from PIL import Image
 from transformers import BatchEncoding, BlipProcessor, BlipForConditionalGeneration
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -82,7 +82,7 @@ def caption_images(
     return pd.concat(results).to_frame()
 
 
-class CaptionImagesComponent(TransformComponent):
+class CaptionImagesComponent(DaskTransformComponent):
     """
     Component that captions images using a model from the Hugging Face hub.
     """
