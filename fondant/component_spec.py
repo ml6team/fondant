@@ -185,7 +185,7 @@ class ComponentSpec:
                 description=arg_info["description"],
                 type=arg_info["type"],
                 default=arg_info["default"] if "default" in arg_info else None,
-                optional=True if "optional" in arg_info else False,
+                optional=arg_info["optional"] if "optional" in arg_info else False,
             )
             for name, arg_info in self._specification.get("args", {}).items()
         }
@@ -318,7 +318,9 @@ class KubeflowComponentSpec:
                     description=info["description"],
                     type=info["type"],
                     default=info["default"] if "default" in info else None,
-                    optional=True if "optional" in info else False,
+                    optional=ast.literal_eval(info["optional"])
+                    if "optional" in info
+                    else False,
                 )
                 for info in self._specification["inputs"]
             }
