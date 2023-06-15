@@ -105,7 +105,7 @@ class Component(ABC):
 
             parser.add_argument(
                 f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],  # type: ignore
+                type=kubeflow2python_type(arg.type),  # type: ignore
                 required=input_required,
                 default=default,
                 help=arg.description,
