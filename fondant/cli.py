@@ -34,11 +34,7 @@ def run_data_explorer():
     parser.add_argument(
         "--data-directory",
         "-d",
-        help="Path to the source directory that contains the data produced by a fondant pipeline. \
-            Google cloud credentials: \
-            https://cloud.google.com/docs/authentication/application-default-credentials \
-            AWS credentials: https://docs.aws.amazon.com/sdkref/latest/guide/file-location.html \
-            ",
+        help="Path to the source directory that contains the data produced by a fondant pipeline.",
     )
     parser.add_argument(
         "--registry", "-r", default=DEFAULT_REGISTRY, help="Docker registry to use."
@@ -52,7 +48,17 @@ def run_data_explorer():
     parser.add_argument(
         "--credentials",
         "-c",
-        help="file path to Cloud credentials.",
+        help="""Path mapping of the source (local) and target (docker file system) credential paths
+             in the format of src:target
+             \nExamples:\n
+             Google Cloud: $HOME/.config/gcloud/application_default_credentials.json:/root/."
+             + "config/gcloud/application_default_credentials.json
+             AWS: HOME/.aws/credentials:/root/.aws/credentials
+             More info on
+             Google Cloud:
+             https: // cloud.google.com/docs/authentication/application-default-credentials
+             AWS: https: // docs.aws.amazon.com/sdkref/latest/guide/file-location.html
+        """,
     )
     args = parser.parse_args()
 
@@ -76,10 +82,14 @@ def run_data_explorer():
     ]
 
     if args.credentials:
+        # check if path is read only
+        if ":ro" not in args.credentials:
+            args.credentials += ":ro"
+
         cmd.extend(
             [
                 "-v",
-                f"{args.credentials}:/root/.config/gcloud/application_default_credentials.json:ro",
+                args.credentials,
             ]
         )
 
