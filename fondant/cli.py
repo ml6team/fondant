@@ -50,7 +50,10 @@ def run_data_explorer():
         "--port", "-p", default=DEFAULT_PORT, help="Port to expose the container on."
     )
     parser.add_argument(
-        "--credentials", "-c", default=DEFAULT_PORT, help="Cloud credentials."
+        "--credentials",
+        "-c",
+        default=DEFAULT_PORT,
+        help="file path to Cloud credentials.",
     )
     args = parser.parse_args()
 
@@ -92,4 +95,4 @@ def run_data_explorer():
     )
     logging.info(f"Access the explorer at http://localhost:{args.port}")
 
-    subprocess.call(cmd)  # nosec
+    subprocess.call(cmd, stdout=subprocess.PIPE)  # nosec
