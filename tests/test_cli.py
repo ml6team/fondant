@@ -27,7 +27,6 @@ def test_run_data_explorer(monkeypatch):
                     f"type=bind,source={data_directory},target=/artifacts",
                     f"{DEFAULT_REGISTRY}:{DEFAULT_TAG}",
                 ],
-                stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
             )
 
