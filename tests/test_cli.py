@@ -42,7 +42,7 @@ def test_run_data_explorer_no_source(monkeypatch, caplog):
 
         # mock_which.assert_not_called()
         assert (
-            "Please provide a source directory with the --data-directory or -d option."
+            "Please provide a source folder with the --data-directory or -d option."
             in caplog.text
         )
 
