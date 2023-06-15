@@ -4,7 +4,7 @@
 You can setup the data explorer container with the `fondant-explorer` CLI command, which is installed together with the Fondant python package.
 
 ```
-fondant-explorer --data-directory LOCAL_FOLDER_TO_MOUNT [--port PORT --registry REGISTRY --tag TAG]
+fondant-explorer --data-directory LOCAL_FOLDER_TO_MOUNT [--port PORT --container CONTAINER --tag TAG]
 ```
 
 ## Data explorer UI
