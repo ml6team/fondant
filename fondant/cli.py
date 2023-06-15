@@ -47,7 +47,7 @@ def run_data_explorer():
     )
     args = parser.parse_args()
 
-    if not args.source:
+    if not args.data_directory:
         logging.error(
             "Please provide a source folder with the --data-directory or -d option."
         )
@@ -63,7 +63,7 @@ def run_data_explorer():
         "-p",
         f"{args.port}:8501",
         "--mount",
-        f"type=bind,source={shlex.quote(args.source_folder)},target=/artifacts",
+        f"type=bind,source={shlex.quote(args.data_directory)},target=/artifacts",
         f"{shlex.quote(args.registry)}:{shlex.quote(args.tag)}",
     ]
 
