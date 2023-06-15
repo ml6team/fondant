@@ -50,3 +50,11 @@ def test_equality():
     assert Type("int8") != Type("float64")
     assert Type("int8").__eq__(Type("int8")) is True
     assert Type("int8").__eq__(Type("float64")) is False
+
+
+def test_inequality_wrong_type():
+    """Test inequality between different types."""
+    assert Type("int8").__eq__("int8") is False
+    assert Type("float64").__eq__("float64") is False
+    assert Type("int8").__eq__(5) is False
+    assert Type("float64").__eq__(0.9) is False
