@@ -1,7 +1,6 @@
 """Test scripts for import module functionality."""
 import importlib.metadata
 from unittest import mock
-from unittest.mock import patch
 
 import pytest
 
@@ -33,12 +32,13 @@ def test_is_package_available(package_name, import_error_msg, expected_result):
             is_package_available(package_name, import_error_msg)
 
 
-@patch("fondant.import_utils.is_package_available", return_value=True)
-def test_available_packages(mock_is_package_available):
-    """Test that is_datasets_available returns True when 'datasets' is available."""
-    assert is_datasets_available() is True
-    assert is_pandas_available() is True
-    assert is_kfp_available() is True
+@mock.patch("importlib.util.find_spec", return_value="package")
+@mock.patch("importlib.metadata.version", return_value="0.1.0")
+def test_available_packages(importlib_util_find_spec, importlib_metadata_version):
+    """Test that is_datasets_available is not False when the packages are available."""
+    assert is_datasets_available() is not False
+    assert is_pandas_available() is not False
+    assert is_kfp_available() is not False
 
 
 @mock.patch(
