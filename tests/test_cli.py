@@ -7,8 +7,8 @@ from fondant.cli import DEFAULT_PORT, DEFAULT_REGISTRY, DEFAULT_TAG, run_data_ex
 
 
 def test_run_data_explorer(monkeypatch):
-    source_dir = "/path/to/source"
-    monkeypatch.setattr("sys.argv", ["cli.py", "--source-folder", source_dir])
+    data_directory = "/path/to/source"
+    monkeypatch.setattr("sys.argv", ["cli.py", "--data-directory", data_directory])
 
     with patch("shutil.which") as mock_which:
         mock_which.return_value = "/usr/bin/docker"
@@ -24,7 +24,7 @@ def test_run_data_explorer(monkeypatch):
                     "-p",
                     f"{DEFAULT_PORT}:8501",
                     "--mount",
-                    f"type=bind,source={source_dir},target=/artifacts",
+                    f"type=bind,source={data_directory},target=/artifacts",
                     f"{DEFAULT_REGISTRY}:{DEFAULT_TAG}",
                 ],
                 stderr=subprocess.PIPE,
@@ -42,14 +42,14 @@ def test_run_data_explorer_no_source(monkeypatch, caplog):
 
         # mock_which.assert_not_called()
         assert (
-            "Please provide a source directory with the --source-folder or -s option."
+            "Please provide a source directory with the --data-directory or -d option."
             in caplog.text
         )
 
 
 def test_run_data_explorer_no_docker(monkeypatch, caplog):
     source_dir = "/path/to/source"
-    monkeypatch.setattr("sys.argv", ["cli.py", "--source-folder", source_dir])
+    monkeypatch.setattr("sys.argv", ["cli.py", "--data-directory", source_dir])
 
     with patch("shutil.which") as mock_which:
         mock_which.return_value = None
