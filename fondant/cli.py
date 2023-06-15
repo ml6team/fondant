@@ -37,7 +37,10 @@ def run_data_explorer():
         help="Path to the source directory that contains the data produced by a fondant pipeline.",
     )
     parser.add_argument(
-        "--registry", "-r", default=DEFAULT_REGISTRY, help="Docker registry to use."
+        "--container",
+        "-r",
+        default=DEFAULT_REGISTRY,
+        help="Docker container to use. Defaults to ghcr.io/ml6team/data_explorer.",
     )
     parser.add_argument(
         "--tag", "-t", default=DEFAULT_TAG, help="Docker image tag to use."
@@ -48,10 +51,13 @@ def run_data_explorer():
     args = parser.parse_args()
 
     if not args.data_directory:
-        logging.error(
-            "Please provide a source folder with the --data-directory or -d option."
+        logging.warning(
+            "You have not provided a data directory. \
+            To access local files, provide a local data directory with the --data-directory flag."
         )
-        return
+    else:
+        logging.info(f"Using data directory: {args.data_directory}")
+        logging.info("This directory will be mounted to /artifacts in the container.")
 
     if not shutil.which("docker"):
         logging.error("Docker runtime not found. Please install Docker and try again.")
@@ -62,10 +68,16 @@ def run_data_explorer():
         "run",
         "-p",
         f"{args.port}:8501",
-        "--mount",
-        f"type=bind,source={shlex.quote(args.data_directory)},target=/artifacts",
-        f"{shlex.quote(args.registry)}:{shlex.quote(args.tag)}",
     ]
+
+    if args.data_directory:
+        cmd.extend(["-v", f"{shlex.quote(args.data_directory)}:/artifacts"])
+
+    cmd.extend(
+        [
+            f"{shlex.quote(args.registry)}:{shlex.quote(args.tag)}",
+        ]
+    )
 
     logging.info(
         f"Running image from registry: {args.registry} with tag: {args.tag} on port: {args.port}"
