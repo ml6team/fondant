@@ -21,7 +21,7 @@ import shlex
 import shutil
 import subprocess  # nosec
 
-DEFAULT_REGISTRY = "ghcr.io/ml6team/data_explorer"
+DEFAULT_CONTAINER = "ghcr.io/ml6team/data_explorer"
 DEFAULT_TAG = "latest"
 DEFAULT_PORT = "8501"
 
@@ -37,7 +37,10 @@ def run_data_explorer():
         help="Path to the source directory that contains the data produced by a fondant pipeline.",
     )
     parser.add_argument(
-        "--registry", "-r", default=DEFAULT_REGISTRY, help="Docker registry to use."
+        "--container",
+        "-r",
+        default=DEFAULT_CONTAINER,
+        help="Docker container to use. Defaults to ghcr.io/ml6team/data_explorer.",
     )
     parser.add_argument(
         "--tag", "-t", default=DEFAULT_TAG, help="Docker image tag to use."
@@ -63,10 +66,14 @@ def run_data_explorer():
     args = parser.parse_args()
 
     if not args.data_directory:
-        logging.error(
-            "Please provide a source folder with the --data-directory or -d option."
+        logging.warning(
+            "You have not provided a data directory."
+            + "To access local files, provide a local data directory"
+            + " with the --data-directory flag."
         )
-        return
+    else:
+        logging.info(f"Using data directory: {args.data_directory}")
+        logging.info("This directory will be mounted to /artifacts in the container.")
 
     if not shutil.which("docker"):
         logging.error("Docker runtime not found. Please install Docker and try again.")
@@ -77,13 +84,12 @@ def run_data_explorer():
         "run",
         "-p",
         f"{args.port}:8501",
-        "--mount",
-        f"type=bind,source={shlex.quote(args.data_directory)},target=/artifacts",
     ]
 
+    # mount the credentials file to the container
     if args.credentials:
         # check if path is read only
-        if ":ro" not in args.credentials:
+        if not args.credentials.endswith(":ro"):
             args.credentials += ":ro"
 
         cmd.extend(
@@ -92,15 +98,25 @@ def run_data_explorer():
                 args.credentials,
             ]
         )
+    else:
+        logging.warning(
+            "You have not provided a credentials file. If you wish to access data "
+            "from a cloud provider, mount the credentials file with the --credentials flag."
+        )
 
+    # mount the local data directory to the container
+    if args.data_directory:
+        cmd.extend(["-v", f"{shlex.quote(args.data_directory)}:/artifacts"])
+
+    # add the image name
     cmd.extend(
         [
-            f"{shlex.quote(args.registry)}:{shlex.quote(args.tag)}",
+            f"{shlex.quote(args.container)}:{shlex.quote(args.tag)}",
         ]
     )
 
     logging.info(
-        f"Running image from registry: {args.registry} with tag: {args.tag} on port: {args.port}"
+        f"Running image from registry: {args.container} with tag: {args.tag} on port: {args.port}"
     )
     logging.info(f"Access the explorer at http://localhost:{args.port}")
 

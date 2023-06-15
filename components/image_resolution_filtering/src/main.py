@@ -1,21 +1,17 @@
-"""
-This component filters images of the dataset based on image size (minimum height and width).
-"""
+"""This component filters images of the dataset based on image size (minimum height and width)."""
 import logging
 
 import dask.dataframe as dd
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 
-class ImageFilterComponent(TransformComponent):
-    """
-    Component that filters images based on height and width.
-    """
+class ImageFilterComponent(DaskTransformComponent):
+    """Component that filters images based on height and width."""
 
     def transform(
         self, *, dataframe: dd.DataFrame, min_width: int, min_height: int
@@ -24,7 +20,7 @@ class ImageFilterComponent(TransformComponent):
         Args:
             dataframe: Dask dataframe
             min_width: min width to filter on
-            min_height: min height to filter on
+            min_height: min height to filter on.
 
         Returns:
             dataset

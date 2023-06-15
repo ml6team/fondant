@@ -27,7 +27,12 @@ def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[Dict]]:
     # text field for manifest path
     st.sidebar.title("Subset loader")
     # find all the files with filename `manifest.txt` in the `/artifacts` folder
-    manifest_path = st.sidebar.text_input("Manifest path", '/artifacts/manifest.txt')
+    manifest_path = st.sidebar.text_input("Manifest path",
+                                          help="""Path to the manifest file.
+                                          If a data directory is mounted, the files are under
+                                          `/artifacts`. Remote files can be accessed under
+                                          their URL (e.g. gs://bucket/folder/manifest.txt, if the
+                                          correct credentials are set up.""")
 
     # load manifest
     if not manifest_path:

@@ -6,6 +6,7 @@ MIT License
 
 Copyright (c) 2021 Romain Beaumont
 """
+# ruff: noqa
 
 import albumentations as A
 import cv2

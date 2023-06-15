@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "base_path": "/bucket",
+    "run_id": "12345",
+    "component_id": "67890"
+  },
+  "index": {
+    "location": "/index/12345/example_component"
+  },
+  "subsets": {
+  }
+}
