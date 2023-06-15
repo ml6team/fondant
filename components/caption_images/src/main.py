@@ -1,6 +1,4 @@
-"""
-This component that captions images using a model from the Hugging Face hub.
-"""
+"""This component that captions images using a model from the Hugging Face hub."""
 import io
 import logging
 import typing as t
@@ -10,9 +8,9 @@ import numpy as np
 import pandas as pd
 import torch
 from PIL import Image
-from transformers import BatchEncoding, BlipProcessor, BlipForConditionalGeneration
+from transformers import BatchEncoding, BlipForConditionalGeneration, BlipProcessor
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -29,14 +27,12 @@ def process_image(image: bytes, *, processor: BlipProcessor, device: str) -> tor
         device: The device to move the transformed image to.
     """
     def load(img: bytes) -> Image:
-        """Load the bytestring as an image"""
+        """Load the bytestring as an image."""
         bytes_ = io.BytesIO(img)
         return Image.open(bytes_).convert("RGB")
 
     def transform(img: Image) -> BatchEncoding:
-        """
-        Transform the image to a tensor using a processor and move it to the specified device.
-        """
+        """Transform the image to a tensor using a processor and move it to the specified device."""
         return processor(images=img, return_tensors="pt").to(device)
 
     return transform(load(image))["pixel_values"]
@@ -49,7 +45,7 @@ def caption_image_batch(
     processor: BlipProcessor,
     max_new_tokens: int
 ) -> pd.Series:
-    """Caption a batch of images"""
+    """Caption a batch of images."""
     input_batch = torch.cat(image_batch.tolist())
     output_batch = model.generate(pixel_values=input_batch, max_new_tokens=max_new_tokens)
     captions_batch = processor.batch_decode(output_batch, skip_special_tokens=True)
@@ -66,7 +62,7 @@ def caption_images(
     max_new_tokens: int,
     device: str,
 ) -> pd.DataFrame:
-    """Caption a pandas series of images"""
+    """Caption a pandas series of images."""
     images = images.apply(process_image, processor=processor, device=device)
     results: t.List[pd.Series] = []
     for batch in np.split(images, np.arange(batch_size, len(images), batch_size)):
@@ -82,10 +78,8 @@ def caption_images(
     return pd.concat(results).to_frame()
 
 
-class CaptionImagesComponent(TransformComponent):
-    """
-    Component that captions images using a model from the Hugging Face hub.
-    """
+class CaptionImagesComponent(DaskTransformComponent):
+    """Component that captions images using a model from the Hugging Face hub."""
 
     def transform(
         self,
@@ -99,7 +93,7 @@ class CaptionImagesComponent(TransformComponent):
             dataframe: Dask dataframe
             model_id: id of the model on the Hugging Face hub
             batch_size: batch size to use
-            max_new_tokens: maximum token length of each caption
+            max_new_tokens: maximum token length of each caption.
 
         Returns:
             Dask dataframe

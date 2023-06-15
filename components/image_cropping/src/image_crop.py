@@ -1,6 +1,4 @@
-"""
-This file contains the image cropping logic
-"""
+"""This file contains the image cropping logic."""
 import io
 import typing as t
 
@@ -9,7 +7,7 @@ from PIL import Image, ImageChops, ImageOps
 
 
 def most_common(lst: t.Sequence[t.Tuple]) -> t.Tuple:
-    """Get the most common element from a list
+    """Get the most common element from a list.
 
     Args:
         lst (List): input list
@@ -21,7 +19,7 @@ def most_common(lst: t.Sequence[t.Tuple]) -> t.Tuple:
 
 
 def get_image_borders(image: Image.Image) -> t.Tuple:
-    """Get the most common color from the image borders
+    """Get the most common color from the image borders.
 
     Args:
         image (Image.Image): input image

@@ -5,7 +5,6 @@ import itertools
 import logging
 
 import dask.dataframe as dd
-import dask.array as da
 import pandas as pd
 
 from fondant.component import LoadComponent

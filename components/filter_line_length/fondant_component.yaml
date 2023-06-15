@@ -1,0 +1,24 @@
+name: Filter line length
+description: Component that filters code based on line length
+image: ghcr.io/ml6team/filter_line_length:latest
+
+consumes:
+  code:
+    fields:
+      avg_line_length:
+        type: float64
+      max_line_length:
+        type: int32
+      alphanum_fraction:
+        type: float64
+
+args:
+  avg_line_length_threshold:
+    description: Threshold for average line length to filter on
+    type: int
+  max_line_length_threshold:
+    description: Threshold for maximum line length to filter on
+    type: int
+  alphanum_fraction_threshold:
+    description: Alphanum fraction to filter on
+    type: float

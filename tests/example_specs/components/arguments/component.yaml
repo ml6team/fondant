@@ -3,9 +3,66 @@ description: This is an example component
 image: example_component:latest
 
 args:
-  flag:
-    description: user argument
+  string_default_arg:
+    description: default string argument
     type: str
-  value:
-    description: integer value
+    default: foo
+  integer_default_arg:
+    description: default integer argument
     type: int
+    default: 1
+  float_default_arg:
+    description: default float argument
+    type: float
+    default: 3.14
+  bool_false_default_arg:
+    description: default bool argument
+    type: bool
+    default: 'False'
+  bool_true_default_arg:
+    description: default bool argument
+    type: bool
+    default: 'True'
+  list_default_arg:
+    description: default list argument
+    type: list
+    default: '["foo", "bar"]'
+  dict_default_arg:
+    description: default dict argument
+    type: dict
+    default: '{"foo":1, "bar":2}'
+  string_default_arg_none:
+    description: default string argument
+    type: str
+    default: None
+  integer_default_arg_none:
+    description: default integer argument
+    type: int
+    default: None
+  float_default_arg_none:
+    description: default float argument
+    type: float
+    default: None
+  bool_default_arg_none:
+    description: default bool argument
+    type: bool
+    default: None
+  list_default_arg_none:
+    description: default list argument
+    type: list
+    default: None
+  dict_default_arg_none:
+    description: default dict argument
+    type: dict
+    default: None
+  override_default_arg:
+    description: argument with default python value type that can be overriden
+    type: str
+    default: foo
+  override_default_none_arg:
+    description: argument with default None value type that can be overriden with a valid python type
+    type: float
+    default: None
+  override_default_arg_with_none:
+    description: argument with default python type that can be overriden with None
+    type: str
