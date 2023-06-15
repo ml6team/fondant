@@ -1,6 +1,4 @@
-"""
-This component filters code based on a set of metadata associated with it.
-"""
+"""This component filters code based on a set of metadata associated with it."""
 import logging
 
 import dask.dataframe as dd
@@ -33,9 +31,8 @@ class FilterLineLengthComponent(TransformComponent):
             max_line_length_threshold: Threshold for max line length to filter on
             alphanum_fraction_threshold: Alphanum fraction to filter on
         Returns:
-            Filtered dask dataframe
+            Filtered dask dataframe.
         """
-
         filtered_df = dataframe[
             (dataframe["code_avg_line_length"] > avg_line_length_threshold)
             & (dataframe["code_max_line_length"] > max_line_length_threshold)

@@ -1,18 +1,15 @@
-"""
-This component that segments images using a model from the Hugging Face hub.
-"""
+"""This component that segments images using a model from the Hugging Face hub."""
 import io
 import logging
 import typing as t
 
 import dask.dataframe as dd
-from PIL import Image
-import pandas as pd
 import numpy as np
-from transformers import BatchFeature, SegformerImageProcessor, AutoModelForSemanticSegmentation
+import pandas as pd
 import torch
-
 from palette import palette
+from PIL import Image
+from transformers import AutoModelForSemanticSegmentation, BatchFeature, SegformerImageProcessor
 
 from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
@@ -53,13 +50,13 @@ def process_image(image: bytes, *, processor: SegformerImageProcessor, device: s
         device: The device to move the transformed image to.
     """
     def load(img: bytes) -> Image:
-        """Load the bytestring as an image"""
+        """Load the bytestring as an image."""
         bytes_ = io.BytesIO(img)
         return Image.open(bytes_).convert("RGB")
 
     def transform(img: Image) -> BatchFeature:
-        """
-        Transform the image to a tensor using a clip processor and move it to the specified device.
+        """Transform the image to a tensor using a clip processor and move it to the specified
+        device.
         """
         return processor(images=img, return_tensors="pt").to(device)
 
@@ -69,7 +66,7 @@ def process_image(image: bytes, *, processor: SegformerImageProcessor, device: s
 @torch.no_grad()
 def segment_image_batch(image_batch: pd.DataFrame, *, model: AutoModelForSemanticSegmentation,
                         processor: SegformerImageProcessor) -> pd.Series:
-    """Embed a batch of images"""
+    """Embed a batch of images."""
     input_batch = torch.cat(image_batch.tolist())
     output_batch = model(input_batch)
     post_processed_batch = processor.post_process_semantic_segmentation(
@@ -87,7 +84,7 @@ def segment_images(
         batch_size: int,
         device: str,
 ):
-    """Segment a pandas series of images"""
+    """Segment a pandas series of images."""
     images = images.apply(process_image, processor=processor, device=device)
     results: t.List[pd.Series] = []
     for batch in np.split(images, np.arange(batch_size, len(images), batch_size)):
@@ -103,9 +100,7 @@ def segment_images(
 
 
 class SegmentImagesComponent(DaskTransformComponent):
-    """
-    Component that segments images using a model from the Hugging Face hub.
-    """
+    """Component that segments images using a model from the Hugging Face hub."""
 
     def transform(
         self,
@@ -117,7 +112,7 @@ class SegmentImagesComponent(DaskTransformComponent):
         Args:
             dataframe: Dask dataframe
             model_id: id of the model on the Hugging Face hub
-            batch_size: batch size to use
+            batch_size: batch size to use.
 
         Returns:
             Dask dataframe

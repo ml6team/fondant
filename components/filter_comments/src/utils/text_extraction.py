@@ -1,5 +1,5 @@
-""" This code is adapted from BigScience PII detection
-https://github.com/bigcode-project/bigcode-dataset/blob/main/preprocessing/filtering.py
+"""This code is adapted from BigScience PII detection
+https://github.com/bigcode-project/bigcode-dataset/blob/main/preprocessing/filtering.py.
 
 MST BigScience PII Code
 Original colab that is a source of this file is located at
@@ -17,11 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import typing as t
-import tokenize
-import warnings
 import ast
 import io
+import tokenize
+import typing as t
+import warnings
 from itertools import groupby
 
 NODE_TYPES = {
@@ -56,13 +56,14 @@ def parse_docstrings(source):
 # comment extraction
 def get_comments(source: str) -> str:
     """
-    Returns a string including all comments in python code
+    Returns a string including all comments in python code.
+
     Args:
         source: the code to parse
-    Returns:
-        The script comments
-    """
 
+    Returns:
+        The script comments.
+    """
     comments = []
     g = tokenize.generate_tokens(io.StringIO(source).readline)
     for toknum, tokval, _, _, _ in g:
@@ -76,10 +77,12 @@ def get_comments(source: str) -> str:
 def get_docstrings(source: str) -> t.List[str]:
     """
     Parse Python source code from file or string and print docstrings.
+
     Args:
         source: the code to parse
+
     Returns:
-        A list containing the script docstrings
+        A list containing the script docstrings.
     """
     if hasattr(source, "read"):
         source = source.read()
@@ -99,16 +102,18 @@ def get_docstrings(source: str) -> t.List[str]:
 
 def get_text_python(source: str, extract_comments: bool = True) -> str:
     """Extract all natural text in source: comments + docstrings
-    the extraction fails in case of syntax errors in the file
+    the extraction fails in case of syntax errors in the file.
+
     Args:
         source: the code to parse
-        comments: if True extract comments too
-    Returns:
-        A string with concatenated docstrings and comments"""
+        extract_comments: if True extract comments too
 
+    Returns:
+        A string with concatenated docstrings and comments.
+    """
     try:
         docstrings = "\n".join(get_docstrings(source))
-    except:
+    except Exception:
         docstrings = ""
         warnings.warn(
             "code couldn't be parsed due to compilation failure, no docstring is extracted"
@@ -117,7 +122,7 @@ def get_text_python(source: str, extract_comments: bool = True) -> str:
     if extract_comments:
         try:
             comments = get_comments(source)
-        except:
+        except Exception:
             comments = ""
             warnings.warn("tokenization error, no comments are extracted")
     else:
@@ -133,9 +138,8 @@ def get_comments_to_code_ratio(text: str) -> float:
     Args:
         text: the string source code
     Returns:
-        The comments to code ratio
+        The comments to code ratio.
     """
-
     comments = get_text_python(text)
 
     return len(comments) / len(text)

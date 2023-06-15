@@ -1,25 +1,22 @@
-"""
-This component crops images by removing the borders.
-"""
+"""This component crops images by removing the borders."""
 import io
 import logging
 import typing as t
 
-import numpy as np
-from PIL import Image
 import dask.dataframe as dd
+import numpy as np
+from image_crop import remove_borders
+from PIL import Image
 
 from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
-
-from image_crop import remove_borders
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 
 def extract_dimensions(image_df: dd.DataFrame) -> t.Tuple[np.int16, np.int16]:
-    """Extract the width and height of an image
+    """Extract the width and height of an image.
 
     Args:
         image_df (dd.DataFrame): input dataframe with images_data column
@@ -34,9 +31,7 @@ def extract_dimensions(image_df: dd.DataFrame) -> t.Tuple[np.int16, np.int16]:
 
 
 class ImageCroppingComponent(DaskTransformComponent):
-    """
-    Component that crops images
-    """
+    """Component that crops images."""
 
     def transform(
         self,
@@ -49,7 +44,7 @@ class ImageCroppingComponent(DaskTransformComponent):
         Args:
             dataframe (dd.DataFrame): Dask dataframe
             cropping_threshold (int): threshold parameter used for detecting borders
-            padding (int): padding for the image cropping
+            padding (int): padding for the image cropping.
 
         Returns:
             dd.DataFrame: Dask dataframe with cropped images
