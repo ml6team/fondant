@@ -93,7 +93,6 @@ class Component(ABC):
         component_arguments = cls._get_component_arguments(spec)
 
         for arg in component_arguments.values():
-            # Input manifest is not required for loading component
             if arg.name in cls.optional_fondant_arguments():
                 input_required = False
                 default = None
@@ -106,7 +105,7 @@ class Component(ABC):
 
             parser.add_argument(
                 f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],  # type: ignore
+                type=kubeflow2python_type(arg.type),  # type: ignore
                 required=input_required,
                 default=default,
                 help=arg.description,

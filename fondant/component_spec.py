@@ -17,7 +17,7 @@ from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Field, KubeflowCommandArguments, Type
 
 # TODO: remove after upgrading to kfpv2
-kubeflow2python_type = {
+kubeflow_to_python_type_dict = {
     "String": str,
     "Integer": int,
     "Float": float,
@@ -25,6 +25,13 @@ kubeflow2python_type = {
     "JsonObject": json.loads,
     "JsonArray": json.loads,
 }
+
+
+def kubeflow2python_type(type_: str) -> t.Any:
+    map_fn = kubeflow_to_python_type_dict[type_]
+    return lambda value: map_fn(value) if value != "None" else None  # type: ignore
+
+
 # TODO: Change after upgrading to kfp v2
 # :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
 python2kubeflow_type = {
@@ -47,7 +54,6 @@ class Argument:
         description: argument description
         type: the python argument type (str, int, ...)
         default: default value of the argument (defaults to None)
-
     """
 
     name: str
@@ -234,6 +240,7 @@ class KubeflowComponentSpec:
                     "name": "component_spec",
                     "description": "The component specification as a dictionary",
                     "type": "JsonObject",
+                    "default": "None",
                 },
                 *(
                     {

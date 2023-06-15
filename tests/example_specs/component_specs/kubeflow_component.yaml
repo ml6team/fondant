@@ -10,6 +10,7 @@ inputs:
 -   name: component_spec
     description: The component specification as a dictionary
     type: JsonObject
+    default: None
 -   name: storage_args
     description: Storage arguments
     type: String
