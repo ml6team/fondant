@@ -8,6 +8,7 @@ repos:
       - id: ruff
         files:  |
             (?x)^(
+                components/.*|
                 fondant/.*|
                 tests/.*|
             )$

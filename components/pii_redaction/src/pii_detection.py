@@ -5,7 +5,7 @@ from utils.keys_detection import detect_keys
 
 
 def postprocess_secrets(secrets):
-    """Postprocess the secrets found by the scan_secrets function"""
+    """Postprocess the secrets found by the scan_secrets function."""
     if secrets:
         matches = json.dumps(secrets)
         has_secrets = True
@@ -20,7 +20,7 @@ def scan_pii(text, key_detector="other"):
     This add 3 columns to the dataset:
     - secrets: (list) of secrets/PII found
     - has_secrets: (bool) whether the example contains secrets/PII
-    - num_secrests (int) number of secrets
+    - num_secrests (int) number of secrets.
     """
     secrets = []
     if key_detector == "regex":

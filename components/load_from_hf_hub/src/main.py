@@ -1,6 +1,4 @@
-"""
-This component loads a seed dataset from the hub.
-"""
+"""This component loads a seed dataset from the hub."""
 import io
 import logging
 
@@ -35,12 +33,11 @@ class LoadFromHubComponent(LoadComponent):
     def load(self, *, dataset_name: str) -> dd.DataFrame:
         """
         Args:
-            dataset_name: name of the dataset to load
+            dataset_name: name of the dataset to load.
 
         Returns:
             Dataset: HF dataset
         """
-
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the hub...")
         dask_df = dd.read_parquet(f"hf://datasets/{dataset_name}")

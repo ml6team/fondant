@@ -1,5 +1,5 @@
-""" This code is adapted from BigScience PII detection 
-https://github.com/bigscience-workshop/data-preparation/blob/main/preprocessing/training/02_pii/bigscience_pii_detect_redact.py
+"""This code is adapted from BigScience PII detection
+https://github.com/bigscience-workshop/data-preparation/blob/main/preprocessing/training/02_pii/bigscience_pii_detect_redact.py.
 
 MST BigScience PII Code
 Original colab that is a source of this file is located at
@@ -17,13 +17,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys
-import regex
 import ipaddress
+import sys
 
+import regex
 from gibberish_detector import detector
 
 # Regexes for PII detection
+# ruff: noqa: E501
 
 year_patterns = [
     regex.compile(
@@ -82,7 +83,6 @@ email_pattern = r"""
 
 def get_regexes(high_risk_tags={"EMAIL", "IP_ADDRESS", "KEY"}):
     """Returns a dict of regexes to match the PII in high_risk_tags."""
-
     key_regex = regex.compile(key_pattern_2, flags=regex.MULTILINE)
     ipv4_regex = regex.compile(ipv4_pattern)
     ipv6_regex = regex.compile(ipv6_pattern)
@@ -109,7 +109,8 @@ def get_regexes(high_risk_tags={"EMAIL", "IP_ADDRESS", "KEY"}):
 
 def ip_has_digit(matched_str):
     """Checks to make sure the PII span is not just :: or whatever that may
-    accidentally be picked up by making sure there are digits."""
+    accidentally be picked up by making sure there are digits.
+    """
     return any(map(str.isdigit, matched_str))
 
 
@@ -123,10 +124,11 @@ def matches_date_pattern(matched_str):
 
 def filter_versions(matched_str, context):
     """Filter addresses in this format x.x.x.x  and the words dns/server
-    don't appear in the neighboring context, usually they are just versions"""
+    don't appear in the neighboring context, usually they are just versions.
+    """
     # count occurrence of dots
     dot_count = matched_str.count(".")
-    exclude = dot_count == 3 and len(matched_str) == 7
+    exclude = dot_count == 3 and len(matched_str) == 7  # noqa: PLR2004 (magic value)
     if exclude:
         if "dns" in context.lower() or "server" in context.lower():
             return False
@@ -134,9 +136,10 @@ def filter_versions(matched_str, context):
 
 
 def not_ip_address(matched_str):
-    """make sure the string has a valid IP address format
+    """Make sure the string has a valid IP address format
     e.g: 33.01.33.33 is not a valid IP address because of the 0 in front of 1
-    TODO: fix this directly in the regex"""
+    TODO: fix this directly in the regex.
+    """
     try:
         ipaddress.ip_address(matched_str)
         return False
@@ -145,9 +148,10 @@ def not_ip_address(matched_str):
 
 
 def is_gibberish(matched_str):
-    """Checks to make sure the PII span is gibberish and not word like"""
+    """Checks to make sure the PII span is gibberish and not word like."""
     # pip install gibberish-detector
-    # download the training corpora from https://raw.githubusercontent.com/domanchi/gibberish-detector/master/examples/big.txt
+    # download the training corpora from
+    # https://raw.githubusercontent.com/domanchi/gibberish-detector/master/examples/big.txt
     # run gibberish-detector train big.txt > big.model to generate the model (it takes 3 seconds)
     Detector = detector.create_from_model("gibberish_data/big.model")
     return Detector.is_gibberish(matched_str.lower())
@@ -159,6 +163,7 @@ def detect_email_addresses(content, tag_types={"EMAIL", "IP_ADDRESS"}):
       content (str): A string containing the text to be analyzed.
       tag_types (set): A set of tag types to be detected. Defaults to EMAIL and IP_ADDRESS.
       you can add 'KEY' to detect keys with a regex.
+
     Returns:
         A list of dicts containing the tag type, the matched string, and the start and
         end indices of the match.
