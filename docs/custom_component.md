@@ -70,12 +70,11 @@ The `transform` method is called multiple times, each time containing a pandas `
 loaded in memory.
 
 The `dataframes` passed to the `transform` method contains the data specified in the `produces` 
-section of the component specification, with column names formatted as `{subset}_{field}`. So if 
-a component defines that it consumes an `images` subset with a `data` field, the dataframe will 
-contain a column called `images_data`.
+section of the component specification. If a component defines that it consumes an `images` subset 
+with a `data` field, this data can be accessed using `dataframe["images"]["data"]`.
 
 The `transform` method should return a single dataframe, with the columns complying to the 
-`{subset}_{field}` format matching the `produces` section of the component specification.
+`[subset][field]` format matching the `produces` section of the component specification.
 
 Note that the `main.py` script can be split up into several Python scripts in case it would become 
 prohibitively long. See the 
