@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
         # build tabs
         tab_explorer, tab_numeric, tab_images = st.tabs(
-            ["Data explorer", "Numeric analysis", "Image explorer"]
+            ["Data explorer", "Numerical analysis", "Image explorer"]
         )
 
         # explorer tab with table of the dataset

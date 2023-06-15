@@ -12,7 +12,7 @@ environment.
 
 e.g.
 
-    'fondant-explorer --source /path/to/data'
+    'fondant-explorer --data-directory /path/to/data'
     'script_name --arg1 --arg2''
 """
 import argparse
@@ -31,7 +31,11 @@ def run_data_explorer():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Run the data explorer container.")
-    parser.add_argument("--source", "-s", help="Path to the source directory.")
+    parser.add_argument(
+        "--data-directory",
+        "-d",
+        help="Path to the source directory that contains the data produced by a fondant pipeline.",
+    )
     parser.add_argument(
         "--registry", "-r", default=DEFAULT_REGISTRY, help="Docker registry to use."
     )
@@ -43,9 +47,9 @@ def run_data_explorer():
     )
     args = parser.parse_args()
 
-    if not args.source:
+    if not args.data_directory:
         logging.error(
-            "Please provide a source directory with the --source or -s option."
+            "Please provide a source folder with the --data-directory or -d option."
         )
         return
 
@@ -59,7 +63,7 @@ def run_data_explorer():
         "-p",
         f"{args.port}:8501",
         "--mount",
-        f"type=bind,source={shlex.quote(args.source)},target=/artifacts",
+        f"type=bind,source={shlex.quote(args.data_directory)},target=/artifacts",
         f"{shlex.quote(args.registry)}:{shlex.quote(args.tag)}",
     ]
 
@@ -68,4 +72,4 @@ def run_data_explorer():
     )
     logging.info(f"Access the explorer at http://localhost:{args.port}")
 
-    subprocess.call(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)  # nosec
+    subprocess.call(cmd, stdout=subprocess.PIPE)  # nosec

@@ -1,13 +1,14 @@
 """Pipeline used to create the dataset to train the StarCoder model."""
 
-from fondant.pipeline import Client, ComponentOp, Pipeline
-from fondant.logger import configure_logging
-from pipeline_configs import PipelineConfigs
 import logging
 import sys
 
 sys.path.append("../")
 
+from pipeline_configs import PipelineConfigs
+
+from fondant.logger import configure_logging
+from fondant.pipeline import Client, ComponentOp, Pipeline
 
 configure_logging()
 logger = logging.getLogger(__name__)
