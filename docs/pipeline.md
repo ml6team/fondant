@@ -98,10 +98,25 @@ compiler.compile(pipeline=pipeline)
 
 The DockerCompiler will try to see if the `base_path` of the pipeline is local or remote. If local the `base_path` will be mounted as a bind volume on every service/component.
 
+If you want to use remote paths (GCS, S3, etc.) you can use the `extra_volumes` argument to mount extra credentials. This volume will be mounten to every component/serice of the docker-compose spec.
+
+```python
+from fondant.compiler import DockerCompiler
+
+extra_volumes = [
+    # example for GCP, this mounts your application default credentials to the docker container
+    "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro"
+    # exaple for AWS, this mounts your current credentials to the docker container
+    "$HOME/.aws/credentials:/root/.aws/credentials:ro"
+]
+
+compiler = DockerCompiler()
+compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
+```
 
 #### Running a Docker compiled pipeline
 
-Navigate to the folder where your docker compose is located and run (you need to have [docker-compose](https://docs.docker.com/compose/install/) installed)
+Navigate to the folder where your docker compose is located and run (you need to have a recent version of [docker-compose](https://docs.docker.com/compose/install/) installed)
 ```bash
 docker compose up
 ```
