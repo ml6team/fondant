@@ -6,63 +6,84 @@ import yaml
 from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 
-COMPONENTS_PATH = Path(__file__).parent / "example_pipelines/valid_pipeline"
+COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
 
-VALID_DOCKER_PIPELINE = (
-    Path(__file__).parent / "example_pipelines/compiled_pipeline/docker-compose.yml"
-)
+VALID_DOCKER_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
 
 TEST_PIPELINES = [
     (
         "example_1",
-        ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
+        [
+            ComponentOp(
+                Path(COMPONENTS_PATH / "example_1" / "first_component.yaml"),
+                arguments={"storage_args": "a dummy string arg"},
+            ),
+            ComponentOp(
+                Path(COMPONENTS_PATH / "example_1" / "second_component.yaml"),
+                arguments={"storage_args": "a dummy string arg"},
+            ),
+            ComponentOp(
+                Path(COMPONENTS_PATH / "example_1" / "third_component.yaml"),
+                arguments={"storage_args": "a dummy string arg"},
+            ),
+        ],
+    ),
+    (
+        "example_2",
+        [
+            ComponentOp(
+                Path(COMPONENTS_PATH / "example_1" / "first_component.yaml"),
+                arguments={"storage_args": "a dummy string arg"},
+            ),
+            ComponentOp.from_registry(
+                name="image_cropping", arguments={"cropping_threshold": 0, "padding": 0}
+            ),
+        ],
     ),
 ]
 
 
 @pytest.fixture(params=TEST_PIPELINES)
-def pipeline(request, tmp_path, monkeypatch):
+def setup_pipeline(request, tmp_path, monkeypatch):
     pipeline = Pipeline(
         pipeline_name="test_pipeline",
         pipeline_description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    example_dir, component_specs = request.param
-
-    component_args = {"storage_args": "a dummy string arg"}
-    components_path = Path(COMPONENTS_PATH / example_dir)
+    example_dir, components = request.param
 
     prev_comp = None
-    for component_spec in component_specs:
-        component_op = ComponentOp(
-            Path(components_path / component_spec), arguments=component_args
-        )
-        pipeline.add_op(component_op, dependencies=prev_comp)
-        prev_comp = component_op
+    for component in components:
+        pipeline.add_op(component, dependencies=prev_comp)
+        prev_comp = component
 
     pipeline.compile()
 
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
-    return pipeline
+    return (example_dir, pipeline)
 
 
-def test_docker_compiler(pipeline, tmp_path_factory):
+def test_docker_compiler(setup_pipeline, tmp_path_factory):
     """Test compiling a pipeline to docker-compose."""
+    example_dir, pipeline = setup_pipeline
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        with open(output_path, "r") as src, open(VALID_DOCKER_PIPELINE, "r") as truth:
+        with open(output_path, "r") as src, open(
+            VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml", "r"
+        ) as truth:
             assert src.read() == truth.read()
 
 
-def test_docker_local_path(pipeline, tmp_path_factory):
+def test_docker_local_path(setup_pipeline, tmp_path_factory):
     """Test that a local path is applied correctly as a volume and in the arguments."""
     # volumes are only create for local existing directories
     with tmp_path_factory.mktemp("temp") as fn:
         # this is the directory mounted in the container
+        _, pipeline = setup_pipeline
         work_dir = f"/{fn.stem}"
         pipeline.base_path = str(fn)
         compiler = DockerCompiler()
@@ -90,8 +111,9 @@ def test_docker_local_path(pipeline, tmp_path_factory):
                 assert command in service["command"]
 
 
-def test_docker_remote_path(pipeline, tmp_path_factory):
+def test_docker_remote_path(setup_pipeline, tmp_path_factory):
     """Test that a remote path is applied correctly in the arguments and no volume."""
+    _, pipeline = setup_pipeline
     remote_dir = "gs://somebucket/artifacts"
     pipeline.base_path = remote_dir
     compiler = DockerCompiler()

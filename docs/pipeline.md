@@ -60,6 +60,9 @@ and use it to compile and run the pipeline with the `compile_and_run()` method. 
 
 ### Docker-Compose
 
+This compiler and runner is mainly aimed at local development and quick iterations, there is no scaling so using small slices of your data is advised. 
+
+
 The DockerCompiler will take your pipeline and create a docker-compose.yml file where every component is added as a service with the correct dependencies by leveraging the `depends_on` functionality and the `service_completed_successfully` status. See the basic example below:
 
 ```yaml
@@ -79,8 +82,10 @@ services:
     depends_on:
       component_2:
         condition: service_completed_successfully
-    image: component_3:latest
+    build: ./component_3
 ```
+
+Note that for components that do not come from the registry (local custom components) the compiler will add a build subsection instead (see component_3 in the example above) of referring to the image specified in the `component_spec.yaml`. This allows docker-compose to build and rebuild the container used in that component allowing for quicker iteration.
 
 In order to compile your pipeline to a `docker-compose` spec you need to import the `DockerCompiler`
 

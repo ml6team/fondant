@@ -56,7 +56,7 @@ class DockerCompiler(Compiler):
         self, pipeline: Pipeline, output_path: str = "docker-compose.yml"
     ) -> None:
         """Compile a pipeline to docker-compose spec and save it to a specified output path."""
-        logger.info(f"Compiling {pipeline.name} to docker-compose.yml")
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
         spec = self._generate_spec(pipeline=pipeline)
         with open(output_path, "w") as outfile:
             yaml.safe_dump(spec, outfile)
@@ -126,10 +126,17 @@ class DockerCompiler(Compiler):
             volumes = [asdict(volume)] if volume else []
 
             services[safe_component_name] = {
-                "image": component_op.component_spec.image,
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
             }
 
+            if component_op.local_component:
+                services[safe_component_name][
+                    "build"
+                ] = f"./{Path(component_op.component_spec_path).parent}"
+            else:
+                services[safe_component_name][
+                    "image"
+                ] = component_op.component_spec.image
         return {"version": "3.8", "services": services}
