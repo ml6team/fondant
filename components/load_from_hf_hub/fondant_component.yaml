@@ -3,20 +3,18 @@ description: Component that loads a dataset from the hub
 image: ghcr.io/ml6team/load_from_hf_hub:latest
 
 produces:
-  images:
-    fields:
-      data:
-        type: binary
-      width:
-        type: int16
-      height:
-        type: int16
-  captions:
-    fields:
-      data:
-        type: string
+  # fill here
 
 args:
   dataset_name:
     description: Name of dataset on the hub
     type: str
+  column_name_mapping:
+    description: column to map the original column names of the input dataset to
+    type: dict
+  image_column_name:
+    description: the name of a column containing images. Used to convert the columns
+            to a proper format. The column name can be either the original column name or the subset
+            specific name
+    type: str
+    default: None
