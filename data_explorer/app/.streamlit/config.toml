@@ -9,7 +9,7 @@ textColor="#262730"
 font="sans serif"
 
 [logger]
-level = "error"
+level = "info"
 
 [client]
 toolbarMode = "auto"

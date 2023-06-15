@@ -34,7 +34,11 @@ def run_data_explorer():
     parser.add_argument(
         "--data-directory",
         "-d",
-        help="Path to the source directory that contains the data produced by a fondant pipeline.",
+        help="Path to the source directory that contains the data produced by a fondant pipeline. \
+            Google cloud credentials: \
+            https://cloud.google.com/docs/authentication/application-default-credentials \
+            AWS credentials: https://docs.aws.amazon.com/sdkref/latest/guide/file-location.html \
+            ",
     )
     parser.add_argument(
         "--registry", "-r", default=DEFAULT_REGISTRY, help="Docker registry to use."
@@ -44,6 +48,9 @@ def run_data_explorer():
     )
     parser.add_argument(
         "--port", "-p", default=DEFAULT_PORT, help="Port to expose the container on."
+    )
+    parser.add_argument(
+        "--credentials", "-c", default=DEFAULT_PORT, help="Cloud credentials."
     )
     args = parser.parse_args()
 
@@ -64,12 +71,25 @@ def run_data_explorer():
         f"{args.port}:8501",
         "--mount",
         f"type=bind,source={shlex.quote(args.data_directory)},target=/artifacts",
-        f"{shlex.quote(args.registry)}:{shlex.quote(args.tag)}",
     ]
+
+    if args.credentials:
+        cmd.extend(
+            [
+                "-v",
+                f"{args.credentials}:/root/.config/gcloud/application_default_credentials.json:ro",
+            ]
+        )
+
+    cmd.extend(
+        [
+            f"{shlex.quote(args.registry)}:{shlex.quote(args.tag)}",
+        ]
+    )
 
     logging.info(
         f"Running image from registry: {args.registry} with tag: {args.tag} on port: {args.port}"
     )
     logging.info(f"Access the explorer at http://localhost:{args.port}")
 
-    subprocess.call(cmd, stdout=subprocess.PIPE)  # nosec
+    subprocess.call(cmd)  # nosec
