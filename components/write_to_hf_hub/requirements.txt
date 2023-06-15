@@ -1,5 +1,4 @@
 huggingface_hub==0.14.1
-datasets==2.10.1
 git+https://github.com/ml6team/fondant.git
 pyarrow>=7.0
 Pillow==9.4.0
