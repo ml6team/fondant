@@ -1,18 +1,16 @@
-"""
-This component that embeds images using a model from the Hugging Face hub.
-"""
+"""This component that embeds images using a model from the Hugging Face hub."""
 import io
 import logging
 import typing as t
 
-from PIL import Image
-import torch
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
-import dask.dataframe as dd
+import torch
+from PIL import Image
 from transformers import CLIPProcessor, CLIPVisionModelWithProjection
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -29,13 +27,13 @@ def process_image(image: bytes, *, processor: CLIPProcessor, device: str) -> tor
         device: The device to move the transformed image to.
     """
     def load(img: bytes) -> Image:
-        """Load the bytestring as an image"""
+        """Load the bytestring as an image."""
         bytes_ = io.BytesIO(img)
         return Image.open(bytes_).convert("RGB")
 
     def transform(img: Image) -> torch.Tensor:
-        """
-        Transform the image to a tensor using a clip processor and move it to the specified device.
+        """Transform the image to a tensor using a clip processor and move it to the specified
+        device.
         """
         return processor(images=img, return_tensors="pt").to(device)
 
@@ -45,7 +43,7 @@ def process_image(image: bytes, *, processor: CLIPProcessor, device: str) -> tor
 @torch.no_grad()
 def embed_image_batch(image_batch: pd.DataFrame, *, model: CLIPVisionModelWithProjection) -> \
         pd.Series:
-    """Embed a batch of images"""
+    """Embed a batch of images."""
     input_batch = torch.cat(image_batch.tolist())
     output_batch = model(input_batch)
     embeddings_batch = output_batch.image_embeds.cpu().tolist()
@@ -69,10 +67,8 @@ def embed_images(
     return pd.concat(results).to_frame()
 
 
-class EmbedImagesComponent(TransformComponent):
-    """
-    Component that captions images using a model from the Hugging Face hub.
-    """
+class EmbedImagesComponent(DaskTransformComponent):
+    """Component that captions images using a model from the Hugging Face hub."""
 
     def transform(
         self,
@@ -87,7 +83,7 @@ class EmbedImagesComponent(TransformComponent):
             model_id: id of the model on the Hugging Face hub
             batch_size: batch size to use
         Returns:
-            Dask dataframe
+            Dask dataframe.
         """
         device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info("device used is %s", device)

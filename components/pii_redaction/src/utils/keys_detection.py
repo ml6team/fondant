@@ -44,7 +44,7 @@ plugins = [
 
 
 def is_gibberish(matched_str):
-    """Checks to make sure the PII span is gibberish and not word like"""
+    """Checks to make sure the PII span is gibberish and not word like."""
     # pip install gibberish-detector
     # download the training corpora from https://raw.githubusercontent.com/domanchi/gibberish-detector/master/examples/big.txt
     # run gibberish-detector train big.txt > big.model to generate the model (it takes 3 seconds)
@@ -53,10 +53,10 @@ def is_gibberish(matched_str):
 
 
 def is_hash(content, value):
-    """Second check if the value is a hash (after gibberish detector)"""
+    """Second check if the value is a hash (after gibberish detector)."""
     # get the line where value occurred
     try:
-        res = content.index(value)
+        content.index(value)
     except ValueError:
         # TODO: fix this issue happened one for JS in the stack-smol, file did contain value
         print("Value not found in content, why this happened?")
@@ -72,7 +72,7 @@ def is_hash(content, value):
 
 
 def file_has_hashes(content, coeff=0.02):
-    """Checks if the file contains literals 'hash' or 'sha' for more than 2% nb_of_lines"""
+    """Checks if the file contains literals 'hash' or 'sha' for more than 2% nb_of_lines."""
     lines = content.splitlines()
     count_sha = 0
     count_hash = 0
@@ -109,15 +109,15 @@ def detect_keys(content, suffix=".txt"):
         suffix (str): suffix of the file
     Returns:
         A list of dicts containing the tag type, the matched string, and the start and
-        end indices of the match."""
-
+    end indices of the match.
+    """
     fp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False, mode="w")
     fp.write(content)
     fp.close()
     secrets = SecretsCollection()
     with transient_settings(
         {"plugins_used": plugins, "filters_used": filters}
-    ) as settings:
+    ):
         secrets.scan_file(fp.name)
     os.unlink(fp.name)
     secrets_set = list(secrets.data.values())

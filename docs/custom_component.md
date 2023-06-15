@@ -1,8 +1,14 @@
 # Creating custom components
 
-The goal of Fondant is to make it easy for people to define new components which can be incorporated into data preparation pipelines. This allows to share and reuse them as building blocks when preparing data for Foundation models.
+Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant 
+provides a lot of components out of the box 
+([overview](https://github.com/ml6team/fondant/tree/main/components), but you can also define your 
+own custom components. 
 
-A Fondant component should implement one logical piece of data preprocessing, like captioning images or removing Personal Identifiable Information (PII) from text. It's important to not include too much logic into a single component, as it might be beneficial to split up the logic into 2 separate components in that case.
+To make sure components are reusable, they should implement a single logical data processing 
+step (like captioning images or removing Personal Identifiable Information [PII] from text.)
+If a component grows too large, consider splitting it into multiple separate components each 
+tackling one logical part.
 
 To implement a custom component, a couple of files need to be defined:
 
@@ -11,37 +17,71 @@ To implement a custom component, a couple of files need to be defined:
 - [Dockerfile](#dockerfile)
 - [requirements.txt](#requirementstxt)
 
-To see an overview of all reusable components which Fondant already provides, have a look [here](https://github.com/ml6team/fondant/tree/main/components).
-
 ## Fondant component specification
 
-Each Fondant component is defined by a specification which describes its interface. This is a single file called `fondant_component.yaml`. We refer the reader to the [component specification page](component_spec) for all details.
+Each Fondant component is defined by a specification which describes its interface. This 
+specification is represented by a single `fondant_component.yaml` file. See the [component 
+specification page](component_spec) for info on how to write the specification for your component.
 
 ## Main.py script
 
-The core logic of the component should be implemented in a `main.py` script in a folder called `src`. The component itself should be implemented as a class, inheriting from Fondant's `TransformComponent` class. The logic itself should be defined in the `transform` method, which the user can overwrite. This method defines the processing logic. It gets a single Dask dataframe as input and should return a single Dask dataframe.
+The core logic of the component should be implemented in a `main.py` script in a folder called 
+`src`. 
+The logic should be implemented as a class, inheriting from one of the base `Component` classes 
+offered by Fondant.
+There are three large types of components:
+- **`LoadComponent`**: Load data into your pipeline from an external data source
+- **`TransformComponent`**: Implement a single transformation step in your pipeline
+- **`WriteComponent`**: Write the results of your pipeline to an external data sink
+
+The easiest way to implement a `TransformComponent` is to subclass the provided 
+`PandasTransformComponent`. This component streams your data and offers it in memory-sized 
+chunks as pandas dataframes.
 
 ```python
-from fondant.component import TransformComponent
+from fondant.component import PandasTransformComponent
 
-class ExampleComponent(TransformComponent):
-
-    def transform(self, dataframe, *, argument1, argument2):
-        """Implement your custom logic in this single method
+class ExampleComponent(PandasTransformComponent):
+    
+    def setup(self, argument1, argument2):
+        """This method is called once per component with any custom arguments it received. Use 
+        it for component wide setup or to store your arguments as instance attributes to access 
+        them in the `transform` method.
         
         Args:
-            dataframe: A Dask dataframe containing the data
             argumentX: A custom argument passed to the component
+        """ 
+
+    def transform(self, dataframe):
+        """Implement your custom transformation logic in this single method
+        
+        Args:
+            dataframe: A Pandas dataframe containing one partition of your data
+            
+        Returns:
+            A pandas dataframe with the transformed data
         """
 ```
 
-The idea is that Fondant provides a single dataframe to the user based on the component's specification. The column names of the dataframe always have the format `subset_field`. This means that if a component defines the `images` subset with the `data` field in its `consumes` [section](component_spec) for instance, the dataframe will contain a column called `images_data`.
+The `setup` method is called once for each component class with custom arguments defined in the 
+`args` section of the [component specification](component_spec).)
 
-Next, the user can manipulate this dataframe. Finally, the user should return a single dataframe. Fondant expects that the columns of the returned dataframe also comply to the `subset_field` format. Fondant will verify that the columns match with the `produces` [section](component_spec) of the component specificaton. Fondant takes care of updating the [manifest](manifest) and potentially write new data to the cloud.
+The `transform` method is called multiple times, each time containing a pandas `dataframe` 
+loaded in memory.
 
-Note that the `transform` method can include additional custom arguments (`argument1` and `argument2` in the example above). These should match with the `args` section defined in the [Fondant specification](component_spec). Examples include the batch size when captioning images, the minimum width and height when filtering images, and so on.
+The `dataframes` passed to the `transform` method contains the data specified in the `produces` 
+section of the component specification, with column names formatted as `{subset}_{field}`. So if 
+a component defines that it consumes an `images` subset with a `data` field, the dataframe will 
+contain a column called `images_data`.
 
-Note that the `main.py` script can be split up into several Python scripts in case it would become prohibitively long. See the [prompt based LAION retrieval component](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval/src) as an example: the CLIP client itself is defined in a separate script called `clip_client`, which is then imported in the `main.py` script.
+The `transform` method should return a single dataframe, with the columns complying to the 
+`{subset}_{field}` format matching the `produces` section of the component specification.
+
+Note that the `main.py` script can be split up into several Python scripts in case it would become 
+prohibitively long. See the 
+[prompt based LAION retrieval component](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval/src) 
+as an example: the CLIP client itself is defined in a separate script called `clip_client`, 
+which is then imported in the `main.py` script.
 
 ## Dockerfile
 
