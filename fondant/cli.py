@@ -52,7 +52,6 @@ def run_data_explorer():
     parser.add_argument(
         "--credentials",
         "-c",
-        default=DEFAULT_PORT,
         help="file path to Cloud credentials.",
     )
     args = parser.parse_args()
