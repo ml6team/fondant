@@ -8,7 +8,7 @@ from fondant.cli import DEFAULT_PORT, DEFAULT_REGISTRY, DEFAULT_TAG, run_data_ex
 
 def test_run_data_explorer(monkeypatch):
     source_dir = "/path/to/source"
-    monkeypatch.setattr("sys.argv", ["cli.py", "--source", source_dir])
+    monkeypatch.setattr("sys.argv", ["cli.py", "--source-folder", source_dir])
 
     with patch("shutil.which") as mock_which:
         mock_which.return_value = "/usr/bin/docker"
@@ -42,14 +42,14 @@ def test_run_data_explorer_no_source(monkeypatch, caplog):
 
         # mock_which.assert_not_called()
         assert (
-            "Please provide a source directory with the --source or -s option."
+            "Please provide a source directory with the --source-folder or -s option."
             in caplog.text
         )
 
 
 def test_run_data_explorer_no_docker(monkeypatch, caplog):
     source_dir = "/path/to/source"
-    monkeypatch.setattr("sys.argv", ["cli.py", "--source", source_dir])
+    monkeypatch.setattr("sys.argv", ["cli.py", "--source-folder", source_dir])
 
     with patch("shutil.which") as mock_which:
         mock_which.return_value = None
