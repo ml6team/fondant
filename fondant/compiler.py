@@ -119,6 +119,11 @@ class DockerCompiler(Compiler):
             # add in and out manifest paths to command
             command.extend(["--output_manifest_path", f"{path}/manifest.json"])
 
+            # add component spec to command if does not exist yet
+            if not component_op.arguments.get("component_spec"):
+                component_spec = component_op.component_spec.specification
+                command.extend(["--component_spec", json.dumps(component_spec)])
+
             # add arguments if any to command
             for key, value in component_op.arguments.items():
                 command.extend([f"--{key}", f"{value}"])
