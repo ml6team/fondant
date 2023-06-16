@@ -2,7 +2,6 @@
 
 import argparse
 import logging
-import subprocess
 import sys
 
 sys.path.append("../")
@@ -71,8 +70,7 @@ pii_redaction_op = ComponentOp.from_registry(
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(lang_filter_op, dependencies=load_from_hub_op)
-pipeline.add_op(filter_line_length_op, dependencies=lang_filter_op)
+pipeline.add_op(filter_line_length_op, dependencies=load_from_hub_op)
 pipeline.add_op(filter_comments_op, dependencies=filter_line_length_op)
 pipeline.add_op(pii_redaction_op, dependencies=filter_comments_op)
 
