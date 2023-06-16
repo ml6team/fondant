@@ -35,7 +35,7 @@ def patched_data_loading(monkeypatch):
     """Mock data loading so no actual data is loaded."""
 
     def mocked_load_dataframe(self):
-        return dd.from_dict({"a": [1, 2, 3]}, npartitions=N_PARTITIONS)
+        return dd.from_dict({"images_data": [1, 2, 3]}, npartitions=N_PARTITIONS)
 
     monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
 
@@ -194,6 +194,7 @@ def test_pandas_transform_component(patched_data_loading, patched_data_writing):
 
         def transform(self, dataframe):
             assert isinstance(dataframe, pd.DataFrame)
+            return dataframe.rename(columns={"images": "embeddings"})
 
     component = MyPandasComponent.from_args()
     setup = mock.patch.object(MyPandasComponent, "setup", wraps=component.setup)
