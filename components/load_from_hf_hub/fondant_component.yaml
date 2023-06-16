@@ -10,11 +10,10 @@ args:
     description: Name of dataset on the hub
     type: str
   column_name_mapping:
-    description: column to map the original column names of the input dataset to
+    description: Mapping of the consumed hub dataset to fondant column names
     type: dict
-  image_column_name:
-    description: the name of a column containing images. Used to convert the columns
-            to a proper format. The column name can be either the original column name or the subset
-            specific name
-    type: str
+  image_column_names:
+    description: A list containing the original hub image column names. Used to format the image
+      from HF hub format to a byte string
+    type: list
     default: None

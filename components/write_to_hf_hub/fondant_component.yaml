@@ -15,11 +15,11 @@ args:
   dataset_name:
     description: The name of the dataset to upload
     type: str
-  image_column:
-    description: the name of the image column. Used to format to image to HF hub format
-    type: str
+  image_column_names:
+    description: A list containing the image column names. Used to format to image to HF hub format
+    type: list
     default: None
   column_name_mapping:
-    description: column to map the original column names of the input dataset to
+    description: Mapping of the consumed fondant column names to the written hub column names
     type: dict
     default: None

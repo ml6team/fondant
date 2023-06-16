@@ -17,8 +17,8 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def convert_bytes_to_image(image_bytes: bytes, feature_encoder: datasets.Image) -> t.Dict[
-    str, t.Any]:
+def convert_bytes_to_image(image_bytes: bytes, feature_encoder: datasets.Image) -> \
+        t.Dict[str, t.Any]:
     """
     Function that converts image bytes to hf image format
     Args:
@@ -40,7 +40,7 @@ class WriteToHubComponent(WriteComponent):
             hf_token: str,
             username: str,
             dataset_name: str,
-            image_column_name: t.Optional[str],
+            image_column_names: t.Optional[list],
             column_name_mapping: t.Optional[dict]
     ):
         """
@@ -49,9 +49,10 @@ class WriteToHubComponent(WriteComponent):
             hf_token: The hugging face token used to write to the hub
             username: The username under which to upload the dataset
             dataset_name: The name of the dataset to upload
-            image_column_name: the name of the image column. Used to format to HF hub format
-            column_name_mapping: mapping between the subset columns and the mapping of the final
-            column names.
+            image_column_names: A list containing the subset image column names. Used to format the
+            image fields to HF hub format
+            column_name_mapping: Mapping of the consumed fondant column names to the written hub
+             column names.
         """
         # login
         huggingface_hub.login(token=hf_token)
@@ -69,7 +70,7 @@ class WriteToHubComponent(WriteComponent):
             for field in subset.fields.values():
                 column_name = f"{subset_name}_{field.name}"
                 write_columns.append(column_name)
-                if column_name == image_column_name:
+                if image_column_names and column_name in image_column_names:
                     schema_dict[column_name] = datasets.Image()
                 else:
                     schema_dict[column_name] = datasets.Value(str(field.type.value))
@@ -80,19 +81,12 @@ class WriteToHubComponent(WriteComponent):
         # Map image column to hf data format
         feature_encoder = datasets.Image(decode=True)
 
-        if image_column_name:
-            if column_name_mapping:
-                invert_column_name_mapping = \
-                    {final_dataset_column: subset_column for subset_column, final_dataset_column
-                     in column_name_mapping.items()}
-
-                if image_column_name in invert_column_name_mapping:
-                    image_column_name = invert_column_name_mapping[image_column_name]
-
-            dataframe[image_column_name] = dataframe[image_column_name].map(
-                lambda x: convert_bytes_to_image(x, feature_encoder),
-                meta=(image_column_name, schema)
-            )
+        if image_column_names:
+            for image_column_name in image_column_names:
+                dataframe[image_column_name] = dataframe[image_column_name].map(
+                    lambda x: convert_bytes_to_image(x, feature_encoder),
+                    meta=(image_column_name, "object")
+                )
 
         # Map column names to hf data format
         if column_name_mapping:

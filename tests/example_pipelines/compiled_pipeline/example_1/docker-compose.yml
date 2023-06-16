@@ -1,0 +1,43 @@
+services:
+  first_component:
+    build: ./tests/example_pipelines/valid_pipeline/example_1
+    command:
+    - --metadata
+    - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
+    - --output_manifest_path
+    - /foo/bar/manifest.txt
+    - --storage_args
+    - a dummy string arg
+    depends_on: {}
+    volumes: []
+  second_component:
+    build: ./tests/example_pipelines/valid_pipeline/example_1
+    command:
+    - --metadata
+    - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
+    - --output_manifest_path
+    - /foo/bar/manifest.txt
+    - --storage_args
+    - a dummy string arg
+    - --input_manifest_path
+    - /foo/bar/manifest.txt
+    depends_on:
+      first_component:
+        condition: service_completed_successfully
+    volumes: []
+  third_component:
+    build: ./tests/example_pipelines/valid_pipeline/example_1
+    command:
+    - --metadata
+    - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
+    - --output_manifest_path
+    - /foo/bar/manifest.txt
+    - --storage_args
+    - a dummy string arg
+    - --input_manifest_path
+    - /foo/bar/manifest.txt
+    depends_on:
+      second_component:
+        condition: service_completed_successfully
+    volumes: []
+version: '3.8'
