@@ -8,6 +8,7 @@ import dask.dataframe as dd
 import pandas as pd
 import streamlit as st
 from data import load_manifest
+from file_exceptions import RemoteFileNotFoundException
 from numeric_analysis import make_numeric_plot, make_numeric_statistics_table
 from PIL import Image
 from st_aggrid import AgGrid, ColumnsAutoSizeMode, GridOptionsBuilder
@@ -41,6 +42,17 @@ def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[Dict]]:
     else:
         try:
             manifest = load_manifest(manifest_path)
+        except FileNotFoundError:
+            st.warning(f"The file {manifest_path} does not exist, please check whether the file"
+                       " exists in the mounted data directory"
+                       )
+            manifest = None
+        except RemoteFileNotFoundException:
+            st.warning(f"The file {manifest_path} does not exist, please check whether the file"
+                       " exists in the remote location and whether the correct credentials are"
+                       " mounted into the container."
+                       )
+            manifest = None
         except Exception as e:
             st.warning("This file path does not exist")
             LOGGER.debug(e)
