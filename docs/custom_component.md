@@ -113,7 +113,7 @@ ENTRYPOINT ["python", "main.py"]
 A `requirements.txt` file lists the Python dependencies of the component. Note that any Fondant component will always have `Fondant` as the minimum requirement. It's important to also pin the version of each dependency to make sure the component remains working as expected. Below is an example of a component that relies on several Python libraries such as Pillow, PyTorch and Transformers.
 
 ```
-git+https://github.com/ml6team/fondant.git@main
+fondant
 Pillow==9.4.0
 torch==2.0.1
 transformers==4.29.2
