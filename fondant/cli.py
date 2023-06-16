@@ -59,7 +59,7 @@ def run_data_explorer():
              AWS: HOME/.aws/credentials:/root/.aws/credentials
              More info on
              Google Cloud:
-             https: // cloud.google.com/docs/authentication/application-default-credentials
+             https://cloud.google.com/docs/authentication/application-default-credentials
              AWS: https: // docs.aws.amazon.com/sdkref/latest/guide/file-location.html
         """,
     )
