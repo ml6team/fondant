@@ -1,6 +1,8 @@
 """Pipeline used to create the dataset to train the StarCoder model."""
 
+import argparse
 import logging
+import subprocess
 import sys
 
 sys.path.append("../")
@@ -38,7 +40,6 @@ pipeline = Pipeline(
     pipeline_description="A pipeline for filtering the stack dataset",
     base_path=PipelineConfigs.BASE_PATH,
 )
-client = Client(host=PipelineConfigs.HOST)
 
 # define ops
 load_from_hub_op = ComponentOp.from_registry(
@@ -70,7 +71,8 @@ pii_redaction_op = ComponentOp.from_registry(
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(filter_line_length_op, dependencies=load_from_hub_op)
+pipeline.add_op(lang_filter_op, dependencies=load_from_hub_op)
+pipeline.add_op(filter_line_length_op, dependencies=lang_filter_op)
 pipeline.add_op(filter_comments_op, dependencies=filter_line_length_op)
 pipeline.add_op(pii_redaction_op, dependencies=filter_comments_op)
 
