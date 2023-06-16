@@ -1,10 +1,15 @@
 """This file contains data loading logic"""
+import json
+import logging
 from typing import List
 
 import dask.dataframe as dd
 import streamlit as st
+from fsspec import open as fs_open
 
 from fondant.manifest import Manifest
+
+LOGGER = logging.getLogger(__name__)
 
 
 @st.cache_data
@@ -17,7 +22,11 @@ def load_manifest(path: str) -> Manifest:
     Returns:
         Manifest: loaded manifest
     """
-    manifest = Manifest.from_file(path)
+
+    # open the path and load the manifest
+    with fs_open(path, encoding="utf-8") as file_:
+        specification = json.load(file_)
+    manifest = Manifest(specification=specification)
     return manifest
 
 

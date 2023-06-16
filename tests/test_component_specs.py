@@ -1,10 +1,13 @@
 """Fondant component specs test."""
+import os
+import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 import yaml
 
-from fondant.component_spec import ComponentSpec
+from fondant.component_spec import ComponentSpec, ComponentSubset, KubeflowComponentSpec
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Type
 
@@ -33,6 +36,13 @@ def valid_kubeflow_schema() -> dict:
 def invalid_fondant_schema() -> dict:
     with open(component_specs_path / "invalid_component.yaml") as f:
         return yaml.safe_load(f)
+
+
+@patch("pkgutil.get_data", return_value=None)
+def test_component_spec_pkgutil_error(mock_get_data):
+    """Test that FileNotFoundError is raised when pkgutil.get_data returns None."""
+    with pytest.raises(FileNotFoundError):
+        ComponentSpec("example_component.yaml")
 
 
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
@@ -72,3 +82,59 @@ def test_component_spec_no_args(valid_fondant_schema_no_args):
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
     assert fondant_component.args == {}
+
+
+def test_component_spec_to_file(valid_fondant_schema):
+    """Test that the ComponentSpec can be written to a file."""
+    component_spec = ComponentSpec(valid_fondant_schema)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file_path = os.path.join(temp_dir, "component_spec.yaml")
+        component_spec.to_file(file_path)
+
+        with open(file_path, "r") as f:
+            written_data = yaml.safe_load(f)
+
+        # check if the written data is the same as the original data
+        assert written_data == valid_fondant_schema
+
+
+def test_kubeflow_component_spec_to_file(valid_kubeflow_schema):
+    """Test that the KubeflowComponentSpec can be written to a file."""
+    kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file_path = os.path.join(temp_dir, "kubeflow_component_spec.yaml")
+        kubeflow_component_spec.to_file(file_path)
+
+        with open(file_path, "r") as f:
+            written_data = yaml.safe_load(f)
+
+        # check if the written data is the same as the original data
+        assert written_data == valid_kubeflow_schema
+
+
+def test_component_spec_repr(valid_fondant_schema):
+    """Test that the __repr__ method of ComponentSpec returns the expected string."""
+    fondant_component = ComponentSpec(valid_fondant_schema)
+    expected_repr = f"ComponentSpec({valid_fondant_schema!r})"
+    assert repr(fondant_component) == expected_repr
+
+
+def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
+    """Test that the __repr__ method of KubeflowComponentSpec returns the expected string."""
+    kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)
+    expected_repr = f"KubeflowComponentSpec({valid_kubeflow_schema!r})"
+    assert repr(kubeflow_component_spec) == expected_repr
+
+
+def test_component_subset_repr():
+    """Test that the __repr__ method of ComponentSubset returns the expected string."""
+    component_subset_schema = {
+        "name": "Example subset",
+        "description": "This is an example subset",
+    }
+
+    component_subset = ComponentSubset(component_subset_schema)
+    expected_repr = f"ComponentSubset({component_subset_schema!r})"
+    assert repr(component_subset) == expected_repr
