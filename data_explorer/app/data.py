@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 import dask.dataframe as dd
 import streamlit as st
-from file_exceptions import RemoteFileNotFoundException
+from exceptions import RemoteFileNotFoundException
 from fsspec import open as fs_open
 
 from fondant.manifest import Manifest
