@@ -1,0 +1,116 @@
+services:
+  filter_comments:
+    command:
+    - --metadata
+    - '{"run_id": "Stack filtering pipeline", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - --output_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/manifest.json
+    - --component_spec
+    - '{"name": "Filter comments", "description": "Component that filters code based
+      on the code to comment ratio", "image": "ghcr.io/ml6team/filter_comments:latest",
+      "consumes": {"code": {"fields": {"content": {"type": "string"}}}}, "args": {"min_comments_ratio":
+      {"description": "The minimum code to comment ratio", "type": "float"}, "max_comments_ratio":
+      {"description": "The maximum code to comment ratio", "type": "float"}}}'
+    - --min_comments_ratio
+    - '0.1'
+    - --max_comments_ratio
+    - '0.9'
+    - --input_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/manifest.json
+    depends_on:
+      filter_line_length:
+        condition: service_completed_successfully
+    image: ghcr.io/ml6team/filter_comments:latest
+    volumes:
+    - $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
+  filter_line_length:
+    command:
+    - --metadata
+    - '{"run_id": "Stack filtering pipeline", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - --output_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/manifest.json
+    - --component_spec
+    - '{"name": "Filter line length", "description": "Component that filters code
+      based on line length", "image": "ghcr.io/ml6team/filter_line_length:latest",
+      "consumes": {"code": {"fields": {"avg_line_length": {"type": "float64"}, "max_line_length":
+      {"type": "int32"}, "alphanum_fraction": {"type": "float64"}}}}, "args": {"avg_line_length_threshold":
+      {"description": "Threshold for average line length to filter on", "type": "int"},
+      "max_line_length_threshold": {"description": "Threshold for maximum line length
+      to filter on", "type": "int"}, "alphanum_fraction_threshold": {"description":
+      "Alphanum fraction to filter on", "type": "float"}}}'
+    - --avg_line_length_threshold
+    - '10'
+    - --max_line_length_threshold
+    - '100'
+    - --alphanum_fraction_threshold
+    - '0.25'
+    - --input_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/manifest.json
+    depends_on:
+      lang_filter:
+        condition: service_completed_successfully
+    image: ghcr.io/ml6team/filter_line_length:latest
+    volumes:
+    - $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
+  lang_filter:
+    build: ./components/lang_filter
+    command:
+    - --metadata
+    - '{"run_id": "Stack filtering pipeline", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - --output_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/manifest.json
+    - --component_spec
+    - '{"name": "lang filter", "description": "Component that filters the data based
+      on a specific language", "image": "localhost:5000/lang_filter:1", "consumes":
+      {"code": {"fields": {"lang": {"type": "string"}}}}, "args": {"lang": {"description":
+      "lang to filter on", "type": "str"}}}'
+    - --lang
+    - Rust
+    - --input_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/manifest.json
+    depends_on:
+      load_code_dataset_from_hub:
+        condition: service_completed_successfully
+    volumes:
+    - $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
+  load_code_dataset_from_hub:
+    build: ./components/load_from_hub_stack
+    command:
+    - --metadata
+    - '{"run_id": "Stack filtering pipeline", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - --output_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/manifest.json
+    - --component_spec
+    - '{"name": "Load code dataset from hub", "description": "Component that loads
+      the stack dataset from the hub", "image": "ghcr.io/ml6team/load_from_hub_stack:latest",
+      "produces": {"code": {"fields": {"content": {"type": "string"}, "lang": {"type":
+      "string"}, "size": {"type": "int32"}, "path": {"type": "string"}, "repository_name":
+      {"type": "string"}, "avg_line_length": {"type": "float64"}, "max_line_length":
+      {"type": "int32"}, "alphanum_fraction": {"type": "float64"}}}}, "args": {"dataset_name":
+      {"description": "Name of dataset on the hub", "type": "str"}}}'
+    - --dataset_name
+    - ml6team/the-stack-smol-python
+    depends_on: {}
+    volumes:
+    - $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
+  pii_redaction:
+    command:
+    - --metadata
+    - '{"run_id": "Stack filtering pipeline", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - --output_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/manifest.json
+    - --component_spec
+    - '{"name": "PII redaction", "description": "A component that detects and redacts
+      Personal Identifiable Information (PII) from code.", "image": "ghcr.io/ml6team/pii_redaction:latest",
+      "consumes": {"code": {"fields": {"content": {"type": "string"}}}}, "produces":
+      {"code": {"fields": {"content": {"type": "string"}}, "additionalFields": false},
+      "additionalSubsets": false}}'
+    - --input_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/manifest.json
+    depends_on:
+      load_code_dataset_from_hub:
+        condition: service_completed_successfully
+    image: ghcr.io/ml6team/pii_redaction:latest
+    volumes:
+    - $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
+version: '3.8'
