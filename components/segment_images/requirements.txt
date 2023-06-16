@@ -1,4 +1,4 @@
-git+https://github.com/ml6team/fondant.git@main
+fondant
 gcsfs==2023.4.0
 transformers==4.29.2
 Pillow==9.4.0

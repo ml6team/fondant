@@ -132,7 +132,6 @@ There are 5 components in total, these are:
 ### Requirements
 
 ```
-pip install git+https://github.com/ml6team/fondant.git
 pip install fondant[pipelines]
 ```
 
