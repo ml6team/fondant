@@ -3,14 +3,14 @@ import logging
 
 import dask.dataframe as dd
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 
-class FilterLineLengthComponent(TransformComponent):
+class FilterLineLengthComponent(DaskTransformComponent):
     """
     This component filters code based on a set of metadata associated with it:
     average line length, maximum line length and alphanum fraction.

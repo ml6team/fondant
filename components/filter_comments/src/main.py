@@ -7,14 +7,14 @@ import logging
 import dask.dataframe as dd
 from utils.text_extraction import get_comments_to_code_ratio
 
-from fondant.component import TransformComponent
+from fondant.component import DaskTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 
-class FilterCommentsComponent(TransformComponent):
+class FilterCommentsComponent(DaskTransformComponent):
     """Component that filters instances based on code to comments ratio."""
 
     def transform(
