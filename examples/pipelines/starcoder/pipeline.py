@@ -2,7 +2,6 @@
 
 import argparse
 import logging
-import subprocess
 import sys
 
 sys.path.append("../")
@@ -29,11 +28,6 @@ load_from_hub_op = ComponentOp(
     arguments={"dataset_name": "ml6team/the-stack-smol-python"},
 )
 
-lang_filter_op = ComponentOp(
-    component_spec_path="components/lang_filter/fondant_component.yaml",
-    arguments={"lang": "Rust"},
-)
-
 filter_line_length_op = ComponentOp.from_registry(
     name="filter_line_length",
     arguments={
@@ -52,10 +46,9 @@ pii_redaction_op = ComponentOp.from_registry(
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(lang_filter_op, dependencies=load_from_hub_op)
-pipeline.add_op(filter_line_length_op, dependencies=lang_filter_op)
+pipeline.add_op(filter_line_length_op, dependencies=load_from_hub_op)
 pipeline.add_op(filter_comments_op, dependencies=filter_line_length_op)
-pipeline.add_op(pii_redaction_op, dependencies=load_from_hub_op)
+pipeline.add_op(pii_redaction_op, dependencies=filter_comments_op)
 
 
 if __name__ == "__main__":
@@ -67,9 +60,7 @@ if __name__ == "__main__":
             "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro"
         ]
         compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
-        # run docker compose up in a python subprocess
-        cmd = ["docker-compose", "up"]
-        subprocess.run(cmd)
+        logger.info("Run `docker-compose up` to run the pipeline.")
 
     else:
         client = Client(host=PipelineConfigs.HOST)
