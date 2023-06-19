@@ -62,7 +62,8 @@ segment_images_op = ComponentOp.from_registry(
     node_pool_name="model-inference-pool",
 )
 
-write_to_hub_controlnet = ComponentOp(
+write_to_hub_controlnet = ComponentOp.from_registry(
+    name="write_to_hf_hub",
     component_spec_path="components/write_to_hub_controlnet/fondant_component.yaml",
     arguments={
         "username": "test-user",
