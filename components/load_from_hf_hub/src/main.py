@@ -12,14 +12,20 @@ logger = logging.getLogger(__name__)
 
 
 class LoadFromHubComponent(LoadComponent):
-    def load(self, *, dataset_name: str, column_name_mapping: dict,
-             image_column_names: t.Optional[list]) -> dd.DataFrame:
+    def load(self,
+             *,
+             dataset_name: str,
+             column_name_mapping: dict,
+             image_column_names: t.Optional[list],
+             nb_rows_to_load: t.Optional[int]) -> dd.DataFrame:
         """
         Args:
             dataset_name: name of the dataset to load.
             column_name_mapping: Mapping of the consumed hub dataset to fondant column names
             image_column_names: A list containing the original hub image column names. Used to
                 format the image from HF hub format to a byte string
+            nb_rows_to_load: optional argument that defines the number of rows to load. Useful for
+              testing pipeline runs on a small scale
         Returns:
             Dataset: HF dataset.
         """
@@ -36,6 +42,12 @@ class LoadFromHubComponent(LoadComponent):
 
         # 3) Rename columns
         dask_df = dask_df.rename(columns=column_name_mapping)
+
+        # 4) Optional: only return specific amount of rows
+
+        if nb_rows_to_load:
+            dask_df = dask_df.head(nb_rows_to_load)
+            dask_df = dd.from_pandas(dask_df, npartitions=1)
 
         return dask_df
 

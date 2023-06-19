@@ -29,6 +29,7 @@ dataset_column_name = [
 load_component_column_mapping = {
     column: f"code_{column}" for column in dataset_column_name
 }
+
 # Initialize pipeline and client
 pipeline = Pipeline(
     pipeline_name="Stack filtering pipeline",
@@ -39,10 +40,11 @@ pipeline = Pipeline(
 # define ops
 load_from_hub_op = ComponentOp.from_registry(
     name="load_from_hub",
-    component_spec_path="load_from_hub/fondant_component.yaml",
+    component_spec_path="components/load_from_hub/fondant_component.yaml",
     arguments={
         "dataset_name": "ml6team/the-stack-smol-python",
         "column_name_mapping": load_component_column_mapping,
+        "nb_rows_to_load": None,
     },
 )
 

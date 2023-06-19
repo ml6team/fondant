@@ -1,4 +1,5 @@
 """Pipeline used to create a stable diffusion dataset from a set of given images."""
+import argparse
 import logging
 import sys
 
@@ -6,6 +7,7 @@ sys.path.append("../")
 
 from pipeline_configs import PipelineConfigs
 
+from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline, Client
 from fondant.logger import configure_logging
 
@@ -25,11 +27,12 @@ write_component_column_mapping = {
 # Define component ops
 load_from_hub_op = ComponentOp.from_registry(
     name="load_from_hf_hub",
-    component_spec_path="components/load_from_hf_hub",
+    component_spec_path="components/load_from_hf_hub/fondant_component.yaml",
     arguments={
         "dataset_name": "logo-wizard/modern-logo-dataset",
         "column_name_mapping": load_component_column_mapping,
         "image_column_names": ["image"],
+        "nb_rows_to_load": None,
     },
 )
 
@@ -92,4 +95,18 @@ pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
 pipeline.add_op(caption_images_op, dependencies=download_images_op)
 pipeline.add_op(write_to_hub, dependencies=caption_images_op)
 
-client.compile_and_run(pipeline=pipeline)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--local", action="store_true")
+    if parser.parse_args().local:
+        compiler = DockerCompiler()
+        extra_volumes = [
+            "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/"
+            "application_default_credentials.json:ro"
+        ]
+        compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
+        logger.info("Run `docker-compose up` to run the pipeline.")
+
+    else:
+        client = Client(host=PipelineConfigs.HOST)
+        client.compile_and_run(pipeline=pipeline)
