@@ -3,9 +3,9 @@ services:
     build: ./tests/example_pipelines/valid_pipeline/example_1
     command:
     - --metadata
-    - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
+    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/manifest.json
+    - /foo/bar/first_component/manifest.json
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -18,9 +18,9 @@ services:
   image_cropping:
     command:
     - --metadata
-    - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
+    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/manifest.json
+    - /foo/bar/image_cropping/manifest.json
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
       borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:latest",
@@ -36,7 +36,7 @@ services:
     - --padding
     - '0'
     - --input_manifest_path
-    - /foo/bar/manifest.json
+    - /foo/bar/first_component/manifest.json
     depends_on:
       first_component:
         condition: service_completed_successfully
