@@ -70,12 +70,11 @@ The `transform` method is called multiple times, each time containing a pandas `
 loaded in memory.
 
 The `dataframes` passed to the `transform` method contains the data specified in the `produces` 
-section of the component specification, with column names formatted as `{subset}_{field}`. So if 
-a component defines that it consumes an `images` subset with a `data` field, the dataframe will 
-contain a column called `images_data`.
+section of the component specification. If a component defines that it consumes an `images` subset 
+with a `data` field, this data can be accessed using `dataframe["images"]["data"]`.
 
 The `transform` method should return a single dataframe, with the columns complying to the 
-`{subset}_{field}` format matching the `produces` section of the component specification.
+`[subset][field]` format matching the `produces` section of the component specification.
 
 Note that the `main.py` script can be split up into several Python scripts in case it would become 
 prohibitively long. See the 
@@ -113,7 +112,7 @@ ENTRYPOINT ["python", "main.py"]
 A `requirements.txt` file lists the Python dependencies of the component. Note that any Fondant component will always have `Fondant` as the minimum requirement. It's important to also pin the version of each dependency to make sure the component remains working as expected. Below is an example of a component that relies on several Python libraries such as Pillow, PyTorch and Transformers.
 
 ```
-git+https://github.com/ml6team/fondant.git@main
+fondant
 Pillow==9.4.0
 torch==2.0.1
 transformers==4.29.2

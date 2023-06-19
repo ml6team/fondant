@@ -85,7 +85,7 @@ services:
     build: ./component_3
 ```
 
-Note that for components that do not come from the registry (local custom components) the compiler will add a build subsection instead (see component_3 in the example above) of referring to the image specified in the `component_spec.yaml`. This allows docker-compose to build and rebuild the container used in that component allowing for quicker iteration.
+Note that for components that do not come from the registry (local custom components) the compiler will add a build subsection (see component_3 in the example above) instead of referring to the image specified in the `component_spec.yaml`. This allows docker-compose to build and rebuild the container used in that component allowing for quicker iteration.
 
 In order to compile your pipeline to a `docker-compose` spec you need to import the `DockerCompiler`
 
@@ -98,10 +98,25 @@ compiler.compile(pipeline=pipeline)
 
 The DockerCompiler will try to see if the `base_path` of the pipeline is local or remote. If local the `base_path` will be mounted as a bind volume on every service/component.
 
+If you want to use remote paths (GCS, S3, etc.) you can use the `extra_volumes` argument to mount extra credentials. This volume will be mounted to every component/service of the docker-compose spec.
+
+```python
+from fondant.compiler import DockerCompiler
+
+extra_volumes = [
+    # example for GCP, this mounts your application default credentials to the docker container
+    "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro"
+    # example for AWS, this mounts your current credentials to the docker container
+    "$HOME/.aws/credentials:/root/.aws/credentials:ro"
+]
+
+compiler = DockerCompiler()
+compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
+```
 
 #### Running a Docker compiled pipeline
 
-Navigate to the folder where your docker compose is located and run (you need to have [docker-compose](https://docs.docker.com/compose/install/) installed)
+Navigate to the folder where your docker compose is located and run (you need to have a recent version of [docker-compose](https://docs.docker.com/compose/install/) installed)
 ```bash
 docker compose up
 ```

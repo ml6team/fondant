@@ -5,7 +5,7 @@ services:
     - --metadata
     - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/manifest.txt
+    - /foo/bar/manifest.json
     - --storage_args
     - a dummy string arg
     depends_on: {}
@@ -16,11 +16,11 @@ services:
     - --metadata
     - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/manifest.txt
+    - /foo/bar/manifest.json
     - --storage_args
     - a dummy string arg
     - --input_manifest_path
-    - /foo/bar/manifest.txt
+    - /foo/bar/manifest.json
     depends_on:
       first_component:
         condition: service_completed_successfully
@@ -31,11 +31,11 @@ services:
     - --metadata
     - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/manifest.txt
+    - /foo/bar/manifest.json
     - --storage_args
     - a dummy string arg
     - --input_manifest_path
-    - /foo/bar/manifest.txt
+    - /foo/bar/manifest.json
     depends_on:
       second_component:
         condition: service_completed_successfully
