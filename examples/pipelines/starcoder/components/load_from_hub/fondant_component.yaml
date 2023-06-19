@@ -1,6 +1,6 @@
 name: Load code dataset from hub
 description: Component that loads the stack dataset from the hub
-image: ghcr.io/ml6team/load_from_hub_stack:latest
+image: ghcr.io/ml6team/load_from_hf_hub:latest
 
 produces:
   code:
@@ -26,3 +26,11 @@ args:
   dataset_name:
     description: Name of dataset on the hub
     type: str
+  column_name_mapping:
+    description: Mapping of the consumed hub dataset to fondant column names
+    type: dict
+  image_column_names:
+    description: A list containing the original hub image column names. Used to format the image
+      from HF hub format to a byte string
+    type: list
+    default: None
