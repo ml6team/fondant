@@ -17,10 +17,20 @@ pipeline_description = "A test pipeline"
 
 client = Client(host=PipelineConfigs.HOST)
 
+load_component_column_mapping = {"image": "images_data", "text": "captions_data"}
+
+write_component_column_mapping = {
+    value: key for key, value in load_component_column_mapping.items()
+}
 # Define component ops
 load_from_hub_op = ComponentOp.from_registry(
     name="load_from_hf_hub",
-    arguments={"dataset_name": "logo-wizard/modern-logo-dataset"},
+    component_spec_path="components/load_from_hf_hub",
+    arguments={
+        "dataset_name": "logo-wizard/modern-logo-dataset",
+        "column_name_mapping": load_component_column_mapping,
+        "image_column_names": ["image"],
+    },
 )
 
 image_embedding_op = ComponentOp.from_registry(
@@ -60,6 +70,18 @@ caption_images_op = ComponentOp.from_registry(
     node_pool_name="model-inference-pool",
 )
 
+write_to_hub = ComponentOp.from_registry(
+    name="write_to_hf_hub",
+    component_spec_path="components/write_to_hf_hub/fondant_component.yaml",
+    arguments={
+        "username": "test-user",
+        "dataset_name": "stable_diffusion_processed",
+        "hf_token": "hf_token",
+        "image_column_names": ["images_data"],
+    },
+    number_of_gpus=1,
+    node_pool_name="model-inference-pool",
+)
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
@@ -68,5 +90,6 @@ pipeline.add_op(image_embedding_op, dependencies=load_from_hub_op)
 pipeline.add_op(laion_retrieval_op, dependencies=image_embedding_op)
 pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
 pipeline.add_op(caption_images_op, dependencies=download_images_op)
+pipeline.add_op(write_to_hub, dependencies=caption_images_op)
 
 client.compile_and_run(pipeline=pipeline)
