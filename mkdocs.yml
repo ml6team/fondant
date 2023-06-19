@@ -33,6 +33,7 @@ nav:
   - Creating custom components: custom_component.md
   - Building a pipeline: pipeline.md
   - Infrastructure: infrastructure.md
+  - Data explorer: data_explorer.md
 
 markdown_extensions:
   - pymdownx.snippets:

@@ -40,13 +40,14 @@ BASENAME=${BASENAME##*/}
 full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
 
 echo "building $full_image_name"
-docker build -t "$full_image_name" \
-  --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
-  .
 
 # echo "updating requirements.txt"
 # Update the fondant requirement to the version being built
-# sed -i "s|^fondant.*|fondant==$tag|" requirements.txt
+sed -i "s|^fondant.*|fondant==$tag|" requirements.txt
+
+docker build -t "$full_image_name" \
+  --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
+  .
 
 echo "Pushing image to $full_image_name"
 docker push "$full_image_name"
