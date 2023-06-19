@@ -3,14 +3,13 @@ import io
 import logging
 import typing as t
 
-import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 import torch
 from PIL import Image
 from transformers import CLIPProcessor, CLIPVisionModelWithProjection
 
-from fondant.component import DaskTransformComponent
+from fondant.component import PandasTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -50,61 +49,43 @@ def embed_image_batch(image_batch: pd.DataFrame, *, model: CLIPVisionModelWithPr
     return pd.Series(embeddings_batch, index=image_batch.index)
 
 
-def embed_images(
-    images: pd.Series,
-    *,
-    model: CLIPVisionModelWithProjection,
-    processor: CLIPProcessor,
-    batch_size: int,
-    device: str
-) -> pd.DataFrame:
-    """Embed a pandas series of images."""
-    images = images.apply(process_image, processor=processor, device=device)
-    results: t.List[pd.Series] = []
-    for batch in np.split(images, np.arange(batch_size, len(images), batch_size)):
-        if not batch.empty:
-            results.append(embed_image_batch(batch, model=model).T)
-    return pd.concat(results).to_frame()
-
-
-class EmbedImagesComponent(DaskTransformComponent):
+class EmbedImagesComponent(PandasTransformComponent):
     """Component that captions images using a model from the Hugging Face hub."""
 
-    def transform(
+    def setup(
         self,
-        dataframe: dd.DataFrame,
         *,
         model_id: str,
         batch_size: int,
-    ) -> dd.DataFrame:
+    ):
         """
         Args:
-            dataframe: Dask dataframe
             model_id: id of the model on the Hugging Face hub
-            batch_size: batch size to use
-        Returns:
-            Dask dataframe.
+            batch_size: batch size to use.
         """
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        logger.info("device used is %s", device)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        logger.info("device used is %s", self.device)
 
         logger.info("Initialize model '%s'", model_id)
-        processor = CLIPProcessor.from_pretrained(model_id)
-        model = CLIPVisionModelWithProjection.from_pretrained(model_id)
-        model.to(device)
+        self.processor = CLIPProcessor.from_pretrained(model_id)
+        self.model = CLIPVisionModelWithProjection.from_pretrained(model_id)
+        self.model.to(self.device)
         logger.info("Model initialized")
 
-        dataframe = dataframe["images_data"].map_partitions(
-            embed_images,
-            model=model,
-            processor=processor,
-            batch_size=batch_size,
-            device=device,
-            meta={0: object}
-        )
-        dataframe.columns = ["embeddings_data"]
+        self.batch_size = batch_size
 
-        return dataframe
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        images = dataframe["images"]["data"].apply(
+            process_image,
+            processor=self.processor,
+            device=self.device
+        )
+        results: t.List[pd.Series] = []
+        for batch in np.split(images, np.arange(self.batch_size, len(images), self.batch_size)):
+            if not batch.empty:
+                results.append(embed_image_batch(batch, model=self.model).T)
+
+        return pd.concat(results).to_frame(name=("embeddings", "data"))
 
 
 if __name__ == "__main__":

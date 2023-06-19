@@ -46,13 +46,6 @@ class LAIONRetrievalComponent(PandasTransformComponent):
             self,
             dataframe: pd.DataFrame,
     ) -> pd.DataFrame:
-        """
-        Args:
-            dataframe: Pandas dataframe.
-
-        Returns:
-            Dask dataframe
-        """
         results: t.List[t.Tuple[str]] = []
         loop = asyncio.new_event_loop()
 
