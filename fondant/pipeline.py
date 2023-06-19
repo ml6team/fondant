@@ -51,7 +51,6 @@ class ComponentOp:
     def __init__(
         self,
         component_spec_path: t.Union[str, Path],
-        local_component: bool = True,
         *,
         local_component: bool = True,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
