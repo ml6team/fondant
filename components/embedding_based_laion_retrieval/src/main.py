@@ -73,5 +73,5 @@ class LAIONRetrievalComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = LAIONRetrievalComponent.from_args()
+    component = LAIONRetrievalComponent.from_file()
     component.run()

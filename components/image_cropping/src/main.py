@@ -66,5 +66,5 @@ class ImageCroppingComponent(DaskTransformComponent):
 
 
 if __name__ == "__main__":
-    component = ImageCroppingComponent.from_args()
+    component = ImageCroppingComponent.from_file()
     component.run()

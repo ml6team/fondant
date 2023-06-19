@@ -108,5 +108,5 @@ class EmbedImagesComponent(DaskTransformComponent):
 
 
 if __name__ == "__main__":
-    component = EmbedImagesComponent.from_args()
+    component = EmbedImagesComponent.from_file()
     component.run()

@@ -63,5 +63,5 @@ class RemovePIIComponent(TransformComponent):
 
 
 if __name__ == "__main__":
-    component = RemovePIIComponent.from_args()
+    component = RemovePIIComponent.from_file()
     component.run()

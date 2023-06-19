@@ -152,5 +152,5 @@ class DownloadImagesComponent(DaskTransformComponent):
 
 
 if __name__ == "__main__":
-    component = DownloadImagesComponent.from_args()
+    component = DownloadImagesComponent.from_file()
     component.run()

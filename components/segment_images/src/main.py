@@ -137,5 +137,5 @@ class SegmentImagesComponent(DaskTransformComponent):
 
 
 if __name__ == "__main__":
-    component = SegmentImagesComponent.from_args()
+    component = SegmentImagesComponent.from_file()
     component.run()

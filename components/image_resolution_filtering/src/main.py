@@ -39,5 +39,5 @@ class ImageFilterComponent(DaskTransformComponent):
 
 
 if __name__ == "__main__":
-    component = ImageFilterComponent.from_args()
+    component = ImageFilterComponent.from_file()
     component.run()

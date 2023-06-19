@@ -14,5 +14,6 @@ WORKDIR /component/src
 
 # Copy over src-files
 COPY src/ .
+COPY fondant_component.yaml ../
 
 ENTRYPOINT ["python", "main.py"]
