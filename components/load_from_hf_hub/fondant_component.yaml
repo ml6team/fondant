@@ -2,8 +2,11 @@ name: Load from hub
 description: Component that loads a dataset from the hub
 image: ghcr.io/ml6team/load_from_hf_hub:latest
 
-produces:
-  #TODO: fill here
+consumes:
+  dummy_variable:  #TODO: fill in here
+    fields:
+      data:
+        type: binary
 
 args:
   dataset_name:
