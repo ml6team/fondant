@@ -136,7 +136,10 @@ class DockerCompiler(Compiler):
 
             # add arguments if any to command
             for key, value in component_op.arguments.items():
-                command.extend([f"--{key}", f"{value}"])
+                if isinstance(value, (dict, list)):
+                    command.extend([f"--{key}", json.dumps(value)])
+                else:
+                    command.extend([f"--{key}", f"{value}"])
 
             # resolve dependencies
             depends_on = {}
