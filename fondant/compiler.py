@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import typing as t
@@ -88,12 +89,15 @@ class DockerCompiler(Compiler):
         p_base_path = Path(base_path)
         # check if base path is an existing local folder
         if p_base_path.exists():
+            logger.info(
+                f"Base path found on local system, setting up {base_path} as mount volume"
+            )
             volume = DockerVolume(
                 type="bind", source=str(p_base_path), target=f"/{p_base_path.stem}"
             )
             path = f"/{p_base_path.stem}"
-            logger.info(f"Base path set to: {path}")
         else:
+            logger.info(f"Base path {base_path} is remote")
             volume = None
             path = base_path
         return (path, volume)
@@ -102,8 +106,9 @@ class DockerCompiler(Compiler):
         """Generate a docker-compose spec as a python dictionary,
         loops over the pipeline graph to create services and their dependencies.
         """
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         path, volume = self._patch_path(base_path=pipeline.base_path)
-        metadata = MetaData(run_id=pipeline.name, base_path=path)
+        metadata = MetaData(run_id=f"{pipeline.name}-{timestamp}", base_path=path)
 
         services = {}
 
@@ -117,7 +122,17 @@ class DockerCompiler(Compiler):
             command = ["--metadata", json.dumps(asdict(metadata))]
 
             # add in and out manifest paths to command
-            command.extend(["--output_manifest_path", f"{path}/manifest.json"])
+            command.extend(
+                [
+                    "--output_manifest_path",
+                    f"{path}/{safe_component_name}/manifest.json",
+                ]
+            )
+
+            # add component spec to command if does not exist yet
+            if not component_op.arguments.get("component_spec"):
+                component_spec = component_op.component_spec.specification
+                command.extend(["--component_spec", json.dumps(component_spec)])
 
             # add arguments if any to command
             for key, value in component_op.arguments.items():
@@ -126,13 +141,18 @@ class DockerCompiler(Compiler):
             # resolve dependencies
             depends_on = {}
             if component["dependencies"]:
-                # there is only an input manifest if the component has dependencies
-                command.extend(["--input_manifest_path", f"{path}/manifest.json"])
                 for dependency in component["dependencies"]:
                     safe_dependency = self._safe_component_name(dependency)
                     depends_on[safe_dependency] = {
                         "condition": "service_completed_successfully"
                     }
+                    # there is only an input manifest if the component has dependencies
+                    command.extend(
+                        [
+                            "--input_manifest_path",
+                            f"{path}/{safe_dependency}/manifest.json",
+                        ]
+                    )
 
             volumes = []
             if volume:
