@@ -3,7 +3,10 @@ description: Component that loads a dataset from the hub
 image: ghcr.io/ml6team/load_from_hf_hub:latest
 
 produces:
-  # fill here
+  images:
+    fields:
+      data:
+        type: binary
 
 args:
   dataset_name:

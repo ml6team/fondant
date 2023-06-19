@@ -2,12 +2,22 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from fondant.exceptions import InvalidPipelineDefinition
-from fondant.pipeline import ComponentOp, Pipeline
+from fondant.pipeline import ComponentOp, ComponentSpec, Pipeline
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
 invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
+custom_spec_path = (
+    Path(__file__).parent / "example_pipelines/load_from_hub_custom_spec.yaml"
+)
+
+
+def yaml_file_to_dict(file_path):
+    with open(file_path, "r") as file:
+        data = yaml.safe_load(file)
+    return data
 
 
 @pytest.fixture
@@ -177,3 +187,35 @@ def test_reusable_component_op():
         ComponentOp.from_registry(
             name="this_component_does_not_exist",
         )
+
+
+def test_defining_reusable_component_op_with_custom_spec():
+    load_from_hub_op_default_op = ComponentOp.from_registry(
+        name="load_from_hf_hub",
+        arguments={
+            "dataset_name": "test_dataset",
+            "column_name_mapping": {"foo": "bar"},
+            "image_column_names": None,
+        },
+    )
+
+    load_from_hub_op_default_spec = ComponentSpec(
+        yaml_file_to_dict(load_from_hub_op_default_op.component_spec_path)
+    )
+
+    load_from_hub_op_custom_op = ComponentOp.from_registry(
+        name="load_from_hf_hub",
+        component_spec_path=custom_spec_path,
+        arguments={
+            "dataset_name": "test_dataset",
+            "column_name_mapping": {"foo": "bar"},
+            "image_column_names": None,
+        },
+    )
+
+    load_from_hub_op_custom_spec = ComponentSpec(yaml_file_to_dict(custom_spec_path))
+
+    assert load_from_hub_op_custom_op.component_spec == load_from_hub_op_custom_spec
+    assert load_from_hub_op_default_op.component_spec == load_from_hub_op_default_spec
+    assert load_from_hub_op_default_op.component_spec != load_from_hub_op_custom_spec
+    assert load_from_hub_op_custom_op.component_spec != load_from_hub_op_default_spec

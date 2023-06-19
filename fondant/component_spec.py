@@ -205,6 +205,11 @@ class ComponentSpec:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r}"
 
+    def __eq__(self, other):
+        if not isinstance(other, ComponentSpec):
+            return False
+        return self._specification == other._specification
+
 
 class KubeflowComponentSpec:
     """
