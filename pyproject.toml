@@ -67,6 +67,9 @@ pytest-cov = "~2.12.1"
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.1.8"
 
+[tool.poetry.scripts]
+fondant = "fondant.cli:main"
+
 [build-system]
 requires = ["poetry-core>=1.2.0"]
 build-backend = "poetry.core.masonry.api"
