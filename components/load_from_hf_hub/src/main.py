@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 class LoadFromHubComponent(LoadComponent):
     def load(self,
-             dataset_name: str,
              *,
+             dataset_name: str,
              column_name_mapping: dict,
              image_column_names: t.Optional[list],
              n_rows_to_load: t.Optional[int]) -> dd.DataFrame:
@@ -34,7 +34,7 @@ class LoadFromHubComponent(LoadComponent):
         dask_df = dd.read_parquet(f"hf://datasets/{dataset_name}")
 
         # 2) Make sure images are bytes instead of dicts
-        if image_column_names:
+        if image_column_names is not None:
             for image_column_name in image_column_names:
                 dask_df[image_column_name] = dask_df[image_column_name].map(
                     lambda x: x["bytes"], meta=("bytes", bytes)

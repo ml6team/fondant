@@ -21,8 +21,8 @@ args:
     description: Mapping of the consumed hub dataset to fondant column names
     type: dict
   image_column_names:
-    description: A list containing the original hub image column names. Used to format the image
-      from HF hub format to a byte string
+    description: Optional argument, a list containing the original image column names in case the 
+       dataset on the hub contains them. Used to format the image from HF hub format to a byte string.
     type: list
     default: None
   n_rows_to_load:

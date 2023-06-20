@@ -81,7 +81,7 @@ class WriteToHubComponent(WriteComponent):
         # Map image column to hf data format
         feature_encoder = datasets.Image(decode=True)
 
-        if image_column_names:
+        if image_column_names is not None:
             for image_column_name in image_column_names:
                 dataframe[image_column_name] = dataframe[image_column_name].map(
                     lambda x: convert_bytes_to_image(x, feature_encoder),
