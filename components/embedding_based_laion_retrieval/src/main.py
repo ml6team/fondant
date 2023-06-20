@@ -1,6 +1,7 @@
 """This component retrieves image URLs from LAION-5B based on a set of CLIP embeddings."""
 import asyncio
 import concurrent.futures
+import functools
 import logging
 import typing as t
 
@@ -55,8 +56,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                 futures = [
                     loop.run_in_executor(
                         executor,
-                        self.client.query,
-                        embedding
+                        functools.partial(self.client.query, embedding_input=embedding.tolist())
                     )
                     for embedding in dataframe["embeddings"]["data"]
                 ]

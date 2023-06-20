@@ -67,9 +67,18 @@ class ComponentOp:
         self.p_volumes = p_volumes
         self.ephemeral_storage_size = ephemeral_storage_size
 
+        self.extend_arguments()
+
     @property
     def component_spec(self) -> ComponentSpec:
         return ComponentSpec.from_file(self.component_spec_path)
+
+    def extend_arguments(self):
+        """Add the component specification to the arguments if not already present."""
+        if not self.arguments.get("component_spec"):
+            self.arguments["component_spec"] = json.dumps(
+                self.component_spec.specification
+            )
 
     @classmethod
     def from_registry(
@@ -336,7 +345,6 @@ class Pipeline:
             previous_component_task = None
             for operation in self._graph.values():
                 fondant_component_op = operation["fondant_component_op"]
-                component_spec_dict = fondant_component_op.component_spec.specification
 
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
@@ -349,7 +357,6 @@ class Pipeline:
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
                         metadata=metadata,
-                        component_spec=component_spec_dict,
                         **component_args,
                     )
                 else:
@@ -360,7 +367,6 @@ class Pipeline:
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
                         metadata=metadata,
-                        component_spec=component_spec_dict,
                         **component_args,
                     )
                     metadata = ""

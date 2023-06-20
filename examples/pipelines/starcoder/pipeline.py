@@ -1,6 +1,5 @@
 """Pipeline used to create the dataset to train the StarCoder model."""
 
-import argparse
 import logging
 import sys
 
@@ -8,6 +7,7 @@ sys.path.append("../")
 
 from pipeline_configs import PipelineConfigs
 
+from fondant.compiler import DockerCompiler
 from fondant.logger import configure_logging
 from fondant.pipeline import Client, ComponentOp, Pipeline
 
@@ -38,6 +38,7 @@ pipeline = Pipeline(
     pipeline_description="A pipeline for filtering the stack dataset",
     base_path=PipelineConfigs.BASE_PATH,
 )
+client = Client(host=PipelineConfigs.HOST)
 
 # define ops
 load_from_hub_op = ComponentOp.from_registry(
@@ -74,4 +75,11 @@ pipeline.add_op(filter_comments_op, dependencies=filter_line_length_op)
 pipeline.add_op(pii_redaction_op, dependencies=filter_comments_op)
 
 
-client.compile_and_run(pipeline=pipeline)
+if __name__ == "__main__":
+    compiler = DockerCompiler()
+    # mount the gcloud credentials to the container
+    extra_volumes = [
+        "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro"
+    ]
+    compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
+    logger.info("Run `docker compose up` to run the pipeline.")

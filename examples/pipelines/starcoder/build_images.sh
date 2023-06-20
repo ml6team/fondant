@@ -54,4 +54,3 @@ for dir in $component_dir/*/; do
     docker push "$full_image_name"
   fi
   cd "$component_dir"
-done

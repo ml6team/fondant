@@ -10,10 +10,10 @@ import logging
 import traceback
 import urllib
 
-import dask.dataframe as dd
+import pandas as pd
 from resizer import Resizer
 
-from fondant.component import DaskTransformComponent
+from fondant.component import PandasTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -27,7 +27,7 @@ def is_disallowed(headers, user_agent_token, disallowed_header_directives):
             uatoken_directives = values.split(":", 1)
             directives = [x.strip().lower() for x in uatoken_directives[-1].split(",")]
             ua_token = (
-                uatoken_directives[0].lower() if len(uatoken_directives) == 2   # noqa : PLR2004
+                uatoken_directives[0].lower() if len(uatoken_directives) == 2  # noqa: PLR2004
                 else None
             )
             if (ua_token is None or ua_token == user_agent_token) and any(
@@ -69,8 +69,8 @@ def download_image(url, timeout, user_agent_token, disallowed_header_directives)
 
 
 def download_image_with_retry(
-    *,
     url,
+    *,
     timeout,
     retries,
     resizer,
@@ -87,12 +87,11 @@ def download_image_with_retry(
     return None, None, None
 
 
-class DownloadImagesComponent(DaskTransformComponent):
+class DownloadImagesComponent(PandasTransformComponent):
     """Component that downloads images based on URLs."""
 
-    def transform(
+    def setup(
         self,
-        dataframe: dd.DataFrame,
         *,
         timeout: int = 10,
         retries: int = 0,
@@ -101,54 +100,35 @@ class DownloadImagesComponent(DaskTransformComponent):
         resize_only_if_bigger: bool = False,
         min_image_size: int = 0,
         max_aspect_ratio: float = float("inf"),
-    ) -> dd.DataFrame:
-        """
-        Args:
-            dataframe: Dask dataframe
-            timeout: Maximum time (in seconds) to wait when trying to download an image.
-            retries: Number of times to retry downloading an image if it fails.
-            image_size: Size of the images after resizing.
-            resize_mode: Resize mode to use. One of "no", "keep_ratio", "center_crop", "border".
-            resize_only_if_bigger: If True, resize only if image is bigger than image_size.
-            min_image_size: Minimum size of the images.
-            max_aspect_ratio: Maximum aspect ratio of the images.
-
-        Returns:
-            Dask dataframe
-        """
+    ):
         logger.info("Instantiating resizer...")
-        resizer = Resizer(
+        self.resizer = Resizer(
             image_size=image_size,
             resize_mode=resize_mode,
             resize_only_if_bigger=resize_only_if_bigger,
             min_image_size=min_image_size,
             max_aspect_ratio=max_aspect_ratio,
         )
+        self.timeout = timeout
+        self.retries = retries
 
-        # retrieve and resize images
-        logger.info("Downloading and resizing images...")
-        result = dataframe.apply(
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        dataframe[[
+            ("images", "data"),
+            ("images", "width"),
+            ("images", "height")
+        ]] = dataframe.apply(
             lambda example: download_image_with_retry(
-                url=example.images_url,
-                timeout=timeout,
-                retries=retries,
-                resizer=resizer,
+                url=example["images"]["url"],
+                timeout=self.timeout,
+                retries=self.retries,
+                resizer=self.resizer,
             ),
             axis=1,
             result_type="expand",
-            meta={0: object, 1: int, 2: int},
-        )
-        result.columns = [
-            "images_data",
-            "images_width",
-            "images_height",
-        ]
-
-        dataframe = dataframe.merge(
-            result, left_index=True, right_index=True
         )
 
-        return dataframe
+        return dataframe[[("images", "data"), ("images", "width"), ("images", "height")]]
 
 
 if __name__ == "__main__":
