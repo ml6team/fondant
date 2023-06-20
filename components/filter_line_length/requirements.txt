@@ -1,3 +1,3 @@
-fondant==0.1.0
+fondant
 pyarrow>=7.0
 gcsfs==2023.4.00

@@ -35,7 +35,7 @@ def patched_data_loading(monkeypatch):
     """Mock data loading so no actual data is loaded."""
 
     def mocked_load_dataframe(self):
-        return dd.from_dict({"a": [1, 2, 3]}, npartitions=N_PARTITIONS)
+        return dd.from_dict({"images_data": [1, 2, 3]}, npartitions=N_PARTITIONS)
 
     monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
 
@@ -61,12 +61,16 @@ def test_component_arguments():
         str(components_path / "arguments/input_manifest.json"),
         "--metadata",
         "{}",
-        "--override_default_string_arg",
-        "bar",
         "--output_manifest_path",
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--override_default_arg",
+        "bar",
+        "--override_default_none_arg",
+        "3.14",
+        "--override_default_arg_with_none",
+        "None",
     ]
 
     class MyComponent(Component):
@@ -83,10 +87,19 @@ def test_component_arguments():
         "string_default_arg": "foo",
         "integer_default_arg": 1,
         "float_default_arg": 3.14,
-        "bool_default_arg": False,
+        "bool_false_default_arg": False,
+        "bool_true_default_arg": True,
         "list_default_arg": ["foo", "bar"],
         "dict_default_arg": {"foo": 1, "bar": 2},
-        "override_default_string_arg": "bar",
+        "string_default_arg_none": None,
+        "integer_default_arg_none": None,
+        "float_default_arg_none": None,
+        "bool_default_arg_none": None,
+        "list_default_arg_none": None,
+        "dict_default_arg_none": None,
+        "override_default_arg": "bar",
+        "override_default_none_arg": 3.14,
+        "override_default_arg_with_none": None,
     }
 
 
@@ -181,6 +194,7 @@ def test_pandas_transform_component(patched_data_loading, patched_data_writing):
 
         def transform(self, dataframe):
             assert isinstance(dataframe, pd.DataFrame)
+            return dataframe.rename(columns={"images": "embeddings"})
 
     component = MyPandasComponent.from_args()
     setup = mock.patch.object(MyPandasComponent, "setup", wraps=component.setup)

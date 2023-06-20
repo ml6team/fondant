@@ -52,6 +52,7 @@ class ComponentOp:
         self,
         component_spec_path: t.Union[str, Path],
         *,
+        local_component: bool = True,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_name: t.Optional[str] = None,
@@ -59,6 +60,7 @@ class ComponentOp:
         ephemeral_storage_size: t.Optional[str] = None,
     ):
         self.component_spec_path = component_spec_path
+        self.local_component = local_component
         self.arguments = arguments or {}
         self.number_of_gpus = number_of_gpus
         self.node_pool_name = node_pool_name
@@ -103,6 +105,7 @@ class ComponentOp:
 
         return ComponentOp(
             component_spec_path,
+            local_component=False,
             arguments=arguments,
             number_of_gpus=number_of_gpus,
             node_pool_name=node_pool_name,

@@ -93,7 +93,6 @@ class Component(ABC):
         component_arguments = cls._get_component_arguments(spec)
 
         for arg in component_arguments.values():
-            # Input manifest is not required for loading component
             if arg.name in cls.optional_fondant_arguments():
                 input_required = False
                 default = None
@@ -106,7 +105,7 @@ class Component(ABC):
 
             parser.add_argument(
                 f"--{arg.name}",
-                type=kubeflow2python_type[arg.type],  # type: ignore
+                type=kubeflow2python_type(arg.type),  # type: ignore
                 required=input_required,
                 default=default,
                 help=arg.description,
@@ -270,6 +269,19 @@ class PandasTransformComponent(TransformComponent):
             dataframe: A Pandas dataframe containing a partition of the data
         """
 
+    def wrapped_transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        """Method wrapping the transform method to switch between hierarchical and flattened
+        columns.
+        """
+        dataframe.columns = pd.MultiIndex.from_tuples(
+            tuple(column.split("_")) for column in dataframe.columns
+        )
+        dataframe = self.transform(dataframe)
+        dataframe.columns = [
+            "_".join(column) for column in dataframe.columns.to_flat_index()
+        ]
+        return dataframe
+
     def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
         """
         Load the data based on the manifest using a DaskDataloader and call the transform method to
@@ -297,7 +309,7 @@ class PandasTransformComponent(TransformComponent):
 
         # Call the component transform method for each partition
         df = df.map_partitions(
-            self.transform,
+            self.wrapped_transform,
             meta=meta_df,
         )
 

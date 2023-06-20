@@ -53,11 +53,22 @@ class DockerCompiler(Compiler):
     """Compiler that creates a docker-compose spec from a pipeline."""
 
     def compile(
-        self, pipeline: Pipeline, output_path: str = "docker-compose.yml"
+        self,
+        pipeline: Pipeline,
+        output_path: str = "docker-compose.yml",
+        extra_volumes: list = [],
     ) -> None:
-        """Compile a pipeline to docker-compose spec and save it to a specified output path."""
-        logger.info(f"Compiling {pipeline.name} to docker-compose.yml")
-        spec = self._generate_spec(pipeline=pipeline)
+        """Compile a pipeline to docker-compose spec and save it to a specified output path.
+
+        Args:
+            pipeline: the pipeline to compile
+            output_path: the path where to save the docker-compose spec
+            extra_volumes: a list of extra volumes (using the Short syntax:
+              https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
+              to mount in the docker-compose spec.
+        """
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
+        spec = self._generate_spec(pipeline=pipeline, extra_volumes=extra_volumes)
         with open(output_path, "w") as outfile:
             yaml.safe_dump(spec, outfile)
         logger.info(f"Successfully compiled to {output_path}")
@@ -87,7 +98,7 @@ class DockerCompiler(Compiler):
             path = base_path
         return (path, volume)
 
-    def _generate_spec(self, pipeline: Pipeline) -> dict:
+    def _generate_spec(self, pipeline: Pipeline, extra_volumes: list) -> dict:
         """Generate a docker-compose spec as a python dictionary,
         loops over the pipeline graph to create services and their dependencies.
         """
@@ -106,7 +117,7 @@ class DockerCompiler(Compiler):
             command = ["--metadata", json.dumps(asdict(metadata))]
 
             # add in and out manifest paths to command
-            command.extend(["--output_manifest_path", f"{path}/manifest.txt"])
+            command.extend(["--output_manifest_path", f"{path}/manifest.json"])
 
             # add arguments if any to command
             for key, value in component_op.arguments.items():
@@ -116,20 +127,31 @@ class DockerCompiler(Compiler):
             depends_on = {}
             if component["dependencies"]:
                 # there is only an input manifest if the component has dependencies
-                command.extend(["--input_manifest_path", f"{path}/manifest.txt"])
+                command.extend(["--input_manifest_path", f"{path}/manifest.json"])
                 for dependency in component["dependencies"]:
                     safe_dependency = self._safe_component_name(dependency)
                     depends_on[safe_dependency] = {
                         "condition": "service_completed_successfully"
                     }
 
-            volumes = [asdict(volume)] if volume else []
+            volumes = []
+            if volume:
+                volumes.append(asdict(volume))
+            if extra_volumes:
+                volumes.extend(extra_volumes)
 
             services[safe_component_name] = {
-                "image": component_op.component_spec.image,
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
             }
 
+            if component_op.local_component:
+                services[safe_component_name][
+                    "build"
+                ] = f"./{Path(component_op.component_spec_path).parent}"
+            else:
+                services[safe_component_name][
+                    "image"
+                ] = component_op.component_spec.image
         return {"version": "3.8", "services": services}

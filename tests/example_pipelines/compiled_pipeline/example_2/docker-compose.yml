@@ -1,0 +1,30 @@
+services:
+  first_component:
+    build: ./tests/example_pipelines/valid_pipeline/example_1
+    command:
+    - --metadata
+    - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
+    - --output_manifest_path
+    - /foo/bar/manifest.json
+    - --storage_args
+    - a dummy string arg
+    depends_on: {}
+    volumes: []
+  image_cropping:
+    command:
+    - --metadata
+    - '{"run_id": "test_pipeline", "base_path": "/foo/bar"}'
+    - --output_manifest_path
+    - /foo/bar/manifest.json
+    - --cropping_threshold
+    - '0'
+    - --padding
+    - '0'
+    - --input_manifest_path
+    - /foo/bar/manifest.json
+    depends_on:
+      first_component:
+        condition: service_completed_successfully
+    image: ghcr.io/ml6team/image_cropping:latest
+    volumes: []
+version: '3.8'

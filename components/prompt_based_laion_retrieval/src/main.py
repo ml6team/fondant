@@ -64,7 +64,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                         self.client.query,
                         prompt
                     )
-                    for prompt in dataframe["prompts_text"]
+                    for prompt in dataframe["prompts"]["text"]
                 ]
                 for response in await asyncio.gather(*futures):
                     results.extend(response)
@@ -72,8 +72,8 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         loop.run_until_complete(async_query())
 
         results_df = pd.DataFrame(results)[["id", "url"]]
-        results_df.rename(columns={"url": "images_url"}, inplace=True)
         results_df.set_index("id", inplace=True)
+        results_df.columns = [["images"], ["url"]]
 
         return results_df
 
