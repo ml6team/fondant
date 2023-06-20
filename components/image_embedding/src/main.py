@@ -68,8 +68,7 @@ class EmbedImagesComponent(PandasTransformComponent):
 
         logger.info("Initialize model '%s'", model_id)
         self.processor = CLIPProcessor.from_pretrained(model_id)
-        self.model = CLIPVisionModelWithProjection.from_pretrained(model_id)
-        self.model.to(self.device)
+        self.model = CLIPVisionModelWithProjection.from_pretrained(model_id).to(self.device)
         logger.info("Model initialized")
 
         self.batch_size = batch_size

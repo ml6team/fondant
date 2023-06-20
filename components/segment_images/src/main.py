@@ -88,7 +88,7 @@ class SegmentImagesComponent(PandasTransformComponent):
         logger.info(f"Device: {self.device}")
 
         self.processor = SegformerImageProcessor.from_pretrained(model_id)
-        self.model = AutoModelForSemanticSegmentation.from_pretrained(model_id)
+        self.model = AutoModelForSemanticSegmentation.from_pretrained(model_id).to(self.device)
 
         self.batch_size = batch_size
 

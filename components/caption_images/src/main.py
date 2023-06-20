@@ -60,7 +60,7 @@ class CaptionImagesComponent(PandasTransformComponent):
         logger.info(f"Device: {self.device}")
 
         self.processor = BlipProcessor.from_pretrained(model_id)
-        self.model = BlipForConditionalGeneration.from_pretrained(model_id)
+        self.model = BlipForConditionalGeneration.from_pretrained(model_id).to(self.device)
 
         self.batch_size = batch_size
         self.max_new_tokens = max_new_tokens
