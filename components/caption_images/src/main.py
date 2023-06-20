@@ -3,14 +3,13 @@ import io
 import logging
 import typing as t
 
-import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 import torch
 from PIL import Image
 from transformers import BatchEncoding, BlipForConditionalGeneration, BlipProcessor
 
-from fondant.component import DaskTransformComponent
+from fondant.component import PandasTransformComponent
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -53,69 +52,39 @@ def caption_image_batch(
     return pd.Series(captions_batch, index=image_batch.index)
 
 
-def caption_images(
-    images: pd.Series,
-    *,
-    model: BlipForConditionalGeneration,
-    processor: BlipProcessor,
-    batch_size: int,
-    max_new_tokens: int,
-    device: str,
-) -> pd.DataFrame:
-    """Caption a pandas series of images."""
-    images = images.apply(process_image, processor=processor, device=device)
-    results: t.List[pd.Series] = []
-    for batch in np.split(images, np.arange(batch_size, len(images), batch_size)):
-        if not batch.empty:
-            results.append(
-                caption_image_batch(
-                    batch,
-                    model=model,
-                    processor=processor,
-                    max_new_tokens=max_new_tokens
-                ).T
-            )
-    return pd.concat(results).to_frame()
-
-
-class CaptionImagesComponent(DaskTransformComponent):
+class CaptionImagesComponent(PandasTransformComponent):
     """Component that captions images using a model from the Hugging Face hub."""
 
-    def transform(
-        self,
-        dataframe: dd.DataFrame,
-        model_id: str,
-        batch_size: int,
-        max_new_tokens: int,
-    ) -> dd.DataFrame:
-        """
-        Args:
-            dataframe: Dask dataframe
-            model_id: id of the model on the Hugging Face hub
-            batch_size: batch size to use
-            max_new_tokens: maximum token length of each caption.
+    def setup(self, *, model_id: str, batch_size: int, max_new_tokens: int) -> None:
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        logger.info(f"Device: {self.device}")
 
-        Returns:
-            Dask dataframe
-        """
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        logger.info(f"Device: {device}")
+        self.processor = BlipProcessor.from_pretrained(model_id)
+        self.model = BlipForConditionalGeneration.from_pretrained(model_id).to(self.device)
 
-        processor = BlipProcessor.from_pretrained(model_id)
-        model = BlipForConditionalGeneration.from_pretrained(model_id)
+        self.batch_size = batch_size
+        self.max_new_tokens = max_new_tokens
 
-        dataframe = dataframe["images_data"].map_partitions(
-            caption_images,
-            model=model,
-            processor=processor,
-            batch_size=batch_size,
-            max_new_tokens=max_new_tokens,
-            device=device,
-            meta={0: str}
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        images = dataframe["images"]["data"].apply(
+            process_image,
+            processor=self.processor,
+            device=self.device
         )
-        dataframe.columns = ["captions_text"]
 
-        return dataframe
+        results: t.List[pd.Series] = []
+        for batch in np.split(images, np.arange(self.batch_size, len(images), self.batch_size)):
+            if not batch.empty:
+                results.append(
+                    caption_image_batch(
+                        batch,
+                        model=self.model,
+                        processor=self.processor,
+                        max_new_tokens=self.max_new_tokens
+                    ).T
+                )
+
+        return pd.concat(results).to_frame(name=("captions", "text"))
 
 
 if __name__ == "__main__":
