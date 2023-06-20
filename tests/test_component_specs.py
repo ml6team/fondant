@@ -2,7 +2,6 @@
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 import yaml
@@ -38,16 +37,10 @@ def invalid_fondant_schema() -> dict:
         return yaml.safe_load(f)
 
 
-@patch("pkgutil.get_data", return_value=None)
-def test_component_spec_pkgutil_error(mock_get_data):
-    """Test that FileNotFoundError is raised when pkgutil.get_data returns None."""
-    with pytest.raises(FileNotFoundError):
-        ComponentSpec("example_component.yaml")
-
-
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
     """Test that the manifest is validated correctly on instantiation."""
-    ComponentSpec(valid_fondant_schema)
+    a = ComponentSpec(valid_fondant_schema)
+    print(a.kubeflow_specification)
     with pytest.raises(InvalidComponentSpec):
         ComponentSpec(invalid_fondant_schema)
 
@@ -75,13 +68,17 @@ def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     assert kubeflow_component._specification == valid_kubeflow_schema
 
 
-def test_component_spec_no_args(valid_fondant_schema_no_args):
+def test_transform_component_spec_no_args(valid_fondant_schema_no_args):
     """Test that a component spec without args is supported."""
     fondant_component = ComponentSpec(valid_fondant_schema_no_args)
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
-    assert fondant_component.args == {}
+    assert list(fondant_component.args.keys()) == [
+        "component_spec",
+        "input_manifest_path",
+        "output_manifest_path",
+    ]
 
 
 def test_component_spec_to_file(valid_fondant_schema):
