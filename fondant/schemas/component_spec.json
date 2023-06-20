@@ -5,7 +5,8 @@
   "required": [
     "name",
     "description",
-    "image"
+    "image",
+    "type"
   ],
   "properties": {
     "name": {
@@ -19,6 +20,11 @@
     "image": {
       "type": "string",
       "description": "Docker image for the component"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of the component",
+      "enum": ["load", "transform", "write"]
     },
     "consumes": {
       "$ref": "#/definitions/subsets"
