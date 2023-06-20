@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from fondant.exceptions import InvalidManifest
-from fondant.manifest import Manifest, Subset, Type
+from fondant.manifest import Field, Index, Manifest, Subset, Type
 
 manifest_path = Path(__file__).parent / "example_specs/manifests"
 
@@ -199,3 +199,24 @@ def test_no_validate_schema(monkeypatch, valid_manifest):
     monkeypatch.setattr(pkgutil, "get_data", lambda package, resource: None)
     with pytest.raises(FileNotFoundError):
         Manifest(valid_manifest)
+
+
+def test_index_fields():
+    """Test that the fields property of Index returns the expected fields."""
+    subset_spec = {
+        "location": "/images/ABC/123",
+        "fields": {
+            "data": {
+                "type": "binary",
+            },
+        },
+    }
+
+    index = Index(specification=subset_spec, base_path="/tmp")
+
+    expected_fields = {
+        "id": Field(name="id", type=Type("string")),
+        "source": Field(name="source", type=Type("string")),
+    }
+
+    assert index.fields == expected_fields
