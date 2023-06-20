@@ -36,6 +36,11 @@ load_from_hub_op = ComponentOp.from_registry(
     },
 )
 
+# Define component ops
+image_resolution_extraction_op = ComponentOp.from_registry(
+    name="image_resolution_extraction"
+)
+
 image_embedding_op = ComponentOp.from_registry(
     name="image_embedding",
     arguments={
@@ -89,7 +94,8 @@ write_to_hub = ComponentOp.from_registry(
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(image_embedding_op, dependencies=load_from_hub_op)
+pipeline.add_op(image_resolution_extraction_op, dependencies=load_from_hub_op)
+pipeline.add_op(image_embedding_op, dependencies=image_resolution_extraction_op)
 pipeline.add_op(laion_retrieval_op, dependencies=image_embedding_op)
 pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
 pipeline.add_op(caption_images_op, dependencies=download_images_op)

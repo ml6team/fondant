@@ -7,10 +7,7 @@ produces:
     fields:
       data:
         type: binary
-      width:
-        type: int16
-      height:
-        type: int16
+
   captions:
     fields:
       data:
