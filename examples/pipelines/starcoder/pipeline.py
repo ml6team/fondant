@@ -52,16 +52,10 @@ pipeline.add_op(pii_redaction_op, dependencies=filter_comments_op)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--local", action="store_true")
-    if parser.parse_args().local:
-        compiler = DockerCompiler()
-        extra_volumes = [
-            "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro"
-        ]
-        compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
-        logger.info("Run `docker-compose up` to run the pipeline.")
-
-    else:
-        client = Client(host=PipelineConfigs.HOST)
-        client.compile_and_run(pipeline=pipeline)
+    compiler = DockerCompiler()
+    # mount the gcloud credentials to the container
+    extra_volumes = [
+        "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro"
+    ]
+    compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
+    logger.info("Run `docker compose up` to run the pipeline.")

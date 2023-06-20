@@ -90,7 +90,7 @@ def test_docker_compiler(setup_pipeline, freeze_time, tmp_path_factory):
         with open(output_path, "r") as src, open(
             VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml", "r"
         ) as truth:
-            assert src.read() == truth.read()
+            assert yaml.safe_load(src) == yaml.safe_load(truth)
 
 
 def test_docker_local_path(setup_pipeline, freeze_time, tmp_path_factory):

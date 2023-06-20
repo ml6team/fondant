@@ -6,13 +6,13 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/first_component/manifest.json
+    - --storage_args
+    - a dummy string arg
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
       {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
-    - --storage_args
-    - a dummy string arg
     depends_on: {}
     volumes: []
   image_cropping:
@@ -21,6 +21,10 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/image_cropping/manifest.json
+    - --cropping_threshold
+    - '0'
+    - --padding
+    - '0'
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
       borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:latest",
@@ -31,10 +35,6 @@ services:
       results in a more performant border detection, but can cause overcropping. Default
       is -30", "type": "int"}, "padding": {"description": "Padding for the image cropping.
       The padding is added to all borders of the image.", "type": "int"}}}'
-    - --cropping_threshold
-    - '0'
-    - --padding
-    - '0'
     - --input_manifest_path
     - /foo/bar/first_component/manifest.json
     depends_on:
