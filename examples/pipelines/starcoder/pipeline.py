@@ -8,12 +8,14 @@ sys.path.append("../")
 
 from pipeline_configs import PipelineConfigs
 
-from fondant.compiler import DockerCompiler
 from fondant.logger import configure_logging
 from fondant.pipeline import Client, ComponentOp, Pipeline
 
 configure_logging()
 logger = logging.getLogger(__name__)
+
+
+client = Client(host=PipelineConfigs.HOST)
 
 dataset_column_name = [
     "content",
@@ -44,7 +46,7 @@ load_from_hub_op = ComponentOp.from_registry(
     arguments={
         "dataset_name": "ml6team/the-stack-smol-python",
         "column_name_mapping": load_component_column_mapping,
-        "nb_rows_to_load": None,
+        "n_rows_to_load": None,
     },
 )
 
@@ -72,17 +74,4 @@ pipeline.add_op(filter_comments_op, dependencies=filter_line_length_op)
 pipeline.add_op(pii_redaction_op, dependencies=filter_comments_op)
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--local", action="store_true")
-    if parser.parse_args().local:
-        compiler = DockerCompiler()
-        extra_volumes = [
-            "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro"
-        ]
-        compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
-        logger.info("Run `docker-compose up` to run the pipeline.")
-
-    else:
-        client = Client(host=PipelineConfigs.HOST)
-        client.compile_and_run(pipeline=pipeline)
+client.compile_and_run(pipeline=pipeline)

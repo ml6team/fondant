@@ -138,7 +138,7 @@ args:
 ``` 
 
 These arguments are passed in when the component is instantiated. 
-If an argument is not explicitly provided, the default value will be used instead if available.```
+If an argument is not explicitly provided, the default value will be used instead if available.
 ```python
 from fondant.pipeline import ComponentOp
 

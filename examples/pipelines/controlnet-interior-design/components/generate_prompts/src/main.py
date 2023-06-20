@@ -98,12 +98,12 @@ def make_interior_prompt(room: str, prefix: str, style: str) -> str:
 
 
 class GeneratePromptsComponent(LoadComponent):
-    def load(self, nb_rows_to_load: t.Optional[int]) -> dd.DataFrame:
+    def load(self, n_rows_to_load: t.Optional[int]) -> dd.DataFrame:
         """
         Generate a set of initial prompts that will be used to retrieve images from the LAION-5B
         dataset.
         Args:
-            nb_rows_to_load: Optional argument that defines the number of rows to load. Useful for
+            n_rows_to_load: Optional argument that defines the number of rows to load. Useful for
              testing pipeline runs on a small scale
         Returns:
             Dask dataframe
@@ -113,8 +113,8 @@ class GeneratePromptsComponent(LoadComponent):
 
         pandas_df = pd.DataFrame(prompts, columns=["prompts_text"])
 
-        if nb_rows_to_load:
-            pandas_df = pandas_df.head(nb_rows_to_load)
+        if n_rows_to_load:
+            pandas_df = pandas_df.head(n_rows_to_load)
 
         df = dd.from_pandas(pandas_df, npartitions=1)
 

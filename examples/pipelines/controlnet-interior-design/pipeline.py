@@ -13,7 +13,6 @@ from fondant.pipeline import (
     Pipeline,
     Client,
 )
-from fondant.compiler import DockerCompiler
 from fondant.logger import configure_logging
 
 configure_logging()
@@ -27,7 +26,7 @@ client = Client(host=PipelineConfigs.HOST)
 # Define component ops
 generate_prompts_op = ComponentOp(
     component_spec_path="components/generate_prompts/fondant_component.yaml",
-    arguments={"nb_rows_to_load": None},
+    arguments={"n_rows_to_load": None},
 )
 laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
@@ -87,18 +86,4 @@ pipeline.add_op(caption_images_op, dependencies=download_images_op)
 pipeline.add_op(segment_images_op, dependencies=caption_images_op)
 pipeline.add_op(write_to_hub_controlnet, dependencies=segment_images_op)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--local", action="store_true")
-    if parser.parse_args().local:
-        compiler = DockerCompiler()
-        extra_volumes = [
-            "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/"
-            "application_default_credentials.json:ro"
-        ]
-        compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
-        logger.info("Run `docker-compose up` to run the pipeline.")
-
-    else:
-        client = Client(host=PipelineConfigs.HOST)
-        client.compile_and_run(pipeline=pipeline)
+client.compile_and_run(pipeline=pipeline)

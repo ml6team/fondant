@@ -7,7 +7,6 @@ sys.path.append("../")
 
 from pipeline_configs import PipelineConfigs
 
-from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline, Client
 from fondant.logger import configure_logging
 
@@ -101,18 +100,4 @@ pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
 pipeline.add_op(caption_images_op, dependencies=download_images_op)
 pipeline.add_op(write_to_hub, dependencies=caption_images_op)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--local", action="store_true")
-    if parser.parse_args().local:
-        compiler = DockerCompiler()
-        extra_volumes = [
-            "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/"
-            "application_default_credentials.json:ro"
-        ]
-        compiler.compile(pipeline=pipeline, extra_volumes=extra_volumes)
-        logger.info("Run `docker-compose up` to run the pipeline.")
-
-    else:
-        client = Client(host=PipelineConfigs.HOST)
-        client.compile_and_run(pipeline=pipeline)
+client.compile_and_run(pipeline=pipeline)
