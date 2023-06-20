@@ -6,6 +6,7 @@ import pkgutil
 import types
 import typing as t
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 
 import jsonschema.exceptions
@@ -53,12 +54,14 @@ class Argument:
         name: name of the argument
         description: argument description
         type: the python argument type (str, int, ...)
+        placeholder_type: the kubeflow placeholder type (inputValue, inputPath, ...)
         default: default value of the argument (defaults to None)
     """
 
     name: str
     description: str
     type: str
+    placeholder_type: str = "InputValue"
     default: t.Optional[str] = None
 
 
@@ -90,6 +93,56 @@ class ComponentSubset:
         return self._specification.get("additionalFields", True)
 
 
+input_manifest_path = Argument(
+    name="input_manifest_path",
+    description="Path to the input manifest",
+    type="str",
+    placeholder_type="inputPath",
+)
+
+output_manifest_path = Argument(
+    name="output_manifest_path",
+    description="Path to the output manifest",
+    type="str",
+    placeholder_type="outputPath",
+)
+
+metadata = Argument(
+    name="metadata",
+    description="Metadata arguments containing the run id and base path",
+    type="str",
+    placeholder_type="inputValue",
+)
+
+component_spec = Argument(
+    name="component_spec",
+    description="The component specification as a dictionary",
+    type="dict",
+    placeholder_type="inputValue",
+)
+
+
+class ComponentBaseArgs(Enum):
+    """Enum representing component base arguments for different types of components."""
+
+    load = {
+        "component_spec": component_spec,
+        "metadata": metadata,
+        "output_manifest_path": output_manifest_path,
+    }
+
+    transform = {
+        "component_spec": component_spec,
+        "input_manifest_path": input_manifest_path,
+        "output_manifest_path": output_manifest_path,
+    }
+
+    write = {
+        "component_spec": component_spec,
+        "input_manifest_path": input_manifest_path,
+    }
+
+
 class ComponentSpec:
     """
     Class representing a Fondant component specification.
@@ -100,6 +153,7 @@ class ComponentSpec:
 
     def __init__(self, specification: t.Dict[str, t.Any]) -> None:
         self._specification = copy.deepcopy(specification)
+        self._type: str = self._specification.get("type", "")
         self._validate_spec()
 
     def _validate_spec(self) -> None:
@@ -184,15 +238,20 @@ class ComponentSpec:
 
     @property
     def args(self) -> t.Dict[str, Argument]:
-        return {
+        component_base_args = ComponentBaseArgs[self._type].value
+
+        user_args = {
             name: Argument(
                 name=name,
                 description=arg_info["description"],
                 type=arg_info["type"],
+                placeholder_type="inputValue",
                 default=arg_info["default"] if "default" in arg_info else None,
             )
             for name, arg_info in self._specification.get("args", {}).items()
         }
+
+        return component_base_args | user_args
 
     @property
     def specification(self) -> t.Dict[str, t.Any]:
@@ -226,22 +285,6 @@ class KubeflowComponentSpec:
             "name": fondant_component.name,
             "description": fondant_component.description,
             "inputs": [
-                {
-                    "name": "input_manifest_path",
-                    "description": "Path to the input manifest",
-                    "type": "String",
-                },
-                {
-                    "name": "metadata",
-                    "description": "Metadata arguments containing the run id and base path",
-                    "type": "String",
-                },
-                {
-                    "name": "component_spec",
-                    "description": "The component specification as a dictionary",
-                    "type": "JsonObject",
-                    "default": "None",
-                },
                 *(
                     {
                         "name": arg.name,
@@ -250,14 +293,20 @@ class KubeflowComponentSpec:
                         **({"default": arg.default} if arg.default is not None else {}),
                     }
                     for arg in fondant_component.args.values()
+                    if "input" in arg.placeholder_type.lower()
                 ),
             ],
             "outputs": [
-                {
-                    "name": "output_manifest_path",
-                    "description": "Path to the output manifest",
-                    "type": "String",
-                },
+                *(
+                    {
+                        "name": arg.name,
+                        "description": arg.description,
+                        "type": python2kubeflow_type[arg.type],
+                        **({"default": arg.default} if arg.default is not None else {}),
+                    }
+                    for arg in fondant_component.args.values()
+                    if "output" in arg.placeholder_type.lower()
+                ),
             ],
             "implementation": {
                 "container": {
@@ -265,15 +314,7 @@ class KubeflowComponentSpec:
                     "command": [
                         "python3",
                         "main.py",
-                        "--input_manifest_path",
-                        {"inputPath": "input_manifest_path"},
-                        "--metadata",
-                        {"inputValue": "metadata"},
-                        "--component_spec",
-                        {"inputValue": "component_spec"},
                         *cls._dump_args(fondant_component.args.values()),
-                        "--output_manifest_path",
-                        {"outputPath": "output_manifest_path"},
                     ],
                 }
             },
@@ -289,7 +330,7 @@ class KubeflowComponentSpec:
             arg_name_cmd = f"--{arg_name}"
 
             dumped_args.append(arg_name_cmd)
-            dumped_args.append({"inputValue": arg_name})
+            dumped_args.append({arg.placeholder_type: arg_name})
 
         return dumped_args
 
