@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 
 import pytest
@@ -43,6 +44,20 @@ TEST_PIPELINES = [
 ]
 
 
+@pytest.fixture
+def freeze_time(monkeypatch):
+    class FrozenDatetime(datetime.datetime):
+        @classmethod
+        def now(cls):
+            return datetime.datetime(2023, 1, 1)
+
+    monkeypatch.setattr(
+        datetime,
+        "datetime",
+        FrozenDatetime,
+    )
+
+
 @pytest.fixture(params=TEST_PIPELINES)
 def setup_pipeline(request, tmp_path, monkeypatch):
     pipeline = Pipeline(
@@ -65,7 +80,7 @@ def setup_pipeline(request, tmp_path, monkeypatch):
     return (example_dir, pipeline)
 
 
-def test_docker_compiler(setup_pipeline, tmp_path_factory):
+def test_docker_compiler(setup_pipeline, freeze_time, tmp_path_factory):
     """Test compiling a pipeline to docker-compose."""
     example_dir, pipeline = setup_pipeline
     compiler = DockerCompiler()
@@ -75,12 +90,12 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
         with open(output_path, "r") as src, open(
             VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml", "r"
         ) as truth:
-            assert src.read() == truth.read()
+            assert yaml.safe_load(src) == yaml.safe_load(truth)
 
 
-def test_docker_local_path(setup_pipeline, tmp_path_factory):
+def test_docker_local_path(setup_pipeline, freeze_time, tmp_path_factory):
     """Test that a local path is applied correctly as a volume and in the arguments."""
-    # volumes are only create for local existing directories
+    # volumes are only created for local existing directories
     with tmp_path_factory.mktemp("temp") as fn:
         # this is the directory mounted in the container
         _, pipeline = setup_pipeline
@@ -93,7 +108,7 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
         with open(fn / "docker-compose.yml") as f_spec:
             spec = yaml.safe_load(f_spec)
 
-        for service in spec["services"].values():
+        for name, service in spec["services"].items():
             # check if volumes are defined correctly
             assert service["volumes"] == [
                 {
@@ -104,14 +119,14 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
             ]
             # check if commands are patched to use the working dir
             commands_with_dir = [
-                f"{work_dir}/manifest.json",
-                f'{{"run_id": "test_pipeline", "base_path": "{work_dir}"}}',
+                f"{work_dir}/{name}/manifest.json",
+                f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{work_dir}"}}',
             ]
             for command in commands_with_dir:
                 assert command in service["command"]
 
 
-def test_docker_remote_path(setup_pipeline, tmp_path_factory):
+def test_docker_remote_path(setup_pipeline, freeze_time, tmp_path_factory):
     """Test that a remote path is applied correctly in the arguments and no volume."""
     _, pipeline = setup_pipeline
     remote_dir = "gs://somebucket/artifacts"
@@ -124,13 +139,37 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
         with open(fn / "docker-compose.yml") as f_spec:
             spec = yaml.safe_load(f_spec)
 
-        for service in spec["services"].values():
+        for name, service in spec["services"].items():
             # check that no volumes are created
             assert service["volumes"] == []
             # check if commands are patched to use the remote dir
             commands_with_dir = [
-                f"{remote_dir}/manifest.json",
-                f'{{"run_id": "test_pipeline", "base_path": "{remote_dir}"}}',
+                f"{remote_dir}/{name}/manifest.json",
+                f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{remote_dir}"}}',
             ]
             for command in commands_with_dir:
                 assert command in service["command"]
+
+
+def test_docker_extra_volumes(setup_pipeline, freeze_time, tmp_path_factory):
+    """Test that extra volumes are applied correctly."""
+    with tmp_path_factory.mktemp("temp") as fn:
+        # this is the directory mounted in the container
+        _, pipeline = setup_pipeline
+        pipeline.base_path = str(fn)
+        compiler = DockerCompiler()
+        # define some extra volumes to be mounted
+        extra_volumes = ["hello:there", "general:kenobi"]
+        compiler.compile(
+            pipeline=pipeline,
+            output_path=fn / "docker-compose.yml",
+            extra_volumes=extra_volumes,
+        )
+
+        # read the generated docker-compose file
+        with open(fn / "docker-compose.yml") as f_spec:
+            spec = yaml.safe_load(f_spec)
+        for name, service in spec["services"].items():
+            assert all(
+                extra_volume in service["volumes"] for extra_volume in extra_volumes
+            )
