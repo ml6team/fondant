@@ -1,8 +1,37 @@
 services:
+  filter_text_complexity:
+    build: ./components/filter_text_complexity
+    command:
+    - --metadata
+    - '{"run_id": "Datacomp filtering pipeline-20230621162624", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - --output_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/filter_text_complexity/manifest.json
+    - --spacy_pipeline
+    - en_core_web_sm
+    - --min_complexity
+    - '1'
+    - --min_num_actions
+    - '1'
+    - --component_spec
+    - '{"name": "Filter text complexity", "description": "Component that filters text
+      based on their dependency parse complexity and number of actions", "image":
+      "ghcr.io/ml6team/filter_text_complexity:latest", "consumes": {"text": {"fields":
+      {"data": {"type": "string"}}}}, "args": {"spacy_pipeline": {"description": "SpaCy
+      pipeline to use, e.g. \"en_core_web_sm\"", "type": "str"}, "min_complexity":
+      {"description": "Minimum complexity to filter text on.", "type": "int"}, "min_num_actions":
+      {"description": "Minimum number of actions a text should contain.", "type":
+      "int"}}}'
+    - --input_manifest_path
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/load_datacomp_from_hub/manifest.json
+    depends_on:
+      load_datacomp_from_hub:
+        condition: service_completed_successfully
+    volumes:
+    - $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
   load_datacomp_from_hub:
     command:
     - --metadata
-    - '{"run_id": "Datacomp filtering pipeline-20230621134958", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - '{"run_id": "Datacomp filtering pipeline-20230621162624", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
     - --output_manifest_path
     - gs://soy-audio-379412_kfp-artifacts/custom_artifact/load_datacomp_from_hub/manifest.json
     - --dataset_name

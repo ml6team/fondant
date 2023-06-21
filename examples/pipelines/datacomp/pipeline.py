@@ -35,7 +35,7 @@ load_component_column_mapping = {
 }
 
 load_from_hub_op = ComponentOp.from_registry(
-    name="load_from_hub",
+    name="load_from_hf_hub",
     component_spec_path="components/load_from_hf_hub/fondant_component.yaml",
     arguments={
         "dataset_name": "mlfoundations/datacomp_small",
@@ -43,9 +43,18 @@ load_from_hub_op = ComponentOp.from_registry(
         "n_rows_to_load": 100,
     },
 )
+filter_complexity_op = ComponentOp(
+    component_spec_path="components/filter_text_complexity/fondant_component.yaml",
+    arguments={
+        "spacy_pipeline": "en_core_web_sm",
+        "min_complexity": 1,
+        "min_num_actions": 1,
+    },
+)
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
+pipeline.add_op(filter_complexity_op, dependencies=load_from_hub_op)
 # TODO add more ops
 
 # compile
