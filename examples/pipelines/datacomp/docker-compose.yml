@@ -2,7 +2,7 @@ services:
   load_datacomp_from_hub:
     command:
     - --metadata
-    - '{"run_id": "Datacomp filtering pipeline-20230621114218", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - '{"run_id": "Datacomp filtering pipeline-20230621115857", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
     - --output_manifest_path
     - gs://soy-audio-379412_kfp-artifacts/custom_artifact/load_datacomp_from_hub/manifest.json
     - --dataset_name
@@ -11,7 +11,7 @@ services:
     - '{"url": "image_url", "original_width": "image_original_width", "original_height":
       "image_original_height", "face_bboxes": "image_face_bboxes", "sha256": "image_sha256",
       "text": "text_data", "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
-      "clip_l14_similarity_score": "image_text_clip_b32_similarity_score"}'
+      "clip_l14_similarity_score": "image_text_clip_l14_similarity_score"}'
     - --n_rows_to_load
     - '100'
     - --component_spec
