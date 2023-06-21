@@ -2,7 +2,7 @@ services:
   load_datacomp_from_hub:
     command:
     - --metadata
-    - '{"run_id": "Datacomp filtering pipeline-20230621115857", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - '{"run_id": "Datacomp filtering pipeline-20230621134958", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
     - --output_manifest_path
     - gs://soy-audio-379412_kfp-artifacts/custom_artifact/load_datacomp_from_hub/manifest.json
     - --dataset_name
@@ -19,17 +19,18 @@ services:
       DataComp dataset from the hub", "image": "ghcr.io/ml6team/load_from_hf_hub:latest",
       "produces": {"image": {"fields": {"url": {"type": "string"}, "original_width":
       {"type": "int16"}, "original_height": {"type": "int16"}, "face_bboxes": {"type":
-      "array", "items": {"type": "float32"}}, "sha256": {"type": "utf8"}}}, "text":
-      {"fields": {"data": {"type": "string"}}}, "image_text": {"fields": {"clip_b32_similarity_score":
-      {"type": "float32"}, "clip_l14_similarity_score": {"type": "float32"}}}}, "args":
-      {"dataset_name": {"description": "Name of dataset on the hub", "type": "str"},
-      "column_name_mapping": {"description": "Mapping of the consumed hub dataset
-      to fondant column names", "type": "dict"}, "image_column_names": {"description":
-      "Optional argument, a list containing the original image column names in case
-      the dataset on the hub contains them. Used to format the image from HF hub format
-      to a byte string.", "type": "list", "default": "None"}, "n_rows_to_load": {"description":
-      "Optional argument that defines the number of rows to load. Useful for testing
-      pipeline runs on a small scale", "type": "int", "default": "None"}}}'
+      "array", "items": {"type": "array", "items": {"type": "float32"}}}, "sha256":
+      {"type": "utf8"}}}, "text": {"fields": {"data": {"type": "string"}}}, "image_text":
+      {"fields": {"clip_b32_similarity_score": {"type": "float32"}, "clip_l14_similarity_score":
+      {"type": "float32"}}}}, "args": {"dataset_name": {"description": "Name of dataset
+      on the hub", "type": "str"}, "column_name_mapping": {"description": "Mapping
+      of the consumed hub dataset to fondant column names", "type": "dict"}, "image_column_names":
+      {"description": "Optional argument, a list containing the original image column
+      names in case the dataset on the hub contains them. Used to format the image
+      from HF hub format to a byte string.", "type": "list", "default": "None"}, "n_rows_to_load":
+      {"description": "Optional argument that defines the number of rows to load.
+      Useful for testing pipeline runs on a small scale", "type": "int", "default":
+      "None"}}}'
     depends_on: {}
     image: ghcr.io/ml6team/load_from_hf_hub:latest
     volumes:

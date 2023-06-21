@@ -14,7 +14,9 @@ produces:
       face_bboxes:
         type: array
         items:
-          type: float32
+          type: array
+          items:
+            type: float32
       sha256:
         type: utf8
   
