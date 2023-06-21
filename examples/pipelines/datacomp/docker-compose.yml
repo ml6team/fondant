@@ -3,7 +3,7 @@ services:
     build: ./components/filter_text_complexity
     command:
     - --metadata
-    - '{"run_id": "Datacomp filtering pipeline-20230621162624", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - '{"run_id": "Datacomp filtering pipeline-20230621163726", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
     - --output_manifest_path
     - gs://soy-audio-379412_kfp-artifacts/custom_artifact/filter_text_complexity/manifest.json
     - --spacy_pipeline
@@ -22,18 +22,18 @@ services:
       {"description": "Minimum number of actions a text should contain.", "type":
       "int"}}}'
     - --input_manifest_path
-    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/load_datacomp_from_hub/manifest.json
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/load_from_hub/manifest.json
     depends_on:
-      load_datacomp_from_hub:
+      load_from_hub:
         condition: service_completed_successfully
     volumes:
     - $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
-  load_datacomp_from_hub:
+  load_from_hub:
     command:
     - --metadata
-    - '{"run_id": "Datacomp filtering pipeline-20230621162624", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
+    - '{"run_id": "Datacomp filtering pipeline-20230621163726", "base_path": "gs://soy-audio-379412_kfp-artifacts/custom_artifact"}'
     - --output_manifest_path
-    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/load_datacomp_from_hub/manifest.json
+    - gs://soy-audio-379412_kfp-artifacts/custom_artifact/load_from_hub/manifest.json
     - --dataset_name
     - mlfoundations/datacomp_small
     - --column_name_mapping
@@ -44,13 +44,13 @@ services:
     - --n_rows_to_load
     - '100'
     - --component_spec
-    - '{"name": "Load DataComp from hub", "description": "Component that loads the
-      DataComp dataset from the hub", "image": "ghcr.io/ml6team/load_from_hf_hub:latest",
-      "produces": {"image": {"fields": {"url": {"type": "string"}, "original_width":
-      {"type": "int16"}, "original_height": {"type": "int16"}, "face_bboxes": {"type":
-      "array", "items": {"type": "array", "items": {"type": "float32"}}}, "sha256":
-      {"type": "utf8"}}}, "text": {"fields": {"data": {"type": "string"}}}, "image_text":
-      {"fields": {"clip_b32_similarity_score": {"type": "float32"}, "clip_l14_similarity_score":
+    - '{"name": "Load from hub", "description": "Component that loads the DataComp
+      dataset from the hub", "image": "ghcr.io/ml6team/load_from_hf_hub:latest", "produces":
+      {"image": {"fields": {"url": {"type": "string"}, "original_width": {"type":
+      "int16"}, "original_height": {"type": "int16"}, "face_bboxes": {"type": "array",
+      "items": {"type": "array", "items": {"type": "float32"}}}, "sha256": {"type":
+      "utf8"}}}, "text": {"fields": {"data": {"type": "string"}}}, "image_text": {"fields":
+      {"clip_b32_similarity_score": {"type": "float32"}, "clip_l14_similarity_score":
       {"type": "float32"}}}}, "args": {"dataset_name": {"description": "Name of dataset
       on the hub", "type": "str"}, "column_name_mapping": {"description": "Mapping
       of the consumed hub dataset to fondant column names", "type": "dict"}, "image_column_names":
