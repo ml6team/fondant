@@ -17,7 +17,7 @@ import argparse
 import logging
 import shutil
 
-from fondant.explore import (
+from fondant.explorer import (
     DEFAULT_CONTAINER,
     DEFAULT_PORT,
     DEFAULT_TAG,
