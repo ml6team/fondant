@@ -38,7 +38,7 @@ load_from_hub_op = ComponentOp.from_registry(
     name="load_from_hub",
     component_spec_path="components/load_from_hf_hub/fondant_component.yaml",
     arguments={
-        "dataset_name": "ml6team/the-stack-smol-python",
+        "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
         "n_rows_to_load": 100,
     },
