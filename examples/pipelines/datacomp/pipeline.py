@@ -31,7 +31,7 @@ load_component_column_mapping = {
     "sha256": "image_sha256",
     "text": "text_data",
     "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
-    "clip_l14_similarity_score": "image_text_clip_b32_similarity_score",
+    "clip_l14_similarity_score": "image_text_clip_l14_similarity_score",
 }
 
 load_from_hub_op = ComponentOp.from_registry(
