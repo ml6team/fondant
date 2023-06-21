@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="Datacomp filtering pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    base_path=PipelineConfigs.BASE_PATH,
+    # base_path=PipelineConfigs.BASE_PATH,
+    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -47,6 +48,7 @@ filter_complexity_op = ComponentOp(
     component_spec_path="components/filter_text_complexity/fondant_component.yaml",
     arguments={
         "spacy_pipeline": "en_core_web_sm",
+        "batch_size": 1000,
         "min_complexity": 1,
         "min_num_actions": 1,
     },

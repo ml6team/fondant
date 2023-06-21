@@ -12,6 +12,9 @@ args:
   spacy_pipeline:
     description: SpaCy pipeline to use, e.g. "en_core_web_sm"
     type: str
+  batch_size:
+    description: batch size to use when parsing text using SpaCy
+    type: int
   min_complexity:
     description: Minimum complexity to filter text on.
     type: int
