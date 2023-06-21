@@ -13,13 +13,6 @@ consumes:
       text:
         type: string
 
-  segmentations:
-    fields:
-      data:
-        type: array
-        items:
-          type: binary
-
 args:
   hf_token:
     description: The hugging face token used to write to the hub

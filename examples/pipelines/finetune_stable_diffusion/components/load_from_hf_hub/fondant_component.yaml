@@ -2,11 +2,16 @@ name: Load from hub
 description: Component that loads a dataset from the hub
 image: ghcr.io/ml6team/load_from_hf_hub:latest
 
-consumes:
-  dummy_variable:  #TODO: fill in here
+produces:
+  images:
     fields:
       data:
         type: binary
+
+  captions:
+    fields:
+      data:
+        type: string
 
 args:
   dataset_name:
@@ -17,7 +22,7 @@ args:
     type: dict
   image_column_names:
     description: Optional argument, a list containing the original image column names in case the 
-      dataset on the hub contains them. Used to format the image from HF hub format to a byte string.
+       dataset on the hub contains them. Used to format the image from HF hub format to a byte string.
     type: list
     default: None
   n_rows_to_load:

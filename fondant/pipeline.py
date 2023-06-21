@@ -85,6 +85,7 @@ class ComponentOp:
         cls,
         name: str,
         *,
+        component_spec_path: t.Optional[t.Union[str, Path]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_name: t.Optional[str] = None,
@@ -95,6 +96,9 @@ class ComponentOp:
 
         Args:
             name: Name of the component to load
+            component_spec_path: The path to the specification file defining the component, defaults
+                to path defined within the component but can be specified to define custom
+                specification file
             arguments: A dictionary containing the argument name and value for the operation.
             number_of_gpus: The number of gpus to assign to the operation
             node_pool_name: The name of the node pool to which the operation will be assigned.
@@ -104,13 +108,14 @@ class ComponentOp:
                 Defined by string which can be a number or a number followed by one of “E”, “P”,
                 “T”, “G”, “M”, “K”. (e.g. 2T for 2 Terabytes)
         """
-        component_spec_path = (
-            files("fondant") / f"components/{name}/fondant_component.yaml"
-        )
-        component_spec_path = t.cast(Path, component_spec_path)
+        if not component_spec_path:
+            component_spec_path = (
+                files("fondant") / f"components/{name}/fondant_component.yaml"  # type: ignore
+            )
+            component_spec_path = t.cast(Path, component_spec_path)
 
-        if not (component_spec_path.exists() and component_spec_path.is_file()):
-            raise ValueError(f"No reusable component with name {name} found.")
+            if not (component_spec_path.exists() and component_spec_path.is_file()):
+                raise ValueError(f"No reusable component with name {name} found.")
 
         return ComponentOp(
             component_spec_path,

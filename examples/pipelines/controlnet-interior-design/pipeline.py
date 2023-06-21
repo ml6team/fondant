@@ -1,5 +1,6 @@
 """Pipeline used to create a stable diffusion dataset from a set of initial prompts."""
 # pylint: disable=import-error
+import argparse
 import logging
 import sys
 
@@ -24,7 +25,8 @@ client = Client(host=PipelineConfigs.HOST)
 
 # Define component ops
 generate_prompts_op = ComponentOp(
-    component_spec_path="components/generate_prompts/fondant_component.yaml"
+    component_spec_path="components/generate_prompts/fondant_component.yaml",
+    arguments={"n_rows_to_load": None},
 )
 laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
@@ -62,12 +64,14 @@ segment_images_op = ComponentOp.from_registry(
     node_pool_name="model-inference-pool",
 )
 
-write_to_hub_controlnet = ComponentOp(
+write_to_hub_controlnet = ComponentOp.from_registry(
+    name="write_to_hf_hub",
     component_spec_path="components/write_to_hub_controlnet/fondant_component.yaml",
     arguments={
         "username": "test-user",
         "dataset_name": "segmentation_kfp",
         "hf_token": "hf_token",
+        "image_column_names": ["images_data"],
     },
     number_of_gpus=1,
     node_pool_name="model-inference-pool",

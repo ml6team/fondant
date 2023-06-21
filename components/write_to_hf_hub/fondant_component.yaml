@@ -3,22 +3,10 @@ description: Component that writes a dataset to the hub
 image: ghcr.io/ml6team/write_to_hf_hub:latest
 
 consumes:
-  images:
+  dummy_variable:  #TODO: fill in here
     fields:
       data:
         type: binary
-
-  captions:
-    fields:
-      text:
-        type: string
-
-  segmentations:
-    fields:
-      data:
-        type: array
-        items:
-          type: binary
 
 args:
   hf_token:

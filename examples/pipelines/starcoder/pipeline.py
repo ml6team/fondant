@@ -1,6 +1,5 @@
 """Pipeline used to create the dataset to train the StarCoder model."""
 
-import argparse
 import logging
 import sys
 
@@ -15,17 +14,41 @@ from fondant.pipeline import Client, ComponentOp, Pipeline
 configure_logging()
 logger = logging.getLogger(__name__)
 
+
+client = Client(host=PipelineConfigs.HOST)
+
+dataset_column_name = [
+    "content",
+    "lang",
+    "size",
+    "path",
+    "repository_name",
+    "avg_line_length",
+    "max_line_length",
+    "alphanum_fraction",
+]
+
+load_component_column_mapping = {
+    column: f"code_{column}" for column in dataset_column_name
+}
+
 # Initialize pipeline and client
 pipeline = Pipeline(
     pipeline_name="Stack filtering pipeline",
     pipeline_description="A pipeline for filtering the stack dataset",
     base_path=PipelineConfigs.BASE_PATH,
 )
+client = Client(host=PipelineConfigs.HOST)
 
 # define ops
-load_from_hub_op = ComponentOp(
-    component_spec_path="components/load_from_hub_stack/fondant_component.yaml",
-    arguments={"dataset_name": "ml6team/the-stack-smol-python"},
+load_from_hub_op = ComponentOp.from_registry(
+    name="load_from_hub",
+    component_spec_path="components/load_from_hub/fondant_component.yaml",
+    arguments={
+        "dataset_name": "ml6team/the-stack-smol-python",
+        "column_name_mapping": load_component_column_mapping,
+        "n_rows_to_load": None,
+    },
 )
 
 filter_line_length_op = ComponentOp.from_registry(
@@ -36,6 +59,7 @@ filter_line_length_op = ComponentOp.from_registry(
         "alphanum_fraction_threshold": 0.25,
     },
 )
+
 filter_comments_op = ComponentOp.from_registry(
     name="filter_comments",
     arguments={"min_comments_ratio": 0.1, "max_comments_ratio": 0.9},

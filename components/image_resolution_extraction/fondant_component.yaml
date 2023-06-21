@@ -1,0 +1,19 @@
+name: Image resolution extraction
+description: Component that extracts image resolution data from the images
+image: ghcr.io/ml6team/image_resolution_extraction:latest
+
+consumes:
+  images:
+    fields:
+      data:
+        type: binary
+
+produces:
+  images:
+    fields:
+      width:
+        type: int16
+      height:
+        type: int16
+      data:
+        type: binary
