@@ -14,16 +14,21 @@ eg `fondant --help`
 """
 
 import argparse
+import importlib
 import logging
 import shutil
+import typing as t
 
+from fondant.compiler import DockerCompiler
 from fondant.explorer import (
     DEFAULT_CONTAINER,
     DEFAULT_PORT,
     DEFAULT_TAG,
     run_explorer_app,
 )
+from fondant.pipeline import Pipeline
 
+logging.basicConfig(level=logging.INFO)
 cli = argparse.ArgumentParser(description="Fondant CLI")
 subparsers = cli.add_subparsers()
 
@@ -35,7 +40,16 @@ def entrypoint():
 
 def argument(*name_or_flags, **kwargs):
     """Helper function to create an argument tuple for the subcommand decorator."""
-    return ([*name_or_flags], kwargs)
+    return (list(name_or_flags), kwargs)
+
+
+def distill_arguments(args: argparse.Namespace, remove: t.List[str] = []):
+    """Helper function to distill arguments to be passed on to the function."""
+    args_dict = vars(args)
+    args_dict.pop("func")
+    for arg in remove:
+        args_dict.pop(arg)
+    return args_dict
 
 
 def subcommand(name, parent_parser=subparsers, help=None, args=[]):
@@ -60,6 +74,7 @@ def subcommand(name, parent_parser=subparsers, help=None, args=[]):
             help="""Path to the source directory that contains the data produced
             by a fondant pipeline.""",
             required=False,
+            type=str,
         ),
         argument(
             "--container",
@@ -112,5 +127,72 @@ def explore(args):
 
     if not shutil.which("docker"):
         logging.error("Docker runtime not found. Please install Docker and try again.")
-        return
-    run_explorer_app(vars(args))
+
+    function_args = distill_arguments(args)
+    run_explorer_app(**function_args)
+
+
+class ImportFromStringError(Exception):
+    pass
+
+
+def pipeline_from_string(import_string: str) -> Pipeline:
+    module_str, _, attr_str = import_string.rpartition(":")
+    if not attr_str or not module_str:
+        raise ImportFromStringError(
+            f"{import_string} is not a valid import string."
+            + "Please provide a valid import string in the format of module:attr"
+        )
+
+    try:
+        module = importlib.import_module(module_str)
+    except ImportError:
+        raise ImportFromStringError(
+            f"{module_str} is not a valid module. Please provide a valid module."
+        )
+
+    try:
+        for attr_str_element in attr_str.split("."):
+            instance = getattr(module, attr_str_element)
+    except AttributeError:
+        raise ImportFromStringError(f"{attr_str} is not found in {module}.")
+
+    if not isinstance(instance, Pipeline):
+        raise ImportFromStringError(f"{module}:{instance} is not a valid pipeline.")
+
+    return instance
+
+
+@subcommand(
+    "compile",
+    help="Compile a fondant pipeline",
+    args=[
+        argument(
+            "--pipeline",
+            "-p",
+            help="Path to the fondant pipeline: path.to.module:instance",
+            required=True,
+            type=pipeline_from_string,
+        ),
+        argument(
+            "--mode",
+            "-m",
+            help="Mode to run the pipeline in. Defaults to 'local'",
+            default="local",
+            choices=["local", "kubeflow"],
+        ),
+        argument(
+            "--output-path", "-o", help="Output directory", default="docker-compose.yml"
+        ),
+        argument(
+            "--extra-volumes", help="Extra volumes to mount in containers", nargs="+"
+        ),
+    ],
+)
+def compile(args):
+    if args.mode == "local":
+        compiler = DockerCompiler()
+        function_args = distill_arguments(args, remove=["mode"])
+        compiler.compile(**function_args)
+    else:
+        raise NotImplementedError("Kubeflow mode is not implemented yet.")

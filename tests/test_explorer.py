@@ -17,6 +17,9 @@ def test_run_data_explorer_default():
             [
                 "docker",
                 "run",
+                "--name",
+                "fondant-explorer",
+                "--rm",
                 "-p",
                 "8501:8501",
                 "ghcr.io/ml6team/data_explorer:latest",
@@ -39,6 +42,9 @@ def test_run_data_explorer_with_data_dir():
             [
                 "docker",
                 "run",
+                "--name",
+                "fondant-explorer",
+                "--rm",
                 "-p",
                 f"{DEFAULT_PORT}:8501",
                 "-v",
@@ -63,6 +69,9 @@ def test_run_data_explorer_with_credentials():
             [
                 "docker",
                 "run",
+                "--name",
+                "fondant-explorer",
+                "--rm",
                 "-p",
                 "8501:8501",
                 "-v",
@@ -94,6 +103,9 @@ def test_run_data_explorer_full_option():
             [
                 "docker",
                 "run",
+                "--name",
+                "fondant-explorer",
+                "--rm",
                 "-p",
                 "1234:8501",
                 "-v",

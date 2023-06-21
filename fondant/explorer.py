@@ -1,6 +1,7 @@
 import logging
 import shlex
 import subprocess  # nosec
+import typing as t
 
 DEFAULT_CONTAINER = "ghcr.io/ml6team/data_explorer"
 DEFAULT_TAG = "latest"
@@ -8,17 +9,19 @@ DEFAULT_PORT = 8501
 
 
 def run_explorer_app(
-    data_directory: str = "",
+    data_directory: t.Optional[str] = None,
     port: int = DEFAULT_PORT,
     credentials: str = "",
     container: str = DEFAULT_CONTAINER,
     tag: str = DEFAULT_TAG,
 ):
     """Run the data explorer container."""
-    logging.basicConfig(level=logging.INFO)
     cmd = [
         "docker",
         "run",
+        "--name",
+        "fondant-explorer",
+        "--rm",
         "-p",
         f"{port}:8501",
     ]
@@ -38,6 +41,7 @@ def run_explorer_app(
 
     # mount the local data directory to the container
     if data_directory:
+        print(data_directory)
         cmd.extend(["-v", f"{shlex.quote(data_directory)}:/artifacts"])
 
     # add the image name
