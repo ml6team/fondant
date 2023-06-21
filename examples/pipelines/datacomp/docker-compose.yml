@@ -3,7 +3,7 @@ services:
     build: ./components/filter_text_complexity
     command:
     - --metadata
-    - '{"run_id": "Datacomp filtering pipeline-20230621165900", "base_path": "/fondant_artifacts_datacomp"}'
+    - '{"run_id": "Datacomp filtering pipeline-20230621175435", "base_path": "/fondant_artifacts_datacomp"}'
     - --output_manifest_path
     - /fondant_artifacts_datacomp/filter_text_complexity/manifest.json
     - --spacy_pipeline
@@ -37,7 +37,7 @@ services:
   load_from_hub:
     command:
     - --metadata
-    - '{"run_id": "Datacomp filtering pipeline-20230621165900", "base_path": "/fondant_artifacts_datacomp"}'
+    - '{"run_id": "Datacomp filtering pipeline-20230621175435", "base_path": "/fondant_artifacts_datacomp"}'
     - --output_manifest_path
     - /fondant_artifacts_datacomp/load_from_hub/manifest.json
     - --dataset_name

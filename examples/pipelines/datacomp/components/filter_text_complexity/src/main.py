@@ -6,9 +6,7 @@
 As proposed in [Radenovic et al., 2023](https://arxiv.org/abs/2301.02280).
 """
 import logging
-import typing as t
 
-import numpy as np
 import pandas as pd
 import spacy
 from spacy.symbols import nsubj, VERB
@@ -59,7 +57,7 @@ class FilterTextComplexity(PandasTransformComponent):
         self.min_num_actions = min_num_actions
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        texts = dataframe["text"]["data"]
+        texts = dataframe["text_data"]
         docs = list(self.nlp.pipe(texts, batch_size=self.batch_size))
         docs = pd.Series(docs)
 
