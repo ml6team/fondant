@@ -53,10 +53,17 @@ filter_complexity_op = ComponentOp(
         "min_num_actions": 1,
     },
 )
+filter_text_spotting_op = ComponentOp(
+    component_spec_path="components/filter_text_spotting/fondant_component.yaml",
+    arguments={
+        "batch_size": 2,
+    },
+)
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(filter_complexity_op, dependencies=load_from_hub_op)
+pipeline.add_op(filter_text_spotting_op, dependencies=filter_complexity_op)
 # TODO add more ops
 
 # compile

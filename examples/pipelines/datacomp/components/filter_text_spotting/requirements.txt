@@ -1,0 +1,8 @@
+git+https://github.com/ml6team/fondant.git@main
+pyarrow>=7.0
+gcsfs==2023.4.0
+mmengine==0.7.4
+mmdet==3.0.0
+mmocr==1.0.0
+torch==2.0.1
+torchvision==0.15.2

@@ -1,0 +1,18 @@
+name: Filter text spotting
+description: Component that filters image-text pairs using a text spotting model
+image: ghcr.io/ml6team/filter_text_spotting:latest
+
+consumes:
+  image:
+    fields:
+      url:
+        type: string
+  text:
+    fields:
+      data:
+        type: string
+
+args:
+  batch_size:
+    description: batch size to use when parsing text using SpaCy
+    type: int
