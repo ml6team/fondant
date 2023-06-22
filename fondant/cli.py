@@ -17,6 +17,7 @@ import argparse
 import importlib
 import logging
 import shutil
+import sys
 import typing as t
 
 from fondant.compiler import DockerCompiler
@@ -34,6 +35,7 @@ subparsers = cli.add_subparsers()
 
 
 def entrypoint():
+    sys.path.append(".")
     args = cli.parse_args()
     args.func(args)
 
@@ -168,10 +170,8 @@ def pipeline_from_string(import_string: str) -> Pipeline:
     help="Compile a fondant pipeline",
     args=[
         argument(
-            "--pipeline",
-            "-p",
+            "pipeline",
             help="Path to the fondant pipeline: path.to.module:instance",
-            required=True,
             type=pipeline_from_string,
         ),
         argument(
