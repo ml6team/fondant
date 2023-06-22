@@ -138,25 +138,28 @@ class Component(ABC):
         """Abstract method that returns the dataset manifest."""
 
     @abstractmethod
-    def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+    def _process_dataset(
+        self, input_manifest: Manifest, output_manifest: Manifest
+    ) -> t.Union[None, dd.DataFrame]:
         """Abstract method that processes the manifest and
         returns another dataframe.
         """
 
-    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
+    def _write_data(self, dataframe: dd.DataFrame, *, output_manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=self.spec)
+        data_writer = DaskDataWriter(manifest=output_manifest, component_spec=self.spec)
         data_writer.write_dataframe(dataframe)
 
     def run(self):
         """Runs the component."""
         input_manifest = self._load_or_create_manifest()
-
-        output_df = self._process_dataset(manifest=input_manifest)
-
         output_manifest = input_manifest.evolve(component_spec=self.spec)
 
-        self._write_data(dataframe=output_df, manifest=output_manifest)
+        output_df = self._process_dataset(
+            input_manifest=input_manifest, output_manifest=output_manifest
+        )
+
+        self._write_data(dataframe=output_df, output_manifest=output_manifest)
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
@@ -173,9 +176,6 @@ class LoadComponent(Component):
         return ["input_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
-        # create initial manifest
-        # TODO ideally get rid of args.metadata by including them in the storage args
-
         component_id = self.spec.name.lower().replace(" ", "_")
         manifest = Manifest.create(
             base_path=self.metadata["base_path"],
@@ -189,7 +189,9 @@ class LoadComponent(Component):
     def load(self, *args, **kwargs) -> dd.DataFrame:
         """Abstract method that loads the initial dataframe."""
 
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+    def _process_dataset(
+        self, input_manifest: Manifest, output_manifest: Manifest
+    ) -> dd.DataFrame:
         """This function loads the initial dataframe sing the user-provided `load` method.
 
         Returns:
@@ -217,7 +219,9 @@ class TransformComponent(Component):
             kwargs: Arguments provided to the component are passed as keyword arguments
         """
 
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+    def _process_dataset(
+        self, input_manifest: Manifest, output_manifest: Manifest
+    ) -> dd.DataFrame:
         """
         Load the data based on the manifest using a DaskDataloader and call the transform method to
         process it.
@@ -238,7 +242,9 @@ class DaskTransformComponent(TransformComponent):
             kwargs: Arguments provided to the component are passed as keyword arguments
         """
 
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+    def _process_dataset(
+        self, input_manifest: Manifest, output_manifest: Manifest
+    ) -> dd.DataFrame:
         """
         Load the data based on the manifest using a DaskDataloader and call the transform method to
         process it.
@@ -246,7 +252,7 @@ class DaskTransformComponent(TransformComponent):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        data_loader = DaskDataLoader(manifest=input_manifest, component_spec=self.spec)
         df = data_loader.load_dataframe()
         df = self.transform(dataframe=df, **self.user_arguments)
         return df
@@ -269,7 +275,9 @@ class PandasTransformComponent(TransformComponent):
             dataframe: A Pandas dataframe containing a partition of the data
         """
 
-    def wrapped_transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+    def wrapped_transform(
+        self, dataframe: pd.DataFrame, output_manifest: Manifest
+    ) -> pd.DataFrame:
         """Method wrapping the transform method to switch between hierarchical and flattened
         columns.
         """
@@ -277,12 +285,23 @@ class PandasTransformComponent(TransformComponent):
             tuple(column.split("_")) for column in dataframe.columns
         )
         dataframe = self.transform(dataframe)
+        # Drop columns not in the manifest
+        dataframe.drop(
+            columns=[
+                (subset, field)
+                for (subset, field) in dataframe.columns
+                if subset not in output_manifest.subsets
+                or field not in output_manifest.subsets[subset].fields
+            ]
+        )
         dataframe.columns = [
             "_".join(column) for column in dataframe.columns.to_flat_index()
         ]
         return dataframe
 
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+    def _process_dataset(
+        self, input_manifest: Manifest, output_manifest: Manifest
+    ) -> dd.DataFrame:
         """
         Load the data based on the manifest using a DaskDataloader and call the transform method to
         process it.
@@ -290,7 +309,7 @@ class PandasTransformComponent(TransformComponent):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        data_loader = DaskDataLoader(manifest=input_manifest, component_spec=self.spec)
         df = data_loader.load_dataframe()
 
         # Call the component setup method with user provided argument
@@ -298,11 +317,9 @@ class PandasTransformComponent(TransformComponent):
 
         # Create meta dataframe with expected format
         meta_dict = {"id": pd.Series(dtype="object")}
-        for subset_name, subset in self.spec.produces.items():
+        for subset_name, subset in output_manifest.subsets.items():
             for field_name, field in subset.fields.items():
-                print(field.type.value)
                 meta_dict[f"{subset_name}_{field_name}"] = pd.Series(
-                    # dtype=f"{field.type.value}[pyarrow]"
                     dtype=pd.ArrowDtype(field.type.value)
                 )
         meta_df = pd.DataFrame(meta_dict).set_index("id")
@@ -310,6 +327,7 @@ class PandasTransformComponent(TransformComponent):
         # Call the component transform method for each partition
         df = df.map_partitions(
             self.wrapped_transform,
+            output_manifest=output_manifest,
             meta=meta_df,
         )
 
@@ -354,7 +372,9 @@ class WriteComponent(Component):
             kwargs: Arguments provided to the component are passed as keyword arguments
         """
 
-    def _process_dataset(self, manifest: Manifest) -> None:
+    def _process_dataset(
+        self, input_manifest: Manifest, output_manifest: Manifest
+    ) -> None:
         """
         Creates a DataLoader using the provided manifest and loads the input dataframe using the
         `load_dataframe` instance, and  applies data transformations to it using the `transform`
@@ -363,11 +383,11 @@ class WriteComponent(Component):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        data_loader = DaskDataLoader(manifest=input_manifest, component_spec=self.spec)
         df = data_loader.load_dataframe()
         self.write(dataframe=df, **self.user_arguments)
 
-    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
+    def _write_data(self, dataframe: dd.DataFrame, *, output_manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
         pass
 

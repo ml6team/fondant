@@ -127,8 +127,7 @@ class DownloadImagesComponent(PandasTransformComponent):
             axis=1,
             result_type="expand",
         )
-
-        return dataframe[[("images", "data"), ("images", "width"), ("images", "height")]]
+        return dataframe
 
 
 if __name__ == "__main__":
