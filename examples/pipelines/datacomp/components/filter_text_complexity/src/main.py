@@ -57,7 +57,8 @@ class FilterTextComplexity(PandasTransformComponent):
         self.min_num_actions = min_num_actions
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        texts = dataframe["text_data"]
+        texts = dataframe["text"]["data"]
+
         docs = list(self.nlp.pipe(texts, batch_size=self.batch_size))
         docs = pd.Series(docs)
 
@@ -67,7 +68,11 @@ class FilterTextComplexity(PandasTransformComponent):
         mask = (caption_complexity >= self.min_complexity) & (
             num_actions >= self.min_num_actions
         )
+        mask = mask.to_numpy()
+
         dataframe = dataframe[mask]
+
+        print("Columns of final dataframe:", dataframe.columns)
 
         return dataframe
 
