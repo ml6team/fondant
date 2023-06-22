@@ -1,6 +1,5 @@
 """Pipeline used to create the dataset to train the StarCoder model."""
 
-import argparse
 import logging
 import sys
 
@@ -10,13 +9,11 @@ from pipeline_configs import PipelineConfigs
 
 from fondant.compiler import DockerCompiler
 from fondant.logger import configure_logging
-from fondant.pipeline import Client, ComponentOp, Pipeline
+from fondant.pipeline import ComponentOp, Pipeline
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
-
-client = Client(host=PipelineConfigs.HOST)
 
 dataset_column_name = [
     "content",
