@@ -8,10 +8,8 @@ sys.path.append("../")
 from pipeline_configs import PipelineConfigs
 
 from fondant.compiler import DockerCompiler
-from fondant.logger import configure_logging
 from fondant.pipeline import ComponentOp, Pipeline
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 

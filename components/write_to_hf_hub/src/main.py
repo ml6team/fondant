@@ -11,9 +11,7 @@ import huggingface_hub
 from PIL import Image
 
 from fondant.component import WriteComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
