@@ -84,3 +84,6 @@ MANIFEST
 
 # kubeflow artifacts
 *.tgz
+
+# docker artifacts
+examples/pipelines/*/docker-compose.yml
