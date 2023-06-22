@@ -1,6 +1,4 @@
 """Pipeline used to create a stable diffusion dataset from a set of initial prompts."""
-# pylint: disable=import-error
-import argparse
 import logging
 import sys
 
@@ -8,18 +6,12 @@ sys.path.append("../")
 
 from pipeline_configs import PipelineConfigs
 
-from fondant.pipeline import (
-    ComponentOp,
-    Pipeline,
-    Client,
-)
+from fondant.pipeline import ComponentOp, Pipeline
 
 logger = logging.getLogger(__name__)
 # General configs
 pipeline_name = "controlnet-pipeline"
 pipeline_description = "Pipeline that collects data to train ControlNet"
-
-client = Client(host=PipelineConfigs.HOST)
 
 # Define component ops
 generate_prompts_op = ComponentOp(
@@ -83,5 +75,3 @@ pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
 pipeline.add_op(caption_images_op, dependencies=download_images_op)
 pipeline.add_op(segment_images_op, dependencies=caption_images_op)
 pipeline.add_op(write_to_hub_controlnet, dependencies=segment_images_op)
-
-client.compile_and_run(pipeline=pipeline)
