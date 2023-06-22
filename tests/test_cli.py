@@ -1,106 +1,41 @@
 import subprocess
-from unittest.mock import patch
 
 import pytest
 
-from fondant.cli import DEFAULT_CONTAINER, DEFAULT_PORT, DEFAULT_TAG, run_data_explorer
+from fondant.cli import ImportFromStringError, pipeline_from_string
+from fondant.pipeline import Pipeline
+
+commands = [
+    "fondant --help",
+    "fondant explore --help",
+    "fondant compile --help",
+]
 
 
-def test_run_data_explorer(monkeypatch):
-    data_directory = "/path/to/source"
-    monkeypatch.setattr("sys.argv", ["cli.py", "--data-directory", data_directory])
-
-    with patch("shutil.which") as mock_which:
-        mock_which.return_value = "/usr/bin/docker"
-
-        with patch("subprocess.call") as mock_call:
-            run_data_explorer()
-
-            mock_which.assert_called_once_with("docker")
-            mock_call.assert_called_once_with(
-                [
-                    "docker",
-                    "run",
-                    "-p",
-                    f"{DEFAULT_PORT}:8501",
-                    "-v",
-                    f"{data_directory}:/artifacts",
-                    f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
-                ],
-                stdout=subprocess.PIPE,
-            )
+@pytest.mark.parametrize("command", commands)
+def test_basic_invocation(command):
+    """Test that the CLI (sub)commands can be invoked without errors."""
+    process = subprocess.run(command, shell=True, capture_output=True)
+    assert process.returncode == 0
 
 
-def test_run_data_explorer_no_data_directory(monkeypatch, caplog):
-    monkeypatch.setattr("sys.argv", ["cli.py"])
-
-    with patch("shutil.which") as mock_which:
-        with patch("subprocess.call") as mock_call:
-            mock_which.return_value = "/usr/bin/docker"
-
-            run_data_explorer()
-
-            assert (
-                "You have not provided a data directory."
-                + "To access local files, provide a local data directory"
-                + " with the --data-directory flag."
-                in caplog.text
-            )
-            mock_call.assert_called_once_with(
-                [
-                    "docker",
-                    "run",
-                    "-p",
-                    "8501:8501",
-                    "ghcr.io/ml6team/data_explorer:latest",
-                ],
-                stdout=-1,
-            )
+TEST_PIPELINE = Pipeline(pipeline_name="test_pipeline", base_path="some/path")
 
 
-def test_run_data_explorer_no_docker(monkeypatch, caplog):
-    source_dir = "/path/to/source"
-    monkeypatch.setattr("sys.argv", ["cli.py", "--data-directory", source_dir])
-
-    with patch("shutil.which") as mock_which:
-        mock_which.return_value = None
-
-        run_data_explorer()
-
-        mock_which.assert_called_once_with("docker")
-        assert "Docker runtime not found" in caplog.text
+def test_pipeline_from_string():
+    pipeline = pipeline_from_string(__name__ + ":TEST_PIPELINE")
+    assert pipeline == TEST_PIPELINE
 
 
-def test_run_data_explorer_with_credentials(monkeypatch):
-    data_directory = "/path/to/source"
-    credentials = "/path/to/credentials"
-    monkeypatch.setattr(
-        "sys.argv",
-        ["cli.py", "--data-directory", data_directory, "--credentials", credentials],
-    )
-
-    with patch("shutil.which") as mock_which:
-        mock_which.return_value = "/usr/bin/docker"
-
-        with patch("subprocess.call") as mock_call:
-            run_data_explorer()
-
-            mock_which.assert_called_once_with("docker")
-            mock_call.assert_called_once_with(
-                [
-                    "docker",
-                    "run",
-                    "-p",
-                    "8501:8501",
-                    "-v",
-                    "/path/to/credentials:ro",
-                    "-v",
-                    "/path/to/source:/artifacts",
-                    "ghcr.io/ml6team/data_explorer:latest",
-                ],
-                stdout=-1,
-            )
-
-
-if __name__ == "__main__":
-    pytest.main()
+@pytest.mark.parametrize(
+    "import_string",
+    [
+        "foo.barTEST_PIPELINE",  # cannot be split
+        "foo.bar:TEST_PIPELINE",  # module does not exist
+        __name__ + ":IM_NOT_REAL",  # pipeline does not exist
+        __name__ + ":test_basic_invocation",  # not a pipeline instance
+    ],
+)
+def test_pipeline_from_string_error(import_string):
+    with pytest.raises(ImportFromStringError):
+        pipeline_from_string(import_string)
