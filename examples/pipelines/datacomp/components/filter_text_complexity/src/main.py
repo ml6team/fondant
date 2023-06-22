@@ -72,8 +72,7 @@ class FilterTextComplexity(PandasTransformComponent):
 
         dataframe = dataframe[mask]
 
-        print("Shape of the dataframe after filtering:", dataframe.shape)
-        print("Columns of final dataframe:", dataframe.columns)
+        dataframe = dataframe.drop(("text", "data"), axis=1)
 
         return dataframe
 
