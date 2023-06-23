@@ -173,9 +173,6 @@ class LoadComponent(Component):
         return ["input_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
-        # create initial manifest
-        # TODO ideally get rid of args.metadata by including them in the storage args
-
         component_id = self.spec.name.lower().replace(" ", "_")
         manifest = Manifest.create(
             base_path=self.metadata["base_path"],
@@ -277,6 +274,15 @@ class PandasTransformComponent(TransformComponent):
             tuple(column.split("_")) for column in dataframe.columns
         )
         dataframe = self.transform(dataframe)
+        # Drop columns not in the produces section of the component spec
+        dataframe.drop(
+            columns=[
+                (subset, field)
+                for (subset, field) in dataframe.columns
+                if subset not in self.spec.produces
+                or field not in self.spec.produces[subset].fields
+            ]
+        )
         dataframe.columns = [
             "_".join(column) for column in dataframe.columns.to_flat_index()
         ]
@@ -300,9 +306,7 @@ class PandasTransformComponent(TransformComponent):
         meta_dict = {"id": pd.Series(dtype="object")}
         for subset_name, subset in self.spec.produces.items():
             for field_name, field in subset.fields.items():
-                print(field.type.value)
                 meta_dict[f"{subset_name}_{field_name}"] = pd.Series(
-                    # dtype=f"{field.type.value}[pyarrow]"
                     dtype=pd.ArrowDtype(field.type.value)
                 )
         meta_df = pd.DataFrame(meta_dict).set_index("id")

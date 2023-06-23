@@ -68,11 +68,7 @@ class FilterTextComplexity(PandasTransformComponent):
         )
         mask = mask.to_numpy()
 
-        dataframe = dataframe[mask]
-
-        dataframe = dataframe.drop(("text", "data"), axis=1)
-
-        return dataframe
+        return dataframe[mask]
 
 
 if __name__ == "__main__":
