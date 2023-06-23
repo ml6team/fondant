@@ -1,9 +1,14 @@
 name: PII redaction
-description: A component that detects and redacts Personal Identifiable Information (PII) from code.
-image: ghcr.io/ml6team/pii_redaction:latest
+description: A component that filter a provided dataframe based on the language.
+image: ghcr.io/ml6team/language_filter:latest
 
 consumes:
-  text:
+  passages:
     fields:
-      content:
+      text:
         type: string
+
+args:
+  language:
+    description: A valid language code or identifier (e.g., "en", "fr", "de").
+    type: string
