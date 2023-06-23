@@ -5,9 +5,7 @@ import typing as t
 import dask.dataframe as dd
 
 from fondant.component import LoadComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 

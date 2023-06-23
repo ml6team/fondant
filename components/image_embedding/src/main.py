@@ -10,9 +10,7 @@ from PIL import Image
 from transformers import CLIPProcessor, CLIPVisionModelWithProjection
 
 from fondant.component import PandasTransformComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 

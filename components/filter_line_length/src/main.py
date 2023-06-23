@@ -4,9 +4,7 @@ import logging
 import dask.dataframe as dd
 
 from fondant.component import DaskTransformComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 

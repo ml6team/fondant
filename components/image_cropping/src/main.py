@@ -9,9 +9,7 @@ from image_crop import remove_borders
 from PIL import Image
 
 from fondant.component import DaskTransformComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
