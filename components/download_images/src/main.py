@@ -49,7 +49,7 @@ def download_image(url, timeout, user_agent_token, disallowed_header_directives)
                              f"+https://github.com/rom1504/img2dataset)"
     try:
         request = urllib.request.Request(
-            url, data=None, headers={"User-Agent": user_agent_string}
+            url, data=None, headers={"User-Agent": user_agent_string},
         )
         with urllib.request.urlopen(request, timeout=timeout) as r:
             if disallowed_header_directives and is_disallowed(
@@ -77,7 +77,7 @@ def download_image_with_retry(
 ):
     for _ in range(retries + 1):
         img_stream = download_image(
-            url, timeout, user_agent_token, disallowed_header_directives
+            url, timeout, user_agent_token, disallowed_header_directives,
         )
         if img_stream is not None:
             # resize the image
@@ -114,7 +114,7 @@ class DownloadImagesComponent(PandasTransformComponent):
         dataframe[[
             ("images", "data"),
             ("images", "width"),
-            ("images", "height")
+            ("images", "height"),
         ]] = dataframe.apply(
             lambda example: download_image_with_retry(
                 url=example["images"]["url"],

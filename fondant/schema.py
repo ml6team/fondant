@@ -67,9 +67,12 @@ class Type:
             try:
                 data_type = _TYPES[data_type]
             except KeyError:
+                msg = (
+                    f"Invalid schema provided {data_type} with type {type(data_type)}. "
+                    f"Current available data types are: {_TYPES.keys()}"
+                )
                 raise InvalidTypeSchema(
-                    f"Invalid schema provided {data_type} with type {type(data_type)}."
-                    f" Current available data types are: {_TYPES.keys()}"
+                    msg,
                 )
         return data_type
 
@@ -87,7 +90,7 @@ class Type:
         """
         data_type = cls._validate_data_type(data_type)
         return cls(
-            pa.list_(data_type.value if isinstance(data_type, Type) else data_type)
+            pa.list_(data_type.value if isinstance(data_type, Type) else data_type),
         )
 
     @classmethod
@@ -106,8 +109,9 @@ class Type:
             items = json_schema["items"]
             if isinstance(items, dict):
                 return cls.list(cls.from_json(items))
-        else:
-            return cls(json_schema["type"])
+            return None
+
+        return cls(json_schema["type"])
 
     def to_json(self) -> dict:
         """

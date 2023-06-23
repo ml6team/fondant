@@ -21,7 +21,6 @@ REPLACEMENTS_IP = {
     ],
 }
 
-# providergs = ["google", "cloudfare", "alternate-dns", "quad9","open-dns", "comodo", "adguard"]
 POPULAR_DNS_SERVERS = [
     "8.8.8.8",
     "8.8.4.4",
@@ -113,7 +112,7 @@ def redact_pii_text(text, secrets, replacements, add_references=False):
         last_text = text
         for secret in secrets:
             # skip secret if it's an IP address for private networks or popular DNS servers
-            if secret["tag"] == "IP_ADDRESS":
+            if secret["tag"] == "IP_ADDRESS":  # ruff: noqa: SIM102
                 # if secret value in popular DNS servers, skip it
                 if is_private_ip(secret["value"]) or (
                     secret["value"] in POPULAR_DNS_SERVERS
@@ -146,10 +145,9 @@ def redact_pii_text(text, secrets, replacements, add_references=False):
     else:
         new_text = text
         references = ""
-    result = (
+    return (
         (new_text, references, modified) if add_references else (new_text, modified)
     )
-    return result
 
 
 def redact_pii(text, secrets, has_secrets, replacements):
@@ -160,5 +158,5 @@ def redact_pii(text, secrets, has_secrets, replacements):
     if has_secrets:
         new_text, _ = redact_pii_text(text, secrets, replacements)
         return new_text
-    else:
-        return text
+
+    return text

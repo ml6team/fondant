@@ -12,7 +12,7 @@ class ImageFilterComponent(DaskTransformComponent):
     """Component that filters images based on height and width."""
 
     def transform(
-        self, *, dataframe: dd.DataFrame, min_width: int, min_height: int
+        self, *, dataframe: dd.DataFrame, min_width: int, min_height: int,
     ) -> dd.DataFrame:
         """
         Args:

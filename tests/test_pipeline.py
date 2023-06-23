@@ -15,12 +15,11 @@ custom_spec_path = (
 
 
 def yaml_file_to_dict(file_path):
-    with open(file_path, "r") as file:
-        data = yaml.safe_load(file)
-    return data
+    with open(file_path) as file:
+        return yaml.safe_load(file)
 
 
-@pytest.fixture
+@pytest.fixture()
 def default_pipeline_args():
     return {
         "pipeline_name": "pipeline",
@@ -38,7 +37,10 @@ def default_pipeline_args():
     ],
 )
 def test_valid_pipeline(
-    default_pipeline_args, valid_pipeline_example, tmp_path, monkeypatch
+    default_pipeline_args,
+    valid_pipeline_example,
+    tmp_path,
+    monkeypatch,
 ):
     """Test that a valid pipeline definition can be compiled without errors."""
     example_dir, component_names = valid_pipeline_example
@@ -51,13 +53,16 @@ def test_valid_pipeline(
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
     first_component_op = ComponentOp(
-        Path(components_path / component_names[0]), arguments=component_args
+        Path(components_path / component_names[0]),
+        arguments=component_args,
     )
     second_component_op = ComponentOp(
-        Path(components_path / component_names[1]), arguments=component_args
+        Path(components_path / component_names[1]),
+        arguments=component_args,
     )
     third_component_op = ComponentOp(
-        Path(components_path / component_names[2]), arguments=component_args
+        Path(components_path / component_names[2]),
+        arguments=component_args,
     )
 
     pipeline.add_op(third_component_op, dependencies=second_component_op)
@@ -87,7 +92,9 @@ def test_valid_pipeline(
     ],
 )
 def test_invalid_pipeline_dependencies(
-    default_pipeline_args, valid_pipeline_example, tmp_path
+    default_pipeline_args,
+    valid_pipeline_example,
+    tmp_path,
 ):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to create a pipeline
@@ -100,13 +107,16 @@ def test_invalid_pipeline_dependencies(
     pipeline = Pipeline(**default_pipeline_args)
 
     first_component_op = ComponentOp(
-        Path(components_path / component_names[0]), arguments=component_args
+        Path(components_path / component_names[0]),
+        arguments=component_args,
     )
     second_component_op = ComponentOp(
-        Path(components_path / component_names[1]), arguments=component_args
+        Path(components_path / component_names[1]),
+        arguments=component_args,
     )
     third_component_op = ComponentOp(
-        Path(components_path / component_names[2]), arguments=component_args
+        Path(components_path / component_names[2]),
+        arguments=component_args,
     )
 
     pipeline.add_op(third_component_op, dependencies=second_component_op)
@@ -123,7 +133,9 @@ def test_invalid_pipeline_dependencies(
     ],
 )
 def test_invalid_pipeline_compilation(
-    default_pipeline_args, invalid_pipeline_example, tmp_path
+    default_pipeline_args,
+    invalid_pipeline_example,
+    tmp_path,
 ):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to compile
@@ -136,10 +148,12 @@ def test_invalid_pipeline_compilation(
     pipeline = Pipeline(**default_pipeline_args)
 
     first_component_op = ComponentOp(
-        Path(components_path / component_names[0]), arguments=component_args
+        Path(components_path / component_names[0]),
+        arguments=component_args,
     )
     second_component_op = ComponentOp(
-        Path(components_path / component_names[1]), arguments=component_args
+        Path(components_path / component_names[1]),
+        arguments=component_args,
     )
 
     pipeline.add_op(first_component_op)
@@ -162,10 +176,11 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
     component does not match the ones specified in the fondant specifications.
     """
     components_spec_path = Path(
-        valid_pipeline_path / "example_1" / "first_component.yaml"
+        valid_pipeline_path / "example_1" / "first_component.yaml",
     )
     component_operation = ComponentOp(
-        components_spec_path, arguments=invalid_component_args
+        components_spec_path,
+        arguments=invalid_component_args,
     )
 
     pipeline = Pipeline(**default_pipeline_args)
@@ -183,9 +198,13 @@ def test_reusable_component_op():
     )
     assert laion_retrieval_op.component_spec, "component_spec_path could not be loaded"
 
-    with pytest.raises(ValueError):
+    component_name = "this_component_does_not_exist"
+    with pytest.raises(
+        ValueError,
+        match=f"No reusable component with name {component_name} " "found.",
+    ):
         ComponentOp.from_registry(
-            name="this_component_does_not_exist",
+            name=component_name,
         )
 
 
@@ -200,7 +219,7 @@ def test_defining_reusable_component_op_with_custom_spec():
     )
 
     load_from_hub_op_default_spec = ComponentSpec(
-        yaml_file_to_dict(load_from_hub_op_default_op.component_spec_path)
+        yaml_file_to_dict(load_from_hub_op_default_op.component_spec_path),
     )
 
     load_from_hub_op_custom_op = ComponentOp.from_registry(

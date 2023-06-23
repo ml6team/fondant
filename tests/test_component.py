@@ -24,14 +24,13 @@ N_PARTITIONS = 2
 
 
 def yaml_file_to_json_string(file_path):
-    with open(file_path, "r") as file:
+    with open(file_path) as file:
         data = yaml.safe_load(file)
-        json_string = json.dumps(data)
-    return json_string
+        return json.dumps(data)
 
 
-@pytest.fixture
-def patched_data_loading(monkeypatch):
+@pytest.fixture()
+def _patched_data_loading(monkeypatch):
     """Mock data loading so no actual data is loaded."""
 
     def mocked_load_dataframe(self):
@@ -40,8 +39,8 @@ def patched_data_loading(monkeypatch):
     monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
 
 
-@pytest.fixture
-def patched_data_writing(monkeypatch):
+@pytest.fixture()
+def _patched_data_writing(monkeypatch):
     """Mock data loading so no actual data is written."""
 
     def mocked_write_dataframe(self, dataframe):
@@ -49,7 +48,9 @@ def patched_data_writing(monkeypatch):
 
     monkeypatch.setattr(DaskDataWriter, "write_dataframe", mocked_write_dataframe)
     monkeypatch.setattr(
-        Component, "upload_manifest", lambda self, manifest, save_path: None
+        Component,
+        "upload_manifest",
+        lambda self, manifest, save_path: None,
     )
 
 
@@ -103,7 +104,8 @@ def test_component_arguments():
     }
 
 
-def test_load_component(patched_data_writing):
+@pytest.mark.usefixtures("_patched_data_writing")
+def test_load_component():
     # Mock CLI argumentsload
     sys.argv = [
         "",
@@ -136,7 +138,8 @@ def test_load_component(patched_data_writing):
         load.assert_called_once()
 
 
-def test_dask_transform_component(patched_data_loading, patched_data_writing):
+@pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
+def test_dask_transform_component():
     # Mock CLI arguments
     sys.argv = [
         "",
@@ -163,13 +166,16 @@ def test_dask_transform_component(patched_data_loading, patched_data_writing):
 
     component = MyDaskComponent.from_args()
     with mock.patch.object(
-        MyDaskComponent, "transform", wraps=component.transform
+        MyDaskComponent,
+        "transform",
+        wraps=component.transform,
     ) as transform:
         component.run()
         transform.assert_called_once()
 
 
-def test_pandas_transform_component(patched_data_loading, patched_data_writing):
+@pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
+def test_pandas_transform_component():
     # Mock CLI arguments
     sys.argv = [
         "",
@@ -199,7 +205,9 @@ def test_pandas_transform_component(patched_data_loading, patched_data_writing):
     component = MyPandasComponent.from_args()
     setup = mock.patch.object(MyPandasComponent, "setup", wraps=component.setup)
     transform = mock.patch.object(
-        MyPandasComponent, "transform", wraps=component.transform
+        MyPandasComponent,
+        "transform",
+        wraps=component.transform,
     )
     with setup as setup, transform as transform:
         component.run()
@@ -207,7 +215,8 @@ def test_pandas_transform_component(patched_data_loading, patched_data_writing):
         assert transform.call_count == N_PARTITIONS
 
 
-def test_write_component(patched_data_loading):
+@pytest.mark.usefixtures("_patched_data_loading")
+def test_write_component():
     # Mock CLI arguments
     sys.argv = [
         "",

@@ -28,19 +28,19 @@ from gibberish_detector import detector
 
 year_patterns = [
     regex.compile(
-        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([1-2][0-9]{3}[\p{Pd}/][1-2][0-9]{3})(?:$|[\s@,?!;:\'\"(.\p{Han}])"
+        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([1-2][0-9]{3}[\p{Pd}/][1-2][0-9]{3})(?:$|[\s@,?!;:\'\"(.\p{Han}])",
     ),  # yyyy-yyyy or yyyy/yyyy
     regex.compile(
-        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([1-2][0-9]{3}[\p{Pd}/.][0-3][0-9][\p{Pd}/.][0-3][0-9])(?:$|[\s@,?!;:\'\"(.\p{Han}])"
+        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([1-2][0-9]{3}[\p{Pd}/.][0-3][0-9][\p{Pd}/.][0-3][0-9])(?:$|[\s@,?!;:\'\"(.\p{Han}])",
     ),  # yyyy-mm-dd or yyyy-dd-mm or yyyy/mm/dd or yyyy/dd/mm or yyyy.mm.dd or yyyy.dd.mm
     regex.compile(
-        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([0-3][0-9][\p{Pd}/.][0-3][0-9][\p{Pd}/.](?:[0-9]{2}|[1-2][0-9]{3}))(?:$|[\s@,?!;:\'\"(.\p{Han}])"
+        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([0-3][0-9][\p{Pd}/.][0-3][0-9][\p{Pd}/.](?:[0-9]{2}|[1-2][0-9]{3}))(?:$|[\s@,?!;:\'\"(.\p{Han}])",
     ),  # mm-dd-yyyy or dd-mm-yyyy or mm/dd/yyyy or dd/mm/yyyy or mm.dd.yyyy or dd.mm.yyyy or the same but with yy instead of yyyy
     regex.compile(
-        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([0-3][0-9][\p{Pd}/](?:[0-9]{2}|[1-2][0-9]{3}))(?:$|[\s@,?!;:\'\"(.\p{Han}])"
+        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([0-3][0-9][\p{Pd}/](?:[0-9]{2}|[1-2][0-9]{3}))(?:$|[\s@,?!;:\'\"(.\p{Han}])",
     ),  # mm-yyyy or mm/yyyy or the same but with yy
     regex.compile(
-        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([1-2][0-9]{3}-[0-3][0-9])(?:$|[\s@,?!;:\'\"(.\p{Han}])"
+        r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])([1-2][0-9]{3}-[0-3][0-9])(?:$|[\s@,?!;:\'\"(.\p{Han}])",
     ),  # yyyy-mm or yyyy/mm
 ]
 
@@ -51,7 +51,7 @@ ipv6_pattern = r"(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:
 ip_pattern = (
     r"(?:^|[\b\s@?,!;:\'\")(.\p{Han}])("
     + r"|".join([ipv4_pattern, ipv6_pattern])
-    + ")(?:$|[\s@,?!;:'\"(.\p{Han}])"
+    + ")(?:$|[\\s@,?!;:'\"(.\\p{Han}])"
 )
 
 # Note: to reduce false positives, a number of technically-valid-but-rarely-used
@@ -116,10 +116,7 @@ def ip_has_digit(matched_str):
 
 def matches_date_pattern(matched_str):
     # Screen out date false positives
-    for year_regex in year_patterns:
-        if year_regex.match(matched_str):
-            return True
-    return False
+    return any(year_regex.match(matched_str) for year_regex in year_patterns)
 
 
 def filter_versions(matched_str, context):
@@ -129,9 +126,8 @@ def filter_versions(matched_str, context):
     # count occurrence of dots
     dot_count = matched_str.count(".")
     exclude = dot_count == 3 and len(matched_str) == 7  # noqa: PLR2004 (magic value)
-    if exclude:
-        if "dns" in context.lower() or "server" in context.lower():
-            return False
+    if exclude and ("dns" in context.lower() or "server" in context.lower()):
+        return False
     return exclude
 
 
@@ -178,7 +174,7 @@ def detect_email_addresses(content, tag_types={"EMAIL", "IP_ADDRESS"}):
             if match.groups():
                 if len(match.groups()) > 1 and match.groups()[1]:
                     sys.stderr.write(
-                        "Warning: Found substring matches in the main match."
+                        "Warning: Found substring matches in the main match.",
                     )
                 # setup outputs
                 value = match.group(1)
@@ -191,23 +187,23 @@ def detect_email_addresses(content, tag_types={"EMAIL", "IP_ADDRESS"}):
                         if matches_date_pattern(value):
                             continue
                         if filter_versions(
-                            value, content[start - 100 : end + 100]
+                            value, content[start - 100 : end + 100],
                         ) or not_ip_address(value):
                             continue
                         # combine if conditions in one
 
-                    if tag == "KEY":
-                        # Filter out false positive keys
-                        if not is_gibberish(value):
-                            continue
+                    # Filter out false positive keys
+                    if tag == "KEY" and not is_gibberish(value):
+                        continue
                     matches.append(
                         {
                             "tag": tag,
                             "value": value,
                             "start": start,
                             "end": end,
-                        }
+                        },
                     )
                 else:
-                    raise ValueError("No match found inside groups")
+                    msg = "No match found inside groups"
+                    raise ValueError(msg)
     return matches
