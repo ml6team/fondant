@@ -36,8 +36,6 @@ logger = logging.getLogger(__name__)
 class ImportFromStringError(Exception):
     """Error raised when an import string is not valid."""
 
-    pass
-
 
 def pipeline_from_string(import_string: str) -> Pipeline:
     """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
@@ -70,45 +68,6 @@ def pipeline_from_string(import_string: str) -> Pipeline:
     return instance
 
 
-<<<<<<< HEAD
-@subcommand(
-    "compile",
-    help="Compile a fondant pipeline",
-    args=[
-        argument(
-            "pipeline",
-            help="Path to the fondant pipeline: path.to.module:instance",
-            type=pipeline_from_string,
-        ),
-        argument(
-            "--mode",
-            "-m",
-            help="Mode to run the pipeline in. Defaults to 'local'",
-            default="local",
-            choices=["local", "kubeflow"],
-        ),
-        argument(
-            "--output-path",
-            "-o",
-            help="Output directory",
-            default="docker-compose.yml",
-        ),
-        argument(
-            "--extra-volumes",
-            help="Extra volumes to mount in containers",
-            nargs="+",
-        ),
-    ],
-)
-def compile(args):
-    if args.mode == "local":
-        compiler = DockerCompiler()
-        function_args = distill_arguments(args, remove=["mode"])
-        compiler.compile(**function_args)
-    else:
-        msg = "Kubeflow mode is not implemented yet."
-        raise NotImplementedError(msg)
-=======
 class FondantCLI:
     def __init__(self, input_args: t.List[str] = sys.argv[1:]):
         parser = argparse.ArgumentParser(
@@ -123,7 +82,9 @@ class FondantCLI:
         getattr(self, args.command)(x_args)
 
     def _help_or_parse(
-        self, input_args: t.List[str], parser: argparse.ArgumentParser
+        self,
+        input_args: t.List[str],
+        parser: argparse.ArgumentParser,
     ) -> t.Tuple[argparse.Namespace, t.List[str]]:
         """Check if the next command is help and print help if it is.
         Otherwise parse the known args.
@@ -150,7 +111,10 @@ class FondantCLI:
             help="Docker container to use. Defaults to ghcr.io/ml6team/data_explorer.",
         )
         parser.add_argument(
-            "--tag", "-t", default=DEFAULT_TAG, help="Docker image tag to use."
+            "--tag",
+            "-t",
+            default=DEFAULT_TAG,
+            help="Docker image tag to use.",
         )
         parser.add_argument(
             "--port",
@@ -180,23 +144,23 @@ class FondantCLI:
             logging.warning(
                 "You have not provided a data directory."
                 + "To access local files, provide a local data directory"
-                + " with the --data-directory flag."
+                + " with the --data-directory flag.",
             )
         else:
             logging.info(f"Using data directory: {args.data_directory}")
             logging.info(
-                "This directory will be mounted to /artifacts in the container."
+                "This directory will be mounted to /artifacts in the container.",
             )
 
         if not args.credentials:
             logging.warning(
                 "You have not provided a credentials file. If you wish to access data "
-                "from a cloud provider, mount the credentials file with the --credentials flag."
+                "from a cloud provider, mount the credentials file with the --credentials flag.",
             )
 
         if not shutil.which("docker"):
             logging.error(
-                "Docker runtime not found. Please install Docker and try again."
+                "Docker runtime not found. Please install Docker and try again.",
             )
 
         run_explorer_app(**vars(args))
@@ -205,7 +169,9 @@ class FondantCLI:
         parser = argparse.ArgumentParser(add_help=False)
 
         parser.add_argument(
-            "mode", help="local or kubeflow", choices=["local", "kubeflow"]
+            "mode",
+            help="local or kubeflow",
+            choices=["local", "kubeflow"],
         )
         args, x_args = self._help_or_parse(input_args, parser)
         target = f"compile_{args.mode}"
@@ -219,10 +185,15 @@ class FondantCLI:
             type=pipeline_from_string,
         )
         parser.add_argument(
-            "--output-path", "-o", help="Output directory", default="docker-compose.yml"
+            "--output-path",
+            "-o",
+            help="Output directory",
+            default="docker-compose.yml",
         )
         parser.add_argument(
-            "--extra-volumes", help="Extra volumes to mount in containers", nargs="+"
+            "--extra-volumes",
+            help="Extra volumes to mount in containers",
+            nargs="+",
         )
 
         args = parser.parse_args(input_args)
@@ -235,13 +206,16 @@ class FondantCLI:
         )
 
     def compile_kubeflow(self, input_args):
-        raise NotImplementedError("Kubeflow compiler not implemented")
+        msg = "Kubeflow compiler not implemented"
+        raise NotImplementedError(msg)
 
     def run(self, input_args):
         parser = argparse.ArgumentParser(add_help=False)
 
         parser.add_argument(
-            "mode", help="local or kubeflow", choices=["local", "kubeflow"]
+            "mode",
+            help="local or kubeflow",
+            choices=["local", "kubeflow"],
         )
         args, x_args = self._help_or_parse(input_args, parser)
         target = f"run_{args.mode}"
@@ -256,10 +230,15 @@ class FondantCLI:
             action="store",
         )
         parser.add_argument(
-            "--output-path", "-o", help="Output directory", default="docker-compose.yml"
+            "--output-path",
+            "-o",
+            help="Output directory",
+            default="docker-compose.yml",
         )
         parser.add_argument(
-            "--extra-volumes", help="Extra volumes to mount in containers", nargs="+"
+            "--extra-volumes",
+            help="Extra volumes to mount in containers",
+            nargs="+",
         )
         args = parser.parse_args(input_args)
         try:
@@ -267,7 +246,7 @@ class FondantCLI:
 
             spec_ref = args.output_path
             logging.info(
-                "Found reference to un-compiled pipeline... compiling to {spec_ref}"
+                "Found reference to un-compiled pipeline... compiling to {spec_ref}",
             )
             compiler = DockerCompiler()
             compiler.compile(
@@ -282,5 +261,5 @@ class FondantCLI:
         DockerRunner().run(spec_ref)
 
     def run_kubeflow(self, input_args):
-        raise NotImplementedError("Kubeflow runner not implemented")
->>>>>>> a289120 (Add dynamic fondant cli and local runner)
+        msg = "Kubeflow runner not implemented"
+        raise NotImplementedError(msg)
