@@ -28,119 +28,19 @@ from fondant.explorer import (
     run_explorer_app,
 )
 from fondant.pipeline import Pipeline
+from fondant.runner import DockerRunner
 
-logging.basicConfig(level=logging.INFO)
-cli = argparse.ArgumentParser(description="Fondant CLI")
-subparsers = cli.add_subparsers()
-
-
-def entrypoint():
-    sys.path.append(".")
-    args = cli.parse_args()
-    args.func(args)
-
-
-def argument(*name_or_flags, **kwargs):
-    """Helper function to create an argument tuple for the subcommand decorator."""
-    return (list(name_or_flags), kwargs)
-
-
-def distill_arguments(args: argparse.Namespace, remove: t.Optional[t.List[str]] = None):
-    """Helper function to distill arguments to be passed on to the function."""
-    args_dict = vars(args)
-    args_dict.pop("func")
-    if remove is not None:
-        for arg in remove:
-            args_dict.pop(arg)
-    return args_dict
-
-
-def subcommand(name, parent_parser=subparsers, help=None, args=None):
-    """Decorator to add a subcommand to the CLI."""
-
-    def decorator(func):
-        parser = parent_parser.add_parser(name, help=help)
-        if args is not None:
-            for arg in args:
-                parser.add_argument(*arg[0], **arg[1])
-        parser.set_defaults(func=func)
-
-    return decorator
-
-
-@subcommand(
-    "explore",
-    help="Explore a fondant pipeline",
-    args=[
-        argument(
-            "--data-directory",
-            "-d",
-            help="""Path to the source directory that contains the data produced
-            by a fondant pipeline.""",
-            required=False,
-            type=str,
-        ),
-        argument(
-            "--container",
-            "-r",
-            default=DEFAULT_CONTAINER,
-            help="Docker container to use. Defaults to ghcr.io/ml6team/data_explorer.",
-        ),
-        argument("--tag", "-t", default=DEFAULT_TAG, help="Docker image tag to use."),
-        argument(
-            "--port",
-            "-p",
-            default=DEFAULT_PORT,
-            type=int,
-            help="Port to expose the container on.",
-        ),
-        argument(
-            "--credentials",
-            "-c",
-            help="""Path mapping of the source (local) and target (docker file system)
-             credential paths in the format of src:target
-             \nExamples:\n
-             Google Cloud: $HOME/.config/gcloud/application_default_credentials.json:/root/."
-             + "config/gcloud/application_default_credentials.json
-             AWS: HOME/.aws/credentials:/root/.aws/credentials
-             More info on
-             Google Cloud:
-             https://cloud.google.com/docs/authentication/application-default-credentials
-             AWS: https: // docs.aws.amazon.com/sdkref/latest/guide/file-location.html
-        """,
-        ),
-    ],
-)
-def explore(args):
-    """Defines the explore subcommand."""
-    if not args.data_directory:
-        logging.warning(
-            "You have not provided a data directory."
-            + "To access local files, provide a local data directory"
-            + " with the --data-directory flag.",
-        )
-    else:
-        logging.info(f"Using data directory: {args.data_directory}")
-        logging.info("This directory will be mounted to /artifacts in the container.")
-
-    if not args.credentials:
-        logging.warning(
-            "You have not provided a credentials file. If you wish to access data "
-            "from a cloud provider, mount the credentials file with the --credentials flag.",
-        )
-
-    if not shutil.which("docker"):
-        logging.error("Docker runtime not found. Please install Docker and try again.")
-
-    function_args = distill_arguments(args)
-    run_explorer_app(**function_args)
+logger = logging.getLogger(__name__)
 
 
 class ImportFromStringError(Exception):
+    """Error raised when an import string is not valid."""
+
     pass
 
 
 def pipeline_from_string(import_string: str) -> Pipeline:
+    """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
     module_str, _, attr_str = import_string.rpartition(":")
     if not attr_str or not module_str:
         raise ImportFromStringError(
@@ -170,6 +70,7 @@ def pipeline_from_string(import_string: str) -> Pipeline:
     return instance
 
 
+<<<<<<< HEAD
 @subcommand(
     "compile",
     help="Compile a fondant pipeline",
@@ -207,3 +108,179 @@ def compile(args):
     else:
         msg = "Kubeflow mode is not implemented yet."
         raise NotImplementedError(msg)
+=======
+class FondantCLI:
+    def __init__(self, input_args: t.List[str] = sys.argv[1:]):
+        parser = argparse.ArgumentParser(
+            description="Fondant CLI",
+            add_help=False,
+        )
+        parser.add_argument(
+            "command",
+            choices=["explore", "compile", "run"],
+        )
+        args, x_args = self._help_or_parse(input_args, parser)
+        getattr(self, args.command)(x_args)
+
+    def _help_or_parse(
+        self, input_args: t.List[str], parser: argparse.ArgumentParser
+    ) -> t.Tuple[argparse.Namespace, t.List[str]]:
+        """Check if the next command is help and print help if it is.
+        Otherwise parse the known args.
+        """
+        if input_args[0] in ["help", "-h", "--help"]:
+            parser.print_help()
+            sys.exit(0)
+        return parser.parse_known_args(input_args)
+
+    def explore(self, input_args: t.List[str]):
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "--data-directory",
+            "-d",
+            help="""Path to the source directory that contains the data produced
+            by a fondant pipeline.""",
+            required=False,
+            type=str,
+        )
+        parser.add_argument(
+            "--container",
+            "-r",
+            default=DEFAULT_CONTAINER,
+            help="Docker container to use. Defaults to ghcr.io/ml6team/data_explorer.",
+        )
+        parser.add_argument(
+            "--tag", "-t", default=DEFAULT_TAG, help="Docker image tag to use."
+        )
+        parser.add_argument(
+            "--port",
+            "-p",
+            default=DEFAULT_PORT,
+            type=int,
+            help="Port to expose the container on.",
+        )
+        parser.add_argument(
+            "--credentials",
+            "-c",
+            help="""Path mapping of the source (local) and target (docker file system)
+                credential paths in the format of src:target
+                \nExamples:\n
+                Google Cloud: $HOME/.config/gcloud/application_default_credentials.json:/root/."
+                + "config/gcloud/application_default_credentials.json
+                AWS: HOME/.aws/credentials:/root/.aws/credentials
+                More info on
+                Google Cloud:
+                https://cloud.google.com/docs/authentication/application-default-credentials
+                AWS: https: // docs.aws.amazon.com/sdkref/latest/guide/file-location.html
+            """,
+        )
+        args = parser.parse_args(input_args)
+
+        if not args.data_directory:
+            logging.warning(
+                "You have not provided a data directory."
+                + "To access local files, provide a local data directory"
+                + " with the --data-directory flag."
+            )
+        else:
+            logging.info(f"Using data directory: {args.data_directory}")
+            logging.info(
+                "This directory will be mounted to /artifacts in the container."
+            )
+
+        if not args.credentials:
+            logging.warning(
+                "You have not provided a credentials file. If you wish to access data "
+                "from a cloud provider, mount the credentials file with the --credentials flag."
+            )
+
+        if not shutil.which("docker"):
+            logging.error(
+                "Docker runtime not found. Please install Docker and try again."
+            )
+
+        run_explorer_app(**vars(args))
+
+    def compile(self, input_args):
+        parser = argparse.ArgumentParser(add_help=False)
+
+        parser.add_argument(
+            "mode", help="local or kubeflow", choices=["local", "kubeflow"]
+        )
+        args, x_args = self._help_or_parse(input_args, parser)
+        target = f"compile_{args.mode}"
+        getattr(self, target)(x_args)
+
+    def compile_local(self, input_args):
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "pipeline",
+            help="Path to the fondant pipeline: path.to.module:instance",
+            type=pipeline_from_string,
+        )
+        parser.add_argument(
+            "--output-path", "-o", help="Output directory", default="docker-compose.yml"
+        )
+        parser.add_argument(
+            "--extra-volumes", help="Extra volumes to mount in containers", nargs="+"
+        )
+
+        args = parser.parse_args(input_args)
+
+        compiler = DockerCompiler()
+        compiler.compile(
+            pipeline=args.pipeline,
+            extra_volumes=args.extra_volumes,
+            output_path=args.output_path,
+        )
+
+    def compile_kubeflow(self, input_args):
+        raise NotImplementedError("Kubeflow compiler not implemented")
+
+    def run(self, input_args):
+        parser = argparse.ArgumentParser(add_help=False)
+
+        parser.add_argument(
+            "mode", help="local or kubeflow", choices=["local", "kubeflow"]
+        )
+        args, x_args = self._help_or_parse(input_args, parser)
+        target = f"run_{args.mode}"
+        getattr(self, target)(x_args)
+
+    def run_local(self, input_args):
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "ref",
+            help="""Reference to the pipeline to run, can be a path to a spec file or
+              a pipeline instance that will be compiled first""",
+            action="store",
+        )
+        parser.add_argument(
+            "--output-path", "-o", help="Output directory", default="docker-compose.yml"
+        )
+        parser.add_argument(
+            "--extra-volumes", help="Extra volumes to mount in containers", nargs="+"
+        )
+        args = parser.parse_args(input_args)
+        try:
+            pipeline = pipeline_from_string(args.ref)
+
+            spec_ref = args.output_path
+            logging.info(
+                "Found reference to un-compiled pipeline... compiling to {spec_ref}"
+            )
+            compiler = DockerCompiler()
+            compiler.compile(
+                pipeline=pipeline,
+                extra_volumes=args.extra_volumes,
+                output_path=spec_ref,
+            )
+
+        except ImportFromStringError:
+            spec_ref = args.ref
+
+        DockerRunner().run(spec_ref)
+
+    def run_kubeflow(self, input_args):
+        raise NotImplementedError("Kubeflow runner not implemented")
+>>>>>>> a289120 (Add dynamic fondant cli and local runner)

@@ -64,7 +64,7 @@ pytest-cov = "~2.12.1"
 mkdocs-material = "^9.1.8"
 
 [tool.poetry.scripts]
-fondant = "fondant.cli:entrypoint"
+fondant = "fondant.cli:FondantCLI"
 
 [build-system]
 requires = ["poetry-core>=1.2.0"]

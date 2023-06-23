@@ -9,6 +9,9 @@ commands = [
     "fondant --help",
     "fondant explore --help",
     "fondant compile --help",
+    "fondant compile local --help",
+    "fondant run --help",
+    "fondant run local --help",
 ]
 
 
