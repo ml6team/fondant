@@ -1,5 +1,4 @@
 """Pipeline used to create a stable diffusion dataset from a set of given images."""
-import argparse
 import logging
 import sys
 
@@ -7,14 +6,12 @@ sys.path.append("../")
 
 from pipeline_configs import PipelineConfigs
 
-from fondant.pipeline import ComponentOp, Pipeline, Client
+from fondant.pipeline import ComponentOp, Pipeline
 
 logger = logging.getLogger(__name__)
 # General configs
 pipeline_name = "Test fondant pipeline"
 pipeline_description = "A test pipeline"
-
-client = Client(host=PipelineConfigs.HOST)
 
 load_component_column_mapping = {"image": "images_data", "text": "captions_data"}
 
@@ -97,5 +94,3 @@ pipeline.add_op(laion_retrieval_op, dependencies=image_embedding_op)
 pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
 pipeline.add_op(caption_images_op, dependencies=download_images_op)
 pipeline.add_op(write_to_hub, dependencies=caption_images_op)
-
-client.compile_and_run(pipeline=pipeline)
