@@ -1,4 +1,4 @@
-name: PII redaction
+name: Language filter
 description: A component that filter a provided dataframe based on the language.
 image: ghcr.io/ml6team/language_filter:latest
 
