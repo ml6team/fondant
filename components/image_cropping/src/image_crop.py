@@ -47,7 +47,7 @@ def get_image_borders(image: Image.Image) -> t.Tuple:
 
 
 def remove_borders(
-    image_bytes: bytes, cropping_threshold: int = -30, padding: int = 10
+    image_bytes: bytes, cropping_threshold: int = -30, padding: int = 10,
 ) -> bytes:
     """This method removes borders by checking the overlap between
     a color and the original image. By subtracting these two
@@ -89,12 +89,12 @@ def remove_borders(
         if image_crop.size[0] > image_crop.size[1]:
             padding = int((image_crop.size[0] - image_crop.size[1]) / 2)
             image_crop = ImageOps.expand(
-                image_crop, border=(0, padding), fill=color_common
+                image_crop, border=(0, padding), fill=color_common,
             )
         else:
             padding = int((image_crop.size[1] - image_crop.size[0]) / 2)
             image_crop = ImageOps.expand(
-                image_crop, border=(padding, 0), fill=color_common
+                image_crop, border=(padding, 0), fill=color_common,
             )
 
     # serialize image to JPEG

@@ -16,7 +16,7 @@ filters = [
     {"path": "detect_secrets.filters.heuristic.is_templated_secret"},
     {"path": "detect_secrets.filters.heuristic.is_sequential_string"},
 ]
-plugins = [
+plugins = [  # ruff: noqa: ERA001
     {"name": "ArtifactoryDetector"},
     {"name": "AWSKeyDetector"},
     # the entropy detectors esp Base64 need the gibberish detector on top
@@ -116,7 +116,7 @@ def detect_keys(content, suffix=".txt"):
     fp.close()
     secrets = SecretsCollection()
     with transient_settings(
-        {"plugins_used": plugins, "filters_used": filters}
+        {"plugins_used": plugins, "filters_used": filters},
     ):
         secrets.scan_file(fp.name)
     os.unlink(fp.name)
@@ -136,6 +136,6 @@ def detect_keys(content, suffix=".txt"):
                         "value": secret.secret_value,
                         "start": start,
                         "end": end,
-                    }
+                    },
                 )
     return matches

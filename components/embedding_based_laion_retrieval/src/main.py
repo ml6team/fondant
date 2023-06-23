@@ -21,7 +21,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
             *,
             num_images: int,
             aesthetic_score: int,
-            aesthetic_weight: float
+            aesthetic_weight: float,
     ) -> None:
         """
 
@@ -54,7 +54,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                 futures = [
                     loop.run_in_executor(
                         executor,
-                        functools.partial(self.client.query, embedding_input=embedding.tolist())
+                        functools.partial(self.client.query, embedding_input=embedding.tolist()),
                     )
                     for embedding in dataframe["embeddings"]["data"]
                 ]
@@ -64,7 +64,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         loop.run_until_complete(async_query())
 
         results_df = pd.DataFrame(results)[["id", "url"]]
-        results_df.set_index("id", inplace=True)
+        results_df = results_df.set_index("id")
         results_df.columns = [["images"], ["url"]]
 
         return results_df

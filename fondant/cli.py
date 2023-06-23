@@ -45,22 +45,24 @@ def argument(*name_or_flags, **kwargs):
     return (list(name_or_flags), kwargs)
 
 
-def distill_arguments(args: argparse.Namespace, remove: t.List[str] = []):
+def distill_arguments(args: argparse.Namespace, remove: t.Optional[t.List[str]] = None):
     """Helper function to distill arguments to be passed on to the function."""
     args_dict = vars(args)
     args_dict.pop("func")
-    for arg in remove:
-        args_dict.pop(arg)
+    if remove is not None:
+        for arg in remove:
+            args_dict.pop(arg)
     return args_dict
 
 
-def subcommand(name, parent_parser=subparsers, help=None, args=[]):
+def subcommand(name, parent_parser=subparsers, help=None, args=None):
     """Decorator to add a subcommand to the CLI."""
 
     def decorator(func):
         parser = parent_parser.add_parser(name, help=help)
-        for arg in args:
-            parser.add_argument(*arg[0], **arg[1])
+        if args is not None:
+            for arg in args:
+                parser.add_argument(*arg[0], **arg[1])
         parser.set_defaults(func=func)
 
     return decorator
@@ -95,7 +97,7 @@ def subcommand(name, parent_parser=subparsers, help=None, args=[]):
         argument(
             "--credentials",
             "-c",
-            help="""Path mapping of the source (local) and target (docker file system) 
+            help="""Path mapping of the source (local) and target (docker file system)
              credential paths in the format of src:target
              \nExamples:\n
              Google Cloud: $HOME/.config/gcloud/application_default_credentials.json:/root/."
@@ -115,7 +117,7 @@ def explore(args):
         logging.warning(
             "You have not provided a data directory."
             + "To access local files, provide a local data directory"
-            + " with the --data-directory flag."
+            + " with the --data-directory flag.",
         )
     else:
         logging.info(f"Using data directory: {args.data_directory}")
@@ -124,7 +126,7 @@ def explore(args):
     if not args.credentials:
         logging.warning(
             "You have not provided a credentials file. If you wish to access data "
-            "from a cloud provider, mount the credentials file with the --credentials flag."
+            "from a cloud provider, mount the credentials file with the --credentials flag.",
         )
 
     if not shutil.which("docker"):
@@ -143,24 +145,27 @@ def pipeline_from_string(import_string: str) -> Pipeline:
     if not attr_str or not module_str:
         raise ImportFromStringError(
             f"{import_string} is not a valid import string."
-            + "Please provide a valid import string in the format of module:attr"
+            + "Please provide a valid import string in the format of module:attr",
         )
 
     try:
         module = importlib.import_module(module_str)
     except ImportError:
+        msg = f"{module_str} is not a valid module. Please provide a valid module."
         raise ImportFromStringError(
-            f"{module_str} is not a valid module. Please provide a valid module."
+            msg,
         )
 
     try:
         for attr_str_element in attr_str.split("."):
             instance = getattr(module, attr_str_element)
     except AttributeError:
-        raise ImportFromStringError(f"{attr_str} is not found in {module}.")
+        msg = f"{attr_str} is not found in {module}."
+        raise ImportFromStringError(msg)
 
     if not isinstance(instance, Pipeline):
-        raise ImportFromStringError(f"{module}:{instance} is not a valid pipeline.")
+        msg = f"{module}:{instance} is not a valid pipeline."
+        raise ImportFromStringError(msg)
 
     return instance
 
@@ -182,10 +187,15 @@ def pipeline_from_string(import_string: str) -> Pipeline:
             choices=["local", "kubeflow"],
         ),
         argument(
-            "--output-path", "-o", help="Output directory", default="docker-compose.yml"
+            "--output-path",
+            "-o",
+            help="Output directory",
+            default="docker-compose.yml",
         ),
         argument(
-            "--extra-volumes", help="Extra volumes to mount in containers", nargs="+"
+            "--extra-volumes",
+            help="Extra volumes to mount in containers",
+            nargs="+",
         ),
     ],
 )
@@ -195,4 +205,5 @@ def compile(args):
         function_args = distill_arguments(args, remove=["mode"])
         compiler.compile(**function_args)
     else:
-        raise NotImplementedError("Kubeflow mode is not implemented yet.")
+        msg = "Kubeflow mode is not implemented yet."
+        raise NotImplementedError(msg)

@@ -20,7 +20,7 @@ class FilterCommentsComponent(DaskTransformComponent):
         *,
         dataframe: dd.DataFrame,
         min_comments_ratio: float,
-        max_comments_ratio: float
+        max_comments_ratio: float,
     ) -> dd.DataFrame:
         """
         Args:
@@ -31,15 +31,13 @@ class FilterCommentsComponent(DaskTransformComponent):
             Filtered dask dataframe.
         """
         # Apply the function to the desired column and filter the DataFrame
-        filtered_df = dataframe[
+        return dataframe[
             dataframe["code_content"].map_partitions(
                 lambda example: example.map(get_comments_to_code_ratio).between(
-                    min_comments_ratio, max_comments_ratio
-                )
+                    min_comments_ratio, max_comments_ratio,
+                ),
             )
         ]
-
-        return filtered_df
 
 
 if __name__ == "__main__":

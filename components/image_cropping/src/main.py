@@ -36,7 +36,7 @@ class ImageCroppingComponent(DaskTransformComponent):
         *,
         dataframe: dd.DataFrame,
         cropping_threshold: int = -30,
-        padding: int = 10
+        padding: int = 10,
     ) -> dd.DataFrame:
         """
         Args:

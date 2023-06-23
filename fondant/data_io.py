@@ -37,7 +37,7 @@ class DaskDataLoader(DataIO):
 
         # add subset prefix to columns
         subset_df = subset_df.rename(
-            columns={col: subset_name + "_" + col for col in subset_df.columns}
+            columns={col: subset_name + "_" + col for col in subset_df.columns},
         )
 
         return subset_df
@@ -55,9 +55,7 @@ class DaskDataLoader(DataIO):
         remote_path = index.location
 
         # load index from parquet, expecting id and source columns
-        index_df = dd.read_parquet(remote_path)
-
-        return index_df
+        return dd.read_parquet(remote_path)
 
     def load_dataframe(self) -> dd.DataFrame:
         """
@@ -69,22 +67,22 @@ class DaskDataLoader(DataIO):
                 as well as the index columns.
         """
         # load index into dataframe
-        df = self._load_index()
+        dataframe = self._load_index()
         for name, subset in self.component_spec.consumes.items():
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
             # left joins -> filter on index
-            df = dd.merge(
-                df,
+            dataframe = dd.merge(
+                dataframe,
                 subset_df,
                 left_index=True,
                 right_index=True,
                 how="left",
             )
 
-        logging.info(f"Columns of dataframe: {list(df.columns)}")
+        logging.info(f"Columns of dataframe: {list(dataframe.columns)}")
 
-        return df
+        return dataframe
 
 
 class DaskDataWriter(DataIO):
@@ -96,16 +94,22 @@ class DaskDataWriter(DataIO):
         # Turn index into an empty dataframe so we can write it
         index_df = dataframe.index.to_frame().drop(columns=["id"])
         write_index_task = self._write_subset(
-            index_df, subset_name="index", subset_spec=self.component_spec.index
+            index_df,
+            subset_name="index",
+            subset_spec=self.component_spec.index,
         )
         write_tasks.append(write_index_task)
 
         for subset_name, subset_spec in self.component_spec.produces.items():
             subset_df = self._extract_subset_dataframe(
-                dataframe, subset_name=subset_name, subset_spec=subset_spec
+                dataframe,
+                subset_name=subset_name,
+                subset_spec=subset_spec,
             )
             write_subset_task = self._write_subset(
-                subset_df, subset_name=subset_name, subset_spec=subset_spec
+                subset_df,
+                subset_name=subset_name,
+                subset_spec=subset_spec,
             )
             write_tasks.append(write_subset_task)
 
@@ -115,7 +119,10 @@ class DaskDataWriter(DataIO):
 
     @staticmethod
     def _extract_subset_dataframe(
-        dataframe: dd.DataFrame, *, subset_name: str, subset_spec: ComponentSubset
+        dataframe: dd.DataFrame,
+        *,
+        subset_name: str,
+        subset_spec: ComponentSubset,
     ) -> dd.DataFrame:
         """Create subset dataframe to save with the original field name as the column name."""
         # Create a new dataframe with only the columns needed for the output subset
@@ -123,20 +130,27 @@ class DaskDataWriter(DataIO):
         try:
             subset_df = dataframe[subset_columns]
         except KeyError as e:
-            raise ValueError(
+            msg = (
                 f"Field {e.args[0]} defined in output subset {subset_name} "
                 f"but not found in dataframe"
+            )
+            raise ValueError(
+                msg,
             )
 
         # Remove the subset prefix from the column names
         subset_df = subset_df.rename(
-            columns={col: col[(len(f"{subset_name}_")) :] for col in subset_columns}
+            columns={col: col[(len(f"{subset_name}_")) :] for col in subset_columns},
         )
 
         return subset_df
 
     def _write_subset(
-        self, dataframe: dd.DataFrame, *, subset_name: str, subset_spec: ComponentSubset
+        self,
+        dataframe: dd.DataFrame,
+        *,
+        subset_name: str,
+        subset_spec: ComponentSubset,
     ) -> dd.core.Scalar:
         if subset_name == "index":
             location = self.manifest.index.location
@@ -149,7 +163,10 @@ class DaskDataWriter(DataIO):
 
     @staticmethod
     def _create_write_task(
-        dataframe: dd.DataFrame, *, location: str, schema: t.Dict[str, str]
+        dataframe: dd.DataFrame,
+        *,
+        location: str,
+        schema: t.Dict[str, str],
     ) -> dd.core.Scalar:
         """
         Creates a delayed Dask task to upload the given DataFrame to the remote storage location
@@ -165,7 +182,11 @@ class DaskDataWriter(DataIO):
               executed.
         """
         write_task = dd.to_parquet(
-            dataframe, location, schema=schema, overwrite=False, compute=False
+            dataframe,
+            location,
+            schema=schema,
+            overwrite=False,
+            compute=False,
         )
         logging.info(f"Creating write task for: {location}")
         return write_task

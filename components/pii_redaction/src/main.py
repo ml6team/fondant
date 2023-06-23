@@ -40,7 +40,7 @@ class RemovePIIComponent(DaskTransformComponent):
 
         # redact PII
         # we use random replacements by default
-        with open("replacements.json", "r") as f:
+        with open("replacements.json") as f:
             replacements = json.load(f)
 
         dataframe["code_content"] = dataframe.apply(
@@ -54,7 +54,7 @@ class RemovePIIComponent(DaskTransformComponent):
             meta=(None, "str"),
         )
         dataframe = dataframe.drop(
-            ["code_secrets", "code_has_secrets", "code_number_secrets"], axis=1
+            ["code_secrets", "code_has_secrets", "code_number_secrets"], axis=1,
         )
 
         return dataframe

@@ -40,7 +40,7 @@ def caption_image_batch(
     *,
     model: BlipForConditionalGeneration,
     processor: BlipProcessor,
-    max_new_tokens: int
+    max_new_tokens: int,
 ) -> pd.Series:
     """Caption a batch of images."""
     input_batch = torch.cat(image_batch.tolist())
@@ -67,7 +67,7 @@ class CaptionImagesComponent(PandasTransformComponent):
         images = dataframe["images"]["data"].apply(
             process_image,
             processor=self.processor,
-            device=self.device
+            device=self.device,
         )
 
         results: t.List[pd.Series] = []
@@ -78,8 +78,8 @@ class CaptionImagesComponent(PandasTransformComponent):
                         batch,
                         model=self.model,
                         processor=self.processor,
-                        max_new_tokens=self.max_new_tokens
-                    ).T
+                        max_new_tokens=self.max_new_tokens,
+                    ).T,
                 )
 
         return pd.concat(results).to_frame(name=("captions", "text"))

@@ -57,7 +57,7 @@ class DockerCompiler(Compiler):
         self,
         pipeline: Pipeline,
         output_path: str = "docker-compose.yml",
-        extra_volumes: list = [],
+        extra_volumes: t.Optional[list] = None,
     ) -> None:
         """Compile a pipeline to docker-compose spec and save it to a specified output path.
 
@@ -68,6 +68,9 @@ class DockerCompiler(Compiler):
               https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
               to mount in the docker-compose spec.
         """
+        if extra_volumes is None:
+            extra_volumes = []
+
         logger.info(f"Compiling {pipeline.name} to {output_path}")
         spec = self._generate_spec(pipeline=pipeline, extra_volumes=extra_volumes)
         with open(output_path, "w") as outfile:
@@ -90,10 +93,12 @@ class DockerCompiler(Compiler):
         # check if base path is an existing local folder
         if p_base_path.exists():
             logger.info(
-                f"Base path found on local system, setting up {base_path} as mount volume"
+                f"Base path found on local system, setting up {base_path} as mount volume",
             )
             volume = DockerVolume(
-                type="bind", source=str(p_base_path), target=f"/{p_base_path.stem}"
+                type="bind",
+                source=str(p_base_path),
+                target=f"/{p_base_path.stem}",
             )
             path = f"/{p_base_path.stem}"
         else:
@@ -126,7 +131,7 @@ class DockerCompiler(Compiler):
                 [
                     "--output_manifest_path",
                     f"{path}/{safe_component_name}/manifest.json",
-                ]
+                ],
             )
 
             # add arguments if any to command
@@ -142,14 +147,14 @@ class DockerCompiler(Compiler):
                 for dependency in component["dependencies"]:
                     safe_dependency = self._safe_component_name(dependency)
                     depends_on[safe_dependency] = {
-                        "condition": "service_completed_successfully"
+                        "condition": "service_completed_successfully",
                     }
                     # there is only an input manifest if the component has dependencies
                     command.extend(
                         [
                             "--input_manifest_path",
                             f"{path}/{safe_dependency}/manifest.json",
-                        ]
+                        ],
                     )
 
             volumes = []
