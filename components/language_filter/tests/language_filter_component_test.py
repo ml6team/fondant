@@ -1,5 +1,6 @@
-"""Unit test for language filter component"""
+"""Unit test for language filter component."""
 import pandas as pd
+
 from components.language_filter.src.main import LanguageFilterComponent
 from fondant.component_spec import ComponentSpec
 
@@ -27,6 +28,7 @@ def test_run_component_test():
     # Then: dataframe only contains one german row
     assert len(dataframe) == 1
     assert dataframe.loc[0]["text"] == "Das hier ist ein Satz in deutscher Sprache"
+
 
 def test_run_component_test_filter_out_all():
     """Test language filter component."""
