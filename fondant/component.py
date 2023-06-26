@@ -273,7 +273,7 @@ class PandasTransformComponent(TransformComponent):
         )
         dataframe = self.transform(dataframe)
         # Drop columns not in the produces section of the component spec
-        dataframe.drop(
+        dataframe = dataframe.drop(
             columns=[
                 (subset, field)
                 for (subset, field) in dataframe.columns
