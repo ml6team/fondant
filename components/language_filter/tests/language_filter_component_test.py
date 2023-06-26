@@ -21,11 +21,10 @@ def test_run_component_test():
                                         metadata={},
                                         user_arguments={"language": "de"}
                                         )
-
+    component.setup()
     dataframe = component.transform(dataframe=dataframe)
 
     # Then: dataframe only contains one german row
-    dataframe = dataframe.compute()
     assert len(dataframe) == 1
     assert dataframe.loc[0]["text"] == "Das hier ist ein Satz in deutscher Sprache"
 
@@ -46,7 +45,7 @@ def test_run_component_test_filter_out_all():
                                         metadata={},
                                         user_arguments={"language": "fr"}
                                         )
-
+    component.setup()
     dataframe = component.transform(dataframe=dataframe)
 
     # Then: dataframe should contain no rows anymore
