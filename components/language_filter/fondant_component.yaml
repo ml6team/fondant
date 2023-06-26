@@ -11,4 +11,4 @@ consumes:
 args:
   language:
     description: A valid language code or identifier (e.g., "en", "fr", "de").
-    type: string
+    type: str

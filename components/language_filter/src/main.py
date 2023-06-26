@@ -1,9 +1,11 @@
-"""A component that filter a provided dataframe based on the language"""
+"""A component that filter a provided dataframe based on the language."""
 import logging
-import dask.dataframe as dd
-from fondant.component import DaskTransformComponent
-from fondant.logger import configure_logging
+
 import fasttext
+import pandas as pd
+
+from fondant.component import PandasTransformComponent
+from fondant.logger import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -14,11 +16,11 @@ class LanguageIdentification:
 
     def __init__(self, model_path: str = "lid.176.ftz"):
         """
-       Initializes the LanguageDetect class.
+        Initializes the LanguageDetect class.
 
-       Args:
+        Args:
            model_path (str): The path to the FastText language identification model.
-       """
+        """
         pretrained_lang_model_weight_path = model_path
         self.model = fasttext.load_model(pretrained_lang_model_weight_path)
 
@@ -36,31 +38,32 @@ class LanguageIdentification:
         return predictions[0][0]
 
     def is_language(self, row, language):
+        """Predict if text of a row is written in the defined language."""
         return language in self.predict_lang(row["text"])
 
 
-class LanguageFilterComponent(DaskTransformComponent):
-    """Component that filter columns based on provided language"""
+class LanguageFilterComponent(PandasTransformComponent):
+    """Component that filter columns based on provided language."""
+
+    def setup(self, *args, **kwargs):
+        """Setup language filter component."""
+        self.lang_detector = LanguageIdentification()
 
     def transform(
             self,
-            *,
-            dataframe: dd.DataFrame,
-            language: str,
-    ) -> dd.DataFrame:
+            dataframe: pd.DataFrame
+    ) -> pd.DataFrame:
         """
         Args:
             dataframe: Dask dataframe.
-            language: Only keep text passages which are in the provided language
+            language: Only keep text passages which are in the provided language.
 
         Returns:
             Dask dataframe
         """
-
-        lang_detector = LanguageIdentification()
-        mask = dataframe.map_partitions(
-            lambda df: df.apply(lambda row: lang_detector.is_language(row, language), axis=1),
-            meta=bool)
+        language = self.user_arguments["language"]
+        mask = dataframe.apply(
+            lambda row: self.lang_detector.is_language(row, language), axis=1)
 
         return dataframe[mask]
 
