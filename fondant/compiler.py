@@ -92,6 +92,7 @@ class DockerCompiler(Compiler):
             logger.info(
                 f"Base path found on local system, setting up {base_path} as mount volume"
             )
+            p_base_path = p_base_path.resolve()
             volume = DockerVolume(
                 type="bind", source=str(p_base_path), target=f"/{p_base_path.stem}"
             )
