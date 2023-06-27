@@ -1,4 +1,5 @@
 <p align="center">
+
     <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" height="250px"/>
 </p>
 <p align="center">
@@ -117,9 +118,15 @@ pip install git+https://github.com/ml6team/fondant.git
 
 ### 🧱 Deploying Fondant
 
-Fondant is flexible and works by leveraging [kubeflow pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/) on any kubernetes cluster. All fondant needs is an url pointing to the kubeflow pipeline host and a Object Storage provider (S3, GCS, etc) to store data produced in the pipeline between steps.
 
-We have compiled some references and created some scripts to [get you started](https://fondant.readthedocs.io/en/latest/infrastructure) with setting up the required infrastructure.
+There are 2 ways of using fondant:
+
+- Leveraging [kubeflow pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/) on any kubernetes cluster. All fondant needs is an url pointing to the kubeflow pipeline host and a Object Storage provider (S3, GCS, etc) to store data produced in the pipeline between steps.
+  We have compiled some references and created some scripts to [get you started](https://fondant.readthedocs.io/en/latest/infrastructure) with setting up the required infrastructure.
+- Or locally by using [docker compose](https://docs.docker.com/compose/). This way is mainly aimed at helping you develop fondant pipelines and components faster by making it easier to run things on a smaller scale.
+
+
+The same pipeline can be used in both variant allowing you to quickly develop and iterate using the local docker compose implementation and then using the power of kubeflow pipelines to run a large scale pipeline.
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
@@ -211,6 +218,29 @@ class ExampleComponent(TransformComponent):
             argumentX: An argument passed to the component
         """
 ```
+
+
+###  Running your pipeline
+
+Once you have a pipeline you can easily run (and compile it) using the builtin CLI:
+
+```bash
+fondant run foo/bar.py:pipeline --local
+```
+
+To see all available arguments you can check the fondant CLI help pages
+
+```bash
+fondant --help
+```
+
+Or for a subcommand:
+
+```bash
+fondant <subcommand> --help
+```
+
+
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
