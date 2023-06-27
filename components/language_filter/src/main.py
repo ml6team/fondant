@@ -55,11 +55,11 @@ class LanguageFilterComponent(PandasTransformComponent):
     ) -> pd.DataFrame:
         """
         Args:
-            dataframe: Dask dataframe.
+            dataframe: Pandas dataframe.
             language: Only keep text passages which are in the provided language.
 
         Returns:
-            Dask dataframe
+            Pandas dataframe
         """
         language = self.user_arguments["language"]
         mask = dataframe.apply(
