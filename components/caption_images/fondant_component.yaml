@@ -1,6 +1,6 @@
 name: Caption images
 description: Component that captions images using a model from the Hugging Face hub
-image: ghcr.io/ml6team/caption_images:latest
+image: ghcr.io/ml6team/caption_images:dev
 
 consumes:
   images:
