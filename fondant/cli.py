@@ -1,23 +1,25 @@
+# ruff: noqa: E501 (suppressing line length warnings in this file)
 """This file contains CLI script for the fondant package.
 
-To add a script, add a function to this file and add it to `pyproject.toml` file
-under the `[tool.poetry.scripts]` section.
-To add a script, use the following format:
+
+The entrypoint function is the main entrypoint for the CLI and is configured in the `pyproject.toml` file.
 
     [tool.poetry.scripts]
-    script_name = "fondant.cli:script_function"
+    script_name = "fondant.cli:entrypoint"
 
 When installing the fondant package, the script will be available in the
 environment.
 
 eg `fondant --help`
-"""
 
+If you want to extend the cli you can add a new subcommand by registering a new function in this file and adding it to the `entrypoint` function.
+"""
 import argparse
 import importlib
 import logging
 import shutil
 import sys
+import textwrap
 
 from fondant.compiler import DockerCompiler
 from fondant.explorer import (
@@ -34,7 +36,31 @@ logger = logging.getLogger(__name__)
 
 def entrypoint():
     """Entrypoint for the fondant CLI."""
-    parser = argparse.ArgumentParser(description="Fondant CLI")
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent(
+            """
+        Fondant is an Open-Source framework for building and running data pipelines.
+        You can read more about fondant here: https://github.com/ml6team/fondant
+
+
+        This CLI is used to interact with fondant pipelines like compiling and running your pipelines.
+
+        Example:
+        fondant compile my_project.my_pipeline.py:pipeline
+        """,
+        ),
+        epilog=textwrap.dedent(
+            """
+        For a full list of commands run:
+        fondant --help
+
+        Or for a specific command run
+
+        fondant <command> --help
+        """,
+        ),
+    )
     subparsers = parser.add_subparsers()
     register_explore(subparsers)
     register_compile(subparsers)
@@ -42,14 +68,30 @@ def entrypoint():
 
     sys.path.append(".")
 
-    args = parser.parse_args(sys.argv[1:])
+    # display help if no arguments are provided
+    args = parser.parse_args(sys.argv[1:] or ["--help"])
+
     args.func(args)
 
 
 def register_explore(parent_parser):
     parser = parent_parser.add_parser(
         "explore",
-        help="Explore a fondant pipeline.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent(
+            """
+        Explore and visualize the data produced by a fondant pipeline.
+
+        This will spin up a  docker container that hosts a web application that allows you to explore the data produced by a fondant pipeline.
+
+        The default address is http://localhost:8501. If the data that you want to explore is stored locally you can use the --data-directory flag to specify the path to the data.
+        Alternatively you can use the --credentials flag to specify the path to a file that contains the credentials to access remote data (for S3, GCS, etc).
+
+        Example:
+
+        fondant explore -d my_project/data
+        """,
+        ),
     )
     parser.add_argument(
         "--data-directory",
@@ -133,7 +175,26 @@ def explore(args):
 def register_compile(parent_parser):
     parser = parent_parser.add_parser(
         "compile",
-        help="Compile a fondant pipeline.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent(
+            """
+        Compile a fondant pipeline into either a docker-compose.yml(local) or kubeflow spec file.
+
+        The pipeline argument is a formatstring. The compiler will try to import the pipeline from the module specified in the formatstring.
+        (NOTE: path is patched to include the current working directory so you can do relative imports)
+
+        The --local or --kubeflow flag specifies the mode in which the pipeline will be compiled.
+        You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
+
+        - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
+        - to mount cloud credentials (see examples))
+
+        Example:
+        fondant compile my_project.my_pipeline.py:pipeline --local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials
+
+        fondant compile my_project.my_pipeline.py:pipeline --kubeflow --extra-volumes $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json
+        """,
+        ),
     )
     parser.add_argument(
         "pipeline",
@@ -176,7 +237,21 @@ def compile(args):
 def register_run(parent_parser):
     parser = parent_parser.add_parser(
         "run",
-        help="Run a fondant pipeline.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent(
+            """
+        Run a fondant pipeline locally or on kubeflow. The run command excepts a reference to an already compiled
+        pipeline (see fondant compile --help for more info)
+        OR a path to a spec file in which case it will compile the pipeline first and then run it.
+
+        The --local or --kubeflow flag specifies the mode in which the pipeline will be ran.
+        You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
+
+        Example:
+        fondant run my_project.my_pipeline.py:pipeline --local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials
+        fondant run ./my_compiled_kubeflow_pipeline.tgz --kubeflow
+        """,
+        ),
     )
     parser.add_argument(
         "ref",
