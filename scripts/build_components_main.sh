@@ -43,7 +43,7 @@ for dir in "$component_dir"/*/; do
   for tag in "${tags[@]}"; do
     full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
     echo "$full_image_name"
-    full_image_names+=(full_image_name)
+    full_image_names+=("$full_image_name")
   done
   # Prevent this from mistakenly being used below
   unset full_image_name
@@ -52,21 +52,20 @@ for dir in "$component_dir"/*/; do
   echo "${full_image_names[0]}"
   sed -i "s|^image: .*|image: ${full_image_names[0]}|" fondant_component.yaml
 
-  echo "Freezing Fondant dependency version to:"
-  echo "${tags[0]}"
-  sed -i "s|^fondant.*|fondant==${tags[0]}|" requirements.txt
-
   tag_args=()
   for tag in "${full_image_names[@]}" ; do
       tag_args+=(-t "$tag")
   done
 
-  echo "Caching from/to:"
+  echo "Freezing Fondant dependency version to ${tags[0]}"
+
   cache_name=ghcr.io/${namespace}/${BASENAME}:build-cache
+  echo "Caching from/to ${cache_name}"
 
   docker build --push "${tag_args[@]}" \
-   --cache-to type=registry,ref=${cache_name} \
-   --cache-from type=registry,ref=${cache_name} \
+   --build-arg="FONDANT_VERSION=${tags[0]}" \
+   --cache-to "type=registry,ref=${cache_name}" \
+   --cache-from "type=registry,ref=${cache_name}" \
    --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
    .
 
