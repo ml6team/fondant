@@ -6,9 +6,11 @@ from fondant.cli import ImportFromStringError, pipeline_from_string
 from fondant.pipeline import Pipeline
 
 commands = [
+    "fondant",
     "fondant --help",
     "fondant explore --help",
     "fondant compile --help",
+    "fondant run --help",
 ]
 
 
