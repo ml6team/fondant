@@ -11,6 +11,8 @@ When installing the fondant package, the script will be available in the
 environment.
 
 eg `fondant --help`
+
+If you want to extend the cli you can add a new subcommand by registering a new function in this file and adding it to the `entrypoint` function.
 """
 import argparse
 import importlib
@@ -280,7 +282,9 @@ def run(args):
     if args.local:
         try:
             pipeline = pipeline_from_string(args.ref)
-
+        except ImportFromStringError:
+            spec_ref = args.ref
+        else:
             spec_ref = args.output_path
             logging.info(
                 "Found reference to un-compiled pipeline... compiling to {spec_ref}",
@@ -291,11 +295,8 @@ def run(args):
                 extra_volumes=args.extra_volumes,
                 output_path=spec_ref,
             )
-
-        except ImportFromStringError:
-            spec_ref = args.ref
-
-        DockerRunner().run(spec_ref)
+        finally:
+            DockerRunner().run(spec_ref)
     elif args.kubeflow:
         msg = "Kubeflow runner not implemented"
         raise NotImplementedError(msg)

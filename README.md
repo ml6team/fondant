@@ -225,7 +225,7 @@ class ExampleComponent(TransformComponent):
 Once you have a pipeline you can easily run (and compile) it by using the built-in CLI:
 
 ```bash
-fondant run foo.bar.py:pipeline --local
+fondant run foo.bar:pipeline --local
 ```
 
 To see all available arguments you can check the fondant CLI help pages

@@ -15,4 +15,4 @@ class DockerRunner(Runner):
         """Run a docker-compose spec."""
         cmd = ["docker", "compose", "-f", input_spec, "up", "--build"]
 
-        subprocess.call(cmd, stdout=subprocess.PIPE)  # nosec
+        subprocess.call(cmd)  # nosec
