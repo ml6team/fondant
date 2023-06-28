@@ -26,4 +26,4 @@ jobs:
         run: docker buildx install
 
       - name: Build components
-        run: ./scripts/build_components_main.sh -t $GITHUB_SHA -t dev
+        run: ./scripts/build_components.sh --cache -t $GITHUB_SHA -t dev
