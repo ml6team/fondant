@@ -1,8 +1,10 @@
+import argparse
 import subprocess
+from unittest.mock import patch
 
 import pytest
 
-from fondant.cli import ImportFromStringError, pipeline_from_string
+from fondant.cli import ImportFromStringError, compile, pipeline_from_string, run
 from fondant.pipeline import Pipeline
 
 commands = [
@@ -25,6 +27,7 @@ TEST_PIPELINE = Pipeline(pipeline_name="test_pipeline", base_path="some/path")
 
 
 def test_pipeline_from_string():
+    """Test that pipeline_from_string works."""
     pipeline = pipeline_from_string(__name__ + ":TEST_PIPELINE")
     assert pipeline == TEST_PIPELINE
 
@@ -39,5 +42,53 @@ def test_pipeline_from_string():
     ],
 )
 def test_pipeline_from_string_error(import_string):
+    """Test different error cases for pipeline_from_string."""
     with pytest.raises(ImportFromStringError):
         pipeline_from_string(import_string)
+
+
+def test_compile_logic(tmp_path_factory):
+    """Test that the compile command works with arguments."""
+    with tmp_path_factory.mktemp("temp") as fn:
+        args = argparse.Namespace(
+            local=True,
+            pipeline=TEST_PIPELINE,
+            output_path=str(fn / "docker-compose.yml"),
+            extra_volumes=[],
+        )
+        compile(args)
+    args2 = argparse.Namespace(kubeflow=True, local=False, ref="some/path")
+    with pytest.raises(NotImplementedError):
+        compile(args2)
+
+
+def test_run_logic(tmp_path_factory):
+    """Test that the run command works with different arguments."""
+    args = argparse.Namespace(local=True, ref="some/path")
+    with patch("subprocess.call") as mock_call:
+        run(args)
+        mock_call.assert_called_once_with(
+            ["docker", "compose", "-f", "some/path", "up", "--build"],
+        )
+
+    with patch("subprocess.call") as mock_call, tmp_path_factory.mktemp("temp") as fn:
+        args1 = argparse.Namespace(
+            local=True,
+            ref=__name__ + ":TEST_PIPELINE",
+            output_path=str(fn / "docker-compose.yml"),
+            extra_volumes=[],
+        )
+        run(args1)
+        mock_call.assert_called_once_with(
+            [
+                "docker",
+                "compose",
+                "-f",
+                str(fn / "docker-compose.yml"),
+                "up",
+                "--build",
+            ],
+        )
+    args2 = argparse.Namespace(kubeflow=True, local=False, ref="some/path")
+    with pytest.raises(NotImplementedError):
+        run(args2)

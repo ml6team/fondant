@@ -24,8 +24,11 @@ TEST_PIPELINES = [
                 arguments={"storage_args": "a dummy string arg"},
             ),
             ComponentOp(
-                Path(COMPONENTS_PATH / "example_1" / "third_component.yaml"),
-                arguments={"storage_args": "a dummy string arg"},
+                Path(COMPONENTS_PATH / "example_1" / "fourth_component.yaml"),
+                arguments={
+                    "storage_args": "a dummy string arg",
+                    "some_list": [1, 2, 3],
+                },
             ),
         ],
     ),
