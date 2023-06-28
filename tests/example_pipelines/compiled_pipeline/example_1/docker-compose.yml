@@ -45,6 +45,8 @@ services:
     - /foo/bar/third_component/manifest.json
     - --storage_args
     - a dummy string arg
+    - --some_list
+    - '[1, 2, 3]'
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -52,7 +54,8 @@ services:
       "embeddings": {"fields": {"data": {"type": "array", "items": {"type": "float32"}}}}},
       "produces": {"images": {"fields": {"data": {"type": "binary"}}}, "additionalSubsets":
       false}, "args": {"storage_args": {"description": "Storage arguments", "type":
-      "str"}}}'
+      "str"}, "some_list": {"description": "Some list", "type": "list", "items": {"type":
+      "int"}}}}'
     - --input_manifest_path
     - /foo/bar/second_component/manifest.json
     depends_on:
@@ -60,3 +63,4 @@ services:
         condition: service_completed_successfully
     volumes: []
 version: '3.8'
+
