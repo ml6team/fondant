@@ -1,4 +1,4 @@
-name: Build pipeline
+name: Build dev images
 
 on:
   push:
