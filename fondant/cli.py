@@ -11,8 +11,6 @@ When installing the fondant package, the script will be available in the
 environment.
 
 eg `fondant --help`
-
-If you want to extend the cli you can add a new subcommand by registering a new function in this file and adding it to the `entrypoint` function.
 """
 import argparse
 import importlib
