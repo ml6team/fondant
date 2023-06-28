@@ -28,8 +28,6 @@ class FilterImageResolutionComponent(PandasTransformComponent):
         Returns:
             filtered Pandas dataframe
         """
-        print("Columns of dataframe:", dataframe.columns)
-
         width = dataframe["image"]["width"]
         height = dataframe["image"]["height"]
         min_image_dim = np.minimum(width, height)
@@ -37,11 +35,7 @@ class FilterImageResolutionComponent(PandasTransformComponent):
         aspect_ratio = max_image_dim / min_image_dim
         mask = (min_image_dim >= self.min_image_dim) & (aspect_ratio <= self.max_aspect_ratio)
 
-        dataframe = dataframe[mask]
-
-        dataframe = dataframe.drop([("image", "width"), ("image", "height")], axis=1)
-
-        return dataframe
+        return dataframe[mask]
 
 
 if __name__ == "__main__":
