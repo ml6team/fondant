@@ -2,7 +2,7 @@
 """
 import logging
 
-import pandas as pd
+import dask.dataframe as dd
 import numpy as np
 from sklearn.cluster import KMeans
 
@@ -15,27 +15,29 @@ class ClusterImageEmbeddingsComponent(DaskTransformComponent):
     """Component that clusters images based on embeddings."""
 
     def transform(
-        self, dataframe: pd.DataFrame, num_points: int, num_clusters: int
-    ) -> pd.DataFrame:
+        self, dataframe: dd.DataFrame, sample_ratio: float, num_clusters: int
+    ) -> dd.DataFrame:
         """
         Args:
-            dataframe: Pandas dataframe
+            dataframe: Dask dataframe
 
         Returns:
-            Pandas dataframe
+            Dask dataframe
         """
-        embeddings = dataframe["image"]["embedding"].sample(
-            n=num_points, random_state=1
-        )
+        num_rows = dataframe.shape[0].compute()
+        num_points = int(num_rows * sample_ratio)
+        embeddings = dataframe["image_embedding"].sample(n=num_points, random_state=1)
         embeddings = np.vstack(list(embeddings))
 
         kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto")
         kmeans = kmeans.fit(embeddings)
 
-        cluster_labels = kmeans.predict(embeddings)
-
         # add column
-        return pd.Series(cluster_labels).to_frame(name=("image", "cluster_label"))
+        dataframe["image_cluster_label"] = dataframe["image_embedding"].map_partitions(
+            lambda example: kmeans.predict()
+        )
+
+        return dataframe
 
 
 if __name__ == "__main__":

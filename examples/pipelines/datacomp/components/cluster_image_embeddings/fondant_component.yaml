@@ -1,5 +1,5 @@
 name: Cluster embeddings
-description: Component that applies k-means clustering to image embeddings
+description: Component that applies k-means clustering on subsampled image embeddings
 image: ghcr.io/ml6team/cluster_image_embeddings:latest
 
 consumes:
@@ -17,6 +17,9 @@ produces:
         type: int16
       
 args:
+  sample_ratio:
+    description: The ratio of samples to use in clustering (e.g. 0.3).
+    type: float
   num_clusters:
     description: Number of clusters.
     type: int
