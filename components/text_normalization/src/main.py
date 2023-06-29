@@ -55,8 +55,8 @@ class TextNormalizationComponent(PandasTransformComponent):
         if len(self.characters_to_remove) > 0:
             dataframe["text"]["data"].apply(
                 lambda x: self._remove_patterns(
-                    self.characters_to_remove, x
-                )
+                    self.characters_to_remove, x,
+                ),
             )
 
         return dataframe
