@@ -2,6 +2,7 @@
 """
 import logging
 
+import pandas as pd
 import dask.dataframe as dd
 import numpy as np
 from sklearn.cluster import KMeans
@@ -24,17 +25,19 @@ class ClusterImageEmbeddingsComponent(DaskTransformComponent):
         Returns:
             Dask dataframe
         """
-        num_rows = dataframe.shape[0].compute()
-        num_points = int(num_rows * sample_ratio)
-        embeddings = dataframe["image_embedding"].sample(n=num_points, random_state=1)
+        embeddings = dataframe["image_embedding"].sample(
+            frac=sample_ratio, random_state=1
+        )
         embeddings = np.vstack(list(embeddings))
 
         kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto")
         kmeans = kmeans.fit(embeddings)
 
-        # add column
-        dataframe["image_cluster_label"] = dataframe["image_embedding"].map_partitions(
-            lambda example: kmeans.predict()
+        # call predict per row
+        # # TODO call per partition?
+        dataframe["image_cluster_label"] = dataframe["image_embedding"].apply(
+            lambda example: kmeans.predict(example.reshape(1, -1))[0],
+            meta=pd.Series(dtype="int"),
         )
 
         return dataframe
