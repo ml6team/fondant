@@ -15,7 +15,7 @@
 </p>
 
 ---
-**Fondant helps you create high quality datasets to fine-tune foundation models such as:**
+**Fondant helps you create high quality datasets to train or fine-tune foundation models such as:**
 
 - 🎨 Stable Diffusion  
 - 📄 GPT-like Large Language Models (LLMs)  
@@ -89,16 +89,27 @@ Eg. generating logos:
 
 Fondant comes with a library of reusable components, which can jumpstart your pipeline.
 
-| Component                                                                                                                  | Description                                                         |
+| COMPONENT                                                                                                                  | DESCRIPTION                                                         |
 |----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| **Data loading / writing**                                                                                                 |                                                                     |
 | [load_from_hf_hub](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub)                               | Load a dataset from the Hugging Face Hub                            |
-| [image_embedding](https://github.com/ml6team/fondant/tree/main/components/image_embedding)                                 | Create embeddings for images using a model from the HF Hub          |
-| [embedding_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/embedding_based_laion_retrieval) | Retrieve images-text pairs from LAION using embedding similarity    |
+| [write_to_hf_hub](https://github.com/ml6team/fondant/tree/main/components/write_to_hf_hub)                                 | Write a dataset to the Hugging Face Hub                             |
 | [prompt_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval)       | Retrieve images-text pairs from LAION using prompt similarity       |
+| [embedding_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/embedding_based_laion_retrieval) | Retrieve images-text pairs from LAION using embedding similarity    |
 | [download_images](https://github.com/ml6team/fondant/tree/main/components/download_images)                                 | Download images from urls                                           |
-| [image_resolution_filtering](https://github.com/ml6team/fondant/tree/main/components/image_resolution_filtering)           | Filter images based on their resolution                             |
+| **Image processing**                                                                                                       |                                                                     |
+| [image_embedding](https://github.com/ml6team/fondant/tree/main/components/image_embedding)                                 | Create embeddings for images using a model from the HF Hub          |
+| [image_resolution_extraction](https://github.com/ml6team/fondant/tree/main/components/image_resolution_extraction)         | Extract the resolution from images                                  |
+| [filter_image_resolution](https://github.com/ml6team/fondant/tree/main/components/filter_image_resolution)                 | Filter images based on their resolution                             |
 | [caption images](https://github.com/ml6team/fondant/tree/main/components/caption_images)                                   | Generate captions for images using a model from the HF Hub          |
 | [segment_images](https://github.com/ml6team/fondant/tree/main/components/segment_images)                                   | Generate segmentation maps for images using a model from the HF Hub |
+| [image_cropping](https://github.com/ml6team/fondant/tree/main/components/image_cropping)                                   | Intelligently crop out image borders                                |
+| **Code processing**                                                                                                        |                                                                     |
+| [pii_redaction](https://github.com/ml6team/fondant/tree/main/components/pii_redaction)                                     | Redact Personal Identifiable Information (PII)                      |
+| [filter_comments](https://github.com/ml6team/fondant/tree/main/components/filter_comments)                                 | Filter code based on code to comment ratio                          |
+| [filter_line_length](https://github.com/ml6team/fondant/tree/main/components/filter_line_length)                           | Filter code based on line length                                    |
+| **Language processing**                                                                                                    | Coming soon                                                         |
+| **Clustering**                                                                                                             | Coming soon                                                         |
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
