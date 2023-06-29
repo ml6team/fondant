@@ -14,14 +14,16 @@ logger = logging.getLogger(__name__)
 class LanguageIdentification:
     """A class for language detection using FastText."""
 
-    def __init__(self, model_path: str = "lid.176.ftz"):
+    def __init__(self, language, model_path: str = "lid.176.ftz"):
         """
         Initializes the LanguageDetect class.
 
         Args:
+           language (str): language to filter on
            model_path (str): The path to the FastText language identification model.
         """
         pretrained_lang_model_weight_path = model_path
+        self.language = language
         self.model = fasttext.load_model(pretrained_lang_model_weight_path)
 
     def predict_lang(self, text: str):
@@ -37,22 +39,20 @@ class LanguageIdentification:
         predictions = self.model.predict(text, k=1)
         return predictions[0][0]
 
-    def is_language(self, row, language):
+    def is_language(self, row):
         """Predict if text of a row is written in the defined language."""
-        return language in self.predict_lang(row["text"])
+        return self.language in self.predict_lang(row["text"])
 
 
 class LanguageFilterComponent(PandasTransformComponent):
     """Component that filter columns based on provided language."""
 
-    def setup(self, *args, **kwargs):
+    def setup(self, *, language):
         """Setup language filter component."""
-        self.lang_detector = LanguageIdentification()
+        self.lang_detector = LanguageIdentification(language)
 
-    def transform(
-            self,
-            dataframe: pd.DataFrame
-    ) -> pd.DataFrame:
+
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """
         Args:
             dataframe: Pandas dataframe.
@@ -61,9 +61,8 @@ class LanguageFilterComponent(PandasTransformComponent):
         Returns:
             Pandas dataframe
         """
-        language = self.user_arguments["language"]
         mask = dataframe.apply(
-            lambda row: self.lang_detector.is_language(row, language), axis=1)
+            lambda row: self.lang_detector.is_language(row), axis=1)
 
         return dataframe[mask]
 
