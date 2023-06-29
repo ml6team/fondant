@@ -1,0 +1,20 @@
+name: Normalize text.
+description: A component that normalizes text.
+image: ghcr.io/ml6team/text_normalization:latest
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+
+args:
+  apply_nfc:
+    description: If true apply nfc normalization
+    type: bool
+  do_lowercase:
+    description: If true apply lowercasing
+    type: bool
+  characters_to_remove:
+    description: List of characters which will be removed, e.g. [?,.!,@#%]
+    type: list
