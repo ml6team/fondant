@@ -3,38 +3,10 @@ description: Component that loads a dataset from the hub
 image: ghcr.io/ml6team/load_from_hf_hub:dev
 
 produces:
-  image:
-    fields:
-      url:
-        type: string
-      width:
-        type: int16
-      height:
-        type: int16
-      face_bboxes:
-        type: array
-        items:
-          type: array
-          items:
-            type: float32
-      sha256:
-        type: utf8
-      embedding:
-        type: array
-        items:
-          type: float32
-  
-  text:
+  dummy_variable:  #TODO: fill in here
     fields:
       data:
-        type: string
-  
-  image_text:
-    fields:
-      clip_b32_similarity_score:
-        type: float32
-      clip_l14_similarity_score:
-        type: float32
+        type: binary
 
 args:
   dataset_name:
