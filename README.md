@@ -1,5 +1,4 @@
 <p align="center">
-
     <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" height="250px"/>
 </p>
 <p align="center">
@@ -38,6 +37,7 @@ been building and sharing models, everyone is still building their data preparat
 Fondant offers a framework to build **composable data preparation pipelines, with reusable 
 components, optimized to handle massive datasets**. Stop building from scratch, and start 
 reusing components to:
+
 - Extend your data with public datasets
 - Generate new modalities using captioning, segmentation, translation, image generation, ...
 - Distill knowledge from existing foundation models
