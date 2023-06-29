@@ -11,9 +11,7 @@ import huggingface_hub
 from PIL import Image
 
 from fondant.component import WriteComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +39,7 @@ class WriteToHubComponent(WriteComponent):
             username: str,
             dataset_name: str,
             image_column_names: t.Optional[list],
-            column_name_mapping: t.Optional[dict]
+            column_name_mapping: t.Optional[dict],
     ):
         """
         Args:
@@ -85,7 +83,7 @@ class WriteToHubComponent(WriteComponent):
             for image_column_name in image_column_names:
                 dataframe[image_column_name] = dataframe[image_column_name].map(
                     lambda x: convert_bytes_to_image(x, feature_encoder),
-                    meta=(image_column_name, "object")
+                    meta=(image_column_name, "object"),
                 )
 
         # Map column names to hf data format

@@ -41,12 +41,13 @@ class Subset:
             {
                 name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification["fields"].items()
-            }
+            },
         )
 
     def add_field(self, name: str, type_: Type, *, overwrite: bool = False) -> None:
         if not overwrite and name in self._specification["fields"]:
-            raise ValueError(f"A field with name {name} already exists")
+            msg = f"A field with name {name} already exists"
+            raise ValueError(msg)
 
         self._specification["fields"][name] = type_.to_json()
 
@@ -88,10 +89,11 @@ class Manifest:
         spec_data = pkgutil.get_data("fondant", "schemas/manifest.json")
 
         if spec_data is None:
-            raise FileNotFoundError("schemas/manifest.json not found")
-        else:
-            spec_str = spec_data.decode("utf-8")
-            spec_schema = json.loads(spec_str)
+            msg = "schemas/manifest.json not found"
+            raise FileNotFoundError(msg)
+
+        spec_str = spec_data.decode("utf-8")
+        spec_schema = json.loads(spec_str)
 
         base_uri = (Path(__file__).parent / "schemas").as_uri()
         resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)
@@ -168,14 +170,17 @@ class Manifest:
             {
                 name: Subset(subset, base_path=self.base_path)
                 for name, subset in self._specification["subsets"].items()
-            }
+            },
         )
 
     def add_subset(
-        self, name: str, fields: t.Iterable[t.Union[Field, t.Tuple[str, Type]]]
+        self,
+        name: str,
+        fields: t.Iterable[t.Union[Field, t.Tuple[str, Type]]],
     ) -> None:
         if name in self._specification["subsets"]:
-            raise ValueError(f"A subset with name {name} already exists")
+            msg = f"A subset with name {name} already exists"
+            raise ValueError(msg)
 
         self._specification["subsets"][name] = {
             "location": f"/{name}/{self.run_id}/{self.component_id}",
@@ -184,12 +189,14 @@ class Manifest:
 
     def remove_subset(self, name: str) -> None:
         if name not in self._specification["subsets"]:
-            raise ValueError(f"Subset {name} not found in specification")
+            msg = f"Subset {name} not found in specification"
+            raise ValueError(msg)
 
         del self._specification["subsets"][name]
 
     def evolve(  # noqa : PLR0912 (too many branches)
-        self, component_spec: ComponentSpec
+        self,
+        component_spec: ComponentSpec,
     ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
@@ -223,13 +230,12 @@ class Manifest:
         # If additionalFields is False for a consumed subset,
         # Remove all fields from that subset that are not listed
         for subset_name, subset in component_spec.consumes.items():
-            if subset_name in evolved_manifest.subsets:
-                if not subset.additional_fields:
-                    for field_name in evolved_manifest.subsets[subset_name].fields:
-                        if field_name not in subset.fields:
-                            evolved_manifest.subsets[subset_name].remove_field(
-                                field_name
-                            )
+            if subset_name in evolved_manifest.subsets and not subset.additional_fields:
+                for field_name in evolved_manifest.subsets[subset_name].fields:
+                    if field_name not in subset.fields:
+                        evolved_manifest.subsets[subset_name].remove_field(
+                            field_name,
+                        )
 
         # For each output subset defined in the component, add or update it
         for subset_name, subset in component_spec.produces.items():
@@ -241,14 +247,16 @@ class Manifest:
                     for field_name in evolved_manifest.subsets[subset_name].fields:
                         if field_name not in subset.fields:
                             evolved_manifest.subsets[subset_name].remove_field(
-                                field_name
+                                field_name,
                             )
 
                 # Add fields defined in the component spec produces section
                 # Overwrite to persist changes to the field (eg. type of column)
                 for field in subset.fields.values():
                     evolved_manifest.subsets[subset_name].add_field(
-                        field.name, field.type, overwrite=True
+                        field.name,
+                        field.type,
+                        overwrite=True,
                     )
 
                 # Update subset location as this is currently always rewritten

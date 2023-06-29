@@ -36,7 +36,7 @@ def run_explorer_app(
             [
                 "-v",
                 credentials,
-            ]
+            ],
         )
 
     # mount the local data directory to the container
@@ -48,11 +48,11 @@ def run_explorer_app(
     cmd.extend(
         [
             f"{shlex.quote(container)}:{shlex.quote(tag)}",
-        ]
+        ],
     )
 
     logging.info(
-        f"Running image from registry: {container} with tag: {tag} on port: {port}"
+        f"Running image from registry: {container} with tag: {tag} on port: {port}",
     )
     logging.info(f"Access the explorer at http://localhost:{port}")
 

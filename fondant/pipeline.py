@@ -77,7 +77,7 @@ class ComponentOp:
         """Add the component specification to the arguments if not already present."""
         if not self.arguments.get("component_spec"):
             self.arguments["component_spec"] = json.dumps(
-                self.component_spec.specification
+                self.component_spec.specification,
             )
 
     @classmethod
@@ -115,7 +115,8 @@ class ComponentOp:
             component_spec_path = t.cast(Path, component_spec_path)
 
             if not (component_spec_path.exists() and component_spec_path.is_file()):
-                raise ValueError(f"No reusable component with name {name} found.")
+                msg = f"No reusable component with name {name} found."
+                raise ValueError(msg)
 
         return ComponentOp(
             component_spec_path,
@@ -165,8 +166,9 @@ class Pipeline:
         """
         if dependencies is None:
             if self.task_without_dependencies_added:
+                msg = "At most one task can be defined without dependencies."
                 raise InvalidPipelineDefinition(
-                    "At most one task can be defined without " "dependencies."
+                    msg,
                 )
             dependencies = []
             self.task_without_dependencies_added = True
@@ -174,12 +176,14 @@ class Pipeline:
             dependencies = [dependencies]
 
         if len(dependencies) > 1:
+            msg = (
+                f"Multiple component dependencies provided for component "
+                f"`{task.component_spec.name}`. The current version of Fondant can only handle "
+                f"components with a single dependency. Please note that the behavior of the "
+                f"pipeline may be unpredictable or incorrect."
+            )
             raise InvalidPipelineDefinition(
-                f"Multiple component dependencies provided for component"
-                f" `{task.component_spec.name}`. "
-                f"The current version of Fondant can only handle components with a single "
-                f"dependency. Please note that the behavior of the pipeline may be unpredictable"
-                f" or incorrect."
+                msg,
             )
 
         dependencies_names = [
@@ -232,7 +236,9 @@ class Pipeline:
 
         # Create initial manifest
         manifest = Manifest.create(
-            base_path=self.base_path, run_id=run_id, component_id=load_component_name
+            base_path=self.base_path,
+            run_id=run_id,
+            component_id=load_component_name,
         )
         for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["fondant_component_op"]
@@ -244,10 +250,13 @@ class Pipeline:
                     component_subset,
                 ) in component_spec.consumes.items():
                     if component_subset_name not in manifest.subsets:
+                        msg = (
+                            f"Component '{component_spec.name}' is trying to invoke the subset "
+                            f"'{component_subset_name}', which has not been defined or created "
+                            f"in the previous components."
+                        )
                         raise InvalidPipelineDefinition(
-                            f"Component '{component_spec.name}' "
-                            f"is trying to invoke the subset '{component_subset_name}', "
-                            f"which has not been defined or created in the previous components."
+                            msg,
                         )
 
                     # Get the corresponding manifest fields
@@ -257,24 +266,29 @@ class Pipeline:
                     for field_name, subset_field in component_subset.fields.items():
                         # Check if invoked field exists
                         if field_name not in manifest_fields:
-                            raise InvalidPipelineDefinition(
-                                f"The invoked subset '{component_subset_name}' of the"
-                                f" '{component_spec.name}' component does not match "
-                                f"the previously created subset definition.\n The component is"
-                                f" trying to invoke the field '{field_name}' which has not been"
-                                f" previously defined. Current available fields are "
+                            msg = (
+                                f"The invoked subset '{component_subset_name}' of the "
+                                f"'{component_spec.name}' component does not match the "
+                                f"previously created subset definition.\n The component is "
+                                f"trying to invoke the field '{field_name}' which has not been "
+                                f"previously defined. Current available fields are "
                                 f"{manifest_fields}\n"
+                            )
+                            raise InvalidPipelineDefinition(
+                                msg,
                             )
                         # Check if the invoked field schema matches the current schema
                         if subset_field != manifest_fields[field_name]:
+                            msg = (
+                                f"The invoked subset '{component_subset_name}' of the "
+                                f"'{component_spec.name}' component does not match  the "
+                                f"previously created subset definition.\n The '{field_name}' "
+                                f"field is currently defined with the following schema:\n"
+                                f"{manifest_fields[field_name]}\nThe current component to "
+                                f"trying to invoke it with this schema:\n{subset_field}"
+                            )
                             raise InvalidPipelineDefinition(
-                                f"The invoked subset '{component_subset_name}' of the"
-                                f" '{component_spec.name}' component does not match "
-                                f" the previously created subset definition.\n The '{field_name}'"
-                                f" field is currently defined with the following schema:\n"
-                                f"{manifest_fields[field_name]}\n"
-                                f"The current component to trying to invoke it with this schema:\n"
-                                f"{subset_field}"
+                                msg,
                             )
             manifest = manifest.evolve(component_spec)
             load_component = False
@@ -303,7 +317,7 @@ class Pipeline:
                 Callable: The Kubeflow component.
             """
             return kfp.components.load_component(
-                text=fondant_component_operation.component_spec.kubeflow_specification.to_string()
+                text=fondant_component_operation.component_spec.kubeflow_specification.to_string(),
             )
 
         def _set_task_configuration(task, fondant_component_operation):
@@ -361,7 +375,7 @@ class Pipeline:
                     )
                 else:
                     metadata = json.dumps(
-                        {"base_path": self.base_path, "run_id": run_id}
+                        {"base_path": self.base_path, "run_id": run_id},
                     )
                     # Add metadata to the first component
                     component_task = kubeflow_component_op(
@@ -372,7 +386,8 @@ class Pipeline:
                     metadata = ""
                 # Set optional configurations
                 component_task = _set_task_configuration(
-                    component_task, fondant_component_op
+                    component_task,
+                    fondant_component_op,
                 )
                 # Set the execution order of the component task to be after the previous
                 # component task.
@@ -422,7 +437,7 @@ class Client:
     def get_pipeline_version_ids(self, pipeline_id: str) -> t.List[str]:
         """Function that returns the versions of a pipeline given a pipeline id."""
         pipeline_versions = self.client.list_pipeline_versions(pipeline_id).versions
-        return [getattr(version, "id") for version in pipeline_versions]
+        return [version.id for version in pipeline_versions]
 
     def delete_pipeline(self, pipeline_name: str):
         """
@@ -439,7 +454,7 @@ class Client:
             self.client.delete_pipeline(pipeline_id)
 
             logger.info(
-                f"Pipeline {pipeline_name} already exists. Deleting old pipeline..."
+                f"Pipeline {pipeline_name} already exists. Deleting old pipeline...",
             )
         else:
             logger.info(f"No existing pipeline under `{pipeline_name}` name was found.")
@@ -461,18 +476,18 @@ class Client:
         Raises:
             Exception: If there was an error uploading the pipeline package.
         """
-        # self.delete_pipeline(pipeline.name)
-
         pipeline.compile()
 
         logger.info(f"Uploading pipeline: {pipeline.name}")
 
         try:
             self.client.upload_pipeline(
-                pipeline_package_path=pipeline.package_path, pipeline_name=pipeline.name
+                pipeline_package_path=pipeline.package_path,
+                pipeline_name=pipeline.name,
             )
         except Exception as e:
-            raise Exception(f"Error uploading pipeline package: {str(e)}")
+            msg = f"Error uploading pipeline package: {str(e)}"
+            raise Exception(msg)
 
         # Delete the pipeline package file if specified.
         if delete_pipeline_package:
@@ -501,7 +516,7 @@ class Client:
         except ValueError:
             logger.info(
                 f"Defined experiment '{experiment_name}' not found. Creating new experiment"
-                f"under this name"
+                f"under this name",
             )
             experiment = self.client.create_experiment(experiment_name)
 

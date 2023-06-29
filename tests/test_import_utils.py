@@ -13,7 +13,7 @@ from fondant.import_utils import (
 
 
 @pytest.mark.parametrize(
-    "package_name, import_error_msg, expected_result",
+    ("package_name", "import_error_msg", "expected_result"),
     [
         ("jsonschema", "jsonschema package is not installed.", True),
         (
@@ -42,7 +42,8 @@ def test_available_packages(importlib_util_find_spec, importlib_metadata_version
 
 
 @mock.patch(
-    "importlib.metadata.version", side_effect=importlib.metadata.PackageNotFoundError
+    "importlib.metadata.version",
+    side_effect=importlib.metadata.PackageNotFoundError,
 )
 def test_unavailable_packages(mock_importlib_metadata_version):
     """Test that is_datasets_available returns False when 'datasets' is not available."""

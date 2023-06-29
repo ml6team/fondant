@@ -10,9 +10,7 @@ from PIL import Image
 from transformers import CLIPProcessor, CLIPVisionModelWithProjection
 
 from fondant.component import PandasTransformComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -77,7 +75,7 @@ class EmbedImagesComponent(PandasTransformComponent):
         images = dataframe["images"]["data"].apply(
             process_image,
             processor=self.processor,
-            device=self.device
+            device=self.device,
         )
         results: t.List[pd.Series] = []
         for batch in np.split(images, np.arange(self.batch_size, len(images), self.batch_size)):
