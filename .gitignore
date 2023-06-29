@@ -86,4 +86,4 @@ MANIFEST
 *.tgz
 
 # docker artifacts
-examples/pipelines/*/docker-compose.yml
+examples/pipelines/**/docker-compose.yml

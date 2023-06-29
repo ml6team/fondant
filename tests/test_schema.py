@@ -22,26 +22,31 @@ def test_valid_json_schema():
     """Test that Type class initialized with a json schema matches the expected pyarrow schema."""
     assert Type.from_json({"type": "string"}).value == pa.string()
     assert Type.from_json(
-        {"type": "array", "items": {"type": "int8"}}
+        {"type": "array", "items": {"type": "int8"}},
     ).value == pa.list_(pa.int8())
     assert Type.from_json(
-        {"type": "array", "items": {"type": "array", "items": {"type": "int8"}}}
+        {"type": "array", "items": {"type": "array", "items": {"type": "int8"}}},
     ).value == pa.list_(pa.list_(pa.int8()))
 
 
-def test_invalid_json_schema():
+@pytest.mark.parametrize(
+    "statement",
+    [
+        'Type("invalid_type")',
+        'Type("invalid_type").to_json()',
+        'Type.list(Type("invalid_type"))',
+        'Type.list(Type("invalid_type")).to_json()',
+        'Type.from_json({"type": "invalid_value"})',
+        'Type.from_json({"type": "invalid_value", "items": {"type": "int8"}})',
+        'Type.from_json({"type": "array", "items": {"type": "invalid_type"}})',
+    ],
+)
+def test_invalid_json_schema(statement):
     """Test that an invalid type or schema specified with the Type class raise an invalid type
     schema error.
     """
     with pytest.raises(InvalidTypeSchema):
-        Type("invalid_type")
-        Type("invalid_type").to_json()
-        Type.list(Type("invalid_type"))
-        Type.list(Type("invalid_type")).to_json()
-        Type.from_json({"invalid_key": "int8"})
-        Type.from_json({"type": "invalid_value"})
-        Type.from_json({"type": "invalid_value", "items": {"type": "int8"}})
-        Type.from_json({"type": "array", "items": {"type": "invalid_type"}})
+        eval(statement)
 
 
 def test_equality():

@@ -9,9 +9,7 @@ from pipeline_configs import PipelineConfigs
 
 from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline, Client
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 # Initialize pipeline and client
@@ -26,8 +24,8 @@ client = Client(host=PipelineConfigs.HOST)
 # define ops
 load_component_column_mapping = {
     "url": "image_url",
-    "original_width": "image_original_width",
-    "original_height": "image_original_height",
+    "original_width": "image_width",
+    "original_height": "image_height",
     "face_bboxes": "image_face_bboxes",
     "sha256": "image_sha256",
     "text": "text_data",
@@ -44,6 +42,10 @@ load_from_hub_op = ComponentOp.from_registry(
         "n_rows_to_load": 100,
     },
 )
+filter_image_resolution_op = ComponentOp(
+    "components/filter_image_resolution/fondant_component.yaml",
+    arguments={"min_image_dim": 200, "max_aspect_ratio": 3},
+)
 filter_complexity_op = ComponentOp(
     component_spec_path="components/filter_text_complexity/fondant_component.yaml",
     arguments={
@@ -56,7 +58,8 @@ filter_complexity_op = ComponentOp(
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(filter_complexity_op, dependencies=load_from_hub_op)
+pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
+pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
 # TODO add more ops
 
 # compile

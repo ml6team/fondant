@@ -1,3 +1,0 @@
-fondant
-pyarrow>=7.0
-gcsfs==2023.4.0

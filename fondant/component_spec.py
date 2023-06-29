@@ -82,7 +82,7 @@ class ComponentSubset:
             {
                 name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification["fields"].items()
-            }
+            },
         )
 
     @property
@@ -110,10 +110,11 @@ class ComponentSpec:
         spec_data = pkgutil.get_data("fondant", "schemas/component_spec.json")
 
         if spec_data is None:
-            raise FileNotFoundError("component_spec.json not found in fondant schema")
-        else:
-            spec_str = spec_data.decode("utf-8")
-            spec_schema = json.loads(spec_str)
+            msg = "component_spec.json not found in fondant schema"
+            raise FileNotFoundError(msg)
+
+        spec_str = spec_data.decode("utf-8")
+        spec_schema = json.loads(spec_str)
 
         base_uri = (Path(__file__).parent / "schemas").as_uri()
         resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)
@@ -160,7 +161,7 @@ class ComponentSpec:
                 name: ComponentSubset(subset)
                 for name, subset in self._specification.get("consumes", {}).items()
                 if name != "additionalSubsets"
-            }
+            },
         )
 
     @property
@@ -171,7 +172,7 @@ class ComponentSpec:
                 name: ComponentSubset(subset)
                 for name, subset in self._specification.get("produces", {}).items()
                 if name != "additionalSubsets"
-            }
+            },
         )
 
     @property
@@ -224,7 +225,8 @@ class KubeflowComponentSpec:
 
     @classmethod
     def from_fondant_component_spec(
-        cls, fondant_component: ComponentSpec
+        cls,
+        fondant_component: ComponentSpec,
     ) -> "KubeflowComponentSpec":
         """Create a Kubeflow component spec from a Fondant component spec."""
         specification = {
@@ -280,7 +282,7 @@ class KubeflowComponentSpec:
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},
                     ],
-                }
+                },
             },
         }
         return cls(specification)
@@ -325,7 +327,7 @@ class KubeflowComponentSpec:
                     default=info["default"] if "default" in info else None,
                 )
                 for info in self._specification["inputs"]
-            }
+            },
         )
 
     @property
@@ -339,7 +341,7 @@ class KubeflowComponentSpec:
                     type=info["type"],
                 )
                 for info in self._specification["outputs"]
-            }
+            },
         )
 
     def __repr__(self) -> str:

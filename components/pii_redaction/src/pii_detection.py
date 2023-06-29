@@ -26,12 +26,12 @@ def scan_pii(text, key_detector="other"):
     if key_detector == "regex":
         # use a regex to detect keys + emails + ips
         secrets = secrets + detect_email_addresses(
-            text, tag_types={"KEY", "EMAIL", "IP_ADDRESS"}
+            text, tag_types={"KEY", "EMAIL", "IP_ADDRESS"},
         )
     else:
         # detect emails and ip addresses with regexes
         secrets = secrets + detect_email_addresses(
-            text, tag_types={"EMAIL", "IP_ADDRESS"}
+            text, tag_types={"EMAIL", "IP_ADDRESS"},
         )
         # for keys use detect-secrets tool
         secrets = secrets + detect_keys(text)

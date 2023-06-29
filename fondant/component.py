@@ -42,7 +42,8 @@ class Component(ABC):
 
     @classmethod
     def from_file(
-        cls, path: t.Union[str, Path] = "../fondant_component.yaml"
+        cls,
+        path: t.Union[str, Path] = "../fondant_component.yaml",
     ) -> "Component":
         """Create a component from a component spec file.
 
@@ -60,7 +61,8 @@ class Component(ABC):
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
-            raise ValueError("Error: The --component_spec argument is required.")
+            msg = "Error: The --component_spec argument is required."
+            raise ValueError(msg)
 
         component_spec = ComponentSpec(args.component_spec)
 
@@ -173,17 +175,12 @@ class LoadComponent(Component):
         return ["input_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
-        # create initial manifest
-        # TODO ideally get rid of args.metadata by including them in the storage args
-
         component_id = self.spec.name.lower().replace(" ", "_")
-        manifest = Manifest.create(
+        return Manifest.create(
             base_path=self.metadata["base_path"],
             run_id=self.metadata["run_id"],
             component_id=component_id,
         )
-
-        return manifest
 
     @abstractmethod
     def load(self, *args, **kwargs) -> dd.DataFrame:
@@ -196,9 +193,7 @@ class LoadComponent(Component):
             A `dd.DataFrame` instance with initial data'.
         """
         # Load the dataframe according to the custom function provided to the user
-        df = self.load(**self.user_arguments)
-
-        return df
+        return self.load(**self.user_arguments)
 
 
 class TransformComponent(Component):
@@ -247,9 +242,9 @@ class DaskTransformComponent(TransformComponent):
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
-        df = data_loader.load_dataframe()
-        df = self.transform(dataframe=df, **self.user_arguments)
-        return df
+        dataframe = data_loader.load_dataframe()
+        dataframe = self.transform(dataframe, **self.user_arguments)
+        return dataframe
 
 
 class PandasTransformComponent(TransformComponent):
@@ -277,6 +272,15 @@ class PandasTransformComponent(TransformComponent):
             tuple(column.split("_")) for column in dataframe.columns
         )
         dataframe = self.transform(dataframe)
+        # Drop columns not in the produces section of the component spec
+        dataframe = dataframe.drop(
+            columns=[
+                (subset, field)
+                for (subset, field) in dataframe.columns
+                if subset not in self.spec.produces
+                or field not in self.spec.produces[subset].fields
+            ],
+        )
         dataframe.columns = [
             "_".join(column) for column in dataframe.columns.to_flat_index()
         ]
@@ -291,7 +295,7 @@ class PandasTransformComponent(TransformComponent):
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
-        df = data_loader.load_dataframe()
+        dataframe = data_loader.load_dataframe()
 
         # Call the component setup method with user provided argument
         self.setup(**self.user_arguments)
@@ -300,24 +304,22 @@ class PandasTransformComponent(TransformComponent):
         meta_dict = {"id": pd.Series(dtype="object")}
         for subset_name, subset in self.spec.produces.items():
             for field_name, field in subset.fields.items():
-                print(field.type.value)
                 meta_dict[f"{subset_name}_{field_name}"] = pd.Series(
-                    # dtype=f"{field.type.value}[pyarrow]"
-                    dtype=pd.ArrowDtype(field.type.value)
+                    dtype=pd.ArrowDtype(field.type.value),
                 )
         meta_df = pd.DataFrame(meta_dict).set_index("id")
 
         # Call the component transform method for each partition
-        df = df.map_partitions(
+        dataframe = dataframe.map_partitions(
             self.wrapped_transform,
             meta=meta_df,
         )
 
         # Clear divisions if component spec indicates that the index is changed
         if self._infer_index_change():
-            df.clear_divisions()
+            dataframe.clear_divisions()
 
-        return df
+        return dataframe
 
     def _infer_index_change(self) -> bool:
         """Infer if this component changes the index based on its component spec."""
@@ -328,10 +330,9 @@ class PandasTransformComponent(TransformComponent):
         for subset in self.spec.consumes.values():
             if not subset.additional_fields:
                 return True
-        for subset in self.spec.produces.values():
-            if not subset.additional_fields:
-                return True
-        return False
+        return any(
+            not subset.additional_fields for subset in self.spec.produces.values()
+        )
 
 
 class WriteComponent(Component):
@@ -364,12 +365,11 @@ class WriteComponent(Component):
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
-        df = data_loader.load_dataframe()
-        self.write(dataframe=df, **self.user_arguments)
+        dataframe = data_loader.load_dataframe()
+        self.write(dataframe, **self.user_arguments)
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
-        pass
 
     def upload_manifest(self, manifest: Manifest, save_path: str):
         pass

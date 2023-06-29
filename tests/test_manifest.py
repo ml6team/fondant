@@ -10,13 +10,13 @@ from fondant.manifest import Field, Index, Manifest, Subset, Type
 manifest_path = Path(__file__).parent / "example_specs/manifests"
 
 
-@pytest.fixture
+@pytest.fixture()
 def valid_manifest():
     with open(manifest_path / "valid_manifest.json") as f:
         return json.load(f)
 
 
-@pytest.fixture
+@pytest.fixture()
 def invalid_manifest():
     with open(manifest_path / "invalid_manifest.json") as f:
         return json.load(f)
@@ -64,7 +64,7 @@ def test_subset_fields():
     assert "data2" in subset.fields
 
     # add a duplicate field
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="A field with name data2 already exists"):
         subset.add_field(name="data2", type_=Type("binary"))
 
     # add a duplicate field but overwrite
@@ -121,7 +121,9 @@ def test_manifest_creation():
     component_id = "component_id"
 
     manifest = Manifest.create(
-        base_path=base_path, run_id=run_id, component_id=component_id
+        base_path=base_path,
+        run_id=run_id,
+        component_id=component_id,
     )
     manifest.add_subset("images", [("width", Type("int32")), ("height", Type("int32"))])
     manifest.subsets["images"].add_field("data", Type("binary"))
@@ -147,7 +149,7 @@ def test_manifest_creation():
                         "type": "binary",
                     },
                 },
-            }
+            },
         },
     }
 
@@ -167,14 +169,16 @@ def test_manifest_alteration(valid_manifest):
 
     # test adding a subset
     manifest.add_subset(
-        "images2", [("width", Type("int32")), ("height", Type("int32"))]
+        "images2",
+        [("width", Type("int32")), ("height", Type("int32"))],
     )
     assert "images2" in manifest.subsets
 
     # test adding a duplicate subset
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="A subset with name images2 already exists"):
         manifest.add_subset(
-            "images2", [("width", Type("int32")), ("height", Type("int32"))]
+            "images2",
+            [("width", Type("int32")), ("height", Type("int32"))],
         )
 
     # test removing a subset
@@ -182,7 +186,7 @@ def test_manifest_alteration(valid_manifest):
     assert "images2" not in manifest.subsets
 
     # test removing a nonexistant subset
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Subset pictures not found in specification"):
         manifest.remove_subset("pictures")
 
 

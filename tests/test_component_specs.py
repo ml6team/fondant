@@ -14,25 +14,25 @@ from fondant.schema import Type
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 
 
-@pytest.fixture
+@pytest.fixture()
 def valid_fondant_schema() -> dict:
     with open(component_specs_path / "valid_component.yaml") as f:
         return yaml.safe_load(f)
 
 
-@pytest.fixture
+@pytest.fixture()
 def valid_fondant_schema_no_args() -> dict:
     with open(component_specs_path / "valid_component_no_args.yaml") as f:
         return yaml.safe_load(f)
 
 
-@pytest.fixture
+@pytest.fixture()
 def valid_kubeflow_schema() -> dict:
     with open(component_specs_path / "kubeflow_component.yaml") as f:
         return yaml.safe_load(f)
 
 
-@pytest.fixture
+@pytest.fixture()
 def invalid_fondant_schema() -> dict:
     with open(component_specs_path / "invalid_component.yaml") as f:
         return yaml.safe_load(f)
@@ -64,7 +64,7 @@ def test_attribute_access(valid_fondant_schema):
     assert fondant_component.description == "This is an example component"
     assert fondant_component.consumes["images"].fields["data"].type == Type("binary")
     assert fondant_component.consumes["embeddings"].fields["data"].type == Type.list(
-        Type("float32")
+        Type("float32"),
     )
 
 
@@ -92,7 +92,7 @@ def test_component_spec_to_file(valid_fondant_schema):
         file_path = os.path.join(temp_dir, "component_spec.yaml")
         component_spec.to_file(file_path)
 
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             written_data = yaml.safe_load(f)
 
         # check if the written data is the same as the original data
@@ -107,7 +107,7 @@ def test_kubeflow_component_spec_to_file(valid_kubeflow_schema):
         file_path = os.path.join(temp_dir, "kubeflow_component_spec.yaml")
         kubeflow_component_spec.to_file(file_path)
 
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             written_data = yaml.safe_load(f)
 
         # check if the written data is the same as the original data

@@ -16,7 +16,7 @@ DATASETS_IMPORT_ERROR = """
 `{0}` requires the 🤗 Datasets library but it was not found in your environment.
 Please install fondant using the 'datasets' extra.
 Note that if you have a local folder named `datasets` or a local python file named
- `datasets.py` in your current working directory, python may try to import this instead of the 🤗 
+ `datasets.py` in your current working directory, python may try to import this instead of the 🤗
  Datasets library. You should rename this folder or that python file if that's the case.
   Please note that you may need to restart your runtime after installation.
 """
@@ -46,8 +46,8 @@ def is_package_available(package_name: str, import_error_msg: str) -> bool:
 
     if package_available:
         return package_available
-    else:
-        raise ModuleNotFoundError(import_error_msg.format(Path(sys.argv[0]).stem))
+
+    raise ModuleNotFoundError(import_error_msg.format(Path(sys.argv[0]).stem))
 
 
 def is_datasets_available():

@@ -13,17 +13,17 @@ component_spec_path = Path(__file__).parent / "example_data/components/1.yaml"
 NUMBER_OF_TEST_ROWS = 151
 
 
-@pytest.fixture
+@pytest.fixture()
 def manifest():
     return Manifest.from_file(manifest_path)
 
 
-@pytest.fixture
+@pytest.fixture()
 def component_spec():
     return ComponentSpec.from_file(component_spec_path)
 
 
-@pytest.fixture
+@pytest.fixture()
 def dataframe(manifest, component_spec):
     data_loader = DaskDataLoader(manifest=manifest, component_spec=component_spec)
     return data_loader.load_dataframe()
@@ -49,15 +49,15 @@ def test_load_subset(manifest, component_spec):
 def test_load_dataframe(manifest, component_spec):
     """Test merging of subsets in a dataframe based on a component_spec."""
     dl = DaskDataLoader(manifest=manifest, component_spec=component_spec)
-    df = dl.load_dataframe()
-    assert len(df) == NUMBER_OF_TEST_ROWS
-    assert list(df.columns) == [
+    dataframe = dl.load_dataframe()
+    assert len(dataframe) == NUMBER_OF_TEST_ROWS
+    assert list(dataframe.columns) == [
         "properties_Name",
         "properties_HP",
         "types_Type 1",
         "types_Type 2",
     ]
-    assert df.index.name == "id"
+    assert dataframe.index.name == "id"
 
 
 def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
@@ -69,9 +69,9 @@ def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
         # write out index to temp dir
         data_writer.write_dataframe(dataframe)
         # read written data and assert
-        df = dd.read_parquet(fn / "index")
-        assert len(df) == NUMBER_OF_TEST_ROWS
-        assert df.index.name == "id"
+        dataframe = dd.read_parquet(fn / "index")
+        assert len(dataframe) == NUMBER_OF_TEST_ROWS
+        assert dataframe.index.name == "id"
 
 
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
@@ -90,10 +90,10 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
         data_writer.write_dataframe(dataframe)
         # read written data and assert
         for subset, subset_columns in subset_columns_dict.items():
-            df = dd.read_parquet(fn / subset)
-            assert len(df) == NUMBER_OF_TEST_ROWS
-            assert list(df.columns) == subset_columns
-            assert df.index.name == "id"
+            dataframe = dd.read_parquet(fn / subset)
+            assert len(dataframe) == NUMBER_OF_TEST_ROWS
+            assert list(dataframe.columns) == subset_columns
+            assert dataframe.index.name == "id"
 
 
 def test_write_reset_index(tmp_path_factory, dataframe, manifest, component_spec):
@@ -108,13 +108,17 @@ def test_write_reset_index(tmp_path_factory, dataframe, manifest, component_spec
         data_writer.write_dataframe(dataframe)
 
         for subset in ["properties", "types", "index"]:
-            df = dd.read_parquet(fn / subset)
-            assert df.index.name == "id"
+            dataframe = dd.read_parquet(fn / subset)
+            assert dataframe.index.name == "id"
 
 
 @pytest.mark.parametrize("partitions", list(range(1, 5)))
 def test_write_divisions(
-    tmp_path_factory, dataframe, manifest, component_spec, partitions
+    tmp_path_factory,
+    dataframe,
+    manifest,
+    component_spec,
+    partitions,
 ):
     """Test writing out index and subsets and asserting they have the divisions of the dataframe."""
     # repartition the dataframe (default is 3 partitions)
@@ -127,9 +131,9 @@ def test_write_divisions(
         data_writer.write_dataframe(dataframe)
 
         for target in ["properties", "types", "index"]:
-            df = dd.read_parquet(fn / target)
-            assert df.index.name == "id"
-            assert df.npartitions == partitions
+            dataframe = dd.read_parquet(fn / target)
+            assert dataframe.index.name == "id"
+            assert dataframe.npartitions == partitions
 
 
 def test_write_subsets_invalid(tmp_path_factory, dataframe, manifest, component_spec):
@@ -140,5 +144,9 @@ def test_write_subsets_invalid(tmp_path_factory, dataframe, manifest, component_
         # Drop one of the columns required in the output
         dataframe = dataframe.drop(["types_Type 2"], axis=1)
         data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
-        with pytest.raises(ValueError):
+        expected_error_msg = (
+            r"Field \['types_Type 2'\] not in index defined in output subset "
+            r"types but not found in dataframe"
+        )
+        with pytest.raises(ValueError, match=expected_error_msg):
             data_writer.write_dataframe(dataframe)

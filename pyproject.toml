@@ -71,7 +71,8 @@ requires = ["poetry-core>=1.2.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-select = ["D", "E", "F", "I", "PL", "RUF"]
+select = ["C4", "COM", "D", "E", "EM", "ERA", "F", "I", "NPY", "PD", "PIE", "PL", "PT", "RET",
+    "RSE", "RUF", "SIM", "TCH", "TID", "UP", "W"]
 ignore = [
     "D100",  # Missing docstring in public module
     "D101",  # Missing docstring in public class

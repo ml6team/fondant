@@ -69,9 +69,7 @@ def get_comments(source: str) -> str:
     for toknum, tokval, _, _, _ in g:
         if toknum == tokenize.COMMENT:
             comments.append((toknum, tokval))
-    result = tokenize.untokenize(comments).replace("#", "")
-
-    return result
+    return tokenize.untokenize(comments).replace("#", "")
 
 
 def get_docstrings(source: str) -> t.List[str]:
@@ -88,13 +86,13 @@ def get_docstrings(source: str) -> t.List[str]:
         source = source.read()
 
     docstrings = sorted(
-        parse_docstrings(source), key=lambda x: (NODE_TYPES.get(type(x[0])), x[1])
+        parse_docstrings(source), key=lambda x: (NODE_TYPES.get(type(x[0])), x[1]),
     )
 
     grouped = groupby(docstrings, key=lambda x: NODE_TYPES.get(type(x[0])))
     results = []
     for _, group in grouped:
-        for _, name, docstring in group:
+        for _, _name, docstring in group:
             if docstring:
                 results.append(docstring)
     return results
@@ -116,7 +114,7 @@ def get_text_python(source: str, extract_comments: bool = True) -> str:
     except Exception:
         docstrings = ""
         warnings.warn(
-            "code couldn't be parsed due to compilation failure, no docstring is extracted"
+            "code couldn't be parsed due to compilation failure, no docstring is extracted",
         )
 
     if extract_comments:
