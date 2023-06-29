@@ -70,7 +70,7 @@ generate the room of your dreams:
 Want to try out the resulting model yourself, head over to our 
 [Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
 
-### Fine-tuning Stable Diffusion (:construction:)
+### Fine-tuning Stable Diffusion
 
 Using our 
 [example pipeline to fine-tune Stable Diffusion](examples/pipelines/finetune_stable_diffusion) 
@@ -82,6 +82,11 @@ Eg. generating logos:
 | Stable Diffusion 1.5                                                                                     | Fine-tuned Stable Diffusion 1.5              |
 |----------------------------------------------------------------------------------------------------------|----------------------------------------------|
 | ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_stable_diffusion.jpg?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_finetuned.jpeg?raw=true) |
+
+### Training Starcoder
+
+Using our [example pipeline to train StarCoder](examples/pipelines/starcoder) provides a starting 
+point to create datasets for training code assistants.
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
