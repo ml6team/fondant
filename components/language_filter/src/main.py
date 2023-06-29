@@ -1,4 +1,4 @@
-"""A component that filter a provided dataframe based on the language."""
+"""A component that filters text based on the language."""
 import logging
 
 import fasttext
