@@ -60,6 +60,7 @@ cluster_image_embeddings_op = ComponentOp.from_registry(
     name="cluster_image_embeddings",
     component_spec_path="components/cluster_image_embeddings/fondant_component.yaml",
     arguments={
+        "sample_ratio": 0.3,
         "num_clusters": 10,
     },
 )
