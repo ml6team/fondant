@@ -1,6 +1,6 @@
-name: Language filter
-description: A component that filter a provided dataframe based on the language.
-image: ghcr.io/ml6team/language_filter:latest
+name: Filter languages
+description: A component that filters text based on the language.
+image: ghcr.io/ml6team/filter_language:latest
 
 consumes:
   text:
