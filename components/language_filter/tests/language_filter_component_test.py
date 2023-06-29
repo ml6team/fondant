@@ -20,7 +20,7 @@ def test_run_component_test():
     component = LanguageFilterComponent(spec, input_manifest_path="./dummy_input_manifest.json",
                                         output_manifest_path="./dummy_input_manifest.json",
                                         metadata={},
-                                        user_arguments={"language": "de"}
+                                        user_arguments={"language": "de"},
                                         )
     component.setup()
     dataframe = component.transform(dataframe=dataframe)
@@ -45,7 +45,7 @@ def test_run_component_test_filter_out_all():
     component = LanguageFilterComponent(spec, input_manifest_path="./dummy_input_manifest.json",
                                         output_manifest_path="./dummy_input_manifest.json",
                                         metadata={},
-                                        user_arguments={"language": "fr"}
+                                        user_arguments={"language": "fr"},
                                         )
     component.setup()
     dataframe = component.transform(dataframe=dataframe)
