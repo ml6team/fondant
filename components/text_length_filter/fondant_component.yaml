@@ -1,0 +1,14 @@
+name: Filter text length
+description: A component that filter out text passages which are to short
+image: ghcr.io/ml6team/filter_text_length:latest
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+
+args:
+  min_length:
+    description: Min length of the text passage
+    type: int
