@@ -4,22 +4,19 @@ import logging
 
 import pandas as pd
 import numpy as np
-from sklearn.cluster import MiniBatchKMeans
+from sklearn.cluster import KMeans
 
-from fondant.component import PandasTransformComponent
+from fondant.component import DaskTransformComponent
 
 logger = logging.getLogger(__name__)
 
 
-class ClusterImageEmbeddingsComponent(PandasTransformComponent):
+class ClusterImageEmbeddingsComponent(DaskTransformComponent):
     """Component that clusters images based on embeddings."""
 
-    def setup(self, *, num_clusters: int) -> None:
-        self.kmeans = MiniBatchKMeans(
-            n_clusters=num_clusters, random_state=0, batch_size=6, n_init="auto"
-        )
-
-    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+    def transform(
+        self, dataframe: pd.DataFrame, num_points: int, num_clusters: int
+    ) -> pd.DataFrame:
         """
         Args:
             dataframe: Pandas dataframe
@@ -27,11 +24,13 @@ class ClusterImageEmbeddingsComponent(PandasTransformComponent):
         Returns:
             Pandas dataframe
         """
-        embeddings = dataframe["image"]["embedding"]
+        embeddings = dataframe["image"]["embedding"].sample(
+            n=num_points, random_state=1
+        )
         embeddings = np.vstack(list(embeddings))
 
-        # run minibatch k-means
-        kmeans = self.kmeans.partial_fit(embeddings)
+        kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto")
+        kmeans = kmeans.fit(embeddings)
 
         cluster_labels = kmeans.predict(embeddings)
 
