@@ -11,9 +11,9 @@ consumes:
 produces:
   images:
     fields:
+      data:
+        type: binary
       width:
         type: int16
       height:
         type: int16
-      data:
-        type: binary

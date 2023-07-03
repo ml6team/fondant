@@ -9,7 +9,7 @@ We suggest that you use a [virtual environment](https://docs.python.org/3/librar
 Fondant can be installed using pip:
 
 ```bash
-pip install fondant
+pip install fondant[pipelines]
 ```
 
 You can validate the installation of fondant by running its root CLI command:
@@ -26,7 +26,7 @@ from fondant.pipeline import Pipeline, ComponentOp
 
 my_pipeline = Pipeline(
     pipeline_name='my_pipeline',
-    base_path='/home/username/my_pipeline',
+    base_path='/home/username/my_pipeline', <--- Make sure to update this
     pipeline_description='This is my pipeline',
 )
 ```
@@ -173,12 +173,12 @@ consumes:
 produces:
   images:
     fields:
+      data:
+        type: binary
       width:
         type: int16
       height:
         type: int16
-      data:
-        type: binary
 ```
 In our case this component will consume the data field of the images subset and produce the width and height of the images as extra columns.
 
@@ -228,8 +228,8 @@ class ImageResolutionExtractionComponent(PandasTransformComponent):
         logger.info("Filtering dataset...")
 
         dataframe[[("images", "width"), ("images", "height")]] = \
-            dataframe[[("images", "data")]].map(extract_dimensions)
-
+            dataframe[[("images", "data")]].apply(lambda x:extract_dimensions(x.iloc[0]), axis=1)
+        
         return dataframe
 
 
@@ -295,4 +295,16 @@ You will see that the components runs sequentially and that each has its own log
 
 Note that with custom components that the image will be built as part of running the pipeline by leveraging a `build` spec in the docker-compose file. This means that you can change the code of your component and run the pipeline again without having to rebuild the image manually.
 
+
+We now have a simple pipeline that downloads a dataset from huggingface hub and extracts the width and height of the images. A possible next step is to create a component that [filters the data based on the aspect ratio](https://github.com/ml6team/fondant/tree/main/components/filter_image_resolution) ? Or run a [clip model on the images to get captions](https://github.com/ml6team/fondant/tree/main/components/image_embedding)?
+
 ## Explore the data
+
+
+Fondant includes a data explorer tools that lets you inspect the intermediate data of your pipeline. You can start the data explorer by running:
+
+```bash
+fondant explore --data-directory "path/to/your/data"
+```
+
+Note that if you use a remote path (S3, GCS) you can also pass credentials using the `--credentials` flag. For all the options of the data explorer run `fondant explore --help`.

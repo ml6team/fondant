@@ -39,8 +39,9 @@ class ImageResolutionExtractionComponent(PandasTransformComponent):
         """
         logger.info("Filtering dataset...")
 
-        dataframe[[("images", "width"), ("images", "height")]] = \
-            dataframe[[("images", "data")]].map(extract_dimensions)
+        dataframe[[("images", "width"), ("images", "height")]] = dataframe[
+            [("images", "data")]
+        ].apply(lambda x: extract_dimensions(x.iloc[0]), axis=1)
 
         return dataframe
 
