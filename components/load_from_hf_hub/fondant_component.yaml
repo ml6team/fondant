@@ -1,6 +1,6 @@
 name: Load from hub
 description: Component that loads a dataset from the hub
-image: ghcr.io/ml6team/load_from_hf_hub:latest
+image: ghcr.io/ml6team/load_from_hf_hub:dev
 
 produces:
   dummy_variable:  #TODO: fill in here
