@@ -22,7 +22,7 @@ def test_run_component_test():
                                         metadata={},
                                         user_arguments={"language": "de"},
                                         )
-    component.setup()
+    component.setup(language="de")
     dataframe = component.transform(dataframe=dataframe)
 
     # Then: dataframe only contains one german row

@@ -5,9 +5,7 @@ import fasttext
 import pandas as pd
 
 from fondant.component import PandasTransformComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -48,7 +46,11 @@ class LanguageFilterComponent(PandasTransformComponent):
     """Component that filter columns based on provided language."""
 
     def setup(self, *, language):
-        """Setup language filter component."""
+        """Setup language filter component.
+
+        Args:
+            language: Only keep text passages which are in the provided language.
+        """
         self.lang_detector = LanguageIdentification(language)
 
 
@@ -56,13 +58,11 @@ class LanguageFilterComponent(PandasTransformComponent):
         """
         Args:
             dataframe: Pandas dataframe.
-            language: Only keep text passages which are in the provided language.
 
         Returns:
             Pandas dataframe
         """
-        mask = dataframe.apply(
-            lambda row: self.lang_detector.is_language(row), axis=1)
+        mask = dataframe.apply(self.lang_detector.is_language, axis=1)
 
         return dataframe[mask]
 
