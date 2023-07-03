@@ -85,6 +85,11 @@ Eg. generating logos:
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
+## 💨 Getting Started
+
+Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting-started) to get your first pipeline up and running.
+
+
 ## 🧩 Reusable components
 
 Fondant comes with a library of reusable components, which can jumpstart your pipeline.
