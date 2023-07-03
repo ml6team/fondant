@@ -21,6 +21,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
             num_images: int,
             aesthetic_score: int,
             aesthetic_weight: float,
+            url: str,
     ) -> None:
         """
 
@@ -30,10 +31,11 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                 between 0 and 9.
             aesthetic_weight: weight of the aesthetic embedding to add to the query,
                 between 0 and 1.
+            url: The url of the backend clip retrieval service, defaults to the public clip url.
         """
         self.client = ClipClient(
-            url="https://knn.laion.ai/knn-service",
-            indice_name="laion5B-L-14",
+            url=url,
+            indice_name="laion5B",  #TODO:revert back to laion5b-L-14 after backend correction
             num_images=num_images,
             aesthetic_score=aesthetic_score,
             aesthetic_weight=aesthetic_weight,
