@@ -20,7 +20,12 @@ generate_prompts_op = ComponentOp(
 )
 laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
-    arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
+    arguments={
+        "num_images": 2,
+        "aesthetic_score": 9,
+        "aesthetic_weight": 0.5,
+        "url": None,
+    },
 )
 download_images_op = ComponentOp.from_registry(
     name="download_images",
@@ -63,8 +68,6 @@ write_to_hub_controlnet = ComponentOp.from_registry(
         "hf_token": "hf_token",
         "image_column_names": ["images_data"],
     },
-    number_of_gpus=1,
-    node_pool_name="model-inference-pool",
 )
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
