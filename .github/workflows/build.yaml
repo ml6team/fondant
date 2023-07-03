@@ -3,7 +3,7 @@ name: Build dev images
 on:
   push:
     branches:
-      - "feature/main-build"
+      - main
 
 jobs:
   docker:
