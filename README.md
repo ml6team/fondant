@@ -48,6 +48,10 @@ And create high quality datasets to fine-tune your own foundation models.
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
+## 💨 Getting Started
+
+Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting-started) to get your first pipeline up and running.
+
 ## 🪄 Example pipelines
 
 Curious to see what Fondant can do? Have a look at our example pipelines:
@@ -84,10 +88,6 @@ Eg. generating logos:
 | ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_stable_diffusion.jpg?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_finetuned.jpeg?raw=true) |
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
-
-## 💨 Getting Started
-
-Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting-started) to get your first pipeline up and running.
 
 
 ## 🧩 Reusable components

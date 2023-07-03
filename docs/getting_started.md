@@ -26,7 +26,7 @@ from fondant.pipeline import Pipeline, ComponentOp
 
 my_pipeline = Pipeline(
     pipeline_name='my_pipeline',
-    base_path='/home/username/my_pipeline', <--- Make sure to update this
+    base_path='/home/username/my_pipeline',  # TODO: update this
     pipeline_description='This is my pipeline',
 )
 ```
@@ -41,9 +41,9 @@ This is all you need to initialize a fondant pipeline:
 
 Now that we have a pipeline, we can add components to it. Components are the building blocks of your pipeline. They are the individual steps that will be executed in your pipeline. There are 2 main types of components:
 
-- reusable components: These are components that are already created by the community and can be easily used in your pipeline. You can find a list of reusable components [here](https://github.com/ml6team/fondant/tree/main/components). They often have arguments that you can set to configure them for your use case.
+- **reusable components**: These are components that are already created by the community and can be easily used in your pipeline. You can find a list of reusable components [here](https://github.com/ml6team/fondant/tree/main/components). They often have arguments that you can set to configure them for your use case.
 
-- custom components: These are the components you create to solve your use case. A custom component can be easily created by adding a `fondant_component.yaml`, `dockerfile` and `main.py` file to your component subdirectory. The `fondant_component.yaml` file contains the specification of your component. You can find more information about it [here](https://github.com/ml6team/fondant/blob/main/docs/component_spec.md)
+- **custom components**: These are the components you create to solve your use case. A custom component can be easily created by adding a `fondant_component.yaml`, `dockerfile` and `main.py` file to your component subdirectory. The `fondant_component.yaml` file contains the specification of your component. You can find more information about it [here](https://github.com/ml6team/fondant/blob/main/docs/component_spec.md)
 
 Let's add a reusable component to our pipeline. We will use the `load_from_hf_hub` component to read data from huggingface. Add the following code to your `pipeline.py` file:
 
@@ -228,7 +228,7 @@ class ImageResolutionExtractionComponent(PandasTransformComponent):
         logger.info("Filtering dataset...")
 
         dataframe[[("images", "width"), ("images", "height")]] = \
-            dataframe[[("images", "data")]].apply(lambda x:extract_dimensions(x.iloc[0]), axis=1)
+            dataframe[[("images", "data")]].apply(lambda x:extract_dimensions(x.images.data), axis=1)
         
         return dataframe
 
