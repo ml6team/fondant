@@ -25,7 +25,3 @@ args:
   aesthetic_weight:
     description: Weight of the aesthetic embedding when added to the query, between 0 and 1
     type: float
-  url:
-    description: The url of the backend clip retrieval service, defaults to the public service
-    type: str
-    default: https://knn.laion.ai/knn-service
