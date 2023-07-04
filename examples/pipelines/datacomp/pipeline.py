@@ -43,19 +43,19 @@ load_from_hub_op = ComponentOp.from_registry(
         "n_rows_to_load": 100,
     },
 )
-# filter_image_resolution_op = ComponentOp(
-#     "components/filter_image_resolution/fondant_component.yaml",
-#     arguments={"min_image_dim": 200, "max_aspect_ratio": 3},
-# )
-# filter_complexity_op = ComponentOp(
-#     component_spec_path="components/filter_text_complexity/fondant_component.yaml",
-#     arguments={
-#         "spacy_pipeline": "en_core_web_sm",
-#         "batch_size": 1000,
-#         "min_complexity": 1,
-#         "min_num_actions": 1,
-#     },
-# )
+filter_image_resolution_op = ComponentOp(
+    "components/filter_image_resolution/fondant_component.yaml",
+    arguments={"min_image_dim": 200, "max_aspect_ratio": 3},
+)
+filter_complexity_op = ComponentOp(
+    component_spec_path="components/filter_text_complexity/fondant_component.yaml",
+    arguments={
+        "spacy_pipeline": "en_core_web_sm",
+        "batch_size": 1000,
+        "min_complexity": 1,
+        "min_num_actions": 1,
+    },
+)
 cluster_image_embeddings_op = ComponentOp.from_registry(
     name="cluster_image_embeddings",
     component_spec_path="components/cluster_image_embeddings/fondant_component.yaml",
@@ -67,8 +67,8 @@ cluster_image_embeddings_op = ComponentOp.from_registry(
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-# pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
-# pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
+pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
+pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
 pipeline.add_op(cluster_image_embeddings_op, dependencies=load_from_hub_op)
 # TODO add more ops
 
