@@ -1,0 +1,48 @@
+name: Build Python 🐍 distributions 📦 and publish to TestPyPI
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+jobs:
+  build-n-publish:
+    name: Build Python 🐍 distributions 📦 and publish to TestPyPI
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      packages: write
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build components
+        run: ./scripts/build_components.sh -t $GITHUB_REF_NAME
+
+      - name: Build data explorer
+        run: ./scripts/build_explorer.sh -t $GITHUB_REF_NAME
+
+      - name: Update version in pyproject.toml with tag version
+        run: sed -i "s/^version = .*/version = '${{github.ref_name}}'/" pyproject.toml
+
+      - name: Build a binary wheel and a source tarball
+        run: |
+          pip install poetry
+          ./scripts/pre-build.sh
+          poetry build
+
+      - name: Publish distribution 📦 to Test PyPI
+        uses: pypa/gh-action-pypi-publish@v1.8.6
+        with:
+          name: testpypi
+          repository_url: https://test.pypi.org/legacy/
+          url: https://test.pypi.org/p/fondant
