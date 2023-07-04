@@ -3,7 +3,7 @@
 function usage {
   echo "Usage: $0 [options]"
   echo "Options:"
-  echo "  -c, --component <value>  Set the component name. Pass the component folder name to build a certain components or 'all' to build all components in the current directory (required)"
+  echo "  -co, --component <value>  Set the component name. Pass the component folder name to build a certain components or 'all' to build all components in the current directory (required)"
   echo "  -n, --namespace <value>  Set the namespace (default: ml6team)"
   echo "  -r, --repo <value>       Set the repo (default: fondant)"
   echo "  -t, --tag <value>        Set the tag (default: latest)"
@@ -15,7 +15,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   -n|--namespace) namespace="$2"; shift;;
   -r|--repo) repo="$2"; shift;;
   -t|--tag) tag="$2"; shift;;
-  -c|--component) component="$2"; shift;;
+  -co|--component) component="$2"; shift;;
   -h|--help) usage; exit;;
   *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
