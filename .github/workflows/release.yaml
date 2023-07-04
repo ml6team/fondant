@@ -1,26 +1,16 @@
-name: Publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+name: Publish Python 🐍 distributions 📦 to PyPI
 on:
-  push:
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+*'
   release:
     types:
       - published
 jobs:
   build-n-publish:
-    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+    name: Publish Python 🐍 distributions 📦 to PyPI
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       packages: write
     steps:
-    - uses: actions/checkout@master
-
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.9
-
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v2
       with:
@@ -28,41 +18,18 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build components
-      if: github.event_name == 'push'
-      run: ./scripts/build_components.sh -t $GITHUB_REF_NAME
-
     - name: Tag components
-      if: github.event_name == 'release'
       run: ./scripts/tag_components.sh -o $GITHUB_REF_NAME -n latest
     
-    - name: Build data explorer
-      if: github.event_name == 'push'
-      run: ./scripts/build_explorer.sh -t $GITHUB_REF_NAME
-
     - name: Tag data explorer
-      if: github.event_name == 'release'
       run: ./scripts/tag_explorer.sh -o $GITHUB_REF_NAME -n latest
 
-    - name: Update version in pyproject.toml with tag version
-      run: sed -i "s/^version = .*/version = '${{github.ref_name}}'/" pyproject.toml
-
-    - name: Build a binary wheel and a source tarball
+    - name: Download distributions from test.PyPI
       run: |
-        pip install poetry
-        ./scripts/pre-build.sh
-        poetry build
-
-    - name: Publish distribution 📦 to Test PyPI
-      if: github.event_name == 'push'
-      uses: pypa/gh-action-pypi-publish@v1.8.6
-      with:
-        name: testpypi
-        repository_url: https://test.pypi.org/legacy/
-        url: https://test.pypi.org/p/fondant
+        curl -LO https://test.pypi.org/fondant/fondant-$GITHUB_REF_NAME.tar.gz --output-dir dist --create-dirs
+        curl -LO https://test.pypi.org/fondant/fondant-$GITHUB_REF_NAME-py3-none-any.whl --output-dir dist --create-dirs
 
     - name: Publish distribution 📦 to PyPI if triggered by release
-      if: github.event_name == 'release'
       uses: pypa/gh-action-pypi-publish@v1.8.6
       with:
         name: pypi
