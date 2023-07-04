@@ -43,8 +43,8 @@ load_from_hub_op = ComponentOp.from_registry(
         "n_rows_to_load": 100,
     },
 )
-filter_image_resolution_op = ComponentOp(
-    "components/filter_image_resolution/fondant_component.yaml",
+filter_image_resolution_op = ComponentOp.from_registry(
+    name="filter_image_resolution",
     arguments={"min_image_dim": 200, "max_aspect_ratio": 3},
 )
 filter_complexity_op = ComponentOp(
@@ -61,7 +61,7 @@ cluster_image_embeddings_op = ComponentOp.from_registry(
     component_spec_path="components/cluster_image_embeddings/fondant_component.yaml",
     arguments={
         "sample_ratio": 0.3,
-        "num_clusters": 10,
+        "num_clusters": 3,
     },
 )
 

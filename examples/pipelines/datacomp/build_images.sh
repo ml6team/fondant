@@ -49,7 +49,8 @@ for dir in $component_dir/*/; do
      --build-arg GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) \
      --build-arg BUILD_TIMESTAMP=$(date '+%F_%H:%M:%S') \
      --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
-     --platform=linux/arm64 \
+     --platform=linux/amd64 \
+     --no-cache \
      .
     docker push "$full_image_name"
   fi
