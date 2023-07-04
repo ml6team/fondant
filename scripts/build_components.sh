@@ -40,6 +40,7 @@ for dir in "$component_dir"/*/; do
   BASENAME=${dir%/}
   BASENAME=${BASENAME##*/}
 
+  full_image_names=()
   echo "Tagging image with following tags:"
   for tag in "${tags[@]}"; do
     full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
