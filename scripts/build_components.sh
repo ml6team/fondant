@@ -63,8 +63,8 @@ for dir in "$component_dir"/*/; do
 
   # Add cache arguments if caching is enabled
   if [ "$caching" = true ] ; then
-    echo "Caching from/to ${cache_name}"
     cache_name=ghcr.io/${namespace}/${BASENAME}:build-cache
+    echo "Caching from/to ${cache_name}"
     args+=(--cache-to "type=registry,ref=${cache_name}")
     args+=(--cache-from "type=registry,ref=${cache_name}")
   fi
