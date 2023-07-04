@@ -40,6 +40,7 @@ for dir in "$component_dir"/*/; do
   BASENAME=${dir%/}
   BASENAME=${BASENAME##*/}
 
+  full_image_names=()
   echo "Tagging image with following tags:"
   for tag in "${tags[@]}"; do
     full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
@@ -62,8 +63,8 @@ for dir in "$component_dir"/*/; do
 
   # Add cache arguments if caching is enabled
   if [ "$caching" = true ] ; then
-    echo "Caching from/to ${cache_name}"
     cache_name=ghcr.io/${namespace}/${BASENAME}:build-cache
+    echo "Caching from/to ${cache_name}"
     args+=(--cache-to "type=registry,ref=${cache_name}")
     args+=(--cache-from "type=registry,ref=${cache_name}")
   fi

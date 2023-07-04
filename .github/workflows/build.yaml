@@ -3,7 +3,7 @@ name: Build dev images
 on:
   push:
     branches:
-      - main
+      - "bugfix/build-dev"
 
 jobs:
   docker:
