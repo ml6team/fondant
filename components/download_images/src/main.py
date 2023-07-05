@@ -10,10 +10,10 @@ import logging
 import traceback
 import urllib
 
-import pandas as pd
+import dask.dataframe as dd
 from resizer import Resizer
 
-from fondant.component import PandasTransformComponent
+from fondant.component import DaskTransformComponent
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def is_disallowed(headers, user_agent_token, disallowed_header_directives):
                 else None
             )
             if (ua_token is None or ua_token == user_agent_token) and any(
-                x in disallowed_header_directives for x in directives
+                    x in disallowed_header_directives for x in directives
             ):
                 return True
         except Exception as err:
@@ -53,9 +53,9 @@ def download_image(url, timeout, user_agent_token, disallowed_header_directives)
         )
         with urllib.request.urlopen(request, timeout=timeout) as r:
             if disallowed_header_directives and is_disallowed(
-                r.headers,
-                user_agent_token,
-                disallowed_header_directives,
+                    r.headers,
+                    user_agent_token,
+                    disallowed_header_directives,
             ):
                 return None
             img_stream = io.BytesIO(r.read())
@@ -67,13 +67,13 @@ def download_image(url, timeout, user_agent_token, disallowed_header_directives)
 
 
 def download_image_with_retry(
-    url,
-    *,
-    timeout,
-    retries,
-    resizer,
-    user_agent_token=None,
-    disallowed_header_directives=None,
+        url,
+        *,
+        timeout,
+        retries,
+        resizer,
+        user_agent_token=None,
+        disallowed_header_directives=None,
 ):
     for _ in range(retries + 1):
         img_stream = download_image(
@@ -81,50 +81,70 @@ def download_image_with_retry(
         )
         if img_stream is not None:
             # resize the image
-            return resizer(img_stream)
+            img_str, width, height = resizer(img_stream)
+            return img_str, width, height
     return None, None, None
 
 
-class DownloadImagesComponent(PandasTransformComponent):
+class DownloadImagesComponent(DaskTransformComponent):
     """Component that downloads images based on URLs."""
 
-    def setup(
-        self,
-        *,
-        timeout: int = 10,
-        retries: int = 0,
-        image_size: int = 256,
-        resize_mode: str = "border",
-        resize_only_if_bigger: bool = False,
-        min_image_size: int = 0,
-        max_aspect_ratio: float = float("inf"),
-    ):
+    def transform(
+            self,
+            dataframe: dd.DataFrame,
+            *,
+            timeout: int,
+            retries: int,
+            image_size: int,
+            resize_mode: str,
+            resize_only_if_bigger: bool,
+            min_image_size: int,
+            max_aspect_ratio: float,
+    ) -> dd.DataFrame:
+        """Function that downloads images from a list of URLs and executes filtering and resizing
+        Args:
+            dataframe: Dask dataframe
+            timeout: Maximum time (in seconds) to wait when trying to download an image.
+            retries: Number of times to retry downloading an image if it fails.
+            image_size: Size of the images after resizing.
+            resize_mode: Resize mode to use. One of "no", "keep_ratio", "center_crop", "border".
+            resize_only_if_bigger: If True, resize only if image is bigger than image_size.
+            min_image_size: Minimum size of the images.
+            max_aspect_ratio: Maximum aspect ratio of the images.
+
+        Returns:
+            Dask dataframe
+        """
         logger.info("Instantiating resizer...")
-        self.resizer = Resizer(
+        resizer = Resizer(
             image_size=image_size,
             resize_mode=resize_mode,
             resize_only_if_bigger=resize_only_if_bigger,
             min_image_size=min_image_size,
             max_aspect_ratio=max_aspect_ratio,
         )
-        self.timeout = timeout
-        self.retries = retries
 
-    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        dataframe[[
-            ("images", "data"),
-            ("images", "width"),
-            ("images", "height"),
-        ]] = dataframe.apply(
+        dataframe = dataframe.drop_duplicates()
+
+        dataframe = dataframe.apply(
             lambda example: download_image_with_retry(
-                url=example["images"]["url"],
-                timeout=self.timeout,
-                retries=self.retries,
-                resizer=self.resizer,
+                url=example.images_url,
+                timeout=timeout,
+                retries=retries,
+                resizer=resizer,
             ),
             axis=1,
             result_type="expand",
+            meta={0: bytes, 1: int, 2: int},
         )
+        dataframe.columns = [
+            "images_data",
+            "images_width",
+            "images_height",
+        ]
+
+        dataframe = dataframe.dropna()
+        dataframe = dataframe.repartition(partition_size='10MB')
 
         return dataframe
 
