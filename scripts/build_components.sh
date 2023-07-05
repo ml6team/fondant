@@ -4,20 +4,27 @@ set -e
 function usage {
   echo "Usage: $0 [options]"
   echo "Options:"
-  echo "  -t, --tag=<value>        Tag to add to image, repeatable
-                                   The first tag is set in the component specifications"
-  echo "  -c, --cache <value>      Use registry caching when building the components (default:true)"
-  echo "  -co, --component <value>  Set the component name. Pass the component folder name to build
-  a certain components or 'all' to build all components in the components directory (default: all)"
-  echo "  -h, --help               Display this help message"
+  echo "  -t,  --tag=<value>                 Tag to add to image, repeatable
+                                             The first tag is set in the component specifications"
+  echo "  -c,  --cache <value>               Use registry caching when building the components (default:false)"
+  echo "  -d,  --component-dirs <value>      Directory where the component is built from the root directory (default:components)"
+  echo "  -n, --namespace <value>            Set the namespace (default: ml6team)"
+  echo "  -co, --component <value>           Set the component name. Pass the component folder name to build
+                                             a certain components or 'all' to build all components in the components
+                                             directory (default: all)"
+  echo "  -r,  --repo <value>                Set the repo (default: fondant)"
+  echo "  -h,  --help                        Display this help message"
 }
 
 # Parse the arguments
 while [[ "$#" -gt 0 ]]; do case $1 in
-  -t|--tag) tags+=("$2"); shift;;
+  -n |--namespace) namespace="$2"; shift;;
+  -d |--components-dir ) components_dir="$2"; shift;;
+  -r |--repo) repo="$2"; shift;;
+  -t |--tag) tags+=("$2"); shift;;
   -co|--component) component="$2"; shift;;
-  -c|--cache) caching=true;;
-  -h|--help) usage; exit;;
+  -c |--cache) caching=true;;
+  -h |--help) usage; exit;;
   *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
@@ -29,27 +36,24 @@ if [ -z "${tags}" ]; then
 fi
 
 # Set default values for optional arguments if not passed
-if [ -z "${component-}" ]; then
-    component="all"
-fi
+component="${component:-all}"
+components_dir="${components_dir:-components}"
+namespace="${namespace:-ml6team}"
+repo="${repo:-fondant}"
 
-# Set github repo information
-namespace="ml6team"
-repo="fondant"
 
 # Get the component directory
 scripts_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 root_dir=$(dirname "$scripts_dir")
-component_dir=$root_dir/"components"
+components_dir=$root_dir/${components_dir}
 
 # Loop through all subdirectories
-for dir in "$component_dir"/*/; do
+for dir in "$components_dir"/*/; do
   pushd "$dir"
 
   BASENAME=${dir%/}
   BASENAME=${BASENAME##*/}
   if [[ "$BASENAME" == "${component}" ]] || [[ "${component}" == "all" ]]; then
-    full_image_names=()
     echo "Tagging image with following tags:"
     for tag in "${tags[@]}"; do
       full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
@@ -72,8 +76,8 @@ for dir in "$component_dir"/*/; do
 
     # Add cache arguments if caching is enabled
     if [ "$caching" = true ] ; then
-      cache_name=ghcr.io/${namespace}/${BASENAME}:build-cache
       echo "Caching from/to ${cache_name}"
+      cache_name=ghcr.io/${namespace}/${BASENAME}:build-cache
       args+=(--cache-to "type=registry,ref=${cache_name}")
       args+=(--cache-from "type=registry,ref=${cache_name}")
     fi

@@ -13,10 +13,10 @@ function usage {
 
 # Parse the arguments
 while [[ "$#" -gt 0 ]]; do case $1 in
-  -o|--old-tag) old_tag="$2"; shift;;
-  -n|--new-tag) new_tag="$2"; shift;;
+  -o |--old-tag) old_tag="$2"; shift;;
+  -n |--new-tag) new_tag="$2"; shift;;
   -co|--component) component="$2"; shift;;
-  -h|--help) usage; exit;;
+  -h |--help) usage; exit;;
   *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
