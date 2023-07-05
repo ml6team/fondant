@@ -1,3 +1,2 @@
 boto3==1.26.158
 fondant
-pyarrow>=7.0
