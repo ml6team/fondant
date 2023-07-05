@@ -43,9 +43,8 @@ for dir in "$component_dir"/*/; do
   echo "$old_image_name"
   echo "$new_image_name"
 
-  docker pull "$old_image_name"
-  docker tag "$old_image_name" "$new_image_name"
-  docker push "$new_image_name"
+  # apply new tag
+  docker buildx imagetools create "$old_image_name" --tag "$new_image_name"
 
   popd
 done
