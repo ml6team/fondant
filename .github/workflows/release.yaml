@@ -40,8 +40,8 @@ jobs:
     - name: Download distributions from test.PyPI
       run: |
         pip install --upgrade pip
-        pip download fondant==$GITHUB_REF_NAME -d dist --index_url https://test.pypi.org/simple/ --no-deps --only-binary fondant
-        pip download fondant==$GITHUB_REF_NAME -d dist --index_url https://test.pypi.org/simple/ --no-deps --no-binary fondant
+        pip download fondant==$GITHUB_REF_NAME -d dist --index-url https://test.pypi.org/simple/ --no-deps --only-binary fondant
+        pip download fondant==$GITHUB_REF_NAME -d dist --index-url https://test.pypi.org/simple/ --no-deps --no-binary fondant
 
     - name: Publish distribution 📦 to PyPI if triggered by release
       uses: pypa/gh-action-pypi-publish@v1.8.6
