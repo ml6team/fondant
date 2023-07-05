@@ -4,13 +4,14 @@ set -e
 function usage {
   echo "Usage: $0 [options]"
   echo "Options:"
-  echo "  -t,  --tag=<value>                 Tag to add to image, repeatable
+  echo "  -t,  --tag <value>                 Tag to add to image, repeatable
                                              The first tag is set in the component specifications"
   echo "  -c,  --cache <value>               Use registry caching when building the components (default:false)"
-  echo "  -d,  --component-dirs <value>      Directory where the component is built from the root directory (default:components)"
-  echo "  -n, --namespace <value>            Set the namespace (default: ml6team)"
-  echo "  -co, --component <value>           Set the component name. Pass the component folder name to build
-                                             a certain components or 'all' to build all components in the components
+  echo "  -d,  --component-dirs <value>      Directory containing components to build as subdirectories.
+                                             The path should be relative to the root directory (default:components)"
+  echo "  -n, --namespace <value>            The namespace for the built images, should match the github organization (default: ml6team)"
+  echo "  -co, --component <value>           Specific component to build. Pass the component subdirectory name(s) to build
+                                             certain component(s) or 'all' to build all components in the components
                                              directory (default: all)"
   echo "  -r,  --repo <value>                Set the repo (default: fondant)"
   echo "  -h,  --help                        Display this help message"
@@ -29,7 +30,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 esac; shift; done
 
 # Check for required argument
-if [ -z "${tags}" ]; then
+if [ ${#tags[@]} -eq 0 ]; then
   echo "Error: tag parameter is required"
   usage
   exit 1
