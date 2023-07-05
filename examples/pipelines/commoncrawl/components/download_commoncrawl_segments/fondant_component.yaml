@@ -1,0 +1,23 @@
+name: Download commoncrawl segment files
+description: Component that downloads commoncrawl segment files based on WARC paths
+image: ghcr.io/ml6team/download_commoncrawl_segments:latest
+
+consumes:
+  segment:
+    fields:
+      path:
+        type: string
+
+produces:
+  webpage:
+    fields:
+      url:
+        type: string
+      html:
+        type: binary
+
+args:
+  n_records_to_download:
+    description: Number of records to download from the commoncrawl segment file. Useful for small-scale testing.
+    type: int
+    default: None
