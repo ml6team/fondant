@@ -50,7 +50,7 @@ And create high quality datasets to fine-tune your own foundation models.
 
 ## 💨 Getting Started
 
-Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting-started) to get your first pipeline up and running.
+Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting_started) to get your first pipeline up and running.
 
 ## 🪄 Example pipelines
 
