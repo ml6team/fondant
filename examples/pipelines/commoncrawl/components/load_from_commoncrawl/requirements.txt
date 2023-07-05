@@ -1,2 +1,2 @@
 boto3==1.26.158
-fondant
+git+https://github.com/ml6team/fondant@main
