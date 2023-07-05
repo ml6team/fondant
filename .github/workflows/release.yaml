@@ -13,6 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
@@ -34,8 +39,9 @@ jobs:
 
     - name: Download distributions from test.PyPI
       run: |
-        curl -LO https://test.pypi.org/fondant/fondant-$GITHUB_REF_NAME.tar.gz --output-dir dist --create-dirs
-        curl -LO https://test.pypi.org/fondant/fondant-$GITHUB_REF_NAME-py3-none-any.whl --output-dir dist --create-dirs
+        pip install --upgrade pip
+        pip download fondant==$GITHUB_REF_NAME -d dist --index_url https://test.pypi.org/simple/ --no-deps --only-binary fondant
+        pip download fondant==$GITHUB_REF_NAME -d dist --index_url https://test.pypi.org/simple/ --no-deps --no-binary fondant
 
     - name: Publish distribution 📦 to PyPI if triggered by release
       uses: pypa/gh-action-pypi-publish@v1.8.6
