@@ -23,7 +23,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   -d |--components-dir ) components_dir="$2"; shift;;
   -r |--repo) repo="$2"; shift;;
   -t |--tag) tags+=("$2"); shift;;
-  -co|--component) component="$2"; shift;;
+  -co|--component) components+=("$2"); shift;;
   -c |--cache) caching=true;;
   -h |--help) usage; exit;;
   *) echo "Unknown parameter passed: $1"; exit 1;;
@@ -37,58 +37,68 @@ if [ ${#tags[@]} -eq 0 ]; then
 fi
 
 # Set default values for optional arguments if not passed
-component="${component:-all}"
+component="${components:-all}"
 components_dir="${components_dir:-components}"
 namespace="${namespace:-ml6team}"
 repo="${repo:-fondant}"
-
 
 # Get the component directory
 scripts_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 root_dir=$(dirname "$scripts_dir")
 components_dir=$root_dir/${components_dir}
 
-# Loop through all subdirectories
-for dir in "$components_dir"/*/; do
-  pushd "$dir"
+# Determine the components to build
+if [[ "${component}" == "all" ]]; then
+  components_to_build=("$components_dir"/*/);
+else
+  for component in "${components[@]}"; do
+    components_to_build+=("$components_dir/${component}/")
+  done
+fi
 
+# Loop through all subdirectories
+for dir in "${components_to_build[@]}"; do
+  pushd "$dir"
   BASENAME=${dir%/}
   BASENAME=${BASENAME##*/}
-  if [[ "$BASENAME" == "${component}" ]] || [[ "${component}" == "all" ]]; then
-    echo "Tagging image with following tags:"
-    for tag in "${tags[@]}"; do
-      full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
-      echo "$full_image_name"
-      full_image_names+=("$full_image_name")
-    done
-    # Prevent this from mistakenly being used below
-    unset full_image_name
 
-    echo "Updating the image version in the fondant_component.yaml with:"
-    echo "${full_image_names[0]}"
-    sed -i "s|^image: .*|image: ${full_image_names[0]}|" fondant_component.yaml
+  full_image_names=()
+  echo "Tagging image with following tags:"
+  for tag in "${tags[@]}"; do
+    full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
+    echo "$full_image_name"
+    full_image_names+=("$full_image_name")
+  done
 
-    args=()
+  # Prevent this from mistakenly being used below
+  unset full_image_name
 
-    # Add argument for each tag
-    for tag in "${full_image_names[@]}" ; do
-      args+=(-t "$tag")
-    done
+  echo "Updating the image version in the fondant_component.yaml with:"
+  echo "${full_image_names[0]}"
+  sed -i "s|^image: .*|image: ${full_image_names[0]}|" fondant_component.yaml
 
-    # Add cache arguments if caching is enabled
-    if [ "$caching" = true ] ; then
-      echo "Caching from/to ${cache_name}"
-      cache_name=ghcr.io/${namespace}/${BASENAME}:build-cache
-      args+=(--cache-to "type=registry,ref=${cache_name}")
-      args+=(--cache-from "type=registry,ref=${cache_name}")
-    fi
+  args=()
 
-    echo "Freezing Fondant dependency version to ${tags[0]}"
-    docker build --push "${args[@]}" \
-     --build-arg="FONDANT_VERSION=${tags[0]}" \
-     --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
-     .
+  # Add argument for each tag
+  for tag in "${full_image_names[@]}" ; do
+    args+=(-t "$tag")
+  done
 
-    popd
+#  # Add cache arguments if caching is enabled
+  if [ "$caching" = true ] ; then
+
+    cache_name=ghcr.io/${namespace}/${BASENAME}:build-cache
+     echo "Caching from/to ${cache_name}"
+    args+=(--cache-to "type=registry,ref=${cache_name}")
+    args+=(--cache-from "type=registry,ref=${cache_name}")
   fi
+
+  echo "Freezing Fondant dependency version to ${tags[0]}"
+  docker build --push "${args[@]}" \
+   --build-arg="FONDANT_VERSION=${tags[0]}" \
+   --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
+   .
+
+   popd
+
 done
