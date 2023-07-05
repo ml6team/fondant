@@ -16,6 +16,7 @@ from fondant.component import (
     PandasTransformComponent,
     WriteComponent,
 )
+from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
@@ -213,6 +214,80 @@ def test_pandas_transform_component():
         component.run()
         setup.assert_called_once()
         assert transform.call_count == N_PARTITIONS
+
+
+def test_wrap_transform():
+    """
+    Test wrapped transform for:
+    - Converting between hierarchical and flat columns
+    - Trimming columns not specified in `produces`
+    - Ordering columns according to specification (so `map_partitions` does not fail).
+    """
+    spec = ComponentSpec(
+        {
+            "name": "Test component",
+            "description": "Component for testing",
+            "image": "component:test",
+            "consumes": {
+                "image": {
+                    "fields": {
+                        "height": {
+                            "type": "int16",
+                        },
+                        "width": {
+                            "type": "int16",
+                        },
+                    },
+                },
+                "caption": {
+                    "fields": {
+                        "text": {
+                            "type": "string",
+                        },
+                    },
+                },
+            },
+            "produces": {
+                "caption": {
+                    "fields": {
+                        "text": {
+                            "type": "string",
+                        },
+                    },
+                },
+                "image": {
+                    "fields": {
+                        "height": {
+                            "type": "int16",
+                        },
+                    },
+                },
+            },
+        },
+    )
+
+    input_df = pd.DataFrame.from_dict(
+        {
+            "image_height": [0, 1, 2],
+            "image_width": [3, 4, 5],
+            "caption_text": ["one", "two", "three"],
+        },
+    )
+
+    def transform(dataframe: pd.DataFrame) -> pd.DataFrame:
+        # Check hierarchical columns
+        assert dataframe.columns.tolist() == [
+            ("image", "height"),
+            ("image", "width"),
+            ("caption", "text"),
+        ]
+        return dataframe
+
+    wrapped_transform = PandasTransformComponent.wrap_transform(transform, spec=spec)
+    output_df = wrapped_transform(input_df)
+
+    # Check column flattening, trimming, and ordering
+    assert output_df.columns.tolist() == ["caption_text", "image_height"]
 
 
 @pytest.mark.usefixtures("_patched_data_loading")
