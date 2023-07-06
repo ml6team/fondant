@@ -268,7 +268,6 @@ And a `requirements.txt` file that specifies the python dependencies of our comp
 
 ```
 fondant==0.2.0
-pyarrow>=7.0
 imagesize==1.4.1
 ```
 

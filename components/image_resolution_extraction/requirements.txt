@@ -1,2 +1,1 @@
-pyarrow>=7.0
 imagesize==1.4.1
