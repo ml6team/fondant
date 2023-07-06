@@ -1,0 +1,18 @@
+name: Deduplicate image embeddings
+description: Component that deduplicates images based on embeddings
+image: ghcr.io/ml6team/dedup_image_embeddings:latest
+
+consumes:
+  image:
+    fields:
+      embedding:
+        type: array
+        items:
+          type: float32
+      cluster_label:
+        type: int16
+      
+args:
+  epsilon:
+    description: Epsilon to use as threshold for cosine similarity.
+    type: float

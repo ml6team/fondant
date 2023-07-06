@@ -62,12 +62,20 @@ cluster_image_embeddings_op = ComponentOp(
         "num_clusters": 3,
     },
 )
+dedup_image_embeddings_op = ComponentOp.from_registry(
+    name="dedup_image_embeddings",
+    component_spec_path="components/dedup_image_embeddings/fondant_component.yaml",
+    arguments={
+        "epsilon": 0.3,
+    },
+)
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
 pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
 pipeline.add_op(cluster_image_embeddings_op, dependencies=filter_complexity_op)
+pipeline.add_op(dedup_image_embeddings_op, dependencies=cluster_image_embeddings_op)
 # TODO add more ops
 
 # compile
