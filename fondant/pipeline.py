@@ -1,6 +1,7 @@
 """This module defines classes to represent a Fondant Pipeline."""
 import json
 import logging
+import re
 import typing as t
 from collections import OrderedDict
 from pathlib import Path
@@ -145,7 +146,7 @@ class Pipeline:
             pipeline_description: Optional description of the pipeline.
         """
         self.base_path = base_path
-        self.name = pipeline_name
+        self.name = self._validate_pipeline_name(pipeline_name)
         self.description = pipeline_description
         self.package_path = f"{pipeline_name}.tgz"
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
@@ -217,6 +218,14 @@ class Pipeline:
             depth_first_traversal(graph_node)
 
         self._graph = OrderedDict((node, self._graph[node]) for node in sorted_graph)
+
+    @staticmethod
+    def _validate_pipeline_name(pipeline_name: str) -> str:
+        pattern = r"^[a-z0-9][a-z0-9_-]*$"
+        if not re.match(pattern, pipeline_name):
+            msg = f"The pipeline name violates the pattern {pattern}"
+            raise InvalidPipelineDefinition(msg)
+        return pipeline_name
 
     def _validate_pipeline_definition(self, run_id: str):
         """
