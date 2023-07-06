@@ -266,6 +266,21 @@ class PandasTransformComponent(TransformComponent):
 
     @staticmethod
     def wrap_transform(transform: t.Callable, *, spec: ComponentSpec) -> t.Callable:
+        """Factory that creates a function to wrap the component transform function. The wrapper:
+        - Converts the columns to hierarchical format before passing the dataframe to the
+          transform function
+        - Removes extra columns from the returned dataframe which are not defined in the component
+          spec `produces` section
+        - Sorts the columns from the returned dataframe according to the order in the component
+          spec `produces` section to match the order in the `meta` argument passed to Dask's
+          `map_partitions`.
+        - Flattens the returned dataframe columns.
+
+        Args:
+            transform: Transform method to wrap
+            spec: Component specification to base behavior on
+        """
+
         def wrapped_transform(dataframe: pd.DataFrame) -> pd.DataFrame:
             # Switch to hierarchical columns
             dataframe.columns = pd.MultiIndex.from_tuples(
