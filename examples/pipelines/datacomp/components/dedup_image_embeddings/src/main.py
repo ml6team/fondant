@@ -45,7 +45,7 @@ class DedupImageEmbeddingsComponent(DaskTransformComponent):
             cluster_i_embeddings = dataframe[mask]["image_embedding"]
             cluster_embeddings = np.vstack(cluster_i_embeddings)
 
-            logger.info(f"Shape of cluster {i} embeddings:", cluster_embeddings.shape)
+            print(f"Shape of embeddings cluster {i}:", list(cluster_embeddings.shape))
 
             # get cluster centroid
             cluster_center = np.mean(cluster_embeddings, axis=0)

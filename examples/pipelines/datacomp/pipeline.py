@@ -39,7 +39,7 @@ load_from_hub_op = ComponentOp(
     arguments={
         "dataset_name": "nielsr/datacomp-small-with-embeddings",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 100,
+        "n_rows_to_load": 10000,
     },
 )
 filter_image_resolution_op = ComponentOp.from_registry(
@@ -58,8 +58,8 @@ filter_complexity_op = ComponentOp(
 cluster_image_embeddings_op = ComponentOp(
     component_dir="components/cluster_image_embeddings",
     arguments={
-        "sample_ratio": 0.3,
-        "num_clusters": 3,
+        "sample_ratio": 0.5,
+        "num_clusters": 100,
     },
 )
 dedup_image_embeddings_op = ComponentOp.from_registry(
