@@ -11,7 +11,8 @@ from pathlib import Path
 import jsonschema.exceptions
 import yaml
 from jsonschema import Draft4Validator
-from jsonschema.validators import RefResolver
+from referencing import Registry, Resource
+from referencing.jsonschema import DRAFT4
 
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Field, KubeflowCommandArguments, Type
@@ -116,9 +117,15 @@ class ComponentSpec:
         spec_str = spec_data.decode("utf-8")
         spec_schema = json.loads(spec_str)
 
-        base_uri = (Path(__file__).parent / "schemas").as_uri()
-        resolver = RefResolver(base_uri=f"{base_uri}/", referrer=spec_schema)
-        validator = Draft4Validator(spec_schema, resolver=resolver)
+        base_uri = Path(__file__).parent / "schemas"
+
+        def retrieve_from_filesystem(uri: str) -> Resource:
+            path = base_uri / uri
+            contents = json.loads(path.read_text())
+            return Resource.from_contents(contents, default_specification=DRAFT4)
+
+        registry = Registry(retrieve=retrieve_from_filesystem)
+        validator = Draft4Validator(spec_schema, registry=registry)  # type: ignore
 
         try:
             validator.validate(self._specification)
