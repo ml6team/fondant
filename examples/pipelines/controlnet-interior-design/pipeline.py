@@ -30,7 +30,7 @@ laion_retrieval_op = ComponentOp.from_registry(
 download_images_op = ComponentOp.from_registry(
     name="download_images",
     arguments={
-        "timeout": 10,
+        "timeout": 1,
         "retries": 0,
         "image_size": 512,
         "resize_mode": "center_crop",

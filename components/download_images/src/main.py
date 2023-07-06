@@ -124,6 +124,7 @@ class DownloadImagesComponent(DaskTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
+        # Remove duplicates from laion retrieval
         dataframe = dataframe.drop_duplicates()
 
         dataframe = dataframe.apply(
@@ -143,8 +144,8 @@ class DownloadImagesComponent(DaskTransformComponent):
             "images_height",
         ]
 
+        # Remove images that could not be fetched
         dataframe = dataframe.dropna()
-        dataframe = dataframe.repartition(partition_size='10MB')
 
         return dataframe
 
