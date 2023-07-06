@@ -7,9 +7,9 @@ produces:
     fields:
       url:
         type: string
-      original_width:
+      width:
         type: int16
-      original_height:
+      height:
         type: int16
       face_bboxes:
         type: array

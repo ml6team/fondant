@@ -8,9 +8,7 @@ import dask.dataframe as dd
 from utils.text_extraction import get_comments_to_code_ratio
 
 from fondant.component import DaskTransformComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -22,7 +20,7 @@ class FilterCommentsComponent(DaskTransformComponent):
         *,
         dataframe: dd.DataFrame,
         min_comments_ratio: float,
-        max_comments_ratio: float
+        max_comments_ratio: float,
     ) -> dd.DataFrame:
         """
         Args:
@@ -33,15 +31,13 @@ class FilterCommentsComponent(DaskTransformComponent):
             Filtered dask dataframe.
         """
         # Apply the function to the desired column and filter the DataFrame
-        filtered_df = dataframe[
+        return dataframe[
             dataframe["code_content"].map_partitions(
                 lambda example: example.map(get_comments_to_code_ratio).between(
-                    min_comments_ratio, max_comments_ratio
-                )
+                    min_comments_ratio, max_comments_ratio,
+                ),
             )
         ]
-
-        return filtered_df
 
 
 if __name__ == "__main__":

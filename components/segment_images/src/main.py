@@ -11,9 +11,7 @@ from PIL import Image
 from transformers import AutoModelForSemanticSegmentation, BatchFeature, SegformerImageProcessor
 
 from fondant.component import PandasTransformComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -28,7 +26,7 @@ def convert_to_rgb(seg: np.array):
         color_seg: 3D segmentation map contain RGB values for each pixel.
     """
     color_seg = np.zeros(
-        (seg.shape[0], seg.shape[1], 3), dtype=np.uint8
+        (seg.shape[0], seg.shape[1], 3), dtype=np.uint8,
     )  # height, width, 3
 
     for label, color in enumerate(palette):
@@ -69,7 +67,7 @@ def segment_image_batch(image_batch: pd.DataFrame, *, model: AutoModelForSemanti
     input_batch = torch.cat(image_batch.tolist())
     output_batch = model(input_batch)
     post_processed_batch = processor.post_process_semantic_segmentation(
-        output_batch
+        output_batch,
     )
     segmentations_batch = [convert_to_rgb(seg.cpu().numpy()) for seg in post_processed_batch]
     return pd.Series(segmentations_batch, index=image_batch.index)
@@ -96,7 +94,7 @@ class SegmentImagesComponent(PandasTransformComponent):
         images = dataframe["images"]["data"].apply(
             process_image,
             processor=self.processor,
-            device=self.device
+            device=self.device,
         )
 
         results: t.List[pd.Series] = []
@@ -107,7 +105,7 @@ class SegmentImagesComponent(PandasTransformComponent):
                         batch,
                         model=self.model,
                         processor=self.processor,
-                    ).T
+                    ).T,
                 )
 
         return pd.concat(results).to_frame(name=("segmentations", "data"))

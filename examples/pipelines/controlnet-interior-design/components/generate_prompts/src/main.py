@@ -9,9 +9,7 @@ import dask.dataframe as dd
 import pandas as pd
 
 from fondant.component import LoadComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 interior_styles = [

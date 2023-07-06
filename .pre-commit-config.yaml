@@ -12,7 +12,11 @@ repos:
                 fondant/.*|
                 tests/.*|
             )$
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [
+          "--target-version=py38",
+          "--fix",
+          "--exit-non-zero-on-fix",
+        ]
 
 
   - repo: https://github.com/PyCQA/bandit

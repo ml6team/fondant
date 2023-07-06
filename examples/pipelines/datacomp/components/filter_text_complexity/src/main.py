@@ -12,9 +12,7 @@ import spacy
 from spacy.symbols import nsubj, VERB
 
 from fondant.component import PandasTransformComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -70,11 +68,7 @@ class FilterTextComplexity(PandasTransformComponent):
         )
         mask = mask.to_numpy()
 
-        dataframe = dataframe[mask]
-
-        dataframe = dataframe.drop(("text", "data"), axis=1)
-
-        return dataframe
+        return dataframe[mask]
 
 
 if __name__ == "__main__":

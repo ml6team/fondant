@@ -5,9 +5,7 @@ import typing as t
 import dask.dataframe as dd
 
 from fondant.component import LoadComponent
-from fondant.logger import configure_logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -37,7 +35,7 @@ class LoadFromHubComponent(LoadComponent):
         if image_column_names is not None:
             for image_column_name in image_column_names:
                 dask_df[image_column_name] = dask_df[image_column_name].map(
-                    lambda x: x["bytes"], meta=("bytes", bytes)
+                    lambda x: x["bytes"], meta=("bytes", bytes),
                 )
 
         # 3) Rename columns
