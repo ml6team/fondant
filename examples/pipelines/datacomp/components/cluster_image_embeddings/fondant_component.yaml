@@ -1,0 +1,57 @@
+name: Cluster embeddings
+description: Component that applies k-means clustering on subsampled image embeddings
+image: ghcr.io/ml6team/cluster_image_embeddings:latest
+
+consumes:
+  image:
+    fields:
+      url:
+        type: string
+      width:
+        type: int16
+      height:
+        type: int16
+      face_bboxes:
+        type: array
+        items:
+          type: array
+          items:
+            type: float32
+      sha256:
+        type: utf8
+      embedding:
+        type: array
+        items:
+          type: float32
+
+produces:
+  image:
+    fields:
+      url:
+        type: string
+      width:
+        type: int16
+      height:
+        type: int16
+      face_bboxes:
+        type: array
+        items:
+          type: array
+          items:
+            type: float32
+      sha256:
+        type: utf8
+      embedding:
+        type: array
+        items:
+          type: float32
+      cluster_label:
+        type: int16
+      
+args:
+  sample_ratio:
+    description: The ratio of samples to use in clustering (e.g. 0.3).
+    type: float
+  num_clusters:
+    description: Number of clusters.
+    type: int

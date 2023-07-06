@@ -1,3 +1,4 @@
+name: test_pipeline
 services:
   first_component:
     build: ./tests/example_pipelines/valid_pipeline/example_1
@@ -40,6 +41,6 @@ services:
     depends_on:
       first_component:
         condition: service_completed_successfully
-    image: ghcr.io/ml6team/image_cropping:latest
+    image: ghcr.io/ml6team/image_cropping:dev
     volumes: []
 version: '3.8'

@@ -1,3 +1,4 @@
+name: test_pipeline
 services:
   first_component:
     build: ./tests/example_pipelines/valid_pipeline/example_1

@@ -1,0 +1,2 @@
+boto3==1.26.158
+git+https://github.com/ml6team/fondant@main
