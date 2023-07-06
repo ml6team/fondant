@@ -30,7 +30,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 esac; shift; done
 
 # Check for required argument
-if [ ${#tags[@]} -eq 0 ]; then
+if [ -z "${tags}" ]; then
   echo "Error: tag parameter is required"
   usage
   exit 1
@@ -84,11 +84,11 @@ for dir in "${components_to_build[@]}"; do
     args+=(-t "$tag")
   done
 
-#  # Add cache arguments if caching is enabled
+  # Add cache arguments if caching is enabled
   if [ "$caching" = true ] ; then
 
     cache_name=ghcr.io/${namespace}/${BASENAME}:build-cache
-     echo "Caching from/to ${cache_name}"
+    echo "Caching from/to ${cache_name}"
     args+=(--cache-to "type=registry,ref=${cache_name}")
     args+=(--cache-from "type=registry,ref=${cache_name}")
   fi
@@ -99,6 +99,6 @@ for dir in "${components_to_build[@]}"; do
    --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
    .
 
-   popd
+  popd
 
 done
