@@ -9,6 +9,9 @@ consumes:
         type: string
 
 args:
-  min_length:
-    description: Min length of the text passage
+  min_characters_length:
+    description: Minimum number of characters
+    type: int
+  min_words_length:
+    description: Mininum number of words
     type: int
