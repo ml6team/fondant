@@ -8,5 +8,15 @@ def test_docker_runner():
     with patch("subprocess.call") as mock_call:
         DockerRunner().run("some/path")
         mock_call.assert_called_once_with(
-            ["docker", "compose", "-f", "some/path", "up", "--build"],
+            [
+                "docker",
+                "compose",
+                "-f",
+                "some/path",
+                "up",
+                "--build",
+                "--pull",
+                "always",
+                "--remove-orphans",
+            ],
         )
