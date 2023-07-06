@@ -22,6 +22,7 @@ class DockerRunner(Runner):
             "--build",
             "--pull",
             "always",
+            "--remove-orphans",
         ]
 
         subprocess.call(cmd)  # nosec
