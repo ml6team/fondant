@@ -66,7 +66,7 @@ dedup_image_embeddings_op = ComponentOp.from_registry(
     name="dedup_image_embeddings",
     component_spec_path="components/dedup_image_embeddings/fondant_component.yaml",
     arguments={
-        "epsilon": 0.3,
+        "epsilon": 0.03,
     },
 )
 

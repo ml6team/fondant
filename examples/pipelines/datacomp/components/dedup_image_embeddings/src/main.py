@@ -1,9 +1,14 @@
 """This component deduplicates images based on embeddings.
+
+As proposed in [Abbas et al., 2022](https://arxiv.org/abs/2303.09540).
+
+Implementation is based on https://github.com/conceptofmind/SemDeDup/tree/main.
 """
 import logging
 
 import dask.dataframe as dd
 import numpy as np
+import pandas as pd
 from scipy.spatial.distance import cdist
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -37,7 +42,7 @@ class DedupImageEmbeddingsComponent(DaskTransformComponent):
         indices_to_keep = []
         for i in num_clusters:
             mask = dataframe["image_cluster_label"] == i
-            cluster_i_embeddings = dataframe[mask]["embedding"]
+            cluster_i_embeddings = dataframe[mask]["image_embedding"]
             cluster_embeddings = np.vstack(cluster_i_embeddings)
 
             logger.info(f"Shape of cluster {i} embeddings:", cluster_embeddings.shape)
