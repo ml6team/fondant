@@ -1,6 +1,6 @@
 name: Write to hub
 description: Component that writes a dataset to the hub
-image: ghcr.io/ml6team/write_to_hf_hub:latest
+image: ghcr.io/ml6team/write_to_hf_hub:dev
 
 consumes:
   dummy_variable:  #TODO: fill in here

@@ -28,6 +28,7 @@ theme:
     - navigation.tracking
 nav:
   - Home: index.md
+  - Getting Started: getting_started.md
   - Building a pipeline: pipeline.md
   - Creating custom components: custom_component.md
   - Read / write components: generic_component.md

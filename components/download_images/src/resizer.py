@@ -174,20 +174,20 @@ class Resizer:
                 original_height, original_width = img.shape[:2]
                 # check if image is too small
                 if min(original_height, original_width) < self.min_image_size:
-                    return None, None, None, None, None, "image too small"
+                    return None, None, None
                 if original_height * original_width > self.max_image_area:
-                    return None, None, None, None, None, "image area too large"
+                    return None, None, None
                 # check if wrong aspect ratio
                 if (
                     max(original_height, original_width)
                     / min(original_height, original_width)
                     > self.max_aspect_ratio
                 ):
-                    return None, None, None, None, None, "aspect ratio too large"
+                    return None, None, None
 
                 # check if resizer was defined during init if needed
                 if blurring_bbox_list is not None and self.blurrer is None:
-                    return None, None, None, None, None, "blurrer not defined"
+                    return None, None, None
 
                 # Flag to check if blurring is still needed.
                 maybe_blur_still_needed = True

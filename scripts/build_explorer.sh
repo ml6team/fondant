@@ -45,11 +45,8 @@ echo "building $full_image_name"
 # Update the fondant requirement to the version being built
 sed -i "s|fondant@main|fondant@$tag|" requirements.txt
 
-docker build -t "$full_image_name" \
+docker build --push -t "$full_image_name" \
   --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
   .
-
-echo "Pushing image to $full_image_name"
-docker push "$full_image_name"
 
 popd
