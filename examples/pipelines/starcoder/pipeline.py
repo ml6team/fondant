@@ -36,9 +36,8 @@ pipeline = Pipeline(
 )
 
 # define ops
-load_from_hub_op = ComponentOp.from_registry(
-    name="load_from_hub",
-    component_spec_path="components/load_from_hub/fondant_component.yaml",
+load_from_hub_op = ComponentOp(
+    component_dir="components/load_from_hub",
     arguments={
         "dataset_name": "ml6team/the-stack-smol-python",
         "column_name_mapping": load_component_column_mapping,

@@ -15,15 +15,15 @@ TEST_PIPELINES = [
         "example_1",
         [
             ComponentOp(
-                Path(COMPONENTS_PATH / "example_1" / "first_component.yaml"),
+                Path(COMPONENTS_PATH / "example_1" / "first_component"),
                 arguments={"storage_args": "a dummy string arg"},
             ),
             ComponentOp(
-                Path(COMPONENTS_PATH / "example_1" / "second_component.yaml"),
+                Path(COMPONENTS_PATH / "example_1" / "second_component"),
                 arguments={"storage_args": "a dummy string arg"},
             ),
             ComponentOp(
-                Path(COMPONENTS_PATH / "example_1" / "fourth_component.yaml"),
+                Path(COMPONENTS_PATH / "example_1" / "fourth_component"),
                 arguments={
                     "storage_args": "a dummy string arg",
                     "some_list": [1, 2, 3],
@@ -35,7 +35,7 @@ TEST_PIPELINES = [
         "example_2",
         [
             ComponentOp(
-                Path(COMPONENTS_PATH / "example_1" / "first_component.yaml"),
+                Path(COMPONENTS_PATH / "example_1" / "first_component"),
                 arguments={"storage_args": "a dummy string arg"},
             ),
             ComponentOp.from_registry(

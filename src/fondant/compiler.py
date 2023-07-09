@@ -170,10 +170,8 @@ class DockerCompiler(Compiler):
                 "volumes": volumes,
             }
 
-            if component_op.local_component:
-                services[safe_component_name][
-                    "build"
-                ] = f"./{Path(component_op.component_spec_path).parent}"
+            if component_op.dockerfile_path is not None:
+                services[safe_component_name]["build"] = str(component_op.component_dir)
             else:
                 services[safe_component_name][
                     "image"
