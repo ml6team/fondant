@@ -5,10 +5,9 @@ import typing as t
 
 import dask.dataframe as dd
 import numpy as np
+from fondant.component import DaskTransformComponent
 from image_crop import remove_borders
 from PIL import Image
-
-from fondant.component import DaskTransformComponent
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,6 @@ import typing as t
 import imagesize
 import numpy as np
 import pandas as pd
-
 from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
@@ -39,8 +38,9 @@ class ImageResolutionExtractionComponent(PandasTransformComponent):
         """
         logger.info("Filtering dataset...")
 
-        dataframe[[("images", "width"), ("images", "height")]] = \
-            dataframe[[("images", "data")]].map(extract_dimensions)
+        dataframe[[("images", "width"), ("images", "height")]] = dataframe[
+            [("images", "data")]
+        ].apply(lambda x: extract_dimensions(x.images.data), axis=1)
 
         return dataframe
 

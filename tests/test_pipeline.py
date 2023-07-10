@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, ComponentSpec, Pipeline
 
@@ -238,3 +237,9 @@ def test_defining_reusable_component_op_with_custom_spec():
     assert load_from_hub_op_default_op.component_spec == load_from_hub_op_default_spec
     assert load_from_hub_op_default_op.component_spec != load_from_hub_op_custom_spec
     assert load_from_hub_op_custom_op.component_spec != load_from_hub_op_default_spec
+
+
+def test_pipeline_name():
+    Pipeline(pipeline_name="valid-name", base_path="base_path")
+    with pytest.raises(InvalidPipelineDefinition, match="The pipeline name violates"):
+        Pipeline(pipeline_name="invalid name", base_path="base_path")

@@ -3,7 +3,6 @@ import subprocess
 from unittest.mock import patch
 
 import pytest
-
 from fondant.cli import ImportFromStringError, compile, pipeline_from_string, run
 from fondant.pipeline import Pipeline
 
@@ -68,7 +67,17 @@ def test_run_logic(tmp_path_factory):
     with patch("subprocess.call") as mock_call:
         run(args)
         mock_call.assert_called_once_with(
-            ["docker", "compose", "-f", "some/path", "up", "--build"],
+            [
+                "docker",
+                "compose",
+                "-f",
+                "some/path",
+                "up",
+                "--build",
+                "--pull",
+                "always",
+                "--remove-orphans",
+            ],
         )
 
     with patch("subprocess.call") as mock_call, tmp_path_factory.mktemp("temp") as fn:
@@ -87,6 +96,9 @@ def test_run_logic(tmp_path_factory):
                 str(fn / "docker-compose.yml"),
                 "up",
                 "--build",
+                "--pull",
+                "always",
+                "--remove-orphans",
             ],
         )
     args2 = argparse.Namespace(kubeflow=True, local=False, ref="some/path")

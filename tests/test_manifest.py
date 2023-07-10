@@ -3,7 +3,6 @@ import pkgutil
 from pathlib import Path
 
 import pytest
-
 from fondant.exceptions import InvalidManifest
 from fondant.manifest import Field, Index, Manifest, Subset, Type
 

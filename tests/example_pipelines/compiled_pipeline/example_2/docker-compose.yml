@@ -1,3 +1,4 @@
+name: test_pipeline
 services:
   first_component:
     build: ./tests/example_pipelines/valid_pipeline/example_1
@@ -27,7 +28,7 @@ services:
     - '0'
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
-      borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:latest",
+      borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
       "consumes": {"images": {"fields": {"data": {"type": "binary"}}}}, "produces":
       {"images": {"fields": {"data": {"type": "binary"}, "width": {"type": "int16"},
       "height": {"type": "int16"}}}}, "args": {"cropping_threshold": {"description":
@@ -40,6 +41,6 @@ services:
     depends_on:
       first_component:
         condition: service_completed_successfully
-    image: ghcr.io/ml6team/image_cropping:latest
+    image: ghcr.io/ml6team/image_cropping:dev
     volumes: []
 version: '3.8'

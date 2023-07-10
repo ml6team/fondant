@@ -8,9 +8,9 @@ import datasets
 
 # Define the schema for the struct using PyArrow
 import huggingface_hub
-from PIL import Image
-
+from datasets.features.features import generate_from_arrow_type
 from fondant.component import WriteComponent
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ class WriteToHubComponent(WriteComponent):
                 if image_column_names and column_name in image_column_names:
                     schema_dict[column_name] = datasets.Image()
                 else:
-                    schema_dict[column_name] = datasets.Value(str(field.type.value))
+                    schema_dict[column_name] = generate_from_arrow_type(field.type.value)
 
         schema = datasets.Features(schema_dict).arrow_schema
         dataframe = dataframe[write_columns]

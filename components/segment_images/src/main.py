@@ -6,16 +6,15 @@ import typing as t
 import numpy as np
 import pandas as pd
 import torch
+from fondant.component import PandasTransformComponent
 from palette import palette
 from PIL import Image
 from transformers import AutoModelForSemanticSegmentation, BatchFeature, SegformerImageProcessor
 
-from fondant.component import PandasTransformComponent
-
 logger = logging.getLogger(__name__)
 
 
-def convert_to_rgb(seg: np.array):
+def convert_to_rgb(seg: np.array) -> bytes:
     """
     Converts a 2D segmentation to a RGB one which makes it possible to visualize it.
 
@@ -23,7 +22,7 @@ def convert_to_rgb(seg: np.array):
         seg: 2D segmentation map as a NumPy array.
 
     Returns:
-        color_seg: 3D segmentation map contain RGB values for each pixel.
+        color_seg: the RGB segmentation map as a binary string
     """
     color_seg = np.zeros(
         (seg.shape[0], seg.shape[1], 3), dtype=np.uint8,
@@ -32,9 +31,13 @@ def convert_to_rgb(seg: np.array):
     for label, color in enumerate(palette):
         color_seg[seg == label, :] = color
 
-    color_seg = color_seg.astype(np.uint8).tobytes()
+    color_seg = color_seg.astype(np.uint8)
+    image = Image.fromarray(color_seg).convert('RGB')
 
-    return color_seg
+    crop_bytes = io.BytesIO()
+    image.save(crop_bytes, format="JPEG")
+
+    return crop_bytes.getvalue()
 
 
 def process_image(image: bytes, *, processor: SegformerImageProcessor, device: str) -> torch.Tensor:
@@ -46,6 +49,7 @@ def process_image(image: bytes, *, processor: SegformerImageProcessor, device: s
         processor: The processor object for transforming the image.
         device: The device to move the transformed image to.
     """
+
     def load(img: bytes) -> Image:
         """Load the bytestring as an image."""
         bytes_ = io.BytesIO(img)

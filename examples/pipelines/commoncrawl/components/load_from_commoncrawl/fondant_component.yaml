@@ -1,0 +1,18 @@
+name: Load index file from commoncrawl
+description: Component that loads a given index file from commoncrawl
+image: ghcr.io/ml6team/load_from_commoncrawl:latest
+
+produces:
+  segment:
+    fields:
+      path:
+        type: string
+
+args:
+  index_name:
+    description: Name of index file on commoncrawl
+    type: str
+  n_segments_to_load:
+    description: Number of segments to load from the commoncrawl index file
+    type: int
+    default: None

@@ -1,4 +1,1 @@
-git+https://github.com/ml6team/fondant@main
-pyarrow>=7.0
-gcsfs==2023.4.0
 imagesize==1.4.1
