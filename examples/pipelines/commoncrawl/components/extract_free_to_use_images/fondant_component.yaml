@@ -8,7 +8,7 @@ consumes:
       url:
         type: string
       html:
-        type: binary
+        type: string
 
 produces:
   image:
