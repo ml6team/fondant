@@ -14,7 +14,7 @@ produces:
       url:
         type: string
       html:
-        type: binary
+        type: string
 
 args:
   n_records_to_download:
