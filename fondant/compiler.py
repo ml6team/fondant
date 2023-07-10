@@ -178,4 +178,8 @@ class DockerCompiler(Compiler):
                 services[safe_component_name][
                     "image"
                 ] = component_op.component_spec.image
-        return {"version": "3.8", "services": services}
+        return {
+            "name": pipeline.name,
+            "version": "3.8",
+            "services": services,
+        }

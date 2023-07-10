@@ -13,6 +13,16 @@ class Runner(ABC):
 class DockerRunner(Runner):
     def run(cls, input_spec: str, *args, **kwargs):
         """Run a docker-compose spec."""
-        cmd = ["docker", "compose", "-f", input_spec, "up", "--build"]
+        cmd = [
+            "docker",
+            "compose",
+            "-f",
+            input_spec,
+            "up",
+            "--build",
+            "--pull",
+            "always",
+            "--remove-orphans",
+        ]
 
         subprocess.call(cmd)  # nosec

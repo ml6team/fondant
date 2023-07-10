@@ -264,27 +264,47 @@ class PandasTransformComponent(TransformComponent):
             dataframe: A Pandas dataframe containing a partition of the data
         """
 
-    def wrapped_transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        """Method wrapping the transform method to switch between hierarchical and flattened
-        columns.
+    @staticmethod
+    def wrap_transform(transform: t.Callable, *, spec: ComponentSpec) -> t.Callable:
+        """Factory that creates a function to wrap the component transform function. The wrapper:
+        - Converts the columns to hierarchical format before passing the dataframe to the
+          transform function
+        - Removes extra columns from the returned dataframe which are not defined in the component
+          spec `produces` section
+        - Sorts the columns from the returned dataframe according to the order in the component
+          spec `produces` section to match the order in the `meta` argument passed to Dask's
+          `map_partitions`.
+        - Flattens the returned dataframe columns.
+
+        Args:
+            transform: Transform method to wrap
+            spec: Component specification to base behavior on
         """
-        dataframe.columns = pd.MultiIndex.from_tuples(
-            tuple(column.split("_")) for column in dataframe.columns
-        )
-        dataframe = self.transform(dataframe)
-        # Drop columns not in the produces section of the component spec
-        dataframe = dataframe.drop(
-            columns=[
-                (subset, field)
-                for (subset, field) in dataframe.columns
-                if subset not in self.spec.produces
-                or field not in self.spec.produces[subset].fields
-            ],
-        )
-        dataframe.columns = [
-            "_".join(column) for column in dataframe.columns.to_flat_index()
-        ]
-        return dataframe
+
+        def wrapped_transform(dataframe: pd.DataFrame) -> pd.DataFrame:
+            # Switch to hierarchical columns
+            dataframe.columns = pd.MultiIndex.from_tuples(
+                tuple(column.split("_")) for column in dataframe.columns
+            )
+
+            # Call transform method
+            dataframe = transform(dataframe)
+
+            # Drop columns not in specification
+            columns = [
+                (subset_name, field)
+                for subset_name, subset in spec.produces.items()
+                for field in subset.fields
+            ]
+            dataframe = dataframe[columns]
+
+            # Switch to flattened columns
+            dataframe.columns = [
+                "_".join(column) for column in dataframe.columns.to_flat_index()
+            ]
+            return dataframe
+
+        return wrapped_transform
 
     def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
         """
@@ -309,9 +329,11 @@ class PandasTransformComponent(TransformComponent):
                 )
         meta_df = pd.DataFrame(meta_dict).set_index("id")
 
+        wrapped_transform = self.wrap_transform(self.transform, spec=self.spec)
+
         # Call the component transform method for each partition
         dataframe = dataframe.map_partitions(
-            self.wrapped_transform,
+            wrapped_transform,
             meta=meta_df,
         )
 
