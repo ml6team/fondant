@@ -3,7 +3,6 @@ import logging
 import typing as t
 
 import dask.dataframe as dd
-
 from fondant.component import LoadComponent
 
 logger = logging.getLogger(__name__)

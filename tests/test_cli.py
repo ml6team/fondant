@@ -3,7 +3,6 @@ import subprocess
 from unittest.mock import patch
 
 import pytest
-
 from fondant.cli import ImportFromStringError, compile, pipeline_from_string, run
 from fondant.pipeline import Pipeline
 

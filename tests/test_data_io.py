@@ -2,7 +2,6 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pytest
-
 from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest

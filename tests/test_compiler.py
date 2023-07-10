@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 

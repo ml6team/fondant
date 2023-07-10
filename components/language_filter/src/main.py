@@ -3,7 +3,6 @@ import logging
 
 import fasttext
 import pandas as pd
-
 from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)

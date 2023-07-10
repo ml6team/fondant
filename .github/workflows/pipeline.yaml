@@ -22,26 +22,11 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install poetry==1.4.0
-          poetry install --all-extras
-      - name: Test with pre-commit
-        run: poetry run pre-commit run --all-files --show-diff-on-failure
-      - name: Check licenses
-        run: |
-          poetry export -f requirements.txt --output /tmp/requirements.txt
-          poetry run liccheck -s license_strategy.ini -r /tmp/requirements.txt -l PARANOID
-      - name: Shadow-run pylint
-        # Check if pylint catches errors not caught by our pre-commit checks to validate switch
-        # to ruff
-        run: |
-          pip install pylint==2.16.4
-          pylint fondant --exit-zero
-      - name: Test with pytest
-        run: |
-          poetry run pytest tests --cov fondant --cov-report term-missing
+          poetry install --all-extras --with test
+      - name: Test with tox
+        run: poetry run tox
       - name: Coveralls
-        run: |
-          pip install "coveralls<4"
-          coveralls --service github
+        run: poetry run coveralls --service github
         env:
           COVERALLS_PARALLEL: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
