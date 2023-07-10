@@ -8,6 +8,6 @@ scripts_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 root_path=$(dirname "$scripts_path")
 
 pushd "$root_path"
-rm fondant/components
+rm -rf fondant/components
 cp -r components/ fondant/
 popd
