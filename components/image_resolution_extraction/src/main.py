@@ -6,7 +6,6 @@ import typing as t
 import imagesize
 import numpy as np
 import pandas as pd
-
 from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)

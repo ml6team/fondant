@@ -8,7 +8,6 @@ import dask.dataframe as dd
 import pandas as pd
 import pytest
 import yaml
-
 from fondant.component import (
     Component,
     DaskTransformComponent,

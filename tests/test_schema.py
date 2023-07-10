@@ -1,6 +1,5 @@
 import pyarrow as pa
 import pytest
-
 from fondant.exceptions import InvalidTypeSchema
 from fondant.schema import Type
 

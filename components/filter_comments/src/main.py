@@ -5,9 +5,8 @@ minimum and maximum values.
 import logging
 
 import dask.dataframe as dd
-from utils.text_extraction import get_comments_to_code_ratio
-
 from fondant.component import DaskTransformComponent
+from utils.text_extraction import get_comments_to_code_ratio
 
 logger = logging.getLogger(__name__)
 

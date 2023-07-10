@@ -6,11 +6,10 @@ import typing as t
 import numpy as np
 import pandas as pd
 import torch
+from fondant.component import PandasTransformComponent
 from palette import palette
 from PIL import Image
 from transformers import AutoModelForSemanticSegmentation, BatchFeature, SegformerImageProcessor
-
-from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
 

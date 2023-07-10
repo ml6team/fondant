@@ -6,7 +6,6 @@ import typing as t
 
 import pandas as pd
 from clip_client import ClipClient, Modality
-
 from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
