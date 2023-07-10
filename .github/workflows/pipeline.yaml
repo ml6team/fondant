@@ -24,11 +24,9 @@ jobs:
           pip install poetry==1.4.0
           poetry install --all-extras --with test
       - name: Test with tox
-        run: tox
+        run: poetry run tox
       - name: Coveralls
-        run: |
-          pip install "coveralls<4"
-          coveralls --service github
+        run: poetry run coveralls --service github
         env:
           COVERALLS_PARALLEL: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
