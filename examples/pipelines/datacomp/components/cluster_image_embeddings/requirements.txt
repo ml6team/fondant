@@ -1,3 +1,1 @@
-pyarrow>=7.0
-gcsfs==2023.4.0
 scikit-learn==1.2.2
