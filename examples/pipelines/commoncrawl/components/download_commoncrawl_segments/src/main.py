@@ -1,5 +1,5 @@
 import logging
-from typing import List
+import typing as t
 
 import io
 import boto3
@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 BASE_URL = "https://data.commoncrawl.org/"
 
 
-def get_records_from_warc_file(warc_file: str, n_records_to_download: int) -> List:
+def get_records_from_warc_file(
+    warc_file: str, n_records_to_download: t.Optional[int] = None
+) -> t.List:
     """Downloads a WARC file and extracts the webpages.
     Args:
         warc_file: The path to the WARC file.
@@ -45,14 +47,16 @@ def get_records_from_warc_file(warc_file: str, n_records_to_download: int) -> Li
             records.append([url, content])
             counter += 1
 
-        if counter == n_records_to_download:
+        if n_records_to_download is not None and counter >= n_records_to_download:
             break
 
     return records
 
 
 class DownloadCommoncrawlSegments(DaskTransformComponent):
-    def transform(self, df: dd.DataFrame, n_records_to_download: int) -> dd.DataFrame:
+    def transform(
+        self, df: dd.DataFrame, n_records_to_download: t.Optional[int] = None
+    ) -> dd.DataFrame:
         """Downloads Commoncrawl segments based on a list of WARC paths.
         Args:
             df: A Dask DataFrame containing a column of WARC paths.
