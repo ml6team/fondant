@@ -22,34 +22,35 @@ def get_image_info_from_webpage(webpage_url: str, webpage_html: str) -> List[str
         A list of image urls and license metadata.
     """
 
-    soup = BeautifulSoup(webpage_html, "html.parser")
+    try:
+        soup = BeautifulSoup(webpage_html, "html.parser")
+        for a_tag in soup.find_all("a"):
+            if a_tag.has_attr("href"):
+                license_type = get_license_type(a_tag)
+                if license_type is not None:
+                    license_location = get_license_location(a_tag)
 
-    for a_tag in soup.find_all("a"):
-        if a_tag.has_attr("href"):
-            license_type = get_license_type(a_tag)
-            if license_type is not None:
-                license_location = get_license_location(a_tag)
+                    if license_location is None:
+                        continue
+                    logger.info(
+                        f"Found license type: {license_type} at {license_location}"
+                    )
+                    images = get_images_from_soup(
+                        soup, webpage_url, license_type, license_location
+                    )
+                    logger.info(f"Found {len(images)} images.")
 
-                if license_location is None:
-                    continue
-                logger.info(f"Found license type: {license_type} at {license_location}")
-                images = get_images_from_soup(
-                    soup, webpage_url, license_type, license_location
-                )
-                logger.info(f"Found {len(images)} images.")
+                    unique_images = get_unique_images(images)
+                    logger.info(f"Found {len(unique_images)} unique images.")
 
-                unique_images = get_unique_images(images)
-                logger.info(f"Found {len(unique_images)} unique images.")
+                    return unique_images
 
-                return unique_images
-
-    return None
+    except Exception as e:
+        logger.error(f"Error parsing HTML: {e}")
+        return None
 
 
-class ExtractFreeToUseImages(PandasTransformComponent):
-    def setup(self, *args, **kwargs):
-        pass
-
+class ExtractImageLicenses(PandasTransformComponent):
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         """Extracts image url and license from the HTML content.
         Args:
@@ -57,20 +58,17 @@ class ExtractFreeToUseImages(PandasTransformComponent):
         Returns:
             A pandas dataframe with the image url and license metadata.
         """
-        results = []
-
-        for _, row in df.iterrows():
-            try:
-                webpage_url = row[("webpage", "url")]
-                webpage_html = row[("webpage", "html")]
-
-                image_info = get_image_info_from_webpage(webpage_url, webpage_html)
-                if image_info is not None:
-                    results.append(image_info)
-
-            except Exception as e:
-                logger.error(f"Error parsing HTML: {e}")
-                continue
+        results = [
+            value
+            for value in df.apply(
+                lambda row: get_image_info_from_webpage(
+                    row[("webpage", "url")], row[("webpage", "html")]
+                ),
+                axis=1,
+            )
+            if value is not None
+        ]
+        logger.info(f"Length of results: {len(results)}")
 
         flattened_results = [item for sublist in results for item in sublist]
         logger.info(f"Length of flattened_results: {len(flattened_results)}")
@@ -90,5 +88,5 @@ class ExtractFreeToUseImages(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = ExtractFreeToUseImages.from_args()
+    component = ExtractImageLicenses.from_args()
     component.run()
