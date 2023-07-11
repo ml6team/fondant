@@ -77,7 +77,7 @@ Two things are happening here:
 2. We add our created componentOp to the pipeline using the `add_op` method. This component has no dependencies since it is the first component in our pipeline.
 
 
-Next create a file `load_from_hf_hub/fondant_component.yml` with the following content:
+Next create a file `components/load_from_hf_hub/fondant_component.yml` with the following content:
 
 ```yaml
 name: Load from hub
@@ -120,17 +120,20 @@ Your project should look like this now:
 └── pipeline.py
 ```
 
-We now have a fully functional Fondant pipeline, it does not have much functionality yet, but it is a good starting point to build upon. We can already try running this limited example in order to validate our setup.
+We now have a fully functional Fondant pipeline! It does not have much functionality yet, but it is a good starting point to build upon. We can already try running this limited example in order to validate our setup.
 
 ## Running your pipeline
 
-A Fondant pipeline needs to be compiled before it can be ran. This means translating the user friendly Fondant pipeline definition into something that can be executed by a runner.
+A Fondant pipeline needs to be compiled before it can be run. This means translating the user friendly Fondant pipeline definition into something that can be executed by a runner.
 
 There are currently 2 runners available:
 - Local runner: This runner runs the pipeline locally on your machine. This is useful for testing your pipeline. We leverage Docker Compose to compile and run the pipeline locally.
 - Kubeflow runner: This runner runs the pipeline on a Kubeflow cluster. This is useful for running your pipeline in production on full data.
+- Additional runners will be added
 
-Fondant has a feature rich CLI that helps you with these steps, let's start by runnin our pipeline with the local runner:
+Fondant has a feature rich CLI that helps you with these steps. Let's start by running our pipeline with the local runner.
+
+First of all make sure you have [Docker Compose](https://docs.docker.com/compose/) installed on your system
 
 ```bash
 fondant run pipeline:my_pipeline --local
@@ -157,7 +160,7 @@ mkdir components/extract_resolution
 
 We need to create a couple of things for our custom component:
 
-1. A `fondant_component.yml` file that contains the metadata of our component, this defines the data the component needs (`consumes`) and what data the component produces (`produces`).
+1. A `fondant_component.yml` file that contains the metadata of our component. This defines the data the component needs (`consumes`) and what data the component produces (`produces`).
 
 ```yaml
 name: Image resolution extraction
@@ -180,7 +183,7 @@ produces:
       height:
         type: int16
 ```
-In our case this component will consume the data field of the images subset and produce the width and height of the images as extra columns.
+In our case the component will consume the data field of the images subset and produce the width and height of the images as extra columns.
 
 
 Now let's create some code (in `extract_resolution/src/main.py`) that will extract the width and height of the images:
@@ -238,7 +241,7 @@ if __name__ == "__main__":
     component.run()
 
 ```
-This component is rather simple it will take the images as input and extract the width and height of the images. It will then add these columns to the images subset and return the dataframe. We subclass the `PandasTransformComponent` where the user only needs to define the `transform` method. This method will be called with a pandas dataframe as input and should return a pandas dataframe as output. 
+This component is rather simple: it will take the images as input and extract the width and height of the images. It will then add these columns to the images subset and return the dataframe. We subclass the `PandasTransformComponent` where the user only needs to define the `transform` method. This method will be called with a pandas dataframe as input and should return a pandas dataframe as output. 
 
 The last thing we need for our component is a `Dockerfile` that specifies the steps needed to build the image our component needs:
     
@@ -284,7 +287,7 @@ my_pipeline.add_op(extract_resolution, dependencies=load_from_hf_hub)
 
 We add the component to our pipeline definition and specify that it depends on the `load_from_hf_hub` component. This means that the `load_from_hf_hub` component will be executed first and the output of that component will be passed to the `extract_resolution` component.
 
-We can now easily run or new pipeline:
+We can now easily run our new pipeline:
 
 ```bash
 fondant run pipeline:my_pipeline --local
@@ -292,7 +295,7 @@ fondant run pipeline:my_pipeline --local
 
 You will see that the components runs sequentially and that each has its own logs. 
 
-Note that with custom components that the image will be built as part of running the pipeline by leveraging a `build` spec in the docker-compose file. This means that you can change the code of your component and run the pipeline again without having to rebuild the image manually.
+Note that with custom components the image will be built as part of running the pipeline by leveraging a `build` spec in the docker-compose file. This means that you can change the code of your component and run the pipeline again without having to rebuild the image manually.
 
 
 We now have a simple pipeline that downloads a dataset from huggingface hub and extracts the width and height of the images. A possible next step is to create a component that [filters the data based on the aspect ratio](https://github.com/ml6team/fondant/tree/main/components/filter_image_resolution) ? Or run a [clip model on the images to get captions](https://github.com/ml6team/fondant/tree/main/components/image_embedding)?

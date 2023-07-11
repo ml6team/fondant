@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, ComponentSpec, Pipeline
 

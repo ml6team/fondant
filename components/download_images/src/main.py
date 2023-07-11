@@ -12,9 +12,8 @@ import traceback
 import urllib
 
 import dask.dataframe as dd
-from resizer import Resizer
-
 from fondant.component import DaskTransformComponent
+from resizer import Resizer
 
 logger = logging.getLogger(__name__)
 

@@ -9,9 +9,8 @@ import datasets
 # Define the schema for the struct using PyArrow
 import huggingface_hub
 from datasets.features.features import generate_from_arrow_type
-from PIL import Image
-
 from fondant.component import WriteComponent
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 

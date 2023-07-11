@@ -4,10 +4,9 @@ import json
 import logging
 
 import dask.dataframe as dd
+from fondant.component import DaskTransformComponent
 from pii_detection import scan_pii
 from pii_redaction import redact_pii
-
-from fondant.component import DaskTransformComponent
 
 logger = logging.getLogger(__name__)
 
