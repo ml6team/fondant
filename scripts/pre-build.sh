@@ -9,5 +9,5 @@ root_path=$(dirname "$scripts_path")
 
 pushd "$root_path"
 rm -rf src/fondant/components
-cp -r components/ src/fondant/
+cp -r components src/fondant/
 popd
