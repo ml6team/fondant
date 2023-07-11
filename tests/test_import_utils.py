@@ -3,7 +3,6 @@ import importlib.metadata
 from unittest import mock
 
 import pytest
-
 from fondant.import_utils import (
     is_datasets_available,
     is_kfp_available,
