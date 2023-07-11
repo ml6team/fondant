@@ -40,7 +40,10 @@ def convert_to_rgb(seg: np.array) -> bytes:
     return crop_bytes.getvalue()
 
 
-def process_image(image: bytes, *, processor: SegformerImageProcessor, device: str) -> torch.Tensor:
+def process_image(image: bytes,
+                  *,
+                  processor: SegformerImageProcessor,
+                  device: str) -> torch.Tensor:
     """
     Process the image to a tensor.
 
@@ -65,7 +68,9 @@ def process_image(image: bytes, *, processor: SegformerImageProcessor, device: s
 
 
 @torch.no_grad()
-def segment_image_batch(image_batch: pd.DataFrame, *, model: AutoModelForSemanticSegmentation,
+def segment_image_batch(image_batch: pd.DataFrame,
+                        *,
+                        model: AutoModelForSemanticSegmentation,
                         processor: SegformerImageProcessor) -> pd.Series:
     """Embed a batch of images."""
     input_batch = torch.cat(image_batch.tolist())
