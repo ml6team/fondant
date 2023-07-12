@@ -218,6 +218,25 @@ def register_compile(parent_parser):
         nargs="+",
     )
 
+    parser.add_argument(
+        "--run-id",
+        required=False,
+        help="The run id of the pipeline to resume the execution from. "
+             "If provided, the pipeline will resume execution from the last component that has not"
+             " been run. You can specify a specific component to resume from by using the"
+             " --resume-component argument.",
+        default=None
+    )
+
+    parser.add_argument(
+        "--resume-component",
+        required=False,
+        help="Specifies the name of a specific component to resume the pipeline run from. "
+             "A valid run ID must be provided using the --run-id argument. "
+             "If both --resume-component and --run-id are provided, "
+             "the pipeline will resume execution from the specified component."
+    )
+
     parser.set_defaults(func=compile)
 
 
@@ -228,6 +247,8 @@ def compile(args):
             pipeline=args.pipeline,
             extra_volumes=args.extra_volumes,
             output_path=args.output_path,
+            run_id=args.run_id,
+            resume_component=args.resume_component
         )
     elif args.kubeflow:
         msg = "Kubeflow compiler not implemented"
@@ -274,6 +295,25 @@ def register_run(parent_parser):
         "--extra-volumes",
         help="Extra volumes to mount in containers",
         nargs="+",
+    )
+
+    parser.add_argument(
+        "--run-id",
+        required=False,
+        help="The run id of the pipeline to resume the execution from. "
+             "If provided, the pipeline will resume execution from the last component that has not"
+             " been run. You can specify a specific component to resume from by using the"
+             " --resume-component argument.",
+        default=None
+    )
+
+    parser.add_argument(
+        "--resume-component",
+        required=False,
+        help="Specifies the name of a specific component to resume the pipeline run from. "
+             "A valid run ID must be provided using the --run-id argument. "
+             "If both --resume-component and --run-id are provided, "
+             "the pipeline will resume execution from the specified component."
     )
     parser.set_defaults(func=run)
 
