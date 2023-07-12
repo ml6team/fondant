@@ -58,31 +58,27 @@ class ExtractImageLicenses(PandasTransformComponent):
         Returns:
             A pandas dataframe with the image url and license metadata.
         """
-        results = [
-            value
-            for value in df.apply(
+        df = (
+            df.apply(
                 lambda row: get_image_info_from_webpage(
                     row[("webpage", "url")], row[("webpage", "html")]
                 ),
                 axis=1,
+                result_type="expand",
             )
-            if value is not None
-        ]
-        logger.info(f"Length of results: {len(results)}")
-
-        flattened_results = [item for sublist in results for item in sublist]
-        logger.info(f"Length of flattened_results: {len(flattened_results)}")
-
-        df = pd.DataFrame(
-            flattened_results,
-            columns=[
-                ("image", "image_url"),
-                ("image", "alt_text"),
-                ("image", "webpage_url"),
-                ("image", "license_type"),
-                ("image", "license_location"),
-            ],
+            .explode(0)
+            .apply(pd.Series)
         )
+
+        df = df.dropna().reset_index(drop=True)
+
+        df.columns = [
+            ("image", "image_url"),
+            ("image", "alt_text"),
+            ("image", "webpage_url"),
+            ("image", "license_type"),
+            ("image", "license_location"),
+        ]
 
         return df
 
