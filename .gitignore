@@ -19,6 +19,12 @@ dist/
 # Package files
 *.jar
 
+# Tox
+.tox
+
+# Coverage
+.coverage
+
 # Maven
 target/
 dist/
