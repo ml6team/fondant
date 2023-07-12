@@ -165,6 +165,7 @@ class DockerCompiler(Compiler):
 
             component_to_execute = components_list[component_to_resume_index]
             previous_executed_component = components_list[max(component_to_resume_index - 1, 0)]
+
             if component_execution_dict[previous_executed_component] is False:
                 raise InvalidPipelineExecution(
                     f"Cannot resume pipeline {run_id} from "

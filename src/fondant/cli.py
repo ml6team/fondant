@@ -302,8 +302,7 @@ def register_run(parent_parser):
         help="The run id of the pipeline to resume the execution from. "
              "If provided, the pipeline will resume execution from the last component that has not"
              " been run. You can specify a specific component to resume from by using the"
-             " --resume-component argument.",
-        default=None
+             " --resume-component argument."
     )
 
     parser.add_argument(

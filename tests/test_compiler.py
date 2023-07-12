@@ -116,7 +116,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
 
 
 @pytest.mark.usefixtures("_freeze_time")
-def test_docker_compiler_partial_without_resume_component(
+def test_docker_compiler_partial(
     setup_pipeline,
     tmp_path_factory,
 ):
@@ -164,24 +164,49 @@ def test_docker_compiler_partial_with_valid_resume_component(
 
 
 @pytest.mark.usefixtures("_freeze_time")
-def test_docker_compiler_partial_with_invalid_resume_component(
+def test_invalid_docker_compiler_partial(
     setup_pipeline,
     tmp_path_factory,
 ):
-    """Test that a valid error is returned when attempting to resume a pipeline execution from an
-    invalid specified component.
+    """Test that a valid error is returned when attempting to resume a pipeline execution with
+    invalid  configurations.
     """
-    example_dir, pipeline, _, invalid_resume_component = setup_pipeline
+    (
+        example_dir,
+        pipeline,
+        valid_resume_component,
+        invalid_resume_component,
+    ) = setup_pipeline
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         pipeline.base_path = MOCK_BASE_PATH
         output_path = str(fn / "docker-compose.yml")
+
+        # 1) Invalid component to resume from
         with pytest.raises(InvalidPipelineExecution):
             compiler.compile(
                 pipeline=pipeline,
                 output_path=output_path,
                 run_id=f"pipeline_run_{example_dir}",
                 resume_component=invalid_resume_component,
+            )
+
+        # 2) Non-existing run id
+        with pytest.raises(InvalidPipelineExecution):
+            compiler.compile(
+                pipeline=pipeline,
+                output_path=output_path,
+                run_id="non_existing_run_id",
+                resume_component=valid_resume_component,
+            )
+
+        # 3) Unspecified run_id
+        with pytest.raises(InvalidPipelineExecution):
+            compiler.compile(
+                pipeline=pipeline,
+                output_path=output_path,
+                run_id=None,
+                resume_component=valid_resume_component,
             )
 
 
