@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from collections import OrderedDict
-from itertools import islice
 
 import yaml
 
@@ -117,12 +116,12 @@ class DockerCompiler(Compiler):
             path = base_path
         return path, volume
 
-    def _get_pipeline_graph(self,
-                            *,
-                            pipeline: Pipeline,
-                            base_path: str,
-                            resume_component: t.Optional[str],
-                            run_id: t.Optional[str]) -> t.OrderedDict[str, t.Any]:
+    def _get_components_to_execute(self,
+                                   *,
+                                   pipeline: Pipeline,
+                                   base_path: str,
+                                   resume_component: t.Optional[str],
+                                   run_id: t.Optional[str]) -> t.List[str]:
         """Function that returns the valid pipeline graph to resolve """
 
         def _get_component_execution_dict() -> t.Dict[str, bool]:
@@ -151,8 +150,7 @@ class DockerCompiler(Compiler):
             else:
                 return None
 
-        def _get_modified_execution_graph(component_to_resume_index: int) -> \
-                t.OrderedDict[str, t.Any]:
+        def _get_components_to_execute(component_to_resume_index: int) -> t.List[str]:
             """
             Function that modifies the execution graph depending on the index of the component to
             resume the run from
@@ -174,11 +172,7 @@ class DockerCompiler(Compiler):
                     f"{previous_executed_component}.\nComponent run status: "
                     f"{component_execution_dict}")
 
-            modified_pipeline_graph = OrderedDict(
-                islice(pipeline_graph.items(), component_to_resume_index, None))
-            modified_pipeline_graph[component_to_execute]['dependencies'] = []
-
-            return modified_pipeline_graph
+            return components_list[component_to_resume_index:]
 
         pipeline_graph = OrderedDict((self._safe_component_name(component_name), component)
                                      for component_name, component in pipeline._graph.items())
@@ -193,7 +187,7 @@ class DockerCompiler(Compiler):
                     (f"Specified component `{resume_component}` was not found in the list of "
                      f"pipeline components. Available components are: {components_list}")
 
-            modified_pipeline_graph = _get_modified_execution_graph(component_idx)
+            components_to_execute = _get_components_to_execute(component_idx)
 
         elif resume_component and not run_id:
             raise InvalidPipelineExecution(
@@ -207,7 +201,7 @@ class DockerCompiler(Compiler):
             if last_executed_component is not None:
                 last_executed_component_idx = components_list.index(last_executed_component)
                 component_to_resume_idx = last_executed_component_idx + 1
-                modified_pipeline_graph = _get_modified_execution_graph(component_to_resume_idx)
+                components_to_execute = _get_components_to_execute(component_to_resume_idx)
                 logger.info(f"last executed component for pipeline with run_id `{run_id}` was"
                             f" `{last_executed_component}`.\n"
                             f"Resuming run from `{components_list[component_to_resume_idx]}`"
@@ -219,9 +213,9 @@ class DockerCompiler(Compiler):
                     f"`{run_id}` in the specified base path: `{base_path}`")
 
         else:
-            modified_pipeline_graph = pipeline_graph
+            components_to_execute = components_list
 
-        return modified_pipeline_graph
+        return components_to_execute
 
     def _generate_spec(self,
                        pipeline: Pipeline,
@@ -235,7 +229,7 @@ class DockerCompiler(Compiler):
         base_path = pipeline.base_path
         path, volume = self._patch_path(base_path=base_path)
 
-        pipeline_graph = self._get_pipeline_graph(
+        components_to_execute = self._get_components_to_execute(
             pipeline=pipeline,
             base_path=base_path,
             resume_component=resume_component,
@@ -250,66 +244,71 @@ class DockerCompiler(Compiler):
 
         services = {}
 
-        for component_name, component in pipeline_graph.items():
+        for component_name, component in pipeline._graph.items():
             logger.info(f"Compiling service for {component_name}")
+
             safe_component_name = self._safe_component_name(component_name)
 
-            component_op = component["fondant_component_op"]
+            if safe_component_name in components_to_execute:
 
-            # add metadata argument to command
-            command = ["--metadata", json.dumps(asdict(metadata))]
+                component_op = component["fondant_component_op"]
 
-            # add in and out manifest paths to command
-            command.extend(
-                [
-                    "--output_manifest_path",
-                    f"{path}/{safe_component_name}/{run_id}/manifest.json",
-                ],
-            )
+                # add metadata argument to command
+                command = ["--metadata", json.dumps(asdict(metadata))]
 
-            # add arguments if any to command
-            for key, value in component_op.arguments.items():
-                if isinstance(value, (dict, list)):
-                    command.extend([f"--{key}", json.dumps(value)])
+                # add in and out manifest paths to command
+                command.extend(
+                    [
+                        "--output_manifest_path",
+                        f"{path}/{safe_component_name}/{run_id}/manifest.json",
+                    ],
+                )
+
+                # add arguments if any to command
+                for key, value in component_op.arguments.items():
+                    if isinstance(value, (dict, list)):
+                        command.extend([f"--{key}", json.dumps(value)])
+                    else:
+                        command.extend([f"--{key}", f"{value}"])
+
+                # resolve dependencies
+                depends_on = {}
+                # First element of docker compose always has no dependencies
+                if component["dependencies"]:
+                    for dependency in component["dependencies"]:
+                        safe_dependency = self._safe_component_name(dependency)
+                        if services:
+                            depends_on[safe_dependency] = {
+                                "condition": "service_completed_successfully",
+                            }
+                        # there is only an input manifest if the component has dependencies
+                        command.extend(
+                            [
+                                "--input_manifest_path",
+                                f"{path}/{safe_dependency}/{run_id}/manifest.json",
+                            ],
+                        )
+
+                volumes = []
+                if volume:
+                    volumes.append(asdict(volume))
+                if extra_volumes:
+                    volumes.extend(extra_volumes)
+
+                services[safe_component_name] = {
+                    "command": command,
+                    "depends_on": depends_on,
+                    "volumes": volumes,
+                }
+
+                if component_op.local_component:
+                    services[safe_component_name][
+                        "build"
+                    ] = f"./{Path(component_op.component_spec_path).parent}"
                 else:
-                    command.extend([f"--{key}", f"{value}"])
-
-            # resolve dependencies
-            depends_on = {}
-            if component["dependencies"]:
-                for dependency in component["dependencies"]:
-                    safe_dependency = self._safe_component_name(dependency)
-                    depends_on[safe_dependency] = {
-                        "condition": "service_completed_successfully",
-                    }
-                    # there is only an input manifest if the component has dependencies
-                    command.extend(
-                        [
-                            "--input_manifest_path",
-                            f"{path}/{safe_dependency}/{run_id}/manifest.json",
-                        ],
-                    )
-
-            volumes = []
-            if volume:
-                volumes.append(asdict(volume))
-            if extra_volumes:
-                volumes.extend(extra_volumes)
-
-            services[safe_component_name] = {
-                "command": command,
-                "depends_on": depends_on,
-                "volumes": volumes,
-            }
-
-            if component_op.local_component:
-                services[safe_component_name][
-                    "build"
-                ] = f"./{Path(component_op.component_spec_path).parent}"
-            else:
-                services[safe_component_name][
-                    "image"
-                ] = component_op.component_spec.image
+                    services[safe_component_name][
+                        "image"
+                    ] = component_op.component_spec.image
         return {
             "name": pipeline.name,
             "version": "3.8",

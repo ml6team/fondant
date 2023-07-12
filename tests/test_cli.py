@@ -88,6 +88,8 @@ def test_run_logic(tmp_path_factory):
             ref=__name__ + ":TEST_PIPELINE",
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
+            run_id=None,
+            resume_component=None,
         )
         run(args1)
         mock_call.assert_called_once_with(
