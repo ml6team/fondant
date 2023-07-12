@@ -212,7 +212,7 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
             ]
             # check if commands are patched to use the working dir
             commands_with_dir = [
-                f"{work_dir}/{name}/manifest.json",
+                f"{work_dir}/{name}/test_pipeline-20230101000000/manifest.json",
                 f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{work_dir}"}}',
             ]
             for command in commands_with_dir:
@@ -238,7 +238,7 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
             assert service["volumes"] == []
             # check if commands are patched to use the remote dir
             commands_with_dir = [
-                f"{remote_dir}/{name}/manifest.json",
+                f"{remote_dir}/{name}/test_pipeline-20230101000000/manifest.json",
                 f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{remote_dir}"}}',
             ]
             for command in commands_with_dir:

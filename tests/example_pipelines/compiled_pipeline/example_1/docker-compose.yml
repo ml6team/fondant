@@ -6,7 +6,7 @@ services:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/first_component/test_pipeline-20230101000000/manifest.json
     - --storage_args
     - a dummy string arg
     - --component_spec
@@ -22,7 +22,7 @@ services:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/second_component/manifest.json
+    - /foo/bar/second_component/test_pipeline-20230101000000/manifest.json
     - --storage_args
     - a dummy string arg
     - --component_spec
@@ -32,7 +32,7 @@ services:
       "array", "items": {"type": "float32"}}}}}, "args": {"storage_args": {"description":
       "Storage arguments", "type": "str"}}}'
     - --input_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/first_component/test_pipeline-20230101000000/manifest.json
     depends_on:
       first_component:
         condition: service_completed_successfully
@@ -43,7 +43,7 @@ services:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/third_component/manifest.json
+    - /foo/bar/third_component/test_pipeline-20230101000000/manifest.json
     - --storage_args
     - a dummy string arg
     - --component_spec
@@ -56,7 +56,7 @@ services:
       {"type": "array", "items": {"type": "float32"}}}}, "additionalSubsets": false},
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
     - --input_manifest_path
-    - /foo/bar/second_component/manifest.json
+    - /foo/bar/second_component/test_pipeline-20230101000000/manifest.json
     depends_on:
       second_component:
         condition: service_completed_successfully
@@ -67,7 +67,7 @@ services:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/fourth_component/manifest.json
+    - /foo/bar/fourth_component/test_pipeline-20230101000000/manifest.json
     - --storage_args
     - a dummy string arg
     - --some_list
@@ -82,7 +82,7 @@ services:
       "str"}, "some_list": {"description": "Some list", "type": "list", "items": {"type":
       "int"}}}}'
     - --input_manifest_path
-    - /foo/bar/third_component/manifest.json
+    - /foo/bar/third_component/test_pipeline-20230101000000/manifest.json
     depends_on:
       third_component:
         condition: service_completed_successfully

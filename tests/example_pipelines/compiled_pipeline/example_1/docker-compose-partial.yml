@@ -4,9 +4,9 @@ services:
     build: ./example_pipelines/valid_pipeline/example_1
     command:
       - --metadata
-      - '{"run_id": "mock_pipeline_run_123", "base_path": "/base_path"}'
+      - '{"run_id": "mock_pipeline_run_123", "base_path": "/mock_base_path"}'
       - --output_manifest_path
-      - /base_path/third_component/manifest.json
+      - /mock_base_path/third_component/pipeline_run_example_1/manifest.json
       - --storage_args
       - a dummy string arg
       - --component_spec
@@ -19,19 +19,19 @@ services:
       {"type": "array", "items": {"type": "float32"}}}}, "additionalSubsets": false},
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
       - --input_manifest_path
-      - /base_path/second_component/manifest.json
+      - /mock_base_path/second_component/pipeline_run_example_1/manifest.json
     depends_on: {}
     volumes:
-      - source: /home/philippe/Scripts/express/tests/example_pipelines/valid_pipeline/example_1/base_path
-        target: /base_path
+      - source: /home/philippe/Scripts/express/tests/example_pipelines/valid_pipeline/example_1/mock_base_path
+        target: /mock_base_path
         type: bind
   fourth_component:
     build: ./example_pipelines/valid_pipeline/example_1
     command:
     - --metadata
-    - '{"run_id": "mock_pipeline_run_123", "base_path": "/base_path"}'
+    - '{"run_id": "pipeline_run_example_1", "base_path": "/mock_mock_base_path"}'
     - --output_manifest_path
-    - /base_path/fourth_component/manifest.json
+    - /mock_base_path/fourth_component/pipeline_run_example_1/manifest.json
     - --storage_args
     - a dummy string arg
     - --some_list
@@ -46,12 +46,12 @@ services:
       "str"}, "some_list": {"description": "Some list", "type": "list", "items": {"type":
       "int"}}}}'
     - --input_manifest_path
-    - /base_path/third_component/manifest.json
+    - /mock_base_path/third_component/pipeline_run_example_1/manifest.json
     depends_on:
       third_component:
         condition: service_completed_successfully
     volumes:
-    - source: /home/philippe/Scripts/express/tests/example_pipelines/valid_pipeline/example_1/base_path
-      target: /base_path
+    - source: example_pipelines/valid_pipeline/example_1/mock_base_path
+      target: /mock_base_path
       type: bind
 version: '3.8'

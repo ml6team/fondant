@@ -54,6 +54,8 @@ def test_compile_logic(tmp_path_factory):
             pipeline=TEST_PIPELINE,
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
+            run_id=None,
+            resume_component=None,
         )
         compile(args)
     args2 = argparse.Namespace(kubeflow=True, local=False, ref="some/path")

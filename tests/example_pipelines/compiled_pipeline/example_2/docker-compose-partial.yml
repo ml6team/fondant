@@ -3,9 +3,9 @@ services:
   image_cropping:
     command:
     - --metadata
-    - '{"run_id": "mock_pipeline_run_123", "base_path": "example_pipelines/valid_pipeline/example_2/base_path"}'
+    - '{"run_id": "mock_pipeline_run_123", "base_path": "mock_base_path"}'
     - --output_manifest_path
-    - example_pipelines/valid_pipeline/example_2/base_path/image_cropping/manifest.json
+    - /mock_base_path/image_cropping/mock_pipeline_run_123/manifest.json
     - --cropping_threshold
     - '0'
     - --padding
@@ -22,7 +22,7 @@ services:
       for the image cropping. The padding is added to all borders of the image.",
       "type": "int", "default": 10}}}'
     - --input_manifest_path
-    - example_pipelines/valid_pipeline/example_2/base_path/first_component/manifest.json
+    - /mock_base_path/first_component/mock_pipeline_run_123/manifest.json
     depends_on: {}
     image: ghcr.io/ml6team/image_cropping:dev
     volumes: []

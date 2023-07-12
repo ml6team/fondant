@@ -6,7 +6,7 @@ services:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/first_component/test_pipeline-20230101000000/manifest.json
     - --storage_args
     - a dummy string arg
     - --component_spec
@@ -21,7 +21,7 @@ services:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
-    - /foo/bar/image_cropping/manifest.json
+    - /foo/bar/image_cropping/test_pipeline-20230101000000/manifest.json
     - --cropping_threshold
     - '0'
     - --padding
@@ -38,7 +38,7 @@ services:
       for the image cropping. The padding is added to all borders of the image.",
       "type": "int", "default": 10}}}'
     - --input_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/first_component/test_pipeline-20230101000000/manifest.json
     depends_on:
       first_component:
         condition: service_completed_successfully

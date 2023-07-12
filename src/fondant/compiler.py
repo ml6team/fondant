@@ -240,7 +240,7 @@ class DockerCompiler(Compiler):
             command.extend(
                 [
                     "--output_manifest_path",
-                    f"{path}/{safe_component_name}/manifest.json",
+                    f"{path}/{safe_component_name}/{run_id}/manifest.json",
                 ],
             )
 
@@ -263,7 +263,7 @@ class DockerCompiler(Compiler):
                     command.extend(
                         [
                             "--input_manifest_path",
-                            f"{path}/{safe_dependency}/manifest.json",
+                            f"{path}/{safe_dependency}/{run_id}/manifest.json",
                         ],
                     )
 

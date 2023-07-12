@@ -225,7 +225,6 @@ def register_compile(parent_parser):
              "If provided, the pipeline will resume execution from the last component that has not"
              " been run. You can specify a specific component to resume from by using the"
              " --resume-component argument.",
-        default=None
     )
 
     parser.add_argument(
