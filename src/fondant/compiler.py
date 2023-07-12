@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from fondant.import_utils import is_kfp_available
 from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
@@ -207,3 +208,61 @@ class DockerCompiler(Compiler):
             "version": "3.8",
             "services": services,
         }
+
+
+class KubeFlowCompiler(Compiler):
+    """Compiler that creates a Kubeflow pipeline spec from a pipeline."""
+
+    def _resolve_imports(self):
+        """Resolve imports for the Kubeflow compiler."""
+        try:
+            import kfp
+            from kfp import dsl
+        except ImportError:
+            raise ImportError(
+                "You need to install kfp to use the Kubeflow compiler, "
+                / "you can install it with `poetry install --extras kfp`"
+            )
+
+    def compile(
+        self,
+        pipeline: Pipeline,
+        output_path: str = "kubeflow_pipeline.py",
+    ) -> None:
+        """Compile a pipeline to Kubeflow pipeline spec and save it to a specified output path.
+
+        Args:
+            pipeline: the pipeline to compile
+            output_path: the path where to save the Kubeflow pipeline spec
+        """
+        self._resolve_imports()
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
+        wrapped_pipeline = dsl.pipeline(
+            name=pipeline.name, description=pipeline.description
+        )(self.kf_pipeline)
+        kfp.compiler.Compiler().compile(wrapped_pipeline, output_path)
+        logger.info("Pipeline compiled successfully")
+
+    def kf_pipeline(self, pipeline: Pipeline):
+        for component_name, component in pipeline._graph.items():
+            logger.info(f"Compiling service for {component_name}")
+
+            # convert ComponentOp to Kubeflow component
+            component_task = component.kubeflow_specification.to_string()
+
+            # add configuration to Kubeflow component (CPU, GPU, etc.)
+            component_task = self._set_configuration(component_task, component)
+
+            # add dependency to task
+            if component.dependencies:
+                component_task.after(previous_component_task)
+
+        return pipeline
+
+    def _set_configuration(self, task, fondant_component_operation):
+        # Unpack optional specifications
+        number_of_gpus = fondant_component_operation.number_of_gpus
+        if number_of_gpus is not None:
+            task.set_gpu_limit(number_of_gpus)
+        # TODO add rest
+        return task

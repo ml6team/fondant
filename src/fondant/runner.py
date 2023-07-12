@@ -1,5 +1,8 @@
+import logging
 import subprocess  # nosec
 from abc import ABC, abstractmethod
+
+logger = logging.getLogger(__name__)
 
 
 class Runner(ABC):
@@ -26,3 +29,30 @@ class DockerRunner(Runner):
         ]
 
         subprocess.call(cmd)  # nosec
+
+
+class KubeflowRunner(Runner):
+    @abstractmethod
+    def _resolve_imports(self):
+        """Resolve imports for the Kubeflow compiler."""
+        try:
+            import kfp
+        except ImportError:
+            raise ImportError(
+                "You need to install kfp to use the Kubeflow compiler, "
+                / "you can install it with `poetry install --extras kfp`"
+            )
+
+    def run(cls, input_spec: str, host: str, *args, **kwargs):
+        """Run a kubeflow pipeline."""
+        cls._resolve_imports()
+        client = kfp.Client(host=host)
+        # TODO add logic to see if pipeline exists
+        pipeline_spec = client.run_pipeline(
+            experiment_id=experiment.id,
+            job_name=run_name,
+            pipeline_package_path=pipeline.package_path,
+        )
+
+        pipeline_url = f"{self.host}/#/runs/details/{pipeline_spec.id}"
+        logger.info(f"Pipeline is running at: {pipeline_url}")
