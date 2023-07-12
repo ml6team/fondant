@@ -130,21 +130,21 @@ class DockerCompiler(Compiler):
             Function that returns a dictionary indicating whether a component has been executed.
             The function checks for a valid manifest file under the expected directory
             """
-            execution_dict = {
-                component_name: (Path(base_path) / run_id / self._safe_component_name(
-                    component_name) / "manifest.json").exists()
-                if run_id else False
-                for component_name in pipeline_graph
-            }
+            execution_dict = {}
+            for component_name in pipeline_graph:
+                if run_id:
+                    manifest_path = Path(base_path) / self._safe_component_name(
+                        component_name) / run_id / "manifest.json"
+                    execution_dict[component_name] = manifest_path.exists()
+                else:
+                    execution_dict[component_name] = False
 
             return execution_dict
 
-        def _get_last_executed_components() -> str:
+        def _get_last_executed_components() -> t.Union[str, None]:
             """
             Function that returns the last executed component
-            Returns:
-
-            """
+             """
             for component_name, executed in reversed(component_execution_dict.items()):
                 if executed:
                     return component_name
@@ -157,16 +157,27 @@ class DockerCompiler(Compiler):
             Function that modifies the execution graph depending on the index of the component to
             resume the run from
             """
+
+            if component_to_resume_index >= len(components_list):
+                raise InvalidPipelineExecution(
+                    f"All the components of the pipeline run `{run_id}` have been run "
+                    f"successfully:\n{component_execution_dict}.\n"
+                    f"You can re-run from another component by passing "
+                    f"the --resume-component flag and specifying a component name.")
+
             component_to_execute = components_list[component_to_resume_index]
-            previous_component_to_execute = components_list[component_to_resume_index - 1]
-            if component_execution_dict[previous_component_to_execute] is False:
+            previous_executed_component = components_list[max(component_to_resume_index - 1, 0)]
+            if component_execution_dict[previous_executed_component] is False:
                 raise InvalidPipelineExecution(
                     f"Cannot resume pipeline {run_id} from "
-                    f"{component_to_execute} The previous dependant component "
-                    f"{previous_component_to_execute} run was not found.")
+                    f"{component_to_execute}. No run was found for previous dependant component "
+                    f"{previous_executed_component}.\nComponent run status: "
+                    f"{component_execution_dict}")
+
             modified_pipeline_graph = OrderedDict(
                 islice(pipeline_graph.items(), component_to_resume_index, None))
             modified_pipeline_graph[component_to_execute]['dependencies'] = []
+
             return modified_pipeline_graph
 
         pipeline_graph = OrderedDict((self._safe_component_name(component_name), component)
@@ -175,26 +186,37 @@ class DockerCompiler(Compiler):
         component_execution_dict = _get_component_execution_dict()
 
         if resume_component and run_id:
-            # check that the component manifest of the previous component exist and return pipeline
-            # starting from the current component
             try:
                 component_idx = components_list.index(resume_component)
             except ValueError:
-                raise InvalidPipelineExecution("elaborate futher ")
+                raise InvalidPipelineExecution \
+                    (f"Specified component `{resume_component}` was not found in the list of "
+                     f"pipeline components. Available components are: {components_list}")
+
             modified_pipeline_graph = _get_modified_execution_graph(component_idx)
 
         elif resume_component and not run_id:
             raise InvalidPipelineExecution(
-                f"Cannot resume from a pipeline without a specified run_id.")
+                "Cannot resume from a pipeline without a specified run_id."
+            )
 
         elif not resume_component and run_id:
+
             last_executed_component = _get_last_executed_components()
+
             if last_executed_component is not None:
                 last_executed_component_idx = components_list.index(last_executed_component)
                 component_to_resume_idx = last_executed_component_idx + 1
                 modified_pipeline_graph = _get_modified_execution_graph(component_to_resume_idx)
+                logger.info(f"last executed component for pipeline with run_id `{run_id}` was"
+                            f" `{last_executed_component}`.\n"
+                            f"Resuming run from `{components_list[component_to_resume_idx]}`"
+                            f" component.")
+
             else:
-                modified_pipeline_graph = pipeline_graph
+                raise InvalidPipelineExecution(
+                    f"Could not find any executed components for run with provided id "
+                    f"`{run_id}` in the specified base path: `{base_path}`")
 
         else:
             modified_pipeline_graph = pipeline_graph
@@ -223,6 +245,7 @@ class DockerCompiler(Compiler):
         if run_id is None:
             run_id = f"{pipeline.name}-{timestamp}"
 
+        logger.info(f"pipeline run_id: {run_id}")
         metadata = MetaData(run_id=run_id, base_path=path)
 
         services = {}

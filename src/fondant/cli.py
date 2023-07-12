@@ -333,6 +333,8 @@ def run(args):
                 pipeline=pipeline,
                 extra_volumes=args.extra_volumes,
                 output_path=spec_ref,
+                run_id=args.run_id,
+                resume_component=args.resume_component
             )
         finally:
             DockerRunner().run(spec_ref)
