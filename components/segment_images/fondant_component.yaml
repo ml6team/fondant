@@ -18,6 +18,8 @@ args:
   model_id:
     description: id of the model on the Hugging Face hub
     type: str
+    default: "openmmlab/upernet-convnext-small"
   batch_size:
     description: batch size to use
     type: int
+    batch_size: 8

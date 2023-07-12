@@ -64,4 +64,3 @@ services:
         condition: service_completed_successfully
     volumes: []
 version: '3.8'
-
