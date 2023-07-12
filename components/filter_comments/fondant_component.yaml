@@ -13,6 +13,8 @@ args:
   min_comments_ratio:
     description: The minimum code to comment ratio
     type: float
+    default: 0.1
   max_comments_ratio:
     description: The maximum code to comment ratio
     type: float
+    default: 0.9
