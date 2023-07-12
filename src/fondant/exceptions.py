@@ -18,6 +18,8 @@ class InvalidComponentSpec(ValidationError, FondantException):
 class InvalidPipelineDefinition(ValidationError, FondantException):
     """Thrown when a pipeline definition is invalid."""
 
+class InvalidPipelineExecution(ValidationError, FondantException):
+    """Thrown when a pipeline execution definition is invalid."""
 
 class InvalidTypeSchema(ValidationError, FondantException):
     """Thrown when a Type schema definition is invalid."""
