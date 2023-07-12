@@ -1,0 +1,57 @@
+name: test_pipeline
+services:
+  third_component:
+    build: ./example_pipelines/valid_pipeline/example_1
+    command:
+      - --metadata
+      - '{"run_id": "mock_pipeline_run_123", "base_path": "/base_path"}'
+      - --output_manifest_path
+      - /base_path/third_component/manifest.json
+      - --storage_args
+      - a dummy string arg
+      - --component_spec
+      - '{"name": "Third component", "description": "This is an example component",
+      "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
+      {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}},
+      "embeddings": {"fields": {"data": {"type": "array", "items": {"type": "float32"}}}}},
+      "produces": {"images": {"fields": {"data": {"type": "binary"}}}, "captions":
+      {"fields": {"data": {"type": "string"}}}, "embeddings": {"fields": {"data":
+      {"type": "array", "items": {"type": "float32"}}}}, "additionalSubsets": false},
+      "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
+      - --input_manifest_path
+      - /base_path/second_component/manifest.json
+    depends_on: {}
+    volumes:
+      - source: /home/philippe/Scripts/express/tests/example_pipelines/valid_pipeline/example_1/base_path
+        target: /base_path
+        type: bind
+  fourth_component:
+    build: ./example_pipelines/valid_pipeline/example_1
+    command:
+    - --metadata
+    - '{"run_id": "mock_pipeline_run_123", "base_path": "/base_path"}'
+    - --output_manifest_path
+    - /base_path/fourth_component/manifest.json
+    - --storage_args
+    - a dummy string arg
+    - --some_list
+    - '[1, 2, 3]'
+    - --component_spec
+    - '{"name": "Fourth component", "description": "This is an example component",
+      "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
+      {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}},
+      "embeddings": {"fields": {"data": {"type": "array", "items": {"type": "float32"}}}}},
+      "produces": {"images": {"fields": {"data": {"type": "binary"}}}, "additionalSubsets":
+      false}, "args": {"storage_args": {"description": "Storage arguments", "type":
+      "str"}, "some_list": {"description": "Some list", "type": "list", "items": {"type":
+      "int"}}}}'
+    - --input_manifest_path
+    - /base_path/third_component/manifest.json
+    depends_on:
+      third_component:
+        condition: service_completed_successfully
+    volumes:
+    - source: /home/philippe/Scripts/express/tests/example_pipelines/valid_pipeline/example_1/base_path
+      target: /base_path
+      type: bind
+version: '3.8'

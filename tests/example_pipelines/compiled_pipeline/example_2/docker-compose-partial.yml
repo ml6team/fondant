@@ -1,27 +1,11 @@
 name: test_pipeline
 services:
-  first_component:
-    build: ./tests/example_pipelines/valid_pipeline/example_1
-    command:
-    - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
-    - --output_manifest_path
-    - /foo/bar/first_component/manifest.json
-    - --storage_args
-    - a dummy string arg
-    - --component_spec
-    - '{"name": "First component", "description": "This is an example component",
-      "image": "example_component:latest", "produces": {"images": {"fields": {"data":
-      {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
-      "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
-    depends_on: {}
-    volumes: []
   image_cropping:
     command:
     - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
+    - '{"run_id": "mock_pipeline_run_123", "base_path": "example_pipelines/valid_pipeline/example_2/base_path"}'
     - --output_manifest_path
-    - /foo/bar/image_cropping/manifest.json
+    - example_pipelines/valid_pipeline/example_2/base_path/image_cropping/manifest.json
     - --cropping_threshold
     - '0'
     - --padding
@@ -38,10 +22,8 @@ services:
       for the image cropping. The padding is added to all borders of the image.",
       "type": "int", "default": 10}}}'
     - --input_manifest_path
-    - /foo/bar/first_component/manifest.json
-    depends_on:
-      first_component:
-        condition: service_completed_successfully
+    - example_pipelines/valid_pipeline/example_2/base_path/first_component/manifest.json
+    depends_on: {}
     image: ghcr.io/ml6team/image_cropping:dev
     volumes: []
 version: '3.8'

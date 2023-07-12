@@ -70,7 +70,7 @@ class DockerCompiler(Compiler):
             pipeline: the pipeline to compile
             output_path: the path where to save the docker-compose spec
             run_id: the run_id to continue the pipeline run from
-            resume_component: the name of the component to resume the run from (if
+            resume_component: the name of the component to resume the run from
             extra_volumes: a list of extra volumes (using the Short syntax:
               https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
               to mount in the docker-compose spec.
@@ -191,8 +191,8 @@ class DockerCompiler(Compiler):
             last_executed_component = _get_last_executed_components()
             if last_executed_component is not None:
                 last_executed_component_idx = components_list.index(last_executed_component)
-                component_idx = last_executed_component_idx + 1
-                modified_pipeline_graph = _get_modified_execution_graph(component_idx)
+                component_to_resume_idx = last_executed_component_idx + 1
+                modified_pipeline_graph = _get_modified_execution_graph(component_to_resume_idx)
             else:
                 modified_pipeline_graph = pipeline_graph
 

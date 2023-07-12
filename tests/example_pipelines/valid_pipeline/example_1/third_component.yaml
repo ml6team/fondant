@@ -25,6 +25,16 @@ produces:
     fields:
       data:
         type: binary
+  captions:
+    fields:
+      data:
+        type: string
+  embeddings:
+    fields:
+      data:
+        type: array
+        items:
+          type: float32
   additionalSubsets: false
 
 args:
