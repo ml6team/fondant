@@ -12,4 +12,6 @@ produces:
   text:
     fields:
       minhash:
-        type: string
+        type: array
+        items:
+            type: uint64

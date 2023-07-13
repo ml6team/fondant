@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 class MinHashGeneratorComponent(PandasTransformComponent):
     """Component generates minhashes of text."""
 
-
     @staticmethod
     def create_shingles(text):
         """Creates text shingles that will be used for the hash generation."""
@@ -22,6 +21,7 @@ class MinHashGeneratorComponent(PandasTransformComponent):
         # Generate shingles of size 3 using nltk's ngrams function
         return list(ngrams(words, 3))
 
+
     @staticmethod
     def compute_minhash(shingles):
         """Calculate minhash based on the shingles."""
@@ -29,7 +29,7 @@ class MinHashGeneratorComponent(PandasTransformComponent):
 
         # Update the MinHash object with the shingles
         for shingle in shingles:
-            minhash.update(" ".join(shingle).encode('utf-8'))
+            minhash.update(" ".join(shingle).encode("utf-8"))
 
         return minhash.hashvalues
 
@@ -43,8 +43,12 @@ class MinHashGeneratorComponent(PandasTransformComponent):
         Returns:
             Pandas dataframe
         """
-        dataframe[("text", "shingles")] = dataframe[("text","data")].apply(self.create_shingles)
-        dataframe[("text", "minhash")] = dataframe[("text", "shingles")].apply(self.compute_minhash)
+        dataframe[("text", "shingles")] = dataframe[("text", "data")].apply(
+            self.create_shingles,
+        )
+        dataframe[("text", "minhash")] = dataframe[("text", "shingles")].apply(
+            self.compute_minhash,
+        )
 
         return dataframe
 
