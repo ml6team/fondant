@@ -7,21 +7,22 @@ from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
 
+MODEL_PATH = "lid.176.ftz"
+
 
 class LanguageIdentification:
     """A class for language detection using FastText."""
 
-    def __init__(self, language, model_path: str = "lid.176.ftz"):
+    def __init__(self,
+                 language: str):
         """
         Initializes the LanguageDetect class.
 
         Args:
            language (str): language to filter on
-           model_path (str): The path to the FastText language identification model.
         """
-        pretrained_lang_model_weight_path = model_path
         self.language = language
-        self.model = fasttext.load_model(pretrained_lang_model_weight_path)
+        self.model = fasttext.load_model(MODEL_PATH)
 
     def predict_lang(self, text: str):
         """
@@ -51,7 +52,6 @@ class LanguageFilterComponent(PandasTransformComponent):
             language: Only keep text passages which are in the provided language.
         """
         self.lang_detector = LanguageIdentification(language)
-
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """
