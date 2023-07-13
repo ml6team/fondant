@@ -9,7 +9,7 @@ repos:
         files:  |
             (?x)^(
                 components/.*|
-                fondant/.*|
+                src/.*|
                 tests/.*|
             )$
         args: [
@@ -25,7 +25,7 @@ repos:
       - id: bandit
         name: bandit
         types: [python]
-        files: "^fondant/"
+        files: "^src/"
         args: ["-f", "custom", "-q"]
 
   - repo: https://github.com/psf/black
@@ -35,7 +35,7 @@ repos:
         name: black
         files:  |
             (?x)^(
-                fondant/.*|
+                src/.*|
                 examples/.*|
                 tests/.*|
             )$
