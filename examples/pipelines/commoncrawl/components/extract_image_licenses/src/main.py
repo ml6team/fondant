@@ -70,7 +70,7 @@ class ExtractImageLicenses(PandasTransformComponent):
             .apply(pd.Series)
         )
 
-        df = df.dropna().reset_index(drop=True)
+        df = df.dropna()
 
         df.columns = [
             ("image", "image_url"),
