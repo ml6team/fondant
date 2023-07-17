@@ -261,7 +261,7 @@ class ComponentSpec:
             for name, arg_info in self._specification.get("args", {}).items()
         }
 
-        return component_base_args | user_args
+        return {**component_base_args, **user_args}
 
     @property
     def specification(self) -> t.Dict[str, t.Any]:
@@ -293,8 +293,8 @@ class KubeflowComponentSpec:
 
     @classmethod
     def from_fondant_component_spec(
-            cls,
-            fondant_component: ComponentSpec,
+        cls,
+        fondant_component: ComponentSpec,
     ) -> "KubeflowComponentSpec":
         """Create a Kubeflow component spec from a Fondant component spec."""
 
@@ -310,7 +310,10 @@ class KubeflowComponentSpec:
                 if arg.placeholder_type in placeholder_types
             ]
 
-        input_arguments = filter_arguments(fondant_component.args, ["inputValue", "inputPath"])
+        input_arguments = filter_arguments(
+            fondant_component.args,
+            ["inputValue", "inputPath"],
+        )
         output_arguments = filter_arguments(fondant_component.args, ["outputPath"])
 
         specification = {

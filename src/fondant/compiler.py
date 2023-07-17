@@ -123,7 +123,7 @@ class DockerCompiler(Compiler):
             safe_component_name = self._safe_component_name(component_name)
 
             component_op = component["fondant_component_op"]
-            component_type = component_op.component_spec.specification['type']
+            component_type = component_op.component_spec.specification["type"]
 
             # add metadata argument to command
             command = ["--metadata", json.dumps(asdict(metadata))]

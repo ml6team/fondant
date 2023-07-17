@@ -26,13 +26,13 @@ class Component(ABC):
     """Abstract base class for a Fondant component."""
 
     def __init__(
-            self,
-            spec: ComponentSpec,
-            *,
-            metadata: t.Dict[str, t.Any],
-            user_arguments: t.Dict[str, Argument],
-            input_manifest_path: t.Optional[t.Union[str, Path]] = None,
-            output_manifest_path: t.Optional[t.Union[str, Path]] = None,
+        self,
+        spec: ComponentSpec,
+        *,
+        metadata: t.Dict[str, t.Any],
+        user_arguments: t.Dict[str, Argument],
+        input_manifest_path: t.Optional[t.Union[str, Path]] = None,
+        output_manifest_path: t.Optional[t.Union[str, Path]] = None,
     ) -> None:
         self.spec = spec
         self.metadata = metadata
@@ -42,8 +42,8 @@ class Component(ABC):
 
     @classmethod
     def from_file(
-            cls,
-            path: t.Union[str, Path] = "../fondant_component.yaml",
+        cls,
+        path: t.Union[str, Path] = "../fondant_component.yaml",
     ) -> "Component":
         """Create a component from a component spec file.
 

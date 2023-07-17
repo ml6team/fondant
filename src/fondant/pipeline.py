@@ -368,7 +368,9 @@ class Pipeline:
             previous_component_task = None
             for operation in self._graph.values():
                 fondant_component_op = operation["fondant_component_op"]
-                component_type = fondant_component_op.component_spec.specification['type']
+                component_type = fondant_component_op.component_spec.specification[
+                    "type"
+                ]
 
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
