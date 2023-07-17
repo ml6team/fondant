@@ -66,6 +66,58 @@ class Argument:
     default: t.Optional[str] = None
 
 
+input_manifest_path = Argument(
+    name="input_manifest_path",
+    description="Path to the input manifest",
+    type="str",
+    placeholder_type="inputPath",
+)
+
+output_manifest_path = Argument(
+    name="output_manifest_path",
+    description="Path to the output manifest",
+    type="str",
+    placeholder_type="outputPath",
+)
+
+metadata = Argument(
+    name="metadata",
+    description="Metadata arguments containing the run id and base path",
+    type="dict",
+    placeholder_type="inputValue",
+)
+
+component_spec = Argument(
+    name="component_spec",
+    description="The component specification as a dictionary",
+    type="dict",
+    placeholder_type="inputValue",
+)
+
+
+class ComponentBaseArgs(Enum):
+    """Enum representing component base arguments for the different component type."""
+
+    load = {
+        "component_spec": component_spec,
+        "metadata": metadata,
+        "output_manifest_path": output_manifest_path,
+    }
+
+    transform = {
+        "component_spec": component_spec,
+        "metadata": metadata,
+        "input_manifest_path": input_manifest_path,
+        "output_manifest_path": output_manifest_path,
+    }
+
+    write = {
+        "component_spec": component_spec,
+        "metadata": metadata,
+        "input_manifest_path": input_manifest_path,
+    }
+
+
 class ComponentSubset:
     """
     Class representing a Fondant Component subset.
@@ -92,56 +144,6 @@ class ComponentSubset:
     @property
     def additional_fields(self) -> bool:
         return self._specification.get("additionalFields", True)
-
-
-input_manifest_path = Argument(
-    name="input_manifest_path",
-    description="Path to the input manifest",
-    type="str",
-    placeholder_type="inputPath",
-)
-
-output_manifest_path = Argument(
-    name="output_manifest_path",
-    description="Path to the output manifest",
-    type="str",
-    placeholder_type="outputPath",
-)
-
-metadata = Argument(
-    name="metadata",
-    description="Metadata arguments containing the run id and base path",
-    type="str",
-    placeholder_type="inputValue",
-)
-
-component_spec = Argument(
-    name="component_spec",
-    description="The component specification as a dictionary",
-    type="dict",
-    placeholder_type="inputValue",
-)
-
-
-class ComponentBaseArgs(Enum):
-    """Enum representing component base arguments for different types of components."""
-
-    load = {
-        "component_spec": component_spec,
-        "metadata": metadata,
-        "output_manifest_path": output_manifest_path,
-    }
-
-    transform = {
-        "component_spec": component_spec,
-        "input_manifest_path": input_manifest_path,
-        "output_manifest_path": output_manifest_path,
-    }
-
-    write = {
-        "component_spec": component_spec,
-        "input_manifest_path": input_manifest_path,
-    }
 
 
 class ComponentSpec:
@@ -291,37 +293,31 @@ class KubeflowComponentSpec:
 
     @classmethod
     def from_fondant_component_spec(
-        cls,
-        fondant_component: ComponentSpec,
+            cls,
+            fondant_component: ComponentSpec,
     ) -> "KubeflowComponentSpec":
         """Create a Kubeflow component spec from a Fondant component spec."""
+
+        def filter_arguments(args, placeholder_types):
+            return [
+                {
+                    "name": arg.name,
+                    "description": arg.description,
+                    "type": python2kubeflow_type[arg.type],
+                    **({"default": arg.default} if arg.default is not None else {}),
+                }
+                for arg in args.values()
+                if arg.placeholder_type in placeholder_types
+            ]
+
+        input_arguments = filter_arguments(fondant_component.args, ["inputValue", "inputPath"])
+        output_arguments = filter_arguments(fondant_component.args, ["outputPath"])
+
         specification = {
             "name": fondant_component.name,
             "description": fondant_component.description,
-            "inputs": [
-                *(
-                    {
-                        "name": arg.name,
-                        "description": arg.description,
-                        "type": python2kubeflow_type[arg.type],
-                        **({"default": arg.default} if arg.default is not None else {}),
-                    }
-                    for arg in fondant_component.args.values()
-                    if "input" in arg.placeholder_type.lower()
-                ),
-            ],
-            "outputs": [
-                *(
-                    {
-                        "name": arg.name,
-                        "description": arg.description,
-                        "type": python2kubeflow_type[arg.type],
-                        **({"default": arg.default} if arg.default is not None else {}),
-                    }
-                    for arg in fondant_component.args.values()
-                    if "output" in arg.placeholder_type.lower()
-                ),
-            ],
+            **({"inputs": input_arguments} if input_arguments else {}),
+            **({"outputs": output_arguments} if output_arguments else {}),
             "implementation": {
                 "container": {
                     "image": fondant_component.image,
@@ -381,6 +377,7 @@ class KubeflowComponentSpec:
     @property
     def output_arguments(self) -> t.Mapping[str, Argument]:
         """The output arguments of the component as an immutable mapping."""
+        outputs = self._specification.get("outputs")
         return types.MappingProxyType(
             {
                 info["name"]: Argument(
@@ -388,7 +385,7 @@ class KubeflowComponentSpec:
                     description=info["description"],
                     type=info["type"],
                 )
-                for info in self._specification["outputs"]
+                for info in outputs or []
             },
         )
 
