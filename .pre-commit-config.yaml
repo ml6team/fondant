@@ -44,7 +44,7 @@ repos:
     rev: v1.2.0
     hooks:
       - id: mypy
-        files: "^fondant/"
+        files: "^src/"
         args: ["--ignore-missing-imports", "fondant"]
         additional_dependencies:
           - types-jsonschema
