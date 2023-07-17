@@ -1,0 +1,21 @@
+name: Example component
+description: This is an example transform component
+type: transform
+image: example_component:latest
+
+consumes:
+  dummy_subset:
+    fields:
+      data:
+        type: binary
+
+produces:
+  dummy_subset:
+    fields:
+      data:
+        type: binary
+
+args:
+  dummy_arg:
+    description: dummy arguments
+    type: str

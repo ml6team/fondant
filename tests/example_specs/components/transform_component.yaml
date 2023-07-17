@@ -8,7 +8,7 @@ consumes:
     fields:
       data:
         type: binary
-  
+
 produces:
   embeddings:
     fields:
@@ -16,8 +16,13 @@ produces:
         type: array
         items:
           type: float32
+    additionalFields: false
+
 
 args:
-  storage_args:
-    description: Storage arguments
+  flag:
+    description: user argument
     type: str
+  value:
+    description: integer value
+    type: int

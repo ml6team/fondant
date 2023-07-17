@@ -1,0 +1,15 @@
+name: Example component
+description: This is an example load component
+type: load
+image: example_component:latest
+
+produces:
+  dummy_subset:
+    fields:
+      data:
+        type: binary
+
+args:
+  dummy_arg:
+    description: dummy arguments
+    type: str

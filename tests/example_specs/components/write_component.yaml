@@ -1,0 +1,18 @@
+name: Example component
+description: This is an example write component
+type: write
+image: example_component:latest
+
+consumes:
+  images:
+    fields:
+      data:
+        type: binary
+
+args:
+  flag:
+    description: user argument
+    type: str
+  value:
+    description: integer value
+    type: int
