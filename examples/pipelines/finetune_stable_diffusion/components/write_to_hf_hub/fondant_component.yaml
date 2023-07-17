@@ -1,5 +1,6 @@
 name: Write to hub
 description: Component that writes a dataset to the hub
+type: write
 image: ghcr.io/ml6team/write_to_hf_hub:latest
 
 consumes:

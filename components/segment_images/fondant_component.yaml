@@ -1,5 +1,6 @@
 name: Segment images
 description: Component that creates segmentation masks for images using a model from the Hugging Face hub
+type: transform
 image: ghcr.io/ml6team/segment_images:dev
 
 consumes:

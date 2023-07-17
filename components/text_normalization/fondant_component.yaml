@@ -1,5 +1,6 @@
 name: Normalize text.
 description: A component that normalizes text.
+type: transform
 image: ghcr.io/ml6team/text_normalization:latest
 
 consumes:

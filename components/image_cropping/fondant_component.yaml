@@ -1,5 +1,6 @@
 name: Image cropping
 description: Component that removes single-colored borders around images and crops them appropriately
+type: transform
 image: ghcr.io/ml6team/image_cropping:dev
 
 consumes:

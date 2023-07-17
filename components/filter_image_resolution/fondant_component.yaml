@@ -1,5 +1,6 @@
 name: Filter image resolution
 description: Component that filters images based on minimum size and max aspect ratio
+type: transform
 image: ghcr.io/ml6team/filter_image_resolution:latest
 
 consumes:
