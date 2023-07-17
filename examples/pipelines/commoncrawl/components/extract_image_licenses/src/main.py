@@ -13,7 +13,7 @@ from utils.image_utils import get_images_from_soup, get_unique_images
 logger = logging.getLogger(__name__)
 
 
-def get_image_info_from_webpage(webpage_url: str, webpage_html: str) -> List[str]:
+def get_image_info_from_webpage(webpage_url: str, webpage_html: str) -> List[List[str]]:
     """Extracts image urls and license metadata from the parsed html code.
     Args:
         webpage_url: The url of the webpage.

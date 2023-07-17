@@ -51,7 +51,7 @@ def get_image_info(
 
 def get_images_from_soup(
     soup: Any, webpage_url: str, license_type: str, license_location: str
-) -> List[str]:
+) -> List[List[str]]:
     """Returns a list of image urls from the parsed html code.
     Args:
         soup: The parsed html code.
@@ -69,7 +69,7 @@ def get_images_from_soup(
     return image_info
 
 
-def get_unique_images(images: List[str]) -> List[str]:
+def get_unique_images(images: List[List[str]]) -> List[List[str]]:
     """Returns a list of unique images.
     Args:
         images: A list of images.
