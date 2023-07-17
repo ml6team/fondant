@@ -31,7 +31,12 @@ def default_pipeline_args():
     [
         (
             "example_1",
-            ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
+            [
+                "first_component.yaml",
+                "second_component.yaml",
+                "third_component.yaml",
+                "fourth_component.yaml",
+            ],
         ),
     ],
 )
@@ -63,20 +68,27 @@ def test_valid_pipeline(
         Path(components_path / component_names[2]),
         arguments=component_args,
     )
+    fourth_component_op = ComponentOp(
+        Path(components_path / component_names[3]),
+        arguments=component_args,
+    )
 
     pipeline.add_op(third_component_op, dependencies=second_component_op)
     pipeline.add_op(first_component_op)
     pipeline.add_op(second_component_op, dependencies=first_component_op)
+    pipeline.add_op(fourth_component_op, dependencies=third_component_op)
 
     pipeline.sort_graph()
     assert list(pipeline._graph.keys()) == [
         "First component",
         "Second component",
         "Third component",
+        "Fourth component",
     ]
     assert pipeline._graph["First component"]["dependencies"] == []
     assert pipeline._graph["Second component"]["dependencies"] == ["First component"]
     assert pipeline._graph["Third component"]["dependencies"] == ["Second component"]
+    assert pipeline._graph["Fourth component"]["dependencies"] == ["Third component"]
 
     pipeline.compile()
 

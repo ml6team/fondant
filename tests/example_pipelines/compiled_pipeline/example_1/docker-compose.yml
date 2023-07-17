@@ -46,8 +46,6 @@ services:
     - /foo/bar/third_component/manifest.json
     - --storage_args
     - a dummy string arg
-    - --some_list
-    - '[1, 2, 3]'
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":

@@ -1,30 +1,35 @@
 name: Example component
 description: This is an example component
 inputs:
--   name: component_spec
-    description: The component specification as a dictionary
-    type: JsonObject
--   name: input_manifest_path
-    description: Path to the input manifest
-    type: String
--   name: storage_args
-    description: Storage arguments
-    type: String
+- name: component_spec
+  description: The component specification as a dictionary
+  type: JsonObject
+- name: metadata
+  description: Metadata arguments containing the run id and base path
+  type: JsonObject
+- name: input_manifest_path
+  description: Path to the input manifest
+  type: String
+- name: storage_args
+  description: Storage arguments
+  type: String
 outputs:
--   name: output_manifest_path
-    description: Path to the output manifest
-    type: String
+- name: output_manifest_path
+  description: Path to the output manifest
+  type: String
 implementation:
-    container:
-        image: example_component:latest
-        command:
-        - python3
-        - main.py
-        - --component_spec
-        -   inputValue: component_spec
-        - --input_manifest_path
-        -   inputPath: input_manifest_path
-        - --output_manifest_path
-        -   outputPath: output_manifest_path
-        - --storage_args
-        -   inputValue: storage_args
+  container:
+    image: example_component:latest
+    command:
+    - python3
+    - main.py
+    - --component_spec
+    - inputValue: component_spec
+    - --metadata
+    - inputValue: metadata
+    - --input_manifest_path
+    - inputPath: input_manifest_path
+    - --output_manifest_path
+    - outputPath: output_manifest_path
+    - --storage_args
+    - inputValue: storage_args

@@ -118,7 +118,7 @@ def test_load_component():
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
         "--component_spec",
-        yaml_file_to_json_string(components_path / "component.yaml"),
+        yaml_file_to_json_string(components_path / "load_component.yaml"),
     ]
 
     class MyLoadComponent(LoadComponent):
@@ -154,7 +154,7 @@ def test_dask_transform_component():
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
         "--component_spec",
-        yaml_file_to_json_string(components_path / "component.yaml"),
+        yaml_file_to_json_string(components_path / "transform_component.yaml"),
     ]
 
     class MyDaskComponent(DaskTransformComponent):
@@ -190,7 +190,7 @@ def test_pandas_transform_component():
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
         "--component_spec",
-        yaml_file_to_json_string(components_path / "component.yaml"),
+        yaml_file_to_json_string(components_path / "transform_component.yaml"),
     ]
 
     class MyPandasComponent(PandasTransformComponent):
@@ -226,6 +226,7 @@ def test_wrap_transform():
         {
             "name": "Test component",
             "description": "Component for testing",
+            "type": "transform",
             "image": "component:test",
             "consumes": {
                 "image": {
@@ -303,7 +304,7 @@ def test_write_component():
         "--value",
         "1",
         "--component_spec",
-        yaml_file_to_json_string(components_path / "component.yaml"),
+        yaml_file_to_json_string(components_path / "write_component.yaml"),
     ]
 
     class MyWriteComponent(WriteComponent):

@@ -1,5 +1,6 @@
-name: Third component
+name: Fourth component
 description: This is an example component
+type: write
 image: example_component:latest
 
 consumes:
@@ -8,31 +9,7 @@ consumes:
       data:
         type: binary
 
-  captions:
-    fields:
-      data:
-        type: string
-
-  embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
-
-produces:
-  images:
-    fields:
-      data:
-        type: binary
-  additionalSubsets: false
-
 args:
   storage_args:
     description: Storage arguments
     type: str
-  some_list:
-    description: Some list
-    type: list
-    items:
-      type: int

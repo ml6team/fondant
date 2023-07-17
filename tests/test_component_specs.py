@@ -13,6 +13,24 @@ component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 
 
 @pytest.fixture()
+def valid_fondant_load_component_schema() -> dict:
+    with open(component_specs_path / "valid_load_component.yaml") as f:
+        return yaml.safe_load(f)
+
+
+@pytest.fixture()
+def valid_fondant_transform_component_schema() -> dict:
+    with open(component_specs_path / "valid_transform_component.yaml") as f:
+        return yaml.safe_load(f)
+
+
+@pytest.fixture()
+def valid_fondant_write_component_schema() -> dict:
+    with open(component_specs_path / "valid_write_component.yaml") as f:
+        return yaml.safe_load(f)
+
+
+@pytest.fixture()
 def valid_fondant_schema() -> dict:
     with open(component_specs_path / "valid_component.yaml") as f:
         return yaml.safe_load(f)
@@ -60,6 +78,36 @@ def test_attribute_access(valid_fondant_schema):
     )
 
 
+def test_load_component(valid_fondant_load_component_schema):
+    """Test the default arguments present in a load component."""
+    fondant_component = ComponentSpec(valid_fondant_load_component_schema)
+    component_args = fondant_component.args.keys()
+    assert "component_spec" in component_args
+    assert "output_manifest_path" in component_args
+    assert "metadata" in component_args
+    assert "input_manifest_path" not in component_args
+
+
+def test_transform_component(valid_fondant_transform_component_schema):
+    """Test the default arguments present in a transform component."""
+    fondant_component = ComponentSpec(valid_fondant_transform_component_schema)
+    component_args = fondant_component.args.keys()
+    assert "component_spec" in component_args
+    assert "output_manifest_path" in component_args
+    assert "metadata" in component_args
+    assert "input_manifest_path" in component_args
+
+
+def test_write_component(valid_fondant_write_component_schema):
+    """Test the default arguments present in a write component."""
+    fondant_component = ComponentSpec(valid_fondant_write_component_schema)
+    component_args = fondant_component.args.keys()
+    assert "component_spec" in component_args
+    assert "output_manifest_path" not in component_args
+    assert "metadata" in component_args
+    assert "input_manifest_path" in component_args
+
+
 def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     """Test that the created kubeflow component matches the expected kubeflow component."""
     fondant_component = ComponentSpec(valid_fondant_schema)
@@ -67,17 +115,12 @@ def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     assert kubeflow_component._specification == valid_kubeflow_schema
 
 
-def test_transform_component_spec_no_args(valid_fondant_schema_no_args):
+def test_component_spec_no_args(valid_fondant_schema_no_args):
     """Test that a component spec without args is supported."""
     fondant_component = ComponentSpec(valid_fondant_schema_no_args)
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
-    assert list(fondant_component.args.keys()) == [
-        "component_spec",
-        "input_manifest_path",
-        "output_manifest_path",
-    ]
 
 
 def test_component_spec_to_file(valid_fondant_schema):
