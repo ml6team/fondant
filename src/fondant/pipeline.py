@@ -239,7 +239,7 @@ class Pipeline:
             base_path: the base path where to store the pipelines artifacts
             run_id: the run id of the component
         """
-        # TODO: change later if we decide to run 2 fondan pipelines after each other
+        # TODO: change later if we decide to run 2 fondant pipelines after each other
         load_component = True
         load_component_name = list(self._graph.keys())[0]
 
@@ -363,11 +363,12 @@ class Pipeline:
             #  it completely from the loading component
             # TODO: check if we want to have the metadata arg empty for transform component or
             #  remove it completely from the transform component
-            manifest_path = ""
-            metadata = ""
+            manifest_path = None
+            metadata = json.dumps({"base_path": self.base_path, "run_id": run_id})
             previous_component_task = None
             for operation in self._graph.values():
                 fondant_component_op = operation["fondant_component_op"]
+                component_type = fondant_component_op.component_spec.specification['type']
 
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
@@ -376,23 +377,18 @@ class Pipeline:
                 # the previous component.
                 component_args = fondant_component_op.arguments
 
-                if previous_component_task is not None:
+                if component_type == "load":
                     component_task = kubeflow_component_op(
-                        input_manifest_path=manifest_path,
                         metadata=metadata,
                         **component_args,
                     )
                 else:
-                    metadata = json.dumps(
-                        {"base_path": self.base_path, "run_id": run_id},
-                    )
                     # Add metadata to the first component
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
                         metadata=metadata,
                         **component_args,
                     )
-                    metadata = ""
                 # Set optional configurations
                 component_task = _set_task_configuration(
                     component_task,
@@ -404,7 +400,8 @@ class Pipeline:
                     component_task.after(previous_component_task)
 
                 # Update the manifest path to be the output path of the current component task.
-                manifest_path = component_task.outputs["output_manifest_path"]
+                if component_type in ["load", "transform"]:
+                    manifest_path = component_task.outputs["output_manifest_path"]
 
                 previous_component_task = component_task
 

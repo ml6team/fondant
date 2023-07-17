@@ -1,22 +1,14 @@
 name: Example component
 description: This is an example component
+type: load
 image: example_component:latest
 
-consumes:
-  images:
-    fields:
-      data:
-        type: binary
 
 produces:
-  embeddings:
+  captions:
     fields:
       data:
-        type: array
-        items:
-          type: float32
-    additionalFields: false
-
+        type: string
 
 args:
   flag:
