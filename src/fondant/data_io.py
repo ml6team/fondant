@@ -3,6 +3,7 @@ import typing as t
 
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
+from dask.distributed import performance_report
 
 from fondant.component_spec import ComponentSpec, ComponentSubset
 from fondant.manifest import Manifest
@@ -14,6 +15,11 @@ class DataIO:
     def __init__(self, *, manifest: Manifest, component_spec: ComponentSpec) -> None:
         self.manifest = manifest
         self.component_spec = component_spec
+        self.diagnostics_path = f"{self.manifest.base_path}/" \
+                                f"{self.manifest.component_id}/" \
+                                f"{self.manifest.run_id}
+        self.performance_report_path = f"{self.diagnostics_path}/dask_report.html"
+        self.execution_graph_path = f"{self.diagnostics_path}/execution_graph.png"
 
 
 class DaskDataLoader(DataIO):
@@ -87,6 +93,9 @@ class DaskDataLoader(DataIO):
 
 class DaskDataWriter(DataIO):
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
+        logging.info(f"Saving execution graph to {self.execution_graph_path}")
+        dataframe.visualize(self.execution_graph_path)
+
         write_tasks = []
 
         dataframe.index = dataframe.index.rename("id").astype("string")
@@ -114,15 +123,17 @@ class DaskDataWriter(DataIO):
             write_tasks.append(write_subset_task)
 
         with ProgressBar():
-            logging.info("Writing data...")
-            dd.compute(*write_tasks)
+            with performance_report(filename=self.performance_report_path):
+                logging.info("Writing data...")
+                logging.info(f"Saving performance report to {self.performance_report_path}")
+                dd.compute(*write_tasks)
 
     @staticmethod
     def _extract_subset_dataframe(
-        dataframe: dd.DataFrame,
-        *,
-        subset_name: str,
-        subset_spec: ComponentSubset,
+            dataframe: dd.DataFrame,
+            *,
+            subset_name: str,
+            subset_spec: ComponentSubset,
     ) -> dd.DataFrame:
         """Create subset dataframe to save with the original field name as the column name."""
         # Create a new dataframe with only the columns needed for the output subset
@@ -140,17 +151,17 @@ class DaskDataWriter(DataIO):
 
         # Remove the subset prefix from the column names
         subset_df = subset_df.rename(
-            columns={col: col[(len(f"{subset_name}_")) :] for col in subset_columns},
+            columns={col: col[(len(f"{subset_name}_")):] for col in subset_columns},
         )
 
         return subset_df
 
     def _write_subset(
-        self,
-        dataframe: dd.DataFrame,
-        *,
-        subset_name: str,
-        subset_spec: ComponentSubset,
+            self,
+            dataframe: dd.DataFrame,
+            *,
+            subset_name: str,
+            subset_spec: ComponentSubset,
     ) -> dd.core.Scalar:
         if subset_name == "index":
             location = self.manifest.index.location
@@ -163,10 +174,10 @@ class DaskDataWriter(DataIO):
 
     @staticmethod
     def _create_write_task(
-        dataframe: dd.DataFrame,
-        *,
-        location: str,
-        schema: t.Dict[str, str],
+            dataframe: dd.DataFrame,
+            *,
+            location: str,
+            schema: t.Dict[str, str],
     ) -> dd.core.Scalar:
         """
         Creates a delayed Dask task to upload the given DataFrame to the remote storage location
