@@ -26,24 +26,24 @@ class Component(ABC):
     """Abstract base class for a Fondant component."""
 
     def __init__(
-        self,
-        spec: ComponentSpec,
-        *,
-        input_manifest_path: t.Union[str, Path],
-        output_manifest_path: t.Union[str, Path],
-        metadata: t.Dict[str, t.Any],
-        user_arguments: t.Dict[str, Argument],
+            self,
+            spec: ComponentSpec,
+            *,
+            metadata: t.Dict[str, t.Any],
+            user_arguments: t.Dict[str, Argument],
+            input_manifest_path: t.Optional[t.Union[str, Path]] = None,
+            output_manifest_path: t.Optional[t.Union[str, Path]] = None,
     ) -> None:
         self.spec = spec
-        self.input_manifest_path = input_manifest_path
-        self.output_manifest_path = output_manifest_path
         self.metadata = metadata
         self.user_arguments = user_arguments
+        self.input_manifest_path = input_manifest_path
+        self.output_manifest_path = output_manifest_path
 
     @classmethod
     def from_file(
-        cls,
-        path: t.Union[str, Path] = "../fondant_component.yaml",
+            cls,
+            path: t.Union[str, Path] = "../fondant_component.yaml",
     ) -> "Component":
         """Create a component from a component spec file.
 
@@ -75,11 +75,9 @@ class Component(ABC):
 
         if "component_spec" in args_dict:
             args_dict.pop("component_spec")
-        input_manifest_path = args_dict.pop("input_manifest_path")
-        output_manifest_path = args_dict.pop("output_manifest_path")
+        input_manifest_path = args_dict.pop("input_manifest_path", None)
+        output_manifest_path = args_dict.pop("output_manifest_path", None)
         metadata = args_dict.pop("metadata")
-
-        metadata = json.loads(metadata) if metadata else {}
 
         return cls(
             component_spec,
@@ -95,10 +93,7 @@ class Component(ABC):
         component_arguments = cls._get_component_arguments(spec)
 
         for arg in component_arguments.values():
-            if arg.name in cls.optional_fondant_arguments():
-                input_required = False
-                default = None
-            elif arg.default:
+            if arg.default:
                 input_required = False
                 default = arg.default
             else:
@@ -114,10 +109,6 @@ class Component(ABC):
             )
 
         return parser.parse_args()
-
-    @staticmethod
-    def optional_fondant_arguments() -> t.List[str]:
-        return []
 
     @staticmethod
     def _get_component_arguments(spec: ComponentSpec) -> t.Dict[str, Argument]:
@@ -170,10 +161,6 @@ class Component(ABC):
 class LoadComponent(Component):
     """Base class for a Fondant load component."""
 
-    @staticmethod
-    def optional_fondant_arguments() -> t.List[str]:
-        return ["input_manifest_path"]
-
     def _load_or_create_manifest(self) -> Manifest:
         component_id = self.spec.name.lower().replace(" ", "_")
         return Manifest.create(
@@ -220,6 +207,42 @@ class TransformComponent(Component):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
+
+
+class WriteComponent(Component):
+    """Base class for a Fondant write component."""
+
+    def _load_or_create_manifest(self) -> Manifest:
+        return Manifest.from_file(self.input_manifest_path)
+
+    @abstractmethod
+    def write(self, *args, **kwargs):
+        """
+        Abstract method to write a dataframe to a final custom location.
+
+        Args:
+            args: The dataframe will be passed in as a positional argument
+            kwargs: Arguments provided to the component are passed as keyword arguments
+        """
+
+    def _process_dataset(self, manifest: Manifest) -> None:
+        """
+        Creates a DataLoader using the provided manifest and loads the input dataframe using the
+        `load_dataframe` instance, and  applies data transformations to it using the `transform`
+        method implemented by the derived class. Returns a single dataframe.
+
+        Returns:
+            A `dd.DataFrame` instance with updated data based on the applied data transformations.
+        """
+        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        dataframe = data_loader.load_dataframe()
+        self.write(dataframe, **self.user_arguments)
+
+    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
+        """Create a data writer given a manifest and writes out the index and subsets."""
+
+    def upload_manifest(self, manifest: Manifest, save_path: str):
+        pass
 
 
 class DaskTransformComponent(TransformComponent):
@@ -355,43 +378,3 @@ class PandasTransformComponent(TransformComponent):
         return any(
             not subset.additional_fields for subset in self.spec.produces.values()
         )
-
-
-class WriteComponent(Component):
-    """Base class for a Fondant write component."""
-
-    @staticmethod
-    def optional_fondant_arguments() -> t.List[str]:
-        return ["output_manifest_path"]
-
-    def _load_or_create_manifest(self) -> Manifest:
-        return Manifest.from_file(self.input_manifest_path)
-
-    @abstractmethod
-    def write(self, *args, **kwargs):
-        """
-        Abstract method to write a dataframe to a final custom location.
-
-        Args:
-            args: The dataframe will be passed in as a positional argument
-            kwargs: Arguments provided to the component are passed as keyword arguments
-        """
-
-    def _process_dataset(self, manifest: Manifest) -> None:
-        """
-        Creates a DataLoader using the provided manifest and loads the input dataframe using the
-        `load_dataframe` instance, and  applies data transformations to it using the `transform`
-        method implemented by the derived class. Returns a single dataframe.
-
-        Returns:
-            A `dd.DataFrame` instance with updated data based on the applied data transformations.
-        """
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
-        dataframe = data_loader.load_dataframe()
-        self.write(dataframe, **self.user_arguments)
-
-    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
-        """Create a data writer given a manifest and writes out the index and subsets."""
-
-    def upload_manifest(self, manifest: Manifest, save_path: str):
-        pass
