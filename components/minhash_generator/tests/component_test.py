@@ -26,7 +26,7 @@ def test_run_component_test():
         metadata={},
         user_arguments={},
     )
-    component.setup()
+
     dataframe = component.transform(dataframe=dataframe)
 
     # Then: dataframe contain minhashes for each entry

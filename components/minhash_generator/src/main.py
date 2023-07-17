@@ -1,6 +1,7 @@
 """A component that generates minhashes of text."""
 import logging
 
+import numpy as np
 import pandas as pd
 from datasketch import MinHash
 from fondant.component import PandasTransformComponent
@@ -9,21 +10,15 @@ from nltk.util import ngrams
 logger = logging.getLogger(__name__)
 
 
-class MinHashGeneratorComponent(PandasTransformComponent):
-    """Component generates minhashes of text."""
+def create_shingles(text: str) -> list:
+    """Creates text shingles that will be used for the hash generation."""
+    # Split text into words
+    words = text.split()
 
-    @staticmethod
-    def create_shingles(text):
-        """Creates text shingles that will be used for the hash generation."""
-        # Split text into words
-        words = text.split()
+    # Generate shingles of size 3 using nltk's ngrams function
+    return list(ngrams(words, 3))
 
-        # Generate shingles of size 3 using nltk's ngrams function
-        return list(ngrams(words, 3))
-
-
-    @staticmethod
-    def compute_minhash(shingles):
+def compute_minhash(shingles: list) -> np.ndarray:
         """Calculate minhash based on the shingles."""
         minhash = MinHash()
 
@@ -32,6 +27,10 @@ class MinHashGeneratorComponent(PandasTransformComponent):
             minhash.update(" ".join(shingle).encode("utf-8"))
 
         return minhash.hashvalues
+
+class MinHashGeneratorComponent(PandasTransformComponent):
+    """Component generates minhashes of text."""
+
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """
@@ -44,10 +43,10 @@ class MinHashGeneratorComponent(PandasTransformComponent):
             Pandas dataframe
         """
         dataframe[("text", "shingles")] = dataframe[("text", "data")].apply(
-            self.create_shingles,
+            create_shingles,
         )
         dataframe[("text", "minhash")] = dataframe[("text", "shingles")].apply(
-            self.compute_minhash,
+            compute_minhash,
         )
 
         return dataframe
