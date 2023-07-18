@@ -48,9 +48,8 @@ Now that we have a pipeline, we can add components to it. Components are the bui
 Let's add a reusable component to our pipeline. We will use the `load_from_hf_hub` component to read data from huggingface. Add the following code to your `pipeline.py` file:
 
 ```Python
-load_from_hf_hub = ComponentOp.from_registry(
-    name='load_from_hf_hub',
-    component_spec_path='components/load_from_hf_hub/fondant_component.yml',
+load_from_hf_hub = ComponentOp(
+    component_dir='components/load_from_hf_hub',
     arguments={
         'dataset_name': 'huggan/pokemon',
         'n_rows_to_load': 100,
@@ -278,7 +277,7 @@ With our component complete we can now add it to our pipeline definition (`pipel
 
 ```python
 extract_resolution = ComponentOp(
-    component_spec_path='components/extract_resolution/fondant_component.yml', 
+    component_dir='components/extract_resolution', 
 )
 
 my_pipeline.add_op(load_from_hf_hub) # this line was already there
