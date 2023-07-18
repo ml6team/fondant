@@ -56,8 +56,7 @@ def invalid_fondant_schema() -> dict:
 
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
     """Test that the manifest is validated correctly on instantiation."""
-    a = ComponentSpec(valid_fondant_schema)
-    print(a.kubeflow_specification)
+    ComponentSpec(valid_fondant_schema)
     with pytest.raises(InvalidComponentSpec):
         ComponentSpec(invalid_fondant_schema)
 

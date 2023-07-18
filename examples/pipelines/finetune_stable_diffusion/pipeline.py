@@ -19,9 +19,8 @@ write_component_column_mapping = {
     value: key for key, value in load_component_column_mapping.items()
 }
 # Define component ops
-load_from_hub_op = ComponentOp.from_registry(
-    name="load_from_hf_hub",
-    component_spec_path="components/load_from_hf_hub/fondant_component.yaml",
+load_from_hub_op = ComponentOp(
+    component_dir="components/load_from_hf_hub",
     arguments={
         "dataset_name": "logo-wizard/modern-logo-dataset",
         "column_name_mapping": load_component_column_mapping,
@@ -72,9 +71,8 @@ caption_images_op = ComponentOp.from_registry(
     node_pool_name="model-inference-pool",
 )
 
-write_to_hub = ComponentOp.from_registry(
-    name="write_to_hf_hub",
-    component_spec_path="components/write_to_hf_hub/fondant_component.yaml",
+write_to_hub = ComponentOp(
+    component_dir="components/write_to_hf_hub",
     arguments={
         "username": "test-user",
         "dataset_name": "stable_diffusion_processed",

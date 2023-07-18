@@ -1,7 +1,7 @@
 name: test_pipeline
 services:
   first_component:
-    build: ./tests/example_pipelines/valid_pipeline/example_1
+    build: tests/example_pipelines/valid_pipeline/example_1/first_component
     command:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
@@ -17,7 +17,7 @@ services:
     depends_on: {}
     volumes: []
   second_component:
-    build: ./tests/example_pipelines/valid_pipeline/example_1
+    build: tests/example_pipelines/valid_pipeline/example_1/second_component
     command:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
@@ -38,7 +38,7 @@ services:
         condition: service_completed_successfully
     volumes: []
   third_component:
-    build: ./tests/example_pipelines/valid_pipeline/example_1
+    build: tests/example_pipelines/valid_pipeline/example_1/third_component
     command:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
