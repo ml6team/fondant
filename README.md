@@ -174,7 +174,7 @@ def build_pipeline():
     pipeline.add_op(load_from_hub_op)
 
     custom_op = ComponentOp(
-        component_spec_path="components/custom_component/fondant_component.yaml",
+        component_dir="components/custom_component",
         arguments={
             "min_width": 600,
             "min_height": 600,

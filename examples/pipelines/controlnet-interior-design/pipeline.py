@@ -15,7 +15,7 @@ pipeline_description = "Pipeline that collects data to train ControlNet"
 
 # Define component ops
 generate_prompts_op = ComponentOp(
-    component_spec_path="components/generate_prompts/fondant_component.yaml",
+    component_dir="components/generate_prompts",
     arguments={"n_rows_to_load": None},
 )
 laion_retrieval_op = ComponentOp.from_registry(
@@ -59,9 +59,8 @@ segment_images_op = ComponentOp.from_registry(
     node_pool_name="model-inference-pool",
 )
 
-write_to_hub_controlnet = ComponentOp.from_registry(
-    name="write_to_hf_hub",
-    component_spec_path="components/write_to_hub_controlnet/fondant_component.yaml",
+write_to_hub_controlnet = ComponentOp(
+    component_dir="components/write_to_hub_controlnet",
     arguments={
         "username": "test-user",
         "dataset_name": "segmentation_kfp",
