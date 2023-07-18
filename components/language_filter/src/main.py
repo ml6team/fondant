@@ -4,6 +4,7 @@ import logging
 import fasttext
 import pandas as pd
 from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ class LanguageIdentification:
 class LanguageFilterComponent(PandasTransformComponent):
     """Component that filter columns based on provided language."""
 
-    def setup(self, *, language):
+    def __init__(self, *_, language):
         """Setup language filter component.
 
         Args:
@@ -67,5 +68,5 @@ class LanguageFilterComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = LanguageFilterComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(LanguageFilterComponent)

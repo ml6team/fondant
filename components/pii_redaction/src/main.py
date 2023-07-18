@@ -3,29 +3,22 @@
 import json
 import logging
 
-import dask.dataframe as dd
-from fondant.component import DaskTransformComponent
+import pandas as pd
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 from pii_detection import scan_pii
 from pii_redaction import redact_pii
 
 logger = logging.getLogger(__name__)
 
 
-class RemovePIIComponent(DaskTransformComponent):
+class RemovePIIComponent(PandasTransformComponent):
     """Component that detects and redacts PII from code."""
 
     def transform(
         self,
-        *,
-        dataframe: dd.DataFrame,
-    ) -> dd.DataFrame:
-        """
-        Args:
-            dataframe: Dask dataframe.
-
-        Returns:
-            Dask dataframe
-        """
+        dataframe: pd.DataFrame,
+    ) -> pd.DataFrame:
         # detect PII
         result = dataframe.apply(
             lambda example: scan_pii(text=example.code_content),
@@ -33,7 +26,7 @@ class RemovePIIComponent(DaskTransformComponent):
             result_type="expand",
             meta={0: object, 1: bool, 2: int},
         )
-        result.columns = ["code_secrets", "code_has_secrets", "code_number_secrets"]
+        result.columns = [("code", "secrets"), ("code", "has_secrets"), ("code", "number_secrets")]
 
         dataframe = dataframe.merge(result, left_index=True, right_index=True)
 
@@ -42,7 +35,7 @@ class RemovePIIComponent(DaskTransformComponent):
         with open("replacements.json") as f:
             replacements = json.load(f)
 
-        dataframe["code_content"] = dataframe.apply(
+        dataframe["code"]["content"] = dataframe.apply(
             lambda example: redact_pii(
                 text=example.code_content,
                 secrets=example.code_secrets,
@@ -52,13 +45,11 @@ class RemovePIIComponent(DaskTransformComponent):
             axis=1,
             meta=(None, "str"),
         )
-        dataframe = dataframe.drop(
-            ["code_secrets", "code_has_secrets", "code_number_secrets"], axis=1,
+        return dataframe.drop(
+            [("code", "secrets"), ("code", "has_secrets"), ("code", "number_secrets")], axis=1,
         )
-
-        return dataframe
 
 
 if __name__ == "__main__":
-    component = RemovePIIComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(RemovePIIComponent)

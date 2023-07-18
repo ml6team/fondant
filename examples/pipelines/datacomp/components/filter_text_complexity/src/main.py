@@ -12,6 +12,7 @@ import spacy
 from spacy.symbols import nsubj, VERB
 
 from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +42,9 @@ class FilterTextComplexity(PandasTransformComponent):
     - complexity of the dependency parse tree
     - number of actions"""
 
-    def setup(
+    def __init__(
         self,
-        *,
+        *args,
         spacy_pipeline,
         batch_size: int,
         min_complexity: int,
@@ -72,5 +73,5 @@ class FilterTextComplexity(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = FilterTextComplexity.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(FilterTextComplexity)
