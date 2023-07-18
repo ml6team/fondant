@@ -4,7 +4,7 @@ FROM --platform=linux/amd64 python:3.8-slim
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install git -y && \
-    apt-get install -y gcc
+    apt-get install -y gcc 
 
 # RUN apt-get update -y && apt-get install -y gcc
 

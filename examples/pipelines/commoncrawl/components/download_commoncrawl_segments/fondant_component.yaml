@@ -17,7 +17,19 @@ produces:
         type: string
 
 args:
+  use_s3:
+    description: Whether to use S3 to download the commoncrawl segment file. Set to True if you are running this component on an AWS cluster.
+    type: bool
+    default: 'False'
+  get_plain_text:
+    description: Whether to extract plain text from the HTML.
+    type: bool
+    default: 'False'
   n_records_to_download:
     description: Number of records to download from the commoncrawl segment file. Useful for small-scale testing.
+    type: int
+    default: None
+  partition_size:
+    description: Partition size for dataframe in megabytes(MB).
     type: int
     default: None

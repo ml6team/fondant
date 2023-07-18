@@ -1,3 +1,4 @@
+beautifulsoup4==4.12.2
 boto3==1.26.158
 git+https://github.com/ml6team/fondant@main
 warcio==1.7.4
