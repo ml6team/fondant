@@ -1,42 +1,45 @@
 """This component filters code based on a set of metadata associated with it."""
 import logging
 
-import dask.dataframe as dd
-from fondant.component import DaskTransformComponent
+import pandas as pd
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
 
-class FilterLineLengthComponent(DaskTransformComponent):
+class FilterLineLengthComponent(PandasTransformComponent):
     """
     This component filters code based on a set of metadata associated with it:
     average line length, maximum line length and alphanum fraction.
     """
 
-    def transform(
-        self,
-        *,
-        dataframe: dd.DataFrame,
+    def __init__(self, *_,
         avg_line_length_threshold: int,
         max_line_length_threshold: int,
         alphanum_fraction_threshold: float,
-    ) -> dd.DataFrame:
+    ) -> None:
         """
         Args:
-            dataframe: Dask dataframe
             avg_line_length_threshold: Threshold for average line length to filter on
             max_line_length_threshold: Threshold for max line length to filter on
-            alphanum_fraction_threshold: Alphanum fraction to filter on
-        Returns:
-            Filtered dask dataframe.
+            alphanum_fraction_threshold: Alphanum fraction to filter on.
         """
+        self.avg_line_length_threshold = avg_line_length_threshold
+        self.max_line_length_threshold = max_line_length_threshold
+        self.alphanum_fraction_threshold = alphanum_fraction_threshold
+
+    def transform(
+        self,
+        dataframe: pd.DataFrame,
+    ) -> pd.DataFrame:
         return dataframe[
-            (dataframe["code_avg_line_length"] > avg_line_length_threshold)
-            & (dataframe["code_max_line_length"] > max_line_length_threshold)
-            & (dataframe["code_alphanum_fraction"] > alphanum_fraction_threshold)
+            (dataframe["code_avg_line_length"] > self.avg_line_length_threshold)
+            & (dataframe["code_max_line_length"] > self.max_line_length_threshold)
+            & (dataframe["code_alphanum_fraction"] > self.alphanum_fraction_threshold)
         ]
 
 
 if __name__ == "__main__":
-    component = FilterLineLengthComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(FilterLineLengthComponent)

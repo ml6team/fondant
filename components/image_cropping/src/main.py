@@ -3,65 +3,62 @@ import io
 import logging
 import typing as t
 
-import dask.dataframe as dd
 import numpy as np
-from fondant.component import DaskTransformComponent
+import pandas as pd
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 from image_crop import remove_borders
 from PIL import Image
 
 logger = logging.getLogger(__name__)
 
 
-def extract_dimensions(image_df: dd.DataFrame) -> t.Tuple[np.int16, np.int16]:
+def extract_dimensions(image_bytes: bytes) -> t.Tuple[np.int16, np.int16]:
     """Extract the width and height of an image.
 
     Args:
-        image_df (dd.DataFrame): input dataframe with images_data column
+        image_bytes: input image as bytes
 
     Returns:
         np.int16: width of the image
         np.int16: height of the image
     """
-    image = Image.open(io.BytesIO(image_df["images_data"]))
+    image = Image.open(io.BytesIO(image_bytes))
 
     return np.int16(image.size[0]), np.int16(image.size[1])
 
 
-class ImageCroppingComponent(DaskTransformComponent):
+class ImageCroppingComponent(PandasTransformComponent):
     """Component that crops images."""
 
-    def transform(
+    def __init__(
         self,
-        *,
-        dataframe: dd.DataFrame,
+        *_,
         cropping_threshold: int,
         padding: int,
-    ) -> dd.DataFrame:
+    ) -> None:
         """
         Args:
-            dataframe (dd.DataFrame): Dask dataframe
             cropping_threshold (int): threshold parameter used for detecting borders
             padding (int): padding for the image cropping.
-
-        Returns:
-            dd.DataFrame: Dask dataframe with cropped images
         """
+        self.cropping_threshold = cropping_threshold
+        self.padding = padding
+
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         # crop images
-        dataframe["images_data"] = dataframe["images_data"].map(
-            lambda x: remove_borders(x, cropping_threshold, padding),
-            meta=("images_data", "bytes"),
+        dataframe["images"]["data"] = dataframe["images"]["data"].apply(
+            lambda image: remove_borders(image, self.cropping_threshold, self.padding),
         )
 
         # extract width and height
-        dataframe[["images_width", "images_height"]] = dataframe[
-            [
-                "images_data",
-            ]
-        ].apply(extract_dimensions, axis=1, result_type="expand", meta={0: int, 1: int})
+        dataframe["images"][["width", "height"]] = dataframe["images"]["data"].apply(
+            extract_dimensions, axis=1, result_type="expand", meta={0: int, 1: int},
+        )
 
         return dataframe
 
 
 if __name__ == "__main__":
-    component = ImageCroppingComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(ImageCroppingComponent)

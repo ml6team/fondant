@@ -4,6 +4,7 @@ import logging
 import fasttext
 import pandas as pd
 from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 class TextLengthFilterComponent(PandasTransformComponent):
     """A component that filters out text based on their length."""
 
-    def setup(self, *, min_characters_length: int, min_words_length: int):
+    def __init__(self, *_, min_characters_length: int, min_words_length: int):
         """Setup component.
 
         Args:
@@ -22,15 +23,7 @@ class TextLengthFilterComponent(PandasTransformComponent):
         self.min_words_length = min_words_length
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        """
-        Filter out text based on their length.
-
-        Args:
-            dataframe: Pandas dataframe.
-
-        Returns:
-            Pandas dataframe.
-        """
+        """Filter out text based on their length."""
         caption_num_words = dataframe["text"]["data"].apply(lambda x: len(fasttext.tokenize(x)))
         caption_num_chars = dataframe["text"]["data"].apply(len)
 
@@ -41,5 +34,5 @@ class TextLengthFilterComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = TextLengthFilterComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(TextLengthFilterComponent)
