@@ -7,7 +7,6 @@ https://github.com/rom1504/img2dataset/blob/main/img2dataset/downloader.py.
 """
 import io
 import logging
-import os
 import traceback
 import urllib
 
@@ -124,10 +123,6 @@ class DownloadImagesComponent(DaskTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
-        # Remove duplicates from laion retrieval (global)
-        dataframe = dataframe.drop_duplicates()
-        dataframe = dataframe.repartition(npartitions=os.cpu_count())
-
         dataframe = dataframe.apply(
             lambda example: download_image_with_retry(
                 url=example.images_url,
@@ -147,7 +142,7 @@ class DownloadImagesComponent(DaskTransformComponent):
 
         # Remove images that could not be fetched
         dataframe = dataframe.dropna()
-        dataframe = dataframe.repartition(partition_size="250MB")
+
         return dataframe
 
 
