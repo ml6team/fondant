@@ -75,7 +75,7 @@ for dir in "${components_to_build[@]}"; do
 
   echo "Updating the image version in the fondant_component.yaml with:"
   echo "${full_image_names[0]}"
-  sed -i "s|^image: .*|image: ${full_image_names[0]}|" fondant_component.yaml
+  sed -i '' "s|^image: .*|image: ${full_image_names[0]}|" fondant_component.yaml
 
   args=()
 

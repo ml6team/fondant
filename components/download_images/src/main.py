@@ -144,9 +144,9 @@ class DownloadImagesComponent(DaskTransformComponent):
             meta={0: bytes, 1: int, 2: int},
         )
         dataframe.columns = [
-            "images_data",
-            "images_width",
-            "images_height",
+            "image_data",
+            "image_width",
+            "image_height",
         ]
 
         # Remove images that could not be fetched
