@@ -1,6 +1,5 @@
 name: Fourth component
 description: This is an example component
-type: write
 image: example_component:latest
 
 consumes:

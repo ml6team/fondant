@@ -5,8 +5,11 @@
   "required": [
     "name",
     "description",
-    "image",
-    "type"
+    "image"
+  ],
+  "anyOf": [
+    { "required": ["consumes"] },
+    { "required": ["produces"] }
   ],
   "properties": {
     "name": {
@@ -20,11 +23,6 @@
     "image": {
       "type": "string",
       "description": "Docker image for the component"
-    },
-    "type": {
-      "type": "string",
-      "description": "Type of the component",
-      "enum": ["load", "transform", "write"]
     },
     "consumes": {
       "$ref": "#/definitions/subsets"

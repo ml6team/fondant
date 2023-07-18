@@ -1,6 +1,5 @@
 name: Load index file from commoncrawl
 description: Component that loads a given index file from commoncrawl
-type: load
 image: ghcr.io/ml6team/load_from_commoncrawl:latest
 
 produces:

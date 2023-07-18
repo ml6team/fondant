@@ -17,7 +17,6 @@ A component spec(ification) consists of the following sections:
 ```yaml
 name: ...
 description: ...
-type: ...
 image: ...
 
 consumes:
@@ -32,21 +31,15 @@ args:
 
 ### Metadata
 
-The metadata tracks metadata about the component, such as its name, description, type and the URL of the [Docker](https://www.docker.com/) image used to run it.
+The metadata tracks metadata about the component, such as its name, description, and the URL of the [Docker](https://www.docker.com/) image used to run it.
 
 ```yaml
 name: Example component
 description: This is an example component
-type: the type of the component (read, transform, write)
 image: example_component:latest
 ...
 ```
-There exists multiple component types: 
-* **read:** defines a component that reads the initial data from a sources or creates it from a given object (e.g. list). 
-The read component is typically the first component of a fondant pipeline. 
-* **transform:** defines a component that performs operations on the initial data (extending, transforming, filtering, ...)
-* **write:** defines a component that writes the final dataset to an external data source. The write component is typically
-the last component of a fondant pipeline.
+
 ### Consumes & produces
 
 The `consumes` and `produces` sections describe which data the component consumes and produces. 

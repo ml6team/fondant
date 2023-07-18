@@ -1,6 +1,5 @@
 name: Example component
 description: This is an example write component
-type: write
 image: example_component:latest
 
 consumes:

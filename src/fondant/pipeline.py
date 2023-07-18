@@ -12,6 +12,7 @@ except ImportError:
     from importlib_resources import files  # type: ignore
 
 from fondant.component import ComponentSpec, Manifest
+from fondant.component_spec import ComponentType
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.import_utils import is_kfp_available
 
@@ -368,9 +369,7 @@ class Pipeline:
             previous_component_task = None
             for operation in self._graph.values():
                 fondant_component_op = operation["fondant_component_op"]
-                component_type = fondant_component_op.component_spec.specification[
-                    "type"
-                ]
+                component_type = fondant_component_op.component_spec.type
 
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
@@ -379,7 +378,7 @@ class Pipeline:
                 # the previous component.
                 component_args = fondant_component_op.arguments
 
-                if component_type == "load":
+                if component_type == ComponentType.LOAD:
                     component_task = kubeflow_component_op(
                         metadata=metadata,
                         **component_args,
@@ -402,7 +401,7 @@ class Pipeline:
                     component_task.after(previous_component_task)
 
                 # Update the manifest path to be the output path of the current component task.
-                if component_type in ["load", "transform"]:
+                if component_type in [ComponentType.LOAD, ComponentType.TRANSFORM]:
                     manifest_path = component_task.outputs["output_manifest_path"]
 
                 previous_component_task = component_task

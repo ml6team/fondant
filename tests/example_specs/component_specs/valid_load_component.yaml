@@ -1,6 +1,5 @@
 name: Example component
 description: This is an example load component
-type: load
 image: example_component:latest
 
 produces:

@@ -1,65 +1,63 @@
 name: test_pipeline
 services:
-    first_component:
-        build: ./tests/example_pipelines/valid_pipeline/example_1
-        command:
-        - --metadata
-        - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
-        - --output_manifest_path
-        - /foo/bar/first_component/manifest.json
-        - --storage_args
-        - a dummy string arg
-        - --component_spec
-        - '{"name": "First component", "description": "This is an example component",
-            "type": "load", "image": "example_component:latest", "produces": {"images":
-            {"fields": {"data": {"type": "binary"}}}, "captions": {"fields": {"data":
-            {"type": "string"}}}}, "args": {"storage_args": {"description": "Storage
-            arguments", "type": "str"}}}'
-        depends_on: {}
-        volumes: []
-    second_component:
-        build: ./tests/example_pipelines/valid_pipeline/example_1
-        command:
-        - --metadata
-        - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
-        - --output_manifest_path
-        - /foo/bar/second_component/manifest.json
-        - --storage_args
-        - a dummy string arg
-        - --component_spec
-        - '{"name": "Second component", "description": "This is an example component",
-            "type": "transform", "image": "example_component:latest", "consumes":
-            {"images": {"fields": {"data": {"type": "binary"}}}}, "produces": {"embeddings":
-            {"fields": {"data": {"type": "array", "items": {"type": "float32"}}}}},
-            "args": {"storage_args": {"description": "Storage arguments", "type":
-            "str"}}}'
-        - --input_manifest_path
-        - /foo/bar/first_component/manifest.json
-        depends_on:
-            first_component:
-                condition: service_completed_successfully
-        volumes: []
-    third_component:
-        build: ./tests/example_pipelines/valid_pipeline/example_1
-        command:
-        - --metadata
-        - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
-        - --output_manifest_path
-        - /foo/bar/third_component/manifest.json
-        - --storage_args
-        - a dummy string arg
-        - --component_spec
-        - '{"name": "Third component", "description": "This is an example component",
-            "type": "transform", "image": "example_component:latest", "consumes":
-            {"images": {"fields": {"data": {"type": "binary"}}}, "captions": {"fields":
-            {"data": {"type": "string"}}}, "embeddings": {"fields": {"data": {"type":
-            "array", "items": {"type": "float32"}}}}}, "produces": {"images": {"fields":
-            {"data": {"type": "binary"}}}, "additionalSubsets": false}, "args": {"storage_args":
-            {"description": "Storage arguments", "type": "str"}}}'
-        - --input_manifest_path
-        - /foo/bar/second_component/manifest.json
-        depends_on:
-            second_component:
-                condition: service_completed_successfully
-        volumes: []
+  first_component:
+    build: ./tests/example_pipelines/valid_pipeline/example_1
+    command:
+    - --metadata
+    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
+    - --output_manifest_path
+    - /foo/bar/first_component/manifest.json
+    - --storage_args
+    - a dummy string arg
+    - --component_spec
+    - '{"name": "First component", "description": "This is an example component",
+      "image": "example_component:latest", "produces": {"images": {"fields": {"data":
+      {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
+      "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
+    depends_on: {}
+    volumes: []
+  second_component:
+    build: ./tests/example_pipelines/valid_pipeline/example_1
+    command:
+    - --metadata
+    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
+    - --output_manifest_path
+    - /foo/bar/second_component/manifest.json
+    - --storage_args
+    - a dummy string arg
+    - --component_spec
+    - '{"name": "Second component", "description": "This is an example component",
+      "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
+      {"type": "binary"}}}}, "produces": {"embeddings": {"fields": {"data": {"type":
+      "array", "items": {"type": "float32"}}}}}, "args": {"storage_args": {"description":
+      "Storage arguments", "type": "str"}}}'
+    - --input_manifest_path
+    - /foo/bar/first_component/manifest.json
+    depends_on:
+      first_component:
+        condition: service_completed_successfully
+    volumes: []
+  third_component:
+    build: ./tests/example_pipelines/valid_pipeline/example_1
+    command:
+    - --metadata
+    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
+    - --output_manifest_path
+    - /foo/bar/third_component/manifest.json
+    - --storage_args
+    - a dummy string arg
+    - --component_spec
+    - '{"name": "Third component", "description": "This is an example component",
+      "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
+      {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}},
+      "embeddings": {"fields": {"data": {"type": "array", "items": {"type": "float32"}}}}},
+      "produces": {"images": {"fields": {"data": {"type": "binary"}}}, "additionalSubsets":
+      false}, "args": {"storage_args": {"description": "Storage arguments", "type":
+      "str"}}}'
+    - --input_manifest_path
+    - /foo/bar/second_component/manifest.json
+    depends_on:
+      second_component:
+        condition: service_completed_successfully
+    volumes: []
 version: '3.8'

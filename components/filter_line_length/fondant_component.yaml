@@ -1,6 +1,5 @@
 name: Filter line length
 description: Component that filters code based on line length
-type: transform
 image: ghcr.io/ml6team/filter_line_length:dev
 
 consumes:

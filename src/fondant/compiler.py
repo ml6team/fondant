@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from fondant.component_spec import ComponentType
 from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
@@ -123,13 +124,13 @@ class DockerCompiler(Compiler):
             safe_component_name = self._safe_component_name(component_name)
 
             component_op = component["fondant_component_op"]
-            component_type = component_op.component_spec.specification["type"]
+            component_type = component_op.component_spec.type
 
             # add metadata argument to command
             command = ["--metadata", json.dumps(asdict(metadata))]
 
             # add in and out manifest paths to command
-            if component_type in ["load", "transform"]:
+            if component_type in [ComponentType.LOAD, ComponentType.TRANSFORM]:
                 command.extend(
                     [
                         "--output_manifest_path",

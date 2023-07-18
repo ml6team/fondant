@@ -1,6 +1,5 @@
 name: Example component
 description: This is an example component
-type: transform
 image: example_component:latest
 
 consumes:

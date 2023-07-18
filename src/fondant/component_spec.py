@@ -95,27 +95,37 @@ component_spec = Argument(
 )
 
 
-class ComponentBaseArgs(Enum):
+class ComponentType(Enum):
     """Enum representing component base arguments for the different component type."""
 
-    load = {
-        "component_spec": component_spec,
-        "metadata": metadata,
-        "output_manifest_path": output_manifest_path,
-    }
+    LOAD = "load"
+    TRANSFORM = "transform"
+    WRITE = "write"
 
-    transform = {
-        "component_spec": component_spec,
-        "metadata": metadata,
-        "input_manifest_path": input_manifest_path,
-        "output_manifest_path": output_manifest_path,
-    }
-
-    write = {
-        "component_spec": component_spec,
-        "metadata": metadata,
-        "input_manifest_path": input_manifest_path,
-    }
+    def get_base_args(self) -> t.Dict[str, Argument]:
+        if self == ComponentType.LOAD:
+            base_args = {
+                "component_spec": component_spec,
+                "metadata": metadata,
+                "output_manifest_path": output_manifest_path,
+            }
+        elif self == ComponentType.TRANSFORM:
+            base_args = {
+                "component_spec": component_spec,
+                "metadata": metadata,
+                "input_manifest_path": input_manifest_path,
+                "output_manifest_path": output_manifest_path,
+            }
+        elif self == ComponentType.WRITE:
+            base_args = {
+                "component_spec": component_spec,
+                "metadata": metadata,
+                "input_manifest_path": input_manifest_path,
+            }
+        else:
+            msg = "Invalid component type."
+            raise ValueError(msg)
+        return base_args
 
 
 class ComponentSubset:
@@ -156,8 +166,24 @@ class ComponentSpec:
 
     def __init__(self, specification: t.Dict[str, t.Any]) -> None:
         self._specification = copy.deepcopy(specification)
-        self._type: str = self._specification.get("type", "")
         self._validate_spec()
+        self._type: ComponentType = self._get_component_type()
+
+    def _get_component_type(self) -> "ComponentType":
+        """Function that returns the component type based on the component specification."""
+        consumes = self._specification.get("consumes", False)
+        produces = self._specification.get("produces", False)
+
+        if not consumes and produces:
+            _type = ComponentType.LOAD
+        elif consumes and produces:
+            _type = ComponentType.TRANSFORM
+        elif consumes and not produces:
+            _type = ComponentType.WRITE
+        else:
+            msg = "either 'consumes' or 'produces' fields have to defined for the component"
+            raise InvalidComponentSpec(msg)
+        return _type
 
     def _validate_spec(self) -> None:
         """Validate a component specification against the component schema.
@@ -248,7 +274,7 @@ class ComponentSpec:
 
     @property
     def args(self) -> t.Dict[str, Argument]:
-        component_base_args = ComponentBaseArgs[self._type].value
+        component_base_args = self._type.get_base_args()
 
         user_args = {
             name: Argument(
@@ -266,6 +292,10 @@ class ComponentSpec:
     @property
     def specification(self) -> t.Dict[str, t.Any]:
         return copy.deepcopy(self._specification)
+
+    @property
+    def type(self) -> ComponentType:
+        return self._type
 
     @property
     def kubeflow_specification(self) -> "KubeflowComponentSpec":
