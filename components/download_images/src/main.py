@@ -11,9 +11,9 @@ import traceback
 import urllib
 
 import dask.dataframe as dd
-from resizer import Resizer
-
 from fondant.component import DaskTransformComponent
+from fondant.executor import DaskTransformExecutor
+from resizer import Resizer
 
 logger = logging.getLogger(__name__)
 
@@ -89,21 +89,19 @@ def download_image_with_retry(
 class DownloadImagesComponent(DaskTransformComponent):
     """Component that downloads images based on URLs."""
 
-    def transform(
-            self,
-            dataframe: dd.DataFrame,
-            *,
-            timeout: int,
-            retries: int,
-            image_size: int,
-            resize_mode: str,
-            resize_only_if_bigger: bool,
-            min_image_size: int,
-            max_aspect_ratio: float,
-    ) -> dd.DataFrame:
-        """Function that downloads images from a list of URLs and executes filtering and resizing
+    def __init__(self,
+                 *_,
+                 timeout: int,
+                 retries: int,
+                 image_size: int,
+                 resize_mode: str,
+                 resize_only_if_bigger: bool,
+                 min_image_size: int,
+                 max_aspect_ratio: float,
+                 ):
+        """Component that downloads images from a list of URLs and executes filtering and resizing.
+
         Args:
-            dataframe: Dask dataframe
             timeout: Maximum time (in seconds) to wait when trying to download an image.
             retries: Number of times to retry downloading an image if it fails.
             image_size: Size of the images after resizing.
@@ -115,8 +113,9 @@ class DownloadImagesComponent(DaskTransformComponent):
         Returns:
             Dask dataframe
         """
-        logger.info("Instantiating resizer...")
-        resizer = Resizer(
+        self.timeout = timeout
+        self.retries = retries
+        self.resizer = Resizer(
             image_size=image_size,
             resize_mode=resize_mode,
             resize_only_if_bigger=resize_only_if_bigger,
@@ -124,15 +123,21 @@ class DownloadImagesComponent(DaskTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
+    def transform(
+            self,
+            dataframe: dd.DataFrame,
+    ) -> dd.DataFrame:
+        logger.info("Instantiating resizer...")
+
         # Remove duplicates from laion retrieval
         dataframe = dataframe.drop_duplicates()
 
         dataframe = dataframe.apply(
             lambda example: download_image_with_retry(
                 url=example.images_url,
-                timeout=timeout,
-                retries=retries,
-                resizer=resizer,
+                timeout=self.timeout,
+                retries=self.retries,
+                resizer=self.resizer,
             ),
             axis=1,
             result_type="expand",
@@ -151,5 +156,5 @@ class DownloadImagesComponent(DaskTransformComponent):
 
 
 if __name__ == "__main__":
-    component = DownloadImagesComponent.from_args()
-    component.run()
+    executor = DaskTransformExecutor.from_args()
+    executor.execute(DownloadImagesComponent)

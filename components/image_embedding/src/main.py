@@ -6,10 +6,10 @@ import typing as t
 import numpy as np
 import pandas as pd
 import torch
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 from PIL import Image
 from transformers import CLIPProcessor, CLIPVisionModelWithProjection
-
-from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +50,9 @@ def embed_image_batch(image_batch: pd.DataFrame, *, model: CLIPVisionModelWithPr
 class EmbedImagesComponent(PandasTransformComponent):
     """Component that captions images using a model from the Hugging Face hub."""
 
-    def setup(
+    def __init__(
         self,
-        *,
+        *_,
         model_id: str,
         batch_size: int,
     ):
@@ -86,5 +86,5 @@ class EmbedImagesComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = EmbedImagesComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(EmbedImagesComponent)

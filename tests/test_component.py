@@ -8,16 +8,21 @@ import dask.dataframe as dd
 import pandas as pd
 import pytest
 import yaml
-
 from fondant.component import (
-    Component,
+    DaskLoadComponent,
     DaskTransformComponent,
-    LoadComponent,
+    DaskWriteComponent,
     PandasTransformComponent,
-    WriteComponent,
 )
 from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
+from fondant.executor import (
+    DaskLoadExecutor,
+    DaskTransformExecutor,
+    DaskWriteExecutor,
+    Executor,
+    PandasTransformExecutor,
+)
 from fondant.manifest import Manifest
 
 components_path = Path(__file__).parent / "example_specs/components"
@@ -49,10 +54,24 @@ def _patched_data_writing(monkeypatch):
 
     monkeypatch.setattr(DaskDataWriter, "write_dataframe", mocked_write_dataframe)
     monkeypatch.setattr(
-        Component,
+        Executor,
         "upload_manifest",
         lambda self, manifest, save_path: None,
     )
+
+
+def patch_method_class(method):
+    """Patch a method on a class instead of an instance. The returned method can be passed to
+    `mock.patch.object` as the `wraps` argument.
+    """
+    m = mock.MagicMock()
+
+    def wrapper(self, *args, **kwargs):
+        m(*args, **kwargs)
+        return method(self, *args, **kwargs)
+
+    wrapper.mock = m
+    return wrapper
 
 
 def test_component_arguments():
@@ -75,7 +94,7 @@ def test_component_arguments():
         "None",
     ]
 
-    class MyComponent(Component):
+    class MyExecutor(Executor):
         """Base component with dummy methods so it can be instantiated."""
 
         def _load_or_create_manifest(self) -> Manifest:
@@ -84,8 +103,8 @@ def test_component_arguments():
         def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
             pass
 
-    component = MyComponent.from_args()
-    assert component.user_arguments == {
+    executor = MyExecutor.from_args()
+    assert executor.user_arguments == {
         "string_default_arg": "foo",
         "integer_default_arg": 1,
         "float_default_arg": 3.14,
@@ -122,21 +141,25 @@ def test_load_component():
         yaml_file_to_json_string(components_path / "component.yaml"),
     ]
 
-    class MyLoadComponent(LoadComponent):
-        def load(self, *, flag, value):
-            assert flag == "success"
-            assert value == 1
+    class MyLoadComponent(DaskLoadComponent):
+        def __init__(self, *args, flag, value):
+            self.flag = flag
+            self.value = value
 
+        def load(self):
+            assert self.flag == "success"
+            assert self.value == 1
             data = {
                 "id": [0, 1],
                 "captions_data": ["hello world", "this is another caption"],
             }
             return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
 
-    component = MyLoadComponent.from_args()
-    with mock.patch.object(MyLoadComponent, "load", wraps=component.load) as load:
-        component.run()
-        load.assert_called_once()
+    executor = DaskLoadExecutor.from_args()
+    load = patch_method_class(MyLoadComponent.load)
+    with mock.patch.object(MyLoadComponent, "load", load):
+        executor.execute(MyLoadComponent)
+        load.mock.assert_called_once()
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
@@ -159,20 +182,25 @@ def test_dask_transform_component():
     ]
 
     class MyDaskComponent(DaskTransformComponent):
-        def transform(self, dataframe, *, flag, value):
-            assert flag == "success"
-            assert value == 1
+        def __init__(self, *args, flag, value):
+            self.flag = flag
+            self.value = value
+
+        def transform(self, dataframe):
+            assert self.flag == "success"
+            assert self.value == 1
             assert isinstance(dataframe, dd.DataFrame)
             return dataframe
 
-    component = MyDaskComponent.from_args()
+    executor = DaskTransformExecutor.from_args()
+    transform = patch_method_class(MyDaskComponent.transform)
     with mock.patch.object(
         MyDaskComponent,
         "transform",
-        wraps=component.transform,
-    ) as transform:
-        component.run()
-        transform.assert_called_once()
+        transform,
+    ):
+        executor.execute(MyDaskComponent)
+        transform.mock.assert_called_once()
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
@@ -195,7 +223,7 @@ def test_pandas_transform_component():
     ]
 
     class MyPandasComponent(PandasTransformComponent):
-        def setup(self, *, flag, value):
+        def __init__(self, *args, flag, value):
             assert flag == "success"
             assert value == 1
 
@@ -203,17 +231,17 @@ def test_pandas_transform_component():
             assert isinstance(dataframe, pd.DataFrame)
             return dataframe.rename(columns={"images": "embeddings"})
 
-    component = MyPandasComponent.from_args()
-    setup = mock.patch.object(MyPandasComponent, "setup", wraps=component.setup)
-    transform = mock.patch.object(
+    executor = PandasTransformExecutor.from_args()
+    init = patch_method_class(MyPandasComponent.__init__)
+    transform = patch_method_class(MyPandasComponent.transform)
+    with mock.patch.object(MyPandasComponent, "__init__", init), mock.patch.object(
         MyPandasComponent,
         "transform",
-        wraps=component.transform,
-    )
-    with setup as setup, transform as transform:
-        component.run()
-        setup.assert_called_once()
-        assert transform.call_count == N_PARTITIONS
+        transform,
+    ):
+        executor.execute(MyPandasComponent)
+        init.mock.assert_called_once()
+        assert transform.mock.call_count == N_PARTITIONS
 
 
 def test_wrap_transform():
@@ -283,7 +311,7 @@ def test_wrap_transform():
         ]
         return dataframe
 
-    wrapped_transform = PandasTransformComponent.wrap_transform(transform, spec=spec)
+    wrapped_transform = PandasTransformExecutor.wrap_transform(transform, spec=spec)
     output_df = wrapped_transform(input_df)
 
     # Check column flattening, trimming, and ordering
@@ -307,13 +335,18 @@ def test_write_component():
         yaml_file_to_json_string(components_path / "component.yaml"),
     ]
 
-    class MyWriteComponent(WriteComponent):
-        def write(self, dataframe, *, flag, value):
-            assert flag == "success"
-            assert value == 1
+    class MyWriteComponent(DaskWriteComponent):
+        def __init__(self, *args, flag, value):
+            self.flag = flag
+            self.value = value
+
+        def write(self, dataframe):
+            assert self.flag == "success"
+            assert self.value == 1
             assert isinstance(dataframe, dd.DataFrame)
 
-    component = MyWriteComponent.from_args()
-    with mock.patch.object(MyWriteComponent, "write", wraps=component.write) as write:
-        component.run()
-        write.assert_called_once()
+    executor = DaskWriteExecutor.from_args()
+    write = patch_method_class(MyWriteComponent.write)
+    with mock.patch.object(MyWriteComponent, "write", write):
+        executor.execute(MyWriteComponent)
+        write.mock.assert_called_once()

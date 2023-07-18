@@ -6,10 +6,10 @@ import typing as t
 import numpy as np
 import pandas as pd
 import torch
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 from PIL import Image
 from transformers import BatchEncoding, BlipForConditionalGeneration, BlipProcessor
-
-from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ def caption_image_batch(
 class CaptionImagesComponent(PandasTransformComponent):
     """Component that captions images using a model from the Hugging Face hub."""
 
-    def setup(self, *, model_id: str, batch_size: int, max_new_tokens: int) -> None:
+    def __init__(self, *args, model_id: str, batch_size: int, max_new_tokens: int) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Device: {self.device}")
 
@@ -86,5 +86,5 @@ class CaptionImagesComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = CaptionImagesComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(CaptionImagesComponent)

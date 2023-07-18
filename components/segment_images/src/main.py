@@ -6,11 +6,11 @@ import typing as t
 import numpy as np
 import pandas as pd
 import torch
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 from palette import palette
 from PIL import Image
 from transformers import AutoModelForSemanticSegmentation, BatchFeature, SegformerImageProcessor
-
-from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,10 @@ def convert_to_rgb(seg: np.array) -> bytes:
     return crop_bytes.getvalue()
 
 
-def process_image(image: bytes, *, processor: SegformerImageProcessor, device: str) -> torch.Tensor:
+def process_image(image: bytes,
+                  *,
+                  processor: SegformerImageProcessor,
+                  device: str) -> torch.Tensor:
     """
     Process the image to a tensor.
 
@@ -66,7 +69,9 @@ def process_image(image: bytes, *, processor: SegformerImageProcessor, device: s
 
 
 @torch.no_grad()
-def segment_image_batch(image_batch: pd.DataFrame, *, model: AutoModelForSemanticSegmentation,
+def segment_image_batch(image_batch: pd.DataFrame,
+                        *,
+                        model: AutoModelForSemanticSegmentation,
                         processor: SegformerImageProcessor) -> pd.Series:
     """Embed a batch of images."""
     input_batch = torch.cat(image_batch.tolist())
@@ -81,7 +86,7 @@ def segment_image_batch(image_batch: pd.DataFrame, *, model: AutoModelForSemanti
 class SegmentImagesComponent(PandasTransformComponent):
     """Component that segments images using a model from the Hugging Face hub."""
 
-    def setup(self, model_id: str, batch_size: int) -> None:
+    def __init__(self, *_, model_id: str, batch_size: int) -> None:
         """
         Args:
             model_id: id of the model on the Hugging Face hub
@@ -117,5 +122,5 @@ class SegmentImagesComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = SegmentImagesComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(SegmentImagesComponent)

@@ -6,8 +6,8 @@ import typing as t
 
 import pandas as pd
 from clip_client import ClipClient, Modality
-
 from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 class LAIONRetrievalComponent(PandasTransformComponent):
     """Component that retrieves image URLs from LAION-5B based on a set of prompts."""
 
-    def setup(
+    def __init__(
             self,
-            *,
+            *_,
             num_images: int,
             aesthetic_score: int,
             aesthetic_weight: float,
@@ -72,5 +72,5 @@ class LAIONRetrievalComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = LAIONRetrievalComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(LAIONRetrievalComponent)

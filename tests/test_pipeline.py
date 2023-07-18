@@ -3,15 +3,11 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from fondant.exceptions import InvalidPipelineDefinition
-from fondant.pipeline import ComponentOp, ComponentSpec, Pipeline
+from fondant.pipeline import ComponentOp, Pipeline
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
 invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
-custom_spec_path = (
-    Path(__file__).parent / "example_pipelines/load_from_hub_custom_spec.yaml"
-)
 
 
 def yaml_file_to_dict(file_path):
@@ -32,7 +28,7 @@ def default_pipeline_args():
     [
         (
             "example_1",
-            ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
+            ["first_component", "second_component", "third_component"],
         ),
     ],
 )
@@ -87,7 +83,7 @@ def test_valid_pipeline(
     [
         (
             "example_1",
-            ["first_component.yaml", "second_component.yaml", "third_component.yaml"],
+            ["first_component", "second_component", "third_component"],
         ),
     ],
 )
@@ -128,8 +124,8 @@ def test_invalid_pipeline_dependencies(
 @pytest.mark.parametrize(
     "invalid_pipeline_example",
     [
-        ("example_1", ["first_component.yaml", "second_component.yaml"]),
-        ("example_2", ["first_component.yaml", "second_component.yaml"]),
+        ("example_1", ["first_component", "second_component"]),
+        ("example_2", ["first_component", "second_component"]),
     ],
 )
 def test_invalid_pipeline_compilation(
@@ -175,11 +171,8 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
     Test that an exception is raised when the passed invalid argument name or type to the fondant
     component does not match the ones specified in the fondant specifications.
     """
-    components_spec_path = Path(
-        valid_pipeline_path / "example_1" / "first_component.yaml",
-    )
     component_operation = ComponentOp(
-        components_spec_path,
+        valid_pipeline_path / "example_1" / "first_component",
         arguments=invalid_component_args,
     )
 
@@ -209,7 +202,7 @@ def test_reusable_component_op():
 
 
 def test_defining_reusable_component_op_with_custom_spec():
-    load_from_hub_op_default_op = ComponentOp.from_registry(
+    load_from_hub_default_op = ComponentOp.from_registry(
         name="load_from_hf_hub",
         arguments={
             "dataset_name": "test_dataset",
@@ -218,13 +211,8 @@ def test_defining_reusable_component_op_with_custom_spec():
         },
     )
 
-    load_from_hub_op_default_spec = ComponentSpec(
-        yaml_file_to_dict(load_from_hub_op_default_op.component_spec_path),
-    )
-
-    load_from_hub_op_custom_op = ComponentOp.from_registry(
-        name="load_from_hf_hub",
-        component_spec_path=custom_spec_path,
+    load_from_hub_custom_op = ComponentOp(
+        component_dir=load_from_hub_default_op.component_dir,
         arguments={
             "dataset_name": "test_dataset",
             "column_name_mapping": {"foo": "bar"},
@@ -232,12 +220,10 @@ def test_defining_reusable_component_op_with_custom_spec():
         },
     )
 
-    load_from_hub_op_custom_spec = ComponentSpec(yaml_file_to_dict(custom_spec_path))
-
-    assert load_from_hub_op_custom_op.component_spec == load_from_hub_op_custom_spec
-    assert load_from_hub_op_default_op.component_spec == load_from_hub_op_default_spec
-    assert load_from_hub_op_default_op.component_spec != load_from_hub_op_custom_spec
-    assert load_from_hub_op_custom_op.component_spec != load_from_hub_op_default_spec
+    assert (
+        load_from_hub_custom_op.component_spec
+        == load_from_hub_default_op.component_spec
+    )
 
 
 def test_pipeline_name():

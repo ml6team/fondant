@@ -11,9 +11,10 @@ try:
 except ImportError:
     from importlib_resources import files  # type: ignore
 
-from fondant.component import ComponentSpec, Manifest
+from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.import_utils import is_kfp_available
+from fondant.manifest import Manifest
 
 if is_kfp_available():
     import kfp
@@ -29,7 +30,7 @@ class ComponentOp:
     is a representation of a function that will be executed as part of a pipeline.
 
     Arguments:
-        component_spec_path: The path to the specification file defining the component
+        component_dir: The path to the component directory.
         arguments: A dictionary containing the argument name and value for the operation.
         number_of_gpus: The number of gpus to assign to the operation
         node_pool_name: The name of the node pool to which the operation will be assigned.
@@ -49,44 +50,41 @@ class ComponentOp:
              https://kubeflow-pipelines.readthedocs.io/en/1.8.13/source/kfp.dsl.html
     """
 
+    COMPONENT_SPEC_NAME = "fondant_component.yaml"
+
     def __init__(
         self,
-        component_spec_path: t.Union[str, Path],
+        component_dir: t.Union[str, Path],
         *,
-        local_component: bool = True,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_name: t.Optional[str] = None,
         p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
         ephemeral_storage_size: t.Optional[str] = None,
-    ):
-        self.component_spec_path = component_spec_path
-        self.local_component = local_component
+    ) -> None:
+        self.component_dir = Path(component_dir)
         self.arguments = arguments or {}
+
+        self.component_spec = ComponentSpec.from_file(
+            self.component_dir / self.COMPONENT_SPEC_NAME,
+        )
+        self.arguments.setdefault("component_spec", self.component_spec.specification)
+
         self.number_of_gpus = number_of_gpus
         self.node_pool_name = node_pool_name
         self.p_volumes = p_volumes
         self.ephemeral_storage_size = ephemeral_storage_size
 
-        self.extend_arguments()
-
     @property
-    def component_spec(self) -> ComponentSpec:
-        return ComponentSpec.from_file(self.component_spec_path)
-
-    def extend_arguments(self):
-        """Add the component specification to the arguments if not already present."""
-        if not self.arguments.get("component_spec"):
-            self.arguments["component_spec"] = json.dumps(
-                self.component_spec.specification,
-            )
+    def dockerfile_path(self) -> t.Optional[Path]:
+        path = self.component_dir / "Dockerfile"
+        return path if path.exists() else None
 
     @classmethod
     def from_registry(
         cls,
         name: str,
         *,
-        component_spec_path: t.Optional[t.Union[str, Path]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_name: t.Optional[str] = None,
@@ -97,9 +95,6 @@ class ComponentOp:
 
         Args:
             name: Name of the component to load
-            component_spec_path: The path to the specification file defining the component, defaults
-                to path defined within the component but can be specified to define custom
-                specification file
             arguments: A dictionary containing the argument name and value for the operation.
             number_of_gpus: The number of gpus to assign to the operation
             node_pool_name: The name of the node pool to which the operation will be assigned.
@@ -109,19 +104,14 @@ class ComponentOp:
                 Defined by string which can be a number or a number followed by one of “E”, “P”,
                 “T”, “G”, “M”, “K”. (e.g. 2T for 2 Terabytes)
         """
-        if not component_spec_path:
-            component_spec_path = (
-                files("fondant") / f"components/{name}/fondant_component.yaml"  # type: ignore
-            )
-            component_spec_path = t.cast(Path, component_spec_path)
+        components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
-            if not (component_spec_path.exists() and component_spec_path.is_file()):
-                msg = f"No reusable component with name {name} found."
-                raise ValueError(msg)
+        if not (components_dir.exists() and components_dir.is_dir()):
+            msg = f"No reusable component with name {name} found."
+            raise ValueError(msg)
 
         return ComponentOp(
-            component_spec_path,
-            local_component=False,
+            components_dir,
             arguments=arguments,
             number_of_gpus=number_of_gpus,
             node_pool_name=node_pool_name,

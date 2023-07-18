@@ -5,8 +5,8 @@ import unicodedata
 from typing import List
 
 import pandas as pd
-
 from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class TextNormalizationComponent(PandasTransformComponent):
     """Component that normalizes text."""
 
-    def setup(self, *, apply_nfc: bool, do_lowercase: bool, characters_to_remove: List[str]):
+    def __init__(self, *args, apply_nfc: bool, do_lowercase: bool, characters_to_remove: List[str]):
         self.apply_nfc = apply_nfc
         self.do_lowercase = do_lowercase
         self.characters_to_remove = characters_to_remove
@@ -61,5 +61,5 @@ class TextNormalizationComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = TextNormalizationComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(TextNormalizationComponent)

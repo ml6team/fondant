@@ -9,12 +9,19 @@ import argparse
 import json
 import logging
 import typing as t
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 
 import dask.dataframe as dd
 import pandas as pd
 
+from fondant.component import (
+    Component,
+    DaskLoadComponent,
+    DaskTransformComponent,
+    DaskWriteComponent,
+    PandasTransformComponent,
+)
 from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
@@ -22,8 +29,8 @@ from fondant.manifest import Manifest
 logger = logging.getLogger(__name__)
 
 
-class Component(ABC):
-    """Abstract base class for a Fondant component."""
+class Executor(t.Generic[Component]):
+    """An executor executes a Component."""
 
     def __init__(
         self,
@@ -44,8 +51,8 @@ class Component(ABC):
     def from_file(
         cls,
         path: t.Union[str, Path] = "../fondant_component.yaml",
-    ) -> "Component":
-        """Create a component from a component spec file.
+    ) -> "Executor":
+        """Create an executor from a component spec file.
 
         Args:
             path: Path to the component spec file
@@ -54,8 +61,8 @@ class Component(ABC):
         return cls.from_spec(component_spec)
 
     @classmethod
-    def from_args(cls) -> "Component":
-        """Create a component from a passed argument containing the specification as a dict."""
+    def from_args(cls) -> "Executor":
+        """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
         args, _ = parser.parse_known_args()
@@ -69,8 +76,8 @@ class Component(ABC):
         return cls.from_spec(component_spec)
 
     @classmethod
-    def from_spec(cls, component_spec: ComponentSpec) -> "Component":
-        """Create a component from a component spec."""
+    def from_spec(cls, component_spec: ComponentSpec) -> "Executor":
+        """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
 
         if "component_spec" in args_dict:
@@ -140,9 +147,21 @@ class Component(ABC):
         """Abstract method that returns the dataset manifest."""
 
     @abstractmethod
-    def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
-        """Abstract method that processes the manifest and
-        returns another dataframe.
+    def _execute_component(
+        self,
+        component: Component,
+        *,
+        manifest: Manifest,
+    ) -> t.Union[None, dd.DataFrame]:
+        """
+        Abstract method to execute a component with the provided manifest.
+
+        Args:
+            component: Component instance to execute
+            manifest: Manifest describing the input data
+
+        Returns:
+            A Dask DataFrame containing the output data
         """
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
@@ -150,11 +169,16 @@ class Component(ABC):
         data_writer = DaskDataWriter(manifest=manifest, component_spec=self.spec)
         data_writer.write_dataframe(dataframe)
 
-    def run(self):
-        """Runs the component."""
+    def execute(self, component_cls: t.Type[Component]) -> None:
+        """Execute a component.
+
+        Args:
+            component_cls: The class of the component to execute
+        """
         input_manifest = self._load_or_create_manifest()
 
-        output_df = self._process_dataset(manifest=input_manifest)
+        component = component_cls(self.spec, **self.user_arguments)
+        output_df = self._execute_component(component, manifest=input_manifest)
 
         output_manifest = input_manifest.evolve(component_spec=self.spec)
 
@@ -162,12 +186,12 @@ class Component(ABC):
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
-    def upload_manifest(self, manifest: Manifest, save_path: str):
+    def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         manifest.to_file(save_path)
 
 
-class LoadComponent(Component):
+class DaskLoadExecutor(Executor[DaskLoadComponent]):
     """Base class for a Fondant load component."""
 
     @staticmethod
@@ -182,58 +206,42 @@ class LoadComponent(Component):
             component_id=component_id,
         )
 
-    @abstractmethod
-    def load(self, *args, **kwargs) -> dd.DataFrame:
-        """Abstract method that loads the initial dataframe."""
-
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
-        """This function loads the initial dataframe sing the user-provided `load` method.
+    def _execute_component(
+        self,
+        component: DaskLoadComponent,
+        *,
+        manifest: Manifest,
+    ) -> dd.DataFrame:
+        """This function loads the initial dataframe using the user-provided `load` method.
 
         Returns:
-            A `dd.DataFrame` instance with initial data'.
+            A `dd.DataFrame` instance with initial data.
         """
-        # Load the dataframe according to the custom function provided to the user
-        return self.load(**self.user_arguments)
+        return component.load()
 
 
-class TransformComponent(Component):
+class TransformExecutor(Executor[Component]):
     """Base class for a Fondant transform component."""
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.input_manifest_path)
 
-    @abstractmethod
-    def transform(self, *args, **kwargs) -> dd.DataFrame:
-        """
-        Abstract method for applying data transformations to the input dataframe.
-
-        Args:
-            args: The dataframe will be passed in as a positional argument
-            kwargs: Arguments provided to the component are passed as keyword arguments
-        """
-
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
-        """
-        Load the data based on the manifest using a DaskDataloader and call the transform method to
-        process it.
-
-        Returns:
-            A `dd.DataFrame` instance with updated data based on the applied data transformations.
-        """
+    def _execute_component(
+        self,
+        component: Component,
+        *,
+        manifest: Manifest,
+    ) -> dd.DataFrame:
+        raise NotImplementedError
 
 
-class DaskTransformComponent(TransformComponent):
-    @abstractmethod
-    def transform(self, *args, **kwargs) -> dd.DataFrame:
-        """
-        Abstract method for applying data transformations to the input dataframe.
-
-        Args:
-            args: A Dask dataframe will be passed in as a positional argument
-            kwargs: Arguments provided to the component are passed as keyword arguments
-        """
-
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+class DaskTransformExecutor(TransformExecutor[DaskTransformComponent]):
+    def _execute_component(
+        self,
+        component: DaskTransformComponent,
+        *,
+        manifest: Manifest,
+    ) -> dd.DataFrame:
         """
         Load the data based on the manifest using a DaskDataloader and call the transform method to
         process it.
@@ -243,27 +251,10 @@ class DaskTransformComponent(TransformComponent):
         """
         data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
         dataframe = data_loader.load_dataframe()
-        dataframe = self.transform(dataframe, **self.user_arguments)
-        return dataframe
+        return component.transform(dataframe)
 
 
-class PandasTransformComponent(TransformComponent):
-    def setup(self, *args, **kwargs):
-        """Called once for each instance of the Component class. Use this to set up resources
-        such as database connections.
-        """
-        return
-
-    @abstractmethod
-    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        """
-        Abstract method for applying data transformations to the input dataframe.
-        Called once for each partition of the data.
-
-        Args:
-            dataframe: A Pandas dataframe containing a partition of the data
-        """
-
+class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
     @staticmethod
     def wrap_transform(transform: t.Callable, *, spec: ComponentSpec) -> t.Callable:
         """Factory that creates a function to wrap the component transform function. The wrapper:
@@ -306,19 +297,21 @@ class PandasTransformComponent(TransformComponent):
 
         return wrapped_transform
 
-    def _process_dataset(self, manifest: Manifest) -> dd.DataFrame:
+    def _execute_component(
+        self,
+        component: PandasTransformComponent,
+        *,
+        manifest: Manifest,
+    ) -> dd.DataFrame:
         """
-        Load the data based on the manifest using a DaskDataloader and call the transform method to
-        process it.
+        Load the data based on the manifest using a DaskDataloader and call the component's
+        transform method for each partition of the data.
 
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
         data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
         dataframe = data_loader.load_dataframe()
-
-        # Call the component setup method with user provided argument
-        self.setup(**self.user_arguments)
 
         # Create meta dataframe with expected format
         meta_dict = {"id": pd.Series(dtype="object")}
@@ -329,7 +322,7 @@ class PandasTransformComponent(TransformComponent):
                 )
         meta_df = pd.DataFrame(meta_dict).set_index("id")
 
-        wrapped_transform = self.wrap_transform(self.transform, spec=self.spec)
+        wrapped_transform = self.wrap_transform(component.transform, spec=self.spec)
 
         # Call the component transform method for each partition
         dataframe = dataframe.map_partitions(
@@ -357,7 +350,7 @@ class PandasTransformComponent(TransformComponent):
         )
 
 
-class WriteComponent(Component):
+class DaskWriteExecutor(Executor[DaskWriteComponent]):
     """Base class for a Fondant write component."""
 
     @staticmethod
@@ -367,31 +360,18 @@ class WriteComponent(Component):
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.input_manifest_path)
 
-    @abstractmethod
-    def write(self, *args, **kwargs):
-        """
-        Abstract method to write a dataframe to a final custom location.
-
-        Args:
-            args: The dataframe will be passed in as a positional argument
-            kwargs: Arguments provided to the component are passed as keyword arguments
-        """
-
-    def _process_dataset(self, manifest: Manifest) -> None:
-        """
-        Creates a DataLoader using the provided manifest and loads the input dataframe using the
-        `load_dataframe` instance, and  applies data transformations to it using the `transform`
-        method implemented by the derived class. Returns a single dataframe.
-
-        Returns:
-            A `dd.DataFrame` instance with updated data based on the applied data transformations.
-        """
+    def _execute_component(
+        self,
+        component: DaskWriteComponent,
+        *,
+        manifest: Manifest,
+    ) -> None:
         data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
         dataframe = data_loader.load_dataframe()
-        self.write(dataframe, **self.user_arguments)
+        component.write(dataframe)
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
 
-    def upload_manifest(self, manifest: Manifest, save_path: str):
+    def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         pass

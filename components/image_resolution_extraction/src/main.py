@@ -6,8 +6,8 @@ import typing as t
 import imagesize
 import numpy as np
 import pandas as pd
-
 from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -47,5 +47,5 @@ class ImageResolutionExtractionComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = ImageResolutionExtractionComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(ImageResolutionExtractionComponent)

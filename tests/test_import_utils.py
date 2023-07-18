@@ -3,12 +3,9 @@ import importlib.metadata
 from unittest import mock
 
 import pytest
-
 from fondant.import_utils import (
-    is_datasets_available,
     is_kfp_available,
     is_package_available,
-    is_pandas_available,
 )
 
 
@@ -36,8 +33,6 @@ def test_is_package_available(package_name, import_error_msg, expected_result):
 @mock.patch("importlib.metadata.version", return_value="0.1.0")
 def test_available_packages(importlib_util_find_spec, importlib_metadata_version):
     """Test that is_datasets_available is not False when the packages are available."""
-    assert is_datasets_available() is not False
-    assert is_pandas_available() is not False
     assert is_kfp_available() is not False
 
 
@@ -46,12 +41,6 @@ def test_available_packages(importlib_util_find_spec, importlib_metadata_version
     side_effect=importlib.metadata.PackageNotFoundError,
 )
 def test_unavailable_packages(mock_importlib_metadata_version):
-    """Test that is_datasets_available returns False when 'datasets' is not available."""
-    with pytest.raises(ModuleNotFoundError):
-        is_datasets_available()
-
-    with pytest.raises(ModuleNotFoundError):
-        is_pandas_available()
-
+    """Test that importing fondant related packages returns valid errors when not available."""
     with pytest.raises(ModuleNotFoundError):
         is_kfp_available()

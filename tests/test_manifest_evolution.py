@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from fondant.component_spec import ComponentSpec
 from fondant.manifest import Manifest
 

@@ -24,7 +24,7 @@ def build_pipeline():
     pipeline.add_op(load_from_hub_op)
 
     caption_images_op = ComponentOp(  
-        component_spec_path="components/captioning_component/fondant_component.yaml",  
+        component_dir="components/captioning_component",  
         arguments={  
             "model_id": "Salesforce/blip-image-captioning-base",  
             "batch_size": 2,  

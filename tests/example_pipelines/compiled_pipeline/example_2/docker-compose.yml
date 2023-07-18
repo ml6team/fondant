@@ -1,7 +1,7 @@
 name: test_pipeline
 services:
   first_component:
-    build: ./tests/example_pipelines/valid_pipeline/example_1
+    build: tests/example_pipelines/valid_pipeline/example_1/first_component
     command:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
@@ -34,8 +34,9 @@ services:
       "height": {"type": "int16"}}}}, "args": {"cropping_threshold": {"description":
       "Threshold parameter used for detecting borders. A lower (negative) parameter
       results in a more performant border detection, but can cause overcropping. Default
-      is -30", "type": "int"}, "padding": {"description": "Padding for the image cropping.
-      The padding is added to all borders of the image.", "type": "int"}}}'
+      is -30", "type": "int", "default": -30}, "padding": {"description": "Padding
+      for the image cropping. The padding is added to all borders of the image.",
+      "type": "int", "default": 10}}}'
     - --input_manifest_path
     - /foo/bar/first_component/manifest.json
     depends_on:

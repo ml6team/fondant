@@ -5,8 +5,8 @@ import logging
 
 import numpy as np
 import pandas as pd
-
 from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -14,20 +14,16 @@ logger = logging.getLogger(__name__)
 class FilterImageResolutionComponent(PandasTransformComponent):
     """Component that filters images based on height and width."""
 
-    def setup(self, *, min_image_dim: int, max_aspect_ratio: float) -> None:
+    def __init__(self, *_, min_image_dim: int, max_aspect_ratio: float) -> None:
+        """
+        Args:
+            min_image_dim: minimum image dimension.
+            max_aspect_ratio: maximum aspect ratio.
+        """
         self.min_image_dim = min_image_dim
         self.max_aspect_ratio = max_aspect_ratio
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        """
-        Args:
-            dataframe: Pandas dataframe
-            min_image_dim: minimum image dimension.
-            min_aspect_ratio: minimum aspect ratio.
-
-        Returns:
-            filtered Pandas dataframe
-        """
         width = dataframe["image"]["width"]
         height = dataframe["image"]["height"]
         min_image_dim = np.minimum(width, height)
@@ -39,5 +35,5 @@ class FilterImageResolutionComponent(PandasTransformComponent):
 
 
 if __name__ == "__main__":
-    component = FilterImageResolutionComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(FilterImageResolutionComponent)

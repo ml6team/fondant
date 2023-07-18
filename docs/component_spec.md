@@ -143,29 +143,45 @@ If an argument is not explicitly provided, the default value will be used instea
 from fondant.pipeline import ComponentOp
 
 custom_op = ComponentOp(
-    component_spec_path="components/custom_component/fondant_component.yaml",
+    component_dir="components/custom_component",
     arguments={
         "custom_argument": "foo"
     },
 )
 ```
 
-Afterwards, we pass all keyword arguments to the `transform()` method of the component.
+Afterwards, we pass all keyword arguments to the `__init__()` method of the component.
 
 ```python
-from fondant.component import TransformComponent
+import pandas as pd
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
-class ExampleComponent(TransformComponent):
 
-    def transform(self, dataframe, *, custom_argument, default_argument):
-        """Implement your custom logic in this single method
+class ExampleComponent(PandasTransformComponent):
+
+  def __init__(self, *args, custom_argument, default_argument) -> None:
+    """
+    Args:
+        x_argument: An argument passed to the component
+    """
+    # Initialize your component here based on the arguments
+
+  def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+    """Implement your custom logic in this single method
+    
+    Args:
+        dataframe: A Pandas dataframe containing the data
         
-        Args:
-            dataframe: A Dask dataframe containing the data
-            custom_argument: An argument passed to the component
-            default_argument: A default argument passed to the components
-        """
+    Returns:
+        A pandas dataframe containing the transformed data
+    """
+
+if __name__ == "__main__":
+  executor = PandasTransformExecutor.from_args()
+  executor.execute(ExampleComponent)
 ```
+
 
 ## Examples
 

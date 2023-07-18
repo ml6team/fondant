@@ -9,7 +9,8 @@ import gzip
 import dask.dataframe as dd
 import pandas as pd
 
-from fondant.component import LoadComponent
+from fondant.component import DaskLoadComponent
+from fondant.executor import DaskLoadExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -60,30 +61,37 @@ def read_warc_paths_file(
     return dask_df
 
 
-class LoadFromCommonCrawl(LoadComponent):
-    def load(
-        self, index_name: str, n_segments_to_load: t.Optional[int] = None
-    ) -> dd.DataFrame:
+class LoadFromCommonCrawlComponent(DaskLoadComponent):
+    def __init__(
+        self, *args, index_name: str, n_segments_to_load: t.Optional[int] = None
+    ) -> None:
+        self.index_name = index_name
+        self.n_segments_to_load = n_segments_to_load
         """Loads a dataset of segment file paths from CommonCrawl based on a given index.
+        
         Args:
             index_name: The name of the CommonCrawl index to load.
             n_segments_to_load: The number of segments to load from the index.
+        """
+
+    def load(self) -> dd.DataFrame:
+        """
         Returns:
             A Dask DataFrame containing the segment file paths.
         """
-        logger.info(f"Loading CommonCrawl index {index_name}...")
-        warc_paths_file_key = f"crawl-data/{index_name}/warc.paths.gz"
+        logger.info(f"Loading CommonCrawl index {self.index_name}...")
+        warc_paths_file_key = f"crawl-data/{self.index_name}/warc.paths.gz"
         warc_paths_file_content = fetch_warc_file_from_s3(
             S3_COMMONCRAWL_BUCKET, warc_paths_file_key
         )
 
         warc_paths_df = read_warc_paths_file(
-            warc_paths_file_content, n_segments_to_load
+            warc_paths_file_content, self.n_segments_to_load
         )
 
         return warc_paths_df
 
 
 if __name__ == "__main__":
-    component = LoadFromCommonCrawl.from_args()
-    component.run()
+    executor = DaskLoadExecutor.from_args()
+    executor.execute(LoadFromCommonCrawlComponent)
