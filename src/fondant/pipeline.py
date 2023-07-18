@@ -11,9 +11,10 @@ try:
 except ImportError:
     from importlib_resources import files  # type: ignore
 
-from fondant.component import ComponentSpec, Manifest
+from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.import_utils import is_kfp_available
+from fondant.manifest import Manifest
 
 if is_kfp_available():
     import kfp
