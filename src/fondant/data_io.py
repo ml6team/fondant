@@ -1,5 +1,7 @@
 import logging
+import os
 import typing as t
+from abc import abstractmethod
 
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
@@ -17,12 +19,34 @@ class DataIO:
         self.component_spec = component_spec
         self.diagnostics_path = f"{self.manifest.base_path}/" \
                                 f"{self.manifest.component_id}/" \
-                                f"{self.manifest.run_id}
+                                f"{self.manifest.run_id}"
         self.performance_report_path = f"{self.diagnostics_path}/dask_report.html"
         self.execution_graph_path = f"{self.diagnostics_path}/execution_graph.png"
 
+    raise NotImplementedError
+
 
 class DaskDataLoader(DataIO):
+
+    @staticmethod
+    def partition_loaded_dataframe(dataframe: dd.DataFrame) -> dd.DataFrame:
+        """
+        Function that partitions the loaded dataframe depending on its partitions and the available
+        workers
+        Returns:
+            The partitioned dataframe
+        """
+        n_partitions = dataframe.npartitions
+        n_workers = os.cpu_count()
+        dataframe = dataframe.repartition(npartitions=n_partitions)
+        logger.info(f"The number of partitions of the input dataframe is {n_partitions}. The "
+                    f"available number of workers is {n_workers}.")
+        if n_partitions < n_workers:
+            dataframe = dataframe.repartition(npartitions=n_partitions)
+            logger.info("Repartitioning the data before transforming to maximize worker usage")
+
+        return dataframe
+
     def _load_subset(self, subset_name: str, fields: t.List[str]) -> dd.DataFrame:
         """
         Function that loads a subset from the manifest as a Dask dataframe.
@@ -86,14 +110,31 @@ class DaskDataLoader(DataIO):
                 how="left",
             )
 
+        dataframe = self.partition_loaded_dataframe(dataframe)
+
         logging.info(f"Columns of dataframe: {list(dataframe.columns)}")
 
         return dataframe
 
 
 class DaskDataWriter(DataIO):
+
+    @staticmethod
+    def partition_written_dataframe(dataframe: dd.DataFrame, partition_size="250MB") -> dd.DataFrame:
+        """
+        Function that partitions the written dataframe to smaller partitions based on a given
+        partition size.
+        """
+
+        dataframe = dataframe.repartition(partition_size=partition_size)
+        logger.info(f"repartitioning the written data such that the memory per partition is"
+                    f" {partition_size}")
+        return dataframe
+
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
+
         logging.info(f"Saving execution graph to {self.execution_graph_path}")
+
         dataframe.visualize(self.execution_graph_path)
 
         write_tasks = []
@@ -169,6 +210,8 @@ class DaskDataWriter(DataIO):
             location = self.manifest.subsets[subset_name].location
 
         schema = {field.name: field.type.value for field in subset_spec.fields.values()}
+
+        dataframe = self.partition_written_dataframe(dataframe)
 
         return self._create_write_task(dataframe, location=location, schema=schema)
 
