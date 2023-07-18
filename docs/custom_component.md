@@ -56,7 +56,7 @@ class ExampleComponent(PandasTransformComponent):
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Implement your custom logic in this single method
         Args:
-            dataframe: A Pandas dataframe containing the data
+            dataframe: A Pandas dataframe containing one partition of your data
         Returns:
             A pandas dataframe containing the transformed data
         """
@@ -71,7 +71,7 @@ The `__init__` method is called once for each component class with custom argume
 `args` section of the [component specification](component_spec).)
 
 The `transform` method is called multiple times, each time containing a pandas `dataframe` 
-loaded in memory.
+with a partition of your data loaded in memory.
 
 The `dataframes` passed to the `transform` method contains the data specified in the `produces` 
 section of the component specification. If a component defines that it consumes an `images` subset 
