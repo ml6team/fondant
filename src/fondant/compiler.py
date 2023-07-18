@@ -171,6 +171,9 @@ class DockerCompiler(Compiler):
             }
 
             if component_op.dockerfile_path is not None:
+                logger.info(
+                    f"Found Dockerfile for {component_name}, adding build step.",
+                )
                 services[safe_component_name]["build"] = str(component_op.component_dir)
             else:
                 services[safe_component_name][

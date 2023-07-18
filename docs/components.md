@@ -127,7 +127,7 @@ to the directory containing your custom `fondant_component.yaml`.
 from fondant.pipeline import ComponentOp
 
 component_op = ComponentOp(
-  component_dir="components/custom_component",
+  component_dir="components/generic_component",
   arguments={
     "arg": "value"
   }
