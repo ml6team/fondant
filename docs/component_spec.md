@@ -143,7 +143,7 @@ If an argument is not explicitly provided, the default value will be used instea
 from fondant.pipeline import ComponentOp
 
 custom_op = ComponentOp(
-    component_spec_path="components/custom_component/fondant_component.yaml",
+    component_dir="components/custom_component",
     arguments={
         "custom_argument": "foo"
     },

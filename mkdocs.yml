@@ -30,12 +30,17 @@ nav:
   - Home: index.md
   - Getting Started: getting_started.md
   - Building a pipeline: pipeline.md
-  - Creating custom components: custom_component.md
-  - Read / write components: generic_component.md
-  - Component spec: component_spec.md
+  - Components:
+    - Components: components.md
+    - Creating custom components: custom_component.md
+    - Read / write components: generic_component.md
+    - Component spec: component_spec.md
   - Data explorer: data_explorer.md
   - Infrastructure: infrastructure.md
   - Manifest: manifest.md
+
+plugins:
+  - mkdocstrings
 
 markdown_extensions:
   - pymdownx.snippets:
