@@ -106,7 +106,7 @@ def test_component_arguments():
     executor = MyExecutor.from_args()
     assert executor.user_arguments == {
         "string_default_arg": "foo",
-        "integer_default_arg": 1,
+        "integer_default_arg": 0,
         "float_default_arg": 3.14,
         "bool_false_default_arg": False,
         "bool_true_default_arg": True,
