@@ -4,41 +4,35 @@ minimum and maximum values.
 """
 import logging
 
-import dask.dataframe as dd
-from fondant.component import DaskTransformComponent
+import pandas as pd
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 from utils.text_extraction import get_comments_to_code_ratio
 
 logger = logging.getLogger(__name__)
 
 
-class FilterCommentsComponent(DaskTransformComponent):
-    """Component that filters instances based on code to comments ratio."""
+class FilterCommentsComponent(PandasTransformComponent):
+    """Component that filters instances based on code to comments ratio.
+
+    Args:
+        min_comments_ratio: The minimum code to comment ratio
+        max_comments_ratio: The maximum code to comment ratio
+    """
+
+    def __init__(self, *args, min_comments_ratio: float, max_comments_ratio: float) -> None:
+        self.min_comments_ratio = min_comments_ratio
+        self.max_comments_ratio = max_comments_ratio
 
     def transform(
         self,
-        *,
-        dataframe: dd.DataFrame,
-        min_comments_ratio: float,
-        max_comments_ratio: float,
-    ) -> dd.DataFrame:
-        """
-        Args:
-            dataframe: Dask dataframe
-            min_comments_ratio: The minimum code to comment ratio
-            max_comments_ratio: The maximum code to comment ratio
-        Returns:
-            Filtered dask dataframe.
-        """
-        # Apply the function to the desired column and filter the DataFrame
-        return dataframe[
-            dataframe["code_content"].map_partitions(
-                lambda example: example.map(get_comments_to_code_ratio).between(
-                    min_comments_ratio, max_comments_ratio,
-                ),
-            )
-        ]
+        dataframe: pd.DataFrame,
+    ) -> pd.DataFrame:
+        comment_to_code_ratio = dataframe["code"]["content"].apply(get_comments_to_code_ratio)
+        mask = comment_to_code_ratio.between(self.min_comments_ratio, self.max_comments_ratio)
+        return dataframe[mask]
 
 
 if __name__ == "__main__":
-    component = FilterCommentsComponent.from_args()
-    component.run()
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(FilterCommentsComponent)

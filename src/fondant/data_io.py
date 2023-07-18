@@ -1,7 +1,6 @@
 import logging
 import os
 import typing as t
-from abc import abstractmethod
 
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
@@ -17,33 +16,36 @@ class DataIO:
     def __init__(self, *, manifest: Manifest, component_spec: ComponentSpec) -> None:
         self.manifest = manifest
         self.component_spec = component_spec
-        self.diagnostics_path = f"{self.manifest.base_path}/" \
-                                f"{self.manifest.component_id}/" \
-                                f"{self.manifest.run_id}"
+        self.diagnostics_path = (
+            f"{self.manifest.base_path}/"
+            f"{self.manifest.component_id}/"
+            f"{self.manifest.run_id}"
+        )
         self.performance_report_path = f"{self.diagnostics_path}/dask_report.html"
         self.execution_graph_path = f"{self.diagnostics_path}/execution_graph.png"
 
-    raise NotImplementedError
-
 
 class DaskDataLoader(DataIO):
-
     @staticmethod
     def partition_loaded_dataframe(dataframe: dd.DataFrame) -> dd.DataFrame:
         """
         Function that partitions the loaded dataframe depending on its partitions and the available
         workers
         Returns:
-            The partitioned dataframe
+            The partitioned dataframe.
         """
         n_partitions = dataframe.npartitions
         n_workers = os.cpu_count()
         dataframe = dataframe.repartition(npartitions=n_partitions)
-        logger.info(f"The number of partitions of the input dataframe is {n_partitions}. The "
-                    f"available number of workers is {n_workers}.")
+        logger.info(
+            f"The number of partitions of the input dataframe is {n_partitions}. The "
+            f"available number of workers is {n_workers}.",
+        )
         if n_partitions < n_workers:
             dataframe = dataframe.repartition(npartitions=n_partitions)
-            logger.info("Repartitioning the data before transforming to maximize worker usage")
+            logger.info(
+                "Repartitioning the data before transforming to maximize worker usage",
+            )
 
         return dataframe
 
@@ -118,21 +120,23 @@ class DaskDataLoader(DataIO):
 
 
 class DaskDataWriter(DataIO):
-
     @staticmethod
-    def partition_written_dataframe(dataframe: dd.DataFrame, partition_size="250MB") -> dd.DataFrame:
+    def partition_written_dataframe(
+        dataframe: dd.DataFrame,
+        partition_size="250MB",
+    ) -> dd.DataFrame:
         """
         Function that partitions the written dataframe to smaller partitions based on a given
         partition size.
         """
-
         dataframe = dataframe.repartition(partition_size=partition_size)
-        logger.info(f"repartitioning the written data such that the memory per partition is"
-                    f" {partition_size}")
+        logger.info(
+            f"repartitioning the written data such that the memory per partition is"
+            f" {partition_size}",
+        )
         return dataframe
 
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
-
         logging.info(f"Saving execution graph to {self.execution_graph_path}")
 
         dataframe.visualize(self.execution_graph_path)
@@ -163,18 +167,17 @@ class DaskDataWriter(DataIO):
             )
             write_tasks.append(write_subset_task)
 
-        with ProgressBar():
-            with performance_report(filename=self.performance_report_path):
-                logging.info("Writing data...")
-                logging.info(f"Saving performance report to {self.performance_report_path}")
-                dd.compute(*write_tasks)
+        with ProgressBar(), performance_report(filename=self.performance_report_path):
+            logging.info("Writing data...")
+            logging.info(f"Saving performance report to {self.performance_report_path}")
+            dd.compute(*write_tasks)
 
     @staticmethod
     def _extract_subset_dataframe(
-            dataframe: dd.DataFrame,
-            *,
-            subset_name: str,
-            subset_spec: ComponentSubset,
+        dataframe: dd.DataFrame,
+        *,
+        subset_name: str,
+        subset_spec: ComponentSubset,
     ) -> dd.DataFrame:
         """Create subset dataframe to save with the original field name as the column name."""
         # Create a new dataframe with only the columns needed for the output subset
@@ -192,17 +195,17 @@ class DaskDataWriter(DataIO):
 
         # Remove the subset prefix from the column names
         subset_df = subset_df.rename(
-            columns={col: col[(len(f"{subset_name}_")):] for col in subset_columns},
+            columns={col: col[(len(f"{subset_name}_")) :] for col in subset_columns},
         )
 
         return subset_df
 
     def _write_subset(
-            self,
-            dataframe: dd.DataFrame,
-            *,
-            subset_name: str,
-            subset_spec: ComponentSubset,
+        self,
+        dataframe: dd.DataFrame,
+        *,
+        subset_name: str,
+        subset_spec: ComponentSubset,
     ) -> dd.core.Scalar:
         if subset_name == "index":
             location = self.manifest.index.location
@@ -217,10 +220,10 @@ class DaskDataWriter(DataIO):
 
     @staticmethod
     def _create_write_task(
-            dataframe: dd.DataFrame,
-            *,
-            location: str,
-            schema: t.Dict[str, str],
+        dataframe: dd.DataFrame,
+        *,
+        location: str,
+        schema: t.Dict[str, str],
     ) -> dd.core.Scalar:
         """
         Creates a delayed Dask task to upload the given DataFrame to the remote storage location

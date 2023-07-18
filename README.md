@@ -174,7 +174,7 @@ def build_pipeline():
     pipeline.add_op(load_from_hub_op)
 
     custom_op = ComponentOp(
-        component_spec_path="components/custom_component/fondant_component.yaml",
+        component_dir="components/custom_component",
         arguments={
             "min_width": 600,
             "min_height": 600,
@@ -222,24 +222,39 @@ args:
     type: str
 ```
 
-Once you have your component specification, all you need to do is implement a single `.transform` 
-method and Fondant will do the rest. You will get the data defined in your specification as a 
-[Dask](https://www.dask.org/) dataframe, which is evaluated lazily.
+Once you have your component specification, all you need to do is implement a constructor 
+and a single `.transform` method and Fondant will do the rest. You will get the data defined in 
+your specification partition by partition as a Pandas dataframe.
 
 ```python
-from fondant.component import TransformComponent
+import pandas as pd
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
-class ExampleComponent(TransformComponent):
 
-    def transform(self, dataframe, *, argument1, argument2):
-        """Implement your custom logic in this single method
-        
+class ExampleComponent(PandasTransformComponent):
+
+    def __init__(self, *args, argument1, argument2) -> None:
+        """
         Args:
-            dataframe: A Dask dataframe containing the data
             argumentX: An argument passed to the component
         """
+        # Initialize your component here based on the arguments
+
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        """Implement your custom logic in this single method
+        Args:
+            dataframe: A Pandas dataframe containing the data
+        Returns:
+            A pandas dataframe containing the transformed data
+        """
+
+if __name__ == "__main__":
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(ExampleComponent)
 ```
 
+For more advanced use cases, you can use the `DaskTransformComponent` instead.
 
 ###  Running your pipeline
 
