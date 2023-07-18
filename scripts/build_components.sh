@@ -7,7 +7,7 @@ function usage {
   echo "  -t,  --tag <value>                 Tag to add to image, repeatable
                                              The first tag is set in the component specifications"
   echo "  -c,  --cache <value>               Use registry caching when building the components (default:false)"
-  echo "  -d,  --component-dirs <value>      Directory containing components to build as subdirectories.
+  echo "  -d,  --components-dir <value>      Directory containing components to build as subdirectories.
                                              The path should be relative to the root directory (default:components)"
   echo "  -n, --namespace <value>            The namespace for the built images, should match the github organization (default: ml6team)"
   echo "  -co, --component <value>           Specific component to build. Pass the component subdirectory name(s) to build
