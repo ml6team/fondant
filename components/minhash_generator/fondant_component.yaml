@@ -15,3 +15,8 @@ produces:
         type: array
         items:
             type: uint64
+args:
+  shingle_ngram_size:
+    description: Define size of ngram used for the shingle generation
+    type: int
+    default: 3
