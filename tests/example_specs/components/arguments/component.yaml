@@ -10,7 +10,7 @@ args:
   integer_default_arg:
     description: default integer argument
     type: int
-    default: 1
+    default: 0
   float_default_arg:
     description: default float argument
     type: float
