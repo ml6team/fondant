@@ -176,7 +176,7 @@ class Executor(t.Generic[Component]):
         Args:
             component_cls: The class of the component to execute
         """
-        cluster = LocalCluster()
+        cluster = LocalCluster(silence_logs=logging.INFO)
         Client(cluster)
 
         input_manifest = self._load_or_create_manifest()
