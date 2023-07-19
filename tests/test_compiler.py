@@ -6,9 +6,9 @@ import yaml
 from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 
-COMPONENTS_PATH = Path("./example_pipelines/valid_pipeline")
+COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
 
-VALID_DOCKER_PIPELINE = Path("./example_pipelines/compiled_pipeline/")
+VALID_DOCKER_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
 
 TEST_PIPELINES = [
     (
@@ -97,9 +97,6 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
         with open(output_path) as src, open(
             VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml",
         ) as truth:
-            d = yaml.safe_load(src)
-            with open(f"{example_dir}.yml", "w") as outfile:
-                yaml.dump(d, outfile, default_flow_style=False)
             assert yaml.safe_load(src) == yaml.safe_load(truth)
 
 

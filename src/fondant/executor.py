@@ -54,12 +54,14 @@ class Executor(t.Generic[Component]):
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
+        output_partition_size: t.Optional[str] = "250MB",
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
         self.metadata = metadata
         self.user_arguments = user_arguments
+        self.output_partition_size = output_partition_size
 
     @classmethod
     def from_file(
@@ -99,7 +101,7 @@ class Executor(t.Generic[Component]):
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
-
+        output_partition_size = args_dict.pop("output_partition_size")
         metadata = json.loads(metadata) if metadata else {}
 
         return cls(
@@ -108,6 +110,7 @@ class Executor(t.Generic[Component]):
             output_manifest_path=output_manifest_path,
             metadata=metadata,
             user_arguments=args_dict,
+            output_partition_size=output_partition_size,
         )
 
     @classmethod
@@ -180,11 +183,10 @@ class Executor(t.Generic[Component]):
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
-        output_partition_size = self.user_arguments["output_partition_size"]
         data_writer = DaskDataWriter(
             manifest=manifest,
             component_spec=self.spec,
-            output_partition_size=output_partition_size,
+            output_partition_size=self.output_partition_size,
         )
 
         data_writer.write_dataframe(dataframe)

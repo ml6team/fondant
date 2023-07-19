@@ -6,7 +6,7 @@ import yaml
 from fondant.exceptions import InvalidComponentOpDefinition, InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
 
-valid_pipeline_path = Path("example_pipelines/valid_pipeline")
+valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
 invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
 
 
