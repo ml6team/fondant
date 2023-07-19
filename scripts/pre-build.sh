@@ -10,5 +10,6 @@ root_path=$(dirname "$scripts_path")
 
 pushd "$root_path"
 rm -rf src/fondant/components
-find components/ -type f | grep -i yaml$ | xargs -i cp --parents {} src/fondant/
+find components/ -type f | grep -i '\.yaml$' | xargs -I{} rsync -R "{}" src/fondant/
+
 popd
