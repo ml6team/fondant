@@ -108,7 +108,7 @@ class Executor(t.Generic[Component]):
             if arg.name in cls.optional_fondant_arguments():
                 input_required = False
                 default = None
-            elif arg.default:
+            elif arg.default is not None:
                 input_required = False
                 default = arg.default
             else:
