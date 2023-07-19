@@ -28,15 +28,8 @@ from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
-
-
-class WorkerLogsFilter(logging.Filter):
-    def filter(self, record):
-        return not record.name.startswith("distributed")
-
-
-filter_worker_logs = WorkerLogsFilter()
-logger.addFilter(filter_worker_logs)
+dask_logger = logging.getLogger("distributed.process")
+dask_logger.setLevel(logging.WARNING)
 
 
 class Executor(t.Generic[Component]):
