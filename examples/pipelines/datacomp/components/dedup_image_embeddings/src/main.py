@@ -9,10 +9,12 @@ import logging
 import dask.dataframe as dd
 import numpy as np
 import pandas as pd
+from fondant.component_spec import ComponentSpec
 from scipy.spatial.distance import cdist
 from sklearn.metrics.pairwise import cosine_similarity
 
 from fondant.component import DaskTransformComponent
+from fondant.executor import DaskTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +30,13 @@ def sort_by_centroid_distance(embeddings, centroid, descending=True):
 class DedupImageEmbeddingsComponent(DaskTransformComponent):
     """Component that deduplicates images based on embeddings."""
 
-    def transform(self, dataframe: dd.DataFrame, epsilon: float) -> dd.DataFrame:
+    def __init__(self, *_, epsilon: float) -> None:
+        self.epsilon = epsilon
+
+    def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
         Args:
             dataframe: Dask dataframe
-            epsilon: Epsilon to use as threshold for cosine similarity.
 
         Returns:
             Dask dataframe
@@ -65,7 +69,7 @@ class DedupImageEmbeddingsComponent(DaskTransformComponent):
             M = np.max(triu_sim_matrix, axis=0)
 
             # Check if the maximum similarity <= the threshold.
-            points_to_keep_from_cluster_i = M <= 1 - epsilon
+            points_to_keep_from_cluster_i = M <= 1 - self.epsilon
 
             # Convert to boolean Pandas series
             points_to_keep_from_cluster_i = pd.Series(
@@ -85,5 +89,5 @@ class DedupImageEmbeddingsComponent(DaskTransformComponent):
 
 
 if __name__ == "__main__":
-    component = DedupImageEmbeddingsComponent.from_args()
-    component.run()
+    executor = DaskTransformExecutor.from_args()
+    executor.execute(DedupImageEmbeddingsComponent)

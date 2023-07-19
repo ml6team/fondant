@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class ClusterImageEmbeddingsComponent(DaskTransformComponent):
     """Component that clusters images based on embeddings."""
 
-    def __init__(self, sample_ratio: float, num_clusters: int) -> None:
+    def __init__(self, *_, sample_ratio: float, num_clusters: int) -> None:
         self.sample_ratio = sample_ratio
         self.num_clusters = num_clusters
 
