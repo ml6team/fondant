@@ -8,14 +8,7 @@ produces:
       content:
         description: content of the file in binary form
         type: binary
-      id:
-        description: name of the file
-        type: str
-
 args:
-  directory_path:
+  directory_uri:
     description: Local or remote path to the directory containing the files
-    type: str
-  fs:
-    description: fsspec's filesystem type, it can be file/s3/az/gcp
     type: str
