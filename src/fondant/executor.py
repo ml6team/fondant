@@ -28,8 +28,20 @@ from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
-dask_logger = logging.getLogger("distributed.process")
-dask_logger.setLevel(logging.WARNING)
+
+DASK_LOGS_TO_SUPRESS = [
+    "distributed.process",
+    "distributed.scheduler",
+    "distributed.nanny",
+    "distributed.worker",
+    "distributed.core",
+    "distributed.comm.tcp",
+    "distributed.batched",
+]
+
+for logger_name in DASK_LOGS_TO_SUPRESS:
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.WARNING)
 
 
 class Executor(t.Generic[Component]):
