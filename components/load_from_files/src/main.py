@@ -8,7 +8,10 @@ import os
 import tarfile
 import zipfile
 from abc import ABC, abstractmethod
+from ast import Tuple
+from io import BytesIO
 from pathlib import Path
+from typing import Generator, Optional
 
 import dask.dataframe as dd
 import fsspec
@@ -19,130 +22,88 @@ from fondant.component import LoadComponent
 logger = logging.getLogger(__name__)
 
 
-def decode_bytes(bytes):
-    """
-    Decodes bytes into str using the first successful encoding.
+class AbstractFileHandler(ABC):
+    """Abstract base class for file handlers."""
 
-    This function tries to decode a byte sequence into a string
-    using multiple encodings. The first successful decoding is returned.
-    If none of the encodings are successful, None is returned.
-
-    Parameters
-    ----------
-    bytes : bytes
-        Bytes to be decoded.
-
-    Returns:
-    -------
-    str or None
-        Decoded string if successful, None otherwise.
-    """
-    encodings = ["utf-8", "latin-1", "iso-8859-1"]
-
-    for enc in encodings:
-        try:
-            return bytes.decode(enc)
-        except UnicodeDecodeError:
-            logger.error("Failed to decode bytes !!!")
-            continue
-
-    return None
-
-
-class FileHandler(ABC):
-    """
-    Abstract base class for file handlers.
-
-    This class acts as a blueprint for all handler classes responsible
-    for reading files from different formats and filesystems.
-
-    Methods:
-    -------
-    read():
-        Abstract method that must be implemented by subclasses.
-    """
-
-    def __init__(self, filepath, fs=None):
+    def __init__(
+        self,
+        filepath: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+    ) -> None:
         """
-        Initiate a new FileHandler with filepath and filesystem (fs).
+        Initiate a new AbstractFileHandler with filepath and filesystem (fs).
 
-        Parameters
-        ----------
-        filepath : str
-            Path to the file to be read.
-        fs : fsspec.AbstractFileSystem, optional
-            Filesystem to use (default is local filesystem).
+        Args:
+          filepath : Path to the file to be read.
+          fs : Filesystem to use (default is local filesystem).
         """
         self.filepath = filepath
         self.fs = fs if fs else fsspec.filesystem("file")
 
     @abstractmethod
-    def read(self):
+    def read(self) -> Generator[Tuple[str, BytesIO]]:
         """Abstract method to read a file. Must be overridden by subclasses."""
 
 
-class GzipFileHandler(FileHandler):
-    """
-    Handler for reading gzip compressed files.
+class FileHandler(AbstractFileHandler):
+    """Handler for reading files."""
 
-    This class extends FileHandler to handle gzip compressed files.
-    """
+    def read(self) -> Generator[Tuple[str, BytesIO]]:
+        """
+        Reads files and yields the contents of the file.
 
-    def read(self):
+        Yields:
+            Tuple consisting of filename and content of the file.
+        """
+        logger.debug(f"Reading file {self.filepath}....")
+        with self.fs.open(self.filepath, "r") as f:
+            yield self.filepath.split("/")[-1], BytesIO(f.read())
+
+
+class GzipFileHandler(AbstractFileHandler):
+    """Handler for reading gzip compressed files."""
+
+    def read(self) -> Generator[Tuple[str, BytesIO]]:
         """
         Reads gzip compressed files and yields the contents of the file.
 
         Yields:
-        ------
-        str
-            Content of the gzipped file.
+            Tuple consisting of filename and content of the gzipped file.
         """
         logger.debug(f"Uncompressing {Path(self.filepath).name}......")
         with self.fs.open(self.filepath, "rb") as buffer, gzip.GzipFile(
             fileobj=buffer,
         ) as gz:
-            yield self.filepath.split("/")[-1], decode_bytes(gz.read())
+            yield self.filepath.split("/")[-1], BytesIO(gz.read())
 
 
-class ZipFileHandler(FileHandler):
-    """
-    Handler for reading zip compressed files.
+class ZipFileHandler(AbstractFileHandler):
+    """Handler for reading zip compressed files."""
 
-    This class extends FileHandler to handle zip compressed files.
-    """
-
-    def read(self):
+    def read(self) -> Generator[Tuple[str, BytesIO]]:
         """
         Reads zip compressed files and yields the content of each file in the archive.
 
         Yields:
-        ------
-        str
-            Content of each file within the zipper archive.
+            Tuple consisting of filename and content of each file within the zipped archive.
         """
         logger.info(f"Uncompressing {Path(self.filepath).name}......")
         with self.fs.open(self.filepath, "rb") as buffer, zipfile.ZipFile(buffer) as z:
             for filename in z.namelist():
                 print("filenmae: ", filename)
                 with z.open(filename) as file_buffer:
-                    yield filename.split("/")[-1], decode_bytes(file_buffer.read())
+                    yield filename.split("/")[-1], BytesIO(file_buffer.read())
 
 
-class TarFileHandler(FileHandler):
-    """
-    Handler for reading tar archived files.
+class TarFileHandler(AbstractFileHandler):
+    """Handler for reading tar archived files."""
 
-    This class extends FileHandler to handle tar archived files.
-    """
-
-    def read(self):
+    def read(self) -> Generator[Tuple[str, BytesIO]]:
         """
         Reads tar archived files and yields the content of each file in the archive.
 
         Yields:
-        ------
-        str
-            Content of each file within the tar archive.
+            Tuple consisting of filename and content of each file within the tar archive.
         """
         logger.info(f"Uncompressing {Path(self.filepath).name}......")
         with self.fs.open(self.filepath, "rb") as buffer, tarfile.open(
@@ -151,33 +112,37 @@ class TarFileHandler(FileHandler):
             for tarinfo in tar:
                 if tarinfo.isfile():
                     file = tar.extractfile(tarinfo)
-                    yield tarinfo.name.split("/")[-1], decode_bytes(file.read())
+                    yield tarinfo.name.split("/")[-1], BytesIO(file.read())
 
 
-class DirectoryHandler(FileHandler):
-    """
-    Handler for reading a directory of files.
+class DirectoryHandler(AbstractFileHandler):
+    """Handler for reading a directory of files."""
 
-    This class extends FileHandler to handle directories containing multiple files.
-    """
-
-    def read(self):
+    def read(self) -> Generator[Tuple[str, BytesIO]]:
         """
         Reads a directory of files and yields the content of each file in the directory.
 
         Yields:
-        ------
-        str
-            Content of each file within the directory.
+            Tuple consisting of filename and content of each file within the directory.
         """
         logger.info(f"Loading files from {self.filepath} ......")
         filenames = self.fs.glob(os.path.join(self.filepath, "*"))
         for filename in filenames:
-            with self.fs.open(filename, "r") as f:
-                yield filename.split("/")[-1], decode_bytes(f.read())
+            if filename.endswith(".gz"):
+                handler = GzipFileHandler(filename, self.fs)
+            elif filename.endswith(".zip"):
+                handler = ZipFileHandler(filename, self.fs)
+            elif filename.endswith(".tar"):
+                handler = TarFileHandler(filename, self.fs)
+            else:
+                handler = FileHandler(filename, self.fs)
+            yield from handler.read()
 
 
-def get_file_handler(filepath, fs):
+def get_file_handler(
+    filepath: str,
+    fs: fsspec.spec.AbstractFileSystem,
+) -> AbstractFileHandler:
     """
     This function returns an appropriate file handler based on the file extension
     of the input file.
@@ -186,121 +151,139 @@ def get_file_handler(filepath, fs):
     to a DirectoryHandler.
 
     Args:
-    filepath (str): The file path (including name) to be processed. Should end with one
+    filepath: The file path (including name) to be processed. Should end with one
     of the supported extensions.
-    fs (fsspec.spec.AbstractFileSystem): An instance of a FSSpec filesystem. This
+    fs: An instance of a FSSpec filesystem. This
     filesystem will be used to read the file.
 
 
     Returns:
-    FileHandler: One of GzipFileHandler, ZipFileHandler, TarFileHandler or DirectoryHandler
+    AbstractFileHandler: One of GzipFileHandler, ZipFileHandler, TarFileHandler or DirectoryHandler
       depending on the file extension.
 
     Raises:
     ValueError: If the file extension is not one of the supported ones (.gz, .zip, .tar).
     """
+    if filepath.endswith((".tar", ".tar.gz")):
+        return TarFileHandler(filepath=filepath, fs=fs)
     if filepath.endswith(".gz"):
         return GzipFileHandler(filepath=filepath, fs=fs)
     if filepath.endswith(".zip"):
         return ZipFileHandler(filepath=filepath, fs=fs)
-    if filepath.endswith(".tar"):
-        return TarFileHandler(filepath=filepath, fs=fs)
 
     return DirectoryHandler(filepath)
 
 
 class FilesToDaskConverter:
-    """
-    This class is responsible for converting file contents to a Dask DataFrame.
+    """This class is responsible for converting file contents to a Dask DataFrame."""
 
-    Attributes:
-    ----------
-        handler : A user-provided handler that reads file content and name.
-                  It is expected to be an object with a method named `read`
-                  which should yield tuples containing (file_name, file_content).
-
-    Methods:
-    -------
-        to_dask_dataframe():
-            Converts the read file content to binary form and returns it as a Dask DataFrame.
-    """
-
-    def __init__(self, handler):
+    def __init__(self, handler: AbstractFileHandler) -> None:
         """
         Constructs all the necessary attributes for the file converter object.
 
-        Parameters
-        ----------
-            handler: handles the files and reads their content.
+        Args:
+            handler: Handles the files and reads their content.
                      Should have a 'read' method that yields tuples (file_name, file_content).
         """
         self.handler = handler
 
     @staticmethod
     @delayed
-    def create_record(file_name, file_content):
+    def create_record(file_name: str, file_content: str) -> pd.DataFrame:
         """
-        Static helper method that creates a dictionary record of file name and its content in
-          string format.
+        Static helper method that creates a dictionary record of file name and
+        its content in string format.
 
-        Parameters
-        ----------
-        file_name : str
-            Name of the file.
-        file_content : str
-            The content of the file.
+        Args:
+            file_name : Name of the file.
+            file_content : The content of the file.
 
         Returns:
-        -------
-        dict
-            A pandas dataframe with 'filename' as index and 'Content' column for binary file
-            content.
+            A pandas dataframe with 'filename' as index and 'Content' column for
+            binary file content.
         """
-        record = pd.DataFrame(data={"filename": file_name, "Content": file_content})
-        # convert 'Content' column to 'object' type if it's not already
-        if record["Content"].dtype != "object":
-            record["Content"] = record["Content"].astype("str")
-        return record
+        return pd.DataFrame(data={"filename": file_name, "Content": file_content})
 
-    def to_dask_dataframe(self):
-        """
-        This method converts the read file content to binary form and returns a Dask DataFrame.
 
-        Returns:
-        ------
-        dask.dataframe
-            The created Dask DataFrame with filenames as indices and file content in binary form
-            as Content column.
-        """
-        # Initialize an empty list to hold all our records in 'delayed' objects.
-        # These objects encapsulate our function calls and their results, but don't execute
-        # just yet.
-        records = []
-        logging.debug("Converting individual files into a dask dataframe ......")
-        # Iterate over each file handled by the handler
-        for file_name, file_content in self.handler.read():
-            # Create a record for each file - note that this doesn't really run just yet due to
-            # being 'delayed'
-            record = self.create_record(file_name, file_content)
-            # Add the 'delayed' record to our list
-            records.append(record)
+def to_dask_dataframe(self, chunksize: int = 1000) -> dd.DataFrame:
+    """
+    This method converts the read file content to binary form and returns a
+    Dask DataFrame.
 
-        #  Create an empty pandas dataframe with correct column names and types as meta.
-        metadata = pd.DataFrame(
-            data={
-                "filename": pd.Series([], dtype="object"),
-                "Content": pd.Series([], dtype="bytes"),
-            },
-        )
+    Returns:
+        The created Dask DataFrame with filenames as indices and file content
+        in binary form as Content column.
+    """
+    # Initialize an empty list to hold all our records in 'delayed' objects.
+    records = []
+    temp_records = []
+    logging.debug("Converting individual files into a dask dataframe ......")
 
-        # Use the delayed objects to create a Dask DataFrame. Dask knows how to handle these and
-        # will efficiently compute them when needed.
-        dataframe = dd.from_delayed(records, meta=metadata)
+    # Iterate over each file handled by the handler
+    for i, (file_name, file_content) in enumerate(self.handler.read()):
+        record = self.create_record(file_name, file_content)
+        temp_records.append(record)
 
-        # Set 'filename' as the index
-        dataframe = dataframe.set_index("filename")
+        if (i + 1) % chunksize == 0:
+            # When we hit the chunk size, we combine all the records so far,
+            # create a Delayed object, and add it to the list of partitions.
+            combined = pd.concat(temp_records, axis=0)
+            records.append(delayed(combined))
+            temp_records = []
 
-        return dataframe
+    # Take care of any remaining records
+    if temp_records:
+        combined = pd.concat(temp_records, axis=0)
+        records.append(delayed(combined))
+
+    # Create an empty pandas dataframe with correct column names and types as meta
+    metadata = pd.DataFrame(
+        data={
+            "filename": pd.Series([], dtype="object"),
+            "Content": pd.Series([], dtype="bytes"),
+        },
+    )
+
+    # Use the delayed objects to create a Dask DataFrame.
+    dataframe = dd.from_delayed(records, meta=metadata)
+
+    # Set 'filename' as the index
+    dataframe = dataframe.set_index("filename")
+
+    return dataframe
+
+
+def get_filesystem(path_uri: str) -> Optional[fsspec.spec.AbstractFileSystem]:
+    """Function to create fsspec.filesystem based on path_uri.
+
+    Creates a abstract handle using fsspec.filesystem to
+    remote or local directories to read files as if they
+    are on device.
+
+    Args:
+        path_uri: can be either local or remote directory/fiel path
+
+    Returns:
+        A fsspec.filesystem (if path_uri is either local or belongs to
+        one of these cloud sources s3, gcs or azure blob storage) or None
+        if path_uri has invalid scheme
+    """
+    scheme = fsspec.utils.get_protocol(path_uri)
+
+    if scheme == "file":
+        return fsspec.filesystem("file")
+    if scheme == "s3":
+        return fsspec.filesystem("s3")
+    if scheme == "gs":
+        return fsspec.filesystem("gcs")
+    if scheme == "abfs":
+        return fsspec.filesystem("abfs")
+
+    logger.warning(
+        f"""Unable to create fsspec filesystem object
+                    because of unsupported scheme: {scheme}""",
+    )
+    return None
 
 
 class LoadFromFiles(LoadComponent):
@@ -309,26 +292,23 @@ class LoadFromFiles(LoadComponent):
     def load(
         self,
         *,
-        directory_path: str,
-        fs: str,
+        directory_uri: str,
     ) -> dd.DataFrame:
-        """
-        Args:
-            directory_path: path to the directory with files. It can be either local
-                            path or a remote path
-            fs (str): Type of filesystem that will be used to read files, it can be
-                      file/s3/az/gcp.
+        """Loads dataset by reading all files in directory_uri."""
+        fs = get_filesystem(directory_uri)
+        if fs:
+            # create a handler to read files from directory
+            handler = get_file_handler(directory_uri, fs=fs)
 
-        Returns:
-            Dataset: dataset with all file content in string format
-        """
-        fs = fsspec.filesystem(fs)
-        # create a handler to read files from directory
-        handler = get_file_handler(directory_path, fs=fs)
-
-        # convert files to dask dataframe
-        converter = FilesToDaskConverter(handler)
-        return converter.to_dask_dataframe()
+            # convert files to dask dataframe
+            converter = FilesToDaskConverter(handler)
+            return converter.to_dask_dataframe()
+        logger.error(
+            f"Could not load data from {directory_uri} because \
+                     directory_uri doesn't belong to currently supported \
+                     schemes: s3, gcs, abfs",
+        )
+        return None
 
 
 if __name__ == "__main__":
