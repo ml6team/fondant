@@ -176,6 +176,9 @@ class Executor(t.Generic[Component]):
         Args:
             component_cls: The class of the component to execute
         """
+        cluster = LocalCluster()
+        Client(cluster, silence_logs="info")
+
         input_manifest = self._load_or_create_manifest()
 
         component = component_cls(self.spec, **self.user_arguments)
@@ -218,9 +221,6 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
         Returns:
             A `dd.DataFrame` instance with initial data.
         """
-        cluster = LocalCluster()
-        Client(cluster)
-
         return component.load()
 
 
