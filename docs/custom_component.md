@@ -39,35 +39,39 @@ The easiest way to implement a `TransformComponent` is to subclass the provided
 chunks as pandas dataframes.
 
 ```python
+import pandas as pd
 from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
+
 
 class ExampleComponent(PandasTransformComponent):
-    
-    def setup(self, argument1, argument2):
-        """This method is called once per component with any custom arguments it received. Use 
-        it for component wide setup or to store your arguments as instance attributes to access 
-        them in the `transform` method.
-        
-        Args:
-            argumentX: A custom argument passed to the component
-        """ 
 
-    def transform(self, dataframe):
-        """Implement your custom transformation logic in this single method
-        
+    def __init__(self, *args, argument1, argument2) -> None:
+        """
+        Args:
+            argumentX: An argument passed to the component
+        """
+        # Initialize your component here based on the arguments
+
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        """Implement your custom logic in this single method
         Args:
             dataframe: A Pandas dataframe containing one partition of your data
-            
         Returns:
-            A pandas dataframe with the transformed data
+            A pandas dataframe containing the transformed data
         """
+
+if __name__ == "__main__":
+    executor = PandasTransformExecutor.from_args()
+    executor.execute(ExampleComponent)
 ```
 
-The `setup` method is called once for each component class with custom arguments defined in the 
+
+The `__init__` method is called once for each component class with custom arguments defined in the 
 `args` section of the [component specification](component_spec).)
 
 The `transform` method is called multiple times, each time containing a pandas `dataframe` 
-loaded in memory.
+with a partition of your data loaded in memory.
 
 The `dataframes` passed to the `transform` method contains the data specified in the `produces` 
 section of the component specification. If a component defines that it consumes an `images` subset 
