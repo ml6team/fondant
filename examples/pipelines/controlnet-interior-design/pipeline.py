@@ -17,6 +17,7 @@ pipeline_description = "Pipeline that collects data to train ControlNet"
 generate_prompts_op = ComponentOp(
     component_dir="components/generate_prompts",
     arguments={"n_rows_to_load": None},
+    output_partition_size="disable",
 )
 laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
@@ -72,8 +73,8 @@ write_to_hub_controlnet = ComponentOp(
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
 pipeline.add_op(generate_prompts_op)
-pipeline.add_op(laion_retrieval_op, dependencies=generate_prompts_op)
-pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
-pipeline.add_op(caption_images_op, dependencies=download_images_op)
-pipeline.add_op(segment_images_op, dependencies=caption_images_op)
-pipeline.add_op(write_to_hub_controlnet, dependencies=segment_images_op)
+# pipeline.add_op(laion_retrieval_op, dependencies=generate_prompts_op)
+# pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
+# pipeline.add_op(caption_images_op, dependencies=download_images_op)
+# pipeline.add_op(segment_images_op, dependencies=caption_images_op)
+# pipeline.add_op(write_to_hub_controlnet, dependencies=segment_images_op)
