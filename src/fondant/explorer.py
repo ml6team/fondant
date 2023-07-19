@@ -42,7 +42,9 @@ def run_explorer_app(
     # mount the local data directory to the container
     if data_directory:
         print(data_directory)
-        cmd.extend(["-v", f"{shlex.quote(data_directory)}:/artifacts"])
+        cmd.extend(
+            ["-v", f"{shlex.quote(data_directory)}:/{shlex.quote(data_directory)}"],
+        )
 
     # add the image name
     cmd.extend(
