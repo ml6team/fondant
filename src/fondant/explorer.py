@@ -43,7 +43,7 @@ def run_explorer_app(
     if data_directory:
         print(data_directory)
         cmd.extend(
-            ["-v", f"{shlex.quote(data_directory)}:/{shlex.quote(data_directory)}"],
+            ["-v", f"{shlex.quote(data_directory)}:{shlex.quote(data_directory)}"],
         )
 
     # add the image name
