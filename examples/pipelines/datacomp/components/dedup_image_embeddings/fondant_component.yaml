@@ -1,6 +1,6 @@
 name: Deduplicate image embeddings
 description: Component that deduplicates images based on embeddings
-image: ghcr.io/ml6team/dedup_image_embeddings:latest
+image: ghcr.io/ml6team/dedup_image_embeddings:551f7b19174f694b185c2a90165611ed706e8d92
 
 consumes:
   image:
