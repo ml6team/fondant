@@ -64,7 +64,7 @@ cluster_image_embeddings_op = ComponentOp(
 dedup_image_embeddings_op = ComponentOp(
     component_dir="components/dedup_image_embeddings",
     arguments={
-        "epsilon": 0.03,
+        "epsilon": 0.5,
     },
 )
 
