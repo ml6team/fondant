@@ -17,12 +17,15 @@ class DataIO:
         self.manifest = manifest
         self.component_spec = component_spec
         self.diagnostics_path = (
-            f"{self.manifest.base_path}/"
-            f"{self.manifest.component_id}/"
-            f"{self.manifest.run_id}"
+            f"{self.manifest.base_path}/" f"{self.manifest.component_id}"
         )
-        self.performance_report_path = f"{self.diagnostics_path}/dask_report.html"
-        self.execution_graph_path = f"{self.diagnostics_path}/execution_graph.png"
+
+        self.performance_report_path = (
+            f"{self.diagnostics_path}/{self.manifest.run_id}_dask_report.html"
+        )
+        self.execution_graph_path = (
+            f"{self.diagnostics_path}/{self.manifest.run_id}_execution_graph.png"
+        )
 
 
 class DaskDataLoader(DataIO):
@@ -36,7 +39,6 @@ class DaskDataLoader(DataIO):
         """
         n_partitions = dataframe.npartitions
         n_workers = os.cpu_count()
-        dataframe = dataframe.repartition(npartitions=n_partitions)
         logger.info(
             f"The number of partitions of the input dataframe is {n_partitions}. The "
             f"available number of workers is {n_workers}.",
