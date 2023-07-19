@@ -121,12 +121,13 @@ def test_component_arguments():
         "override_default_arg": "bar",
         "override_default_none_arg": 3.14,
         "override_default_arg_with_none": None,
+        "output_partition_size": "250MB",
     }
 
 
 @pytest.mark.usefixtures("_patched_data_writing")
 def test_load_component():
-    # Mock CLI argumentsload
+    # Mock CLI arguments load
     sys.argv = [
         "",
         "--metadata",
@@ -142,13 +143,15 @@ def test_load_component():
     ]
 
     class MyLoadComponent(DaskLoadComponent):
-        def __init__(self, *args, flag, value):
+        def __init__(self, *args, flag, value, output_partition_size):
             self.flag = flag
             self.value = value
+            self.output_partition_size = output_partition_size
 
         def load(self):
             assert self.flag == "success"
             assert self.value == 1
+            assert self.output_partition_size == "250MB"
             data = {
                 "id": [0, 1],
                 "captions_data": ["hello world", "this is another caption"],
@@ -182,9 +185,10 @@ def test_dask_transform_component():
     ]
 
     class MyDaskComponent(DaskTransformComponent):
-        def __init__(self, *args, flag, value):
+        def __init__(self, *args, flag, value, output_partition_size):
             self.flag = flag
             self.value = value
+            self.output_partition_size = output_partition_size
 
         def transform(self, dataframe):
             assert self.flag == "success"
@@ -223,9 +227,10 @@ def test_pandas_transform_component():
     ]
 
     class MyPandasComponent(PandasTransformComponent):
-        def __init__(self, *args, flag, value):
+        def __init__(self, *args, flag, value, output_partition_size):
             assert flag == "success"
             assert value == 1
+            assert output_partition_size == "250MB"
 
         def transform(self, dataframe):
             assert isinstance(dataframe, pd.DataFrame)
@@ -336,13 +341,15 @@ def test_write_component():
     ]
 
     class MyWriteComponent(DaskWriteComponent):
-        def __init__(self, *args, flag, value):
+        def __init__(self, *args, flag, value, output_partition_size):
             self.flag = flag
             self.value = value
+            self.output_partition_size = output_partition_size
 
         def write(self, dataframe):
             assert self.flag == "success"
             assert self.value == 1
+            assert self.output_partition_size == "250MB"
             assert isinstance(dataframe, dd.DataFrame)
 
     executor = DaskWriteExecutor.from_args()

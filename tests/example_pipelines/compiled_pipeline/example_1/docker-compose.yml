@@ -9,6 +9,8 @@ services:
     - /foo/bar/first_component/manifest.json
     - --storage_args
     - a dummy string arg
+    - --output_partition_size
+    - 250MB
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -48,6 +50,8 @@ services:
     - a dummy string arg
     - --some_list
     - '[1, 2, 3]'
+    - --output_partition_size
+    - 10MB
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":

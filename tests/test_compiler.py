@@ -6,9 +6,9 @@ import yaml
 from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 
-COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
+COMPONENTS_PATH = Path("./example_pipelines/valid_pipeline")
 
-VALID_DOCKER_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
+VALID_DOCKER_PIPELINE = Path("./example_pipelines/compiled_pipeline/")
 
 TEST_PIPELINES = [
     (
@@ -17,10 +17,12 @@ TEST_PIPELINES = [
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "first_component"),
                 arguments={"storage_args": "a dummy string arg"},
+                output_partition_size="250MB",
             ),
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "second_component"),
                 arguments={"storage_args": "a dummy string arg"},
+                output_partition_size=None,
             ),
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "fourth_component"),
@@ -28,6 +30,7 @@ TEST_PIPELINES = [
                     "storage_args": "a dummy string arg",
                     "some_list": [1, 2, 3],
                 },
+                output_partition_size="10MB",
             ),
         ],
     ),
@@ -94,6 +97,9 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
         with open(output_path) as src, open(
             VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml",
         ) as truth:
+            d = yaml.safe_load(src)
+            with open(f"{example_dir}.yml", "w") as outfile:
+                yaml.dump(d, outfile, default_flow_style=False)
             assert yaml.safe_load(src) == yaml.safe_load(truth)
 
 

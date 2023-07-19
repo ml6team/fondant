@@ -3,7 +3,7 @@ import os
 import typing as t
 
 import dask.dataframe as dd
-from dask.distributed import performance_report
+from dask.diagnostics import ProgressBar
 
 from fondant.component_spec import ComponentSpec, ComponentSubset
 from fondant.manifest import Manifest
@@ -19,15 +19,11 @@ class DataIO:
             f"{self.manifest.base_path}/" f"{self.manifest.component_id}"
         )
 
-        self.performance_report_path = (
-            f"{self.diagnostics_path}/{self.manifest.run_id}_dask_report.html"
-        )
-        self.execution_graph_path = (
-            f"{self.diagnostics_path}/{self.manifest.run_id}_execution_graph.png"
-        )
-
 
 class DaskDataLoader(DataIO):
+    def __init__(self, *, manifest: Manifest, component_spec: ComponentSpec):
+        super().__init__(manifest=manifest, component_spec=component_spec)
+
     @staticmethod
     def partition_loaded_dataframe(dataframe: dd.DataFrame) -> dd.DataFrame:
         """
@@ -121,20 +117,27 @@ class DaskDataLoader(DataIO):
 
 
 class DaskDataWriter(DataIO):
-    @staticmethod
-    def partition_written_dataframe(
-        dataframe: dd.DataFrame,
-        partition_size="250MB",
-    ) -> dd.DataFrame:
+    def __init__(
+        self,
+        *,
+        manifest: Manifest,
+        component_spec: ComponentSpec,
+        output_partition_size: t.Optional[str] = None,
+    ):
+        super().__init__(manifest=manifest, component_spec=component_spec)
+        self.output_partition_size = output_partition_size
+
+    def partition_written_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
         Function that partitions the written dataframe to smaller partitions based on a given
         partition size.
         """
-        dataframe = dataframe.repartition(partition_size=partition_size)
-        logger.info(
-            f"repartitioning the written data such that the memory per partition is"
-            f" {partition_size}",
-        )
+        if self.output_partition_size:
+            dataframe = dataframe.repartition(partition_size=self.output_partition_size)
+            logger.info(
+                f"repartitioning the written data such that the memory per partition is"
+                f" {self.output_partition_size}",
+            )
         return dataframe
 
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
@@ -151,10 +154,6 @@ class DaskDataWriter(DataIO):
         )
         write_tasks.append(write_index_task)
 
-        logging.info(f"Saving execution graph to {self.execution_graph_path}")
-
-        dataframe.visualize(self.execution_graph_path)
-
         for subset_name, subset_spec in self.component_spec.produces.items():
             subset_df = self._extract_subset_dataframe(
                 dataframe,
@@ -168,9 +167,8 @@ class DaskDataWriter(DataIO):
             )
             write_tasks.append(write_subset_task)
 
-        with performance_report(filename=self.performance_report_path):
+        with ProgressBar():
             logging.info("Writing data...")
-            logging.info(f"Saving performance report to {self.performance_report_path}")
             dd.compute(*write_tasks)
 
     @staticmethod

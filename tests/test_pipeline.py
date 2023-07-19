@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 import yaml
-from fondant.exceptions import InvalidPipelineDefinition
+from fondant.exceptions import InvalidComponentOpDefinition, InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
 
-valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
+valid_pipeline_path = Path("example_pipelines/valid_pipeline")
 invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
 
 
@@ -21,6 +21,49 @@ def default_pipeline_args():
         "pipeline_name": "pipeline",
         "base_path": "gcs://bucket/blob",
     }
+
+
+@pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+            "example_1",
+            ["first_component", "second_component", "third_component"],
+        ),
+    ],
+)
+def test_component_op(
+    valid_pipeline_example,
+):
+    component_args = {"storage_args": "a dummy string arg"}
+    example_dir, component_names = valid_pipeline_example
+    components_path = Path(valid_pipeline_path / example_dir)
+
+    ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments=component_args,
+        output_partition_size=None,
+    )
+
+    ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments=component_args,
+        output_partition_size="250MB",
+    )
+
+    with pytest.raises(InvalidComponentOpDefinition):
+        ComponentOp(
+            Path(components_path / component_names[0]),
+            arguments=component_args,
+            output_partition_size=10,
+        )
+
+    with pytest.raises(InvalidComponentOpDefinition):
+        ComponentOp(
+            Path(components_path / component_names[0]),
+            arguments=component_args,
+            output_partition_size="250 MB",
+        )
 
 
 @pytest.mark.parametrize(

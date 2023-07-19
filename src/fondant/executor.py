@@ -14,7 +14,6 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pandas as pd
-from dask.distributed import Client, LocalCluster
 
 from fondant.component import (
     Component,
@@ -54,7 +53,7 @@ class Executor(t.Generic[Component]):
         input_manifest_path: t.Union[str, Path],
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
-        user_arguments: t.Dict[str, Argument],
+        user_arguments: t.Dict[str, t.Any],
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
@@ -181,7 +180,13 @@ class Executor(t.Generic[Component]):
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=self.spec)
+        output_partition_size = self.user_arguments["output_partition_size"]
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            component_spec=self.spec,
+            output_partition_size=output_partition_size,
+        )
+
         data_writer.write_dataframe(dataframe)
 
     def execute(self, component_cls: t.Type[Component]) -> None:
@@ -190,9 +195,6 @@ class Executor(t.Generic[Component]):
         Args:
             component_cls: The class of the component to execute
         """
-        cluster = LocalCluster()
-        Client(cluster)
-
         input_manifest = self._load_or_create_manifest()
 
         component = component_cls(self.spec, **self.user_arguments)

@@ -12,7 +12,7 @@ except ImportError:
     from importlib_resources import files  # type: ignore
 
 from fondant.component_spec import ComponentSpec
-from fondant.exceptions import InvalidPipelineDefinition
+from fondant.exceptions import InvalidComponentOpDefinition, InvalidPipelineDefinition
 from fondant.import_utils import is_kfp_available
 from fondant.manifest import Manifest
 
@@ -32,6 +32,8 @@ class ComponentOp:
     Arguments:
         component_dir: The path to the component directory.
         arguments: A dictionary containing the argument name and value for the operation.
+        output_partition_size: the size of the output written dataset. Defaults to 250MB,
+        set to None to disable partitioning the output,
         number_of_gpus: The number of gpus to assign to the operation
         node_pool_name: The name of the node pool to which the operation will be assigned.
         p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount paths,
@@ -57,13 +59,15 @@ class ComponentOp:
         component_dir: t.Union[str, Path],
         *,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        output_partition_size: t.Optional[str] = "250MB",
         number_of_gpus: t.Optional[int] = None,
         node_pool_name: t.Optional[str] = None,
         p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
         ephemeral_storage_size: t.Optional[str] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
-        self.arguments = arguments or {}
+        self.output_partitioning_size = output_partition_size
+        self.arguments = self._set_arguments(arguments)
 
         self.component_spec = ComponentSpec.from_file(
             self.component_dir / self.COMPONENT_SPEC_NAME,
@@ -74,6 +78,36 @@ class ComponentOp:
         self.node_pool_name = node_pool_name
         self.p_volumes = p_volumes
         self.ephemeral_storage_size = ephemeral_storage_size
+
+    def _set_arguments(
+        self,
+        arguments: t.Optional[t.Dict[str, t.Any]],
+    ) -> t.Dict[str, t.Any]:
+        """Set component arguments based on provided arguments and relevant ComponentOp
+        parameters.
+        """
+
+        def _validate_file_size(file_size):
+            # Define the regular expression pattern to match file size notations: KB, MB, GB or TB
+            pattern = r"^\d+(?:\.\d+)?(?:KB|MB|GB|TB)$"
+
+            # Use the re.match() function to check if the provided file_size matches the pattern
+            return bool(re.match(pattern, file_size, re.I))
+
+        arguments = arguments or {}
+
+        if self.output_partitioning_size is not None:
+            if not _validate_file_size(file_size=str(self.output_partitioning_size)):
+                msg = (
+                    f"Invalid partition size defined `{self.output_partitioning_size}`,"
+                    " partition size must be a string followed by a file size notation"
+                    " e.g. ('250MB')"
+                )
+                raise InvalidComponentOpDefinition(msg)
+
+            arguments["output_partition_size"] = self.output_partitioning_size
+
+        return arguments
 
     @property
     def dockerfile_path(self) -> t.Optional[Path]:

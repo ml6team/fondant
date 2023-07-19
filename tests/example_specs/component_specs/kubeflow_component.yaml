@@ -11,6 +11,11 @@ inputs:
     description: The component specification as a dictionary
     type: JsonObject
     default: None
+-   name: output_partition_size
+    description: The size of the output partition size, defaults to 250MB. Set to
+        None to disable partitioning the output
+    type: String
+    default: 250MB
 -   name: storage_args
     description: Storage arguments
     type: String
@@ -30,6 +35,8 @@ implementation:
         -   inputValue: metadata
         - --component_spec
         -   inputValue: component_spec
+        - --output_partition_size
+        -   inputValue: output_partition_size
         - --storage_args
         -   inputValue: storage_args
         - --output_manifest_path
