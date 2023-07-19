@@ -138,10 +138,6 @@ class DaskDataWriter(DataIO):
         return dataframe
 
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
-        logging.info(f"Saving execution graph to {self.execution_graph_path}")
-
-        dataframe.visualize(self.execution_graph_path)
-
         write_tasks = []
 
         dataframe.index = dataframe.index.rename("id").astype("string")
@@ -154,6 +150,10 @@ class DaskDataWriter(DataIO):
             subset_spec=self.component_spec.index,
         )
         write_tasks.append(write_index_task)
+
+        logging.info(f"Saving execution graph to {self.execution_graph_path}")
+
+        dataframe.visualize(self.execution_graph_path)
 
         for subset_name, subset_spec in self.component_spec.produces.items():
             subset_df = self._extract_subset_dataframe(
