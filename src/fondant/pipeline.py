@@ -1,5 +1,4 @@
 """This module defines classes to represent a Fondant Pipeline."""
-import json
 import logging
 import re
 import typing as t
