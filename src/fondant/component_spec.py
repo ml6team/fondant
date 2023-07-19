@@ -259,7 +259,7 @@ class KubeflowComponentSpec:
                 {
                     "name": "output_partition_size",
                     "description": "The size of the output partition size, defaults"
-                    " to 250MB. Set to None to disable partitioning the output",
+                    " to 250MB. Set to `disable` to disable the automatic partitioning",
                     "type": "String",
                     "default": "250MB",
                 },

@@ -28,20 +28,6 @@ from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
 
-DASK_LOGS_TO_SUPRESS = [
-    "distributed.process",
-    "distributed.scheduler",
-    "distributed.nanny",
-    "distributed.worker",
-    "distributed.core",
-    "distributed.comm.tcp",
-    "distributed.batched",
-]
-
-for logger_name in DASK_LOGS_TO_SUPRESS:
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.WARNING)
-
 
 class Executor(t.Generic[Component]):
     """An executor executes a Component."""

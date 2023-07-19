@@ -15,9 +15,6 @@ class DataIO:
     def __init__(self, *, manifest: Manifest, component_spec: ComponentSpec) -> None:
         self.manifest = manifest
         self.component_spec = component_spec
-        self.diagnostics_path = (
-            f"{self.manifest.base_path}/" f"{self.manifest.component_id}"
-        )
 
 
 class DaskDataLoader(DataIO):
@@ -132,10 +129,10 @@ class DaskDataWriter(DataIO):
         Function that partitions the written dataframe to smaller partitions based on a given
         partition size.
         """
-        if self.output_partition_size:
+        if self.output_partition_size and self.output_partition_size != "disable":
             dataframe = dataframe.repartition(partition_size=self.output_partition_size)
             logger.info(
-                f"repartitioning the written data such that the memory per partition is"
+                f"Repartitioning the written data such that the size per partition is approx."
                 f" {self.output_partition_size}",
             )
         return dataframe

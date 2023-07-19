@@ -33,7 +33,7 @@ class ComponentOp:
         component_dir: The path to the component directory.
         arguments: A dictionary containing the argument name and value for the operation.
         output_partition_size: the size of the output written dataset. Defaults to 250MB,
-        set to None to disable partitioning the output,
+        set to "disable" to disable automatic repartitioning of the output,
         number_of_gpus: The number of gpus to assign to the operation
         node_pool_name: The name of the node pool to which the operation will be assigned.
         p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount paths,
@@ -87,9 +87,9 @@ class ComponentOp:
         parameters.
         """
 
-        def _validate_file_size(file_size):
+        def _validate_partition_size_arg(file_size):
             # Define the regular expression pattern to match file size notations: KB, MB, GB or TB
-            pattern = r"^\d+(?:\.\d+)?(?:KB|MB|GB|TB)$"
+            pattern = r"^(?:\d+(?:\.\d+)?(?:KB|MB|GB|TB)|disable)$"
 
             # Use the re.match() function to check if the provided file_size matches the pattern
             return bool(re.match(pattern, file_size, re.I))
@@ -97,11 +97,13 @@ class ComponentOp:
         arguments = arguments or {}
 
         if self.output_partitioning_size is not None:
-            if not _validate_file_size(file_size=str(self.output_partitioning_size)):
+            if not _validate_partition_size_arg(
+                file_size=str(self.output_partitioning_size),
+            ):
                 msg = (
                     f"Invalid partition size defined `{self.output_partitioning_size}`,"
                     " partition size must be a string followed by a file size notation"
-                    " e.g. ('250MB')"
+                    " e.g. ('250MB') or 'disable' to disable the automatic partitioning"
                 )
                 raise InvalidComponentOpDefinition(msg)
 
