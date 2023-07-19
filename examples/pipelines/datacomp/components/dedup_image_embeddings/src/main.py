@@ -9,7 +9,6 @@ import logging
 import dask.dataframe as dd
 import numpy as np
 import pandas as pd
-from fondant.component_spec import ComponentSpec
 from scipy.spatial.distance import cdist
 from sklearn.metrics.pairwise import cosine_similarity
 
