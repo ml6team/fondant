@@ -3,7 +3,6 @@ import os
 import typing as t
 
 import dask.dataframe as dd
-from dask.diagnostics import ProgressBar
 from dask.distributed import Client, LocalCluster, performance_report
 
 from fondant.component_spec import ComponentSpec, ComponentSubset
@@ -172,7 +171,7 @@ class DaskDataWriter(DataIO):
             )
             write_tasks.append(write_subset_task)
 
-        with ProgressBar(), performance_report(filename=self.performance_report_path):
+        with performance_report(filename=self.performance_report_path):
             logging.info("Writing data...")
             logging.info(f"Saving performance report to {self.performance_report_path}")
             dd.compute(*write_tasks)
