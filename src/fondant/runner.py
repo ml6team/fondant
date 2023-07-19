@@ -32,27 +32,31 @@ class DockerRunner(Runner):
 
 
 class KubeflowRunner(Runner):
+    def __init__(self):
+        self._resolve_imports()
+
     @abstractmethod
     def _resolve_imports(self):
         """Resolve imports for the Kubeflow compiler."""
         try:
+            global kfp
             import kfp
         except ImportError:
             raise ImportError(
                 "You need to install kfp to use the Kubeflow compiler, "
-                / "you can install it with `poetry install --extras kfp`"
+                / "you can install it with `pip install --extras kfp`",
             )
 
     def run(cls, input_spec: str, host: str, *args, **kwargs):
         """Run a kubeflow pipeline."""
-        cls._resolve_imports()
-        client = kfp.Client(host=host)
-        # TODO add logic to see if pipeline exists
-        pipeline_spec = client.run_pipeline(
-            experiment_id=experiment.id,
-            job_name=run_name,
-            pipeline_package_path=pipeline.package_path,
-        )
+        pass
+        # client = kfp.Client(host=host)
+        # # TODO add logic to see if pipeline exists
+        # pipeline_spec = client.run_pipeline(
+        #     experiment_id=experiment.id,
+        #     job_name=run_name,
+        #     pipeline_package_path=pipeline.package_path,
+        # )
 
-        pipeline_url = f"{self.host}/#/runs/details/{pipeline_spec.id}"
-        logger.info(f"Pipeline is running at: {pipeline_url}")
+        # pipeline_url = f"{self.host}/#/runs/details/{pipeline_spec.id}"
+        # logger.info(f"Pipeline is running at: {pipeline_url}")

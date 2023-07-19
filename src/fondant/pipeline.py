@@ -18,8 +18,6 @@ from fondant.manifest import Manifest
 from fondant.schema import validate_partition_number, validate_partition_size
 
 if is_kfp_available():
-    import kfp
-    from kfp import dsl
     from kubernetes import client as k8s_client
 
 logger = logging.getLogger(__name__)
