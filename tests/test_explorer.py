@@ -48,7 +48,7 @@ def test_run_data_explorer_with_data_dir():
                 "-p",
                 f"{DEFAULT_PORT}:8501",
                 "-v",
-                f"{data_directory}:/artifacts",
+                f"{data_directory}:/{data_directory}",
                 f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
             ],
             stdout=subprocess.PIPE,
