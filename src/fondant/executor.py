@@ -14,6 +14,7 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pandas as pd
+from dask.distributed import Client, LocalCluster
 
 from fondant.component import (
     Component,
@@ -217,6 +218,9 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
         Returns:
             A `dd.DataFrame` instance with initial data.
         """
+        cluster = LocalCluster()
+        Client(cluster)
+
         return component.load()
 
 

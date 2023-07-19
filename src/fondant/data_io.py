@@ -3,15 +3,12 @@ import os
 import typing as t
 
 import dask.dataframe as dd
-from dask.distributed import Client, LocalCluster, performance_report
+from dask.distributed import performance_report
 
 from fondant.component_spec import ComponentSpec, ComponentSubset
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
-
-cluster = LocalCluster()
-client = Client(cluster)
 
 
 class DataIO:
