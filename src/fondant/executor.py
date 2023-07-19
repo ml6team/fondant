@@ -30,6 +30,15 @@ from fondant.manifest import Manifest
 logger = logging.getLogger(__name__)
 
 
+class WorkerLogsFilter(logging.Filter):
+    def filter(self, record):
+        return not record.name.startswith("distributed")
+
+
+filter_worker_logs = WorkerLogsFilter()
+logger.addFilter(filter_worker_logs)
+
+
 class Executor(t.Generic[Component]):
     """An executor executes a Component."""
 
@@ -176,7 +185,7 @@ class Executor(t.Generic[Component]):
         Args:
             component_cls: The class of the component to execute
         """
-        cluster = LocalCluster(silence_logs=logging.INFO)
+        cluster = LocalCluster()
         Client(cluster)
 
         input_manifest = self._load_or_create_manifest()
