@@ -36,7 +36,7 @@ class DaskDataLoader(DataIO):
             f"available number of workers is {n_workers}.",
         )
         if n_partitions < n_workers:
-            dataframe = dataframe.repartition(npartitions=n_partitions)
+            dataframe = dataframe.repartition(npartitions=n_workers)
             logger.info(
                 "Repartitioning the data before transforming to maximize worker usage",
             )
