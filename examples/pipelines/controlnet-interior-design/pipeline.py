@@ -24,7 +24,6 @@ laion_retrieval_op = ComponentOp.from_registry(
         "num_images": 2,
         "aesthetic_score": 9,
         "aesthetic_weight": 0.5,
-        "url": None,
     },
 )
 download_images_op = ComponentOp.from_registry(
