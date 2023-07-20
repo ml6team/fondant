@@ -56,8 +56,10 @@ class DockerCompiler(Compiler):
     def compile(
         self,
         pipeline: Pipeline,
+        *,
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Optional[list] = None,
+        build_args: t.Optional[t.List[str]] = None,
     ) -> None:
         """Compile a pipeline to docker-compose spec and save it to a specified output path.
 
@@ -67,14 +69,25 @@ class DockerCompiler(Compiler):
             extra_volumes: a list of extra volumes (using the Short syntax:
               https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
               to mount in the docker-compose spec.
+            build_args: List of build arguments to pass to docker
         """
         if extra_volumes is None:
             extra_volumes = []
 
         logger.info(f"Compiling {pipeline.name} to {output_path}")
-        spec = self._generate_spec(pipeline=pipeline, extra_volumes=extra_volumes)
+        spec = self._generate_spec(
+            pipeline,
+            extra_volumes=extra_volumes,
+            build_args=build_args or [],
+        )
+
+        class NoAliasDumper(yaml.SafeDumper):
+            def ignore_aliases(self, data):
+                return True
+
         with open(output_path, "w") as outfile:
-            yaml.safe_dump(spec, outfile)
+            yaml.dump(spec, outfile, Dumper=NoAliasDumper)
+
         logger.info(f"Successfully compiled to {output_path}")
 
     @staticmethod
@@ -84,7 +97,8 @@ class DockerCompiler(Compiler):
         """
         return component_name.replace(" ", "_").lower()
 
-    def _patch_path(self, base_path: str) -> t.Tuple[str, t.Optional[DockerVolume]]:
+    @staticmethod
+    def _patch_path(base_path: str) -> t.Tuple[str, t.Optional[DockerVolume]]:
         """Helper that checks if the base_path is local or remote,
         if local it patches the base_path and prepares a bind mount
         Returns a tuple containing the path and volume.
@@ -106,9 +120,15 @@ class DockerCompiler(Compiler):
             logger.info(f"Base path {base_path} is remote")
             volume = None
             path = base_path
-        return (path, volume)
+        return path, volume
 
-    def _generate_spec(self, pipeline: Pipeline, extra_volumes: list) -> dict:
+    def _generate_spec(
+        self,
+        pipeline: Pipeline,
+        *,
+        extra_volumes: t.List[str],
+        build_args: t.List[str],
+    ) -> dict:
         """Generate a docker-compose spec as a python dictionary,
         loops over the pipeline graph to create services and their dependencies.
         """
@@ -158,7 +178,7 @@ class DockerCompiler(Compiler):
                         ],
                     )
 
-            volumes = []
+            volumes: t.List[t.Union[str, dict]] = []
             if volume:
                 volumes.append(asdict(volume))
             if extra_volumes:
@@ -174,7 +194,10 @@ class DockerCompiler(Compiler):
                 logger.info(
                     f"Found Dockerfile for {component_name}, adding build step.",
                 )
-                services[safe_component_name]["build"] = str(component_op.component_dir)
+                services[safe_component_name]["build"] = {
+                    "context": str(component_op.component_dir),
+                    "args": build_args,
+                }
             else:
                 services[safe_component_name][
                     "image"

@@ -54,6 +54,7 @@ def test_compile_logic(tmp_path_factory):
             pipeline=TEST_PIPELINE,
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
+            build_arg=[],
         )
         compile(args)
     args2 = argparse.Namespace(kubeflow=True, local=False, ref="some/path")
@@ -86,6 +87,7 @@ def test_run_logic(tmp_path_factory):
             ref=__name__ + ":TEST_PIPELINE",
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
+            build_arg=[],
         )
         run(args1)
         mock_call.assert_called_once_with(
