@@ -1,7 +1,9 @@
 import logging
+import os
 import shlex
 import subprocess  # nosec
 import typing as t
+from pathlib import Path
 
 DEFAULT_CONTAINER = "ghcr.io/ml6team/data_explorer"
 DEFAULT_TAG = "latest"
@@ -41,9 +43,12 @@ def run_explorer_app(
 
     # mount the local data directory to the container
     if data_directory:
-        print(data_directory)
+        data_directory_path = Path(data_directory).resolve()
+        host_machine_path = str(data_directory_path)
+        container_path = os.path.join("/", data_directory_path.name)
+
         cmd.extend(
-            ["-v", f"{shlex.quote(data_directory)}:{shlex.quote(data_directory)}"],
+            ["-v", f"{shlex.quote(host_machine_path)}:{shlex.quote(container_path)}"],
         )
 
     # add the image name
