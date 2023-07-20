@@ -79,8 +79,6 @@ class DedupImageEmbeddingsComponent(DaskTransformComponent):
         Returns:
             Dask dataframe
         """
-
-        # filter dataframe
         indices_to_keep = dataframe.groupby("image_cluster_label").apply(deduplicate,
                                                                          epsilon=self.epsilon,
                                                                          meta=pd.Series(dtype="int8"))
