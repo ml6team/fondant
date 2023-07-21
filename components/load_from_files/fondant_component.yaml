@@ -6,7 +6,6 @@ produces:
   file:
     fields:
       content:
-        description: content of the file in binary form
         type: binary
 args:
   directory_uri:

@@ -208,7 +208,6 @@ class FilesToDaskConverter:
         """
         return pd.DataFrame(data={"filename": file_name, "Content": file_content})
 
-
     def to_dask_dataframe(self, chunksize: int = 1000) -> dd.DataFrame:
         """
         This method converts the read file content to binary form and returns a
@@ -218,7 +217,7 @@ class FilesToDaskConverter:
             The created Dask DataFrame with filenames as indices and file content
             in binary form as Content column.
         """
-           # Initialize an empty list to hold all our records in 'delayed' objects.
+        # Initialize an empty list to hold all our records in 'delayed' objects.
         records = []
         temp_records = []
 
@@ -290,9 +289,7 @@ def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem | None:
 class LoadFromFiles(BaseComponent):
     """Component that loads datasets from files."""
 
-    def __init__(self,
-                 *,
-                 directory_uri: str) -> None:
+    def __init__(self, *, directory_uri: str) -> None:
         self.directory_uri = directory_uri
 
     def load(self) -> dd.DataFrame:
@@ -316,4 +313,3 @@ class LoadFromFiles(BaseComponent):
 if __name__ == "__main__":
     executor = DaskLoadExecutor.from_args()
     executor.execute(LoadFromFiles)
-
