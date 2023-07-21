@@ -2,22 +2,24 @@
 This component loads dataset from files in a directory, these
 files can be either in local directory or in remote location.
 """
+from __future__ import annotations
+
 import gzip
 import logging
 import os
 import tarfile
 import zipfile
 from abc import ABC, abstractmethod
-from ast import Tuple
 from io import BytesIO
 from pathlib import Path
-from typing import Generator, Optional
+from typing import Generator
 
 import dask.dataframe as dd
 import fsspec
 import pandas as pd
 from dask import delayed
-from fondant.component import LoadComponent
+from fondant.component import BaseComponent
+from fondant.executor import DaskLoadExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ class AbstractFileHandler(ABC):
     def __init__(
         self,
         filepath: str,
-        fs: Optional[fsspec.AbstractFileSystem] = None,
+        fs: fsspec.AbstractFileSystem | None = None,
     ) -> None:
         """
         Initiate a new AbstractFileHandler with filepath and filesystem (fs).
@@ -41,14 +43,14 @@ class AbstractFileHandler(ABC):
         self.fs = fs if fs else fsspec.filesystem("file")
 
     @abstractmethod
-    def read(self) -> Generator[Tuple[str, BytesIO]]:
+    def read(self) -> Generator[tuple[str, BytesIO], None, None]:
         """Abstract method to read a file. Must be overridden by subclasses."""
 
 
 class FileHandler(AbstractFileHandler):
     """Handler for reading files."""
 
-    def read(self) -> Generator[Tuple[str, BytesIO]]:
+    def read(self) -> Generator[tuple[str, BytesIO], None, None]:
         """
         Reads files and yields the contents of the file.
 
@@ -56,14 +58,14 @@ class FileHandler(AbstractFileHandler):
             Tuple consisting of filename and content of the file.
         """
         logger.debug(f"Reading file {self.filepath}....")
-        with self.fs.open(self.filepath, "r") as f:
+        with self.fs.open(self.filepath, "rb") as f:
             yield self.filepath.split("/")[-1], BytesIO(f.read())
 
 
 class GzipFileHandler(AbstractFileHandler):
     """Handler for reading gzip compressed files."""
 
-    def read(self) -> Generator[Tuple[str, BytesIO]]:
+    def read(self) -> Generator[tuple[str, BytesIO], None, None]:
         """
         Reads gzip compressed files and yields the contents of the file.
 
@@ -80,7 +82,7 @@ class GzipFileHandler(AbstractFileHandler):
 class ZipFileHandler(AbstractFileHandler):
     """Handler for reading zip compressed files."""
 
-    def read(self) -> Generator[Tuple[str, BytesIO]]:
+    def read(self) -> Generator[tuple[str, BytesIO], None, None]:
         """
         Reads zip compressed files and yields the content of each file in the archive.
 
@@ -98,7 +100,7 @@ class ZipFileHandler(AbstractFileHandler):
 class TarFileHandler(AbstractFileHandler):
     """Handler for reading tar archived files."""
 
-    def read(self) -> Generator[Tuple[str, BytesIO]]:
+    def read(self) -> Generator[tuple[str, BytesIO], None, None]:
         """
         Reads tar archived files and yields the content of each file in the archive.
 
@@ -112,13 +114,14 @@ class TarFileHandler(AbstractFileHandler):
             for tarinfo in tar:
                 if tarinfo.isfile():
                     file = tar.extractfile(tarinfo)
-                    yield tarinfo.name.split("/")[-1], BytesIO(file.read())
+                    if file is not None:
+                        yield tarinfo.name.split("/")[-1], BytesIO(file.read())
 
 
 class DirectoryHandler(AbstractFileHandler):
     """Handler for reading a directory of files."""
 
-    def read(self) -> Generator[Tuple[str, BytesIO]]:
+    def read(self) -> Generator[tuple[str, BytesIO], None, None]:
         """
         Reads a directory of files and yields the content of each file in the directory.
 
@@ -127,6 +130,7 @@ class DirectoryHandler(AbstractFileHandler):
         """
         logger.info(f"Loading files from {self.filepath} ......")
         filenames = self.fs.glob(os.path.join(self.filepath, "*"))
+        handler: AbstractFileHandler
         for filename in filenames:
             if filename.endswith(".gz"):
                 handler = GzipFileHandler(filename, self.fs)
@@ -205,55 +209,52 @@ class FilesToDaskConverter:
         return pd.DataFrame(data={"filename": file_name, "Content": file_content})
 
 
-def to_dask_dataframe(self, chunksize: int = 1000) -> dd.DataFrame:
-    """
-    This method converts the read file content to binary form and returns a
-    Dask DataFrame.
+    def to_dask_dataframe(self, chunksize: int = 1000) -> dd.DataFrame:
+        """
+        This method converts the read file content to binary form and returns a
+        Dask DataFrame.
 
-    Returns:
-        The created Dask DataFrame with filenames as indices and file content
-        in binary form as Content column.
-    """
-    # Initialize an empty list to hold all our records in 'delayed' objects.
-    records = []
-    temp_records = []
-    logging.debug("Converting individual files into a dask dataframe ......")
+        Returns:
+            The created Dask DataFrame with filenames as indices and file content
+            in binary form as Content column.
+        """
+           # Initialize an empty list to hold all our records in 'delayed' objects.
+        records = []
+        temp_records = []
 
-    # Iterate over each file handled by the handler
-    for i, (file_name, file_content) in enumerate(self.handler.read()):
-        record = self.create_record(file_name, file_content)
-        temp_records.append(record)
+        # Iterate over each file handled by the handler
+        for i, (file_name, file_content) in enumerate(self.handler.read()):
+            record = self.create_record(file_name, file_content)
+            temp_records.append(record)
 
-        if (i + 1) % chunksize == 0:
-            # When we hit the chunk size, we combine all the records so far,
-            # create a Delayed object, and add it to the list of partitions.
-            combined = pd.concat(temp_records, axis=0)
-            records.append(delayed(combined))
-            temp_records = []
+            if (i + 1) % chunksize == 0:
+                # When we hit the chunk size, we combine all the records so far,
+                # create a Delayed object, and add it to the list of partitions.
+                records.extend(temp_records)
+                temp_records = []
 
-    # Take care of any remaining records
-    if temp_records:
-        combined = pd.concat(temp_records, axis=0)
-        records.append(delayed(combined))
+        # Take care of any remaining records
+        if temp_records:
+            records.extend(temp_records)
 
-    # Create an empty pandas dataframe with correct column names and types as meta
-    metadata = pd.DataFrame(
-        data={
-            "filename": pd.Series([], dtype="object"),
-            "Content": pd.Series([], dtype="bytes"),
-        },
-    )
+        # Create an empty pandas dataframe with correct column names and types as meta
+        metadata = pd.DataFrame(
+            data={
+                "filename": pd.Series([], dtype="object"),
+                "Content": pd.Series([], dtype="bytes"),
+            },
+        )
 
-    # Use the delayed objects to create a Dask DataFrame.
-    dataframe = dd.from_delayed(records, meta=metadata)
+        # Use the delayed objects to create a Dask DataFrame.
+        dataframe = dd.from_delayed(records, meta=metadata)
 
-    # Set 'filename' as the index
-    dataframe = dataframe.set_index("filename")
+        # Set 'filename' as the index
+        dataframe = dataframe.set_index("filename")
 
-    return dataframe
+        return dataframe
 
 
-def get_filesystem(path_uri: str) -> Optional[fsspec.spec.AbstractFileSystem]:
+def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem | None:
     """Function to create fsspec.filesystem based on path_uri.
 
     Creates a abstract handle using fsspec.filesystem to
@@ -286,25 +287,26 @@ def get_filesystem(path_uri: str) -> Optional[fsspec.spec.AbstractFileSystem]:
     return None
 
 
-class LoadFromFiles(LoadComponent):
+class LoadFromFiles(BaseComponent):
     """Component that loads datasets from files."""
 
-    def load(
-        self,
-        *,
-        directory_uri: str,
-    ) -> dd.DataFrame:
+    def __init__(self,
+                 *,
+                 directory_uri: str) -> None:
+        self.directory_uri = directory_uri
+
+    def load(self) -> dd.DataFrame:
         """Loads dataset by reading all files in directory_uri."""
-        fs = get_filesystem(directory_uri)
+        fs = get_filesystem(self.directory_uri)
         if fs:
             # create a handler to read files from directory
-            handler = get_file_handler(directory_uri, fs=fs)
+            handler = get_file_handler(self.directory_uri, fs=fs)
 
             # convert files to dask dataframe
             converter = FilesToDaskConverter(handler)
             return converter.to_dask_dataframe()
         logger.error(
-            f"Could not load data from {directory_uri} because \
+            f"Could not load data from {self.directory_uri} because \
                      directory_uri doesn't belong to currently supported \
                      schemes: s3, gcs, abfs",
         )
@@ -312,5 +314,6 @@ class LoadFromFiles(LoadComponent):
 
 
 if __name__ == "__main__":
-    component = LoadFromFiles.from_args()
-    component.run()
+    executor = DaskLoadExecutor.from_args()
+    executor.execute(LoadFromFiles)
+
