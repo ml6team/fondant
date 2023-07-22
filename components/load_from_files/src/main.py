@@ -18,7 +18,7 @@ import dask.dataframe as dd
 import fsspec
 import pandas as pd
 from dask import delayed
-from fondant.component import BaseComponent
+from fondant.component import DaskLoadComponent
 from fondant.executor import DaskLoadExecutor
 
 logger = logging.getLogger(__name__)
@@ -286,7 +286,7 @@ def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem | None:
     return None
 
 
-class LoadFromFiles(BaseComponent):
+class LoadFromFiles(DaskLoadComponent):
     """Component that loads datasets from files."""
 
     def __init__(self, *, directory_uri: str) -> None:
