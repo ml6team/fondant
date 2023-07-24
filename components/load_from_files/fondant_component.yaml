@@ -2,6 +2,11 @@ name: Load from files
 description: Component that loads a dataset from files
 image: ghcr.io/ml6team/load_from_files:dev
 
+consumes:
+  directory:
+    fields:
+      directory_uri: str
+
 produces:
   file:
     fields:
