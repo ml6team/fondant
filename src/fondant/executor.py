@@ -25,6 +25,7 @@ from fondant.component import (
 from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
+from fondant.schema import validate_partition_number, validate_partition_size
 
 logger = logging.getLogger(__name__)
 
@@ -40,13 +41,15 @@ class Executor(t.Generic[Component]):
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
-        output_partition_size: t.Optional[str] = "250MB",
+        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        output_partition_size: t.Optional[str] = None,
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
         self.metadata = metadata
         self.user_arguments = user_arguments
+        self.input_partition_rows = input_partition_rows
         self.output_partition_size = output_partition_size
 
     @classmethod
@@ -87,6 +90,7 @@ class Executor(t.Generic[Component]):
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
+        input_partition_rows = args_dict.pop("input_partition_rows")
         output_partition_size = args_dict.pop("output_partition_size")
         metadata = json.loads(metadata) if metadata else {}
 
@@ -96,11 +100,20 @@ class Executor(t.Generic[Component]):
             output_manifest_path=output_manifest_path,
             metadata=metadata,
             user_arguments=args_dict,
+            input_partition_rows=input_partition_rows,
             output_partition_size=output_partition_size,
         )
 
     @classmethod
     def _add_and_parse_args(cls, spec: ComponentSpec):
+        def _get_type(argument: Argument):
+            if argument.name == "input_partition_rows":
+                return validate_partition_number
+            if argument.name == "output_partition_size":
+                return validate_partition_size
+
+            return kubeflow2python_type(arg.type)
+
         parser = argparse.ArgumentParser()
         component_arguments = cls._get_component_arguments(spec)
 
@@ -115,9 +128,11 @@ class Executor(t.Generic[Component]):
                 input_required = True
                 default = None
 
+            _type = _get_type(arg)
+
             parser.add_argument(
                 f"--{arg.name}",
-                type=kubeflow2python_type(arg.type),  # type: ignore
+                type=_type,  # type: ignore
                 required=input_required,
                 default=default,
                 help=arg.description,
@@ -257,7 +272,11 @@ class DaskTransformExecutor(TransformExecutor[DaskTransformComponent]):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        data_loader = DaskDataLoader(
+            manifest=manifest,
+            component_spec=self.spec,
+            input_partition_rows=self.input_partition_rows,
+        )
         dataframe = data_loader.load_dataframe()
         return component.transform(dataframe)
 

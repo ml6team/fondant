@@ -6,9 +6,9 @@ import yaml
 from fondant.compiler import DockerCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 
-COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
+COMPONENTS_PATH = Path("example_pipelines/valid_pipeline")
 
-VALID_DOCKER_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
+VALID_DOCKER_PIPELINE = Path("example_pipelines/compiled_pipeline/")
 
 TEST_PIPELINES = [
     (
@@ -17,12 +17,14 @@ TEST_PIPELINES = [
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "first_component"),
                 arguments={"storage_args": "a dummy string arg"},
-                output_partition_size="250MB",
+                input_partition_rows="disable",
+                output_partition_size="disable",
             ),
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "second_component"),
                 arguments={"storage_args": "a dummy string arg"},
-                output_partition_size=None,
+                input_partition_rows="10",
+                output_partition_size="30MB",
             ),
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "fourth_component"),
@@ -30,7 +32,6 @@ TEST_PIPELINES = [
                     "storage_args": "a dummy string arg",
                     "some_list": [1, 2, 3],
                 },
-                output_partition_size="10MB",
             ),
         ],
     ),

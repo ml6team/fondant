@@ -64,13 +64,18 @@ def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
     with tmp_path_factory.mktemp("temp") as fn:
         # override the base path of the manifest with the temp dir
         manifest.update_metadata("base_path", str(fn))
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            component_spec=component_spec,
+            output_partition_size="1TB",
+        )
         # write out index to temp dir
         data_writer.write_dataframe(dataframe)
         # read written data and assert
         dataframe = dd.read_parquet(fn / "index")
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert dataframe.index.name == "id"
+        assert dataframe.npartitions == 1
 
 
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
@@ -126,7 +131,12 @@ def test_write_divisions(
     with tmp_path_factory.mktemp("temp") as fn:
         manifest.update_metadata("base_path", str(fn))
 
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            component_spec=component_spec,
+            output_partition_size="disable",
+        )
+
         data_writer.write_dataframe(dataframe)
 
         for target in ["properties", "types", "index"]:

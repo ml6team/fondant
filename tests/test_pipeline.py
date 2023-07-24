@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from fondant.exceptions import InvalidComponentOpDefinition, InvalidPipelineDefinition
+from fondant.exceptions import InvalidPipelineDefinition, InvalidTypeSchema
 from fondant.pipeline import ComponentOp, Pipeline
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
@@ -51,14 +51,14 @@ def test_component_op(
         output_partition_size="250MB",
     )
 
-    with pytest.raises(InvalidComponentOpDefinition):
+    with pytest.raises(InvalidTypeSchema):
         ComponentOp(
             Path(components_path / component_names[0]),
             arguments=component_args,
-            output_partition_size=10,
+            output_partition_size="10",
         )
 
-    with pytest.raises(InvalidComponentOpDefinition):
+    with pytest.raises(InvalidTypeSchema):
         ComponentOp(
             Path(components_path / component_names[0]),
             arguments=component_args,

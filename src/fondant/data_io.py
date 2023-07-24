@@ -18,28 +18,58 @@ class DataIO:
 
 
 class DaskDataLoader(DataIO):
-    def __init__(self, *, manifest: Manifest, component_spec: ComponentSpec):
+    def __init__(
+        self,
+        *,
+        manifest: Manifest,
+        component_spec: ComponentSpec,
+        input_partition_rows: t.Optional[t.Union[int, str]] = None,
+    ):
         super().__init__(manifest=manifest, component_spec=component_spec)
+        self.input_partition_rows = input_partition_rows
 
-    @staticmethod
-    def partition_loaded_dataframe(dataframe: dd.DataFrame) -> dd.DataFrame:
+    def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
         Function that partitions the loaded dataframe depending on its partitions and the available
         workers
         Returns:
             The partitioned dataframe.
         """
-        n_partitions = dataframe.npartitions
-        n_workers = os.cpu_count()
-        logger.info(
-            f"The number of partitions of the input dataframe is {n_partitions}. The "
-            f"available number of workers is {n_workers}.",
-        )
-        if n_partitions < n_workers:
-            dataframe = dataframe.repartition(npartitions=n_workers)
-            logger.info(
-                "Repartitioning the data before transforming to maximize worker usage",
-            )
+        if self.input_partition_rows != "disable":
+            if isinstance(self.input_partition_rows, int):
+                # Only load the index column to trigger a faster compute of the rows
+                total_rows = len(dataframe.index)
+                # +1 to handle any remainder rows
+                n_partitions = (total_rows // self.input_partition_rows) + 1
+                dataframe = dataframe.repartition(npartitions=n_partitions)
+                logger.info(
+                    f"Total number of rows is {total_rows}\n."
+                    f"Repartitioning the data {n_partitions} partitions to have"
+                    f" {self.input_partition_rows} rows per partitions",
+                )
+
+            elif self.input_partition_rows is None:
+                n_partitions = dataframe.npartitions
+                n_workers = os.cpu_count()
+                if n_partitions < n_workers:  # type: ignore
+                    logger.info(
+                        f"The number of partitions of the input dataframe is {n_partitions}. The "
+                        f"available number of workers is {n_workers}.",
+                    )
+                    dataframe = dataframe.repartition(npartitions=n_workers)
+                    logger.info(
+                        f"Repartitioning the data to {n_workers} partitions before processing"
+                        f" to maximize worker usage",
+                    )
+            else:
+                msg = (
+                    f"{self.input_partition_rows} is not a valid argument. Choose either "
+                    f"the number of partitions or set to 'disable' to disable automated "
+                    f"partitioning"
+                )
+                raise ValueError(
+                    msg,
+                )
 
         return dataframe
 
@@ -119,7 +149,7 @@ class DaskDataWriter(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        output_partition_size: t.Optional[str] = None,
+        output_partition_size: t.Optional[t.Union[str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.output_partition_size = output_partition_size
@@ -129,16 +159,38 @@ class DaskDataWriter(DataIO):
         Function that partitions the written dataframe to smaller partitions based on a given
         partition size.
         """
-        if self.output_partition_size and self.output_partition_size != "disable":
-            dataframe = dataframe.repartition(partition_size=self.output_partition_size)
-            logger.info(
-                f"Repartitioning the written data such that the size per partition is approx."
-                f" {self.output_partition_size}",
-            )
+        if self.output_partition_size != "disable":
+            if isinstance(self.output_partition_size, str):
+                dataframe = dataframe.repartition(
+                    partition_size=self.output_partition_size,
+                )
+                logger.info(
+                    f"Repartitioning the written data such that the size per partition is approx."
+                    f" {self.output_partition_size}",
+                )
+
+            elif self.output_partition_size is None:
+                dataframe = dataframe.repartition(partition_size="250MB")
+                logger.info(
+                    f"Repartitioning the written data such that the size per partition is approx."
+                    f" {self.output_partition_size}. (Automatic repartitioning)",
+                )
+            else:
+                msg = (
+                    f"{self.output_partition_size} is not a valid argument. Choose either the"
+                    f" number of size of the partition (e.g. '250Mb' or set to 'disable' to"
+                    f" disable automated partitioning"
+                )
+                raise ValueError(
+                    msg,
+                )
+
         return dataframe
 
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
         write_tasks = []
+
+        dataframe = self.partition_written_dataframe(dataframe)
 
         dataframe.index = dataframe.index.rename("id").astype("string")
 
@@ -209,8 +261,6 @@ class DaskDataWriter(DataIO):
             location = self.manifest.subsets[subset_name].location
 
         schema = {field.name: field.type.value for field in subset_spec.fields.values()}
-
-        dataframe = self.partition_written_dataframe(dataframe)
 
         return self._create_write_task(dataframe, location=location, schema=schema)
 

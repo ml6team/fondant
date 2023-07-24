@@ -257,11 +257,18 @@ class KubeflowComponentSpec:
                     "default": "None",
                 },
                 {
+                    "name": "input_partition_rows",
+                    "description": "The number of rows to load per partition. Set to override the"
+                    " automatic partitioning",
+                    "type": "Integer",
+                    "default": "None",
+                },
+                {
                     "name": "output_partition_size",
                     "description": "The size of the output partition size, defaults"
                     " to 250MB. Set to `disable` to disable the automatic partitioning",
                     "type": "String",
-                    "default": "250MB",
+                    "default": "None",
                 },
                 *(
                     {
@@ -292,6 +299,8 @@ class KubeflowComponentSpec:
                         {"inputValue": "metadata"},
                         "--component_spec",
                         {"inputValue": "component_spec"},
+                        "--input_partition_rows",
+                        {"inputValue": "input_partition_rows"},
                         "--output_partition_size",
                         {"inputValue": "output_partition_size"},
                         *cls._dump_args(fondant_component.args.values()),

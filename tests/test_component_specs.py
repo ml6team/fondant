@@ -71,6 +71,14 @@ def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     """Test that the created kubeflow component matches the expected kubeflow component."""
     fondant_component = ComponentSpec(valid_fondant_schema)
     kubeflow_component = fondant_component.kubeflow_specification
+    with open("data.yml", "w") as outfile:
+        yaml.dump(
+            kubeflow_component._specification,
+            outfile,
+            default_flow_style=False,
+            sort_keys=False,
+            indent=4,
+        )
     assert kubeflow_component._specification == valid_kubeflow_schema
 
 

@@ -12,9 +12,10 @@ except ImportError:
     from importlib_resources import files  # type: ignore
 
 from fondant.component_spec import ComponentSpec
-from fondant.exceptions import InvalidComponentOpDefinition, InvalidPipelineDefinition
+from fondant.exceptions import InvalidPipelineDefinition
 from fondant.import_utils import is_kfp_available
 from fondant.manifest import Manifest
+from fondant.schema import validate_partition_number, validate_partition_size
 
 if is_kfp_available():
     import kfp
@@ -32,6 +33,8 @@ class ComponentOp:
     Arguments:
         component_dir: The path to the component directory.
         arguments: A dictionary containing the argument name and value for the operation.
+        input_partition_rows: The number of rows to load per partition. Set to override the
+        automatic partitioning
         output_partition_size: the size of the output written dataset. Defaults to 250MB,
         set to "disable" to disable automatic repartitioning of the output,
         number_of_gpus: The number of gpus to assign to the operation
@@ -59,13 +62,15 @@ class ComponentOp:
         component_dir: t.Union[str, Path],
         *,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
-        output_partition_size: t.Optional[str] = "250MB",
+        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        output_partition_size: t.Optional[str] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_name: t.Optional[str] = None,
         p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
         ephemeral_storage_size: t.Optional[str] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
+        self.input_partition_rows = input_partition_rows
         self.output_partitioning_size = output_partition_size
         self.arguments = self._set_arguments(arguments)
 
@@ -86,28 +91,13 @@ class ComponentOp:
         """Set component arguments based on provided arguments and relevant ComponentOp
         parameters.
         """
-
-        def _validate_partition_size_arg(file_size):
-            # Define the regular expression pattern to match file size notations: KB, MB, GB or TB
-            pattern = r"^(?:\d+(?:\.\d+)?(?:KB|MB|GB|TB)|disable)$"
-
-            # Use the re.match() function to check if the provided file_size matches the pattern
-            return bool(re.match(pattern, file_size, re.I))
-
         arguments = arguments or {}
 
-        if self.output_partitioning_size is not None:
-            if not _validate_partition_size_arg(
-                file_size=str(self.output_partitioning_size),
-            ):
-                msg = (
-                    f"Invalid partition size defined `{self.output_partitioning_size}`,"
-                    " partition size must be a string followed by a file size notation"
-                    " e.g. ('250MB') or 'disable' to disable the automatic partitioning"
-                )
-                raise InvalidComponentOpDefinition(msg)
+        input_partition_rows = validate_partition_number(self.input_partition_rows)
+        output_partition_size = validate_partition_size(self.output_partitioning_size)
 
-            arguments["output_partition_size"] = self.output_partitioning_size
+        arguments["input_partition_rows"] = str(input_partition_rows)
+        arguments["output_partition_size"] = str(output_partition_size)
 
         return arguments
 
@@ -122,6 +112,8 @@ class ComponentOp:
         name: str,
         *,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        input_partition_rows: t.Optional[int] = None,
+        output_partition_size: t.Optional[str] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_name: t.Optional[str] = None,
         p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
@@ -132,6 +124,10 @@ class ComponentOp:
         Args:
             name: Name of the component to load
             arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning
+            output_partition_size: the size of the output written dataset. Defaults to 250MB,
+            set to "disable" to disable automatic repartitioning of the output,
             number_of_gpus: The number of gpus to assign to the operation
             node_pool_name: The name of the node pool to which the operation will be assigned.
             p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount
@@ -149,6 +145,8 @@ class ComponentOp:
         return ComponentOp(
             components_dir,
             arguments=arguments,
+            input_partition_rows=input_partition_rows,
+            output_partition_size=output_partition_size,
             number_of_gpus=number_of_gpus,
             node_pool_name=node_pool_name,
             p_volumes=p_volumes,
