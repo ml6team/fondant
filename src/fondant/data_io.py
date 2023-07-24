@@ -35,6 +35,7 @@ class DaskDataLoader(DataIO):
         Returns:
             The partitioned dataframe.
         """
+        print(self.input_partition_rows)
         if self.input_partition_rows != "disable":
             if isinstance(self.input_partition_rows, int):
                 # Only load the index column to trigger a faster compute of the rows
