@@ -336,7 +336,11 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        data_loader = DaskDataLoader(
+            manifest=manifest,
+            component_spec=self.spec,
+            input_partition_rows=self.input_partition_rows,
+        )
         dataframe = data_loader.load_dataframe()
 
         # Create meta dataframe with expected format
@@ -392,7 +396,11 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
         *,
         manifest: Manifest,
     ) -> None:
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        data_loader = DaskDataLoader(
+            manifest=manifest,
+            component_spec=self.spec,
+            input_partition_rows=self.input_partition_rows,
+        )
         dataframe = data_loader.load_dataframe()
         component.write(dataframe)
 
