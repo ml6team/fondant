@@ -26,6 +26,8 @@ class DaskDataLoader(DataIO):
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
+        print("data writer")
+        print(input_partition_rows)
         self.input_partition_rows = input_partition_rows
 
     def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
@@ -153,6 +155,7 @@ class DaskDataWriter(DataIO):
         output_partition_size: t.Optional[t.Union[str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
+
         self.output_partition_size = output_partition_size
 
     def partition_written_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:

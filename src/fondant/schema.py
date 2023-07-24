@@ -160,7 +160,6 @@ class Field(t.NamedTuple):
 def validate_partition_number(arg_value):
     if arg_value in ["disable", None, "None"]:
         return arg_value
-
     try:
         return int(arg_value)
     except ValueError:
