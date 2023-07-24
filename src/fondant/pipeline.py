@@ -112,7 +112,7 @@ class ComponentOp:
         name: str,
         *,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
-        input_partition_rows: t.Optional[int] = None,
+        input_partition_rows: t.Optional[t.Union[int, str]] = None,
         output_partition_size: t.Optional[str] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_name: t.Optional[str] = None,

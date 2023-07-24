@@ -260,7 +260,7 @@ class KubeflowComponentSpec:
                     "name": "input_partition_rows",
                     "description": "The number of rows to load per partition. Set to override the"
                     " automatic partitioning",
-                    "type": "Integer",
+                    "type": "String",
                     "default": "None",
                 },
                 {

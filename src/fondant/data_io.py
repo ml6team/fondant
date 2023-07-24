@@ -61,15 +61,15 @@ class DaskDataLoader(DataIO):
                         f"Repartitioning the data to {n_workers} partitions before processing"
                         f" to maximize worker usage",
                     )
-            else:
-                msg = (
-                    f"{self.input_partition_rows} is not a valid argument. Choose either "
-                    f"the number of partitions or set to 'disable' to disable automated "
-                    f"partitioning"
-                )
-                raise ValueError(
-                    msg,
-                )
+                else:
+                    msg = (
+                        f"{self.input_partition_rows} is not a valid argument. Choose either "
+                        f"the number of partitions or set to 'disable' to disable automated "
+                        f"partitioning"
+                    )
+                    raise ValueError(
+                        msg,
+                    )
 
         return dataframe
 

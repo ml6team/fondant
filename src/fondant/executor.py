@@ -53,23 +53,12 @@ class Executor(t.Generic[Component]):
         self.output_partition_size = output_partition_size
 
     @classmethod
-    def from_file(
-        cls,
-        path: t.Union[str, Path] = "../fondant_component.yaml",
-    ) -> "Executor":
-        """Create an executor from a component spec file.
-
-        Args:
-            path: Path to the component spec file
-        """
-        component_spec = ComponentSpec.from_file(path)
-        return cls.from_spec(component_spec)
-
-    @classmethod
     def from_args(cls) -> "Executor":
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
+        parser.add_argument("--input_partition_rows", type=validate_partition_number)
+        parser.add_argument("--output_partition_size", type=validate_partition_size)
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -77,21 +66,37 @@ class Executor(t.Generic[Component]):
             raise ValueError(msg)
 
         component_spec = ComponentSpec(args.component_spec)
+        input_partition_rows = args.input_partition_rows
+        output_partition_size = args.output_partition_size
 
-        return cls.from_spec(component_spec)
+        return cls.from_spec(
+            component_spec,
+            input_partition_rows,
+            output_partition_size,
+        )
 
     @classmethod
-    def from_spec(cls, component_spec: ComponentSpec) -> "Executor":
+    def from_spec(
+        cls,
+        component_spec: ComponentSpec,
+        input_partition_rows: t.Optional[t.Union[str, int]],
+        output_partition_size: t.Optional[str],
+    ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
 
         if "component_spec" in args_dict:
             args_dict.pop("component_spec")
+
+        if "input_partition_rows" in args_dict:
+            args_dict.pop("input_partition_rows")
+
+        if "output_partition_size" in args_dict:
+            args_dict.pop("output_partition_size")
+
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
-        input_partition_rows = args_dict.pop("input_partition_rows")
-        output_partition_size = args_dict.pop("output_partition_size")
         metadata = json.loads(metadata) if metadata else {}
 
         return cls(
@@ -106,14 +111,6 @@ class Executor(t.Generic[Component]):
 
     @classmethod
     def _add_and_parse_args(cls, spec: ComponentSpec):
-        def _get_type(argument: Argument):
-            if argument.name == "input_partition_rows":
-                return validate_partition_number
-            if argument.name == "output_partition_size":
-                return validate_partition_size
-
-            return kubeflow2python_type(arg.type)
-
         parser = argparse.ArgumentParser()
         component_arguments = cls._get_component_arguments(spec)
 
@@ -128,11 +125,9 @@ class Executor(t.Generic[Component]):
                 input_required = True
                 default = None
 
-            _type = _get_type(arg)
-
             parser.add_argument(
                 f"--{arg.name}",
-                type=_type,  # type: ignore
+                type=kubeflow2python_type(arg.type),  # type: ignore
                 required=input_required,
                 default=default,
                 help=arg.description,

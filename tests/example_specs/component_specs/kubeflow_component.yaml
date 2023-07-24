@@ -14,7 +14,7 @@ inputs:
 -   name: input_partition_rows
     description: The number of rows to load per partition. Set to override the automatic
         partitioning
-    type: Integer
+    type: String
     default: None
 -   name: output_partition_size
     description: The size of the output partition size, defaults to 250MB. Set to

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import dask.dataframe as dd
@@ -57,6 +58,37 @@ def test_load_dataframe(manifest, component_spec):
         "types_Type 2",
     ]
     assert dataframe.index.name == "id"
+
+
+def test_load_dataframe_default(manifest, component_spec):
+    """Test merging of subsets in a dataframe based on a component_spec."""
+    dl = DaskDataLoader(manifest=manifest, component_spec=component_spec)
+    dataframe = dl.load_dataframe()
+    assert dataframe.npartitions == os.cpu_count()
+
+
+def test_load_dataframe_rows(manifest, component_spec):
+    """Test merging of subsets in a dataframe based on a component_spec."""
+    dl = DaskDataLoader(
+        manifest=manifest,
+        component_spec=component_spec,
+        input_partition_rows=100,
+    )
+    dataframe = dl.load_dataframe()
+    expected_partitions = 2  # dataset with 151 rows
+    assert dataframe.npartitions == expected_partitions
+
+
+def test_load_dataframe_disable(manifest, component_spec):
+    """Test merging of subsets in a dataframe based on a component_spec."""
+    dl = DaskDataLoader(
+        manifest=manifest,
+        component_spec=component_spec,
+        input_partition_rows="disable",
+    )
+    dataframe = dl.load_dataframe()
+    expected_partitions = 3  # original partitions
+    assert dataframe.npartitions == expected_partitions
 
 
 def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
