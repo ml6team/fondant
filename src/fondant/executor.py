@@ -68,8 +68,7 @@ class Executor(t.Generic[Component]):
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
         output_partition_size = args.output_partition_size
-        print("from args")
-        print(input_partition_rows)
+
         return cls.from_spec(
             component_spec,
             input_partition_rows,
@@ -99,8 +98,7 @@ class Executor(t.Generic[Component]):
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
         metadata = json.loads(metadata) if metadata else {}
-        print("from spec")
-        print(input_partition_rows)
+
         return cls(
             component_spec,
             input_manifest_path=input_manifest_path,
@@ -269,8 +267,6 @@ class DaskTransformExecutor(TransformExecutor[DaskTransformComponent]):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        print("write data")
-        print(self.input_partition_rows)
         data_loader = DaskDataLoader(
             manifest=manifest,
             component_spec=self.spec,

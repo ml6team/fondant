@@ -26,8 +26,6 @@ class DaskDataLoader(DataIO):
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
-        print("data writer")
-        print(input_partition_rows)
         self.input_partition_rows = input_partition_rows
 
     def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
@@ -37,7 +35,6 @@ class DaskDataLoader(DataIO):
         Returns:
             The partitioned dataframe.
         """
-        print(self.input_partition_rows)
         if self.input_partition_rows != "disable":
             if isinstance(self.input_partition_rows, int):
                 # Only load the index column to trigger a faster compute of the rows
@@ -46,9 +43,10 @@ class DaskDataLoader(DataIO):
                 n_partitions = (total_rows // self.input_partition_rows) + 1
                 dataframe = dataframe.repartition(npartitions=n_partitions)
                 logger.info(
-                    f"Total number of rows is {total_rows}\n."
-                    f"Repartitioning the data {n_partitions} partitions to have"
-                    f" {self.input_partition_rows} rows per partitions",
+                    f"Total number of rows is {total_rows}.\n"
+                    f"Repartitioning the data from {dataframe.partitions} partitions to have"
+                    f" {n_partitions} such that the number of partitions per row is approximately"
+                    f"{self.input_partition_rows}",
                 )
 
             elif self.input_partition_rows is None:
