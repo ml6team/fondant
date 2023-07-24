@@ -94,7 +94,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
         with open(output_path) as src, open(
             VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml",
         ) as truth:

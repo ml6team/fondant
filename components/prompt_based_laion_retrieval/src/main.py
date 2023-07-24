@@ -35,7 +35,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         """
         self.client = ClipClient(
             url=url,
-            indice_name="laion5B",  #TODO:revert back to laion5b-L-14 after backend correction
+            indice_name="laion5B-L-14",
             num_images=num_images,
             aesthetic_score=aesthetic_score,
             aesthetic_weight=aesthetic_weight,

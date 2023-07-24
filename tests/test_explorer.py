@@ -30,9 +30,11 @@ def test_run_data_explorer_default():
 
 def test_run_data_explorer_with_data_dir():
     """Test that the data explorer can be run with a data directory."""
-    data_directory = "/path/to/source"
+    host_machine_path = "/path/to/source"
+    container_path = "/source"
+
     args = {
-        "data_directory": data_directory,
+        "data_directory": host_machine_path,
     }
 
     with patch("subprocess.call") as mock_call:
@@ -48,7 +50,7 @@ def test_run_data_explorer_with_data_dir():
                 "-p",
                 f"{DEFAULT_PORT}:8501",
                 "-v",
-                f"{data_directory}:/artifacts",
+                f"{host_machine_path}:{container_path}",
                 f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
             ],
             stdout=subprocess.PIPE,
@@ -85,7 +87,9 @@ def test_run_data_explorer_with_credentials():
 def test_run_data_explorer_full_option():
     """Test that the data explorer can be run with all options."""
     credentials = "/path/to/credentials"
-    data_directory = "/path/to/source"
+    host_machine_path = "/path/to/source"
+    container_path = "/source"
+
     container = "ghcr.io/ml6team/data_explorer_test"
     tag = "earliest"
     port = 1234
@@ -93,7 +97,7 @@ def test_run_data_explorer_full_option():
     with patch("subprocess.call") as mock_call:
         run_explorer_app(
             credentials=credentials,
-            data_directory=data_directory,
+            data_directory=host_machine_path,
             container=container,
             tag=tag,
             port=port,
@@ -111,7 +115,7 @@ def test_run_data_explorer_full_option():
                 "-v",
                 "/path/to/credentials:ro",
                 "-v",
-                "/path/to/source:/artifacts",
+                f"{host_machine_path}:{container_path}",
                 "ghcr.io/ml6team/data_explorer_test:earliest",
             ],
             stdout=-1,
