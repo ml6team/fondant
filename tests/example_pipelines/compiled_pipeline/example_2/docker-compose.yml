@@ -52,5 +52,6 @@ services:
     depends_on:
       first_component:
         condition: service_completed_successfully
+    image: ghcr.io/ml6team/image_cropping:dev
     volumes: []
 version: '3.8'

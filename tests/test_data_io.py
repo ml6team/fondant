@@ -64,7 +64,9 @@ def test_load_dataframe_default(manifest, component_spec):
     """Test merging of subsets in a dataframe based on a component_spec."""
     dl = DaskDataLoader(manifest=manifest, component_spec=component_spec)
     dataframe = dl.load_dataframe()
-    assert dataframe.npartitions == os.cpu_count()
+    number_workers = os.cpu_count()
+    # repartitioning  in dask is an approximation
+    assert dataframe.npartitions in list(range(number_workers - 1, number_workers + 2))
 
 
 def test_load_dataframe_rows(manifest, component_spec):
