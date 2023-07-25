@@ -93,7 +93,10 @@ class ZipFileHandler(AbstractFileHandler):
         with self.fs.open(self.filepath, "rb") as buffer, zipfile.ZipFile(buffer) as z:
             for filename in z.namelist():
                 with z.open(filename) as file_buffer:
-                    yield filename.split("/")[-1], BytesIO(file_buffer.read())
+                    buffer_content = file_buffer.read()
+                    if not buffer_content:  # The buffer is empty.
+                        continue
+                    yield filename.split("/")[-1], BytesIO(buffer_content)
 
 
 class TarFileHandler(AbstractFileHandler):
@@ -207,7 +210,9 @@ class FilesToDaskConverter:
         """
         if type(file_content) is tuple:
             file_content = file_content[0]
-        return pd.DataFrame(data={"filename": [file_name], "content": [file_content]})
+        return pd.DataFrame(
+            data={"file_filename": [file_name], "file_content": [file_content]},
+        )
 
     def to_dask_dataframe(self, chunksize: int = 1000) -> dd.DataFrame:
         """
@@ -241,16 +246,13 @@ class FilesToDaskConverter:
         # Create an empty pandas dataframe with correct column names and types as meta
         metadata = pd.DataFrame(
             data={
-                "filename": pd.Series([], dtype="object"),
-                "content": pd.Series([], dtype="bytes"),
+                "file_filename": pd.Series([], dtype="object"),
+                "file_content": pd.Series([], dtype="bytes"),
             },
         )
 
         # Use the delayed objects to create a Dask DataFrame.
-        dataframe = dd.from_delayed(records, meta=metadata)
-
-        # Set 'filename' as the index
-        return dataframe.set_index("filename")
+        return dd.from_delayed(records, meta=metadata)
 
 
 def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem | None:
@@ -301,7 +303,8 @@ class LoadFromFiles(DaskLoadComponent):
 
             # convert files to dask dataframe
             converter = FilesToDaskConverter(handler)
-            return converter.to_dask_dataframe()
+            dataframe = converter.to_dask_dataframe()
+            return dataframe
         logger.error(
             f"Could not load data from {self.directory_uri} because \
                      directory_uri doesn't belong to currently supported \
