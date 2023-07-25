@@ -174,8 +174,8 @@ class DaskDataWriter(DataIO):
             elif self.output_partition_size is None:
                 dataframe = dataframe.repartition(partition_size="250MB")
                 logger.info(
-                    f"Repartitioning the written data such that the size per partition is approx."
-                    f" {self.output_partition_size}. (Automatic repartitioning)",
+                    "Repartitioning the written data such that the size per partition is approx."
+                    " 250MB. (Automatic repartitioning)",
                 )
             else:
                 msg = (
