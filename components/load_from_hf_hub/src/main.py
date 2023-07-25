@@ -48,8 +48,7 @@ class LoadFromHubComponent(DaskLoadComponent):
 
         # 4) Optional: only return specific amount of rows
         if self.n_rows_to_load:
-            dask_df = dask_df.head(self.n_rows_to_load)
-            dask_df = dd.from_pandas(dask_df, npartitions=1)
+            dask_df = dask_df.loc[:self.n_rows_to_load]
 
         return dask_df
 
