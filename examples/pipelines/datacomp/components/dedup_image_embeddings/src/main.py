@@ -5,6 +5,7 @@ As proposed in [Abbas et al., 2022](https://arxiv.org/abs/2303.09540).
 Implementation is based on https://github.com/conceptofmind/SemDeDup/tree/main.
 """
 import logging
+from typing import Union
 
 import dask.dataframe as dd
 import numpy as np
@@ -26,7 +27,18 @@ def sort_by_centroid_distance(embeddings, centroid, descending=True):
     return embeddings[sorted_indices.flatten()]
 
 
-def deduplicate(df, epsilon):
+def deduplicate(df: Union[pd.DataFrame, dd.DataFrame], epsilon: float):
+    """
+    Deduplicate a dataframe based on embeddings, using a certain epsilon threshold.
+
+    The epsilon refers to the max difference in cosine similarity between the embeddings.
+    e.g. an epsilon of 0.2 means that all examples whose maximum cosine similarity is lower
+    than 0.8 are kept.
+
+    Args:
+        df (Dataframe): Dask or Pandas dataframe.
+        epsilon (float): epsilon threshold to use.
+    """
     embeddings = df.image_embedding
     cluster_embeddings = np.vstack(embeddings)
 
@@ -45,12 +57,10 @@ def deduplicate(df, epsilon):
     triu_sim_matrix = np.triu(pairwise_sim_matrix, k=1)
 
     # find max value in each column
-    M = np.max(triu_sim_matrix, axis=0)
+    max_values = np.max(triu_sim_matrix, axis=0)
 
     # Check if the maximum similarity <= the threshold.
-    points_to_keep_from_cluster_i = M <= 1 - epsilon
-
-    print(points_to_keep_from_cluster_i)
+    points_to_keep_from_cluster_i = max_values <= 1 - epsilon
 
     # Convert to boolean Pandas series
     points_to_keep_from_cluster_i = pd.Series(
@@ -72,13 +82,6 @@ class DedupImageEmbeddingsComponent(DaskTransformComponent):
         self.epsilon = epsilon
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
-        """
-        Args:
-            dataframe: Dask dataframe
-
-        Returns:
-            Dask dataframe
-        """
         indices_to_keep = dataframe.groupby("image_cluster_label").apply(deduplicate,
                                                                          epsilon=self.epsilon,
                                                                          meta=pd.Series(dtype="int8"))
