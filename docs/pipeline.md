@@ -8,7 +8,7 @@ To build a pipeline, you need to define a set of component operations called `Co
 
 The component specifications include the location of the Docker image in a registry.
 
-The runtime configuration consists of the component's arguments and the definition of node pools and resources. For example, if a component requires GPU for model inference, you can specify the necessary GPU resources in the runtime configuration.
+The runtime configuration consists of the component's arguments and the definition of node pools, resources and custom partitioning specification. For example, if a component requires GPU for model inference, you can specify the necessary GPU resources in the runtime configuration.
 
 Here is an example of how to build a pipeline using Fondant:
 ```python
@@ -46,7 +46,72 @@ Next, we define two operations: `load_from_hub_op`, which is a based from a reus
 !!! note "IMPORTANT"
     Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs will be available in future releases.
 
+## Setting Custom partitioning parameters
 
+When working with Fondant, each component deals with datasets, and Dask is used internally 
+to handle datasets larger than the available memory. To achieve this, the data is divided 
+into smaller chunks called "partitions" that can be processed in parallel. Ensuring a sufficient number of partitions
+enables parallel processing, where multiple workers process different partitions simultaneously, 
+and smaller partitions ensure they fit into memory.
+
+### How Fondant handles partitions
+
+**1) Repartitioning the Loaded DataFrame:** This step is optional and comes into play if the number
+of partitions is fewer than the available workers on the data processing instance.
+By repartitioning, the maximum number of workers can be efficiently utilized, leading to faster
+and parallel processing.
+
+**2) Repartitioning the Written DataFrame:** The written dataframe is also repartitioned into
+smaller sizes (default 250MB) to enable the next component to load these partitions into memory.
+
+
+### Customizing Partitioning
+
+By default, Fondant automatically handles the partitioning, but you can disable this and create your
+own custom partitioning logic if you have specific requirements.
+
+Here's an example of disabling the automatic partitioning:
+
+```python
+
+caption_images_op = ComponentOp(  
+    component_dir="components/captioning_component",  
+    arguments={  
+        "model_id": "Salesforce/blip-image-captioning-base",  
+        "batch_size": 2,  
+        "max_new_tokens": 50,  
+    },  
+    input_partition_rows='disable',  
+    output_partition_size='disable',  
+)
+```
+
+The code snippet above disables automatic partitions for both the loaded and written dataframes, 
+allowing you to define your own partitioning logic inside the components.
+
+Moreover, you have the flexibility to set your own custom partitioning parameters to override the default settings:
+
+```python
+
+caption_images_op = ComponentOp(  
+    component_dir="components/captioning_component",  
+    arguments={  
+        "model_id": "Salesforce/blip-image-captioning-base",  
+        "batch_size": 2,  
+        "max_new_tokens": 50,  
+    },  
+    input_partition_rows=100, 
+    output_partition_size="10MB",  
+)
+```
+
+In the example above, each partition of the loaded dataframe will contain approximately one hundred rows,
+and the size of the output partitions will be around 10MB. This capability is useful in scenarios
+where processing one row significantly increases the number of rows in the dataset
+(resulting in dataset explosion) or causes a substantial increase in row size (e.g., fetching images from URLs).  
+
+By setting a lower value for input partition rows, you can mitigate issues where the processed data
+grows larger than the available memory before being written to disk.
 
 ## Compiling a pipeline
 

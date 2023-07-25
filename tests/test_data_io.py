@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import dask.dataframe as dd
@@ -59,18 +60,56 @@ def test_load_dataframe(manifest, component_spec):
     assert dataframe.index.name == "id"
 
 
+def test_load_dataframe_default(manifest, component_spec):
+    """Test merging of subsets in a dataframe based on a component_spec."""
+    dl = DaskDataLoader(manifest=manifest, component_spec=component_spec)
+    dataframe = dl.load_dataframe()
+    number_workers = os.cpu_count()
+    # repartitioning  in dask is an approximation
+    assert dataframe.npartitions in list(range(number_workers - 1, number_workers + 2))
+
+
+def test_load_dataframe_rows(manifest, component_spec):
+    """Test merging of subsets in a dataframe based on a component_spec."""
+    dl = DaskDataLoader(
+        manifest=manifest,
+        component_spec=component_spec,
+        input_partition_rows=100,
+    )
+    dataframe = dl.load_dataframe()
+    expected_partitions = 2  # dataset with 151 rows
+    assert dataframe.npartitions == expected_partitions
+
+
+def test_load_dataframe_disable(manifest, component_spec):
+    """Test merging of subsets in a dataframe based on a component_spec."""
+    dl = DaskDataLoader(
+        manifest=manifest,
+        component_spec=component_spec,
+        input_partition_rows="disable",
+    )
+    dataframe = dl.load_dataframe()
+    expected_partitions = 3  # original partitions
+    assert dataframe.npartitions == expected_partitions
+
+
 def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
     """Test writing out the index."""
     with tmp_path_factory.mktemp("temp") as fn:
         # override the base path of the manifest with the temp dir
         manifest.update_metadata("base_path", str(fn))
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            component_spec=component_spec,
+            output_partition_size="1TB",
+        )
         # write out index to temp dir
         data_writer.write_dataframe(dataframe)
         # read written data and assert
         dataframe = dd.read_parquet(fn / "index")
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert dataframe.index.name == "id"
+        assert dataframe.npartitions == 1
 
 
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
@@ -126,7 +165,12 @@ def test_write_divisions(
     with tmp_path_factory.mktemp("temp") as fn:
         manifest.update_metadata("base_path", str(fn))
 
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            component_spec=component_spec,
+            output_partition_size="disable",
+        )
+
         data_writer.write_dataframe(dataframe)
 
         for target in ["properties", "types", "index"]:
