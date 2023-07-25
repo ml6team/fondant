@@ -92,7 +92,6 @@ class ZipFileHandler(AbstractFileHandler):
         logger.info(f"Uncompressing {Path(self.filepath).name}......")
         with self.fs.open(self.filepath, "rb") as buffer, zipfile.ZipFile(buffer) as z:
             for filename in z.namelist():
-                print("filenmae: ", filename)
                 with z.open(filename) as file_buffer:
                     yield filename.split("/")[-1], BytesIO(file_buffer.read())
 
@@ -206,7 +205,9 @@ class FilesToDaskConverter:
             A pandas dataframe with 'filename' as index and 'Content' column for
             binary file content.
         """
-        return pd.DataFrame(data={"filename": file_name, "Content": file_content})
+        if type(file_content) is tuple:
+            file_content = file_content[0]
+        return pd.DataFrame(data={"filename": [file_name], "content": [file_content]})
 
     def to_dask_dataframe(self, chunksize: int = 1000) -> dd.DataFrame:
         """
@@ -222,7 +223,8 @@ class FilesToDaskConverter:
         temp_records = []
 
         # Iterate over each file handled by the handler
-        for i, (file_name, file_content) in enumerate(self.handler.read()):
+        for i, file_data in enumerate(self.handler.read()):
+            file_name, file_content = file_data
             record = self.create_record(file_name, file_content)
             temp_records.append(record)
 
@@ -240,7 +242,7 @@ class FilesToDaskConverter:
         metadata = pd.DataFrame(
             data={
                 "filename": pd.Series([], dtype="object"),
-                "Content": pd.Series([], dtype="bytes"),
+                "content": pd.Series([], dtype="bytes"),
             },
         )
 
@@ -248,9 +250,7 @@ class FilesToDaskConverter:
         dataframe = dd.from_delayed(records, meta=metadata)
 
         # Set 'filename' as the index
-        dataframe = dataframe.set_index("filename")
-
-        return dataframe
+        return dataframe.set_index("filename")
 
 
 def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem | None:
@@ -289,7 +289,7 @@ def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem | None:
 class LoadFromFiles(DaskLoadComponent):
     """Component that loads datasets from files."""
 
-    def __init__(self, *, directory_uri: str) -> None:
+    def __init__(self, *_, directory_uri: str) -> None:
         self.directory_uri = directory_uri
 
     def load(self) -> dd.DataFrame:
