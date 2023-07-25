@@ -1,6 +1,6 @@
 name: Filter image resolution
 description: Component that filters images based on minimum size and max aspect ratio
-image: ghcr.io/ml6team/filter_image_resolution:latest
+image: ghcr.io/ml6team/filter_image_resolution:79df895e9d62d2010ccb8d40ee7e4fd4c68f117d
 
 consumes:
   image:
