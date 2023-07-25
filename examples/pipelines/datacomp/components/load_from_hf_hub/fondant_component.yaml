@@ -8,9 +8,9 @@ produces:
       url:
         type: string
       width:
-        type: int16
+        type: int64
       height:
-        type: int16
+        type: int64
       face_bboxes:
         type: array
         items:
