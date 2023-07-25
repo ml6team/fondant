@@ -2,6 +2,7 @@
 and pipelines.
 """
 
+import re
 import typing as t
 
 import pyarrow as pa
@@ -154,3 +155,28 @@ class Field(t.NamedTuple):
 
     name: str
     type: Type
+
+
+def validate_partition_number(arg_value):
+    if arg_value in ["disable", None, "None"]:
+        return arg_value
+    try:
+        return int(arg_value)
+    except ValueError:
+        msg = f"Invalid format for '{arg_value}'. The value must be an integer or set to 'disable'"
+        raise InvalidTypeSchema(msg)
+
+
+def validate_partition_size(arg_value):
+    if arg_value in ["disable", None, "None"]:
+        return arg_value
+
+    file_size_pattern = r"^\d+(?:\.\d+)?(?:KB|MB|GB|TB)$"
+    if not bool(re.match(file_size_pattern, arg_value, re.I)):
+        msg = (
+            f"Invalid partition size defined `{arg_value}`, partition size must be a string f"
+            f"ollowed by a file size notation e.g. ('250MB') or set to 'disable' to disable"
+            f" the automatic partitioning"
+        )
+        raise InvalidTypeSchema(msg)
+    return arg_value
