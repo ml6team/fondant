@@ -79,12 +79,16 @@ class DedupImageEmbeddingsComponent(DaskTransformComponent):
     """Component that deduplicates images based on embeddings."""
 
     def __init__(self, *_, epsilon: float) -> None:
+        """
+        Args:
+            epsilon (float): epsilon threshold to use.
+        """
         self.epsilon = epsilon
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         indices_to_keep = dataframe.groupby("image_cluster_label").apply(deduplicate,
                                                                          epsilon=self.epsilon,
-                                                                         meta=pd.Series(dtype="int8"))
+                                                                         meta=pd.Series(dtype=dataframe.index.dtype))
 
         indices_to_keep = list(indices_to_keep.explode())
 
