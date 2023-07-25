@@ -15,9 +15,8 @@ pipeline_description = "Pipeline that collects data to train ControlNet"
 
 # Define component ops
 generate_prompts_op = ComponentOp(
-    component_dir="components/generate_prompts",
-    arguments={"n_rows_to_load": None},
-    output_partition_size="disable",
+    component_spec_path="components/generate_prompts/fondant_component.yaml",
+    arguments={"n_rows_to_load": 2},
 )
 laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
@@ -25,6 +24,7 @@ laion_retrieval_op = ComponentOp.from_registry(
         "num_images": 2,
         "aesthetic_score": 9,
         "aesthetic_weight": 0.5,
+        "url": "http://34.91.40.120:1230/knn-service?key=AIzaSyBDPCHlqagh284jz6zXStrgLeTrNrZrDww",
     },
 )
 download_images_op = ComponentOp.from_registry(
@@ -69,11 +69,14 @@ write_to_hub_controlnet = ComponentOp(
     },
 )
 
-pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
+pipeline = Pipeline(
+    pipeline_name=pipeline_name,
+    base_path="/home/philippe/Scripts/express/local_artifact/controlnet_2",
+)
 
 pipeline.add_op(generate_prompts_op)
 pipeline.add_op(laion_retrieval_op, dependencies=generate_prompts_op)
-pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
-pipeline.add_op(caption_images_op, dependencies=download_images_op)
-pipeline.add_op(segment_images_op, dependencies=caption_images_op)
-pipeline.add_op(write_to_hub_controlnet, dependencies=segment_images_op)
+# pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
+# pipeline.add_op(caption_images_op, dependencies=download_images_op)
+# pipeline.add_op(segment_images_op, dependencies=caption_images_op)
+# pipeline.add_op(write_to_hub_controlnet, dependencies=segment_images_op)
