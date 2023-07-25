@@ -193,6 +193,10 @@ class DaskDataWriter(DataIO):
         write_tasks = []
 
         dataframe = self.partition_written_dataframe(dataframe)
+        
+        logger.info("Dataframe number of partitions:", dataframe.npartitions)
+
+        logger.info("Creating write tasks...")
 
         dataframe.index = dataframe.index.rename("id").astype("string")
 
@@ -286,6 +290,7 @@ class DaskDataWriter(DataIO):
              A delayed Dask task that uploads the DataFrame to the remote storage location when
               executed.
         """
+        logging.info(f"Creating write task for: {location}")
         write_task = dd.to_parquet(
             dataframe,
             location,
@@ -293,5 +298,4 @@ class DaskDataWriter(DataIO):
             overwrite=False,
             compute=False,
         )
-        logging.info(f"Creating write task for: {location}")
         return write_task

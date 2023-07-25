@@ -44,10 +44,12 @@ class LoadFromHubComponent(DaskLoadComponent):
                 )
 
         # 3) Rename columns
+        logger.info("Renaming columns...")
         dask_df = dask_df.rename(columns=self.column_name_mapping)
 
         # 4) Optional: only return specific amount of rows
-        if self.n_rows_to_load:
+        if self.n_rows_to_load is not None:
+            logger.info(f"Loading first {self.n_rows_to_load} rows...")
             dask_df = dask_df.loc[:self.n_rows_to_load]
 
         return dask_df
