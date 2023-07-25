@@ -25,6 +25,7 @@ from fondant.component import (
 from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
+from fondant.schema import validate_partition_number, validate_partition_size
 
 logger = logging.getLogger(__name__)
 
@@ -39,32 +40,25 @@ class Executor(t.Generic[Component]):
         input_manifest_path: t.Union[str, Path],
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
-        user_arguments: t.Dict[str, Argument],
+        user_arguments: t.Dict[str, t.Any],
+        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        output_partition_size: t.Optional[str] = None,
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
         self.metadata = metadata
         self.user_arguments = user_arguments
-
-    @classmethod
-    def from_file(
-        cls,
-        path: t.Union[str, Path] = "../fondant_component.yaml",
-    ) -> "Executor":
-        """Create an executor from a component spec file.
-
-        Args:
-            path: Path to the component spec file
-        """
-        component_spec = ComponentSpec.from_file(path)
-        return cls.from_spec(component_spec)
+        self.input_partition_rows = input_partition_rows
+        self.output_partition_size = output_partition_size
 
     @classmethod
     def from_args(cls) -> "Executor":
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
+        parser.add_argument("--input_partition_rows", type=validate_partition_number)
+        parser.add_argument("--output_partition_size", type=validate_partition_size)
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -72,20 +66,37 @@ class Executor(t.Generic[Component]):
             raise ValueError(msg)
 
         component_spec = ComponentSpec(args.component_spec)
+        input_partition_rows = args.input_partition_rows
+        output_partition_size = args.output_partition_size
 
-        return cls.from_spec(component_spec)
+        return cls.from_spec(
+            component_spec,
+            input_partition_rows,
+            output_partition_size,
+        )
 
     @classmethod
-    def from_spec(cls, component_spec: ComponentSpec) -> "Executor":
+    def from_spec(
+        cls,
+        component_spec: ComponentSpec,
+        input_partition_rows: t.Optional[t.Union[str, int]],
+        output_partition_size: t.Optional[str],
+    ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
 
         if "component_spec" in args_dict:
             args_dict.pop("component_spec")
+
+        if "input_partition_rows" in args_dict:
+            args_dict.pop("input_partition_rows")
+
+        if "output_partition_size" in args_dict:
+            args_dict.pop("output_partition_size")
+
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
-
         metadata = json.loads(metadata) if metadata else {}
 
         return cls(
@@ -94,6 +105,8 @@ class Executor(t.Generic[Component]):
             output_manifest_path=output_manifest_path,
             metadata=metadata,
             user_arguments=args_dict,
+            input_partition_rows=input_partition_rows,
+            output_partition_size=output_partition_size,
         )
 
     @classmethod
@@ -166,7 +179,12 @@ class Executor(t.Generic[Component]):
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=self.spec)
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            component_spec=self.spec,
+            output_partition_size=self.output_partition_size,
+        )
+
         data_writer.write_dataframe(dataframe)
 
     def execute(self, component_cls: t.Type[Component]) -> None:
@@ -249,7 +267,11 @@ class DaskTransformExecutor(TransformExecutor[DaskTransformComponent]):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        data_loader = DaskDataLoader(
+            manifest=manifest,
+            component_spec=self.spec,
+            input_partition_rows=self.input_partition_rows,
+        )
         dataframe = data_loader.load_dataframe()
         return component.transform(dataframe)
 
@@ -310,7 +332,11 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         Returns:
             A `dd.DataFrame` instance with updated data based on the applied data transformations.
         """
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        data_loader = DaskDataLoader(
+            manifest=manifest,
+            component_spec=self.spec,
+            input_partition_rows=self.input_partition_rows,
+        )
         dataframe = data_loader.load_dataframe()
 
         # Create meta dataframe with expected format
@@ -366,7 +392,11 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
         *,
         manifest: Manifest,
     ) -> None:
-        data_loader = DaskDataLoader(manifest=manifest, component_spec=self.spec)
+        data_loader = DaskDataLoader(
+            manifest=manifest,
+            component_spec=self.spec,
+            input_partition_rows=self.input_partition_rows,
+        )
         dataframe = data_loader.load_dataframe()
         component.write(dataframe)
 
