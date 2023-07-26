@@ -39,10 +39,8 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-embeddings",
         "image_column_names": [],
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 100000,
+        "n_rows_to_load": 10000,
         "dataset_length": 12800000,
-        # "n_rows_to_load": 500000,
-        # "dataset_length": 12800000,
     },
     node_pool_name="n2-standard-128-pool",
 )
@@ -69,7 +67,7 @@ cluster_image_embeddings_op = ComponentOp(
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-# pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
+pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
 # pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
 # pipeline.add_op(cluster_image_embeddings_op, dependencies=filter_complexity_op)
 # TODO add more ops
