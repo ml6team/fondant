@@ -21,6 +21,11 @@ inputs:
         `disable` to disable the automatic partitioning
     type: String
     default: None
+-   name: execute_component
+    description: Internal argument that decides whether a component should execute
+        or not. If False, the component will just produce a manifest
+    type: Boolean
+    default: 'True'
 -   name: storage_args
     description: Storage arguments
     type: String
@@ -43,6 +48,8 @@ implementation:
         - --input_partition_rows
         -   inputValue: input_partition_rows
         - --output_partition_size
+        -   inputValue: execute_component
+        - --execute_component
         -   inputValue: output_partition_size
         - --storage_args
         -   inputValue: storage_args

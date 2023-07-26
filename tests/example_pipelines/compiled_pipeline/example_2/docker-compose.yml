@@ -9,6 +9,8 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/first_component/manifest.json
+    - --execute_component
+    - "True"
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
@@ -28,6 +30,8 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/image_cropping/manifest.json
+    - --execute_component
+    - "True"
     - --cropping_threshold
     - '0'
     - --padding
