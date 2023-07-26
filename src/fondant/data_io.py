@@ -193,7 +193,7 @@ class DaskDataWriter(DataIO):
 
         dataframe = self.partition_written_dataframe(dataframe)
         
-        logger.info("Dataframe number of partitions:", dataframe.npartitions)
+        logger.info(f"Dataframe number of partitions is {dataframe.npartitions}")
 
         logger.info("Creating write tasks...")
 
