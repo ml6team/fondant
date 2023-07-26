@@ -205,8 +205,23 @@ class Executor(t.Generic[Component]):
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
-        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        manifest.to_file(save_path)
+        print("save path")
+        print(save_path)
+        kfp_minio_artifact_path = "/tmp/outputs/output_manifest_path/data"  # nosec
+        if save_path == kfp_minio_artifact_path:
+            # Save copy of manifest to expected directory in the base path if
+            safe_component_name = self.spec.name.replace(" ", "_").lower()
+            save_path_base_path = (
+                f"{self.metadata['base_path']}/{safe_component_name}/manifest.json"
+            )
+            Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
+            manifest.to_file(save_path_base_path)
+            # Native kfp artifact path
+            manifest.to_file(save_path)
+
+        else:
+            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+            manifest.to_file(save_path)
 
 
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
