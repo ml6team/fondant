@@ -205,7 +205,7 @@ class Executor(t.Generic[Component]):
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
-        print("save path")
+        print("save paths")
         print(save_path)
         kfp_minio_artifact_path = "/tmp/outputs/output_manifest_path/data"  # nosec
         if save_path == kfp_minio_artifact_path:
