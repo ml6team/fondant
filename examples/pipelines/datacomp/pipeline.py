@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    base_path=PipelineConfigs.BASE_PATH,
-    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    # base_path=PipelineConfigs.BASE_PATH,
+    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -37,6 +37,7 @@ load_from_hub_op = ComponentOp(
     component_dir="components/load_from_hf_hub",
     arguments={
         "dataset_name": "nielsr/datacomp-small-with-embeddings",
+        "image_column_names": [],
         "column_name_mapping": load_component_column_mapping,
         "n_rows_to_load": 500000,
     },
@@ -69,4 +70,4 @@ pipeline.add_op(load_from_hub_op)
 # pipeline.add_op(cluster_image_embeddings_op, dependencies=filter_complexity_op)
 # TODO add more ops
 
-client.compile_and_run(pipeline=pipeline)
+# client.compile_and_run(pipeline=pipeline)
