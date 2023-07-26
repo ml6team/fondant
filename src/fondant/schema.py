@@ -159,7 +159,7 @@ class Field(t.NamedTuple):
 
 def validate_partition_number(arg_value):
     if arg_value in ["disable", None, "None"]:
-        return arg_value
+        return arg_value if arg_value != "None" else None
     try:
         return int(arg_value)
     except ValueError:
@@ -169,7 +169,7 @@ def validate_partition_number(arg_value):
 
 def validate_partition_size(arg_value):
     if arg_value in ["disable", None, "None"]:
-        return arg_value
+        return arg_value if arg_value != "None" else None
 
     file_size_pattern = r"^\d+(?:\.\d+)?(?:KB|MB|GB|TB)$"
     if not bool(re.match(file_size_pattern, arg_value, re.I)):
