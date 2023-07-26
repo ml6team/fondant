@@ -3,7 +3,8 @@ FROM --platform=linux/amd64 python:3.8-slim
 # System dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install git -y
+    apt-get install git -y && \
+    apt-get install graphviz -y
 
 # Install requirements
 COPY requirements.txt /
@@ -11,7 +12,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Install Fondant
 # This is split from other requirements to leverage caching
-ARG FONDANT_VERSION=41bd8f9d8f8003b41ffa375c1887869208e519ea
+ARG FONDANT_VERSION=1aaf6068e7135b917e5e5cb16b3a2bf9d58f4a4e
 RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@${FONDANT_VERSION}
 
 # Set the working directory to the component folder
