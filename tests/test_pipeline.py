@@ -1,4 +1,5 @@
 """Fondant pipelines test."""
+import copy
 from pathlib import Path
 
 import pytest
@@ -64,6 +65,80 @@ def test_component_op(
             arguments=component_args,
             output_partition_size="250 MB",
         )
+
+
+# Define a mock function to replace get_component_image_hash
+def mock_image_hash_1(image_ref):
+    return "1234"
+
+
+def mock_image_hash_2(image_ref):
+    return "5678"
+
+
+@pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+            "example_1",
+            ["first_component", "second_component", "third_component"],
+        ),
+    ],
+)
+def test_component_op_hash(
+    valid_pipeline_example,
+    monkeypatch,
+):
+    example_dir, component_names = valid_pipeline_example
+    components_path = Path(valid_pipeline_path / example_dir)
+
+    comp_0_op_spec_0 = ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments={"storage_args": "a dummy string arg"},
+        output_partition_size=None,
+    )
+
+    comp_0_op_spec_1 = ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments={"storage_args": "a different string arg"},
+        output_partition_size=None,
+    )
+
+    comp_1_op_spec_0 = ComponentOp(
+        Path(components_path / component_names[1]),
+        arguments={"storage_args": "a dummy string arg"},
+        output_partition_size=None,
+    )
+
+    monkeypatch.setattr(comp_0_op_spec_0, "get_component_image_hash", mock_image_hash_1)
+    monkeypatch.setattr(comp_0_op_spec_1, "get_component_image_hash", mock_image_hash_1)
+    monkeypatch.setattr(comp_1_op_spec_0, "get_component_image_hash", mock_image_hash_1)
+
+    comp_0_op_spec_0_copy = copy.deepcopy(comp_0_op_spec_0)
+
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        != comp_0_op_spec_1.get_component_cache_key()
+    )
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        == comp_0_op_spec_0_copy.get_component_cache_key()
+    )
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        != comp_1_op_spec_0.get_component_cache_key()
+    )
+
+    monkeypatch.setattr(
+        comp_0_op_spec_0_copy,
+        "get_component_image_hash",
+        mock_image_hash_2,
+    )
+
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        != comp_0_op_spec_0_copy.get_component_cache_key()
+    )
 
 
 @pytest.mark.parametrize(
