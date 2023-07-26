@@ -12,7 +12,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Install Fondant
 # This is split from other requirements to leverage caching
-ARG FONDANT_VERSION=feac9c142c322f1c00e30c4c0f7052dfa6bf3c92
+ARG FONDANT_VERSION=42a948b606e0c84f1e042e52d207a820a5df48d2
 RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@${FONDANT_VERSION}
 
 # Set the working directory to the component folder
