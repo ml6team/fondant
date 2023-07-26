@@ -1,66 +1,91 @@
-import inspect
 
+from abc import ABC, abstractmethod
+
+import pandas as pd
 import pytest
+import requests
 from caption_images.src.main import CaptionImagesComponent
-from fondant.component import (
-    BaseComponent,
-    DaskLoadComponent,
-    DaskTransformComponent,
-    DaskWriteComponent,
-    PandasTransformComponent,
-)
 
 
-def get_base_class_name(class_object):
-    return class_object.__base__.__name__
-component_class_map = {
-    "BaseComponent": BaseComponent,
-    "DaskLoadComponent": DaskLoadComponent,
-    "DaskTransformComponent": DaskTransformComponent,
-    "DaskWriteComponent": DaskWriteComponent,
-    "PandasTransformComponent": PandasTransformComponent,
-}
-
-
-class Test_AbstractComponent:
-    @pytest.fixture(
-        scope="class", params=[CaptionImagesComponent],
-    )  # move the component classes here
-    def get_base_component(self, request):
+class AbstractComponentTest(ABC):
+    @abstractmethod
+    def create_component(self):
         """
-        Method to get the base component class
-        of the component_object.
+        This method should be implemented by concrete test classes
+        to create the specific component
+        that needs to be tested.
         """
-        component_object = request.param
-        base_component_object = component_class_map[
-            get_base_class_name(component_object)
-        ]
-        return base_component_object, component_object
+        raise NotImplementedError
 
-    def test_component(self, get_base_component):
-        base_component_object, component_object = get_base_component
-        methods = [
-            method
-            for method in dir(base_component_object)
-            if not method.startswith("_")
-            and callable(getattr(base_component_object, method))
-            and not inspect.isbuiltin(getattr(base_component_object, method))
-        ]
-        # check if component object has these methods
-        for method_name in methods:
-            assert callable(
-                getattr(component_object, method_name),
-            ), f"{component_object.__class__.__name__} should have {method_name} method"
+    @abstractmethod
+    def create_input_data(self):
+        """This method should be implemented by concrete test classes
+        to create the specific input data.
+        """
+        raise NotImplementedError
 
-        attributes = [
-            attr
-            for attr in dir(base_component_object)
-            if not attr.startswith("_")
-            and not callable(getattr(base_component_object, attr))
-        ]
+    @abstractmethod
+    def create_output_data(self):
+        """This method should be implemented by concrete test classes
+        to create the specific output data.
+        """
+        raise NotImplementedError
 
-        # check if component object has these attributes
-        for attribute in attributes:
-            assert getattr(
-                component_object, attribute,
-            ), f"{component_object.__class__.__name__} should have {attribute} attribute"
+    def setUp(self):
+        """
+        This method will be run before each test method.
+        Add any common setup steps for your components here.
+        """
+        self.component = self.create_component()
+        self.input_data = self.create_input_data()
+        self.expected_output_data = self.create_output_data()
+
+    def tearDown(self):
+        """
+        This method will be run after each test method.
+        Add any common cleanup steps for your components here.
+        """
+
+    def test_transform(self):
+        """
+        Default test for the transform method.
+        Tests if the transform method executes without errors.
+        """
+
+
+class TestCaptionImagesComponent(AbstractComponentTest):
+    def create_component(self):
+        return CaptionImagesComponent(
+            model_id="Salesforce/blip-image-captioning-base",
+            batch_size=4,
+            max_new_tokens=2,
+        )
+
+    def create_input_data(self):
+        image_urls = [
+            "https://cdn.pixabay.com/photo/2023/06/29/09/52/angkor-thom-8096092_1280.jpg",
+            "https://cdn.pixabay.com/photo/2023/07/19/18/56/japanese-beetle-8137606_1280.png",
+        ]
+        return pd.DataFrame(
+            {"images": {"data": [requests.get(url).content for url in image_urls]}},
+        )
+
+    def create_output_data(self):
+        return pd.DataFrame(
+            data={("captions", "text"): {0: "a motorcycle", 1: "a beetle"}},
+        )
+
+    @pytest.fixture(autouse=True)
+    def __setUp(self):
+        self.component = self.create_component()
+        self.input_data = self.create_input_data()
+        self.expected_output_data = self.create_output_data()
+
+    def test_transform(self):
+        output = self.component.transform(self.input_data)
+        assert output.equals(self.expected_output_data)
+
+    def tearDown(self):
+        del self.component
+        del self.input_data
+        del self.expected_output_data
