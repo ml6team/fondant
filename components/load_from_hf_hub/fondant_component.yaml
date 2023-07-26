@@ -1,6 +1,6 @@
 name: Load from hub
 description: Component that loads a dataset from the hub
-image: ghcr.io/ml6team/load_from_hf_hub:1f1ab27717d70a135f825d9fb97fb1ed038262c9
+image: ghcr.io/ml6team/load_from_hf_hub:41bd8f9d8f8003b41ffa375c1887869208e519ea
 
 produces:
   dummy_variable:  #TODO: fill in here
@@ -24,3 +24,8 @@ args:
     description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
     type: int
     default: None
+  dataset_length:
+    description: Optional argument that defines the length of the dataset. Required in case `n_rows_to_load` is specified.
+    type: int
+    default: None
+  

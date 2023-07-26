@@ -57,7 +57,7 @@ class LoadFromHubComponent(DaskLoadComponent):
                 raise ValueError("""Make sure to also specify the length of the entire
                                  dataset. This is required as otherwise only the first
                                  partition can be loaded""")
-            logger.info(f"Loading first {self.n_rows_to_load} rows...")
+            logger.info(f"Loading approximately {self.n_rows_to_load} rows...")
             partition_length = self.dataset_length // dask_df.npartitions
             npartitions = self.n_rows_to_load // partition_length
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
