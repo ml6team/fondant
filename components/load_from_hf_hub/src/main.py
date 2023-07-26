@@ -61,6 +61,7 @@ class LoadFromHubComponent(DaskLoadComponent):
             partition_length = self.dataset_length // dask_df.npartitions
             npartitions = self.n_rows_to_load // partition_length
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
+            dask_df = dd.from_pandas(dask_df, npartitions=npartitions).reset_index(drop=True)
 
         return dask_df
 
