@@ -50,7 +50,8 @@ class LoadFromHubComponent(DaskLoadComponent):
         # 4) Optional: only return specific amount of rows
         if self.n_rows_to_load is not None:
             logger.info(f"Loading first {self.n_rows_to_load} rows...")
-            dask_df = dask_df.loc[:self.n_rows_to_load]
+            dask_df = dask_df.head(self.n_rows_to_load)
+            dask_df = dd.from_pandas(dask_df, npartitions=1)
 
         return dask_df
 
