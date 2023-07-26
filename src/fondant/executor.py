@@ -214,6 +214,8 @@ class Executor(t.Generic[Component]):
             save_path_base_path = (
                 f"{self.metadata['base_path']}/{safe_component_name}/manifest.json"
             )
+            print("save")
+            print(save_path_base_path)
             Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
             manifest.to_file(save_path_base_path)
             # Native kfp artifact path
