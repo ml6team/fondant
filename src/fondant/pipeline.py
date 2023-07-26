@@ -1,7 +1,9 @@
 """This module defines classes to represent a Fondant Pipeline."""
+import hashlib
 import json
 import logging
 import re
+import subprocess  # nosec
 import typing as t
 from collections import OrderedDict
 from pathlib import Path
@@ -152,6 +154,132 @@ class ComponentOp:
             p_volumes=p_volumes,
             ephemeral_storage_size=ephemeral_storage_size,
         )
+
+    @staticmethod
+    def get_component_image_hash(image_ref):
+        """Calculate the hash of a Docker image reference. If multiple builds exist for
+        different operating systems, the hash of the amd64 CPU architecture and the linux
+        operating system is returned.
+
+        Args:
+            image_ref (str): The Docker image reference (e.g., 'registry/image:tag').
+
+        Returns:
+            str: The hash value (digest) of the Docker image.
+        """
+
+        def get_image_manifest(image_ref):
+            """Retrieve the Docker image manifest.
+
+            Args:
+                image_ref (str): The Docker image reference (e.g., 'registry/image:tag').
+
+            Returns:
+                dict: The parsed JSON manifest.
+            """
+            cmd = ["docker", "manifest", "inspect", image_ref]
+            try:
+                result = subprocess.run(  # nosec
+                    cmd,
+                    capture_output=True,
+                    check=True,
+                    text=True,
+                )
+                return json.loads(result.stdout)
+            except subprocess.CalledProcessError as e:
+                msg = f"Error executing command: {e}"
+                raise Exception(msg)
+            except json.JSONDecodeError as e:
+                msg = f"Error decoding response: {e}"
+                raise Exception(msg)
+
+        manifest = get_image_manifest(image_ref)
+
+        hash_ = None
+        try:
+            response_manifests = manifest.get("manifests", [])
+            for response_manifest in response_manifests:
+                platform_specs = response_manifest.get("platform", {})
+                if (
+                    platform_specs.get("architecture") == "amd64"
+                    and platform_specs.get("os") == "linux"
+                ):
+                    hash_ = response_manifest.get("digest")
+                    break
+
+            if not hash_:
+                hash_ = manifest.get("config", {}).get("digest")
+
+            return hash_
+        except KeyError:
+            msg = "Error parsing image manifest."
+            raise Exception(msg)
+
+    def get_component_cache_key(self) -> str:
+        """Calculate a cache key representing the unique identity of this ComponentOp.
+
+        The cache key is computed based on the component specification, image hash, arguments, and
+        other attributes of the ComponentOp. It is used to uniquely identify a specific instance
+        of the ComponentOp and is used for caching.
+
+        Returns:
+            A cache key representing the unique identity of this ComponentOp.
+        """
+
+        def sorted_dict_to_json(input_dict):
+            """Convert a dictionary to a sorted JSON string.
+
+            This function recursively converts nested dictionaries to ensure all dictionaries
+            are sorted and their values are JSON-compatible (e.g., lists, dictionaries, strings,
+            numbers, booleans, or None).
+
+            Args:
+            input_dict: The dictionary to be converted.
+
+            Returns:
+            A sorted JSON string representing the dictionary.
+            """
+            if isinstance(input_dict, dict):
+                return json.dumps(
+                    {k: sorted_dict_to_json(v) for k, v in sorted(input_dict.items())},
+                )
+
+            return input_dict
+
+        def get_nested_dict_hash(input_dict):
+            """Calculate the hash of a nested dictionary.
+
+            Args:
+                input_dict: The nested dictionary to calculate the hash for.
+
+            Returns:
+                The hash value (MD5 digest) of the nested dictionary.
+            """
+            sorted_json_string = sorted_dict_to_json(input_dict)
+            hash_object = hashlib.md5(sorted_json_string.encode())  # nosec
+            return hash_object.hexdigest()
+
+        component_spec_dict = self.component_spec.specification
+
+        component_op_uid_dict = {
+            "component_spec_hash": get_nested_dict_hash(component_spec_dict),
+            "component_image_hash": self.get_component_image_hash(
+                component_spec_dict["image"],
+            ),
+            "arguments": get_nested_dict_hash(self.arguments)
+            if self.arguments is not None
+            else None,
+            "input_partition_rows": self.input_partition_rows,
+            "output_partition_size": self.output_partitioning_size,
+            "number_of_gpus": self.number_of_gpus,
+            "node_pool_name": self.node_pool_name,
+            "p_volumes": get_nested_dict_hash(self.p_volumes)
+            if self.p_volumes is not None
+            else None,
+            "ephemeral_storage_size": self.ephemeral_storage_size,
+        }
+
+        return get_nested_dict_hash(component_op_uid_dict)
 
 
 class Pipeline:
