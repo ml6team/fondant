@@ -93,6 +93,9 @@ class DaskDataLoader(DataIO):
 
         subset_df = dd.read_parquet(remote_path, columns=fields)
 
+        logger.info(f"First few rows of subset {subset_name}:")
+        print(subset_df.head())
+
         # add subset prefix to columns
         subset_df = subset_df.rename(
             columns={col: subset_name + "_" + col for col in subset_df.columns},
@@ -125,7 +128,12 @@ class DaskDataLoader(DataIO):
                 as well as the index columns.
         """
         # load index into dataframe
+        logging.info(f"Loading index...")
         dataframe = self._load_index()
+
+        logger.info(f"First few rows of index dataframe:")
+        print(dataframe.head())
+
         for name, subset in self.component_spec.consumes.items():
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
@@ -139,6 +147,9 @@ class DaskDataLoader(DataIO):
             )
 
         dataframe = self.partition_loaded_dataframe(dataframe)
+
+        logger.info(f"First few rows of final dataframe provided to the user:")
+        print(dataframe.head())
 
         logging.info(f"Columns of dataframe: {list(dataframe.columns)}")
 

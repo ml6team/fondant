@@ -48,6 +48,8 @@ load_from_hub_op = ComponentOp(
 filter_image_resolution_op = ComponentOp.from_registry(
     name="filter_image_resolution",
     arguments={"min_image_dim": 200, "max_aspect_ratio": 3},
+    node_pool_name="n2-standard-128-pool",
+    output_partition_size='disable',
 )
 filter_complexity_op = ComponentOp(
     component_dir="components/filter_text_complexity",
