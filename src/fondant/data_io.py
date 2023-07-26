@@ -163,20 +163,19 @@ class DaskDataWriter(DataIO):
         """
         if self.output_partition_size != "disable":
             if isinstance(self.output_partition_size, str):
-                dataframe = dataframe.repartition(
-                    partition_size=self.output_partition_size,
-                )
                 logger.info(
                     f"Repartitioning the written data such that the size per partition is approx."
                     f" {self.output_partition_size}",
                 )
-
+                dataframe = dataframe.repartition(
+                    partition_size=self.output_partition_size,
+                )
             elif self.output_partition_size is None:
-                dataframe = dataframe.repartition(partition_size="250MB")
                 logger.info(
                     "Repartitioning the written data such that the size per partition is approx."
                     " 250MB. (Automatic repartitioning)",
                 )
+                dataframe = dataframe.repartition(partition_size="250MB") 
             else:
                 msg = (
                     f"{self.output_partition_size} is not a valid argument. Choose either the"
