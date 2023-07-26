@@ -225,7 +225,10 @@ class DaskDataWriter(DataIO):
         with ProgressBar():
             logging.info("Writing data...")
             # visualize the low level Dask graph
+            logging.info("Visualizing task graph...")
             dask.visualize(*write_tasks, filename='task_graph.png')
+            for i, task in enumerate(write_tasks):
+                task.visualize(filename=f'task_{i}.svg')
             dd.compute(*write_tasks)
 
     @staticmethod
