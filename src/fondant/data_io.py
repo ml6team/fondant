@@ -200,7 +200,7 @@ class DaskDataWriter(DataIO):
 
         dataframe.index = dataframe.index.rename("id").astype("string")
 
-        dataframe.visualize(filename=f'dataframe.png')
+        dataframe.visualize(filename=f'{self.manifest.base_path}/graph.png')
 
         # Turn index into an empty dataframe so we can write it
         index_df = dataframe.index.to_frame().drop(columns=["id"])
