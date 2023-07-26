@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    base_path=PipelineConfigs.BASE_PATH,
-    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    # base_path=PipelineConfigs.BASE_PATH,
+    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
