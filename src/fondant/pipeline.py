@@ -251,6 +251,17 @@ class Pipeline:
             raise InvalidPipelineDefinition(msg)
         return pipeline_name
 
+    def execute_component(self, component_op: ComponentOp) -> bool:
+        """
+        Function that checks whether a component should be executed
+        Args:
+            component_op: the component Op to execute
+        Return:
+            boolean indicating whether to execute the component.
+        """
+        # TODO: implement caching check later on, for now defaults to true
+        return True
+
     def _validate_pipeline_definition(self, run_id: str):
         """
         Validates the pipeline definition by ensuring that the consumed and produced subsets and
@@ -276,6 +287,7 @@ class Pipeline:
         for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["fondant_component_op"]
             component_spec = fondant_component_op.component_spec
+
             if not load_component:
                 # Check subset exists
                 for (
@@ -392,7 +404,7 @@ class Pipeline:
             previous_component_task = None
             for operation in self._graph.values():
                 fondant_component_op = operation["fondant_component_op"]
-
+                execute_component = self.execute_component(fondant_component_op)
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
 
@@ -404,6 +416,7 @@ class Pipeline:
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
                         metadata=metadata,
+                        execute_component=execute_component,
                         **component_args,
                     )
                 else:
@@ -414,6 +427,7 @@ class Pipeline:
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
                         metadata=metadata,
+                        execute_component=execute_component,
                         **component_args,
                     )
                     metadata = ""

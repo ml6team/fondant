@@ -6,6 +6,7 @@ components take care of processing, filtering and extending the data.
 """
 
 import argparse
+import ast
 import json
 import logging
 import typing as t
@@ -37,6 +38,7 @@ class Executor(t.Generic[Component]):
         self,
         spec: ComponentSpec,
         *,
+        execute_component: bool,
         input_manifest_path: t.Union[str, Path],
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
@@ -45,6 +47,7 @@ class Executor(t.Generic[Component]):
         output_partition_size: t.Optional[str] = None,
     ) -> None:
         self.spec = spec
+        self.execute_component = execute_component
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
         self.metadata = metadata
@@ -57,6 +60,7 @@ class Executor(t.Generic[Component]):
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
+        parser.add_argument("--execute_component", type=ast.literal_eval)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
         parser.add_argument("--output_partition_size", type=validate_partition_size)
         args, _ = parser.parse_known_args()
@@ -68,17 +72,21 @@ class Executor(t.Generic[Component]):
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
         output_partition_size = args.output_partition_size
+        execute_component = args.execute_component
 
         return cls.from_spec(
-            component_spec,
-            input_partition_rows,
-            output_partition_size,
+            component_spec=component_spec,
+            execute_component=execute_component,
+            input_partition_rows=input_partition_rows,
+            output_partition_size=output_partition_size,
         )
 
     @classmethod
     def from_spec(
         cls,
+        *,
         component_spec: ComponentSpec,
+        execute_component: bool,
         input_partition_rows: t.Optional[t.Union[str, int]],
         output_partition_size: t.Optional[str],
     ) -> "Executor":
@@ -94,6 +102,9 @@ class Executor(t.Generic[Component]):
         if "output_partition_size" in args_dict:
             args_dict.pop("output_partition_size")
 
+        if "execute_component" in args_dict:
+            args_dict.pop("execute_component")
+
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
@@ -103,6 +114,7 @@ class Executor(t.Generic[Component]):
             component_spec,
             input_manifest_path=input_manifest_path,
             output_manifest_path=output_manifest_path,
+            execute_component=execute_component,
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
@@ -195,12 +207,18 @@ class Executor(t.Generic[Component]):
         """
         input_manifest = self._load_or_create_manifest()
 
-        component = component_cls(self.spec, **self.user_arguments)
-        output_df = self._execute_component(component, manifest=input_manifest)
+        output_df = None
+        if self.execute_component:
+            logging.info("Executing component")
+            component = component_cls(self.spec, **self.user_arguments)
+            output_df = self._execute_component(component, manifest=input_manifest)
+        else:
+            logging.info("Cached component run. Skipping component execution")
 
         output_manifest = input_manifest.evolve(component_spec=self.spec)
 
-        self._write_data(dataframe=output_df, manifest=output_manifest)
+        if self.execute_component:
+            self._write_data(dataframe=output_df, manifest=output_manifest)
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 

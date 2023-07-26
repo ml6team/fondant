@@ -86,6 +86,8 @@ def test_component_arguments():
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--execute_component",
+        "True",
         "--input_partition_rows",
         "100",
         "--output_partition_size",
@@ -146,6 +148,8 @@ def test_load_component():
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--execute_component",
+        "False",
     ]
 
     class MyLoadComponent(DaskLoadComponent):
@@ -168,7 +172,7 @@ def test_load_component():
     load = patch_method_class(MyLoadComponent.load)
     with mock.patch.object(MyLoadComponent, "load", load):
         executor.execute(MyLoadComponent)
-        load.mock.assert_called_once()
+        load.mock.assert_not_called()
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
@@ -192,6 +196,8 @@ def test_dask_transform_component():
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--execute_component",
+        "False",
     ]
 
     class MyDaskComponent(DaskTransformComponent):
@@ -215,7 +221,7 @@ def test_dask_transform_component():
         transform,
     ):
         executor.execute(MyDaskComponent)
-        transform.mock.assert_called_once()
+        transform.mock.assert_not_called()
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
@@ -235,6 +241,8 @@ def test_pandas_transform_component():
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--execute_component",
+        "True",
     ]
 
     class MyPandasComponent(PandasTransformComponent):
@@ -348,6 +356,8 @@ def test_write_component():
         "1",
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--execute_component",
+        "True",
     ]
 
     class MyWriteComponent(DaskWriteComponent):

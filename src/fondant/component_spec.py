@@ -270,6 +270,14 @@ class KubeflowComponentSpec:
                     "type": "String",
                     "default": "None",
                 },
+                {
+                    "name": "execute_component",
+                    "description": "Internal argument that decides whether a component should "
+                    "execute or not. If False, the component will just produce a "
+                    "manifest",
+                    "type": "Boolean",
+                    "default": "True",
+                },
                 *(
                     {
                         "name": arg.name,
@@ -302,6 +310,8 @@ class KubeflowComponentSpec:
                         "--input_partition_rows",
                         {"inputValue": "input_partition_rows"},
                         "--output_partition_size",
+                        {"inputValue": "execute_component"},
+                        "--execute_component",
                         {"inputValue": "output_partition_size"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
