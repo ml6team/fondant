@@ -200,6 +200,8 @@ class DaskDataWriter(DataIO):
 
         dataframe.index = dataframe.index.rename("id").astype("string")
 
+        dataframe.visualize(filename=f'dataframe.png')
+
         # Turn index into an empty dataframe so we can write it
         index_df = dataframe.index.to_frame().drop(columns=["id"])
         write_index_task = self._write_subset(
