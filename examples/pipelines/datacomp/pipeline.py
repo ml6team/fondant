@@ -40,7 +40,9 @@ load_from_hub_op = ComponentOp(
         "image_column_names": [],
         "column_name_mapping": load_component_column_mapping,
         "n_rows_to_load": 500000,
+        "dataset_length": 12800000,
     },
+    node_pool_name="n2-standard-128-pool",
 )
 filter_image_resolution_op = ComponentOp.from_registry(
     name="filter_image_resolution",
