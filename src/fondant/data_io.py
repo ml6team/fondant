@@ -2,6 +2,7 @@ import logging
 import os
 import typing as t
 
+import dask
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
@@ -223,6 +224,8 @@ class DaskDataWriter(DataIO):
 
         with ProgressBar():
             logging.info("Writing data...")
+            # visualize the low level Dask graph
+            dask.visualize(*write_tasks, filename='task_graph.png')
             dd.compute(*write_tasks)
 
     @staticmethod
