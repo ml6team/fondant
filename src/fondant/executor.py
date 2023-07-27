@@ -223,8 +223,37 @@ class Executor(t.Generic[Component]):
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
-        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        manifest.to_file(save_path)
+        """
+        Uploads the manifest to the specified destination.
+
+        If the save_path points to the kubeflow output artifact temporary path,
+        it will be saved both in a specific base path and the native kfp artifact path.
+
+        Args:
+            manifest: The Manifest object to be uploaded.
+            save_path: The path where the Manifest object will be saved.
+
+        """
+        is_kubeflow_output = (
+            str(save_path) == "/tmp/outputs/output_manifest_path/data"  # nosec
+        )
+
+        if is_kubeflow_output:
+            # Save to the expected base path directory
+            safe_component_name = self.spec.name.replace(" ", "_").lower()
+            base_path = self.metadata["base_path"]
+            save_path_base_path = f"{base_path}/{safe_component_name}/manifest.json"
+            Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
+            manifest.to_file(save_path_base_path)
+            logger.info(f"Saving output manifest to {save_path_base_path}")
+            # Write manifest to the native kfp artifact path that will be passed as an artifact
+            # and read by the next component
+            manifest.to_file(save_path)
+        else:
+            # Local runner
+            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+            manifest.to_file(save_path)
+            logger.info(f"Saving output manifest to {save_path}")
 
 
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
