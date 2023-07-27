@@ -198,20 +198,22 @@ class DaskDataWriter(DataIO):
                     msg,
                 )
 
+        logger.info(f"Dataframe number of partitions is {dataframe.npartitions}")
+        
         return dataframe
 
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
         write_tasks = []
 
         dataframe = self.partition_written_dataframe(dataframe)
-        
-        logger.info(f"Dataframe number of partitions is {dataframe.npartitions}")
-
-        logger.info("Creating write tasks...")
 
         dataframe.index = dataframe.index.rename("id").astype("string")
 
-        dataframe.visualize(filename=f'{self.manifest.base_path}/graph.png')
+        # logging.info("Visualizing task graph...")
+        # TODO: doesn't work on GCP
+        # dataframe.visualize(filename=f'{self.manifest.base_path}/graph.png')
+
+        logger.info("Creating write tasks...")
 
         # Turn index into an empty dataframe so we can write it
         index_df = dataframe.index.to_frame().drop(columns=["id"])
@@ -237,11 +239,6 @@ class DaskDataWriter(DataIO):
 
         with ProgressBar():
             logging.info("Writing data...")
-            # visualize the low level Dask graph
-            logging.info("Visualizing task graph...")
-            dask.visualize(*write_tasks, filename='task_graph.png')
-            for i, task in enumerate(write_tasks):
-                task.visualize(filename=f'task_{i}.svg')
             dd.compute(*write_tasks)
 
     @staticmethod
