@@ -206,7 +206,7 @@ class Executor(t.Generic[Component]):
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         """
-        Uploads a Manifest object to the specified destination.
+        Uploads the manifest to the specified destination.
 
         If the save_path points to the kubeflow output artifact temporary path,
         it will be saved both in a specific base path and the native kfp artifact path.
