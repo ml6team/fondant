@@ -24,10 +24,6 @@ class FilterImageResolutionComponent(PandasTransformComponent):
         self.max_aspect_ratio = max_aspect_ratio
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        
-        print("Length of dataframe:", len(dataframe))
-        print("First rows of dataframe:", dataframe.head())
-        
         width = dataframe["image"]["width"]
         height = dataframe["image"]["height"]
         min_image_dim = np.minimum(width, height)
