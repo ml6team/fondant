@@ -61,7 +61,13 @@ class LoadFromHubComponent(DaskLoadComponent):
             partition_length = self.dataset_length // dask_df.npartitions
             npartitions = self.n_rows_to_load // partition_length
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
-            dask_df = dd.from_pandas(dask_df, npartitions=npartitions).reset_index(drop=True)
+            dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
+            # .reset_index(drop=True) # will reset it from 0 for every partition
+
+        # Set monotonically increasing index
+        dask_df["id"] = 1
+        dask_df["id"] = dask_df.id.cumsum()
+        dask_df = dask_df.set_index("id", sort=True)
 
         return dask_df
 
