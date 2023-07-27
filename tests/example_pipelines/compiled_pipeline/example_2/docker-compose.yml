@@ -1,7 +1,9 @@
 name: test_pipeline
 services:
   first_component:
-    build: tests/example_pipelines/valid_pipeline/example_1/first_component
+    build:
+      args: []
+      context: tests/example_pipelines/valid_pipeline/example_1/first_component
     command:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
@@ -9,6 +11,10 @@ services:
     - /foo/bar/first_component/manifest.json
     - --storage_args
     - a dummy string arg
+    - --input_partition_rows
+    - None
+    - --output_partition_size
+    - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -26,6 +32,10 @@ services:
     - '0'
     - --padding
     - '0'
+    - --input_partition_rows
+    - None
+    - --output_partition_size
+    - None
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
       borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",

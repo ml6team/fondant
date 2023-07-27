@@ -11,7 +11,7 @@ class Runner(ABC):
 
 
 class DockerRunner(Runner):
-    def run(cls, input_spec: str, *args, **kwargs):
+    def run(self, input_spec: str, *args, **kwargs):
         """Run a docker-compose spec."""
         cmd = [
             "docker",

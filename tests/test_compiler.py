@@ -17,10 +17,14 @@ TEST_PIPELINES = [
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "first_component"),
                 arguments={"storage_args": "a dummy string arg"},
+                input_partition_rows="disable",
+                output_partition_size="disable",
             ),
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "second_component"),
                 arguments={"storage_args": "a dummy string arg"},
+                input_partition_rows="10",
+                output_partition_size="30MB",
             ),
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "fourth_component"),
@@ -90,7 +94,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
         with open(output_path) as src, open(
             VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml",
         ) as truth:

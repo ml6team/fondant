@@ -217,6 +217,12 @@ def register_compile(parent_parser):
         help="Extra volumes to mount in containers",
         nargs="+",
     )
+    parser.add_argument(
+        "--build-arg",
+        action="append",
+        help="Build arguments to pass to `docker build`. Format {key}={value}.",
+        default=[],
+    )
 
     parser.set_defaults(func=compile)
 
@@ -228,6 +234,7 @@ def compile(args):
             pipeline=args.pipeline,
             extra_volumes=args.extra_volumes,
             output_path=args.output_path,
+            build_args=args.build_arg,
         )
     elif args.kubeflow:
         msg = "Kubeflow compiler not implemented"
@@ -275,6 +282,11 @@ def register_run(parent_parser):
         help="Extra volumes to mount in containers",
         nargs="+",
     )
+    parser.add_argument(
+        "--build-arg",
+        action="append",
+        help="Build arguments to pass to `docker build`. Format {key}={value}.",
+    )
     parser.set_defaults(func=run)
 
 
@@ -294,6 +306,7 @@ def run(args):
                 pipeline=pipeline,
                 extra_volumes=args.extra_volumes,
                 output_path=spec_ref,
+                build_args=args.build_arg,
             )
         finally:
             DockerRunner().run(spec_ref)
