@@ -1,6 +1,8 @@
 import logging
 import html_text
 
+logger = logging.getLogger(__name__)
+
 
 def convert_to_plain_text(html: str) -> str:
     try:
