@@ -1,6 +1,7 @@
 name: Download commoncrawl segment files
 description: Component that downloads commoncrawl segment files based on WARC paths
-image: ghcr.io/ml6team/download_commoncrawl_segments:latest
+# image: ghcr.io/ml6team/download_commoncrawl_segments:latest
+image: 050243278346.dkr.ecr.us-east-1.amazonaws.com/download_commoncrawl_segments:dev
 
 consumes:
   segment:
@@ -15,21 +16,3 @@ produces:
         type: string
       html:
         type: string
-
-args:
-  use_s3:
-    description: Whether to use S3 to download the commoncrawl segment file. Set to True if you are running this component on an AWS cluster.
-    type: bool
-    default: 'False'
-  get_plain_text:
-    description: Whether to extract plain text from the HTML.
-    type: bool
-    default: 'False'
-  n_records_to_download:
-    description: Number of records to download from the commoncrawl segment file. Useful for small-scale testing.
-    type: int
-    default: None
-  partition_size:
-    description: Partition size for dataframe in megabytes(MB).
-    type: int
-    default: None

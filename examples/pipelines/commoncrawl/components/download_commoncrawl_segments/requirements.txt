@@ -1,4 +1,6 @@
-beautifulsoup4==4.12.2
 boto3==1.26.158
+html_text
 warcio==1.7.4
 requests==2.31.0
+graphviz
+s3fs
