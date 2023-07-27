@@ -65,6 +65,7 @@ class LoadFromHubComponent(DaskLoadComponent):
             # .reset_index(drop=True) # will reset it from 0 for every partition
 
         # Set monotonically increasing index
+        logger.info("Setting the index...")
         dask_df["id"] = 1
         dask_df["id"] = dask_df.id.cumsum()
         dask_df = dask_df.set_index("id", sort=True)
