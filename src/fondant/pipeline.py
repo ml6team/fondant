@@ -6,6 +6,7 @@ import re
 import subprocess  # nosec
 import typing as t
 from collections import OrderedDict
+from datetime import datetime
 from pathlib import Path
 
 try:
@@ -16,7 +17,7 @@ except ImportError:
 from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.import_utils import is_kfp_available
-from fondant.manifest import Manifest
+from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number, validate_partition_size
 
 if is_kfp_available():
@@ -379,7 +380,7 @@ class Pipeline:
             raise InvalidPipelineDefinition(msg)
         return pipeline_name
 
-    def execute_component(self, component_op: ComponentOp) -> bool:
+    def execute_component(self, component_op: ComponentOp, cache_key: str) -> bool:
         """
         Function that checks whether a component should be executed
         Args:
@@ -516,7 +517,8 @@ class Pipeline:
         self.sort_graph()
 
         # parse metadata argument required for the first component
-        run_id = "{{workflow.name}}"
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        run_id = f"{self.name}-{timestamp}"
 
         # Validate subset schema before defining the pipeline
         self._validate_pipeline_definition(run_id)
@@ -528,11 +530,20 @@ class Pipeline:
             # TODO: check if we want to have the metadata arg empty for transform component or
             #  remove it completely from the transform component
             manifest_path = ""
-            metadata = ""
             previous_component_task = None
-            for operation in self._graph.values():
-                fondant_component_op = operation["fondant_component_op"]
-                execute_component = self.execute_component(fondant_component_op)
+            for component_name, component in self._graph.items():
+                fondant_component_op = component["fondant_component_op"]
+                cache_key = fondant_component_op.get_component_cache_key()
+
+                execute_component = self.execute_component(
+                    component_op=fondant_component_op,
+                    cache_key=cache_key,
+                )
+                metadata = Metadata(
+                    run_id=f"{pipeline.name}-{timestamp}",
+                    base_path=self.base_path,
+                    component_id=component_name,
+                )
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
 
@@ -540,25 +551,13 @@ class Pipeline:
                 # the previous component.
                 component_args = fondant_component_op.arguments
 
-                if previous_component_task is not None:
-                    component_task = kubeflow_component_op(
-                        input_manifest_path=manifest_path,
-                        metadata=metadata,
-                        execute_component=execute_component,
-                        **component_args,
-                    )
-                else:
-                    metadata = json.dumps(
-                        {"base_path": self.base_path, "run_id": run_id},
-                    )
-                    # Add metadata to the first component
-                    component_task = kubeflow_component_op(
-                        input_manifest_path=manifest_path,
-                        metadata=metadata,
-                        execute_component=execute_component,
-                        **component_args,
-                    )
-                    metadata = ""
+                component_task = kubeflow_component_op(
+                    input_manifest_path=manifest_path,
+                    metadata=metadata.to_json(),
+                    execute_component=execute_component,
+                    **component_args,
+                )
+
                 # Set optional configurations
                 component_task = _set_task_configuration(
                     component_task,

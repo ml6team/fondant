@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from fondant.manifest import Metadata
 from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
@@ -35,19 +36,6 @@ class DockerVolume:
     type: str
     source: str
     target: str
-
-
-@dataclass
-class MetaData:
-    """Dataclass representing the metadata arguments of a pipeline.
-
-    Args:
-        run_id: identifier of the current pipeline run
-        base_path: the base path used to store the artifacts.
-    """
-
-    run_id: str
-    base_path: str
 
 
 class DockerCompiler(Compiler):
@@ -134,7 +122,6 @@ class DockerCompiler(Compiler):
         """
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         path, volume = self._patch_path(base_path=pipeline.base_path)
-        metadata = MetaData(run_id=f"{pipeline.name}-{timestamp}", base_path=path)
 
         services = {}
 
@@ -143,11 +130,21 @@ class DockerCompiler(Compiler):
             safe_component_name = self._safe_component_name(component_name)
 
             component_op = component["fondant_component_op"]
-            execute_component = pipeline.execute_component(component_op)
+            cache_key = component_op.get_component_cache_key()
+            execute_component = pipeline.execute_component(
+                component_op=component_op,
+                cache_key=cache_key,
+            )
+
+            metadata = Metadata(
+                run_id=f"{pipeline.name}-{timestamp}",
+                base_path=path,
+                component_id=component_name,
+            )
 
             command = [
                 "--metadata",
-                json.dumps(asdict(metadata)),
+                json.dumps(metadata.to_json()),
                 "--output_manifest_path",
                 f"{path}/{safe_component_name}/manifest.json",
                 "--execute_component",

@@ -4,6 +4,7 @@ import json
 import pkgutil
 import types
 import typing as t
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import jsonschema.exceptions
@@ -70,6 +71,21 @@ class Index(Subset):
         }
 
 
+@dataclass
+class Metadata:
+    """Class representing the Metadata of the manifest."""
+
+    base_path: str
+    run_id: str
+    component_id: str
+
+    def to_dict(self):
+        return asdict(self)
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+
+
 class Manifest:
     """
     Class representing a Fondant manifest.
@@ -119,13 +135,17 @@ class Manifest:
             base_path: The base path of the manifest
             run_id: The id of the current pipeline run
             component_id: The id of the current component being executed
+            cache_key: the cache key of the component
+
         """
+        metadata = Metadata(
+            base_path=base_path,
+            run_id=run_id,
+            component_id=component_id,
+        )
+
         specification = {
-            "metadata": {
-                "base_path": base_path,
-                "run_id": run_id,
-                "component_id": component_id,
-            },
+            "metadata": metadata.to_dict(),
             "index": {"location": f"/index/{run_id}/{component_id}"},
             "subsets": {},
         }
