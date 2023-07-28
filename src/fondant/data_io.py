@@ -131,13 +131,13 @@ class DaskDataLoader(DataIO):
         logging.info(f"Loading index...")
         dataframe = self._load_index()
 
-        logger.info(f"First few rows of index dataframe:")
-        print(dataframe.head())
-
         for name, subset in self.component_spec.consumes.items():
             fields = list(subset.fields.keys())
             subset_df = self._load_subset(name, fields)
             # left joins -> filter on index
+            # make sure that dataframe has same number of partitions
+            # as subset
+            dataframe = dataframe.repartition(npartitions=subset_df.npartitions)
             dataframe = dd.merge(
                 dataframe,
                 subset_df,
@@ -147,9 +147,6 @@ class DaskDataLoader(DataIO):
             )
 
         dataframe = self.partition_loaded_dataframe(dataframe)
-
-        logger.info(f"First few rows of final dataframe provided to the user:")
-        print(dataframe.head())
 
         logging.info(f"Columns of dataframe: {list(dataframe.columns)}")
 
