@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+import pandas as pd
 import pytest
 
 
@@ -43,8 +44,4 @@ class AbstractComponentTest(ABC):
         Tests if the transform method executes without errors.
         """
         output = self.component.transform(self.input_data)
-        if not output.equals(self.expected_output_data):
-            msg = f"Output is not matching expected data\n{output} != {self.expected_output_data}"
-            raise Exception(
-                msg,
-            )
+        pd.testing.assert_frame_equal(output, self.expected_output_data)
