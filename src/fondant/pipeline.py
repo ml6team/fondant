@@ -48,7 +48,7 @@ class ComponentOp:
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
-            arguments.
+          arguments.
         - The `number_of_gpus`, `node_pool_label`, `node_pool_name`,`p_volumes` and
           `ephemeral_storage_size` attributes are optional and can be used to specify additional
           configurations for the operation. More information on the optional attributes that can
