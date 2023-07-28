@@ -41,6 +41,13 @@ class DaskTransformComponent(BaseComponent):
         raise NotImplementedError
 
 
+class DaskWriteComponent(BaseComponent):
+    """Component that accepts a Dask DataFrame and writes its contents."""
+
+    def write(self, dataframe: dd.DataFrame) -> None:
+        raise NotImplementedError
+
+
 class PandasTransformComponent(BaseComponent):
     """Component that transforms the incoming dataset partition per partition as a pandas
     DataFrame.
@@ -54,13 +61,6 @@ class PandasTransformComponent(BaseComponent):
         Args:
             dataframe: A Pandas dataframe containing a partition of the data
         """
-        raise NotImplementedError
-
-
-class DaskWriteComponent(BaseComponent):
-    """Component that accepts a Dask DataFrame and writes its contents."""
-
-    def write(self, dataframe: dd.DataFrame) -> None:
         raise NotImplementedError
 
 
