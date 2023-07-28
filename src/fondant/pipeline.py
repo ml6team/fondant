@@ -38,6 +38,7 @@ class ComponentOp:
         output_partition_size: the size of the output written dataset. Defaults to 250MB,
         set to "disable" to disable automatic repartitioning of the output,
         number_of_gpus: The number of gpus to assign to the operation
+        node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
         p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount paths,
          values are Kubernetes volumes or inherited types(e.g. PipelineVolumes).
@@ -48,11 +49,11 @@ class ComponentOp:
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
             arguments.
-        - The `number_of_gpus`, `node_pool_name`,`p_volumes` and `ephemeral_storage_size`
-            attributes are optional and can be used to specify additional configurations for
-            the operation. More information on the optional attributes that can be assigned to
-             kfp components here:
-             https://kubeflow-pipelines.readthedocs.io/en/1.8.13/source/kfp.dsl.html
+        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`,`p_volumes` and
+          `ephemeral_storage_size` attributes are optional and can be used to specify additional
+          configurations for the operation. More information on the optional attributes that can
+          be assigned to kfp components here:
+          https://kubeflow-pipelines.readthedocs.io/en/1.8.13/source/kfp.dsl.html
     """
 
     COMPONENT_SPEC_NAME = "fondant_component.yaml"
@@ -65,6 +66,7 @@ class ComponentOp:
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         output_partition_size: t.Optional[str] = None,
         number_of_gpus: t.Optional[int] = None,
+        node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
         p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
         ephemeral_storage_size: t.Optional[str] = None,
@@ -80,6 +82,7 @@ class ComponentOp:
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.number_of_gpus = number_of_gpus
+        self.node_pool_label = node_pool_label
         self.node_pool_name = node_pool_name
         self.p_volumes = p_volumes
         self.ephemeral_storage_size = ephemeral_storage_size
@@ -115,6 +118,7 @@ class ComponentOp:
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         output_partition_size: t.Optional[str] = None,
         number_of_gpus: t.Optional[int] = None,
+        node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
         p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
         ephemeral_storage_size: t.Optional[str] = None,
@@ -129,6 +133,7 @@ class ComponentOp:
             output_partition_size: the size of the output written dataset. Defaults to 250MB,
             set to "disable" to disable automatic repartitioning of the output,
             number_of_gpus: The number of gpus to assign to the operation
+            node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.
             p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount
                 paths, values are Kubernetes volumes or inherited types(e.g. PipelineVolumes).
@@ -148,6 +153,7 @@ class ComponentOp:
             input_partition_rows=input_partition_rows,
             output_partition_size=output_partition_size,
             number_of_gpus=number_of_gpus,
+            node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
             p_volumes=p_volumes,
             ephemeral_storage_size=ephemeral_storage_size,
@@ -356,6 +362,7 @@ class Pipeline:
         def _set_task_configuration(task, fondant_component_operation):
             # Unpack optional specifications
             number_of_gpus = fondant_component_operation.number_of_gpus
+            node_pool_label = fondant_component_operation.node_pool_label
             node_pool_name = fondant_component_operation.node_pool_name
             p_volumes = fondant_component_operation.p_volumes
             ephemeral_storage_size = fondant_component_operation.ephemeral_storage_size
@@ -363,8 +370,8 @@ class Pipeline:
             # Assign optional specification
             if number_of_gpus is not None:
                 task.set_gpu_limit(number_of_gpus)
-            if node_pool_name is not None:
-                task.add_node_selector_constraint("node_pool", node_pool_name)
+            if node_pool_label is not None and node_pool_name is not None:
+                task.add_node_selector_constraint(node_pool_label, node_pool_name)
             if p_volumes is not None:
                 task.add_pvolumes(p_volumes)
             if ephemeral_storage_size is not None:
