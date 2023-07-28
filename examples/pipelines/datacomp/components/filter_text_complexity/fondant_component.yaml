@@ -1,6 +1,6 @@
 name: Filter text complexity
 description: Component that filters text based on their dependency parse complexity and number of actions
-image: ghcr.io/ml6team/filter_text_complexity:28ec87862c160ead773eb15b57905ac61515f8cf
+image: ghcr.io/ml6team/filter_text_complexity:f3f3925b8e8f634e2978e5c7fcefa72c53baba7c
 
 consumes:
   text:
