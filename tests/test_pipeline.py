@@ -4,7 +4,11 @@ from pathlib import Path
 
 import pytest
 import yaml
-from fondant.exceptions import InvalidPipelineDefinition, InvalidTypeSchema
+from fondant.exceptions import (
+    InvalidImageDigest,
+    InvalidPipelineDefinition,
+    InvalidTypeSchema,
+)
 from fondant.pipeline import ComponentOp, Pipeline
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
@@ -65,6 +69,84 @@ def test_component_op(
             arguments=component_args,
             output_partition_size="250 MB",
         )
+
+
+@pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+            "example_1",
+            ["first_component", "second_component", "third_component"],
+        ),
+    ],
+)
+def test_parsing_docker_image_manifest(monkeypatch, valid_pipeline_example):
+    example_dir, component_names = valid_pipeline_example
+    components_path = Path(valid_pipeline_path / example_dir)
+    example_manifests = {
+        "manifest_schema_valid_1": {
+            "schemaVersion": 2,
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "config": {
+                "mediaType": "application/vnd.docker.container.image.v1+json",
+                "size": 8930,
+                "digest": "sha256:123",
+            },
+        },
+        "manifest_schema_valid_2": {
+            "schemaVersion": 2,
+            "mediaType": "application/vnd.oci.image.index.v1+json",
+            "manifests": [
+                {
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "size": 2390,
+                    "digest": "sha256:123",
+                    "platform": {
+                        "architecture": "amd64",
+                        "os": "linux",
+                    },
+                },
+                {
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "size": 566,
+                    "digest": "sha256:invalid_digest",
+                    "platform": {
+                        "architecture": "unknown",
+                        "os": "unknown",
+                    },
+                },
+            ],
+        },
+        "invalid_manifest_schema_1": {
+            "schemaVersion": "Unknown",
+            "mediaType": "Unknown",
+            "Unknown_key": [
+                {
+                    "Unknown_key": "Unknown_value",
+                },
+            ],
+        },
+    }
+    component_op = ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments={"storage_args": "a dummy string arg"},
+        output_partition_size=None,
+    )
+
+    for example_name, manifest in example_manifests.items():
+        monkeypatch.setattr(
+            component_op,
+            "get_image_manifest",
+            lambda image_ref: manifest,
+        )
+        if "invalid" in example_name:
+            with pytest.raises(InvalidImageDigest):
+                component_op.get_component_image_hash("example_component:latest")
+        else:
+            assert (
+                component_op.get_component_image_hash("example_component:latest")
+                == "sha256:123"
+            )
 
 
 # Define a mock function to replace get_component_image_hash
