@@ -48,6 +48,7 @@ class DockerCompiler(Compiler):
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Optional[list] = None,
         build_args: t.Optional[t.List[str]] = None,
+        cache_disabled: t.Optional[bool] = True,
     ) -> None:
         """Compile a pipeline to docker-compose spec and save it to a specified output path.
 
@@ -58,6 +59,8 @@ class DockerCompiler(Compiler):
               https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
               to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
+            cache_disabled: flag to disable cached execution of components. Disabled  by default.
+
         """
         if extra_volumes is None:
             extra_volumes = []
@@ -65,6 +68,7 @@ class DockerCompiler(Compiler):
         logger.info(f"Compiling {pipeline.name} to {output_path}")
         spec = self._generate_spec(
             pipeline,
+            cache_disabled=cache_disabled,
             extra_volumes=extra_volumes,
             build_args=build_args or [],
         )
@@ -114,6 +118,7 @@ class DockerCompiler(Compiler):
         self,
         pipeline: Pipeline,
         *,
+        cache_disabled: t.Optional[bool] = True,
         extra_volumes: t.List[str],
         build_args: t.List[str],
     ) -> dict:
@@ -122,31 +127,29 @@ class DockerCompiler(Compiler):
         """
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         path, volume = self._patch_path(base_path=pipeline.base_path)
+        cache_dict = pipeline.get_pipeline_cache_dict(cache_disabled)
 
         services = {}
 
         for component_name, component in pipeline._graph.items():
             logger.info(f"Compiling service for {component_name}")
             safe_component_name = self._safe_component_name(component_name)
-
+            cache_key = cache_dict[safe_component_name]["cache_key"]
+            execute_component = cache_dict[safe_component_name]["execute_component"]
             component_op = component["fondant_component_op"]
-            cache_key = component_op.get_component_cache_key()
-            execute_component = pipeline.execute_component(
-                component_op=component_op,
-                cache_key=cache_key,
-            )
 
             metadata = Metadata(
                 run_id=f"{pipeline.name}-{timestamp}",
                 base_path=path,
-                component_id=component_name,
+                component_id=safe_component_name,
+                cache_key=cache_key,
             )
 
             command = [
                 "--metadata",
-                json.dumps(metadata.to_json()),
+                metadata.to_json(),
                 "--output_manifest_path",
-                f"{path}/{safe_component_name}/manifest.json",
+                f"{path}/{safe_component_name}/manifest_{cache_key}.json",
                 "--execute_component",
                 f"{execute_component}",
             ]
@@ -167,10 +170,11 @@ class DockerCompiler(Compiler):
                         "condition": "service_completed_successfully",
                     }
                     # there is only an input manifest if the component has dependencies
+                    cache_key = cache_dict[safe_dependency]["cache_key"]
                     command.extend(
                         [
                             "--input_manifest_path",
-                            f"{path}/{safe_dependency}/manifest.json",
+                            f"{path}/{safe_dependency}/manifest_{cache_key}.json",
                         ],
                     )
 

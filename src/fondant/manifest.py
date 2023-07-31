@@ -4,7 +4,6 @@ import json
 import pkgutil
 import types
 import typing as t
-from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import jsonschema.exceptions
@@ -71,19 +70,46 @@ class Index(Subset):
         }
 
 
-@dataclass
 class Metadata:
-    """Class representing the Metadata of the manifest."""
+    """
+    Class representing the Metadata of the component manifest.
 
-    base_path: str
-    run_id: str
-    component_id: str
+    Args:
+        base_path: the base path used to store the artifacts
+        run_id: the run id of the pipeline
+        component_id: the name of the component
+        cache_key: the cache key of the component.
+    """
 
-    def to_dict(self):
-        return asdict(self)
+    def __init__(self, base_path: str, run_id: str, component_id: str, cache_key: str):
+        self.base_path = base_path
+        self.run_id = run_id
+        self.component_id = component_id
+        self.cache_key = cache_key
 
-    def to_json(self):
+    def to_dict(self) -> t.Dict[str, str]:
+        return {
+            "base_path": self.base_path,
+            "run_id": self.run_id,
+            "component_id": self.component_id,
+            "cache_key": self.cache_key,
+        }
+
+    def to_json(self) -> str:
         return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_dict(cls, data_dict: t.Dict[str, str]):
+        return cls(
+            base_path=data_dict.get("base_path", ""),
+            run_id=data_dict.get("run_id", ""),
+            component_id=data_dict.get("component_id", ""),
+            cache_key=data_dict.get("cache_key", ""),
+        )
+
+    @classmethod
+    def from_json(cls, json_string: str):
+        return cls.from_dict(json.loads(json_string))
 
 
 class Manifest:
@@ -128,7 +154,14 @@ class Manifest:
             raise InvalidManifest.create_from(e)
 
     @classmethod
-    def create(cls, *, base_path: str, run_id: str, component_id: str) -> "Manifest":
+    def create(
+        cls,
+        *,
+        base_path: str,
+        run_id: str,
+        component_id: str,
+        cache_key: str,
+    ) -> "Manifest":
         """Create an empty manifest.
 
         Args:
@@ -142,6 +175,7 @@ class Manifest:
             base_path=base_path,
             run_id=run_id,
             component_id=component_id,
+            cache_key=cache_key,
         )
 
         specification = {

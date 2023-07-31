@@ -1,4 +1,5 @@
 """This module defines classes to represent a Fondant Pipeline."""
+import datetime
 import hashlib
 import json
 import logging
@@ -6,7 +7,6 @@ import re
 import subprocess  # nosec
 import typing as t
 from collections import OrderedDict
-from datetime import datetime
 from pathlib import Path
 
 try:
@@ -16,6 +16,7 @@ except ImportError:
 
 from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidPipelineDefinition
+from fondant.filesystem import list_files
 from fondant.import_utils import is_kfp_available
 from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number, validate_partition_size
@@ -380,15 +381,32 @@ class Pipeline:
             raise InvalidPipelineDefinition(msg)
         return pipeline_name
 
-    def execute_component(self, component_op: ComponentOp, cache_key: str) -> bool:
+    def execute_component(self, component_name: str, cache_key: str) -> bool:
         """
         Function that checks whether a component should be executed
         Args:
-            component_op: the component Op to execute
+            component_name: the name of the component to execute
+            cache_key: the component cache key
         Return:
             boolean indicating whether to execute the component.
         """
-        # TODO: implement caching check later on, for now defaults to true
+
+        def is_partially_contained_in_list(substring, string_list):
+            return any(substring in main_string for main_string in string_list)
+
+        executed_manifest_dir = f"{self.base_path}/{component_name}"
+        executed_manifests = list_files(executed_manifest_dir)
+        manifest_path = f"{executed_manifest_dir}/manifest_{cache_key}.json"
+
+        if is_partially_contained_in_list(manifest_path, executed_manifests):
+            manifest = Manifest.from_file(manifest_path)
+            logger.info(
+                f"Found matching execution for component {component_name} under"
+                f" {manifest_path} with run_id {manifest.run_id}\n."
+                f" Caching component execution.",
+            )
+            return False
+
         return True
 
     def _validate_pipeline_definition(self, run_id: str):
@@ -403,7 +421,7 @@ class Pipeline:
             base_path: the base path where to store the pipelines artifacts
             run_id: the run id of the component
         """
-        # TODO: change later if we decide to run 2 fondan pipelines after each other
+        # TODO: change later if we decide to run 2 fondant pipelines after each other
         load_component = True
         load_component_name = list(self._graph.keys())[0]
 
@@ -412,6 +430,7 @@ class Pipeline:
             base_path=self.base_path,
             run_id=run_id,
             component_id=load_component_name,
+            cache_key="42",
         )
         for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["fondant_component_op"]
@@ -469,11 +488,73 @@ class Pipeline:
 
         logger.info("All pipeline component specifications match.")
 
-    def compile(self):
+    def get_pipeline_cache_dict(
+        self,
+        cache_disabled: t.Optional[bool] = False,
+    ) -> t.Dict[str, t.Dict[str, t.Any]]:
+        """
+        Generate a dictionary containing cache information for each component in the pipeline.
+
+        This function iterates over the components in the pipeline and determines whether each
+        component should be executed or whether it can be cached based on the cache key.
+
+        Returns:
+            dictionary with component names as keys and corresponding cache information as values.
+            Each entry in the dictionary contains the 'cache_key' and 'execute_component' fields.
+
+        Example:
+            {
+                'component1': {
+                    'cache_key': 'cache_key_value1',
+                    'execute_component': True
+                },
+                'component2': {
+                    'cache_key': 'cache_key_value2',
+                    'execute_component': False
+                },
+                ...
+            }
+        """
+        execute_next_components = False
+        cache_dict = {}
+
+        for component_name, component in self._graph.items():
+            component_name_safe = component_name.replace(" ", "_").lower()
+            fondant_component_op = component["fondant_component_op"]
+
+            cache_key = fondant_component_op.get_component_cache_key()
+
+            if cache_disabled:
+                execute_component = True
+            elif execute_next_components is False:
+                execute_component = self.execute_component(
+                    component_name=component_name_safe,
+                    cache_key=cache_key,
+                )
+            else:
+                execute_component = True
+
+            # if one component should be executed then all subsequent components will have to be
+            # executed
+            if execute_component is True:
+                execute_next_components = True
+
+            # Create cache information entry for the component in the dictionary
+            cache_dict[component_name_safe] = {
+                "cache_key": cache_key,
+                "execute_component": execute_component,
+            }
+
+        return cache_dict
+
+    def compile(self, cache_disabled: t.Optional[bool] = False):
         """
         Function that creates and compiles a Kubeflow Pipeline.
         Once you have generated the pipeline function, you can use it to create an instance of
         the pipeline and compile it using the Kubeflow compiler.
+
+        Args:
+            cache_disabled: flag to disable cached execution of components. Disabled  by default.
         """
 
         def _get_component_function(
@@ -523,26 +604,26 @@ class Pipeline:
         # Validate subset schema before defining the pipeline
         self._validate_pipeline_definition(run_id)
 
+        # Get cache information dictionary
+        cache_dict = self.get_pipeline_cache_dict(cache_disabled=cache_disabled)
+
         @dsl.pipeline(name=self.name, description=self.description)
         def pipeline():
             # TODO: check if we want to have the manifest path empty for loading component or remove
             #  it completely from the loading component
-            # TODO: check if we want to have the metadata arg empty for transform component or
-            #  remove it completely from the transform component
+
             manifest_path = ""
             previous_component_task = None
-            for component_name, component in self._graph.items():
-                fondant_component_op = component["fondant_component_op"]
-                cache_key = fondant_component_op.get_component_cache_key()
 
-                execute_component = self.execute_component(
-                    component_op=fondant_component_op,
-                    cache_key=cache_key,
-                )
+            for component_name, component in self._graph.items():
+                component_name_safe = component_name.replace(" ", "_").lower()
+                fondant_component_op = component["fondant_component_op"]
+
                 metadata = Metadata(
-                    run_id=f"{pipeline.name}-{timestamp}",
+                    run_id=f"{self.name}-{timestamp}",
                     base_path=self.base_path,
                     component_id=component_name,
+                    cache_key=cache_dict[component_name_safe]["cache_key"],
                 )
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
@@ -554,7 +635,9 @@ class Pipeline:
                 component_task = kubeflow_component_op(
                     input_manifest_path=manifest_path,
                     metadata=metadata.to_json(),
-                    execute_component=execute_component,
+                    execute_component=cache_dict[component_name_safe][
+                        "execute_component"
+                    ],
                     **component_args,
                 )
 

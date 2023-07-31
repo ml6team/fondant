@@ -25,7 +25,7 @@ from fondant.component import (
 )
 from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
-from fondant.manifest import Manifest
+from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number, validate_partition_size
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class Executor(t.Generic[Component]):
         execute_component: bool,
         input_manifest_path: t.Union[str, Path],
         output_manifest_path: t.Union[str, Path],
-        metadata: t.Dict[str, t.Any],
+        metadata: Metadata,
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         output_partition_size: t.Optional[str] = None,
@@ -108,7 +108,7 @@ class Executor(t.Generic[Component]):
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
-        metadata = json.loads(metadata) if metadata else {}
+        metadata = Metadata.from_json(metadata)
 
         return cls(
             component_spec,
@@ -242,7 +242,8 @@ class Executor(t.Generic[Component]):
             # Save to the expected base path directory
             safe_component_name = self.spec.name.replace(" ", "_").lower()
             save_path_base_path = (
-                f"{manifest.base_path}/{safe_component_name}/manifest.json"
+                f"{manifest.base_path}/{safe_component_name}/"
+                f"manifest_{self.metadata.cache_key}.json"
             )
             Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
             manifest.to_file(save_path_base_path)
@@ -267,9 +268,10 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
     def _load_or_create_manifest(self) -> Manifest:
         component_id = self.spec.name.lower().replace(" ", "_")
         return Manifest.create(
-            base_path=self.metadata["base_path"],
-            run_id=self.metadata["run_id"],
+            base_path=self.metadata.base_path,
+            run_id=self.metadata.run_id,
             component_id=component_id,
+            cache_key=self.metadata.cache_key,
         )
 
     def _execute_component(
