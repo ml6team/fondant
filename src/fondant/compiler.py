@@ -83,13 +83,6 @@ class DockerCompiler(Compiler):
         logger.info(f"Successfully compiled to {output_path}")
 
     @staticmethod
-    def _safe_component_name(component_name: str) -> str:
-        """Transform a component name to a docker-compose friendly one.
-        eg: `Component A` -> `component_a`.
-        """
-        return component_name.replace(" ", "_").lower()
-
-    @staticmethod
     def _patch_path(base_path: str) -> t.Tuple[str, t.Optional[DockerVolume]]:
         """Helper that checks if the base_path is local or remote,
         if local it patches the base_path and prepares a bind mount
@@ -133,15 +126,14 @@ class DockerCompiler(Compiler):
 
         for component_name, component in pipeline._graph.items():
             logger.info(f"Compiling service for {component_name}")
-            safe_component_name = self._safe_component_name(component_name)
-            cache_key = cache_dict[safe_component_name]["cache_key"]
-            execute_component = cache_dict[safe_component_name]["execute_component"]
+            cache_key = cache_dict[component_name]["cache_key"]
+            execute_component = cache_dict[component_name]["execute_component"]
             component_op = component["fondant_component_op"]
 
             metadata = Metadata(
                 run_id=f"{pipeline.name}-{timestamp}",
                 base_path=path,
-                component_id=safe_component_name,
+                component_id=component_name,
                 cache_key=cache_key,
             )
 
@@ -149,7 +141,7 @@ class DockerCompiler(Compiler):
                 "--metadata",
                 metadata.to_json(),
                 "--output_manifest_path",
-                f"{path}/{safe_component_name}/manifest_{cache_key}.json",
+                f"{path}/{component_name}/manifest_{cache_key}.json",
                 "--execute_component",
                 f"{execute_component}",
             ]
@@ -165,16 +157,15 @@ class DockerCompiler(Compiler):
             depends_on = {}
             if component["dependencies"]:
                 for dependency in component["dependencies"]:
-                    safe_dependency = self._safe_component_name(dependency)
-                    depends_on[safe_dependency] = {
+                    depends_on[dependency] = {
                         "condition": "service_completed_successfully",
                     }
                     # there is only an input manifest if the component has dependencies
-                    cache_key = cache_dict[safe_dependency]["cache_key"]
+                    cache_key = cache_dict[dependency]["cache_key"]
                     command.extend(
                         [
                             "--input_manifest_path",
-                            f"{path}/{safe_dependency}/manifest_{cache_key}.json",
+                            f"{path}/{dependency}/manifest_{cache_key}.json",
                         ],
                     )
 
@@ -184,7 +175,7 @@ class DockerCompiler(Compiler):
             if extra_volumes:
                 volumes.extend(extra_volumes)
 
-            services[safe_component_name] = {
+            services[component_name] = {
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
@@ -194,14 +185,12 @@ class DockerCompiler(Compiler):
                 logger.info(
                     f"Found Dockerfile for {component_name}, adding build step.",
                 )
-                services[safe_component_name]["build"] = {
+                services[component_name]["build"] = {
                     "context": str(component_op.component_dir),
                     "args": build_args,
                 }
             else:
-                services[safe_component_name][
-                    "image"
-                ] = component_op.component_spec.image
+                services[component_name]["image"] = component_op.component_spec.image
         return {
             "name": pipeline.name,
             "version": "3.8",

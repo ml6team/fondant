@@ -81,7 +81,13 @@ class Metadata:
         cache_key: the cache key of the component.
     """
 
-    def __init__(self, base_path: str, run_id: str, component_id: str, cache_key: str):
+    def __init__(
+        self,
+        base_path: str,
+        run_id: str,
+        component_id: str,
+        cache_key: str,
+    ):
         self.base_path = base_path
         self.run_id = run_id
         self.component_id = component_id
@@ -99,7 +105,7 @@ class Metadata:
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_dict(cls, data_dict: t.Dict[str, str]):
+    def from_dict(cls, data_dict: t.Dict[str, str]) -> "Metadata":
         return cls(
             base_path=data_dict.get("base_path", ""),
             run_id=data_dict.get("run_id", ""),
@@ -108,7 +114,7 @@ class Metadata:
         )
 
     @classmethod
-    def from_json(cls, json_string: str):
+    def from_json(cls, json_string: str) -> "Metadata":
         return cls.from_dict(json.loads(json_string))
 
 

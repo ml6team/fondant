@@ -74,15 +74,14 @@ class ComponentOp:
         ephemeral_storage_size: t.Optional[str] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
-        self.input_partition_rows = input_partition_rows
-        self.output_partitioning_size = output_partition_size
-        self.arguments = self._set_arguments(arguments)
-
         self.component_spec = ComponentSpec.from_file(
             self.component_dir / self.COMPONENT_SPEC_NAME,
         )
+        self.name = self.component_spec.name.replace(" ", "_").lower()
+        self.input_partition_rows = input_partition_rows
+        self.output_partitioning_size = output_partition_size
+        self.arguments = self._set_arguments(arguments)
         self.arguments.setdefault("component_spec", self.component_spec.specification)
-
         self.number_of_gpus = number_of_gpus
         self.node_pool_name = node_pool_name
         self.p_volumes = p_volumes
@@ -158,19 +157,19 @@ class ComponentOp:
         )
 
     @staticmethod
-    def get_component_image_hash(image_ref):
+    def get_component_image_hash(image_ref: str):
         """Calculate the hash of a Docker image reference. If multiple builds exist for
         different operating systems, the hash of the amd64 CPU architecture and the linux
         operating system is returned.
 
         Args:
-            image_ref (str): The Docker image reference (e.g., 'registry/image:tag').
+            image_ref: The Docker image reference (e.g., 'registry/image:tag').
 
         Returns:
-            str: The hash value (digest) of the Docker image.
+            The hash value (digest) of the Docker image.
         """
 
-        def get_image_manifest(image_ref):
+        def get_image_manifest(image_ref: str):
             """Retrieve the Docker image manifest.
 
             Args:
@@ -248,7 +247,7 @@ class ComponentOp:
 
             return input_dict
 
-        def get_nested_dict_hash(input_dict):
+        def get_nested_dict_hash(input_dict: t.Dict[str, t.Any]) -> str:
             """Calculate the hash of a nested dictionary.
 
             Args:
@@ -341,11 +340,9 @@ class Pipeline:
                 msg,
             )
 
-        dependencies_names = [
-            dependency.component_spec.name for dependency in dependencies
-        ]
+        dependencies_names = [dependency.name for dependency in dependencies]
 
-        self._graph[task.component_spec.name] = {
+        self._graph[task.name] = {
             "fondant_component_op": task,
             "dependencies": dependencies_names,
         }
@@ -519,7 +516,6 @@ class Pipeline:
         cache_dict = {}
 
         for component_name, component in self._graph.items():
-            component_name_safe = component_name.replace(" ", "_").lower()
             fondant_component_op = component["fondant_component_op"]
 
             cache_key = fondant_component_op.get_component_cache_key()
@@ -528,7 +524,7 @@ class Pipeline:
                 execute_component = True
             elif execute_next_components is False:
                 execute_component = self.execute_component(
-                    component_name=component_name_safe,
+                    component_name=component_name,
                     cache_key=cache_key,
                 )
             else:
@@ -540,7 +536,7 @@ class Pipeline:
                 execute_next_components = True
 
             # Create cache information entry for the component in the dictionary
-            cache_dict[component_name_safe] = {
+            cache_dict[component_name] = {
                 "cache_key": cache_key,
                 "execute_component": execute_component,
             }
@@ -616,14 +612,13 @@ class Pipeline:
             previous_component_task = None
 
             for component_name, component in self._graph.items():
-                component_name_safe = component_name.replace(" ", "_").lower()
                 fondant_component_op = component["fondant_component_op"]
 
                 metadata = Metadata(
                     run_id=f"{self.name}-{timestamp}",
                     base_path=self.base_path,
                     component_id=component_name,
-                    cache_key=cache_dict[component_name_safe]["cache_key"],
+                    cache_key=cache_dict[component_name]["cache_key"],
                 )
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
@@ -635,9 +630,7 @@ class Pipeline:
                 component_task = kubeflow_component_op(
                     input_manifest_path=manifest_path,
                     metadata=metadata.to_json(),
-                    execute_component=cache_dict[component_name_safe][
-                        "execute_component"
-                    ],
+                    execute_component=cache_dict[component_name]["execute_component"],
                     **component_args,
                 )
 
