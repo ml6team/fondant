@@ -83,6 +83,7 @@ class Metadata:
 
     def __init__(
         self,
+        *,
         base_path: str,
         run_id: str,
         component_id: str,

@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import typing as t
 from pathlib import Path
@@ -23,7 +24,7 @@ from fondant.executor import (
     Executor,
     PandasTransformExecutor,
 )
-from fondant.manifest import Manifest
+from fondant.manifest import Manifest, Metadata
 
 components_path = Path(__file__).parent / "example_specs/components"
 N_PARTITIONS = 2
@@ -131,6 +132,131 @@ def test_component_arguments():
         "override_default_none_arg": 3.14,
         "override_default_arg_with_none": None,
     }
+
+
+def test_local_runner_manifest_save_path(tmp_path_factory):
+    """
+    Test that the local runner manifest is produced and saved when running the pipeline locally.
+
+    This test ensures that when the pipeline is executed using the local runner, the manifest file
+    is generated and saved as expected.
+    """
+    with tmp_path_factory.mktemp("temp") as fn:
+        base_path = str(fn)
+        component_name = "example_component"
+        cache_key = "42"
+        metadata = Metadata(
+            base_path=base_path,
+            run_id="12345",
+            component_id=component_name,
+            cache_key=cache_key,
+        )
+
+        output_manifest_path = (
+            f"{base_path}/{component_name}output_manifest_{cache_key}.json"
+        )
+        # Mock CLI arguments load
+        sys.argv = [
+            "",
+            "--metadata",
+            metadata.to_json(),
+            "--flag",
+            "success",
+            "--value",
+            "1",
+            "--output_manifest_path",
+            output_manifest_path,
+            "--component_spec",
+            yaml_file_to_json_string(components_path / "component.yaml"),
+            "--execute_component",
+            "False",
+        ]
+
+        class MyLoadComponent(DaskLoadComponent):
+            def __init__(self, *args, flag, value):
+                self.flag = flag
+                self.value = value
+
+            def load(self):
+                data = {
+                    "id": [0, 1],
+                    "captions_data": ["hello world", "this is another caption"],
+                }
+                return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
+
+        executor = DaskLoadExecutor.from_args()
+        load = patch_method_class(MyLoadComponent.load)
+        with mock.patch.object(MyLoadComponent, "load", load):
+            executor.execute(MyLoadComponent)
+
+        assert os.path.exists(output_manifest_path)
+
+
+def test_remote_runner_manifest_save_path(monkeypatch, tmp_path_factory):
+    """
+    Test that the remote runner manifest is saved in two specific locations:
+    1. The native Kubeflow artifact path
+    2. The expected directory within the base path.
+
+    This test ensures that when using the remote runner, the manifest file is correctly generated
+    and saved to the appropriate locations for easy access and compatibility with Kubeflow's
+    artifact tracking system.
+    """
+    with tmp_path_factory.mktemp("temp") as fn:
+        base_path = str(fn)
+        component_name = "example_component"
+        cache_key = "42"
+        metadata = Metadata(
+            base_path=base_path,
+            run_id="12345",
+            component_id=component_name,
+            cache_key=cache_key,
+        )
+
+        output_manifest_path = f"{str(fn)}/tmp/outputs/output_manifest_path/data"
+        # Mock CLI arguments load
+        sys.argv = [
+            "",
+            "--metadata",
+            metadata.to_json(),
+            "--flag",
+            "success",
+            "--value",
+            "1",
+            "--output_manifest_path",
+            output_manifest_path,
+            "--component_spec",
+            yaml_file_to_json_string(components_path / "component.yaml"),
+            "--execute_component",
+            "False",
+        ]
+
+        class MyLoadComponent(DaskLoadComponent):
+            def __init__(self, *args, flag, value):
+                self.flag = flag
+                self.value = value
+
+            def load(self):
+                data = {
+                    "id": [0, 1],
+                    "captions_data": ["hello world", "this is another caption"],
+                }
+                return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
+
+        executor = DaskLoadExecutor.from_args()
+        monkeypatch.setattr(
+            executor,
+            "kubeflow_manifest_save_path",
+            output_manifest_path,
+        )
+        load = patch_method_class(MyLoadComponent.load)
+        with mock.patch.object(MyLoadComponent, "load", load):
+            executor.execute(MyLoadComponent)
+
+        # kubeflow artifact
+        assert os.path.exists(output_manifest_path)
+        # Base path artifact
+        assert os.path.exists(f"{base_path}/{component_name}/manifest_{cache_key}.json")
 
 
 @pytest.mark.usefixtures("_patched_data_writing")

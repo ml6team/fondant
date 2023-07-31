@@ -54,6 +54,9 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
         self.output_partition_size = output_partition_size
+        self.kubeflow_manifest_save_path = (
+            "/tmp/outputs/output_manifest_path/data"  # nosec
+        )
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -234,9 +237,7 @@ class Executor(t.Generic[Component]):
             save_path: The path where the Manifest object will be saved.
 
         """
-        is_kubeflow_output = (
-            str(save_path) == "/tmp/outputs/output_manifest_path/data"  # nosec
-        )
+        is_kubeflow_output = str(save_path) == self.kubeflow_manifest_save_path
 
         if is_kubeflow_output:
             # Save to the expected base path directory
