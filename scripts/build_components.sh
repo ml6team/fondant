@@ -75,7 +75,7 @@ for dir in "${components_to_build[@]}"; do
 
   echo "Updating the image version in the fondant_component.yaml with:"
   echo "${full_image_names[0]}"
-  sed -i "s|^image: .*|image: ${full_image_names[0]}|" fondant_component.yaml
+  sed -i "" "s|^image: .*|image: ${full_image_names[0]}|" fondant_component.yaml
 
   args=()
 
@@ -98,6 +98,9 @@ for dir in "${components_to_build[@]}"; do
    --build-arg="FONDANT_VERSION=${tags[0]}" \
    --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
    .
+
+  # remove local image to conserve space 
+  docker rmi -f "${full_image_names[@]}" 
 
   popd
 
