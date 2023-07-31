@@ -4,9 +4,9 @@ from pathlib import Path
 import pytest
 from fondant.pipeline import ComponentOp, Pipeline
 
-valid_pipeline_path = Path("example_pipelines/valid_pipeline")
-invalid_pipeline_path = Path("example_pipelines/invalid_pipeline")
-base_path = Path("example_pipelines/mock_base_path")
+valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
+invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
+base_path = Path(__file__).parent / "example_pipelines/mock_base_path"
 
 
 @pytest.fixture()

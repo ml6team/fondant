@@ -108,7 +108,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
 
 
 @pytest.mark.usefixtures("_freeze_time")
-def test_docker_local_path(setup_pipeline, tmp_path_factory, monkeypatch):
+def test_docker_local_path(setup_pipeline, tmp_path_factory):
     """Test that a local path is applied correctly as a volume and in the arguments."""
     # volumes are only created for local existing directories
     with tmp_path_factory.mktemp("temp") as fn:
@@ -168,7 +168,7 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
         for name, service in spec["services"].items():
             # check that no volumes are created
             assert service["volumes"] == []
-            # check if commands are patched to use the working dir
+            # check if commands are patched to use the remote dir
             commands_with_dir = [
                 f"{remote_dir}/{name}/manifest_42.json",
                 f'{{"base_path": "{remote_dir}", "run_id": "test_pipeline-20230101000000",'

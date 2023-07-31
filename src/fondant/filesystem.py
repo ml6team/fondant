@@ -38,7 +38,7 @@ def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem:
     msg = (
         f"Unable to create fsspec filesystem object for url `{path_uri}`"
         f" because of unsupported scheme: {scheme}.\nAvailable schemes "
-        f"are {FSSPEC_SCHEME_DICT.keys()}"
+        f"are {list(FSSPEC_SCHEME_DICT.keys())}"
     )
 
     raise ValueError(msg)
