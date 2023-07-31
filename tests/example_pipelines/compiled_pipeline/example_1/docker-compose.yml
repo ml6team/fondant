@@ -1,90 +1,94 @@
 name: test_pipeline
 services:
-  first_component:
-    build:
-      args: []
-      context: tests/example_pipelines/valid_pipeline/example_1/first_component
-    command:
-    - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
-    - --output_manifest_path
-    - /foo/bar/first_component/manifest.json
-    - --execute_component
-    - "True"
-    - --storage_args
-    - a dummy string arg
-    - --input_partition_rows
-    - disable
-    - --output_partition_size
-    - disable
-    - --component_spec
-    - '{"name": "First component", "description": "This is an example component",
-      "image": "example_component:latest", "produces": {"images": {"fields": {"data":
-      {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
-      "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
-    depends_on: {}
-    volumes: []
-  second_component:
-    build:
-      args: []
-      context: tests/example_pipelines/valid_pipeline/example_1/second_component
-    command:
-    - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
-    - --output_manifest_path
-    - /foo/bar/second_component/manifest.json
-    - --execute_component
-    - "True"
-    - --storage_args
-    - a dummy string arg
-    - --input_partition_rows
-    - '10'
-    - --output_partition_size
-    - 30MB
-    - --component_spec
-    - '{"name": "Second component", "description": "This is an example component",
-      "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
-      {"type": "binary"}}}}, "produces": {"embeddings": {"fields": {"data": {"type":
-      "array", "items": {"type": "float32"}}}}}, "args": {"storage_args": {"description":
-      "Storage arguments", "type": "str"}}}'
-    - --input_manifest_path
-    - /foo/bar/first_component/manifest.json
-    depends_on:
-      first_component:
-        condition: service_completed_successfully
-    volumes: []
-  third_component:
-    build:
-      args: []
-      context: tests/example_pipelines/valid_pipeline/example_1/fourth_component
-    command:
-    - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
-    - --output_manifest_path
-    - /foo/bar/third_component/manifest.json
-    - --execute_component
-    - "True"
-    - --storage_args
-    - a dummy string arg
-    - --some_list
-    - '[1, 2, 3]'
-    - --input_partition_rows
-    - None
-    - --output_partition_size
-    - None
-    - --component_spec
-    - '{"name": "Third component", "description": "This is an example component",
-      "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
-      {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}},
-      "embeddings": {"fields": {"data": {"type": "array", "items": {"type": "float32"}}}}},
-      "produces": {"images": {"fields": {"data": {"type": "binary"}}}, "additionalSubsets":
-      false}, "args": {"storage_args": {"description": "Storage arguments", "type":
-      "str"}, "some_list": {"description": "Some list", "type": "list", "items": {"type":
-      "int"}}}}'
-    - --input_manifest_path
-    - /foo/bar/second_component/manifest.json
-    depends_on:
-      second_component:
-        condition: service_completed_successfully
-    volumes: []
+    first_component:
+        build:
+            args: []
+            context: tests/example_pipelines/valid_pipeline/example_1/first_component
+        command:
+        - --metadata
+        - '{"base_path": "/foo/bar", "run_id": "test_pipeline-20230101000000", "component_id":
+            "first_component", "cache_key": "42"}'
+        - --output_manifest_path
+        - /foo/bar/first_component/manifest_42.json
+        - --execute_component
+        - 'True'
+        - --storage_args
+        - a dummy string arg
+        - --input_partition_rows
+        - disable
+        - --output_partition_size
+        - disable
+        - --component_spec
+        - '{"name": "First component", "description": "This is an example component",
+            "image": "example_component:latest", "produces": {"images": {"fields":
+            {"data": {"type": "binary"}}}, "captions": {"fields": {"data": {"type":
+            "string"}}}}, "args": {"storage_args": {"description": "Storage arguments",
+            "type": "str"}}}'
+        depends_on: {}
+        volumes: []
+    second_component:
+        build:
+            args: []
+            context: tests/example_pipelines/valid_pipeline/example_1/second_component
+        command:
+        - --metadata
+        - '{"base_path": "/foo/bar", "run_id": "test_pipeline-20230101000000", "component_id":
+            "second_component", "cache_key": "42"}'
+        - --output_manifest_path
+        - /foo/bar/second_component/manifest_42.json
+        - --execute_component
+        - 'True'
+        - --storage_args
+        - a dummy string arg
+        - --input_partition_rows
+        - '10'
+        - --output_partition_size
+        - 30MB
+        - --component_spec
+        - '{"name": "Second component", "description": "This is an example component",
+            "image": "example_component:latest", "consumes": {"images": {"fields":
+            {"data": {"type": "binary"}}}}, "produces": {"embeddings": {"fields":
+            {"data": {"type": "array", "items": {"type": "float32"}}}}}, "args": {"storage_args":
+            {"description": "Storage arguments", "type": "str"}}}'
+        - --input_manifest_path
+        - /foo/bar/first_component/manifest_42.json
+        depends_on:
+            first_component:
+                condition: service_completed_successfully
+        volumes: []
+    third_component:
+        build:
+            args: []
+            context: tests/example_pipelines/valid_pipeline/example_1/fourth_component
+        command:
+        - --metadata
+        - '{"base_path": "/foo/bar", "run_id": "test_pipeline-20230101000000", "component_id":
+            "third_component", "cache_key": "42"}'
+        - --output_manifest_path
+        - /foo/bar/third_component/manifest_42.json
+        - --execute_component
+        - 'True'
+        - --storage_args
+        - a dummy string arg
+        - --some_list
+        - '[1, 2, 3]'
+        - --input_partition_rows
+        - None
+        - --output_partition_size
+        - None
+        - --component_spec
+        - '{"name": "Third component", "description": "This is an example component",
+            "image": "example_component:latest", "consumes": {"images": {"fields":
+            {"data": {"type": "binary"}}}, "captions": {"fields": {"data": {"type":
+            "string"}}}, "embeddings": {"fields": {"data": {"type": "array", "items":
+            {"type": "float32"}}}}}, "produces": {"images": {"fields": {"data": {"type":
+            "binary"}}}, "additionalSubsets": false}, "args": {"storage_args": {"description":
+            "Storage arguments", "type": "str"}, "some_list": {"description": "Some
+            list", "type": "list", "items": {"type": "int"}}}}'
+        - --input_manifest_path
+        - /foo/bar/second_component/manifest_42.json
+        depends_on:
+            second_component:
+                condition: service_completed_successfully
+        volumes: []
 version: '3.8'

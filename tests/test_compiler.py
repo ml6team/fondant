@@ -76,15 +76,16 @@ def setup_pipeline(request, tmp_path, monkeypatch):
 
     prev_comp = None
     for component in components:
+        monkeypatch.setattr(component, "get_component_cache_key", lambda: "42")
         pipeline.add_op(component, dependencies=prev_comp)
         prev_comp = component
-
-    pipeline.compile()
 
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
-    return (example_dir, pipeline)
+    pipeline.compile(cache_disabled=True)
+
+    return example_dir, pipeline
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -94,7 +95,12 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
+        compiler.compile(
+            pipeline=pipeline,
+            output_path=output_path,
+            build_args=[],
+            cache_disabled=True,
+        )
         with open(output_path) as src, open(
             VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml",
         ) as truth:
@@ -102,7 +108,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
 
 
 @pytest.mark.usefixtures("_freeze_time")
-def test_docker_local_path(setup_pipeline, tmp_path_factory):
+def test_docker_local_path(setup_pipeline, tmp_path_factory, monkeypatch):
     """Test that a local path is applied correctly as a volume and in the arguments."""
     # volumes are only created for local existing directories
     with tmp_path_factory.mktemp("temp") as fn:
@@ -111,7 +117,11 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
         work_dir = f"/{fn.stem}"
         pipeline.base_path = str(fn)
         compiler = DockerCompiler()
-        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
+        compiler.compile(
+            pipeline=pipeline,
+            cache_disabled=True,
+            output_path=fn / "docker-compose.yml",
+        )
 
         # read the generated docker-compose file
         with open(fn / "docker-compose.yml") as f_spec:
@@ -128,9 +138,11 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
             ]
             # check if commands are patched to use the working dir
             commands_with_dir = [
-                f"{work_dir}/{name}/manifest.json",
-                f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{work_dir}"}}',
+                f"{work_dir}/{name}/manifest_42.json",
+                f'{{"base_path": "{work_dir}", "run_id": "test_pipeline-20230101000000",'
+                f' "component_id": "{name}", "cache_key": "42"}}',
             ]
+
             for command in commands_with_dir:
                 assert command in service["command"]
 
@@ -143,7 +155,11 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
     pipeline.base_path = remote_dir
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
-        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
+        compiler.compile(
+            pipeline=pipeline,
+            cache_disabled=True,
+            output_path=fn / "docker-compose.yml",
+        )
 
         # read the generated docker-compose file
         with open(fn / "docker-compose.yml") as f_spec:
@@ -152,11 +168,13 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
         for name, service in spec["services"].items():
             # check that no volumes are created
             assert service["volumes"] == []
-            # check if commands are patched to use the remote dir
+            # check if commands are patched to use the working dir
             commands_with_dir = [
-                f"{remote_dir}/{name}/manifest.json",
-                f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{remote_dir}"}}',
+                f"{remote_dir}/{name}/manifest_42.json",
+                f'{{"base_path": "{remote_dir}", "run_id": "test_pipeline-20230101000000",'
+                f' "component_id": "{name}", "cache_key": "42"}}',
             ]
+
             for command in commands_with_dir:
                 assert command in service["command"]
 
@@ -173,6 +191,7 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
         extra_volumes = ["hello:there", "general:kenobi"]
         compiler.compile(
             pipeline=pipeline,
+            cache_disabled=True,
             output_path=fn / "docker-compose.yml",
             extra_volumes=extra_volumes,
         )

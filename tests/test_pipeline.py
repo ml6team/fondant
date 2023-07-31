@@ -20,8 +20,28 @@ def yaml_file_to_dict(file_path):
 def default_pipeline_args():
     return {
         "pipeline_name": "pipeline",
-        "base_path": "gcs://bucket/blob",
+        "base_path": "gs://bucket/blob",
     }
+
+
+@pytest.fixture()
+def mocked_component_op(monkeypatch):
+    # Define the mock method
+    def mocked_get_component_cache_key(self):
+        return "42"
+
+    # Apply the monkeypatch to replace the original method with the mocked method
+    monkeypatch.setattr(
+        ComponentOp,
+        "get_component_cache_key",
+        mocked_get_component_cache_key,
+    )
+
+    # Return a function that takes custom arguments and returns an instance of ComponentOp
+    def create_mocked_component_op(component_dir, **kwargs):
+        return ComponentOp(component_dir=component_dir, **kwargs)
+
+    return create_mocked_component_op
 
 
 @pytest.mark.parametrize(
@@ -35,45 +55,37 @@ def default_pipeline_args():
 )
 def test_component_op(
     valid_pipeline_example,
+    mocked_component_op,
 ):
     component_args = {"storage_args": "a dummy string arg"}
     example_dir, component_names = valid_pipeline_example
     components_path = Path(valid_pipeline_path / example_dir)
 
-    ComponentOp(
+    mocked_component_op(
         Path(components_path / component_names[0]),
         arguments=component_args,
         output_partition_size=None,
     )
 
-    ComponentOp(
+    mocked_component_op(
         Path(components_path / component_names[0]),
         arguments=component_args,
         output_partition_size="250MB",
     )
 
     with pytest.raises(InvalidTypeSchema):
-        ComponentOp(
+        mocked_component_op(
             Path(components_path / component_names[0]),
             arguments=component_args,
             output_partition_size="10",
         )
 
     with pytest.raises(InvalidTypeSchema):
-        ComponentOp(
+        mocked_component_op(
             Path(components_path / component_names[0]),
             arguments=component_args,
             output_partition_size="250 MB",
         )
-
-
-# Define a mock function to replace get_component_image_hash
-def mock_image_hash_1(image_ref):
-    return "1234"
-
-
-def mock_image_hash_2(image_ref):
-    return "5678"
 
 
 @pytest.mark.parametrize(
@@ -110,9 +122,21 @@ def test_component_op_hash(
         output_partition_size=None,
     )
 
-    monkeypatch.setattr(comp_0_op_spec_0, "get_component_image_hash", mock_image_hash_1)
-    monkeypatch.setattr(comp_0_op_spec_1, "get_component_image_hash", mock_image_hash_1)
-    monkeypatch.setattr(comp_1_op_spec_0, "get_component_image_hash", mock_image_hash_1)
+    monkeypatch.setattr(
+        comp_0_op_spec_0,
+        "get_component_image_hash",
+        lambda self: "1234",
+    )
+    monkeypatch.setattr(
+        comp_0_op_spec_1,
+        "get_component_image_hash",
+        lambda self: "1234",
+    )
+    monkeypatch.setattr(
+        comp_1_op_spec_0,
+        "get_component_image_hash",
+        lambda self: "1234",
+    )
 
     comp_0_op_spec_0_copy = copy.deepcopy(comp_0_op_spec_0)
 
@@ -132,7 +156,7 @@ def test_component_op_hash(
     monkeypatch.setattr(
         comp_0_op_spec_0_copy,
         "get_component_image_hash",
-        mock_image_hash_2,
+        lambda self: "5678",
     )
 
     assert (
@@ -152,6 +176,7 @@ def test_component_op_hash(
 )
 def test_valid_pipeline(
     default_pipeline_args,
+    mocked_component_op,
     valid_pipeline_example,
     tmp_path,
     monkeypatch,
@@ -166,15 +191,15 @@ def test_valid_pipeline(
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
-    first_component_op = ComponentOp(
+    first_component_op = mocked_component_op(
         Path(components_path / component_names[0]),
         arguments=component_args,
     )
-    second_component_op = ComponentOp(
+    second_component_op = mocked_component_op(
         Path(components_path / component_names[1]),
         arguments=component_args,
     )
-    third_component_op = ComponentOp(
+    third_component_op = mocked_component_op(
         Path(components_path / component_names[2]),
         arguments=component_args,
     )
@@ -193,7 +218,7 @@ def test_valid_pipeline(
     assert pipeline._graph["Second component"]["dependencies"] == ["First component"]
     assert pipeline._graph["Third component"]["dependencies"] == ["Second component"]
 
-    pipeline.compile()
+    pipeline.compile(cache_disabled=True)
 
 
 @pytest.mark.parametrize(
@@ -207,8 +232,10 @@ def test_valid_pipeline(
 )
 def test_invalid_pipeline_dependencies(
     default_pipeline_args,
+    mocked_component_op,
     valid_pipeline_example,
     tmp_path,
+    monkeypatch,
 ):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to create a pipeline
@@ -220,15 +247,15 @@ def test_invalid_pipeline_dependencies(
 
     pipeline = Pipeline(**default_pipeline_args)
 
-    first_component_op = ComponentOp(
+    first_component_op = mocked_component_op(
         Path(components_path / component_names[0]),
         arguments=component_args,
     )
-    second_component_op = ComponentOp(
+    second_component_op = mocked_component_op(
         Path(components_path / component_names[1]),
         arguments=component_args,
     )
-    third_component_op = ComponentOp(
+    third_component_op = mocked_component_op(
         Path(components_path / component_names[2]),
         arguments=component_args,
     )
@@ -248,6 +275,7 @@ def test_invalid_pipeline_dependencies(
 )
 def test_invalid_pipeline_compilation(
     default_pipeline_args,
+    mocked_component_op,
     invalid_pipeline_example,
     tmp_path,
 ):
@@ -261,11 +289,11 @@ def test_invalid_pipeline_compilation(
 
     pipeline = Pipeline(**default_pipeline_args)
 
-    first_component_op = ComponentOp(
+    first_component_op = mocked_component_op(
         Path(components_path / component_names[0]),
         arguments=component_args,
     )
-    second_component_op = ComponentOp(
+    second_component_op = mocked_component_op(
         Path(components_path / component_names[1]),
         arguments=component_args,
     )
@@ -274,7 +302,7 @@ def test_invalid_pipeline_compilation(
     pipeline.add_op(second_component_op, dependencies=first_component_op)
 
     with pytest.raises(InvalidPipelineDefinition):
-        pipeline.compile()
+        pipeline.compile(cache_disabled=True)
 
 
 @pytest.mark.parametrize(
@@ -284,12 +312,17 @@ def test_invalid_pipeline_compilation(
         {"args": 1, "storage_args": "a dummy string arg"},
     ],
 )
-def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_path):
+def test_invalid_argument(
+    default_pipeline_args,
+    mocked_component_op,
+    invalid_component_args,
+    tmp_path,
+):
     """
     Test that an exception is raised when the passed invalid argument name or type to the fondant
     component does not match the ones specified in the fondant specifications.
     """
-    component_operation = ComponentOp(
+    component_operation = mocked_component_op(
         valid_pipeline_path / "example_1" / "first_component",
         arguments=invalid_component_args,
     )
@@ -299,7 +332,7 @@ def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_pat
     pipeline.add_op(component_operation)
 
     with pytest.raises((ValueError, TypeError)):
-        pipeline.compile()
+        pipeline.compile(cache_disabled=True)
 
 
 def test_reusable_component_op():
@@ -330,7 +363,7 @@ def test_defining_reusable_component_op_with_custom_spec():
     )
 
     load_from_hub_custom_op = ComponentOp(
-        component_dir=load_from_hub_default_op.component_dir,
+        load_from_hub_default_op.component_dir,
         arguments={
             "dataset_name": "test_dataset",
             "column_name_mapping": {"foo": "bar"},

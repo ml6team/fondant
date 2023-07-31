@@ -2,7 +2,8 @@
     "metadata": {
       "base_path": "tests/example_data/subsets_input",
       "run_id": "12345",
-      "component_id": "67890"
+      "component_id": "67890",
+      "cache_key": "42"
     },
     "index": {
       "location": "/index"
