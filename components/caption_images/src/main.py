@@ -64,7 +64,7 @@ class CaptionImagesComponent(PandasTransformComponent):
         self.max_new_tokens = max_new_tokens
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        images = dataframe["images"]["data"].apply(
+        images = pd.Series(dataframe["images"]["data"]).apply(
             process_image,
             processor=self.processor,
             device=self.device,
