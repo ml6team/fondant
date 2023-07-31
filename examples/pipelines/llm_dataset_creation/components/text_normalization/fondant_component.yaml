@@ -1,0 +1,26 @@
+name: Normalize text
+description: A component that normalizes text.
+image: 050243278346.dkr.ecr.us-east-1.amazonaws.com/text_normalization:latest
+
+consumes:
+  webpage:
+    fields:
+      html:
+        type: string
+
+produces:
+  webpage:
+    fields:
+      html:
+        type: string
+
+args:
+  apply_nfc:
+    description: If true apply nfc normalization
+    type: bool
+  do_lowercase:
+    description: If true apply lowercasing
+    type: bool
+  characters_to_remove:
+    description: List of characters which will be removed, e.g. [?,.!,@#%]
+    type: list

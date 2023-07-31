@@ -1,0 +1,19 @@
+name: MinHash generator
+description: A component that generates minhashes of text.
+image: 050243278346.dkr.ecr.us-east-1.amazonaws.com/minhash_generator:latest
+
+consumes:
+  webpage:
+    fields:
+      html:
+        type: string
+
+produces:
+  webpage:
+    fields:
+      minhash:
+        type: array
+        items:
+            type: uint64
+      html:
+        type: string

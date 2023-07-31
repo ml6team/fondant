@@ -1,0 +1,17 @@
+name: Filter text length
+description: A component that filters out text based on their length
+image: 050243278346.dkr.ecr.us-east-1.amazonaws.com/text_length_filter:latest
+
+consumes:
+  webpage:
+    fields:
+      html:
+        type: string
+
+args:
+  min_characters_length:
+    description: Minimum number of characters
+    type: int
+  min_words_length:
+    description: Mininum number of words
+    type: int

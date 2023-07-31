@@ -1,0 +1,21 @@
+name: Deduplicate image embeddings
+description: Component that deduplicates minhashes
+image: 050243278346.dkr.ecr.us-east-1.amazonaws.com/dedup_minhashes:latest
+
+consumes:
+  webpage:
+    fields:
+      minhash:
+        type: array
+        items:
+          type: uint64
+      cluster_label:
+        type: int16
+
+args:
+  epsilon:
+    description: Epsilon to use as threshold for cosine similarity
+    type: float
+  num_perm:
+    description: Number of permission used for minhash generation
+    type: int

@@ -1,0 +1,34 @@
+name: Cluster embeddings
+description: Component that applies k-means clustering on minhashes
+image: 050243278346.dkr.ecr.us-east-1.amazonaws.com/cluster_hash_values:latest
+
+consumes:
+  webpage:
+    fields:
+      html:
+        type: string
+      minhash:
+        type: array
+        items:
+            type: uint64
+
+
+produces:
+  webpage:
+    fields:
+      html:
+        type: string
+      minhash:
+        type: array
+        items:
+            type: uint64
+      cluster_label:
+        type: int16
+      
+args:
+  sample_ratio:
+    description: The ratio of samples to use in clustering (e.g. 0.3).
+    type: float
+  num_clusters:
+    description: Number of clusters.
+    type: int
