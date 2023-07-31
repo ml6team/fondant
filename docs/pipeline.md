@@ -48,7 +48,7 @@ Next, we define two operations: `load_from_hub_op`, which is a based from a reus
     Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs will be available in future releases.
 
 ## Setting Custom node pool parameters
-Each component can be constrained to run on particular node(s) using `node_pool_label` and `node_pool_name`. Kubernetes creates a standard set of labels on all nodes in a cluster which you can use. Alternatively, you can attach these manually. 
+Each component can optionally be constrained to run on particular node(s) using `node_pool_label` and `node_pool_name`. You can find these under the Kubernetes labels of your cluster. You can use the default node label provided by Kubernetes or attach your own. Note that the value of these labels is cloud provider specific.
 
 ## Setting Custom partitioning parameters
 
