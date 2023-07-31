@@ -7,8 +7,15 @@ import fsspec
 
 logger = logging.getLogger(__name__)
 
+FSSPEC_SCHEME_DICT = {
+    "file": "file",
+    "s3": "s3",
+    "gs": "gcs",
+    "abfs": "abfs",
+}
 
-def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem | None:
+
+def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem:
     """Function to create fsspec.filesystem based on path_uri.
 
     Creates a abstract handle using fsspec.filesystem to
@@ -25,20 +32,16 @@ def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem | None:
     """
     scheme = fsspec.utils.get_protocol(path_uri)
 
-    if scheme == "file":
-        return fsspec.filesystem("file")
-    if scheme == "s3":
-        return fsspec.filesystem("s3")
-    if scheme == "gs":
-        return fsspec.filesystem("gcs")
-    if scheme == "abfs":
-        return fsspec.filesystem("abfs")
+    if scheme in FSSPEC_SCHEME_DICT:
+        return fsspec.filesystem(FSSPEC_SCHEME_DICT[scheme])
 
-    logger.warning(
-        f"""Unable to create fsspec filesystem object
-                    because of unsupported scheme: {scheme}""",
+    msg = (
+        f"Unable to create fsspec filesystem object for url `{path_uri}`"
+        f" because of unsupported scheme: {scheme}.\nAvailable schemes "
+        f"are {FSSPEC_SCHEME_DICT.keys()}"
     )
-    return None
+
+    raise ValueError(msg)
 
 
 def list_files(path: t.Union[str, Path]) -> t.List[str]:
@@ -50,5 +53,5 @@ def list_files(path: t.Union[str, Path]) -> t.List[str]:
     Returns:
         A list of absolute file paths in the specified directory.
     """
-    fs: fsspec.filesystem = get_filesystem(str(path))
+    fs = get_filesystem(str(path))
     return fs.ls(str(path))
