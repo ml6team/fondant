@@ -48,9 +48,9 @@ implementation:
         - --input_partition_rows
         -   inputValue: input_partition_rows
         - --output_partition_size
-        -   inputValue: execute_component
-        - --execute_component
         -   inputValue: output_partition_size
+        - --execute_component
+        -   inputValue: execute_component
         - --storage_args
         -   inputValue: storage_args
         - --output_manifest_path
