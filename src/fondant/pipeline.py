@@ -387,15 +387,14 @@ class Pipeline:
         Return:
             boolean indicating whether to execute the component.
         """
-
-        def is_partially_contained_in_list(substring, string_list):
-            return any(substring in main_string for main_string in string_list)
-
         executed_manifest_dir = f"{self.base_path}/{component_name}"
-        executed_manifests = list_files(executed_manifest_dir)
-        manifest_path = f"{executed_manifest_dir}/manifest_{cache_key}.json"
+        executed_manifests = [
+            file.rsplit("/", 1)[-1] for file in list_files(executed_manifest_dir)
+        ]
+        current_manifest = f"manifest_{cache_key}.json"
+        manifest_path = f"{executed_manifest_dir}/{current_manifest}"
 
-        if is_partially_contained_in_list(manifest_path, executed_manifests):
+        if current_manifest in executed_manifests:
             manifest = Manifest.from_file(manifest_path)
             logger.info(
                 f"Found matching execution for component {component_name} under"
@@ -618,7 +617,7 @@ class Pipeline:
                     run_id=f"{self.name}-{timestamp}",
                     base_path=self.base_path,
                     component_id=component_name,
-                    cache_key=cache_dict[component_name]["cache_key"],
+                    cache_key=str(cache_dict[component_name]["cache_key"]),
                 )
                 # Get the Kubeflow component based on the fondant component operation.
                 kubeflow_component_op = _get_component_function(fondant_component_op)
