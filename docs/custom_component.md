@@ -91,7 +91,7 @@ which is then imported in the `main.py` script.
 The `Dockerfile` defines how to build the component into a Docker image. An example Dockerfile is defined below.
 
 ```bash
-FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
 
 ## System dependencies
 RUN apt-get update && \
