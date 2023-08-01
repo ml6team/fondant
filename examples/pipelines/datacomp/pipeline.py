@@ -39,7 +39,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-embeddings",
         "image_column_names": [],
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 10,
+        "n_rows_to_load": 1000,
         "dataset_length": 12800000,
     },
     node_pool_name="n2-standard-128-pool",
@@ -70,6 +70,7 @@ cluster_image_embeddings_op = ComponentOp(
 download_images_op = ComponentOp(
     component_dir="components/download_images",
     node_pool_name="n2-standard-128-pool",
+    output_partition_size="disable",
 )
 
 # add ops to pipeline
