@@ -223,8 +223,9 @@ class Executor(t.Generic[Component]):
         if is_kubeflow_output:
             # Save to the expected base path directory
             safe_component_name = self.spec.name.replace(" ", "_").lower()
-            base_path = self.metadata["base_path"]
-            save_path_base_path = f"{base_path}/{safe_component_name}/manifest.json"
+            save_path_base_path = (
+                f"{manifest.base_path}/{safe_component_name}/manifest.json"
+            )
             Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
             manifest.to_file(save_path_base_path)
             logger.info(f"Saving output manifest to {save_path_base_path}")
