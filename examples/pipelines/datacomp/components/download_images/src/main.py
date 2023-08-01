@@ -130,19 +130,16 @@ class DownloadImagesComponent(DaskTransformComponent):
 
         print("Timeout:", self.timeout)
         print("Retries:", self.retries)
-
-        print("Columns of dataframe:", dataframe.columns)
-        print("First rows of dataframe:", dataframe.head(5))
         
-        result = dataframe.apply(
+        result = dataframe.map_partitions(
             lambda example: download_image_with_retry(
                 url=example.image_url,
                 timeout=self.timeout,
                 retries=self.retries,
                 resizer=self.resizer,
             ),
-            axis=1,
-            result_type="expand",
+            # axis=1,
+            # result_type="expand",
             meta={0: bytes, 1: int, 2: int},
         )
 

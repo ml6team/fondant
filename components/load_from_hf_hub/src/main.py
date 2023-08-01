@@ -71,6 +71,9 @@ class LoadFromHubComponent(DaskLoadComponent):
         dask_df["id"] = dask_df.id.cumsum()
         dask_df = dask_df.set_index("id", sort=True)
 
+        # let's just load 10 rows for debugging
+        dask_df = dask_df.head(10)
+        dask_df = dd.from_pandas(dask_df, npartitions=1)
         print("Length of the dataframe:", len(dask_df))
 
         return dask_df
