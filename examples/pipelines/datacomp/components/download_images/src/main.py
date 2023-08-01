@@ -10,10 +10,10 @@ import logging
 import traceback
 import urllib
 
-import dask.dataframe as dd
+import pandas as pd
 
-from fondant.component import DaskTransformComponent
-from fondant.executor import DaskTransformExecutor
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 from resizer import Resizer
 
 logger = logging.getLogger(__name__)
@@ -88,7 +88,7 @@ def download_image_with_retry(
     return None, None, None
 
 
-class DownloadImagesComponent(DaskTransformComponent):
+class DownloadImagesComponent(PandasTransformComponent):
     """Component that downloads images based on URLs."""
 
     def __init__(self,
@@ -125,37 +125,37 @@ class DownloadImagesComponent(DaskTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
-    def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         logger.info("Downloading images...")
 
         print("Timeout:", self.timeout)
         print("Retries:", self.retries)
         
-        result = dataframe.map_partitions(
+        dataframe[[("image", "data"), ("image", "width"), ("images", "height")]] = dataframe["image"]["url"].apply(
             lambda example: download_image_with_retry(
-                url=example.image_url,
+                url=example,
                 timeout=self.timeout,
                 retries=self.retries,
                 resizer=self.resizer,
             ),
             # axis=1,
             # result_type="expand",
-            meta={0: bytes, 1: int, 2: int},
+            # meta={0: bytes, 1: int, 2: int},
         )
 
-        result.columns = [
-            "images_data",
-            "images_width",
-            "images_height",
-        ]
+        # result.columns = [
+        #     "images_data",
+        #     "images_width",
+        #     "images_height",
+        # ]
 
-        print("Length of the result:", len(result))
-        print("Columns of result:", result.columns)
-        print("First rows of result:", result.head())
+        # print("Length of the result:", len(result))
+        # print("Columns of result:", result.columns)
+        # print("First rows of result:", result.head())
 
-        return result
+        return dataframe
 
 
 if __name__ == "__main__":
-    executor = DaskTransformExecutor.from_args()
+    executor = PandasTransformExecutor.from_args()
     executor.execute(DownloadImagesComponent)
