@@ -67,11 +67,15 @@ cluster_image_embeddings_op = ComponentOp(
         "num_clusters": 3,
     },
 )
+download_images_op = ComponentOp(
+    component_dir="components/download_images",
+)
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
-pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
+# pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
+# pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
+pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
 # pipeline.add_op(cluster_image_embeddings_op, dependencies=filter_complexity_op)
 # TODO add more ops
 
