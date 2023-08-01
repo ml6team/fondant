@@ -206,10 +206,6 @@ class DaskDataWriter(DataIO):
 
         dataframe.index = dataframe.index.rename("id").astype("string")
 
-        # logging.info("Visualizing task graph...")
-        # TODO: doesn't work on GCP
-        # dataframe.visualize(filename=f'{self.manifest.base_path}/graph.png')
-
         logger.info("Creating write tasks...")
 
         # Turn index into an empty dataframe so we can write it

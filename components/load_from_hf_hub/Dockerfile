@@ -3,8 +3,7 @@ FROM --platform=linux/amd64 python:3.8-slim
 # System dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install git -y && \
-    apt-get install graphviz -y
+    apt-get install git -y
 
 # Install requirements
 COPY requirements.txt /
