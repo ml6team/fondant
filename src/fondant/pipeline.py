@@ -397,7 +397,7 @@ class Pipeline:
         if current_manifest in executed_manifests:
             manifest = Manifest.from_file(manifest_path)
             logger.info(
-                f"Found matching execution for component {component_name} under"
+                f"Found matching execution for component '{component_name}' under"
                 f" {manifest_path} with run_id {manifest.run_id}\n."
                 f" Caching component execution.",
             )

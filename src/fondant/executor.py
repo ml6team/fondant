@@ -202,26 +202,30 @@ class Executor(t.Generic[Component]):
 
         data_writer.write_dataframe(dataframe)
 
+    def _load_cached_output_manifest(self) -> "Manifest":
+        """Function that returns the cached output manifest."""
+        save_path_base_path = (
+            f"{self.metadata.base_path}/{self.metadata.component_id}/"
+            f"manifest_{self.metadata.cache_key}.json"
+        )
+        return Manifest.from_file(save_path_base_path)
+
     def execute(self, component_cls: t.Type[Component]) -> None:
         """Execute a component.
 
         Args:
             component_cls: The class of the component to execute
         """
-        input_manifest = self._load_or_create_manifest()
-
-        output_df = None
         if self.execute_component:
             logging.info("Executing component")
+            input_manifest = self._load_or_create_manifest()
             component = component_cls(self.spec, **self.user_arguments)
             output_df = self._execute_component(component, manifest=input_manifest)
-        else:
-            logging.info("Cached component run. Skipping component execution")
-
-        output_manifest = input_manifest.evolve(component_spec=self.spec)
-
-        if self.execute_component:
+            output_manifest = input_manifest.evolve(component_spec=self.spec)
             self._write_data(dataframe=output_df, manifest=output_manifest)
+        else:
+            output_manifest = self._load_cached_output_manifest()
+            logging.info("Cached component run. Skipping component execution")
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
@@ -237,26 +241,34 @@ class Executor(t.Generic[Component]):
             save_path: The path where the Manifest object will be saved.
 
         """
+
+        def _upload_manifest_to_base_path(manifest_path: t.Union[str, Path]):
+            Path(manifest_path).parent.mkdir(parents=True, exist_ok=True)
+            manifest.to_file(manifest_path)
+            logger.info(f"Saving output manifest to {manifest_path}")
+
         is_kubeflow_output = str(save_path) == self.kubeflow_manifest_save_path
 
         if is_kubeflow_output:
-            # Save to the expected base path directory
-            safe_component_name = self.spec.name.replace(" ", "_").lower()
-            save_path_base_path = (
-                f"{manifest.base_path}/{safe_component_name}/"
-                f"manifest_{self.metadata.cache_key}.json"
-            )
-            Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
-            manifest.to_file(save_path_base_path)
-            logger.info(f"Saving output manifest to {save_path_base_path}")
             # Write manifest to the native kfp artifact path that will be passed as an artifact
             # and read by the next component
             manifest.to_file(save_path)
+            # Only save the manifest to the base path if the component is not cached
+            if self.execute_component:
+                # Save to the expected base path directory
+                safe_component_name = self.spec.name.replace(" ", "_").lower()
+                save_path_base_path = (
+                    f"{manifest.base_path}/{safe_component_name}/"
+                    f"manifest_{self.metadata.cache_key}.json"
+                )
+                logger.info(f"Saving output manifest to `{save_path_base_path}`")
+                _upload_manifest_to_base_path(save_path_base_path)
+            else:
+                logger.info("Component cached, skipping manifest upload to base path")
+        elif self.execute_component:
+            _upload_manifest_to_base_path(save_path)
         else:
-            # Local runner
-            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-            manifest.to_file(save_path)
-            logger.info(f"Saving output manifest to {save_path}")
+            logger.info("Component cached, skipping manifest upload to base path")
 
 
 class DaskLoadExecutor(Executor[DaskLoadComponent]):

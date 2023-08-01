@@ -1,0 +1,1 @@
+{"metadata": {"base_path": "/bucket", "run_id": "12345", "component_id": "example_component", "cache_key": ""}, "index": {"location": "/index/12345/example_component"}, "subsets": {"embeddings": {"location": "/embeddings/12345/example_component", "fields": {"data": {"type": "array", "items": {"type": "float32"}}}}}}
