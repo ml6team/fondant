@@ -99,9 +99,6 @@ for dir in "${components_to_build[@]}"; do
    --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
    .
 
-  # remove local image to conserve space 
-  docker rmi -f "${full_image_names[@]}" 
-
   popd
 
 done
