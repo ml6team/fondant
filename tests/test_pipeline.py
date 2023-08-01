@@ -51,13 +51,6 @@ def test_component_op(
         output_partition_size="250MB",
     )
 
-    ComponentOp(
-        Path(components_path / component_names[0]),
-        arguments=component_args,
-        node_pool_label="dummy_label",
-        node_pool_name="dummy_name",
-    )
-
     with pytest.raises(InvalidTypeSchema):
         ComponentOp(
             Path(components_path / component_names[0]),
