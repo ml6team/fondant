@@ -1,18 +1,29 @@
 import json
+import os
+import typing as t
 from glob import glob
 
-import pandas
-from fondant.component import Component
-from fondant.executor import Executor
+import pandas as pd
+import pytest
+from fondant.component_spec import ComponentSpec
+
+from components.text_normalization.src.main import TextNormalizationComponent
 
 
-def load_fixtures(path):
+class MockedComponentSpec(ComponentSpec):
+    """Just for mocking purpose. This component spec is not needed for unit testing."""
+    def __init__(self, specification: t.Dict[str, t.Any]):
+        pass
+
+
+def load_fixtures(path="./fixtures"):
     test_configurations = []
-    fixture_list = glob(path)
+    fixture_list = glob(path + "/*.json")
     for fixture in fixture_list:
         with open(fixture) as file:
             fixture_dict = json.load(file)
 
+        fixture_name = os.path.splitext(fixture)[0]
         user_argmuments = fixture_dict["user_arguments"]
         input_data = {
             tuple(key.split("_")): value for key, value in fixture_dict["input"].items()
@@ -22,33 +33,16 @@ def load_fixtures(path):
             for key, value in fixture_dict["output"].items()
         }
 
-        test_configurations.append((user_argmuments, input_data, expected_out))
+        test_configurations.append((fixture_name, user_argmuments, input_data, expected_out))
 
     return test_configurations
 
-class TestComponentExecuter(Executor[Component]):
-    def __init__(self, user_arguments: t.Dict[str, t.Any], input_data: t.Dict):
-        self.user_arguments = user_arguments
-        self.input_data = input_data
+@pytest.mark.parametrize(("fixture_name", "user_arguments", "input_data", "expected_output"), load_fixtures())
+def test_component(fixture_name, user_arguments, input_data, expected_output):
+    """Test transform method of text normalization component."""
+    print(fixture_name)
+    component = TextNormalizationComponent(MockedComponentSpec({}), **user_arguments)
 
-    def execute(self, component_cls: t.Type[Component]) -> pandas.DataFrame:
-        """Execute a component.
-
-        Args:
-            component_cls: The class of the component to execute.
-        """
-        component = component_cls(None, **self.user_arguments)
-
-        input_dataframe = dd.from_dict(self.input_data, npartitions=2)
-
-        if isinstance(component, PandasTransformComponent):
-            output_df = component.transform(input_dataframe.compute())
-
-        elif isinstance(component, DaskTransformComponent):
-            output_df = component.transform(input_dataframe()).compute()
-
-        else:
-            msg = "Non support component type."
-            raise NotImplementedError(msg)
-
-        return output_df
+    input_df = pd.DataFrame(input_data)
+    transformed_output = component.transform(input_df)
+    pd.testing.assert_frame_equal(pd.DataFrame(expected_output), transformed_output)

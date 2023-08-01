@@ -1,0 +1,24 @@
+{
+  "user_arguments": {
+    "apply_nfc": false,
+    "do_lowercase": false,
+    "language": "en",
+    "remove_punctuation": false,
+    "remove_additional_whitespaces": true,
+    "remove_bad_patterns": false
+  },
+  "input": {
+    "text_data": [
+      " Lorem ipsum dolor sit        amet, consectetur adipiscing elit.",
+      "     Nulla facilisi.    Sed eu nulla sit amet enim scelerisque dapibus!",
+      "Suspendisse potenti. Fusce sit amet erat vel nunc placerat bibendum.         "
+    ]
+  },
+  "output": {
+    "text_data": [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "Nulla facilisi. Sed eu nulla sit amet enim scelerisque dapibus!",
+      "Suspendisse potenti. Fusce sit amet erat vel nunc placerat bibendum."
+    ]
+  }
+}
