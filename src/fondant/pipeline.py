@@ -82,8 +82,10 @@ class ComponentOp:
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.number_of_gpus = number_of_gpus
-        self.node_pool_label = node_pool_label
-        self.node_pool_name = node_pool_name
+        self.node_pool_label, self.node_pool_name = self._validate_node_pool_spec(
+            node_pool_label,
+            node_pool_name,
+        )
         self.p_volumes = p_volumes
         self.ephemeral_storage_size = ephemeral_storage_size
 
@@ -103,6 +105,19 @@ class ComponentOp:
         arguments["output_partition_size"] = str(output_partition_size)
 
         return arguments
+
+    def _validate_node_pool_spec(
+        self,
+        node_pool_label,
+        node_pool_name,
+    ) -> t.Tuple[t.Optional[str], t.Optional[str]]:
+        """Validate node pool specification."""
+        if bool(node_pool_label) != bool(node_pool_name):
+            msg = "Both node_pool_label and node_pool_name must be specified or both must be None."
+            raise InvalidPipelineDefinition(
+                msg,
+            )
+        return node_pool_label, node_pool_name
 
     @property
     def dockerfile_path(self) -> t.Optional[Path]:
