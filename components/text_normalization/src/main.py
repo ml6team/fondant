@@ -1,15 +1,49 @@
 """A component that normalizes text."""
 import logging
 import re
-import unicodedata
+import string
 from typing import List
 
+import ftfy
 import pandas as pd
 from fondant.component import PandasTransformComponent
 from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
+
+def clean(text, remove_punctuation=True):
+    """
+    Text cleaning method from slimpajama approach.
+    https://github.com/Cerebras/modelzoo/blob/main/modelzoo/transformers/data_processing/slimpajama/preprocessing/filter.py
+    Apply remove punctuation, and remove consecutive spaces, newlines, tabs in the middle
+    and in the beginning / end.
+
+    Args:
+         - text: text to be cleaned
+    """
+    # remove punctuation
+    if remove_punctuation:
+        text = text.translate(str.maketrans("", "", string.punctuation))
+
+    # remove consecutive spaces, newlines, tabs in the middle and in the beginning / end
+    text = re.sub(r"\s+", " ", text.strip())
+    return text
+
+def remove_noisy_lines(text, language):
+    """
+    !!! and note that they require adaptation across languages !!!
+    • If it is short (≤ 10 words) and matches a pattern (edit):
+        - At the beginning of the line (e.g. sign-in);
+        - At the end of the line (e.g. Read more...);
+        - Anywhere in the line (e.g. items in cart).
+    """
+    language  + "bad_patterns.txt"
+
+    def any_condition_met(line, discard_condition_functions):
+        return any(condition(line) for condition in discard_condition_functions)
+
+    return " ".join([line for line in text.split("\n") if not any_condition_met])
 
 class TextNormalizationComponent(PandasTransformComponent):
     """Component that normalizes text."""
@@ -18,11 +52,12 @@ class TextNormalizationComponent(PandasTransformComponent):
         self.apply_nfc = apply_nfc
         self.do_lowercase = do_lowercase
         self.characters_to_remove = characters_to_remove
+        self.default_cleaning = True
 
     @staticmethod
     def _do_nfc_normalization(text: str):
         """Apply nfc normalization to the text of the dataframe."""
-        return unicodedata.normalize("NFC", text)
+        return ftfy.fix_text(text, normalization="NFC")
 
     @staticmethod
     def _remove_patterns(regex_patterns: List[str], text: str):
@@ -44,14 +79,19 @@ class TextNormalizationComponent(PandasTransformComponent):
         Returns:
             Pandas dataframe
         """
+        dataframe[("text", "data")] = dataframe["text"]["data"].apply(remove_noisy_lines)
+
         if self.apply_nfc:
-            dataframe["text"]["data"].apply(lambda x: self._do_nfc_normalization(x))
+            dataframe[("text", "data")] = dataframe["text"]["data"].apply(lambda x: self._do_nfc_normalization(x))
 
         if self.do_lowercase:
-            dataframe["text"]["data"].apply(lambda x: x.lower())
+            dataframe[("text", "data")] = dataframe["text"]["data"].apply(lambda x: x.lower())
+
+        if self.default_cleaning:
+            dataframe[("text", "data")] = dataframe["text"]["data"].apply(clean)
 
         if len(self.characters_to_remove) > 0:
-            dataframe["text"]["data"].apply(
+            dataframe[("text", "data")] = dataframe["text"]["data"].apply(
                 lambda x: self._remove_patterns(
                     self.characters_to_remove, x,
                 ),
