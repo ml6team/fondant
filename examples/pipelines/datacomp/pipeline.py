@@ -39,7 +39,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-embeddings",
         "image_column_names": [],
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 500000,
+        "n_rows_to_load": 10000,
         "dataset_length": 12800000,
     },
     node_pool_name="n2-standard-128-pool",

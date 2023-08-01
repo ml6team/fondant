@@ -11,8 +11,8 @@ import traceback
 import urllib
 
 import dask.dataframe as dd
-from fondant.component import DaskTransformComponent
-from fondant.executor import DaskTransformExecutor
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 from resizer import Resizer
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ def download_image_with_retry(
     return None, None, None
 
 
-class DownloadImagesComponent(DaskTransformComponent):
+class DownloadImagesComponent(PandasTransformComponent):
     """Component that downloads images based on URLs."""
 
     def __init__(self,
@@ -129,24 +129,15 @@ class DownloadImagesComponent(DaskTransformComponent):
     ) -> dd.DataFrame:
         logger.info("Instantiating resizer...")
 
-        # Remove duplicates from laion retrieval
-        dataframe = dataframe.drop_duplicates()
-
-        result = dataframe.apply(
+        dataframe[[("image", "data"), ("image", "width"), ("image", "height")]] = dataframe.apply(
             lambda example: download_image_with_retry(
-                url=example.images_url,
+                url=example.image.url,
                 timeout=self.timeout,
                 retries=self.retries,
                 resizer=self.resizer,
             ),
             axis=1,
-            result_type="expand",
-            meta={0: bytes, 1: int, 2: int},
         )
-
-        result.columns = [("image", "data"), ("image", "width"), ("image", "height")]
-
-        dataframe = dataframe.merge(result, left_index=True, right_index=True)
 
         # Remove images that could not be fetched
         dataframe = dataframe.dropna()
@@ -155,5 +146,5 @@ class DownloadImagesComponent(DaskTransformComponent):
 
 
 if __name__ == "__main__":
-    executor = DaskTransformExecutor.from_args()
+    executor = PandasTransformExecutor.from_args()
     executor.execute(DownloadImagesComponent)
