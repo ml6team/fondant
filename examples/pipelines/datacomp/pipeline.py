@@ -69,6 +69,7 @@ cluster_image_embeddings_op = ComponentOp(
 )
 download_images_op = ComponentOp(
     component_dir="components/download_images",
+    node_pool_name="n2-standard-128-pool",
 )
 
 # add ops to pipeline
