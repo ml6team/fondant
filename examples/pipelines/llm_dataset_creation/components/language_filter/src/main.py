@@ -35,13 +35,14 @@ class LanguageIdentification:
         Returns:
             str: The predicted language label.
         """
-        print(text)
         if "\n" in text:
             text = text.replace("\n", "")
 
         # Idea: short text pieces enough to determine the language. Open question: how long is sufficient
+        # TODO: ad hoc testing on a large dataset
         if len(text) >= 200:
             text = text[:200]
+
         predictions = self.model.predict(text, k=1)
         return predictions[0][0]
 

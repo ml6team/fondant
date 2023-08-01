@@ -17,3 +17,9 @@ produces:
             type: uint64
       html:
         type: string
+
+args:
+  shingle_size:
+    description: N-gram size which will be used for shingle generation
+    type: int
+    default: 3

@@ -13,14 +13,21 @@ logger = logging.getLogger(__name__)
 class MinHashGeneratorComponent(PandasTransformComponent):
     """Component generates minhashes of text."""
 
-    @staticmethod
-    def create_shingles(text):
+    def __init__(self, *_, shingle_size):
+        """Setup MinHash generator component
+
+        Args:
+            shinge_size: N-gram size which will be used for shingle generation
+        """
+        self.shingle_size = shingle_size
+
+    def create_shingles(self, text):
         """Creates text shingles that will be used for the hash generation."""
         # Split text into words
         words = text.split()
 
         # Generate shingles of size 3 using nltk's ngrams function
-        shingles = list(ngrams(words, 3))
+        shingles = list(ngrams(words, self.shingle_size))
 
         return shingles
 

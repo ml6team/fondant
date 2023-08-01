@@ -1,12 +1,19 @@
-# Starcoder pipeline
+# Local language dataset creation
 
-This pipeline illustrates a tiny portion of the data preparation of StarCoder, an open-source version of Github CoPilot, trained as part of the the [BigCode](https://www.bigcode-project.org/) project.
+This pipeline demonstrates the step-by-step approach to building a local language dataset. The process begins by
+utilizing the common crawl as a foundation, extracting webpage contents, and then reduce the content to a
+particular language. Subsequently, additional text preprocessing steps, such as text normalization and deduplication,
+are applied to refine the dataset further.
 
-The pipeline is based on [this repository](https://github.com/bigcode-project/bigcode-dataset).
+The component implementations are mainly based on the idea of [Penedo et al.](https://arxiv.org/pdf/2306.01116.pdf)
 
-The pipeline includes the following components:
+The pipeline consists of the following components:
 
-- loading a code dataset from the Hugging Face hub
-- filtering code based on comment to code ratio
-- filtering code based on line length
-- detecting and replacing PII (personal identifiable information) from code.
+- Load common crawl index segments
+- Download webpages of the common crawl index
+- Text normalization
+- Text length filter
+- Language filter component
+- Minhash generation component
+- K-Mean clustering component
+- Deduplication of text fragments per cluster based on LSH
