@@ -11,6 +11,7 @@ import traceback
 import urllib
 
 import dask.dataframe as dd
+import numpy as np
 
 from fondant.component import DaskTransformComponent
 from fondant.executor import DaskTransformExecutor
@@ -88,6 +89,24 @@ def download_image_with_retry(
     return None, None, None
 
 
+def download_image_with_retry_partition(df, timeout, retries, resizer):
+    # process a single partition
+    # TODO make column name more flexible
+    data = df.image_url.apply(lambda x:
+        download_image_with_retry(
+            url=x, timeout=timeout, retries=retries, resizer=resizer,
+        ),
+    )
+
+    # use assign to add values as extra columns
+    df = df.assign(data=[example[0] for example in data],
+                   width=[example[1] for example in data],
+                   height=[example[2] for example in data],
+    )
+
+    return df
+
+
 class DownloadImagesComponent(DaskTransformComponent):
     """Component that downloads images based on URLs."""
 
@@ -128,21 +147,30 @@ class DownloadImagesComponent(DaskTransformComponent):
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         logger.info("Downloading images...")
         
-        result = dataframe.apply(
-            lambda example: download_image_with_retry(
-                url=example.image_url, timeout=self.timeout, retries=self.retries, resizer=self.resizer,
-            ),
-            axis=1,
-            result_type='expand',
-            meta={0: object, 1: int, 2: int},
+        # create meta
+        # needs to be a dictionary with keys = column names, values = dtypes of columns
+        # for each column in the output
+        meta = {column: dtype for column, dtype in zip(dataframe.columns, dataframe.dtypes)}
+        meta["data"] = np.dtype(bytes) 
+        meta["width"] = np.dtype(int) 
+        meta["height"] = np.dtype(int) 
+
+        dataframe = dataframe.map_partitions(
+            download_image_with_retry_partition,
+            timeout=self.timeout,
+            retries=self.retries,
+            resizer=self.resizer,
+            meta=meta,
         )
-        result.columns = ['image_data', 'image_width', 'image_height']
+
+        # rename new columns to be conform the spec
+        dataframe = dataframe.rename(columns={"data": "image_data", "width": "image_width", "height":"image_height"})  
 
         print("Length of the final dataframe:", len(dataframe))
         print("First few rows of final dataframe:")
-        print(result.head(5))
+        print(dataframe.head(5))
 
-        return result
+        return dataframe
 
 
 if __name__ == "__main__":
