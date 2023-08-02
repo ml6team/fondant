@@ -145,6 +145,8 @@ class DownloadImagesComponent(DaskTransformComponent):
         )
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
+
+        logger.info("Length of the dataframe:", len(dataframe))
         logger.info("Downloading images...")
         
         # create meta
