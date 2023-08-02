@@ -1,0 +1,25 @@
+name: Filter webpage urls
+description: Component that filters webpage urls based on given blacklist categories
+# image: ghcr.io/ml6team/filter_webpage_urls:latest
+image: 050243278346.dkr.ecr.us-east-1.amazonaws.com/filter_webpage_urls:latest
+
+consumes:
+  webpage:
+    fields:
+      url:
+        type: string
+      html:
+        type: string
+
+produces:
+  webpage:  
+    fields:
+      url:
+        type: string
+      html:
+        type: string
+
+args:
+  categories:
+    description: Categories of blacklisted webpages to filter out
+    type: list
