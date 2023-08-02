@@ -8,6 +8,7 @@ import ftfy
 import pandas as pd
 from fondant.component import PandasTransformComponent
 from fondant.executor import PandasTransformExecutor
+from utils import is_counter, is_one_word, mainly_uppercase, only_numerical
 
 logger = logging.getLogger(__name__)
 
@@ -16,30 +17,32 @@ def _remove_punctuation(text):
     """Remove punctuation in given text."""
     return text.translate(str.maketrans("", "", string.punctuation))
 
+
 def _remove_additional_whitespaces(text):
     """
     Text cleaning method from slimpajama approach.
     https://github.com/Cerebras/modelzoo/blob/main/modelzoo/transformers/data_processing/slimpajama/preprocessing/filter.py
     Apply remove punctuation, and remove consecutive spaces, newlines, tabs in the middle
     and in the beginning / end.
-
-    Args:
-         - text: text to be cleaned
     """
     return re.sub(r"\s+", " ", text.strip())
 
-def remove_noisy_lines(text, language):
-    """"""
-    language  + "bad_patterns.txt"
 
+def remove_noisy_lines(text):
     def any_condition_met(line, discard_condition_functions):
         return any(condition(line) for condition in discard_condition_functions)
 
-    return " ".join([line for line in text.split("\n") if not any_condition_met])
+    discard_conditions = [mainly_uppercase, only_numerical, is_counter, is_one_word]
+    return " ".join(
+        [line for line in text.split("\n") if not any_condition_met(line, discard_conditions)])
+
 
 class TextNormalizationComponent(PandasTransformComponent):
     """Component that normalizes text."""
-    def __init__(self, *args, remove_additional_whitespaces: bool, apply_nfc: bool, remove_bad_patterns: bool, do_lowercase: bool, language: str, remove_punctuation: bool):
+
+    def __init__(self, *args, remove_additional_whitespaces: bool, apply_nfc: bool,
+                 remove_bad_patterns: bool,
+                 do_lowercase: bool, language: str, remove_punctuation: bool):
         self.remove_additional_whitespaces = remove_additional_whitespaces
         self.apply_nfc = apply_nfc
         self.remove_bad_patterns = remove_bad_patterns
@@ -72,23 +75,25 @@ class TextNormalizationComponent(PandasTransformComponent):
         Returns:
             Pandas dataframe
         """
-        if self.remove_additional_whitespaces:
-            dataframe[("text", "data")] = dataframe[("text", "data")].apply(_remove_additional_whitespaces)
-
-        if self.remove_bad_patterns:
-            dataframe[("text", "data")] = dataframe[("text","data")].apply(lambda x: remove_noisy_lines(x, self.language))
-
-        if self.apply_nfc:
-            dataframe[("text", "data")] = dataframe[("text", "data")].apply(self._do_nfc_normalization)
-
         if self.do_lowercase:
             dataframe[("text", "data")] = dataframe[("text", "data")].apply(lambda x: x.lower())
+
+        if self.remove_bad_patterns:
+            dataframe[("text", "data")] = dataframe[("text", "data")].apply(remove_noisy_lines)
+
+        if self.apply_nfc:
+            dataframe[("text", "data")] = dataframe[("text", "data")].apply(
+                self._do_nfc_normalization)
 
         if self.remove_punctuation:
             dataframe[("text", "data")] = dataframe[("text", "data")].apply(_remove_punctuation)
 
+        if self.remove_additional_whitespaces:
+            dataframe[("text", "data")] = dataframe[("text", "data")].apply(
+                _remove_additional_whitespaces)
+
         # remove all empty rows
-        dataframe = dataframe.dropna(subset=[("text", "data")])
+        dataframe = dataframe[dataframe[("text", "data")].astype(bool)]
 
         return dataframe
 

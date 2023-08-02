@@ -12,6 +12,7 @@ from components.text_normalization.src.main import TextNormalizationComponent
 
 class MockedComponentSpec(ComponentSpec):
     """Just for mocking purpose. This component spec is not needed for unit testing."""
+
     def __init__(self, specification: t.Dict[str, t.Any]):
         pass
 
@@ -24,7 +25,7 @@ def load_fixtures(path="./fixtures"):
             fixture_dict = json.load(file)
 
         fixture_name = os.path.splitext(fixture)[0]
-        user_argmuments = fixture_dict["user_arguments"]
+        user_arguments = fixture_dict["user_arguments"]
         input_data = {
             tuple(key.split("_")): value for key, value in fixture_dict["input"].items()
         }
@@ -33,16 +34,17 @@ def load_fixtures(path="./fixtures"):
             for key, value in fixture_dict["output"].items()
         }
 
-        test_configurations.append((fixture_name, user_argmuments, input_data, expected_out))
+        test_configurations.append((fixture_name, user_arguments, input_data, expected_out))
 
     return test_configurations
 
-@pytest.mark.parametrize(("fixture_name", "user_arguments", "input_data", "expected_output"), load_fixtures())
+
+@pytest.mark.parametrize(("fixture_name", "user_arguments", "input_data", "expected_output"),
+                         load_fixtures())
 def test_component(fixture_name, user_arguments, input_data, expected_output):
     """Test transform method of text normalization component."""
-    print(fixture_name)
+    print("Running test case based on: ", fixture_name)
     component = TextNormalizationComponent(MockedComponentSpec({}), **user_arguments)
-
     input_df = pd.DataFrame(input_data)
     transformed_output = component.transform(input_df)
     pd.testing.assert_frame_equal(pd.DataFrame(expected_output), transformed_output)
