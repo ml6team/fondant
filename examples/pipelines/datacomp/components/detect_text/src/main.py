@@ -99,7 +99,7 @@ def get_boxes(image_data, session):
 def get_boxes_dataframe(df, session):
     # process a single partition
     # TODO make column name more flexible
-    df["image_detected_boxes"] = df.image_data.apply(lambda x:
+    df["image_boxes"] = df.image_data.apply(lambda x:
         get_boxes(
             image_data=x, session=session,
         ),
@@ -128,7 +128,7 @@ class DetextTextComponent(DaskTransformComponent):
         # needs to be a dictionary with keys = column names, values = dtypes of columns
         # for each column in the output
         meta = {column: dtype for column, dtype in zip(dataframe.columns, dataframe.dtypes)}
-        meta["image_detected_boxes"] = np.dtype(object) 
+        meta["image_boxes"] = np.dtype(object) 
 
         logger.info("Detecting texts..")
         dataframe = dataframe.map_partitions(
@@ -138,6 +138,7 @@ class DetextTextComponent(DaskTransformComponent):
         )
 
         logger.info(f"Length of the final dataframe: {len(dataframe)}")
+        print("Columns of the final dataframe", dataframe.columns)
         print("First rows of final dataframe:", dataframe.head())
 
         return dataframe
