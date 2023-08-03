@@ -222,9 +222,10 @@ class KubeFlowCompiler(Compiler):
 
             self.kfp = kfp
         except ImportError:
+            msg = """You need to install kfp to use the Kubeflow compiler,\n
+                     you can install it with `pip install --extras kfp`"""
             raise ImportError(
-                "You need to install kfp to use the Kubeflow compiler, "
-                / "you can install it with `pip install --extras kfp`",
+                msg,
             )
 
     def compile(
@@ -239,8 +240,10 @@ class KubeFlowCompiler(Compiler):
             output_path: the path where to save the Kubeflow pipeline spec
         """
         self.pipeline = pipeline
+        self.pipeline.sort_graph()
+        self.pipeline._validate_pipeline_definition("{{workflow.name}}")
         logger.info(f"Compiling {self.pipeline.name} to {output_path}")
-        wrapped_pipeline = self.kfp.dsl.pipeline(self.kf_pipeline)  # type: ignore
+        wrapped_pipeline = (self.kfp.dsl.pipeline())(self.kf_pipeline)  # type: ignore
         self.kfp.compiler.Compiler().compile(wrapped_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
 
