@@ -22,6 +22,7 @@ client = Client(host=PipelineConfigs.HOST)
 
 # define ops
 load_component_column_mapping = {
+    "uid": "image_uid",
     "url": "image_url",
     "original_width": "image_width",
     "original_height": "image_height",
@@ -42,12 +43,14 @@ load_from_hub_op = ComponentOp(
         "n_rows_to_load": 50000,
         "dataset_length": 12800000,
     },
+    node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
     # output_partition_size="10MB",
 )
 filter_image_resolution_op = ComponentOp.from_registry(
     name="filter_image_resolution",
     arguments={"min_image_dim": 200, "max_aspect_ratio": 3},
+    node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
     output_partition_size='disable',
 )
@@ -69,6 +72,7 @@ cluster_image_embeddings_op = ComponentOp(
 )
 download_images_op = ComponentOp(
     component_dir="components/download_images",
+    node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
     output_partition_size="disable",
 )

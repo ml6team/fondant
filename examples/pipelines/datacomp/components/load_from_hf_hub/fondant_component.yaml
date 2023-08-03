@@ -1,10 +1,12 @@
 name: Load from hub
 description: Component that loads a dataset from the hub
-image: ghcr.io/ml6team/load_from_hf_hub:5a1bae24ad16d7a8cfd3aa09fbe15feb813c6d41
+image: ghcr.io/ml6team/load_from_hf_hub:edc65f516067937401e325650d5b5409f071bc39
 
 produces:
   image:
     fields:
+      uid:
+        type: string
       url:
         type: string
       width:
@@ -31,8 +33,6 @@ produces:
   
   image_text:
     fields:
-      uid:
-        type: string
       clip_b32_similarity_score:
         type: float32
       clip_l14_similarity_score:
