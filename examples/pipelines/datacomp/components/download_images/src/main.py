@@ -166,7 +166,10 @@ class DownloadImagesComponent(DaskTransformComponent):
         )
 
         # rename new columns to be conform the spec
-        dataframe = dataframe.rename(columns={"data": "image_data", "width": "image_width", "height":"image_height"})  
+        dataframe = dataframe.rename(columns={"data": "image_data", "width": "image_width", "height":"image_height"})
+
+        # Remove images that could not be fetched
+        dataframe = dataframe.dropna()  
 
         print("Length of the final dataframe:", len(dataframe))
         print("First few rows of final dataframe:")
