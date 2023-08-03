@@ -93,9 +93,6 @@ class DaskDataLoader(DataIO):
 
         subset_df = dd.read_parquet(remote_path, columns=fields)
 
-        logger.info(f"First few rows of subset {subset_name}:")
-        print(subset_df.head())
-
         # add subset prefix to columns
         subset_df = subset_df.rename(
             columns={col: subset_name + "_" + col for col in subset_df.columns},
