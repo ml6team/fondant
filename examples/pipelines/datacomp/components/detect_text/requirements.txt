@@ -1,6 +1,5 @@
 huggingface-hub==0.16.4
 easyocr==1.7.0
-onnxruntime==1.15.1
 onnxruntime-gpu==1.15.1
 Pillow==10.0.0
 torch==2.0.1

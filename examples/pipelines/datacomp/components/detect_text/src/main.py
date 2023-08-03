@@ -115,7 +115,7 @@ class DetextTextComponent(DaskTransformComponent):
     def __init__(self, *args) -> None:
 
         craft_onnx = hf_hub_download(repo_id="ml6team/craft-onnx", filename="craft.onnx", repo_type="model")
-        logger.info("Device:", ort.get_device())
+        logger.info(f"Device: {ort.get_device()}")
         providers = [('CUDAExecutionProvider', {"cudnn_conv_algo_search": "DEFAULT"}), 'CPUExecutionProvider'] if ort.get_device() == 'GPU' else ['CPUExecutionProvider']
         self.session = ort.InferenceSession(craft_onnx, providers=providers)
 
@@ -135,6 +135,9 @@ class DetextTextComponent(DaskTransformComponent):
             session=self.session,
             meta=meta,
         )
+
+        logger.info(f"Length of the final dataframe: {len(dataframe)}")
+        print("First rows of final dataframe:", dataframe.head())
 
         return dataframe
 
