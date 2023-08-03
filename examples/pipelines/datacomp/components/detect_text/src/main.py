@@ -6,7 +6,6 @@ import dask.dataframe as dd
 import numpy as np
 import io
 from PIL import Image
-import pandas as pd
 
 from huggingface_hub import hf_hub_download
 
@@ -116,6 +115,7 @@ class DetextTextComponent(DaskTransformComponent):
     def __init__(self, *args) -> None:
 
         craft_onnx = hf_hub_download(repo_id="ml6team/craft-onnx", filename="craft.onnx", repo_type="model")
+        logger.info("Device:" ort.get_device())
         providers = [('CUDAExecutionProvider', {"cudnn_conv_algo_search": "DEFAULT"}), 'CPUExecutionProvider'] if ort.get_device() == 'GPU' else ['CPUExecutionProvider']
         self.session = ort.InferenceSession(craft_onnx, providers=providers)
 
@@ -127,6 +127,7 @@ class DetextTextComponent(DaskTransformComponent):
         meta = {column: dtype for column, dtype in zip(dataframe.columns, dataframe.dtypes)}
         meta["image_detected_boxes"] = np.dtype(object) 
 
+        logger.info("Detecting texts..")
         dataframe = dataframe.map_partitions(
             get_boxes_dataframe,
             session=self.session,

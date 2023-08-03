@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    # base_path=PipelineConfigs.BASE_PATH,
-    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    base_path=PipelineConfigs.BASE_PATH,
+    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -76,12 +76,20 @@ download_images_op = ComponentOp(
     node_pool_name="n2-standard-128-pool",
     output_partition_size="disable",
 )
+detect_text_op = ComponentOp(
+    component_dir="components/detect_text",
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool",
+    output_partition_size="disable",
+)
+
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
 # pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
 # pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
 pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
+pipeline.add_op(detect_text_op, dependencies=download_images_op)
 # pipeline.add_op(cluster_image_embeddings_op, dependencies=filter_complexity_op)
 # TODO add more ops
 
