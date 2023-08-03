@@ -121,6 +121,8 @@ class DetextTextComponent(DaskTransformComponent):
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
 
+        logger.info(f"Length of the dataframe: {len(dataframe)}")
+
         # create meta
         # needs to be a dictionary with keys = column names, values = dtypes of columns
         # for each column in the output

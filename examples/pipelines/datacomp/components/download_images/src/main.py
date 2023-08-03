@@ -146,7 +146,7 @@ class DownloadImagesComponent(DaskTransformComponent):
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
 
-        logger.info("Length of the dataframe:", len(dataframe))
+        logger.info(f"Length of the dataframe: {len(dataframe)}")
         logger.info("Downloading images...")
         
         # create meta
@@ -171,9 +171,7 @@ class DownloadImagesComponent(DaskTransformComponent):
         # Remove images that could not be fetched
         dataframe = dataframe.dropna()  
 
-        print("Length of the final dataframe:", len(dataframe))
-        print("First few rows of final dataframe:")
-        print(dataframe.head(5))
+        logger.info(f"Length of the final dataframe: {len(dataframe)}")
 
         return dataframe
 
