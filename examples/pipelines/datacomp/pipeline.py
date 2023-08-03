@@ -15,14 +15,13 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    base_path=PipelineConfigs.BASE_PATH,
-    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    # base_path=PipelineConfigs.BASE_PATH,
+    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
 # define ops
 load_component_column_mapping = {
-    "uid": "image_uid",
     "url": "image_url",
     "original_width": "image_width",
     "original_height": "image_height",
@@ -30,6 +29,7 @@ load_component_column_mapping = {
     "sha256": "image_sha256",
     "clip_l14_embedding": "image_embedding",
     "text": "text_data",
+    "uid": "image_text_uid",
     "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
     "clip_l14_similarity_score": "image_text_clip_l14_similarity_score",
 }
@@ -40,7 +40,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-embeddings",
         "image_column_names": [],
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 50000,
+        "n_rows_to_load": 10,
         "dataset_length": 12800000,
     },
     node_pool_label="node_pool",
