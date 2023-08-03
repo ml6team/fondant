@@ -21,9 +21,6 @@ args:
   do_lowercase:
     description: If true apply lowercasing
     type: bool
-  language:
-    description: Language is needed for language specific normalizations
-    type: str
   remove_punctuation:
     description: If true punctuation will be removed
     type: str
