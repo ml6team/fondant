@@ -78,8 +78,9 @@ download_images_op = ComponentOp(
 )
 detect_text_op = ComponentOp(
     component_dir="components/detect_text",
-    node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
+    number_of_gpus=1,
+    node_pool_label="node_pool",  
+    node_pool_name="model-inference-pool",  
     output_partition_size="disable",
 )
 
