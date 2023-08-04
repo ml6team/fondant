@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+FROM --platform=linux/amd64 python:3.8-slim
 
 # System dependencies
 RUN apt-get update && \

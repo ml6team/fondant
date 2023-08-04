@@ -117,6 +117,7 @@ class DetextTextComponent(DaskTransformComponent):
         craft_onnx = hf_hub_download(repo_id="ml6team/craft-onnx", filename="craft.onnx", repo_type="model")
         logger.info(f"Device: {ort.get_device()}")
         providers = [('CUDAExecutionProvider', {"cudnn_conv_algo_search": "DEFAULT"}), 'CPUExecutionProvider'] if ort.get_device() == 'GPU' else ['CPUExecutionProvider']
+        providers = ['CPUExecutionProvider']
         self.session = ort.InferenceSession(craft_onnx, providers=providers)
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
