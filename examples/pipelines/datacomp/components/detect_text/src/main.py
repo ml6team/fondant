@@ -121,8 +121,6 @@ class DetextTextComponent(DaskTransformComponent):
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
 
-        logger.info(f"Length of the dataframe: {len(dataframe)}")
-
         # create meta
         # needs to be a dictionary with keys = column names, values = dtypes of columns
         # for each column in the output
@@ -135,10 +133,6 @@ class DetextTextComponent(DaskTransformComponent):
             session=self.session,
             meta=meta,
         )
-
-        logger.info(f"Length of the final dataframe: {len(dataframe)}")
-        print("Columns of the final dataframe", dataframe.columns)
-        print("First rows of final dataframe:", dataframe.head())
 
         return dataframe
 
