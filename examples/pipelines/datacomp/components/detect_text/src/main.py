@@ -9,9 +9,7 @@ from PIL import Image
 
 from huggingface_hub import hf_hub_download
 
-from easyocr.craft_utils import getDetBoxes, adjustResultCoordinates
-from easyocr.imgproc import normalizeMeanVariance
-from easyocr.utils import group_text_box
+from easyocr_utils import getDetBoxes, adjustResultCoordinates, normalizeMeanVariance, group_text_box
 
 import torch
 import onnxruntime as ort
@@ -58,7 +56,7 @@ def get_boxes(image_data, session):
       image = Image.open(io.BytesIO(image_data)).convert("RGB")
       image = np.array(image)
     except:
-      return [None]
+      return []
 
     # Use Pillow instead of cv2
     img_resized, target_ratio, size_heatmap = resize_aspect_ratio_pillow(img=image,
