@@ -153,10 +153,10 @@ class DownloadImagesComponent(DaskTransformComponent):
         # needs to be a dictionary with keys = column names, values = dtypes of columns
         # for each column in the output
         meta = {column: dtype for column, dtype in zip(dataframe.columns, dataframe.dtypes)}
-        meta["data"] = np.dtype(bytes) 
-        meta["width"] = np.dtype(int) 
-        meta["height"] = np.dtype(int) 
-
+        meta["data"] = bytes
+        meta["width"] = int
+        meta["height"] = int
+        
         dataframe = dataframe.map_partitions(
             download_image_with_retry_partition,
             timeout=self.timeout,

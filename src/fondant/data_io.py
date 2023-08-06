@@ -272,6 +272,7 @@ class DaskDataWriter(DataIO):
             location = self.manifest.subsets[subset_name].location
 
         schema = {field.name: field.type.value for field in subset_spec.fields.values()}
+        print(f"Schema of {subset_name}:", schema)
 
         return self._create_write_task(dataframe, location=location, schema=schema)
 
