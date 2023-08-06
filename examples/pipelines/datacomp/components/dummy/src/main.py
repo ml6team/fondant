@@ -17,6 +17,8 @@ class DummyComponent(DaskTransformComponent):
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
 
         logger.info(f"Length of the dataframe: {len(dataframe)}")
+        print("Columns of the dataframe:", dataframe.columns)
+        print("Dyptes of the dataframe:", dataframe.dtypes)
 
         return dataframe
 

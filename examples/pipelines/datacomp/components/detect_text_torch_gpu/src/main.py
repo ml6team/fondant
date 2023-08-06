@@ -120,6 +120,9 @@ class DetextTextComponent(DaskTransformComponent):
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
 
+        # cast image_data to the right dtype
+        dataframe = dataframe.astype({'image_data': bytes})
+        
         # create meta
         # needs to be a dictionary with keys = column names, values = dtypes of columns
         # for each column in the output

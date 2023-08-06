@@ -86,9 +86,9 @@ detect_text_gpu_op = ComponentOp(
     node_pool_name="model-inference-pool",  
     output_partition_size="disable",
 )
-# dummpy_op = ComponentOp(
-#     component_dir="components/dummy",
-# )
+dummpy_op = ComponentOp(
+    component_dir="components/dummy",
+)
 
 
 

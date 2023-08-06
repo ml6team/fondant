@@ -205,6 +205,9 @@ class DaskDataWriter(DataIO):
 
         logger.info("Creating write tasks...")
 
+        print("Dataframe columns:", dataframe.columns)
+        print("Dataframe dtypes:", dataframe.dtypes)
+
         # Turn index into an empty dataframe so we can write it
         index_df = dataframe.index.to_frame().drop(columns=["id"])
         write_index_task = self._write_subset(

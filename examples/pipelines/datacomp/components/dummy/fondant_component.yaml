@@ -1,6 +1,6 @@
 name: Dummy component
 description: Component that downloads images based on URLs
-image: ghcr.io/ml6team/dummy:cc418db0964ee202ebf2d4fd3aaee15604604244
+image: ghcr.io/ml6team/dummy:be3e4b83dcde14f6c8a1b33078c99ead1d40655e
 
 consumes:
   image:

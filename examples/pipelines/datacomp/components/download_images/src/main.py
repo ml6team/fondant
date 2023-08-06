@@ -156,7 +156,7 @@ class DownloadImagesComponent(DaskTransformComponent):
         meta["data"] = bytes
         meta["width"] = int
         meta["height"] = int
-        
+
         dataframe = dataframe.map_partitions(
             download_image_with_retry_partition,
             timeout=self.timeout,
@@ -166,9 +166,11 @@ class DownloadImagesComponent(DaskTransformComponent):
         )
 
         # rename new columns to be conform the spec
+        logger.info("Renaming columns...")
         dataframe = dataframe.rename(columns={"data": "image_data", "width": "image_width", "height":"image_height"})
 
         # Remove images that could not be fetched
+        logger.info("Dropping invalid rows...")
         dataframe = dataframe.dropna()  
 
         logger.info(f"Length of the final dataframe: {len(dataframe)}")
