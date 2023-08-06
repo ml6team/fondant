@@ -1,0 +1,9 @@
+name: Dummy component
+description: Component that downloads images based on URLs
+image: ghcr.io/ml6team/dummy:cc418db0964ee202ebf2d4fd3aaee15604604244
+
+consumes:
+  image:
+    fields:
+      data:
+        type: binary

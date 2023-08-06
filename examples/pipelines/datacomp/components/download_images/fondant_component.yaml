@@ -1,6 +1,6 @@
 name: Download images
 description: Component that downloads images based on URLs
-image: ghcr.io/ml6team/download_images:3d433d9e8dfeba967236445657dd8f415726de9a
+image: ghcr.io/ml6team/download_images:cc418db0964ee202ebf2d4fd3aaee15604604244
 
 consumes:
   image:

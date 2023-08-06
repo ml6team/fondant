@@ -1,4 +1,4 @@
 huggingface-hub==0.16.4
-onnxruntime==1.15.1
 opencv-python-headless
 scipy
+easyocr==1.7.0

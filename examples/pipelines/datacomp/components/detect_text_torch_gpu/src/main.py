@@ -9,10 +9,12 @@ from PIL import Image
 
 from huggingface_hub import hf_hub_download
 
-from easyocr_utils import getDetBoxes, adjustResultCoordinates, normalizeMeanVariance, group_text_box
+from easyocr.craft_utils import getDetBoxes, adjustResultCoordinates
+from easyocr.detection import get_detector
+from easyocr.imgproc import normalizeMeanVariance
+from easyocr.utils import group_text_box
 
 import torch
-import onnxruntime as ort
 
 from fondant.component import DaskTransformComponent
 from fondant.executor import DaskTransformExecutor
@@ -51,7 +53,7 @@ def resize_aspect_ratio_pillow(img, square_size, mag_ratio=1):
     return resized, ratio, size_heatmap
 
 
-def get_boxes(image_data, session):
+def get_boxes(image_data, net):
     try:
       image = Image.open(io.BytesIO(image_data)).convert("RGB")
       image = np.array(image)
@@ -67,17 +69,16 @@ def get_boxes(image_data, session):
     x = normalizeMeanVariance(img_resized)
     x = torch.from_numpy(x).permute(2, 0, 1).unsqueeze(0)
 
-    input_name = session.get_inputs()[0].name
-
-    # Prepare input tensor for inference
-    inp = {input_name: x.numpy()}
-
     # Run inference and get output
-    y, _ = session.run(None, inp)
+    x = x.to(net.device)
+
+    # forward pass
+    with torch.no_grad():
+        y, feature = net(x)
 
     # Extract score and link maps
-    score_text = y[0, :, :, 0]
-    score_link = y[0, :, :, 1]
+    score_text = y[0, :, :, 0].numpy()
+    score_link = y[0, :, :, 1].numpy()
 
     # Post-processing to obtain bounding boxes and polygons
     boxes, _, _ = getDetBoxes(score_text, score_link, 0.5, 0.4, 0.4)
@@ -94,12 +95,12 @@ def get_boxes(image_data, session):
     return horizontal_list
 
 
-def get_boxes_dataframe(df, session):
+def get_boxes_dataframe(df, net):
     # process a single partition
     # TODO make column name more flexible
     df["image_boxes"] = df.image_data.apply(lambda x:
         get_boxes(
-            image_data=x, session=session,
+            image_data=x, net=net,
         ),
     )
 
@@ -112,11 +113,10 @@ class DetextTextComponent(DaskTransformComponent):
 
     def __init__(self, *args) -> None:
 
-        craft_onnx = hf_hub_download(repo_id="ml6team/craft-onnx", filename="craft.onnx", repo_type="model")
-        logger.info(f"Device: {ort.get_device()}")
-        providers = [('CUDAExecutionProvider', {"cudnn_conv_algo_search": "DEFAULT"}), 'CPUExecutionProvider'] if ort.get_device() == 'GPU' else ['CPUExecutionProvider']
-        providers = ['CPUExecutionProvider']
-        self.session = ort.InferenceSession(craft_onnx, providers=providers)
+        filepath = hf_hub_download(repo_id="nielsr/craft-pytorch", filename="net.pth", repo_type="model")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        logger.info(f"Device: {device}")
+        self.net = get_detector(filepath, device=device)
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
 
@@ -124,12 +124,13 @@ class DetextTextComponent(DaskTransformComponent):
         # needs to be a dictionary with keys = column names, values = dtypes of columns
         # for each column in the output
         meta = {column: dtype for column, dtype in zip(dataframe.columns, dataframe.dtypes)}
+        meta["image_data"] = bytes
         meta["image_boxes"] = np.dtype(object) 
 
         logger.info("Detecting texts..")
         dataframe = dataframe.map_partitions(
             get_boxes_dataframe,
-            session=self.session,
+            net=self.net,
             meta=meta,
         )
 

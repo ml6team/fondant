@@ -1,6 +1,6 @@
 name: Detect text
 description: Component that detects text in images
-image: ghcr.io/ml6team/detect_text:cc418db0964ee202ebf2d4fd3aaee15604604244
+image: ghcr.io/ml6team/detect_text_torch_gpu:cc418db0964ee202ebf2d4fd3aaee15604604244
 
 consumes:
   image:

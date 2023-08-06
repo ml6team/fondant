@@ -6,9 +6,8 @@ RUN apt-get update && \
     apt-get install git -y
 
 # Install requirements
-COPY requirements.txt ./
+COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r requirements.txt
-RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # Install Fondant
 # This is split from other requirements to leverage caching

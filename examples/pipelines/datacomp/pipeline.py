@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    # base_path=PipelineConfigs.BASE_PATH,
-    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    base_path=PipelineConfigs.BASE_PATH,
+    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -63,13 +63,6 @@ filter_complexity_op = ComponentOp(
         "min_num_actions": 1,
     },
 )
-cluster_image_embeddings_op = ComponentOp(
-    component_dir="components/cluster_image_embeddings",
-    arguments={
-        "sample_ratio": 0.3,
-        "num_clusters": 3,
-    },
-)
 download_images_op = ComponentOp(
     component_dir="components/download_images",
     node_pool_label="node_pool",
@@ -83,15 +76,27 @@ detect_text_op = ComponentOp(
     node_pool_name="model-inference-pool",  
     output_partition_size="disable",
 )
+# dummpy_op = ComponentOp(
+#     component_dir="components/dummy",
+# )
+detect_text_gpu_op = ComponentOp(
+    component_dir="components/detect_text_torch_gpu",
+    number_of_gpus=1,
+    node_pool_label="node_pool",  
+    node_pool_name="model-inference-pool",  
+    output_partition_size="disable",
+)
+# dummpy_op = ComponentOp(
+#     component_dir="components/dummy",
+# )
+
+
 
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-# pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
-# pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
 pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
-# pipeline.add_op(detect_text_op, dependencies=download_images_op)
-# pipeline.add_op(cluster_image_embeddings_op, dependencies=filter_complexity_op)
+pipeline.add_op(detect_text_gpu_op, dependencies=download_images_op)
 # TODO add more ops
 
 client.compile_and_run(pipeline=pipeline)

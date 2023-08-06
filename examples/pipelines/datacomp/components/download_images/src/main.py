@@ -172,6 +172,7 @@ class DownloadImagesComponent(DaskTransformComponent):
         dataframe = dataframe.dropna()  
 
         logger.info(f"Length of the final dataframe: {len(dataframe)}")
+        print("Length of final dataframe:", len(dataframe))
 
         return dataframe
 
