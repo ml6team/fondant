@@ -128,7 +128,7 @@ class DetextTextComponent(DaskTransformComponent):
         # for each column in the output
         meta = {column: dtype for column, dtype in zip(dataframe.columns, dataframe.dtypes)}
         meta["image_data"] = bytes
-        meta["image_boxes"] = np.dtype(object) 
+        meta["image_boxes"] = np.dtype(np.int64)
 
         logger.info("Detecting texts..")
         dataframe = dataframe.map_partitions(
@@ -136,6 +136,9 @@ class DetextTextComponent(DaskTransformComponent):
             net=self.net,
             meta=meta,
         )
+
+        # cast image_data to the right dtype
+        dataframe = dataframe.astype({'image_data': bytes, 'image_boxes': np.dtype(np.int64)})
 
         return dataframe
 
