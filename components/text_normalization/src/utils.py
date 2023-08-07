@@ -1,7 +1,7 @@
 import re
 
 
-def mainly_uppercase(line, threshold=0.7):
+def mainly_uppercase(line: str, threshold: float = 0.7) -> bool:
     """
     Checks if a line is mainly composed of uppercase characters.
 
@@ -22,7 +22,7 @@ def mainly_uppercase(line, threshold=0.7):
     return uppercase_ratio >= threshold
 
 
-def only_numerical(line):
+def only_numerical(line: str) -> bool:
     """
     Checks if a line is composed only of numerical characters.
 
@@ -35,7 +35,7 @@ def only_numerical(line):
     return line.isdigit()
 
 
-def is_counter(line):
+def is_counter(line: str) -> bool:
     """
     Checks if a line represents a counter (e.g., "3 likes").
 
@@ -51,7 +51,7 @@ def is_counter(line):
     return re.match(pattern, line) is not None
 
 
-def is_one_word(line):
+def is_one_word(line: str) -> bool:
     """
     Checks if a line contains only one word.
 

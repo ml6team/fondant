@@ -1,5 +1,5 @@
 
-from components.text_normalization.src.utils import (
+from src.utils import (
     is_counter,
     is_one_word,
     mainly_uppercase,
@@ -37,6 +37,6 @@ def test_is_one_word():
 
 def test_is_not_one_word():
     line = "two words"
-    assert ~is_one_word(line)
+    assert not is_one_word(line)
 
 

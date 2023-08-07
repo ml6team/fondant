@@ -75,11 +75,11 @@ class TextNormalizationComponent(PandasTransformComponent):
         Returns:
             Pandas dataframe
         """
-        if self.do_lowercase:
-            dataframe[("text", "data")] = dataframe[("text", "data")].apply(lambda x: x.lower())
-
         if self.remove_bad_patterns:
             dataframe[("text", "data")] = dataframe[("text", "data")].apply(remove_noisy_lines)
+
+        if self.do_lowercase:
+            dataframe[("text", "data")] = dataframe[("text", "data")].apply(lambda x: x.lower())
 
         if self.apply_nfc:
             dataframe[("text", "data")] = dataframe[("text", "data")].apply(
