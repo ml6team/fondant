@@ -6,9 +6,9 @@ consumes:
   image:
     fields:
       width:
-        type: int64
+        type: int32
       height:
-        type: int64
+        type: int32
 
 args:
   min_image_dim:
