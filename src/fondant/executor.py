@@ -284,7 +284,7 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
             logger.info("Setting the index...")
             dask_df["id"] = 1
             dask_df["id"] = dask_df.id.cumsum()
-            dask_df = dask_df.set_index("id", sort=True)
+            dask_df = dask_df.reset_index(drop=True).set_index("id", sort=True)
 
         return dask_df
 

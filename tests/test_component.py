@@ -153,7 +153,7 @@ def test_load_component(tmp_path_factory):
                 dataframe = dataframe.set_index("id")
                 return dataframe
 
-        for disable_automatic_indexing in ["True", "False"]:
+        for disable_automatic_indexing in ["False", "True"]:
             sys.argv = [
                 "",
                 "--metadata",
