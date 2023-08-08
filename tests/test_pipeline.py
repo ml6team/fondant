@@ -65,6 +65,20 @@ def test_component_op(
             output_partition_size="250 MB",
         )
 
+    with pytest.raises(InvalidPipelineDefinition):
+        ComponentOp(
+            Path(components_path / component_names[0]),
+            arguments=component_args,
+            node_pool_label="dummy_label",
+        )
+
+    with pytest.raises(InvalidPipelineDefinition):
+        ComponentOp(
+            Path(components_path / component_names[0]),
+            arguments=component_args,
+            node_pool_name="dummy_name",
+        )
+
 
 @pytest.mark.parametrize(
     "valid_pipeline_example",
