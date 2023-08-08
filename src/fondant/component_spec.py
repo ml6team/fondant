@@ -270,6 +270,14 @@ class KubeflowComponentSpec:
                     "type": "String",
                     "default": "None",
                 },
+                {
+                    "name": "disable_automatic_indexing",
+                    "description": "Disable automating indexing if applicable. Automatic indexing "
+                    "is enabled in the DaskLoadComponent by default and sets "
+                    "a monotonically increasing index that starts from 1",
+                    "type": "Boolean",
+                    "default": "False",
+                },
                 *(
                     {
                         "name": arg.name,
@@ -303,6 +311,8 @@ class KubeflowComponentSpec:
                         {"inputValue": "input_partition_rows"},
                         "--output_partition_size",
                         {"inputValue": "output_partition_size"},
+                        "--disable_automatic_indexing",
+                        {"inputValue": "disable_automatic_indexing"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},

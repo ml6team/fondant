@@ -6,6 +6,7 @@ components take care of processing, filtering and extending the data.
 """
 
 import argparse
+import ast
 import json
 import logging
 import typing as t
@@ -43,6 +44,7 @@ class Executor(t.Generic[Component]):
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         output_partition_size: t.Optional[str] = None,
+        disable_automatic_indexing: t.Optional[bool] = False,
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
@@ -51,6 +53,7 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
         self.output_partition_size = output_partition_size
+        self.disable_automatic_indexing = disable_automatic_indexing
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -59,6 +62,7 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--component_spec", type=json.loads)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
         parser.add_argument("--output_partition_size", type=validate_partition_size)
+        parser.add_argument("--disable_automatic_indexing", type=ast.literal_eval)
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -68,19 +72,23 @@ class Executor(t.Generic[Component]):
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
         output_partition_size = args.output_partition_size
+        disable_automatic_indexing = args.disable_automatic_indexing
 
         return cls.from_spec(
             component_spec,
-            input_partition_rows,
-            output_partition_size,
+            input_partition_rows=input_partition_rows,
+            output_partition_size=output_partition_size,
+            disable_automatic_indexing=disable_automatic_indexing,
         )
 
     @classmethod
     def from_spec(
         cls,
         component_spec: ComponentSpec,
+        *,
         input_partition_rows: t.Optional[t.Union[str, int]],
         output_partition_size: t.Optional[str],
+        disable_automatic_indexing: t.Optional[bool],
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
@@ -93,6 +101,9 @@ class Executor(t.Generic[Component]):
 
         if "output_partition_size" in args_dict:
             args_dict.pop("output_partition_size")
+
+        if "disable_automatic_indexing" in args_dict:
+            args_dict.pop("disable_automatic_indexing")
 
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
@@ -107,6 +118,7 @@ class Executor(t.Generic[Component]):
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
             output_partition_size=output_partition_size,
+            disable_automatic_indexing=disable_automatic_indexing,
         )
 
     @classmethod
@@ -263,9 +275,18 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
         """This function loads the initial dataframe using the user-provided `load` method.
 
         Returns:
-            A `dd.DataFrame` instance with initial data.
+            A `dd.DataFrame` instance with initial data and set index.
         """
-        return component.load()
+        dask_df = component.load()
+
+        if self.disable_automatic_indexing is False:
+            # Set monotonically increasing index
+            logger.info("Setting the index...")
+            dask_df["id"] = 1
+            dask_df["id"] = dask_df.id.cumsum()
+            dask_df = dask_df.set_index("id", sort=True)
+
+        return dask_df
 
 
 class TransformExecutor(Executor[Component]):

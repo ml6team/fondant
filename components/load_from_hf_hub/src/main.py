@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 class LoadFromHubComponent(DaskLoadComponent):
 
     def __init__(self, *_,
-             dataset_name: str,
-             column_name_mapping: dict,
-             image_column_names: t.Optional[list],
-             n_rows_to_load: t.Optional[int],
-    ) -> None:
+                 dataset_name: str,
+                 column_name_mapping: dict,
+                 image_column_names: t.Optional[list],
+                 n_rows_to_load: t.Optional[int],
+                 ) -> None:
         """
         Args:
             dataset_name: name of the dataset to load.
@@ -58,12 +58,6 @@ class LoadFromHubComponent(DaskLoadComponent):
                 partitions_length += len(partition)
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
             dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
-
-        # Set monotonically increasing index
-        logger.info("Setting the index...")
-        dask_df["id"] = 1
-        dask_df["id"] = dask_df.id.cumsum()
-        dask_df = dask_df.set_index("id", sort=True)
 
         return dask_df
 
