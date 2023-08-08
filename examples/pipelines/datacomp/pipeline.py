@@ -38,10 +38,6 @@ load_from_hub_op = ComponentOp(
         "column_name_mapping": load_component_column_mapping,
     },
 )
-filter_image_resolution_op = ComponentOp.from_registry(
-    name="filter_image_resolution",
-    arguments={"min_image_dim": 200, "max_aspect_ratio": 3},
-)
 filter_complexity_op = ComponentOp(
     component_dir="components/filter_text_complexity",
     arguments={
@@ -52,10 +48,10 @@ filter_complexity_op = ComponentOp(
     },
 )
 
+
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
-pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
+pipeline.add_op(filter_complexity_op, dependencies=load_from_hub_op)
 # TODO add more ops
 
 
