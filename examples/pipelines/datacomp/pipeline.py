@@ -76,9 +76,6 @@ detect_text_op = ComponentOp(
     node_pool_name="model-inference-pool",  
     output_partition_size="disable",
 )
-# dummpy_op = ComponentOp(
-#     component_dir="components/dummy",
-# )
 detect_text_gpu_op = ComponentOp(
     component_dir="components/detect_text_torch_gpu",
     number_of_gpus=1,
@@ -86,11 +83,6 @@ detect_text_gpu_op = ComponentOp(
     node_pool_name="model-inference-pool",  
     output_partition_size="disable",
 )
-dummpy_op = ComponentOp(
-    component_dir="components/dummy",
-)
-
-
 
 
 # add ops to pipeline
