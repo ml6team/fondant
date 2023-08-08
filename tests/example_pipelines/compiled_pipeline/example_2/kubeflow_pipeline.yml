@@ -76,7 +76,7 @@ spec:
           "description": "Component that removes single-colored borders around images
           and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
           "name": "Image cropping", "produces": {"images": {"fields": {"data": {"type":
-          "binary"}, "height": {"type": "int16"}, "width": {"type": "int16"}}}}}',
+          "binary"}, "height": {"type": "int32"}, "width": {"type": "int32"}}}}}',
         --input_partition_rows, None, --output_partition_size, None, --cropping_threshold,
         '0', --padding, '0', --output_manifest_path, /tmp/outputs/output_manifest_path/data]
       image: ghcr.io/ml6team/image_cropping:dev
@@ -128,7 +128,7 @@ spec:
           removes single-colored borders around images and crops them appropriately\",
           \"image\": \"ghcr.io/ml6team/image_cropping:dev\", \"name\": \"Image cropping\",
           \"produces\": {\"images\": {\"fields\": {\"data\": {\"type\": \"binary\"},
-          \"height\": {\"type\": \"int16\"}, \"width\": {\"type\": \"int16\"}}}}}",
+          \"height\": {\"type\": \"int32\"}, \"width\": {\"type\": \"int32\"}}}}}",
           "cropping_threshold": "0", "input_partition_rows": "None", "metadata": "{\"base_path\":
           \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "output_partition_size":
           "None", "padding": "0"}'}
