@@ -12,7 +12,7 @@ RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/
 
 # Install Fondant
 # This is split from other requirements to leverage caching
-ARG FONDANT_VERSION=cc418db0964ee202ebf2d4fd3aaee15604604244
+ARG FONDANT_VERSION=39c56436e20fb920a50c26a4d0753251993f3251
 RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@${FONDANT_VERSION}
 
 # Set the working directory to the component folder

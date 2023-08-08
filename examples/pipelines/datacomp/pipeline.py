@@ -88,7 +88,7 @@ detect_text_gpu_op = ComponentOp(
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
-pipeline.add_op(detect_text_gpu_op, dependencies=download_images_op)
+pipeline.add_op(detect_text_op, dependencies=download_images_op)
 # TODO add more ops
 
 client.compile_and_run(pipeline=pipeline)
