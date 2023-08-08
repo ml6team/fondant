@@ -134,9 +134,12 @@ class DockerCompiler(Compiler):
         """
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         path, volume = self._patch_path(base_path=pipeline.base_path)
-        metadata = MetaData(run_id=f"{pipeline.name}-{timestamp}", base_path=path)
+        run_id = f"{pipeline.name}-{timestamp}"
+        metadata = MetaData(run_id=run_id, base_path=path)
 
         services = {}
+
+        pipeline.validate(run_id=run_id)
 
         for component_name, component in pipeline._graph.items():
             logger.info(f"Compiling service for {component_name}")
@@ -240,8 +243,7 @@ class KubeFlowCompiler(Compiler):
             output_path: the path where to save the Kubeflow pipeline spec
         """
         self.pipeline = pipeline
-        self.pipeline.sort_graph()
-        self.pipeline._validate_pipeline_definition("{{workflow.name}}")
+        self.pipeline.validate(run_id="{{workflow.name}}")
         logger.info(f"Compiling {self.pipeline.name} to {output_path}")
         wrapped_pipeline = (self.kfp.dsl.pipeline())(self.kf_pipeline)  # type: ignore
         self.kfp.compiler.Compiler().compile(wrapped_pipeline, output_path)  # type: ignore

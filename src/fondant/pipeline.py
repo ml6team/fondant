@@ -240,6 +240,7 @@ class Pipeline:
 
     def sort_graph(self):
         """Sort the graph topologically based on task dependencies."""
+        logger.info("Sorting pipeline component graph topologically.")
         sorted_graph = []
         visited = set()
 
@@ -269,6 +270,15 @@ class Pipeline:
             raise InvalidPipelineDefinition(msg)
         return pipeline_name
 
+    def validate(self, run_id: str):
+        """Sort and run validation on the pipeline definition.
+
+        Args:
+            run_id (str, optional): run identifier. Defaults to None.
+        """
+        self.sort_graph()
+        self._validate_pipeline_definition(run_id)
+
     def _validate_pipeline_definition(self, run_id: str):
         """
         Validates the pipeline definition by ensuring that the consumed and produced subsets and
@@ -281,6 +291,10 @@ class Pipeline:
             base_path: the base path where to store the pipelines artifacts
             run_id: the run id of the component
         """
+        if len(self._graph.keys()) == 0:
+            logger.info("No components defined in the pipeline. Nothing to validate.")
+            return
+
         # TODO: change later if we decide to run 2 fondant pipelines after each other
         load_component = True
         load_component_name = list(self._graph.keys())[0]

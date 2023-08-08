@@ -214,6 +214,7 @@ def test_kubeflow_configuration(tmp_path_factory):
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         node_pool_name="a_node_pool",
+        node_pool_label="a_node_pool_label",
         number_of_gpus=1,
         p_volumes={"/mnt": PipelineVolume(name="mypvc", empty_dir={})},
         ephemeral_storage_size="1Gi",

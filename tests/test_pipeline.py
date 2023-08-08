@@ -182,13 +182,12 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
         ("example_3", ["first_component", "second_component"]),
     ],
 )
-def test_invalid_pipeline_compilation(
+def test_invalid_pipeline_declaration(
     default_pipeline_args,
     invalid_pipeline_example,
 ):
-    """
-    Test that an InvalidPipelineDefinition exception is raised when attempting to compile
-    an invalid pipeline definition.
+    """Test that an InvalidPipelineDefinition exception is raised when attempting
+    to register invalid components combinations.
     """
     example_dir, component_names = invalid_pipeline_example
     components_path = Path(invalid_pipeline_path / example_dir)
@@ -212,7 +211,7 @@ def test_invalid_pipeline_compilation(
         pipeline._validate_pipeline_definition("test_pipeline")
 
 
-def test_invalid_pipeline_composition(default_pipeline_args):
+def test_invalid_pipeline_validation(default_pipeline_args):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to compile
     an invalid pipeline definition.
