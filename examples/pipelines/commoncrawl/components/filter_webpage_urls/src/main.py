@@ -28,11 +28,19 @@ def get_blacklisted_domains(blacklist_dir: str, categories: List[str]) -> Set[st
 
 class FilterWebpageUrls(DaskTransformComponent):
     def __init__(self, *_, categories: List[str] = None):
+        """Filters out webpages from the given categories.
+        Args:
+            categories: The categories to filter out.
+        """
         self.categories = categories
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
-        logger.info("Length of dataframe before filtering: %s", len(dataframe))
-
+        """Filters out webpages from the given blacklist categories.
+        Args:
+            dataframe: The dataframe containing the webpages.
+        Returns:
+            The filtered dataframe without blacklist URLs.
+        """
         download_tar_file(BLACKLIST_URL, BLACKLIST_DIR)
         blacklisted_domains = get_blacklisted_domains(BLACKLIST_DIR, self.categories)
 
