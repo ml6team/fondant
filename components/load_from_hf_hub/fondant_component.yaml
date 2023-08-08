@@ -24,3 +24,7 @@ args:
     description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
     type: int
     default: None
+  dataset_length:
+    description: Optional argument that defines the length of the dataset. Required in case `n_rows_to_load` is specified.
+    type: int
+    default: None
