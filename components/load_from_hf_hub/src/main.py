@@ -49,11 +49,12 @@ class LoadFromHubComponent(DaskLoadComponent):
 
         # 4) Optional: only return specific amount of rows
         if self.n_rows_to_load is not None:
-            partitions_length = 0 
+            partitions_length = 0
             for npartitions, partition in enumerate(dask_df.partitions):
                 if partitions_length >= self.n_rows_to_load:
-                    logger.info(f"Required number of partitions to load {self.n_rows_to_load} is {npartitions}")
-                    break 
+                    logger.info(f"""Required number of partitions to load\n
+                    {self.n_rows_to_load} is {npartitions}""")
+                    break
                 partitions_length += len(partition)
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
             dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
