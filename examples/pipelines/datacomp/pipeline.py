@@ -54,13 +54,6 @@ filter_complexity_op = ComponentOp(
         "min_num_actions": 1,
     },
 )
-cluster_image_embeddings_op = ComponentOp(
-    component_dir="components/cluster_image_embeddings",
-    arguments={
-        "sample_ratio": 0.3,
-        "num_clusters": 3,
-    },
-)
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
