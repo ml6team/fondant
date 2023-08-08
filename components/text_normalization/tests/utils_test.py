@@ -13,7 +13,7 @@ def test_mainly_uppercase():
 
 def test_mainly_uppercase_under_threshold():
     line = "HELLO WORLD not upper SOMETHING ELSE IN UPPERCASE"
-    assert ~mainly_uppercase(line, threshold=0.9)
+    assert not mainly_uppercase(line, threshold=0.9)
 
 def test_only_numerical():
     line = "42"
@@ -21,7 +21,7 @@ def test_only_numerical():
 
 def test_only_numerical_on_words():
     line = "42 lorem ipsum"
-    assert ~only_numerical(line)
+    assert not only_numerical(line)
 
 def test_is_counter():
     line = "13 Likes"
@@ -29,7 +29,7 @@ def test_is_counter():
 
 def test_is_not_counter():
     line = "Hello world! 42 people are part of .."
-    assert ~is_counter(line)
+    assert not is_counter(line)
 
 def test_is_one_word():
     line = "word"

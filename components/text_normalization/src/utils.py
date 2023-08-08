@@ -6,7 +6,7 @@ def mainly_uppercase(line: str, threshold: float = 0.7) -> bool:
     Checks if a line is mainly composed of uppercase characters.
 
     Args:
-        line (str): The input line to check.
+        line: The input line to check.
         threshold (float): The threshold (between 0 and 1) to determine what is considered
         "mainly uppercase."
 
@@ -27,7 +27,7 @@ def only_numerical(line: str) -> bool:
     Checks if a line is composed only of numerical characters.
 
     Args:
-        line (str): The input line to check.
+        line: The input line to check.
 
     Returns:
         bool: True if the line is only composed of numerical characters, False otherwise.
@@ -40,7 +40,7 @@ def is_counter(line: str) -> bool:
     Checks if a line represents a counter (e.g., "3 likes").
 
     Args:
-        line (str): The input line to check.
+        line: The input line to check.
 
     Returns:
         bool: True if the line represents a counter, False otherwise.
@@ -56,7 +56,7 @@ def is_one_word(line: str) -> bool:
     Checks if a line contains only one word.
 
     Args:
-        line (str): The input line to check.
+        line: The input line to check.
 
     Returns:
         bool: True if the line contains only one word, False otherwise.

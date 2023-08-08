@@ -16,7 +16,7 @@ COPY src/ src/
 
 # Run component tests
 FROM base as test
-RUN pip3 install pytest pandas # TODO add pytest to package setup
+RUN pip3 install pytest # TODO add pytest to package setup
 ENV PYTHONPATH "${PYTHONPATH}:./src"
 COPY tests/ tests/
 RUN ["python", "-m", "pytest", "tests/"]
