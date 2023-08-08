@@ -26,7 +26,6 @@ load_component_column_mapping = {
     "original_height": "image_height",
     "face_bboxes": "image_face_bboxes",
     "sha256": "image_sha256",
-    "clip_l14_embedding": "image_embedding",
     "text": "text_data",
     "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
     "clip_l14_similarity_score": "image_text_clip_l14_similarity_score",
@@ -35,7 +34,7 @@ load_component_column_mapping = {
 load_from_hub_op = ComponentOp(
     component_dir="components/load_from_hf_hub",
     arguments={
-        "dataset_name": "nielsr/datacomp-small-with-embeddings",
+        "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
     },
 )
