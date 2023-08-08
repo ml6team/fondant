@@ -19,10 +19,6 @@ produces:
             type: float32
       sha256:
         type: utf8
-      embedding:
-        type: array
-        items:
-          type: float32
   
   text:
     fields:

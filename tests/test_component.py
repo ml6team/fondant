@@ -146,9 +146,12 @@ def test_load_component(tmp_path_factory):
                 assert self.flag == "success"
                 assert self.value == 1
                 data = {
+                    "id": ["42", "51"],
                     "embeddings_data": [[0.1, 0.2], [0.1, 0.3]],
                 }
-                return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
+                dataframe = dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
+                dataframe = dataframe.set_index("id")
+                return dataframe
 
         for disable_automatic_indexing in ["True", "False"]:
             sys.argv = [
@@ -182,10 +185,10 @@ def test_load_component(tmp_path_factory):
             ).index.location
             index_list = list(dd.read_parquet(subset_path).compute().index)
             if ast.literal_eval(disable_automatic_indexing) is True:
-                # Dask default
-                assert index_list == ["0", "1"]
-            else:
                 # Custom index
+                assert index_list == ["42", "51"]
+            else:
+                # Default index
                 assert index_list == ["1", "2"]
 
 

@@ -13,10 +13,9 @@ logger = logging.getLogger(__name__)
 
 # Initialize pipeline and client
 pipeline = Pipeline(
-    pipeline_name="datacomp-filtering",
+    pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    # base_path=PipelineConfigs.BASE_PATH,
-    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    base_path=PipelineConfigs.BASE_PATH,
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -27,7 +26,6 @@ load_component_column_mapping = {
     "original_height": "image_height",
     "face_bboxes": "image_face_bboxes",
     "sha256": "image_sha256",
-    "clip_l14_embedding": "image_embedding",
     "text": "text_data",
     "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
     "clip_l14_similarity_score": "image_text_clip_l14_similarity_score",
@@ -36,9 +34,8 @@ load_component_column_mapping = {
 load_from_hub_op = ComponentOp(
     component_dir="components/load_from_hf_hub",
     arguments={
-        "dataset_name": "nielsr/datacomp-small-with-embeddings",
+        "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 100,
     },
 )
 filter_image_resolution_op = ComponentOp.from_registry(
@@ -51,14 +48,7 @@ filter_complexity_op = ComponentOp(
         "spacy_pipeline": "en_core_web_sm",
         "batch_size": 1000,
         "min_complexity": 1,
-        "min_num_actions": 1,
-    },
-)
-cluster_image_embeddings_op = ComponentOp(
-    component_dir="components/cluster_image_embeddings",
-    arguments={
-        "sample_ratio": 0.3,
-        "num_clusters": 3,
+        "min_num_actions": 0,
     },
 )
 
@@ -66,5 +56,8 @@ cluster_image_embeddings_op = ComponentOp(
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
 pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
-pipeline.add_op(cluster_image_embeddings_op, dependencies=filter_complexity_op)
 # TODO add more ops
+
+
+if __name__ == "__main__":
+    client.compile_and_run(pipeline=pipeline)

@@ -275,7 +275,7 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
         """This function loads the initial dataframe using the user-provided `load` method.
 
         Returns:
-            A `dd.DataFrame` instance with initial data and set index.
+            A `dd.DataFrame` instance with initial data.
         """
         dask_df = component.load()
 
