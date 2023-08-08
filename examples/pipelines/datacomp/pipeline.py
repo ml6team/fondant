@@ -38,7 +38,6 @@ load_from_hub_op = ComponentOp(
     arguments={
         "dataset_name": "nielsr/datacomp-small-with-embeddings",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 100,
     },
 )
 filter_image_resolution_op = ComponentOp.from_registry(
@@ -51,7 +50,7 @@ filter_complexity_op = ComponentOp(
         "spacy_pipeline": "en_core_web_sm",
         "batch_size": 1000,
         "min_complexity": 1,
-        "min_num_actions": 1,
+        "min_num_actions": 0,
     },
 )
 
