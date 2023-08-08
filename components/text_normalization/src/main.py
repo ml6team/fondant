@@ -42,12 +42,11 @@ class TextNormalizationComponent(PandasTransformComponent):
 
     def __init__(self, *args, remove_additional_whitespaces: bool, apply_nfc: bool,
                  remove_bad_patterns: bool,
-                 do_lowercase: bool, language: str, remove_punctuation: bool):
+                 do_lowercase: bool, remove_punctuation: bool):
         self.remove_additional_whitespaces = remove_additional_whitespaces
         self.apply_nfc = apply_nfc
         self.normalize_lines = remove_bad_patterns
         self.do_lowercase = do_lowercase
-        self.language = language
         self.remove_punctuation = remove_punctuation
 
     @staticmethod
