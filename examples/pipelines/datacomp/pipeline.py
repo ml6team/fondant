@@ -16,7 +16,6 @@ pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
     base_path=PipelineConfigs.BASE_PATH,
-    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -61,4 +60,5 @@ pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
 # TODO add more ops
 
 
-client.compile_and_run(pipeline=pipeline)
+if __name__ == "__main__":
+    client.compile_and_run(pipeline=pipeline)
