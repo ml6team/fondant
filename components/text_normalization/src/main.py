@@ -28,7 +28,7 @@ def _remove_additional_whitespaces(text):
     return re.sub(r"\s+", " ", text.strip())
 
 
-def remove_noisy_lines(text):
+def normalize_lines(text):
     def any_condition_met(line, discard_condition_functions):
         return any(condition(line) for condition in discard_condition_functions)
 
@@ -45,7 +45,7 @@ class TextNormalizationComponent(PandasTransformComponent):
                  do_lowercase: bool, language: str, remove_punctuation: bool):
         self.remove_additional_whitespaces = remove_additional_whitespaces
         self.apply_nfc = apply_nfc
-        self.remove_bad_patterns = remove_bad_patterns
+        self.normalize_lines = remove_bad_patterns
         self.do_lowercase = do_lowercase
         self.language = language
         self.remove_punctuation = remove_punctuation
@@ -67,7 +67,11 @@ class TextNormalizationComponent(PandasTransformComponent):
         Apply normalization transformations. The component is capable of:
         - NFC normalization
         - Lowercasing
-        - Removing of regex patterns.
+        - Removing of unnecessary whitespaces (e.g. tabs), punctuation
+        - Apply line-wise transformations that exclude lines matching specified patterns.
+        Patterns include lines that are mainly composed of uppercase characters, lines that consist
+        only of numerical characters, lines that are counters (e.g., "3 likes"), and lines
+        that contain only one word.
 
         Args:
             dataframe: Pandas dataframe.
@@ -75,8 +79,9 @@ class TextNormalizationComponent(PandasTransformComponent):
         Returns:
             Pandas dataframe
         """
-        if self.remove_bad_patterns:
-            dataframe[("text", "data")] = dataframe[("text", "data")].apply(remove_noisy_lines)
+        if self.normalize_lines:
+            dataframe[("text", "data")] = dataframe[("text", "data")].apply(
+                normalize_lines)
 
         if self.do_lowercase:
             dataframe[("text", "data")] = dataframe[("text", "data")].apply(lambda x: x.lower())

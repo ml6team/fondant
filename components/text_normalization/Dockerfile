@@ -17,11 +17,11 @@ COPY src/ src/
 # Run component tests
 FROM base as test
 RUN pip3 install pytest pandas # TODO add pytest to package setup
+ENV PYTHONPATH "${PYTHONPATH}:./src"
 COPY tests/ tests/
 RUN ["python", "-m", "pytest", "tests/"]
 
 FROM base
 # Set the working directory to the component folder
 WORKDIR /src
-RUN echo $(ls)
 ENTRYPOINT ["python", "main.py"]

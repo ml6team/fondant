@@ -3,9 +3,6 @@ from abc import ABC, abstractmethod
 import pandas as pd
 import pytest
 
-from fondant.component_spec import ComponentSpec
-
-
 
 class AbstractComponentTest(ABC):
     @abstractmethod

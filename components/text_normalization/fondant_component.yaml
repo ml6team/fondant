@@ -15,8 +15,8 @@ args:
   apply_nfc:
     description: If true apply nfc normalization
     type: bool
-  remove_bad_patterns:
-    description: If true remove common patterns in web texts (e.g. lines contains only number, lines consists of uppercase letters, or counters)
+  normalize_lines:
+    description: If true analyze documents line-by-line and apply various rules to discard or edit lines. Used to removed common patterns in webpages, e.g. counter
     type: bool
   do_lowercase:
     description: If true apply lowercasing
