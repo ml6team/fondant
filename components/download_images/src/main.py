@@ -86,6 +86,24 @@ def download_image_with_retry(
     return None, None, None
 
 
+def download_image_with_retry_partition(dataframe, timeout, retries, resizer):
+    # process a single partition
+    # TODO make column name more flexible
+    data = dataframe.image_url.apply(lambda x:
+        download_image_with_retry(
+            url=x, timeout=timeout, retries=retries, resizer=resizer,
+        ),
+    )
+
+    # use assign to add values as extra columns
+    dataframe = dataframe.assign(data=[example[0] for example in data],
+                   width=[example[1] for example in data],
+                   height=[example[2] for example in data],
+    )
+
+    return dataframe
+
+
 class DownloadImagesComponent(DaskTransformComponent):
     """Component that downloads images based on URLs."""
 
@@ -123,33 +141,35 @@ class DownloadImagesComponent(DaskTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
-    def transform(
-            self,
-            dataframe: dd.DataFrame,
-    ) -> dd.DataFrame:
-        logger.info("Instantiating resizer...")
+    def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
 
-        # Remove duplicates from laion retrieval
-        dataframe = dataframe.drop_duplicates()
+        logger.info(f"Length of the dataframe: {len(dataframe)}")
+        logger.info("Downloading images...")
 
-        dataframe = dataframe.apply(
-            lambda example: download_image_with_retry(
-                url=example.images_url,
-                timeout=self.timeout,
-                retries=self.retries,
-                resizer=self.resizer,
-            ),
-            axis=1,
-            result_type="expand",
-            meta={0: bytes, 1: int, 2: int},
+        # create meta
+        # needs to be a dictionary with keys = column names, values = dtypes of columns
+        # for each column in the output
+        meta = dict(zip(dataframe.columns, dataframe.dtypes))
+        meta["data"] = bytes
+        meta["width"] = int
+        meta["height"] = int
+
+        dataframe = dataframe.map_partitions(
+            download_image_with_retry_partition,
+            timeout=self.timeout,
+            retries=self.retries,
+            resizer=self.resizer,
+            meta=meta,
         )
-        dataframe.columns = [
-            "images_data",
-            "images_width",
-            "images_height",
-        ]
+
+        # rename new columns to be conform the spec
+        logger.info("Renaming columns...")
+        dataframe = dataframe.rename(columns={"data": "image_data",
+                                              "width": "image_width",
+                                              "height":"image_height"})
 
         # Remove images that could not be fetched
+        logger.info("Dropping invalid rows...")
         dataframe = dataframe.dropna()
 
         return dataframe

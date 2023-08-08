@@ -21,11 +21,11 @@ client = Client(host=PipelineConfigs.HOST)
 
 # define ops
 load_component_column_mapping = {
-    "url": "image_url",
-    "original_width": "image_width",
-    "original_height": "image_height",
-    "face_bboxes": "image_face_bboxes",
-    "sha256": "image_sha256",
+    "url": "images_url",
+    "original_width": "images_width",
+    "original_height": "images_height",
+    "face_bboxes": "images_face_bboxes",
+    "sha256": "images_sha256",
     "text": "text_data",
     "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
     "clip_l14_similarity_score": "image_text_clip_l14_similarity_score",
