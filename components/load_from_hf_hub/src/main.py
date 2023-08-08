@@ -44,12 +44,26 @@ class LoadFromHubComponent(DaskLoadComponent):
                 )
 
         # 3) Rename columns
+        logger.info("Renaming columns...")
         dask_df = dask_df.rename(columns=self.column_name_mapping)
 
         # 4) Optional: only return specific amount of rows
-        if self.n_rows_to_load:
-            dask_df = dask_df.head(self.n_rows_to_load)
-            dask_df = dd.from_pandas(dask_df, npartitions=1)
+        if self.n_rows_to_load is not None:
+            partitions_length = 0
+            for npartitions, partition in enumerate(dask_df.partitions):
+                if partitions_length >= self.n_rows_to_load:
+                    logger.info(f"""Required number of partitions to load\n
+                    {self.n_rows_to_load} is {npartitions}""")
+                    break
+                partitions_length += len(partition)
+            dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
+            dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
+
+        # Set monotonically increasing index
+        logger.info("Setting the index...")
+        dask_df["id"] = 1
+        dask_df["id"] = dask_df.id.cumsum()
+        dask_df = dask_df.set_index("id", sort=True)
 
         return dask_df
 
