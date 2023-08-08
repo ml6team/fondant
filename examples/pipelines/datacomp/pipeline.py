@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 
 # Initialize pipeline and client
 pipeline = Pipeline(
-    pipeline_name="datacomp-filtering",
+    pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    # base_path=PipelineConfigs.BASE_PATH,
-    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    base_path=PipelineConfigs.BASE_PATH,
+    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -66,5 +66,7 @@ cluster_image_embeddings_op = ComponentOp(
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
 pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
-pipeline.add_op(cluster_image_embeddings_op, dependencies=filter_complexity_op)
 # TODO add more ops
+
+
+client.compile_and_run(pipeline=pipeline)
