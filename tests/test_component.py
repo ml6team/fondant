@@ -1,3 +1,4 @@
+import ast
 import json
 import sys
 import typing as t
@@ -131,44 +132,61 @@ def test_component_arguments():
     }
 
 
-@pytest.mark.usefixtures("_patched_data_writing")
-def test_load_component():
+def test_load_component(tmp_path_factory):
     # Mock CLI arguments load
-    sys.argv = [
-        "",
-        "--metadata",
-        json.dumps({"base_path": "/bucket", "run_id": "12345"}),
-        "--flag",
-        "success",
-        "--value",
-        "1",
-        "--output_manifest_path",
-        str(components_path / "output_manifest.json"),
-        "--component_spec",
-        yaml_file_to_json_string(components_path / "component.yaml"),
-    ]
+    with tmp_path_factory.mktemp("temp") as fn:
+        base_path = str(fn)
 
-    class MyLoadComponent(DaskLoadComponent):
-        def __init__(self, *args, flag, value):
-            self.flag = flag
-            self.value = value
+        class MyLoadComponent(DaskLoadComponent):
+            def __init__(self, *args, flag, value):
+                self.flag = flag
+                self.value = value
 
-        def load(self):
-            assert self.flag == "success"
-            assert self.value == 1
-            data = {
-                "id": [0, 1],
-                "captions_data": ["hello world", "this is another caption"],
-            }
-            return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
+            def load(self):
+                assert self.flag == "success"
+                assert self.value == 1
+                data = {
+                    "embeddings_data": [[0.1, 0.2], [0.1, 0.3]],
+                }
+                return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
 
-    executor = DaskLoadExecutor.from_args()
-    assert executor.input_partition_rows is None
-    assert executor.output_partition_size is None
-    load = patch_method_class(MyLoadComponent.load)
-    with mock.patch.object(MyLoadComponent, "load", load):
-        executor.execute(MyLoadComponent)
-        load.mock.assert_called_once()
+        for disable_automatic_indexing in ["True", "False"]:
+            sys.argv = [
+                "",
+                "--metadata",
+                json.dumps({"base_path": base_path, "run_id": "12345"}),
+                "--flag",
+                "success",
+                "--value",
+                "1",
+                "--output_manifest_path",
+                f"{base_path}/output_manifest.json",
+                "--component_spec",
+                yaml_file_to_json_string(components_path / "component.yaml"),
+                "--disable_automatic_indexing",
+                disable_automatic_indexing,
+            ]
+
+            executor = DaskLoadExecutor.from_args()
+            assert executor.input_partition_rows is None
+            assert executor.output_partition_size is None
+            load = patch_method_class(MyLoadComponent.load)
+            with mock.patch.object(MyLoadComponent, "load", load):
+                executor.execute(MyLoadComponent)
+                load.mock.assert_called_once()
+
+            # Test that an automatic monotonically increasing index is created when using the
+            # DaskLoadComponent
+            subset_path = Manifest.from_file(
+                executor.output_manifest_path,
+            ).index.location
+            index_list = list(dd.read_parquet(subset_path).compute().index)
+            if ast.literal_eval(disable_automatic_indexing) is True:
+                # Dask default
+                assert index_list == ["0", "1"]
+            else:
+                # Custom index
+                assert index_list == ["1", "2"]
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
