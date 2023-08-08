@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List
+from typing import List, Set
 
 import dask.dataframe as dd
 from urllib.parse import urlparse
@@ -16,12 +16,12 @@ BLACKLIST_DIR = "/tmp/blacklists"
 BLACKLIST_URL = "http://dsi.ut-capitole.fr/blacklists/download/blacklists.tar.gz"
 
 
-def get_blacklisted_domains(blacklist_dir: str, categories: List[str]) -> List[str]:
-    result = []
+def get_blacklisted_domains(blacklist_dir: str, categories: List[str]) -> Set[str]:
+    result = set()
     for category in categories:
         path = os.path.join(blacklist_dir, "blacklists", category, "domains")
         urls = get_urls_from_file(path)
-        result.extend(urls)
+        result.update(urls)
 
     return result
 
