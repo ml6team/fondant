@@ -245,11 +245,11 @@ class KubeFlowCompiler(Compiler):
         self.pipeline = pipeline
         self.pipeline.validate(run_id="{{workflow.name}}")
         logger.info(f"Compiling {self.pipeline.name} to {output_path}")
-        wrapped_pipeline = (self.kfp.dsl.pipeline())(self.kf_pipeline)  # type: ignore
+        wrapped_pipeline = (self.kfp.dsl.pipeline())(self.kfp_pipeline)  # type: ignore
         self.kfp.compiler.Compiler().compile(wrapped_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
 
-    def kf_pipeline(self):
+    def kfp_pipeline(self):
         previous_component_task = None
         manifest_path = ""
         for component_name, component in self.pipeline._graph.items():
@@ -268,19 +268,11 @@ class KubeFlowCompiler(Compiler):
                 {"base_path": self.pipeline.base_path, "run_id": "{{workflow.name}}"},
             )
 
-            if previous_component_task is not None:
-                component_task = kubeflow_component_op(
-                    input_manifest_path=manifest_path,
-                    metadata=metadata,
-                    **component_args,
-                )
-            else:
-                # Add metadata to the first component
-                component_task = kubeflow_component_op(
-                    input_manifest_path=manifest_path,
-                    metadata=metadata,
-                    **component_args,
-                )
+            component_task = kubeflow_component_op(
+                input_manifest_path=manifest_path,
+                metadata=metadata,
+                **component_args,
+            )
             # Set optional configurations
             component_task = self._set_configuration(
                 component_task,

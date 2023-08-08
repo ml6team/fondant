@@ -1,12 +1,12 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: kf-pipeline-
+  generateName: kfp-pipeline-
   annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22, pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00',
-    pipelines.kubeflow.org/pipeline_spec: '{"name": "Kf pipeline"}'}
+    pipelines.kubeflow.org/pipeline_spec: '{"name": "Kfp pipeline"}'}
   labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22}
 spec:
-  entrypoint: kf-pipeline
+  entrypoint: kfp-pipeline
   templates:
   - name: first-component
     container:
@@ -132,7 +132,7 @@ spec:
           "cropping_threshold": "0", "input_partition_rows": "None", "metadata": "{\"base_path\":
           \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "output_partition_size":
           "None", "padding": "0"}'}
-  - name: kf-pipeline
+  - name: kfp-pipeline
     dag:
       tasks:
       - {name: first-component, template: first-component}
