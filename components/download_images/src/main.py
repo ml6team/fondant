@@ -89,7 +89,7 @@ def download_image_with_retry(
 def download_image_with_retry_partition(dataframe, timeout, retries, resizer):
     # process a single partition
     # TODO make column name more flexible
-    data = dataframe.image_url.apply(lambda x:
+    data = dataframe.images_url.apply(lambda x:
         download_image_with_retry(
             url=x, timeout=timeout, retries=retries, resizer=resizer,
         ),
@@ -164,9 +164,9 @@ class DownloadImagesComponent(DaskTransformComponent):
 
         # rename new columns to be conform the spec
         logger.info("Renaming columns...")
-        dataframe = dataframe.rename(columns={"data": "image_data",
-                                              "width": "image_width",
-                                              "height":"image_height"})
+        dataframe = dataframe.rename(columns={"data": "images_data",
+                                              "width": "images_width",
+                                              "height":"images_height"})
 
         # Remove images that could not be fetched
         logger.info("Dropping invalid rows...")

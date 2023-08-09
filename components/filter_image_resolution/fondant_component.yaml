@@ -3,7 +3,7 @@ description: Component that filters images based on minimum size and max aspect 
 image: ghcr.io/ml6team/filter_image_resolution:dev
 
 consumes:
-  image:
+  images:
     fields:
       width:
         type: int32
