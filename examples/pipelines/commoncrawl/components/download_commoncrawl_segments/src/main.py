@@ -105,30 +105,33 @@ class DownloadCommoncrawlSegments(DaskTransformComponent):
         Returns:
             A Dask DataFrame containing the downloaded webpages.
         """
-        segment_paths = dataframe["segment_path"].to_bag()
 
-        records = segment_paths.map(
-            get_records_from_warc_file,
-            use_s3=self.use_s3,
-            get_plain_text=self.get_plain_text,
-            n_records_to_download=self.n_records_to_download,
-            retries=self.retries,
-            backoff_factor=self.backoff_factor,
+        dataframe = (
+            dataframe.apply(
+                lambda row: get_records_from_warc_file(
+                    row["segment_path"],
+                    self.use_s3,
+                    self.get_plain_text,
+                    self.n_records_to_download,
+                    self.retries,
+                    self.backoff_factor,
+                ),
+                axis=1,
+                meta=("object"),
+            )
+            .explode()
+            .apply(pd.Series, meta={0: "object", 1: "object"})
         )
 
-        flattened_records = records.flatten()
-        meta = {"url": "object", "content": "object"}
+        dataframe.columns = [
+            "webpage_url",
+            "webpage_html",
+        ]
 
-        dask_df = flattened_records.to_dataframe(
-            meta=meta,
-        )
-        dask_df = dask_df.rename(
-            columns={"url": "webpage_url", "content": "webpage_html"}
-        )
+        dataframe = dataframe.reset_index(drop=True)
 
-        logger.info(f"Downloaded {len(dask_df)} webpages from Commoncrawl.")
-
-        return dask_df
+        logger.info(f"Downloaded {len(dataframe)} webpages from Commoncrawl.")
+        return dataframe
 
 
 if __name__ == "__main__":
