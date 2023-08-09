@@ -130,7 +130,6 @@ class DownloadCommoncrawlSegments(DaskTransformComponent):
 
         dataframe = dataframe.reset_index(drop=True)
 
-        logger.info(f"Downloaded {len(dataframe)} webpages from Commoncrawl.")
         return dataframe
 
 
