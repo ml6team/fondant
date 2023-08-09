@@ -99,8 +99,15 @@ class ComponentSpec:
         specification: The fondant component specification as a Python dict
     """
 
-    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
+    def __init__(
+        self,
+        specification: t.Dict[str, t.Any],
+        *,
+        specification_mapping_dict: t.Optional[t.Dict[str, str]] = None,
+    ) -> None:
         self._specification = copy.deepcopy(specification)
+        if specification_mapping_dict:
+            self._specification = self._remap_specification(specification_mapping_dict)
         self._validate_spec()
 
     def _validate_spec(self) -> None:
@@ -133,18 +140,23 @@ class ComponentSpec:
             raise InvalidComponentSpec.create_from(e)
 
     @classmethod
-    def from_file(cls, path: t.Union[str, Path]) -> "ComponentSpec":
+    def from_file(
+        cls,
+        path: t.Union[str, Path],
+        specification_mapping_dict: t.Optional[t.Dict[str, str]] = None,
+    ) -> "ComponentSpec":
         """Load the component spec from the file specified by the provided path."""
         with open(path, encoding="utf-8") as file_:
             specification = yaml.safe_load(file_)
-            return cls(specification)
+            return cls(
+                specification,
+                specification_mapping_dict=specification_mapping_dict,
+            )
 
-    @classmethod
-    def remap_subsets(
-        cls,
-        component_spec: "ComponentSpec",
+    def _remap_specification(
+        self,
         remapping_dict: t.Dict[str, str],
-    ) -> "ComponentSpec":
+    ) -> t.Dict[str, t.Any]:
         """Function that remaps the fields and subsets of a component spec based on a remapping
         dict.
         """
@@ -159,11 +171,11 @@ class ComponentSpec:
                 except KeyError:
                     msg = (
                         f"`{source_field}` field does not exist in `{source_subset}` "
-                        f"subset of the Component spec: \n {component_spec.__repr__()}"
+                        f"subset of the Component spec: \n {self._specification}"
                     )
                     raise InvalidComponentSpec(msg)
 
-        modified_specification = copy.deepcopy(component_spec._specification)
+        modified_specification = copy.deepcopy(self._specification)
 
         for source_value, mapped_value in remapping_dict.items():
             source_subset, source_field = source_value.rsplit("_")
@@ -175,7 +187,7 @@ class ComponentSpec:
             ):
                 msg = (
                     f"`{source_subset}`does not exist in `{source_subset}` in the Component spec:"
-                    f" \n {component_spec.__repr__()}"
+                    f" \n {self._specification}"
                 )
                 raise InvalidComponentSpec(msg)
 
@@ -183,7 +195,7 @@ class ComponentSpec:
             replace_subsets(modified_specification["consumes"])
             replace_subsets(modified_specification["produces"])
 
-        return cls(modified_specification)
+        return modified_specification
 
     def to_file(self, path) -> None:
         """Dump the component spec to the file specified by the provided path."""

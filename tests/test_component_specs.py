@@ -10,7 +10,7 @@ from fondant.component_spec import ComponentSpec, ComponentSubset, KubeflowCompo
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Type
 
-component_specs_path = Path(__file__).parent / "example_specs/component_specs"
+component_specs_path = Path("example_specs/component_specs")
 
 
 @pytest.fixture()
@@ -102,9 +102,9 @@ def test_component_spec_mapping(valid_fondant_schema):
     """Test that the component spec subset mapping method."""
     valid_remapping_dict = {"images_data": "pictures_array"}
     original_component_spec = ComponentSpec(valid_fondant_schema)
-    mapped_component_spec = ComponentSpec.remap_subsets(
-        original_component_spec,
-        valid_remapping_dict,
+    mapped_component_spec = ComponentSpec(
+        valid_fondant_schema,
+        specification_mapping_dict=valid_remapping_dict,
     )
 
     assert (
@@ -119,7 +119,10 @@ def test_component_spec_mapping(valid_fondant_schema):
 
     for invalid_remapping_dict in invalid_remapping_dicts:
         with pytest.raises(InvalidComponentSpec):
-            ComponentSpec.remap_subsets(original_component_spec, invalid_remapping_dict)
+            ComponentSpec(
+                valid_fondant_schema,
+                specification_mapping_dict=invalid_remapping_dict,
+            )
 
 
 def test_kubeflow_component_spec_to_file(valid_kubeflow_schema):
