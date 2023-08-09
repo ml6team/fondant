@@ -15,6 +15,8 @@ services:
     - disable
     - --output_partition_size
     - disable
+    - --input_remapping_dict
+    - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -37,6 +39,8 @@ services:
     - '10'
     - --output_partition_size
     - 30MB
+    - --input_remapping_dict
+    - None
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -65,6 +69,8 @@ services:
     - --input_partition_rows
     - None
     - --output_partition_size
+    - None
+    - --input_remapping_dict
     - None
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",

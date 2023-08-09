@@ -157,6 +157,12 @@ class Field(t.NamedTuple):
     type: Type
 
 
+def validate_remapping_dict(arg_value):
+    if arg_value in [None, "None"]:
+        return arg_value if arg_value != "None" else None
+    return None
+
+
 def validate_partition_number(arg_value):
     if arg_value in ["disable", None, "None"]:
         return arg_value if arg_value != "None" else None

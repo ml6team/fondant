@@ -6,6 +6,7 @@ components take care of processing, filtering and extending the data.
 """
 
 import argparse
+import inspect
 import json
 import logging
 import typing as t
@@ -43,6 +44,7 @@ class Executor(t.Generic[Component]):
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         output_partition_size: t.Optional[str] = None,
+        input_remapping_dict: t.Optional[t.Dict[str, str]] = None,
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
@@ -51,6 +53,7 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
         self.output_partition_size = output_partition_size
+        self.input_remapping_dict = input_remapping_dict
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -59,6 +62,7 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--component_spec", type=json.loads)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
         parser.add_argument("--output_partition_size", type=validate_partition_size)
+
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -66,43 +70,39 @@ class Executor(t.Generic[Component]):
             raise ValueError(msg)
 
         component_spec = ComponentSpec(args.component_spec)
-        input_partition_rows = args.input_partition_rows
-        output_partition_size = args.output_partition_size
 
         return cls.from_spec(
             component_spec,
-            input_partition_rows,
-            output_partition_size,
+            input_partition_rows=args.input_partition_rows,
+            output_partition_size=args.output_partition_size,
         )
 
     @classmethod
     def from_spec(
         cls,
         component_spec: ComponentSpec,
+        *,
         input_partition_rows: t.Optional[t.Union[str, int]],
         output_partition_size: t.Optional[str],
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
-
-        if "component_spec" in args_dict:
-            args_dict.pop("component_spec")
-
-        if "input_partition_rows" in args_dict:
-            args_dict.pop("input_partition_rows")
-
-        if "output_partition_size" in args_dict:
-            args_dict.pop("output_partition_size")
+        args_to_pop = inspect.signature(cls.from_spec).parameters
+        args_dict = {
+            key: value for key, value in args_dict.items() if key not in args_to_pop
+        }
 
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
         metadata = json.loads(metadata) if metadata else {}
+        input_remapping_dict = args_dict.pop("input_remapping_dict")
 
         return cls(
             component_spec,
             input_manifest_path=input_manifest_path,
             output_manifest_path=output_manifest_path,
+            input_remapping_dict=input_remapping_dict,
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,

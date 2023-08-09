@@ -98,6 +98,30 @@ def test_component_spec_to_file(valid_fondant_schema):
         assert written_data == valid_fondant_schema
 
 
+def test_component_spec_mapping(valid_fondant_schema):
+    """Test that the component spec subset mapping method."""
+    valid_remapping_dict = {"images_data": "pictures_array"}
+    original_component_spec = ComponentSpec(valid_fondant_schema)
+    mapped_component_spec = ComponentSpec.remap_subsets(
+        original_component_spec,
+        valid_remapping_dict,
+    )
+
+    assert (
+        original_component_spec.consumes["images"].fields["data"].type
+        == mapped_component_spec.consumes["pictures"].fields["array"].type
+    )
+
+    invalid_remapping_dicts = [
+        {"non+existing+subset_data": "pictures_array"},
+        {"images_non+existing+field": "pictures_array"},
+    ]
+
+    for invalid_remapping_dict in invalid_remapping_dicts:
+        with pytest.raises(InvalidComponentSpec):
+            ComponentSpec.remap_subsets(original_component_spec, invalid_remapping_dict)
+
+
 def test_kubeflow_component_spec_to_file(valid_kubeflow_schema):
     """Test that the KubeflowComponentSpec can be written to a file."""
     kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)

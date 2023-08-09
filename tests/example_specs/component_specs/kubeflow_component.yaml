@@ -1,36 +1,6 @@
-name: Example component
 description: This is an example component
-inputs:
--   name: input_manifest_path
-    description: Path to the input manifest
-    type: String
--   name: metadata
-    description: Metadata arguments containing the run id and base path
-    type: String
--   name: component_spec
-    description: The component specification as a dictionary
-    type: JsonObject
-    default: None
--   name: input_partition_rows
-    description: The number of rows to load per partition. Set to override the automatic
-        partitioning
-    type: String
-    default: None
--   name: output_partition_size
-    description: The size of the output partition size, defaults to 250MB. Set to
-        `disable` to disable the automatic partitioning
-    type: String
-    default: None
--   name: storage_args
-    description: Storage arguments
-    type: String
-outputs:
--   name: output_manifest_path
-    description: Path to the output manifest
-    type: String
 implementation:
     container:
-        image: example_component:latest
         command:
         - python3
         - main.py
@@ -44,7 +14,44 @@ implementation:
         -   inputValue: input_partition_rows
         - --output_partition_size
         -   inputValue: output_partition_size
+        - --input_remapping_dict
+        -   inputValue: input_remapping_dict
         - --storage_args
         -   inputValue: storage_args
         - --output_manifest_path
         -   outputPath: output_manifest_path
+        image: example_component:latest
+inputs:
+-   description: Path to the input manifest
+    name: input_manifest_path
+    type: String
+-   description: Metadata arguments containing the run id and base path
+    name: metadata
+    type: String
+-   default: None
+    description: The component specification as a dictionary
+    name: component_spec
+    type: JsonObject
+-   default: None
+    description: The number of rows to load per partition. Set to override the automatic
+        partitioning
+    name: input_partition_rows
+    type: String
+-   default: None
+    description: The size of the output partition size, defaults to 250MB. Set to
+        `disable` to disable the automatic partitioning
+    name: output_partition_size
+    type: String
+-   default: None
+    description: A dictionary that maps the column names of the consumed dataset to
+        other column names
+    name: input_remapping_dict
+    type: JsonObject
+-   description: Storage arguments
+    name: storage_args
+    type: String
+name: Example component
+outputs:
+-   description: Path to the output manifest
+    name: output_manifest_path
+    type: String

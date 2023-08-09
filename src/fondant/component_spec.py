@@ -139,6 +139,52 @@ class ComponentSpec:
             specification = yaml.safe_load(file_)
             return cls(specification)
 
+    @classmethod
+    def remap_subsets(
+        cls,
+        component_spec: "ComponentSpec",
+        remapping_dict: t.Dict[str, str],
+    ) -> "ComponentSpec":
+        """Function that remaps the fields and subsets of a component spec based on a remapping
+        dict.
+        """
+
+        def replace_subsets(subset_dict):
+            if source_subset in subset_dict:
+                subset_dict[mapped_subset] = subset_dict.pop(source_subset)
+                try:
+                    subset_dict[mapped_subset]["fields"][mapped_field] = subset_dict[
+                        mapped_subset
+                    ]["fields"].pop(source_field)
+                except KeyError:
+                    msg = (
+                        f"`{source_field}` field does not exist in `{source_subset}` "
+                        f"subset of the Component spec: \n {component_spec.__repr__()}"
+                    )
+                    raise InvalidComponentSpec(msg)
+
+        modified_specification = copy.deepcopy(component_spec._specification)
+
+        for source_value, mapped_value in remapping_dict.items():
+            source_subset, source_field = source_value.rsplit("_")
+            mapped_subset, mapped_field = mapped_value.rsplit("_")
+
+            if (
+                source_subset not in modified_specification["consumes"]
+                and source_subset not in modified_specification["produces"]
+            ):
+                msg = (
+                    f"`{source_subset}`does not exist in `{source_subset}` in the Component spec:"
+                    f" \n {component_spec.__repr__()}"
+                )
+                raise InvalidComponentSpec(msg)
+
+            # map both consumed and produced fields for now
+            replace_subsets(modified_specification["consumes"])
+            replace_subsets(modified_specification["produces"])
+
+        return cls(modified_specification)
+
     def to_file(self, path) -> None:
         """Dump the component spec to the file specified by the provided path."""
         with open(path, "w", encoding="utf-8") as file_:
@@ -270,6 +316,13 @@ class KubeflowComponentSpec:
                     "type": "String",
                     "default": "None",
                 },
+                {
+                    "name": "input_remapping_dict",
+                    "description": "A dictionary that maps the column names of the consumed"
+                    " dataset to other column names",
+                    "type": "JsonObject",
+                    "default": "None",
+                },
                 *(
                     {
                         "name": arg.name,
@@ -303,6 +356,8 @@ class KubeflowComponentSpec:
                         {"inputValue": "input_partition_rows"},
                         "--output_partition_size",
                         {"inputValue": "output_partition_size"},
+                        "--input_remapping_dict",
+                        {"inputValue": "input_remapping_dict"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},

@@ -36,6 +36,8 @@ services:
     - None
     - --output_partition_size
     - None
+    - --input_remapping_dict
+    - None
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
       borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
