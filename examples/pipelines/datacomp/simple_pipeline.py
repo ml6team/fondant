@@ -56,6 +56,7 @@ filter_complexity_op = ComponentOp(
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
+    output_partition_size="disable",
 )
 
 # add ops to pipeline
