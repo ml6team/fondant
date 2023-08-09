@@ -10,7 +10,7 @@ from fondant.component_spec import ComponentSpec, ComponentSubset, KubeflowCompo
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Type
 
-component_specs_path = Path("example_specs/component_specs")
+component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 
 
 @pytest.fixture()
