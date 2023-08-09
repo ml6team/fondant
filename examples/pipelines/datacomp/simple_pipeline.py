@@ -27,6 +27,7 @@ load_component_column_mapping = {
     "face_bboxes": "images_face_bboxes",
     "sha256": "images_sha256",
     "text": "text_data",
+    "uid": "image_text_uid",
     "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
     "clip_l14_similarity_score": "image_text_clip_l14_similarity_score",
 }

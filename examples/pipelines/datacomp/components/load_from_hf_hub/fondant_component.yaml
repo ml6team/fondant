@@ -27,6 +27,8 @@ produces:
   
   image_text:
     fields:
+      uid: 
+        type: string
       clip_b32_similarity_score:
         type: float32
       clip_l14_similarity_score:
