@@ -21,12 +21,11 @@ client = Client(host=PipelineConfigs.HOST)
 
 # define ops
 load_component_column_mapping = {
-    "url": "image_url",
-    "original_width": "image_width",
-    "original_height": "image_height",
-    "face_bboxes": "image_face_bboxes",
-    "sha256": "image_sha256",
-    "clip_l14_embedding": "image_embedding",
+    "url": "images_url",
+    "original_width": "images_width",
+    "original_height": "images_height",
+    "face_bboxes": "images_face_bboxes",
+    "sha256": "images_sha256",
     "text": "text_data",
     "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
     "clip_l14_similarity_score": "image_text_clip_l14_similarity_score",
@@ -38,10 +37,14 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-embeddings",
         "column_name_mapping": load_component_column_mapping,
     },
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool",
 )
 filter_image_resolution_op = ComponentOp.from_registry(
     name="filter_image_resolution",
     arguments={"min_image_dim": 200, "max_aspect_ratio": 3},
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool",
 )
 filter_complexity_op = ComponentOp(
     component_dir="components/filter_text_complexity",
@@ -51,6 +54,8 @@ filter_complexity_op = ComponentOp(
         "min_complexity": 1,
         "min_num_actions": 0,
     },
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool",
 )
 
 # add ops to pipeline
