@@ -58,15 +58,19 @@ class FilterTextComplexity(PandasTransformComponent):
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         texts = dataframe["text"]["data"]
 
+        logger.info("Creating SpaCy docs...")
         docs = list(self.nlp.pipe(texts, batch_size=self.batch_size))
         docs = pd.Series(docs)
 
+        logger.info("Calculating text complexity...")
         caption_complexity = docs.apply(lambda doc: get_text_complexity(doc))
-        num_actions = docs.apply(lambda doc: get_num_actions(doc))
+        # num_actions = docs.apply(lambda doc: get_num_actions(doc))
 
-        mask = (caption_complexity >= self.min_complexity) & (
-            num_actions >= self.min_num_actions
-        )
+        mask = caption_complexity >= self.min_complexity
+        # & (
+        #     num_actions >= self.min_num_actions
+        # )
+
         mask = mask.to_numpy()
 
         return dataframe[mask]
