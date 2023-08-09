@@ -134,7 +134,7 @@ class DaskDataLoader(DataIO):
                 subset_df,
                 left_index=True,
                 right_index=True,
-                how="left",
+                how="inner",
             )
 
         dataframe = self.partition_loaded_dataframe(dataframe)

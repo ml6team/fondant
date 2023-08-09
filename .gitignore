@@ -87,3 +87,6 @@ MANIFEST
 
 # docker artifacts
 examples/pipelines/**/docker-compose.yml
+
+# yaml-e files
+*.yaml-e
