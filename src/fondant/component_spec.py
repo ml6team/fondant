@@ -329,9 +329,9 @@ class KubeflowComponentSpec:
                     "default": "None",
                 },
                 {
-                    "name": "input_remapping_dict",
+                    "name": "df_to_spec_mapping",
                     "description": "A dictionary that maps the column names of the consumed"
-                    " dataset to other column names",
+                    " dataset to other column names that match a given component specification",
                     "type": "JsonObject",
                     "default": "None",
                 },
@@ -368,8 +368,8 @@ class KubeflowComponentSpec:
                         {"inputValue": "input_partition_rows"},
                         "--output_partition_size",
                         {"inputValue": "output_partition_size"},
-                        "--input_remapping_dict",
-                        {"inputValue": "input_remapping_dict"},
+                        "--df_to_spec_mapping",
+                        {"inputValue": "df_to_spec_mapping"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},

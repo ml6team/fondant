@@ -44,7 +44,7 @@ class Executor(t.Generic[Component]):
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         output_partition_size: t.Optional[str] = None,
-        input_remapping_dict: t.Optional[t.Dict[str, str]] = None,
+        column_mapping_dict: t.Optional[t.Dict[str, str]] = None,
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
@@ -53,7 +53,7 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
         self.output_partition_size = output_partition_size
-        self.input_remapping_dict = input_remapping_dict
+        self.column_mapping_dict = column_mapping_dict
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -96,13 +96,13 @@ class Executor(t.Generic[Component]):
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
         metadata = json.loads(metadata) if metadata else {}
-        input_remapping_dict = args_dict.pop("input_remapping_dict")
+        column_mapping_dict = args_dict.pop("column_mapping_dict")
 
         return cls(
             component_spec,
             input_manifest_path=input_manifest_path,
             output_manifest_path=output_manifest_path,
-            input_remapping_dict=input_remapping_dict,
+            column_mapping_dict=column_mapping_dict,
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
