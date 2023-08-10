@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    base_path=PipelineConfigs.BASE_PATH,
+    # base_path=PipelineConfigs.BASE_PATH,
+    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -27,6 +28,7 @@ load_component_column_mapping = {
     "face_bboxes": "images_face_bboxes",
     "sha256": "images_sha256",
     "text": "text_data",
+    "uid": "image_text_uid",
     "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
     "clip_l14_similarity_score": "image_text_clip_l14_similarity_score",
 }
@@ -36,6 +38,7 @@ load_from_hub_op = ComponentOp(
     arguments={
         "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
+        "n_rows_to_load": 100,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",

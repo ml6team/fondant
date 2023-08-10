@@ -146,6 +146,10 @@ class DownloadImagesComponent(DaskTransformComponent):
         logger.info(f"Length of the dataframe: {len(dataframe)}")
         logger.info("Downloading images...")
 
+        # drop width and height columns, as those are going to be
+        # added later on
+        dataframe = dataframe.drop(columns=['images_width', 'images_height'])
+
         # create meta
         # needs to be a dictionary with keys = column names, values = dtypes of columns
         # for each column in the output
@@ -171,6 +175,8 @@ class DownloadImagesComponent(DaskTransformComponent):
         # Remove images that could not be fetched
         logger.info("Dropping invalid rows...")
         dataframe = dataframe.dropna()
+
+        print("Columns of final dataframe:", dataframe.columns)
 
         return dataframe
 
