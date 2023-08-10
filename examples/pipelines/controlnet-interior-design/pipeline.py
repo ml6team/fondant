@@ -47,7 +47,6 @@ caption_images_op = ComponentOp.from_registry(
         "max_new_tokens": 50,
     },
     number_of_gpus=1,
-    node_pool_name="model-inference-pool",
 )
 segment_images_op = ComponentOp.from_registry(
     name="segment_images",
@@ -56,7 +55,6 @@ segment_images_op = ComponentOp.from_registry(
         "batch_size": 2,
     },
     number_of_gpus=1,
-    node_pool_name="model-inference-pool",
 )
 
 write_to_hub_controlnet = ComponentOp(
