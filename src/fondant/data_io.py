@@ -24,9 +24,11 @@ class DaskDataLoader(DataIO):
         manifest: Manifest,
         component_spec: ComponentSpec,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
+        df_to_spec_mapping: t.Optional[t.Dict[str, str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows
+        self.spec_to_df_mapping = df_to_spec_mapping
 
     def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
@@ -151,10 +153,12 @@ class DaskDataWriter(DataIO):
         manifest: Manifest,
         component_spec: ComponentSpec,
         output_partition_size: t.Optional[t.Union[str]] = None,
+        spec_to_df_mapping: t.Optional[t.Dict[str, str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
 
         self.output_partition_size = output_partition_size
+        self.spec_to_df_mapping = spec_to_df_mapping
 
     def partition_written_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
