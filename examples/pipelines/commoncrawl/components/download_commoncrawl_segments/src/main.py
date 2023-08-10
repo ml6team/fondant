@@ -1,10 +1,10 @@
-import os
 import logging
 from typing import List, Optional
 
+import boto3
 import dask.dataframe as dd
-import dask.delayed as delayed
 import pandas as pd
+from trafilatura.settings import use_config
 
 import gzip
 from warcio.archiveiterator import ArchiveIterator
@@ -27,6 +27,9 @@ def get_records(file, get_plain_text, n_records_to_download) -> List[List[str]]:
     Returns:
         A list of webpage records, where each record is a url and content.
     """
+    trafilatura_config = use_config()
+    trafilatura_config.set("DEFAULT", "EXTRACTION_TIMEOUT", "0")
+
     records = []
     counter = 0
 
@@ -35,8 +38,9 @@ def get_records(file, get_plain_text, n_records_to_download) -> List[List[str]]:
             url = record.rec_headers.get_header("WARC-Target-URI")
             content = record.content_stream().read().decode("utf-8", "replace")
             if get_plain_text:
-                content = convert_to_plain_text(content)
-            records.append([url, content])
+                content = convert_to_plain_text(content, trafilatura_config)
+            if content:
+                records.append([url, content])
             counter += 1
 
         if n_records_to_download and counter >= n_records_to_download:
@@ -52,6 +56,7 @@ def get_records_from_warc_file(
     n_records_to_download: Optional[int] = None,
     retries: Optional[int] = None,
     backoff_factor: Optional[int] = None,
+    s3_session=None,
 ) -> List[List[str]]:
     """Downloads a WARC file and extracts the webpages.
     Args:
@@ -65,7 +70,7 @@ def get_records_from_warc_file(
     logger.info(f"Processing WARC file from segment path: {warc_file}...")
 
     if use_s3:
-        response = get_warc_file_using_boto3(warc_file)
+        response = get_warc_file_using_boto3(warc_file, s3_session)
         with gzip.GzipFile(fileobj=response, mode="rb") as file:
             return get_records(file, get_plain_text, n_records_to_download)
     else:
@@ -82,18 +87,25 @@ class DownloadCommoncrawlSegments(DaskTransformComponent):
         n_records_to_download: Optional[int] = None,
         retries: Optional[int] = None,
         backoff_factor: Optional[float] = None,
+        target_language: Optional[str] = None,
     ):
         """Downloads Commoncrawl segments based on a list of WARC paths.
         Args:
             use_s3: Whether to download the WARC files from S3 or from the Commoncrawl API.
             get_plain_text: Whether to convert the HTML content to plain text.
             n_records_to_download: The number of webpages to download from each segment.
+            target_language: Limit html extraction to target language based on metadata tags.
         """
         self.use_s3 = use_s3
         self.get_plain_text = get_plain_text
         self.n_records_to_download = n_records_to_download
         self.retries = retries
         self.backoff_factor = backoff_factor
+        self.target_language = target_language
+
+        # initialise s3 session
+        session = boto3.Session()
+        self.s3_client = session.client("s3")
 
     def transform(
         self,

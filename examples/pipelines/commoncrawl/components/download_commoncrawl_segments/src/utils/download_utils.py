@@ -16,21 +16,26 @@ S3_COMMONCRAWL_BUCKET = "commoncrawl"
 COMMONCRAWL_BASE_URL = "https://data.commoncrawl.org/"
 
 
-def get_warc_file_using_boto3(s3_key: str) -> bytes:
+def get_warc_file_using_boto3(s3_key: str, s3_client) -> bytes:
     """Downloads a WARC file using boto3.
     Args:
         warc_file: The path to the WARC file.
     Returns:
         The WARC file as a bytes object.
     """
-    s3 = boto3.client("s3")
-    response = s3.get_object(Bucket=S3_COMMONCRAWL_BUCKET, Key=s3_key)
+    response = s3_client.get_object(Bucket=S3_COMMONCRAWL_BUCKET, Key=s3_key)
     return response["Body"]
 
 
 def get_warc_file_using_requests(
     warc_file: str, retries: int = 3, backoff_factor: int = 5
 ) -> requests.Response:
+    """Downloads a WARC file using http requests.
+    Args:
+        warc_file: The path to the WARC file.
+    Returns:
+        The WARC file as a bytes object.
+    """
     session = Session()
     retry_strategy = Retry(
         total=retries,
