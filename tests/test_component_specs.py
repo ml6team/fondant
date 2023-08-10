@@ -6,8 +6,13 @@ from unittest.mock import patch
 
 import pytest
 import yaml
-from fondant.component_spec import ComponentSpec, ComponentSubset, KubeflowComponentSpec
-from fondant.exceptions import InvalidComponentSpec
+from fondant.component_spec import (
+    ComponentSpec,
+    ComponentSubset,
+    KubeflowComponentSpec,
+    SubsetFieldMapper,
+)
+from fondant.exceptions import InvalidComponentSpec, InvalidSubsetMapping
 from fondant.schema import Type
 
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"
@@ -72,6 +77,45 @@ def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     fondant_component = ComponentSpec(valid_fondant_schema)
     kubeflow_component = fondant_component.kubeflow_specification
     assert kubeflow_component._specification == valid_kubeflow_schema
+
+
+def test_subset_field_mapping():
+    """Test that the subset field mapper returns a valid mapping dictionary."""
+    mapping_dict = {
+        "images_data": "picture_array",
+        "images_size": "picture_area",
+    }
+    mapper = SubsetFieldMapper.create_mapper_from_dict(mapping_dict)
+    expected_mapping = {
+        ("images", "data"): ("picture", "array"),
+        ("images", "size"): ("picture", "area"),
+    }
+    expected_inverse_mapping = {
+        ("picture", "array"): ("images", "data"),
+        ("picture", "area"): ("images", "size"),
+    }
+    assert mapper.mapping == expected_mapping
+    assert mapper.inverse_mapping == expected_inverse_mapping
+
+
+def test_invalid_subset_field_mapping():
+    """Test that the subset field mapper returns a valid error when the mapping dictionary
+    contains mapping between different subsets.
+    """
+    invalid_examples = [
+        {
+            "images_data": "picture_array",
+            "images_size": "images_area",
+        },
+        {
+            "images_data": "picture_array",
+            "photo_size": "picture_area",
+        },
+    ]
+
+    for invalid_example in invalid_examples:
+        with pytest.raises(InvalidSubsetMapping):
+            SubsetFieldMapper.create_mapper_from_dict(invalid_example)
 
 
 def test_component_spec_no_args(valid_fondant_schema_no_args):

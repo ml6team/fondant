@@ -14,7 +14,7 @@ from jsonschema import Draft4Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
-from fondant.exceptions import InvalidComponentSpec
+from fondant.exceptions import InvalidComponentSpec, InvalidSubsetMapping
 from fondant.schema import Field, KubeflowCommandArguments, Type
 
 # TODO: remove after upgrading to kfpv2
@@ -89,6 +89,112 @@ class ComponentSubset:
     @property
     def additional_fields(self) -> bool:
         return self._specification.get("additionalFields", True)
+
+
+class SubsetFieldMapper:
+    """Class that represents a mapping between different subsets and fields."""
+
+    def __init__(self):
+        self.subset_field_mapping = {}
+
+    def add_mapping(
+        self,
+        source_subset_field: t.Tuple[str, str],
+        target_subset_field: t.Tuple[str, str],
+    ) -> None:
+        """
+        Add a mapping from a source subset and field to a target subset and field.
+
+        Args:
+            source_subset_field: The source subset and field as a tuple.
+            target_subset_field: The target subset and field as a tuple.
+        """
+        source_subset, source_field = source_subset_field
+        target_subset, target_field = target_subset_field
+
+        self.check_for_conflicting_mapping(source_subset, target_subset)
+
+        self.subset_field_mapping[source_subset_field] = target_subset_field
+
+    def get_mapping(self, source_subset: str, source_field: str) -> t.Tuple[str, str]:
+        """
+        Retrieve the mapping for the given source subset and field.
+
+        Args:
+            source_subset: The source subset name.
+            source_field: The source field name.
+
+        Returns:
+            The corresponding target subset and field.
+        """
+        return self.subset_field_mapping.get((source_subset, source_field))
+
+    def check_for_conflicting_mapping(
+        self,
+        source_column: str,
+        target_column: str,
+    ) -> None:
+        """
+        Check if the added column is used in any existing mapping with a different source column.
+
+        Args:
+            source_column: The name of the source column to add.
+            target_column: The name of the target column to add.
+        """
+        for mapped_source, mapped_target in self.subset_field_mapping.items():
+            mapped_source_column, mapped_source_field = mapped_source
+            mapped_target_column, mapped_target_field = mapped_target
+            if (
+                source_column == mapped_source_column
+                and target_column != mapped_target_column
+            ):
+                msg = (
+                    f"Conflicting mapping: Source column '{source_column}' is already mapped to"
+                    f" '{mapped_target_column}' cannot map it to '{target_column}'."
+                )
+                raise InvalidSubsetMapping(msg)
+            if (
+                target_column == mapped_target_column
+                and source_column != mapped_source_column
+            ):
+                msg = (
+                    f"Conflicting mapping: target column '{target_column}' "
+                    f"is already mapped to '{mapped_source_column}` cannot map it to"
+                    f" '{source_column}'."
+                )
+                raise InvalidSubsetMapping(msg)
+
+    @property
+    def mapping(self):
+        return self.subset_field_mapping
+
+    @property
+    def inverse_mapping(self):
+        return {v: k for k, v in self.subset_field_mapping.items()}
+
+    @classmethod
+    def create_mapper_from_dict(
+        cls,
+        remapping_dict: t.Dict[str, str],
+    ) -> "SubsetFieldMapper":
+        """
+        Create a SubsetFieldMapper instance from a dictionary containing remapping information.
+
+        Args:
+            remapping_dict: A dictionary containing source subset-field mappings.
+
+        Returns:
+            A new instance of SubsetFieldMapper with the mappings from the remapping_dict.
+        """
+        subset_field_mapper = cls()
+        for source_value, mapped_value in remapping_dict.items():
+            source_subset, source_field = source_value.rsplit("_")
+            mapped_subset, mapped_field = mapped_value.rsplit("_")
+            subset_field_mapper.add_mapping(
+                (source_subset, source_field),
+                (mapped_subset, mapped_field),
+            )
+        return subset_field_mapper
 
 
 class ComponentSpec:
@@ -176,24 +282,27 @@ class ComponentSpec:
                     raise InvalidComponentSpec(msg)
 
         modified_specification = copy.deepcopy(self._specification)
+        spec_to_df_mapper = SubsetFieldMapper().create_mapper_from_dict(
+            remapping_dict,
+        )
 
-        for source_value, mapped_value in remapping_dict.items():
-            source_subset, source_field = source_value.rsplit("_")
-            mapped_subset, mapped_field = mapped_value.rsplit("_")
-
+        for (source_subset, source_field), (
+            mapped_subset,
+            mapped_field,
+        ) in spec_to_df_mapper.mapping.items():
             if (
                 source_subset not in modified_specification["consumes"]
                 and source_subset not in modified_specification["produces"]
             ):
                 msg = (
-                    f"`{source_subset}`does not exist in `{source_subset}` in the Component spec:"
-                    f" \n {self._specification}"
+                    f"`{source_subset}`does not exist in `{source_subset}` in the"
+                    f"Component spec: \n {self._specification}"
                 )
                 raise InvalidComponentSpec(msg)
 
-            # map both consumed and produced fields for now
-            replace_subsets(modified_specification["consumes"])
-            replace_subsets(modified_specification["produces"])
+        # map both consumed and produced fields
+        replace_subsets(modified_specification["consumes"])
+        replace_subsets(modified_specification["produces"])
 
         return modified_specification
 
