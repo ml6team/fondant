@@ -226,7 +226,7 @@ class KubeFlowCompiler(Compiler):
             self.kfp = kfp
         except ImportError:
             msg = """You need to install kfp to use the Kubeflow compiler,\n
-                     you can install it with `pip install --extras kfp`"""
+                     you can install it with `pip install --extras pipelines`"""
             raise ImportError(
                 msg,
             )
