@@ -15,8 +15,7 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    # base_path=PipelineConfigs.BASE_PATH,
-    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    base_path=PipelineConfigs.BASE_PATH,
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -51,10 +50,7 @@ download_images_op = ComponentOp(
         "max_aspect_ratio": float("inf"),
     },
     node_pool_label="node_pool",
-    node_pool_name="default-pool",
-    # node_pool_name="n2-standard-128-pool",
-    # output_partition_size="disable",
-    # input_partition_rows="disable",
+    node_pool_name="n2-standard-128-pool",
     output_partition_size="disable",
 )
 filter_complexity_op = ComponentOp(
@@ -71,8 +67,8 @@ filter_complexity_op = ComponentOp(
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
+pipeline.add_op(filter_complexity_op, dependencies=download_images_op)
 pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
-# pipeline.add_op(filter_complexity_op, dependencies=download_images_op)
 # TODO add more ops
 
 
