@@ -18,6 +18,3 @@ args:
   min_complexity:
     description: Minimum complexity to filter text on.
     type: int
-  min_num_actions:
-    description: Minimum number of actions a text should contain.
-    type: int

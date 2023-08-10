@@ -53,7 +53,6 @@ filter_complexity_op = ComponentOp(
         "spacy_pipeline": "en_core_web_sm",
         "batch_size": 1000,
         "min_complexity": 1,
-        "min_num_actions": 0,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",

@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    # base_path=PipelineConfigs.BASE_PATH,
-    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    base_path=PipelineConfigs.BASE_PATH,
+    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 client = Client(host=PipelineConfigs.HOST)
 
@@ -38,7 +38,7 @@ load_from_hub_op = ComponentOp(
     arguments={
         "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 100,
+        "n_rows_to_load": 10000,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
@@ -47,11 +47,14 @@ download_images_op = ComponentOp(
     component_dir="components/download_images",
     arguments={
         "retries": 2,
-        "min_image_size": 200,
-        "max_aspect_ratio": 3,
+        "min_image_size": 0,
+        "max_aspect_ratio": float("inf"),
     },
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
+    node_pool_name="default-pool",
+    # node_pool_name="n2-standard-128-pool",
+    # output_partition_size="disable",
+    input_partition_rows="disable",
     output_partition_size="disable",
 )
 filter_complexity_op = ComponentOp(
@@ -60,7 +63,6 @@ filter_complexity_op = ComponentOp(
         "spacy_pipeline": "en_core_web_sm",
         "batch_size": 1000,
         "min_complexity": 1,
-        "min_num_actions": 0,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
