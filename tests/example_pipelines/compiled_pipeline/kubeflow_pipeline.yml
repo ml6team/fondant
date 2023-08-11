@@ -1,6 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
+<<<<<<< HEAD
   annotations:
     pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
     pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00'
@@ -13,6 +14,15 @@ spec:
     parameters: []
   entrypoint: kfp-pipeline
   serviceAccountName: pipeline-runner
+=======
+  generateName: test-pipeline-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22, pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00',
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "description of the test
+      pipeline", "name": "test_pipeline"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22}
+spec:
+  entrypoint: test-pipeline
+>>>>>>> 98945133 (Implement kfp runner with tests)
   templates:
   - container:
       args: []
@@ -68,6 +78,7 @@ spec:
           "description": "The component specification as a dictionary", "name": "component_spec",
           "type": "JsonObject"}, {"default": "None", "description": "The number of
           rows to load per partition. Set to override the automatic partitioning",
+<<<<<<< HEAD
           "name": "input_partition_rows", "type": "String"}, {"description": "Storage
           arguments", "name": "storage_args", "type": "String"}], "name": "First component",
           "outputs": [{"description": "Path to the output manifest", "name": "output_manifest_path",
@@ -84,6 +95,28 @@ spec:
       - name: first-component-output_manifest_path
         path: /tmp/outputs/output_manifest_path/data
   - dag:
+=======
+          "name": "input_partition_rows", "type": "String"}, {"default": "None", "description":
+          "The size of the output partition size, defaults to 250MB. Set to `disable`
+          to disable the automatic partitioning", "name": "output_partition_size",
+          "type": "String"}, {"description": "Storage arguments", "name": "storage_args",
+          "type": "String"}], "name": "First component", "outputs": [{"description":
+          "Path to the output manifest", "name": "output_manifest_path", "type": "String"}]}',
+        pipelines.kubeflow.org/component_ref: '{"digest": "561ddfe38aa8378f4ea92b26ef6bdeb53b1e9b2fc3c0908800738c304fdca30a"}',
+        pipelines.kubeflow.org/arguments.parameters: '{"component_spec": "{\"args\":
+          {\"storage_args\": {\"description\": \"Storage arguments\", \"type\": \"str\"}},
+          \"description\": \"This is an example component\", \"image\": \"example_component:latest\",
+          \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
+          {\"data\": {\"type\": \"string\"}}}, \"images\": {\"fields\": {\"data\":
+          {\"type\": \"binary\"}}}}}", "input_partition_rows": "None", "metadata":
+          "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "output_partition_size":
+          "None", "storage_args": "a dummy string arg"}'}
+    volumes:
+    - emptyDir: {}
+      name: mypvc
+  - name: test-pipeline
+    dag:
+>>>>>>> 98945133 (Implement kfp runner with tests)
       tasks:
       - name: first-component
         template: first-component

@@ -1,6 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
+<<<<<<< HEAD
   annotations:
     pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
     pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00'
@@ -13,6 +14,15 @@ spec:
     parameters: []
   entrypoint: kfp-pipeline
   serviceAccountName: pipeline-runner
+=======
+  generateName: test-pipeline-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22, pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00',
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "description of the test
+      pipeline", "name": "test_pipeline"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22}
+spec:
+  entrypoint: test-pipeline
+>>>>>>> 98945133 (Implement kfp runner with tests)
   templates:
   - container:
       args: []
@@ -126,6 +136,7 @@ spec:
           \"produces\": {\"images\": {\"fields\": {\"data\": {\"type\": \"binary\"},
           \"height\": {\"type\": \"int32\"}, \"width\": {\"type\": \"int32\"}}}}}",
           "cropping_threshold": "0", "input_partition_rows": "None", "metadata": "{\"base_path\":
+<<<<<<< HEAD
           \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "padding": "0"}'
         pipelines.kubeflow.org/component_ref: '{"digest": "e86f02b6b9cc878b6187e44bb3caf9291c3ce42c1939e19b0a97dacdc78a9d72"}'
         pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
@@ -160,6 +171,12 @@ spec:
       - name: image-cropping-output_manifest_path
         path: /tmp/outputs/output_manifest_path/data
   - dag:
+=======
+          \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "output_partition_size":
+          "None", "padding": "0"}'}
+  - name: test-pipeline
+    dag:
+>>>>>>> 98945133 (Implement kfp runner with tests)
       tasks:
       - name: first-component
         template: first-component

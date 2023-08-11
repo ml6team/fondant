@@ -1,6 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
+<<<<<<< HEAD
   annotations:
     pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
     pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00'
@@ -13,6 +14,15 @@ spec:
     parameters: []
   entrypoint: kfp-pipeline
   serviceAccountName: pipeline-runner
+=======
+  generateName: test-pipeline-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22, pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00',
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "description of the test
+      pipeline", "name": "test_pipeline"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22}
+spec:
+  entrypoint: test-pipeline
+>>>>>>> 98945133 (Implement kfp runner with tests)
   templates:
   - container:
       args: []
@@ -49,6 +59,7 @@ spec:
           \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
           {\"data\": {\"type\": \"string\"}}}, \"images\": {\"fields\": {\"data\":
           {\"type\": \"binary\"}}}}}", "input_partition_rows": "disable", "metadata":
+<<<<<<< HEAD
           "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "storage_args":
           "a dummy string arg"}'
         pipelines.kubeflow.org/component_ref: '{"digest": "2a304ce49a15404ba50dfd8b56ec43fa8ac8c29f80579d1c8fb974d3f1a5c87f"}'
@@ -57,6 +68,40 @@ spec:
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
           "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--storage_args",
+=======
+          "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "output_partition_size":
+          "disable", "storage_args": "a dummy string arg"}'}
+  - name: second-component
+    container:
+      args: []
+      command: [python3, main.py, --input_manifest_path, /tmp/inputs/input_manifest_path/data,
+        --metadata, '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}', --component_spec,
+        '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
+          "consumes": {"images": {"fields": {"data": {"type": "binary"}}}}, "description":
+          "This is an example component", "image": "example_component:latest", "name":
+          "Second component", "produces": {"embeddings": {"fields": {"data": {"items":
+          {"type": "float32"}, "type": "array"}}}}}', --input_partition_rows, '10',
+        --output_partition_size, 30MB, --storage_args, a dummy string arg, --output_manifest_path,
+        /tmp/outputs/output_manifest_path/data]
+      image: example_component:latest
+    inputs:
+      artifacts:
+      - {name: first-component-output_manifest_path, path: /tmp/inputs/input_manifest_path/data}
+    outputs:
+      artifacts:
+      - {name: second-component-output_manifest_path, path: /tmp/outputs/output_manifest_path/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "This
+          is an example component", "implementation": {"container": {"command": ["python3",
+          "main.py", "--input_manifest_path", {"inputPath": "input_manifest_path"},
+          "--metadata", {"inputValue": "metadata"}, "--component_spec", {"inputValue":
+          "component_spec"}, "--input_partition_rows", {"inputValue": "input_partition_rows"},
+          "--output_partition_size", {"inputValue": "output_partition_size"}, "--storage_args",
+>>>>>>> 98945133 (Implement kfp runner with tests)
           {"inputValue": "storage_args"}, "--output_manifest_path", {"outputPath":
           "output_manifest_path"}], "image": "example_component:latest"}}, "inputs":
           [{"description": "Path to the input manifest", "name": "input_manifest_path",
@@ -134,6 +179,7 @@ spec:
           \"name\": \"Second component\", \"produces\": {\"embeddings\": {\"fields\":
           {\"data\": {\"items\": {\"type\": \"float32\"}, \"type\": \"array\"}}}}}",
           "input_partition_rows": "10", "metadata": "{\"base_path\": \"/foo/bar\",
+<<<<<<< HEAD
           \"run_id\": \"{{workflow.name}}\"}", "storage_args": "a dummy string arg"}'
         pipelines.kubeflow.org/component_ref: '{"digest": "a02b0189397a2d9318982201f020dbbbe3962427ed150fe58cc69ff508cc68bb"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
@@ -163,6 +209,28 @@ spec:
       - name: second-component-output_manifest_path
         path: /tmp/outputs/output_manifest_path/data
   - container:
+=======
+          \"run_id\": \"{{workflow.name}}\"}", "output_partition_size": "30MB", "storage_args":
+          "a dummy string arg"}'}
+  - name: test-pipeline
+    dag:
+      tasks:
+      - {name: first-component, template: first-component}
+      - name: second-component
+        template: second-component
+        dependencies: [first-component]
+        arguments:
+          artifacts:
+          - {name: first-component-output_manifest_path, from: '{{tasks.first-component.outputs.artifacts.first-component-output_manifest_path}}'}
+      - name: third-component
+        template: third-component
+        dependencies: [second-component]
+        arguments:
+          artifacts:
+          - {name: second-component-output_manifest_path, from: '{{tasks.second-component.outputs.artifacts.second-component-output_manifest_path}}'}
+  - name: third-component
+    container:
+>>>>>>> 98945133 (Implement kfp runner with tests)
       args: []
       command:
       - python3
