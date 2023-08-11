@@ -60,6 +60,29 @@ def test_load_dataframe(manifest, component_spec):
     assert dataframe.index.name == "id"
 
 
+def test_load_dataframe_mapping_dict(manifest, component_spec):
+    """Test merging of subsets in a dataframe based on a component_spec."""
+    remapping_dict = {
+        "properties_Name": "properties_LastName",
+        "properties_HP": "properties_HorsePower",
+    }
+    dl = DaskDataLoader(
+        manifest=manifest,
+        component_spec=component_spec,
+        df_to_spec_mapping=remapping_dict,
+    )
+
+    dataframe = dl.load_dataframe()
+    assert len(dataframe) == NUMBER_OF_TEST_ROWS
+    assert list(dataframe.columns) == [
+        "properties_LastName",
+        "properties_HorsePower",
+        "types_Type 1",
+        "types_Type 2",
+    ]
+    assert dataframe.index.name == "id"
+
+
 def test_load_dataframe_default(manifest, component_spec):
     """Test merging of subsets in a dataframe based on a component_spec."""
     dl = DaskDataLoader(manifest=manifest, component_spec=component_spec)

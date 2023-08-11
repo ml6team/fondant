@@ -5,7 +5,7 @@ import typing as t
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
-from fondant.component_spec import ComponentSpec, ComponentSubset
+from fondant.component_spec import ComponentSpec, ComponentSubset, SubsetFieldMapper
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
@@ -94,10 +94,26 @@ class DaskDataLoader(DataIO):
 
         subset_df = dd.read_parquet(remote_path, columns=fields)
 
-        # add subset prefix to columns
-        subset_df = subset_df.rename(
-            columns={col: subset_name + "_" + col for col in subset_df.columns},
-        )
+        # Define the default column renaming scheme
+        column_rename_dict = {col: f"{subset_name}_{col}" for col in subset_df.columns}
+
+        # Create a mapper if mapping configuration is provided
+        if self.spec_to_df_mapping:
+            spec_to_df_mapper = SubsetFieldMapper.create_mapper_from_dict(
+                self.spec_to_df_mapping,
+            )
+
+            # Update the column renaming scheme based on the mapper
+            for col in subset_df.columns:
+                mapped_subset_col = spec_to_df_mapper.get_mapping(
+                    source_subset=subset_name,
+                    source_field=col,
+                )
+                if mapped_subset_col:
+                    mapped_subset, mapped_col = mapped_subset_col
+                    column_rename_dict[col] = f"{mapped_subset}_{mapped_col}"
+
+        subset_df = subset_df.rename(columns=column_rename_dict)
 
         return subset_df
 

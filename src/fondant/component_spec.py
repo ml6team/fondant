@@ -116,7 +116,11 @@ class SubsetFieldMapper:
 
         self.subset_field_mapping[source_subset_field] = target_subset_field
 
-    def get_mapping(self, source_subset: str, source_field: str) -> t.Tuple[str, str]:
+    def get_mapping(
+        self,
+        source_subset: str,
+        source_field: str,
+    ) -> t.Union[t.Tuple[str, str], None]:
         """
         Retrieve the mapping for the given source subset and field.
 
