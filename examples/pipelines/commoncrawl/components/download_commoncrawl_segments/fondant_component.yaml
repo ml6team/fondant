@@ -37,3 +37,7 @@ args:
     description: Backoff factor when retrying to download the commoncrawl segment file. Only used when use_s3 is set to False.
     type: float
     default: 5
+  target_language:
+    description: Limit html extraction to target language based on metadata tags.
+    type: str
+    default: None
