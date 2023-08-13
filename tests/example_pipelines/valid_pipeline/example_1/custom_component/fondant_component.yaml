@@ -1,0 +1,19 @@
+name: Custom component
+description: This is an example component
+image: custom_component:latest
+
+consumes:
+  pictures:
+    fields:
+      array:
+        type: binary
+
+  text:
+    fields:
+      english:
+        type: string
+
+args:
+  storage_args:
+    description: Storage arguments
+    type: str

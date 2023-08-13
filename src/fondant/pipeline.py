@@ -18,7 +18,7 @@ from fondant.manifest import Manifest
 from fondant.schema import (
     validate_partition_number,
     validate_partition_size,
-    validate_remapping_dict,
+    validate_spec_mapping,
 )
 
 if is_kfp_available():
@@ -44,7 +44,7 @@ class ComponentOp:
         number_of_gpus: The number of gpus to assign to the operation
          node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
-        df_to_spec_mapping: A dictionary that maps the column names of the consumed dataset to
+        spec_mapping: A dictionary that maps the column names of the consumed dataset to
          other column names that match a given component specification
         p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount paths,
          values are Kubernetes volumes or inherited types(e.g. PipelineVolumes).
@@ -74,18 +74,18 @@ class ComponentOp:
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
-        df_to_spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        spec_mapping: t.Optional[t.Dict[str, str]] = None,
         p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
         ephemeral_storage_size: t.Optional[str] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
         self.output_partitioning_size = output_partition_size
-        self.df_to_spec_mapping = df_to_spec_mapping
+        self.spec_mapping = spec_mapping
         self.arguments = self._set_arguments(arguments)
-
         self.component_spec = ComponentSpec.from_file(
             self.component_dir / self.COMPONENT_SPEC_NAME,
+            spec_mapping=self.spec_mapping,
         )
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
@@ -109,14 +109,14 @@ class ComponentOp:
 
         input_partition_rows = validate_partition_number(self.input_partition_rows)
         output_partition_size = validate_partition_size(self.output_partitioning_size)
-        df_to_spec_mapping = validate_remapping_dict(self.df_to_spec_mapping)
+        spec_mapping = validate_spec_mapping(self.spec_mapping)
 
         arguments["input_partition_rows"] = str(input_partition_rows)
         arguments["output_partition_size"] = str(output_partition_size)
-        arguments["df_to_spec_mapping"] = (
-            json.dumps(df_to_spec_mapping)
-            if isinstance(df_to_spec_mapping, dict)
-            else str(df_to_spec_mapping)
+        arguments["spec_mapping"] = (
+            json.dumps(spec_mapping)
+            if isinstance(spec_mapping, dict)
+            else str(spec_mapping)
         )
 
         return arguments
@@ -147,7 +147,7 @@ class ComponentOp:
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         output_partition_size: t.Optional[str] = None,
-        df_to_spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        spec_mapping: t.Optional[t.Dict[str, str]] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
@@ -163,7 +163,7 @@ class ComponentOp:
              automatic partitioning
             output_partition_size: the size of the output written dataset. Defaults to 250MB,
              set to "disable" to disable automatic repartitioning of the output
-            df_to_spec_mapping: A dictionary that maps the column names of the consumed dataset
+            spec_mapping: A dictionary that maps the column names of the consumed dataset
              to other column names
             number_of_gpus: The number of gpus to assign to the operation
             node_pool_label: The label of the node pool to which the operation will be assigned.
@@ -185,7 +185,7 @@ class ComponentOp:
             arguments=arguments,
             input_partition_rows=input_partition_rows,
             output_partition_size=output_partition_size,
-            df_to_spec_mapping=df_to_spec_mapping,
+            spec_mapping=spec_mapping,
             number_of_gpus=number_of_gpus,
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,

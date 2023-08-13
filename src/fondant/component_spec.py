@@ -112,7 +112,7 @@ class SubsetFieldMapper:
         source_subset, source_field = source_subset_field
         target_subset, target_field = target_subset_field
 
-        self.check_for_conflicting_mapping(source_subset, target_subset)
+        self._check_for_conflicting_mapping(source_subset, target_subset)
 
         self.subset_field_mapping[source_subset_field] = target_subset_field
 
@@ -133,7 +133,7 @@ class SubsetFieldMapper:
         """
         return self.subset_field_mapping.get((source_subset, source_field))
 
-    def check_for_conflicting_mapping(
+    def _check_for_conflicting_mapping(
         self,
         source_column: str,
         target_column: str,
@@ -172,26 +172,22 @@ class SubsetFieldMapper:
     def mapping(self):
         return self.subset_field_mapping
 
-    @property
-    def inverse_mapping(self):
-        return {v: k for k, v in self.subset_field_mapping.items()}
-
     @classmethod
     def create_mapper_from_dict(
         cls,
-        remapping_dict: t.Dict[str, str],
+        spec_mapping: t.Dict[str, str],
     ) -> "SubsetFieldMapper":
         """
         Create a SubsetFieldMapper instance from a dictionary containing remapping information.
 
         Args:
-            remapping_dict: A dictionary containing source subset-field mappings.
+            spec_mapping: A dictionary containing source subset-field mappings.
 
         Returns:
             A new instance of SubsetFieldMapper with the mappings from the remapping_dict.
         """
         subset_field_mapper = cls()
-        for source_value, mapped_value in remapping_dict.items():
+        for source_value, mapped_value in spec_mapping.items():
             source_subset, source_field = source_value.rsplit("_")
             mapped_subset, mapped_field = mapped_value.rsplit("_")
             subset_field_mapper.add_mapping(
@@ -207,17 +203,19 @@ class ComponentSpec:
 
     Args:
         specification: The fondant component specification as a Python dict
+        spec_mapping: Optional dictionary that maps the column names of the consumed dataset to
+         other column names that match a given component specification
     """
 
     def __init__(
         self,
         specification: t.Dict[str, t.Any],
         *,
-        specification_mapping_dict: t.Optional[t.Dict[str, str]] = None,
+        spec_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> None:
         self._specification = copy.deepcopy(specification)
-        if specification_mapping_dict:
-            self._specification = self._remap_specification(specification_mapping_dict)
+        if spec_mapping:
+            self._specification = self._remap_specification(spec_mapping)
         self._validate_spec()
 
     def _validate_spec(self) -> None:
@@ -249,66 +247,113 @@ class ComponentSpec:
         except jsonschema.exceptions.ValidationError as e:
             raise InvalidComponentSpec.create_from(e)
 
+    def _remap_specification(
+        self,
+        spec_mapping: t.Dict[str, str],
+    ) -> t.Dict[str, t.Any]:
+        """
+        Remap fields and subsets of a component specification based on a remapping dictionary.
+
+        Args:
+            spec_mapping: A dictionary that maps the column names of the consumed dataset to
+         other column names that match a given component specification
+        """
+
+        def _validate_remapping_in_spec(mapper: SubsetFieldMapper):
+            """Check that all the subsets and fields specified in the remapping dict exist in the
+            component spec.
+            """
+            for source_subset, source_field in mapper.mapping:
+                if source_subset not in self._specification["consumes"]:
+                    msg = (
+                        f"`{source_subset}`does not exist in `{source_subset}` in the"
+                        f" Component spec: \n {self._specification}"
+                    )
+                    raise InvalidComponentSpec(msg)
+
+                if (
+                    source_field
+                    not in self._specification["consumes"][source_subset]["fields"]
+                ):
+                    msg = (
+                        f"`{source_field}` field does not exist in `{source_subset}` "
+                        f"subset of the component spec: \n {self._specification}"
+                    )
+                    raise InvalidComponentSpec(msg)
+
+        def _add_defaults_to_mapper(mapper: SubsetFieldMapper):
+            """
+            Add default subset-field pairs to the mapper if no valid mapping pair is present in
+            the component spec.
+            """
+            for subset_type in ["consumes", "produces"]:
+                if subset_type in self._specification:
+                    for subset_name, subset_fields in self._specification[
+                        subset_type
+                    ].items():
+                        for field_name in subset_fields["fields"]:
+                            if mapper.get_mapping(subset_name, field_name) is None:
+                                mapper.add_mapping(
+                                    (subset_name, field_name),
+                                    (subset_name, field_name),
+                                )
+
+        def _get_mapped_specification(mapper: SubsetFieldMapper) -> t.Dict[str, t.Any]:
+            """Map the specification based on the remapping dictionary."""
+            modified_specification = copy.deepcopy(self._specification)
+
+            for subset_type in ["consumes", "produces"]:
+                if subset_type in self._specification:
+                    modified_specification.pop(subset_type)
+
+                    for subset_name, subset_fields in self._specification[
+                        subset_type
+                    ].items():
+                        for field_name, field_schema in subset_fields["fields"].items():
+                            mapped_subset_field = mapper.get_mapping(
+                                subset_name,
+                                field_name,
+                            )
+
+                            if mapped_subset_field is not None:
+                                mapped_subset, mapped_field = mapped_subset_field
+                                modified_specification.setdefault(
+                                    subset_type,
+                                    {},
+                                ).setdefault(mapped_subset, {}).setdefault(
+                                    "fields",
+                                    {},
+                                )[
+                                    mapped_field
+                                ] = field_schema
+
+            return modified_specification
+
+        # Create the mapper from the remapping dictionary
+        spec_mapper = SubsetFieldMapper().create_mapper_from_dict(spec_mapping)
+
+        # Validate the remapping
+        _validate_remapping_in_spec(mapper=spec_mapper)
+
+        # Add default mappings to catch conflicting mapping across subsets
+        _add_defaults_to_mapper(mapper=spec_mapper)
+
+        # Get the remapped specification
+        return _get_mapped_specification(mapper=spec_mapper)
+
     @classmethod
     def from_file(
         cls,
         path: t.Union[str, Path],
-        specification_mapping_dict: t.Optional[t.Dict[str, str]] = None,
+        spec_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> "ComponentSpec":
         """Load the component spec from the file specified by the provided path."""
         with open(path, encoding="utf-8") as file_:
             specification = yaml.safe_load(file_)
             return cls(
                 specification,
-                specification_mapping_dict=specification_mapping_dict,
+                spec_mapping=spec_mapping,
             )
-
-    def _remap_specification(
-        self,
-        remapping_dict: t.Dict[str, str],
-    ) -> t.Dict[str, t.Any]:
-        """Function that remaps the fields and subsets of a component spec based on a remapping
-        dict.
-        """
-
-        def replace_subsets(subset_dict):
-            if source_subset in subset_dict:
-                subset_dict[mapped_subset] = subset_dict.pop(source_subset)
-                try:
-                    subset_dict[mapped_subset]["fields"][mapped_field] = subset_dict[
-                        mapped_subset
-                    ]["fields"].pop(source_field)
-                except KeyError:
-                    msg = (
-                        f"`{source_field}` field does not exist in `{source_subset}` "
-                        f"subset of the Component spec: \n {self._specification}"
-                    )
-                    raise InvalidComponentSpec(msg)
-
-        modified_specification = copy.deepcopy(self._specification)
-        spec_to_df_mapper = SubsetFieldMapper().create_mapper_from_dict(
-            remapping_dict,
-        )
-
-        for (source_subset, source_field), (
-            mapped_subset,
-            mapped_field,
-        ) in spec_to_df_mapper.mapping.items():
-            if (
-                source_subset not in modified_specification["consumes"]
-                and source_subset not in modified_specification["produces"]
-            ):
-                msg = (
-                    f"`{source_subset}`does not exist in `{source_subset}` in the"
-                    f"Component spec: \n {self._specification}"
-                )
-                raise InvalidComponentSpec(msg)
-
-        # map both consumed and produced fields
-        replace_subsets(modified_specification["consumes"])
-        replace_subsets(modified_specification["produces"])
-
-        return modified_specification
 
     def to_file(self, path) -> None:
         """Dump the component spec to the file specified by the provided path."""
@@ -442,7 +487,7 @@ class KubeflowComponentSpec:
                     "default": "None",
                 },
                 {
-                    "name": "df_to_spec_mapping",
+                    "name": "spec_mapping",
                     "description": "A dictionary that maps the column names of the consumed"
                     " dataset to other column names that match a given component specification",
                     "type": "JsonObject",
@@ -481,8 +526,8 @@ class KubeflowComponentSpec:
                         {"inputValue": "input_partition_rows"},
                         "--output_partition_size",
                         {"inputValue": "output_partition_size"},
-                        "--df_to_spec_mapping",
-                        {"inputValue": "df_to_spec_mapping"},
+                        "--spec_mapping",
+                        {"inputValue": "spec_mapping"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},

@@ -15,7 +15,7 @@ services:
     - disable
     - --output_partition_size
     - disable
-    - --df_to_spec_mapping
+    - --spec_mapping
     - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
@@ -39,7 +39,7 @@ services:
     - '10'
     - --output_partition_size
     - 30MB
-    - --df_to_spec_mapping
+    - --spec_mapping
     - None
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
@@ -70,7 +70,7 @@ services:
     - None
     - --output_partition_size
     - None
-    - --df_to_spec_mapping
+    - --spec_mapping
     - None
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",

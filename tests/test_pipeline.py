@@ -140,6 +140,50 @@ def test_valid_pipeline(
     [
         (
             "example_1",
+            ["first_component", "custom_component"],
+        ),
+    ],
+)
+def test_valid_pipeline_with_spec_mapping(
+    default_pipeline_args,
+    valid_pipeline_example,
+    tmp_path,
+    monkeypatch,
+):
+    """Test that a valid pipeline definition can be compiled without errors."""
+    example_dir, component_names = valid_pipeline_example
+    component_args = {"storage_args": "a dummy string arg"}
+    components_path = Path(valid_pipeline_path / example_dir)
+
+    pipeline = Pipeline(**default_pipeline_args)
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
+
+    first_component_op = ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments=component_args,
+    )
+    custom_component_op = ComponentOp(
+        Path(components_path / component_names[1]),
+        arguments=component_args,
+        spec_mapping={
+            "pictures_array": "images_data",
+            "text_english": "captions_data",
+        },
+    )
+
+    pipeline.add_op(first_component_op)
+    pipeline.add_op(custom_component_op, dependencies=first_component_op)
+
+    pipeline.compile()
+
+
+@pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+            "example_1",
             ["first_component", "second_component", "third_component"],
         ),
     ],

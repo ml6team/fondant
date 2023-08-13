@@ -90,17 +90,13 @@ def test_subset_field_mapping():
         ("images", "data"): ("picture", "array"),
         ("images", "size"): ("picture", "area"),
     }
-    expected_inverse_mapping = {
-        ("picture", "array"): ("images", "data"),
-        ("picture", "area"): ("images", "size"),
-    }
+
     assert mapper.mapping == expected_mapping
-    assert mapper.inverse_mapping == expected_inverse_mapping
 
 
 def test_invalid_subset_field_mapping():
     """Test that the subset field mapper returns a valid error when the mapping dictionary
-    contains mapping between different subsets.
+    contains conflicting mapping between subsets.
     """
     invalid_examples = [
         {
@@ -143,12 +139,14 @@ def test_component_spec_to_file(valid_fondant_schema):
 
 
 def test_component_spec_mapping(valid_fondant_schema):
-    """Test that the component spec subset mapping method."""
-    valid_remapping_dict = {"images_data": "pictures_array"}
+    """Test the component spec subset mapping method."""
+    valid_spec_mapping = {
+        "images_data": "pictures_array",
+    }
     original_component_spec = ComponentSpec(valid_fondant_schema)
     mapped_component_spec = ComponentSpec(
         valid_fondant_schema,
-        specification_mapping_dict=valid_remapping_dict,
+        spec_mapping=valid_spec_mapping,
     )
 
     assert (
@@ -156,16 +154,29 @@ def test_component_spec_mapping(valid_fondant_schema):
         == mapped_component_spec.consumes["pictures"].fields["array"].type
     )
 
-    invalid_remapping_dicts = [
+    # Non existing subsets/fields
+    invalid_spec_mappings = [
         {"non+existing+subset_data": "pictures_array"},
         {"images_non+existing+field": "pictures_array"},
     ]
 
-    for invalid_remapping_dict in invalid_remapping_dicts:
+    for invalid_spec_mapping in invalid_spec_mappings:
         with pytest.raises(InvalidComponentSpec):
             ComponentSpec(
                 valid_fondant_schema,
-                specification_mapping_dict=invalid_remapping_dict,
+                spec_mapping=invalid_spec_mapping,
+            )
+
+    # Conflicting subset mapping
+    invalid_spec_mappings = [
+        {"images_data": "embeddings_data"},
+    ]
+
+    for invalid_spec_mapping in invalid_spec_mappings:
+        with pytest.raises(InvalidSubsetMapping):
+            ComponentSpec(
+                valid_fondant_schema,
+                spec_mapping=invalid_spec_mapping,
             )
 
 

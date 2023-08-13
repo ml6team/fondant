@@ -36,7 +36,7 @@ services:
     - None
     - --output_partition_size
     - None
-    - --df_to_spec_mapping
+    - --spec_mapping
     - None
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored

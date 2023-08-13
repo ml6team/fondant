@@ -23,7 +23,12 @@ from fondant.component import (
     DaskWriteComponent,
     PandasTransformComponent,
 )
-from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
+from fondant.component_spec import (
+    Argument,
+    ComponentSpec,
+    SubsetFieldMapper,
+    kubeflow2python_type,
+)
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 from fondant.schema import validate_partition_number, validate_partition_size
@@ -44,7 +49,7 @@ class Executor(t.Generic[Component]):
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         output_partition_size: t.Optional[str] = None,
-        df_to_spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        spec_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
@@ -53,7 +58,14 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
         self.output_partition_size = output_partition_size
-        self.df_to_spec_mapping = df_to_spec_mapping
+        self.spec_mapper = None
+        self.inverse_spec_mapper = None
+
+        if spec_mapping:
+            self.spec_mapper = SubsetFieldMapper.create_mapper_from_dict(spec_mapping)
+            self.inverse_spec_mapper = SubsetFieldMapper.create_mapper_from_dict(
+                {v: k for k, v in spec_mapping.items()},
+            )
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -96,13 +108,13 @@ class Executor(t.Generic[Component]):
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
         metadata = json.loads(metadata) if metadata else {}
-        df_to_spec_mapping = args_dict.pop("df_to_spec_mapping")
+        spec_mapping = args_dict.pop("spec_mapping")
 
         return cls(
             component_spec,
             input_manifest_path=input_manifest_path,
             output_manifest_path=output_manifest_path,
-            df_to_spec_mapping=df_to_spec_mapping,
+            spec_mapping=spec_mapping,
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
@@ -179,16 +191,11 @@ class Executor(t.Generic[Component]):
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
-        spec_to_df_mapping = None
-
-        if self.df_to_spec_mapping is not None:
-            spec_to_df_mapping = {v: k for k, v in self.df_to_spec_mapping.items()}
-
         data_writer = DaskDataWriter(
             manifest=manifest,
             component_spec=self.spec,
             output_partition_size=self.output_partition_size,
-            spec_to_df_mapping=spec_to_df_mapping,
+            inverse_spec_mapper=self.inverse_spec_mapper,
         )
 
         data_writer.write_dataframe(dataframe)
@@ -307,7 +314,7 @@ class DaskTransformExecutor(TransformExecutor[DaskTransformComponent]):
             manifest=manifest,
             component_spec=self.spec,
             input_partition_rows=self.input_partition_rows,
-            df_to_spec_mapping=self.df_to_spec_mapping,
+            spec_mapper=self.spec_mapper,
         )
         dataframe = data_loader.load_dataframe()
         return component.transform(dataframe)
@@ -373,7 +380,7 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
             manifest=manifest,
             component_spec=self.spec,
             input_partition_rows=self.input_partition_rows,
-            df_to_spec_mapping=self.df_to_spec_mapping,
+            spec_mapper=self.spec_mapper,
         )
         dataframe = data_loader.load_dataframe()
 
@@ -434,7 +441,7 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
             manifest=manifest,
             component_spec=self.spec,
             input_partition_rows=self.input_partition_rows,
-            df_to_spec_mapping=self.df_to_spec_mapping,
+            spec_mapper=self.spec_mapper,
         )
         dataframe = data_loader.load_dataframe()
         component.write(dataframe)

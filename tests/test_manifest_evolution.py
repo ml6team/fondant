@@ -35,7 +35,7 @@ def examples():
 
 def examples_mapping():
     """Returns examples as tuples of mapping dicts, component and expected output_manifest."""
-    mapping_dict = {
+    spec_mapping = {
         "1": {
             "images_data": "pictures_array",
         },
@@ -48,7 +48,7 @@ def examples_mapping():
         with open(directory / "component.yaml") as c, open(
             directory / "output_manifest.json",
         ) as o:
-            yield mapping_dict[directory.name], yaml.safe_load(c), json.load(o)
+            yield spec_mapping[directory.name], yaml.safe_load(c), json.load(o)
 
 
 @pytest.mark.parametrize(("component_spec", "output_manifest"), list(examples()))
@@ -61,19 +61,19 @@ def test_evolution(input_manifest, component_spec, output_manifest):
 
 
 @pytest.mark.parametrize(
-    ("mapping_dict", "component_spec", "output_manifest"),
+    ("spec_mapping", "component_spec", "output_manifest"),
     list(examples_mapping()),
 )
 def test_evolution_mapping(
     input_manifest_mapping,
-    mapping_dict,
+    spec_mapping,
     component_spec,
     output_manifest,
 ):
     manifest = Manifest(input_manifest_mapping)
     component_spec = ComponentSpec(
         component_spec,
-        specification_mapping_dict=mapping_dict,
+        spec_mapping=spec_mapping,
     )
     evolved_manifest = manifest.evolve(component_spec=component_spec)
 

@@ -24,11 +24,11 @@ class DaskDataLoader(DataIO):
         manifest: Manifest,
         component_spec: ComponentSpec,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
-        df_to_spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        spec_mapper: t.Optional[SubsetFieldMapper] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows
-        self.spec_to_df_mapping = df_to_spec_mapping
+        self.spec_mapper = spec_mapper
 
     def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
@@ -98,14 +98,10 @@ class DaskDataLoader(DataIO):
         column_rename_dict = {col: f"{subset_name}_{col}" for col in subset_df.columns}
 
         # Create a mapper if mapping configuration is provided
-        if self.spec_to_df_mapping:
-            spec_to_df_mapper = SubsetFieldMapper.create_mapper_from_dict(
-                self.spec_to_df_mapping,
-            )
-
+        if self.spec_mapper:
             # Update the column renaming scheme based on the mapper
             for col in subset_df.columns:
-                mapped_subset_col = spec_to_df_mapper.get_mapping(
+                mapped_subset_col = self.spec_mapper.get_mapping(
                     source_subset=subset_name,
                     source_field=col,
                 )
@@ -169,12 +165,14 @@ class DaskDataWriter(DataIO):
         manifest: Manifest,
         component_spec: ComponentSpec,
         output_partition_size: t.Optional[t.Union[str]] = None,
-        spec_to_df_mapping: t.Optional[t.Dict[str, str]] = None,
+        spec_mapper: t.Optional[SubsetFieldMapper] = None,
+        inverse_spec_mapper: t.Optional[SubsetFieldMapper] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
 
         self.output_partition_size = output_partition_size
-        self.spec_to_df_mapping = spec_to_df_mapping
+        self.spec_mapper = spec_mapper
+        self.inverse_spec_mapper = inverse_spec_mapper
 
     def partition_written_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
@@ -242,33 +240,86 @@ class DaskDataWriter(DataIO):
             logging.info("Writing data...")
             dd.compute(*write_tasks)
 
-    @staticmethod
     def _extract_subset_dataframe(
+        self,
         dataframe: dd.DataFrame,
         *,
         subset_name: str,
         subset_spec: ComponentSubset,
     ) -> dd.DataFrame:
         """Create subset dataframe to save with the original field name as the column name."""
-        # Create a new dataframe with only the columns needed for the output subset
-        subset_columns = [f"{subset_name}_{field}" for field in subset_spec.fields]
-        try:
-            subset_df = dataframe[subset_columns]
-        except KeyError as e:
-            msg = (
-                f"Field {e.args[0]} defined in output subset {subset_name} "
-                f"but not found in dataframe"
-            )
-            raise ValueError(
-                msg,
-            )
 
-        # Remove the subset prefix from the column names
-        subset_df = subset_df.rename(
-            columns={col: col[(len(f"{subset_name}_")) :] for col in subset_columns},
+        def _get_subset_columns() -> t.List[str]:
+            # Create a new dataframe with only the columns needed for the output subset
+            subset_cols = []
+
+            for field_name in subset_spec.fields:
+                column_name = f"{subset_name}_{field_name}"
+
+                if self.spec_mapper is not None:
+                    mapped_subset_field = self.spec_mapper.get_mapping(
+                        source_subset=subset_name,
+                        source_field=field_name,
+                    )
+
+                    if mapped_subset_field:
+                        mapped_subset, mapped_field = mapped_subset_field
+                        column_name = f"{mapped_subset}_{mapped_field}"
+
+                subset_cols.append(column_name)
+
+            return subset_cols
+
+        def _extract_subset_dataframe(
+            original_dataframe: dd.DataFrame,
+            subset_cols: t.List[str],
+        ) -> dd.DataFrame:
+            try:
+                subset_df = original_dataframe[subset_cols]
+            except KeyError as e:
+                msg = (
+                    f"Field {e.args[0]} defined in output subset {subset_name} "
+                    f"but not found in dataframe"
+                )
+                raise ValueError(
+                    msg,
+                )
+            return subset_df
+
+        def _rename_subset_columns(
+            subset_df: dd.DataFrame,
+            subset_cols: t.List[str],
+        ) -> dd.DataFrame:
+            # Initialize the column rename dictionary
+            column_rename_dict = {}
+
+            for subset_field in subset_cols:
+                subset, field = subset_field.rsplit("_")
+
+                # Use the original field if inverse_spec_mapper is not available
+                if self.inverse_spec_mapper:
+                    original_subset_field = self.inverse_spec_mapper.get_mapping(
+                        subset,
+                        field,
+                    )
+                    original_field = (
+                        original_subset_field[1] if original_subset_field else field
+                    )
+                else:
+                    original_field = field
+
+                column_rename_dict[f"{subset}_{field}"] = original_field
+
+            return subset_df.rename(columns=column_rename_dict)
+
+        subset_columns = _get_subset_columns()
+        subset_dataframe = _extract_subset_dataframe(
+            original_dataframe=dataframe,
+            subset_cols=subset_columns,
         )
+        subset_dataframe = _rename_subset_columns(subset_dataframe, subset_columns)
 
-        return subset_df
+        return subset_dataframe
 
     def _write_subset(
         self,
