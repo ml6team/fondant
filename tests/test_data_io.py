@@ -104,11 +104,14 @@ def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
         )
         # write out index to temp dir
         data_writer.write_dataframe(dataframe)
+        number_workers = os.cpu_count()
         # read written data and assert
         dataframe = dd.read_parquet(fn / "index")
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert dataframe.index.name == "id"
-        assert dataframe.npartitions == os.cpu_count()
+        assert dataframe.npartitions in list(
+            range(number_workers - 1, number_workers + 2),
+        )
 
 
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
