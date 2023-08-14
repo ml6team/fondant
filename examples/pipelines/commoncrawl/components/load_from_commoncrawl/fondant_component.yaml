@@ -16,3 +16,11 @@ args:
     description: Number of segments to load from the commoncrawl index file
     type: int
     default: None
+  aws_access_key_id:
+     description: AWS access key id used for authentication to load common crawl files
+     type: str
+     default: None
+  aws_secret_access_key:
+     description: AWS secret access key used for authentication to load common crawl files
+     type: str
+     default: None
