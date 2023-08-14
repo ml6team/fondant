@@ -37,5 +37,5 @@ def is_package_available(package_name: str, import_error_msg: str) -> bool:
 
 
 def is_kfp_available():
-    """Check if 'pandas' is available."""
+    """Check if 'kfp' is available."""
     return is_package_available("kfp", KFP_IMPORT_ERROR)
