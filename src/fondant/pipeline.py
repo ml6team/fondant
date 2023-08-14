@@ -37,9 +37,8 @@ class ComponentOp:
         automatic partitioning
         output_partition_size: the size of the output written dataset. Defaults to 250MB,
          set to "disable" to disable automatic repartitioning of the output
-        disable_automatic_indexing: Disable automating indexing if applicable. Automatic
-         indexing is enabled in the DaskLoadComponent by default and sets a monotonically
-         increasing index that starts from 1
+        index_column: Column to set index to in the load component, if not specified a default
+         monotonically increasing index that starts from 1 will be set
         number_of_gpus: The number of gpus to assign to the operation
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
@@ -68,7 +67,7 @@ class ComponentOp:
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         output_partition_size: t.Optional[str] = None,
-        disable_automatic_indexing: t.Optional[bool] = False,
+        index_column: t.Optional[str] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
@@ -78,7 +77,7 @@ class ComponentOp:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
         self.output_partitioning_size = output_partition_size
-        self.disable_automatic_indexing = disable_automatic_indexing
+        self.index_column = index_column
         self.arguments = self._set_arguments(arguments)
 
         self.component_spec = ComponentSpec.from_file(
@@ -108,7 +107,7 @@ class ComponentOp:
 
         arguments["input_partition_rows"] = str(input_partition_rows)
         arguments["output_partition_size"] = str(output_partition_size)
-        arguments["disable_automatic_indexing"] = str(self.disable_automatic_indexing)
+        arguments["index_column"] = str(self.index_column)
 
         return arguments
 
@@ -138,7 +137,7 @@ class ComponentOp:
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         output_partition_size: t.Optional[str] = None,
-        disable_automatic_indexing: t.Optional[bool] = False,
+        index_column: t.Optional[str] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
@@ -154,7 +153,7 @@ class ComponentOp:
             automatic partitioning
             output_partition_size: the size of the output written dataset. Defaults to 250MB,
             set to "disable" to disable automatic repartitioning of the output.
-            disable_automatic_indexing: Disable automating indexing if applicable. Automatic
+            index_column: Disable automating indexing if applicable. Automatic
              indexing is enabled in the DaskLoadComponent by default and sets a monotonically
              increasing index that starts from 1
             number_of_gpus: The number of gpus to assign to the operation
@@ -177,7 +176,7 @@ class ComponentOp:
             arguments=arguments,
             input_partition_rows=input_partition_rows,
             output_partition_size=output_partition_size,
-            disable_automatic_indexing=disable_automatic_indexing,
+            index_column=index_column,
             number_of_gpus=number_of_gpus,
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,

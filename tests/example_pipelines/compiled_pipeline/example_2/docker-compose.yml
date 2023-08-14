@@ -16,7 +16,7 @@ services:
     - --output_partition_size
     - None
     - --disable_automatic_indexing
-    - "False"
+    - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -38,7 +38,7 @@ services:
     - None
     - --output_partition_size
     - None
-    - --disable_automatic_indexing
+    - --index_column
     - "False"
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored

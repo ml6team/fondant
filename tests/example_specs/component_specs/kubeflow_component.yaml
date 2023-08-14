@@ -14,8 +14,8 @@ implementation:
     - inputValue: input_partition_rows
     - --output_partition_size
     - inputValue: output_partition_size
-    - --disable_automatic_indexing
-    - inputValue: disable_automatic_indexing
+    - --index_column
+    - inputValue: index_column
     - --storage_args
     - inputValue: storage_args
     - --output_manifest_path
@@ -43,11 +43,9 @@ inputs:
   name: output_partition_size
   type: String
 - default: 'False'
-  description: Disable automating indexing if applicable. Automatic indexing is enabled
-    in the DaskLoadComponent by default and sets a monotonically increasing index
-    that starts from 1
-  name: disable_automatic_indexing
-  type: Boolean
+  description: Column to set index to in the load component, if not specified a default monotonically increasing index that starts from 1 will be set
+  name: index_column
+  type: String
 - description: Storage arguments
   name: storage_args
   type: String

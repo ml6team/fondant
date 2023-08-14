@@ -1,4 +1,3 @@
-import ast
 import json
 import sys
 import typing as t
@@ -146,14 +145,12 @@ def test_load_component(tmp_path_factory):
                 assert self.flag == "success"
                 assert self.value == 1
                 data = {
-                    "id": ["42", "51"],
+                    "custom_index": ["42", "51"],
                     "embeddings_data": [[0.1, 0.2], [0.1, 0.3]],
                 }
-                dataframe = dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
-                dataframe = dataframe.set_index("id")
-                return dataframe
+                return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
 
-        for disable_automatic_indexing in ["False", "True"]:
+        for index_column in ["custom_index", "None"]:
             sys.argv = [
                 "",
                 "--metadata",
@@ -166,8 +163,8 @@ def test_load_component(tmp_path_factory):
                 f"{base_path}/output_manifest.json",
                 "--component_spec",
                 yaml_file_to_json_string(components_path / "component.yaml"),
-                "--disable_automatic_indexing",
-                disable_automatic_indexing,
+                "--index_column",
+                f"{index_column}",
             ]
 
             executor = DaskLoadExecutor.from_args()
@@ -183,13 +180,15 @@ def test_load_component(tmp_path_factory):
             subset_path = Manifest.from_file(
                 executor.output_manifest_path,
             ).index.location
-            index_list = list(dd.read_parquet(subset_path).compute().index)
-            if ast.literal_eval(disable_automatic_indexing) is True:
-                # Custom index
+            subset_df = dd.read_parquet(subset_path)
+            index_list = list(subset_df.compute().index)
+            if index_column == "custom_index":
                 assert index_list == ["42", "51"]
             else:
-                # Default index
-                assert index_list == ["1", "2"]
+                p0_id, _, p_0_counter = index_list[0].rsplit("_")
+                p1_id, _, p_1_counter = index_list[1].rsplit("_")
+                assert p_0_counter == p_1_counter == "0"
+                assert p0_id != p1_id
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")

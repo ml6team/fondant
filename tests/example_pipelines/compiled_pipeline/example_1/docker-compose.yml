@@ -15,8 +15,8 @@ services:
     - disable
     - --output_partition_size
     - disable
-    - --disable_automatic_indexing
-    - "False"
+    - --index_column
+    - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -39,8 +39,8 @@ services:
     - '10'
     - --output_partition_size
     - 30MB
-    - --disable_automatic_indexing
-    - "False"
+    - --index_column
+    - None
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -70,8 +70,8 @@ services:
     - None
     - --output_partition_size
     - None
-    - --disable_automatic_indexing
-    - "False"
+    - --index_column
+    - None
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
