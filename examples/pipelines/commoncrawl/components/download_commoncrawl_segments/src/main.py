@@ -88,6 +88,8 @@ class DownloadCommoncrawlSegments(DaskTransformComponent):
         retries: Optional[int] = None,
         backoff_factor: Optional[float] = None,
         target_language: Optional[str] = None,
+        aws_access_key_id: str = None,
+        aws_secret_access_key: str = None,
     ):
         """Downloads Commoncrawl segments based on a list of WARC paths.
         Args:
@@ -95,6 +97,8 @@ class DownloadCommoncrawlSegments(DaskTransformComponent):
             get_plain_text: Whether to convert the HTML content to plain text.
             n_records_to_download: The number of webpages to download from each segment.
             target_language: Limit html extraction to target language based on metadata tags.
+            aws_access_key_id: AWS access key id for initialise boto client
+            aws_secret_access_key: AWS access key id for initialise boto client
         """
         self.use_s3 = use_s3
         self.get_plain_text = get_plain_text
@@ -104,7 +108,11 @@ class DownloadCommoncrawlSegments(DaskTransformComponent):
         self.target_language = target_language
 
         # initialise s3 session
-        session = boto3.Session()
+
+        session = boto3.Session(
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
         self.s3_client = session.client("s3")
 
     def transform(
