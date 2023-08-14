@@ -197,7 +197,7 @@ def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
         with open(output_path) as src, open(
             VALID_PIPELINE / example_dir / "kubeflow_pipeline.yml",
         ) as truth:
-            assert src.read() == truth.read()
+            assert yaml.safe_load(src) == yaml.safe_load(truth)
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -227,7 +227,7 @@ def test_kubeflow_configuration(tmp_path_factory):
         with open(output_path) as src, open(
             VALID_PIPELINE / "kubeflow_pipeline.yml",
         ) as truth:
-            assert src.read() == truth.read()
+            assert yaml.safe_load(src) == yaml.safe_load(truth)
 
 
 def test_kfp_import():

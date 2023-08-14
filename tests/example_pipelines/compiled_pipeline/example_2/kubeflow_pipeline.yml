@@ -1,105 +1,69 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
+  annotations:
+    pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
+    pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00'
+    pipelines.kubeflow.org/pipeline_spec: '{"name": "Kfp pipeline"}'
   generateName: kfp-pipeline-
-  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22, pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00',
-    pipelines.kubeflow.org/pipeline_spec: '{"name": "Kfp pipeline"}'}
-  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22}
+  labels:
+    pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
 spec:
+  arguments:
+    parameters: []
   entrypoint: kfp-pipeline
+  serviceAccountName: pipeline-runner
   templates:
-  - name: first-component
-    container:
+  - container:
       args: []
-      command: [python3, main.py, --input_manifest_path, /tmp/inputs/input_manifest_path/data,
-        --metadata, '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}', --component_spec,
-        '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
-          "description": "This is an example component", "image": "example_component:latest",
-          "name": "First component", "produces": {"captions": {"fields": {"data":
-          {"type": "string"}}}, "images": {"fields": {"data": {"type": "binary"}}}}}',
-        --input_partition_rows, None, --output_partition_size, None, --storage_args,
-        a dummy string arg, --output_manifest_path, /tmp/outputs/output_manifest_path/data]
+      command:
+      - python3
+      - main.py
+      - --input_manifest_path
+      - /tmp/inputs/input_manifest_path/data
+      - --metadata
+      - '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}'
+      - --component_spec
+      - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
+        "description": "This is an example component", "image": "example_component:latest",
+        "name": "First component", "produces": {"captions": {"fields": {"data": {"type":
+        "string"}}}, "images": {"fields": {"data": {"type": "binary"}}}}}'
+      - --input_partition_rows
+      - None
+      - --output_partition_size
+      - None
+      - --index_column
+      - None
+      - --storage_args
+      - a dummy string arg
+      - --output_manifest_path
+      - /tmp/outputs/output_manifest_path/data
       image: example_component:latest
     inputs:
       artifacts:
       - name: input_manifest_path
         path: /tmp/inputs/input_manifest_path/data
-        raw: {data: ''}
-    outputs:
-      artifacts:
-      - {name: first-component-output_manifest_path, path: /tmp/outputs/output_manifest_path/data}
+        raw:
+          data: ''
     metadata:
-      labels:
-        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-        pipelines.kubeflow.org/pipeline-sdk-type: kfp
-        pipelines.kubeflow.org/enable_caching: "true"
-      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "This
-          is an example component", "implementation": {"container": {"command": ["python3",
-          "main.py", "--input_manifest_path", {"inputPath": "input_manifest_path"},
-          "--metadata", {"inputValue": "metadata"}, "--component_spec", {"inputValue":
-          "component_spec"}, "--input_partition_rows", {"inputValue": "input_partition_rows"},
-          "--output_partition_size", {"inputValue": "output_partition_size"}, "--storage_args",
-          {"inputValue": "storage_args"}, "--output_manifest_path", {"outputPath":
-          "output_manifest_path"}], "image": "example_component:latest"}}, "inputs":
-          [{"description": "Path to the input manifest", "name": "input_manifest_path",
-          "type": "String"}, {"description": "Metadata arguments containing the run
-          id and base path", "name": "metadata", "type": "String"}, {"default": "None",
-          "description": "The component specification as a dictionary", "name": "component_spec",
-          "type": "JsonObject"}, {"default": "None", "description": "The number of
-          rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"default": "None", "description":
-          "The size of the output partition size, defaults to 250MB. Set to `disable`
-          to disable the automatic partitioning", "name": "output_partition_size",
-          "type": "String"}, {"description": "Storage arguments", "name": "storage_args",
-          "type": "String"}], "name": "First component", "outputs": [{"description":
-          "Path to the output manifest", "name": "output_manifest_path", "type": "String"}]}',
-        pipelines.kubeflow.org/component_ref: '{"digest": "561ddfe38aa8378f4ea92b26ef6bdeb53b1e9b2fc3c0908800738c304fdca30a"}',
+      annotations:
         pipelines.kubeflow.org/arguments.parameters: '{"component_spec": "{\"args\":
           {\"storage_args\": {\"description\": \"Storage arguments\", \"type\": \"str\"}},
           \"description\": \"This is an example component\", \"image\": \"example_component:latest\",
           \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
           {\"data\": {\"type\": \"string\"}}}, \"images\": {\"fields\": {\"data\":
-          {\"type\": \"binary\"}}}}}", "input_partition_rows": "None", "metadata":
-          "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "output_partition_size":
-          "None", "storage_args": "a dummy string arg"}'}
-  - name: image-cropping
-    container:
-      args: []
-      command: [python3, main.py, --input_manifest_path, /tmp/inputs/input_manifest_path/data,
-        --metadata, '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}', --component_spec,
-        '{"args": {"cropping_threshold": {"default": -30, "description": "Threshold
-          parameter used for detecting borders. A lower (negative) parameter results
-          in a more performant border detection, but can cause overcropping. Default
-          is -30", "type": "int"}, "padding": {"default": 10, "description": "Padding
-          for the image cropping. The padding is added to all borders of the image.",
-          "type": "int"}}, "consumes": {"images": {"fields": {"data": {"type": "binary"}}}},
-          "description": "Component that removes single-colored borders around images
-          and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
-          "name": "Image cropping", "produces": {"images": {"fields": {"data": {"type":
-          "binary"}, "height": {"type": "int32"}, "width": {"type": "int32"}}}}}',
-        --input_partition_rows, None, --output_partition_size, None, --cropping_threshold,
-        '0', --padding, '0', --output_manifest_path, /tmp/outputs/output_manifest_path/data]
-      image: ghcr.io/ml6team/image_cropping:dev
-    inputs:
-      artifacts:
-      - {name: first-component-output_manifest_path, path: /tmp/inputs/input_manifest_path/data}
-    outputs:
-      artifacts:
-      - {name: image-cropping-output_manifest_path, path: /tmp/outputs/output_manifest_path/data}
-    metadata:
-      labels:
-        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-        pipelines.kubeflow.org/pipeline-sdk-type: kfp
-        pipelines.kubeflow.org/enable_caching: "true"
-      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "Component
-          that removes single-colored borders around images and crops them appropriately",
-          "implementation": {"container": {"command": ["python3", "main.py", "--input_manifest_path",
-          {"inputPath": "input_manifest_path"}, "--metadata", {"inputValue": "metadata"},
-          "--component_spec", {"inputValue": "component_spec"}, "--input_partition_rows",
-          {"inputValue": "input_partition_rows"}, "--output_partition_size", {"inputValue":
-          "output_partition_size"}, "--cropping_threshold", {"inputValue": "cropping_threshold"},
-          "--padding", {"inputValue": "padding"}, "--output_manifest_path", {"outputPath":
-          "output_manifest_path"}], "image": "ghcr.io/ml6team/image_cropping:dev"}},
+          {\"type\": \"binary\"}}}}}", "index_column": "None", "input_partition_rows":
+          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
+          "output_partition_size": "None", "storage_args": "a dummy string arg"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "31fd0f3179f420fd171e35ebcbb1e8e8410ebd11f481ecc091c07c0a63d565c4"}'
+        pipelines.kubeflow.org/component_spec: '{"description": "This is an example
+          component", "implementation": {"container": {"command": ["python3", "main.py",
+          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--output_partition_size",
+          {"inputValue": "output_partition_size"}, "--index_column", {"inputValue":
+          "index_column"}, "--storage_args", {"inputValue": "storage_args"}, "--output_manifest_path",
+          {"outputPath": "output_manifest_path"}], "image": "example_component:latest"}},
           "inputs": [{"description": "Path to the input manifest", "name": "input_manifest_path",
           "type": "String"}, {"description": "Metadata arguments containing the run
           id and base path", "name": "metadata", "type": "String"}, {"default": "None",
@@ -109,19 +73,65 @@ spec:
           "name": "input_partition_rows", "type": "String"}, {"default": "None", "description":
           "The size of the output partition size, defaults to 250MB. Set to `disable`
           to disable the automatic partitioning", "name": "output_partition_size",
-          "type": "String"}, {"default": -30, "description": "Threshold parameter
-          used for detecting borders. A lower (negative) parameter results in a more
-          performant border detection, but can cause overcropping. Default is -30",
-          "name": "cropping_threshold", "type": "Integer"}, {"default": 10, "description":
-          "Padding for the image cropping. The padding is added to all borders of
-          the image.", "name": "padding", "type": "Integer"}], "name": "Image cropping",
-          "outputs": [{"description": "Path to the output manifest", "name": "output_manifest_path",
-          "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{"digest":
-          "08066cab55f911d084af84cc08a555794a9cf94569fe4b991836a39fd3f76f86"}', pipelines.kubeflow.org/arguments.parameters: '{"component_spec":
-          "{\"args\": {\"cropping_threshold\": {\"default\": -30, \"description\":
-          \"Threshold parameter used for detecting borders. A lower (negative) parameter
-          results in a more performant border detection, but can cause overcropping.
-          Default is -30\", \"type\": \"int\"}, \"padding\": {\"default\": 10, \"description\":
+          "type": "String"}, {"default": "False", "description": "Column to set index
+          to in the load component, if not specified a default monotonically increasing
+          index that starts from 1 will be set", "name": "index_column", "type": "String"},
+          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
+          "name": "First component", "outputs": [{"description": "Path to the output
+          manifest", "name": "output_manifest_path", "type": "String"}]}'
+      labels:
+        pipelines.kubeflow.org/enable_caching: 'true'
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+    name: first-component
+    outputs:
+      artifacts:
+      - name: first-component-output_manifest_path
+        path: /tmp/outputs/output_manifest_path/data
+  - container:
+      args: []
+      command:
+      - python3
+      - main.py
+      - --input_manifest_path
+      - /tmp/inputs/input_manifest_path/data
+      - --metadata
+      - '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}'
+      - --component_spec
+      - '{"args": {"cropping_threshold": {"default": -30, "description": "Threshold
+        parameter used for detecting borders. A lower (negative) parameter results
+        in a more performant border detection, but can cause overcropping. Default
+        is -30", "type": "int"}, "padding": {"default": 10, "description": "Padding
+        for the image cropping. The padding is added to all borders of the image.",
+        "type": "int"}}, "consumes": {"images": {"fields": {"data": {"type": "binary"}}}},
+        "description": "Component that removes single-colored borders around images
+        and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
+        "name": "Image cropping", "produces": {"images": {"fields": {"data": {"type":
+        "binary"}, "height": {"type": "int32"}, "width": {"type": "int32"}}}}}'
+      - --input_partition_rows
+      - None
+      - --output_partition_size
+      - None
+      - --index_column
+      - None
+      - --cropping_threshold
+      - '0'
+      - --padding
+      - '0'
+      - --output_manifest_path
+      - /tmp/outputs/output_manifest_path/data
+      image: ghcr.io/ml6team/image_cropping:dev
+    inputs:
+      artifacts:
+      - name: first-component-output_manifest_path
+        path: /tmp/inputs/input_manifest_path/data
+    metadata:
+      annotations:
+        pipelines.kubeflow.org/arguments.parameters: '{"component_spec": "{\"args\":
+          {\"cropping_threshold\": {\"default\": -30, \"description\": \"Threshold
+          parameter used for detecting borders. A lower (negative) parameter results
+          in a more performant border detection, but can cause overcropping. Default
+          is -30\", \"type\": \"int\"}, \"padding\": {\"default\": 10, \"description\":
           \"Padding for the image cropping. The padding is added to all borders of
           the image.\", \"type\": \"int\"}}, \"consumes\": {\"images\": {\"fields\":
           {\"data\": {\"type\": \"binary\"}}}}, \"description\": \"Component that
@@ -129,19 +139,58 @@ spec:
           \"image\": \"ghcr.io/ml6team/image_cropping:dev\", \"name\": \"Image cropping\",
           \"produces\": {\"images\": {\"fields\": {\"data\": {\"type\": \"binary\"},
           \"height\": {\"type\": \"int32\"}, \"width\": {\"type\": \"int32\"}}}}}",
-          "cropping_threshold": "0", "input_partition_rows": "None", "metadata": "{\"base_path\":
-          \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "output_partition_size":
-          "None", "padding": "0"}'}
-  - name: kfp-pipeline
-    dag:
+          "cropping_threshold": "0", "index_column": "None", "input_partition_rows":
+          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
+          "output_partition_size": "None", "padding": "0"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "fef73094f217d76147bc413d92ac6c73554b2f7656c6dcded9a31399223534bd"}'
+        pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
+          single-colored borders around images and crops them appropriately", "implementation":
+          {"container": {"command": ["python3", "main.py", "--input_manifest_path",
+          {"inputPath": "input_manifest_path"}, "--metadata", {"inputValue": "metadata"},
+          "--component_spec", {"inputValue": "component_spec"}, "--input_partition_rows",
+          {"inputValue": "input_partition_rows"}, "--output_partition_size", {"inputValue":
+          "output_partition_size"}, "--index_column", {"inputValue": "index_column"},
+          "--cropping_threshold", {"inputValue": "cropping_threshold"}, "--padding",
+          {"inputValue": "padding"}, "--output_manifest_path", {"outputPath": "output_manifest_path"}],
+          "image": "ghcr.io/ml6team/image_cropping:dev"}}, "inputs": [{"description":
+          "Path to the input manifest", "name": "input_manifest_path", "type": "String"},
+          {"description": "Metadata arguments containing the run id and base path",
+          "name": "metadata", "type": "String"}, {"default": "None", "description":
+          "The component specification as a dictionary", "name": "component_spec",
+          "type": "JsonObject"}, {"default": "None", "description": "The number of
+          rows to load per partition. Set to override the automatic partitioning",
+          "name": "input_partition_rows", "type": "String"}, {"default": "None", "description":
+          "The size of the output partition size, defaults to 250MB. Set to `disable`
+          to disable the automatic partitioning", "name": "output_partition_size",
+          "type": "String"}, {"default": "False", "description": "Column to set index
+          to in the load component, if not specified a default monotonically increasing
+          index that starts from 1 will be set", "name": "index_column", "type": "String"},
+          {"default": -30, "description": "Threshold parameter used for detecting
+          borders. A lower (negative) parameter results in a more performant border
+          detection, but can cause overcropping. Default is -30", "name": "cropping_threshold",
+          "type": "Integer"}, {"default": 10, "description": "Padding for the image
+          cropping. The padding is added to all borders of the image.", "name": "padding",
+          "type": "Integer"}], "name": "Image cropping", "outputs": [{"description":
+          "Path to the output manifest", "name": "output_manifest_path", "type": "String"}]}'
+      labels:
+        pipelines.kubeflow.org/enable_caching: 'true'
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+    name: image-cropping
+    outputs:
+      artifacts:
+      - name: image-cropping-output_manifest_path
+        path: /tmp/outputs/output_manifest_path/data
+  - dag:
       tasks:
-      - {name: first-component, template: first-component}
-      - name: image-cropping
-        template: image-cropping
-        dependencies: [first-component]
-        arguments:
+      - name: first-component
+        template: first-component
+      - arguments:
           artifacts:
-          - {name: first-component-output_manifest_path, from: '{{tasks.first-component.outputs.artifacts.first-component-output_manifest_path}}'}
-  arguments:
-    parameters: []
-  serviceAccountName: pipeline-runner
+          - from: '{{tasks.first-component.outputs.artifacts.first-component-output_manifest_path}}'
+            name: first-component-output_manifest_path
+        dependencies:
+        - first-component
+        name: image-cropping
+        template: image-cropping
+    name: kfp-pipeline
