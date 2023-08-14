@@ -12,12 +12,8 @@ except ImportError:
 
 from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidPipelineDefinition
-from fondant.import_utils import is_kfp_available
 from fondant.manifest import Manifest
 from fondant.schema import validate_partition_number, validate_partition_size
-
-if is_kfp_available():
-    from kubernetes import client as k8s_client
 
 logger = logging.getLogger(__name__)
 
@@ -37,17 +33,12 @@ class ComponentOp:
         number_of_gpus: The number of gpus to assign to the operation
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
-        p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount paths,
-         values are Kubernetes volumes or inherited types(e.g. PipelineVolumes).
-        ephemeral_storage_size: Used ephemeral-storage size (minimum) for the operation.
-         Defined by string which can be a number or a number followed by one of “E”, “P”, “T”, “G”,
-         “M”, “K”. (e.g. 2T for 2 Terabytes)
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
           arguments.
-        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`,`p_volumes` and
-          `ephemeral_storage_size` attributes are optional and can be used to specify additional
+        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`
+         attributes are optional and can be used to specify additional
           configurations for the operation. More information on the optional attributes that can
           be assigned to kfp components here:
           https://kubeflow-pipelines.readthedocs.io/en/1.8.13/source/kfp.dsl.html
@@ -65,8 +56,6 @@ class ComponentOp:
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
-        p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
-        ephemeral_storage_size: t.Optional[str] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -83,8 +72,6 @@ class ComponentOp:
             node_pool_label,
             node_pool_name,
         )
-        self.p_volumes = p_volumes
-        self.ephemeral_storage_size = ephemeral_storage_size
 
     def _set_arguments(
         self,
@@ -132,8 +119,6 @@ class ComponentOp:
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
-        p_volumes: t.Optional[t.Dict[str, k8s_client.V1Volume]] = None,
-        ephemeral_storage_size: t.Optional[str] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -147,11 +132,6 @@ class ComponentOp:
             number_of_gpus: The number of gpus to assign to the operation
             node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.
-            p_volumes: Collection of persistent volumes in a Kubernetes cluster. Keys are mount
-                paths, values are Kubernetes volumes or inherited types(e.g. PipelineVolumes).
-            ephemeral_storage_size: Used ephemeral-storage request (minimum) for the operation.
-                Defined by string which can be a number or a number followed by one of “E”, “P”,
-                “T”, “G”, “M”, “K”. (e.g. 2T for 2 Terabytes)
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -167,8 +147,6 @@ class ComponentOp:
             number_of_gpus=number_of_gpus,
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
-            p_volumes=p_volumes,
-            ephemeral_storage_size=ephemeral_storage_size,
         )
 
 

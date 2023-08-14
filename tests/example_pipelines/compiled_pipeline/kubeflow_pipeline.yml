@@ -22,9 +22,6 @@ spec:
       image: example_component:latest
       resources:
         limits: {nvidia.com/gpu: 1}
-        requests: {ephemeral-storage: 1Gi}
-      volumeMounts:
-      - {mountPath: /mnt, name: mypvc}
     inputs:
       artifacts:
       - name: input_manifest_path
@@ -68,9 +65,6 @@ spec:
           {\"type\": \"binary\"}}}}}", "input_partition_rows": "None", "metadata":
           "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "output_partition_size":
           "None", "storage_args": "a dummy string arg"}'}
-    volumes:
-    - emptyDir: {}
-      name: mypvc
   - name: kfp-pipeline
     dag:
       tasks:
