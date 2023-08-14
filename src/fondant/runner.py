@@ -1,5 +1,8 @@
+import logging
 import subprocess  # nosec
 from abc import ABC, abstractmethod
+
+logger = logging.getLogger(__name__)
 
 
 class Runner(ABC):

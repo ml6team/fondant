@@ -15,6 +15,8 @@ services:
     - None
     - --output_partition_size
     - None
+    - --spec_mapping
+    - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -23,6 +25,9 @@ services:
     depends_on: {}
     volumes: []
   image_cropping:
+    build:
+      args: []
+      context: /home/philippe/Scripts/express/src/fondant/components/image_cropping
     command:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
@@ -54,6 +59,5 @@ services:
     depends_on:
       first_component:
         condition: service_completed_successfully
-    image: ghcr.io/ml6team/image_cropping:dev
     volumes: []
 version: '3.8'

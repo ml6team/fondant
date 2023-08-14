@@ -1,14 +1,16 @@
 import datetime
+import sys
 from pathlib import Path
+from unittest import mock
 
 import pytest
 import yaml
-from fondant.compiler import DockerCompiler
+from fondant.compiler import DockerCompiler, KubeFlowCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 
 COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
 
-VALID_DOCKER_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
+VALID_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
 
 TEST_PIPELINES = [
     (
@@ -79,8 +81,6 @@ def setup_pipeline(request, tmp_path, monkeypatch):
         pipeline.add_op(component, dependencies=prev_comp)
         prev_comp = component
 
-    pipeline.compile()
-
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
@@ -96,7 +96,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
         output_path = str(fn / "docker-compose.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
         with open(output_path) as src, open(
-            VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml",
+            VALID_PIPELINE / example_dir / "docker-compose.yml",
         ) as truth:
             assert yaml.safe_load(src) == yaml.safe_load(truth)
 
@@ -184,3 +184,56 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
             assert all(
                 extra_volume in service["volumes"] for extra_volume in extra_volumes
             )
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
+    """Test compiling a pipeline to kubeflow."""
+    example_dir, pipeline = setup_pipeline
+    compiler = KubeFlowCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "kubeflow_pipeline.yml")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        with open(output_path) as src, open(
+            VALID_PIPELINE / example_dir / "kubeflow_pipeline.yml",
+        ) as truth:
+            assert yaml.safe_load(src) == yaml.safe_load(truth)
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_kubeflow_configuration(tmp_path_factory):
+    """Test that the kubeflow pipeline can be configured."""
+    from kfp.dsl import PipelineVolume
+
+    pipeline = Pipeline(
+        pipeline_name="test_pipeline",
+        pipeline_description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
+    component_1 = ComponentOp(
+        Path(COMPONENTS_PATH / "example_1" / "first_component"),
+        arguments={"storage_args": "a dummy string arg"},
+        node_pool_name="a_node_pool",
+        node_pool_label="a_node_pool_label",
+        number_of_gpus=1,
+        p_volumes={"/mnt": PipelineVolume(name="mypvc", empty_dir={})},
+        ephemeral_storage_size="1Gi",
+    )
+    pipeline.add_op(component_1)
+    compiler = KubeFlowCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "kubeflow_pipeline.yml")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        with open(output_path) as src, open(
+            VALID_PIPELINE / "kubeflow_pipeline.yml",
+        ) as truth:
+            assert yaml.safe_load(src) == yaml.safe_load(truth)
+
+
+def test_kfp_import():
+    """Test that the kfp import throws the correct error."""
+    with mock.patch.dict(sys.modules):
+        # remove kfp from the modules
+        sys.modules["kfp"] = None
+        with pytest.raises(ImportError):
+            _ = KubeFlowCompiler()

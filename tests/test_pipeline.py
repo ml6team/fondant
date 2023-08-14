@@ -132,7 +132,7 @@ def test_valid_pipeline(
     assert pipeline._graph["Second component"]["dependencies"] == ["First component"]
     assert pipeline._graph["Third component"]["dependencies"] == ["Second component"]
 
-    pipeline.compile()
+    pipeline._validate_pipeline_definition("test_pipeline")
 
 
 @pytest.mark.parametrize(
@@ -176,7 +176,7 @@ def test_valid_pipeline_with_spec_mapping(
     pipeline.add_op(first_component_op)
     pipeline.add_op(custom_component_op, dependencies=first_component_op)
 
-    pipeline.compile()
+    pipeline._validate_pipeline_definition(run_id="123")
 
 
 @pytest.mark.parametrize(
@@ -188,11 +188,7 @@ def test_valid_pipeline_with_spec_mapping(
         ),
     ],
 )
-def test_invalid_pipeline_dependencies(
-    default_pipeline_args,
-    valid_pipeline_example,
-    tmp_path,
-):
+def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_example):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to create a pipeline
     with more than one operation defined without dependencies.
@@ -227,16 +223,15 @@ def test_invalid_pipeline_dependencies(
     [
         ("example_1", ["first_component", "second_component"]),
         ("example_2", ["first_component", "second_component"]),
+        ("example_3", ["first_component", "second_component"]),
     ],
 )
-def test_invalid_pipeline_compilation(
+def test_invalid_pipeline_declaration(
     default_pipeline_args,
     invalid_pipeline_example,
-    tmp_path,
 ):
-    """
-    Test that an InvalidPipelineDefinition exception is raised when attempting to compile
-    an invalid pipeline definition.
+    """Test that an InvalidPipelineDefinition exception is raised when attempting
+    to register invalid components combinations.
     """
     example_dir, component_names = invalid_pipeline_example
     components_path = Path(invalid_pipeline_path / example_dir)
@@ -257,32 +252,40 @@ def test_invalid_pipeline_compilation(
     pipeline.add_op(second_component_op, dependencies=first_component_op)
 
     with pytest.raises(InvalidPipelineDefinition):
-        pipeline.compile()
+        pipeline._validate_pipeline_definition("test_pipeline")
 
 
-@pytest.mark.parametrize(
-    "invalid_component_args",
-    [
-        {"invalid_arg": "a dummy string arg", "storage_args": "a dummy string arg"},
-        {"args": 1, "storage_args": "a dummy string arg"},
-    ],
-)
-def test_invalid_argument(default_pipeline_args, invalid_component_args, tmp_path):
+def test_invalid_pipeline_validation(default_pipeline_args):
     """
-    Test that an exception is raised when the passed invalid argument name or type to the fondant
-    component does not match the ones specified in the fondant specifications.
+    Test that an InvalidPipelineDefinition exception is raised when attempting to compile
+    an invalid pipeline definition.
     """
-    component_operation = ComponentOp(
-        valid_pipeline_path / "example_1" / "first_component",
-        arguments=invalid_component_args,
+    components_path = Path(invalid_pipeline_path / "example_1")
+    component_args = {"storage_args": "a dummy string arg"}
+
+    first_component_op = ComponentOp(
+        Path(components_path / "first_component"),
+        arguments=component_args,
+    )
+    second_component_op = ComponentOp(
+        Path(components_path / "second_component"),
+        arguments=component_args,
     )
 
-    pipeline = Pipeline(**default_pipeline_args)
+    # double dependency
+    pipeline1 = Pipeline(**default_pipeline_args)
+    pipeline1.add_op(first_component_op)
+    with pytest.raises(InvalidPipelineDefinition):
+        pipeline1.add_op(
+            second_component_op,
+            dependencies=[first_component_op, first_component_op],
+        )
 
-    pipeline.add_op(component_operation)
-
-    with pytest.raises((ValueError, TypeError)):
-        pipeline.compile()
+    # 2 components with no dependencies
+    pipeline2 = Pipeline(**default_pipeline_args)
+    pipeline2.add_op(first_component_op)
+    with pytest.raises(InvalidPipelineDefinition):
+        pipeline2.add_op(second_component_op)
 
 
 def test_reusable_component_op():

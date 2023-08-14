@@ -68,7 +68,6 @@ caption_images_op = ComponentOp.from_registry(
         "max_new_tokens": 50,
     },
     number_of_gpus=1,
-    node_pool_name="model-inference-pool",
 )
 
 write_to_hub = ComponentOp(
@@ -80,7 +79,6 @@ write_to_hub = ComponentOp(
         "image_column_names": ["images_data"],
     },
     number_of_gpus=1,
-    node_pool_name="model-inference-pool",
 )
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
