@@ -27,15 +27,6 @@ def get_text_complexity(doc: spacy.tokens.doc.Doc):
     return complexity
 
 
-def get_num_actions(doc: spacy.tokens.doc.Doc):
-    verbs = set()
-    for possible_subject in doc:
-        if possible_subject.dep == nsubj and possible_subject.head.pos == VERB:
-            verbs.add(possible_subject.head)
-
-    return len(verbs)
-
-
 class FilterTextComplexity(PandasTransformComponent):
     """Component that filters text based on:
 
@@ -48,25 +39,24 @@ class FilterTextComplexity(PandasTransformComponent):
         spacy_pipeline,
         batch_size: int,
         min_complexity: int,
-        min_num_actions: int
     ) -> None:
-        self.nlp = spacy.load(spacy_pipeline, exclude=["ner"])
+        self.nlp = spacy.load(
+            spacy_pipeline, exclude=["tagger", "ner", "lemmatizer", "textcat"]
+        )
         self.batch_size = batch_size
         self.min_complexity = min_complexity
-        self.min_num_actions = min_num_actions
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         texts = dataframe["text"]["data"]
 
+        logger.info("Creating SpaCy docs...")
         docs = list(self.nlp.pipe(texts, batch_size=self.batch_size))
         docs = pd.Series(docs)
 
+        logger.info("Calculating text complexity...")
         caption_complexity = docs.apply(lambda doc: get_text_complexity(doc))
-        num_actions = docs.apply(lambda doc: get_num_actions(doc))
 
-        mask = (caption_complexity >= self.min_complexity) & (
-            num_actions >= self.min_num_actions
-        )
+        mask = caption_complexity >= self.min_complexity
         mask = mask.to_numpy()
 
         return dataframe[mask]
