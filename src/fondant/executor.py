@@ -304,7 +304,7 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
             dask_df = dask_df.map_partitions(_set_unique_index, meta=dask_df.head())
         else:
             logger.info(f"Setting `{self.index_column}` as index")
-            dask_df = dask_df.set_index(self.index_column, drop=False)
+            dask_df = dask_df.set_index(self.index_column, drop=True)
 
         return dask_df
 
