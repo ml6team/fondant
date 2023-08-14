@@ -3,7 +3,7 @@ description: Component that loads a dataset from the hub
 image: ghcr.io/ml6team/load_from_hf_hub:dev
 
 produces:
-  image:
+  images:
     fields:
       url:
         type: string
@@ -27,6 +27,8 @@ produces:
   
   image_text:
     fields:
+      uid: 
+        type: string
       clip_b32_similarity_score:
         type: float32
       clip_l14_similarity_score:
