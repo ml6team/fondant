@@ -5,14 +5,18 @@ minimum image size and aspect ratio.
 Some functions here are directly taken from
 https://github.com/rom1504/img2dataset/blob/main/img2dataset/downloader.py.
 """
+import asyncio
+import concurrent.futures
+import functools
 import io
 import logging
 import traceback
+import typing as t
 import urllib
 
-import dask.dataframe as dd
-from fondant.component import DaskTransformComponent
-from fondant.executor import DaskTransformExecutor
+import pandas as pd
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 from resizer import Resizer
 
 logger = logging.getLogger(__name__)
@@ -46,7 +50,7 @@ def download_image(url, timeout, user_agent_token, disallowed_header_directives)
     )
     if user_agent_token:
         user_agent_string += f" (compatible; {user_agent_token}; " \
-                             f"+https://github.com/rom1504/img2dataset)"
+                             f"+https://github.com/ml6team/fondant)"
     try:
         request = urllib.request.Request(
             url, data=None, headers={"User-Agent": user_agent_string},
@@ -67,6 +71,7 @@ def download_image(url, timeout, user_agent_token, disallowed_header_directives)
 
 
 def download_image_with_retry(
+        id_,
         url,
         *,
         timeout,
@@ -82,29 +87,11 @@ def download_image_with_retry(
         if img_stream is not None:
             # resize the image
             img_str, width, height = resizer(img_stream)
-            return img_str, width, height
-    return None, None, None
+            return id_, img_str, width, height
+    return id_, None, None, None
 
 
-def download_image_with_retry_partition(dataframe, timeout, retries, resizer):
-    # process a single partition
-    # TODO make column name more flexible
-    data = dataframe.images_url.apply(lambda x:
-        download_image_with_retry(
-            url=x, timeout=timeout, retries=retries, resizer=resizer,
-        ),
-    )
-
-    # use assign to add values as extra columns
-    dataframe = dataframe.assign(data=[example[0] for example in data],
-                   width=[example[1] for example in data],
-                   height=[example[2] for example in data],
-    )
-
-    return dataframe
-
-
-class DownloadImagesComponent(DaskTransformComponent):
+class DownloadImagesComponent(PandasTransformComponent):
     """Component that downloads images based on URLs."""
 
     def __init__(self,
@@ -141,46 +128,41 @@ class DownloadImagesComponent(DaskTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
-    def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
 
-        logger.info(f"Length of the dataframe: {len(dataframe)}")
-        logger.info("Downloading images...")
+        logger.info(f"Downloading {len(dataframe)} images...")
 
-        # drop width and height columns, as those are going to be
-        # added later on
-        dataframe = dataframe.drop(columns=['images_width', 'images_height'])
+        results: t.List[t.Tuple[str]] = []
+        loop = asyncio.new_event_loop()
 
-        # create meta
-        # needs to be a dictionary with keys = column names, values = dtypes of columns
-        # for each column in the output
-        meta = dict(zip(dataframe.columns, dataframe.dtypes))
-        meta["data"] = bytes
-        meta["width"] = int
-        meta["height"] = int
+        async def async_download():
+            with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+                futures = [
+                    loop.run_in_executor(
+                        executor,
+                        functools.partial(
+                            download_image_with_retry,
+                            id_,
+                            url,
+                            timeout=self.timeout,
+                            retries=self.retries,
+                            resizer=self.resizer,
+                        ),
+                    )
+                    for id_, url in zip(dataframe.index, dataframe["images"]["url"])
+                ]
+                for response in await asyncio.gather(*futures):
+                    results.append(response)
 
-        dataframe = dataframe.map_partitions(
-            download_image_with_retry_partition,
-            timeout=self.timeout,
-            retries=self.retries,
-            resizer=self.resizer,
-            meta=meta,
-        )
+        loop.run_until_complete(async_download())
 
-        # rename new columns to be conform the spec
-        logger.info("Renaming columns...")
-        dataframe = dataframe.rename(columns={"data": "images_data",
-                                              "width": "images_width",
-                                              "height":"images_height"})
+        results_df = pd.DataFrame(results)
+        results_df.columns = ["id", ("images", "data"), ("images", "width"), ("images", "height")]
+        results_df.set_index("id", drop=True)
 
-        # Remove images that could not be fetched
-        logger.info("Dropping invalid rows...")
-        dataframe = dataframe.dropna()
-
-        print("Columns of final dataframe:", dataframe.columns)
-
-        return dataframe
+        return results_df
 
 
 if __name__ == "__main__":
-    executor = DaskTransformExecutor.from_args()
+    executor = PandasTransformExecutor.from_args()
     executor.execute(DownloadImagesComponent)
