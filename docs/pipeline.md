@@ -86,7 +86,6 @@ caption_images_op = ComponentOp(
         "max_new_tokens": 50,  
     },  
     input_partition_rows='disable',  
-    output_partition_size='disable',  
 )
 ```
 
@@ -105,7 +104,6 @@ caption_images_op = ComponentOp(
         "max_new_tokens": 50,  
     },  
     input_partition_rows=100, 
-    output_partition_size="10MB",  
 )
 ```
 
