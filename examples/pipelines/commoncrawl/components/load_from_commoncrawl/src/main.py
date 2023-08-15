@@ -54,6 +54,7 @@ def read_warc_paths_file(
     Args:
         warc_file: The WARC file to read.
         n_segments_to_load: The number of segments to load from the WARC file.
+        offset: The offset from which to start loading segments.
     Returns:
         A Dask DataFrame containing the segment file paths.
     """
@@ -79,11 +80,13 @@ class LoadFromCommonCrawlComponent(DaskLoadComponent):
         *args,
         index_name: str,
         n_segments_to_load: t.Optional[int] = None,
+        offset: t.Optional[int] = 0,
         aws_access_key_id: str = None,
         aws_secret_access_key: str = None,
     ) -> None:
         self.index_name = index_name
         self.n_segments_to_load = n_segments_to_load
+        self.offset = offset
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         """Loads a dataset of segment file paths from CommonCrawl based on a given index.
@@ -91,6 +94,7 @@ class LoadFromCommonCrawlComponent(DaskLoadComponent):
         Args:
             index_name: The name of the CommonCrawl index to load.
             n_segments_to_load: The number of segments to load from the index.
+            offset: The offset from which to start loading segments.
             aws_access_key_id: AWS access key id for initialise boto client
             aws_secret_access_key: AWS access key id for initialise boto client
         """
@@ -110,7 +114,9 @@ class LoadFromCommonCrawlComponent(DaskLoadComponent):
         )
 
         warc_paths_df = read_warc_paths_file(
-            warc_paths_file_content, self.n_segments_to_load
+            warc_paths_file_content,
+            self.n_segments_to_load,
+            self.offset,
         )
 
         return warc_paths_df
