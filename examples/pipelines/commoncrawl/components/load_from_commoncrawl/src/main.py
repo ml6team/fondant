@@ -48,7 +48,9 @@ def fetch_warc_file_from_s3(
 
 
 def read_warc_paths_file(
-    warc_file: bytes, n_segments_to_load: t.Optional[int] = None
+    warc_file: bytes,
+    n_segments_to_load: t.Optional[int] = None,
+    offset: t.Optional[int] = 0,
 ) -> dd.DataFrame:
     """Reads a WARC file containing a list of segment file paths and returns a Dask DataFrame.
     Args:
@@ -64,12 +66,13 @@ def read_warc_paths_file(
         warc_paths = [line.strip() for line in f]
 
     df = pd.DataFrame(warc_paths, columns=["warc_paths"])
-    dask_df = dd.from_pandas(df, npartitions=1)
-    dask_df = dask_df.rename(columns={"warc_paths": "segment_path"})
 
     if n_segments_to_load:
-        dask_df = dask_df.head(n_segments_to_load)
-        dask_df = dd.from_pandas(dask_df, npartitions=1)
+        logger.info(f"Loading {n_segments_to_load} segments from offset {offset}...")
+        df = df.iloc[offset : offset + n_segments_to_load]
+
+    dask_df = dd.from_pandas(df, npartitions=1)
+    dask_df = dask_df.rename(columns={"warc_paths": "segment_path"})
 
     return dask_df
 
