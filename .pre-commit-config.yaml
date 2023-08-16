@@ -28,10 +28,11 @@ repos:
         files: |
             (?x)^(
                 src/.*|
-                test/.*|
                 examples/.*|
+                tests/.*|
             )$
-        args: ["-f", "custom", "-q"]
+        args: ["-f", "custom", "-q", "-c", "pyproject.toml", "-r"]
+        additional_dependencies: [".[toml]"]
 
   - repo: https://github.com/psf/black
     rev: 23.1.0

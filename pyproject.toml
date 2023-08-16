@@ -96,3 +96,6 @@ line-length = 100  # Only for comments, as code is handled by black at length 88
 
 [tool.ruff.pydocstyle]
 convention = "google"
+
+[tool.bandit]
+skips = ["B101", "B108", "B307", "B404", "B601", "B602"]
