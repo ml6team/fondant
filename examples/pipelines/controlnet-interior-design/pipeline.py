@@ -17,7 +17,6 @@ pipeline_description = "Pipeline that collects data to train ControlNet"
 generate_prompts_op = ComponentOp(
     component_dir="components/generate_prompts",
     arguments={"n_rows_to_load": None},
-    output_partition_size="disable",
 )
 laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",

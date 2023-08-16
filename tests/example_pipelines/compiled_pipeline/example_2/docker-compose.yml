@@ -13,8 +13,6 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - None
-    - --output_partition_size
-    - None
     - --spec_mapping
     - None
     - --component_spec
@@ -35,8 +33,6 @@ services:
     - --padding
     - '0'
     - --input_partition_rows
-    - None
-    - --output_partition_size
     - None
     - --spec_mapping
     - None

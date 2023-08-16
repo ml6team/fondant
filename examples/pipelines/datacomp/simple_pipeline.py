@@ -1,4 +1,4 @@
-"""Pipeline used to filter the dataset of the Datacomp competition."""
+"""Simplified pipeline used to filter the dataset of the Datacomp competition."""
 
 import logging
 import sys
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize pipeline and client
 pipeline = Pipeline(
-    pipeline_name="datacomp-filtering-pipeline",
+    pipeline_name="datacomp-filtering",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
     base_path=PipelineConfigs.BASE_PATH,
 )
@@ -35,20 +35,15 @@ load_component_column_mapping = {
 load_from_hub_op = ComponentOp(
     component_dir="components/load_from_hf_hub",
     arguments={
-        "dataset_name": "mlfoundations/datacomp_small",
+        "dataset_name": "nielsr/datacomp-small-with-embeddings",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 1000,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
 )
-download_images_op = ComponentOp(
-    component_dir="components/download_images",
-    arguments={
-        "retries": 2,
-        "min_image_size": 0,
-        "max_aspect_ratio": float("inf"),
-    },
+filter_image_resolution_op = ComponentOp.from_registry(
+    name="filter_image_resolution",
+    arguments={"min_image_dim": 200, "max_aspect_ratio": 3},
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
 )
@@ -63,11 +58,10 @@ filter_complexity_op = ComponentOp(
     node_pool_name="n2-standard-128-pool",
 )
 
-
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(filter_complexity_op, dependencies=download_images_op)
-pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
+pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
+pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
 # TODO add more ops
 
 
