@@ -13,8 +13,6 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - disable
-    - --output_partition_size
-    - disable
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -35,8 +33,6 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - '10'
-    - --output_partition_size
-    - 30MB
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -63,8 +59,6 @@ services:
     - --some_list
     - '[1, 2, 3]'
     - --input_partition_rows
-    - None
-    - --output_partition_size
     - None
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
