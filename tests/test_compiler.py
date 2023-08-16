@@ -201,8 +201,6 @@ def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_kubeflow_configuration(tmp_path_factory):
     """Test that the kubeflow pipeline can be configured."""
-    from kfp.dsl import PipelineVolume
-
     pipeline = Pipeline(
         pipeline_name="test_pipeline",
         pipeline_description="description of the test pipeline",
@@ -214,8 +212,6 @@ def test_kubeflow_configuration(tmp_path_factory):
         node_pool_name="a_node_pool",
         node_pool_label="a_node_pool_label",
         number_of_gpus=1,
-        p_volumes={"/mnt": PipelineVolume(name="mypvc", empty_dir={})},
-        ephemeral_storage_size="1Gi",
     )
     pipeline.add_op(component_1)
     compiler = KubeFlowCompiler()

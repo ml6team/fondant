@@ -38,11 +38,6 @@ spec:
       resources:
         limits:
           nvidia.com/gpu: 1
-        requests:
-          ephemeral-storage: 1Gi
-      volumeMounts:
-      - mountPath: /mnt
-        name: mypvc
     inputs:
       artifacts:
       - name: input_manifest_path
@@ -88,9 +83,6 @@ spec:
       artifacts:
       - name: first-component-output_manifest_path
         path: /tmp/outputs/output_manifest_path/data
-    volumes:
-    - emptyDir: {}
-      name: mypvc
   - dag:
       tasks:
       - name: first-component

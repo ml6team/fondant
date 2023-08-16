@@ -292,17 +292,11 @@ class KubeFlowCompiler(Compiler):
         # Unpack optional specifications
         number_of_gpus = fondant_component_operation.number_of_gpus
         node_pool_name = fondant_component_operation.node_pool_name
-        p_volumes = fondant_component_operation.p_volumes
-        ephemeral_storage_size = fondant_component_operation.ephemeral_storage_size
 
         # Assign optional specification
         if number_of_gpus is not None:
             task.set_gpu_limit(number_of_gpus)
         if node_pool_name is not None:
             task.add_node_selector_constraint("node_pool", node_pool_name)
-        if p_volumes is not None:
-            task.add_pvolumes(p_volumes)
-        if ephemeral_storage_size is not None:
-            task.set_ephemeral_storage_request(ephemeral_storage_size)
 
         return task
