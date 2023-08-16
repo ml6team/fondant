@@ -242,51 +242,56 @@ class KubeFlowCompiler(Compiler):
             pipeline: the pipeline to compile
             output_path: the path where to save the Kubeflow pipeline spec
         """
+
+        @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
+        def kfp_pipeline():
+            previous_component_task = None
+            manifest_path = ""
+            for component_name, component in self.pipeline._graph.items():
+                logger.info(f"Compiling service for {component_name}")
+
+                component_op = component["fondant_component_op"]
+                # convert ComponentOp to Kubeflow component
+                kubeflow_component_op = self.kfp.components.load_component(
+                    text=component_op.component_spec.kubeflow_specification.to_string(),
+                )
+
+                # Execute the Kubeflow component and pass in the output manifest path from
+                # the previous component.
+                component_args = component_op.arguments
+                metadata = json.dumps(
+                    {
+                        "base_path": self.pipeline.base_path,
+                        "run_id": "{{workflow.name}}",
+                    },
+                )
+
+                component_task = kubeflow_component_op(
+                    input_manifest_path=manifest_path,
+                    metadata=metadata,
+                    **component_args,
+                )
+                # Set optional configurations
+                component_task = self._set_configuration(
+                    component_task,
+                    component_op,
+                )
+                # Set the execution order of the component task to be after the previous
+                # component task.
+                if previous_component_task is not None:
+                    component_task.after(previous_component_task)
+
+                # Update the manifest path to be the output path of the current component task.
+                manifest_path = component_task.outputs["output_manifest_path"]
+
+                previous_component_task = component_task
+
         self.pipeline = pipeline
         self.pipeline.validate(run_id="{{workflow.name}}")
         logger.info(f"Compiling {self.pipeline.name} to {output_path}")
-        wrapped_pipeline = (self.kfp.dsl.pipeline())(self.kfp_pipeline)  # type: ignore
-        self.kfp.compiler.Compiler().compile(wrapped_pipeline, output_path)  # type: ignore
+
+        self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
-
-    def kfp_pipeline(self):
-        previous_component_task = None
-        manifest_path = ""
-        for component_name, component in self.pipeline._graph.items():
-            logger.info(f"Compiling service for {component_name}")
-
-            component_op = component["fondant_component_op"]
-            # convert ComponentOp to Kubeflow component
-            kubeflow_component_op = self.kfp.components.load_component(
-                text=component_op.component_spec.kubeflow_specification.to_string(),
-            )
-
-            # Execute the Kubeflow component and pass in the output manifest path from
-            # the previous component.
-            component_args = component_op.arguments
-            metadata = json.dumps(
-                {"base_path": self.pipeline.base_path, "run_id": "{{workflow.name}}"},
-            )
-
-            component_task = kubeflow_component_op(
-                input_manifest_path=manifest_path,
-                metadata=metadata,
-                **component_args,
-            )
-            # Set optional configurations
-            component_task = self._set_configuration(
-                component_task,
-                component_op,
-            )
-            # Set the execution order of the component task to be after the previous
-            # component task.
-            if previous_component_task is not None:
-                component_task.after(previous_component_task)
-
-            # Update the manifest path to be the output path of the current component task.
-            manifest_path = component_task.outputs["output_manifest_path"]
-
-            previous_component_task = component_task
 
     def _set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
