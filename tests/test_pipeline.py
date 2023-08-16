@@ -140,8 +140,8 @@ def test_valid_pipeline_with_spec_mapping(
         Path(components_path / component_names[1]),
         arguments=component_args,
         spec_mapping={
-            "pictures_array": "images_data",
-            "text_english": "captions_data",
+            "images_data": "pictures_array",
+            "captions_data": "text_english",
         },
     )
 

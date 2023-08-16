@@ -141,7 +141,7 @@ def test_component_spec_to_file(valid_fondant_schema):
 def test_component_spec_mapping(valid_fondant_schema):
     """Test the component spec subset mapping method."""
     valid_spec_mapping = {
-        "images_data": "pictures_array",
+        "pictures_array": "images_data",
     }
     original_component_spec = ComponentSpec(valid_fondant_schema)
     mapped_component_spec = ComponentSpec(

@@ -330,6 +330,7 @@ class ComponentSpec:
             return modified_specification
 
         # Create the mapper from the remapping dictionary
+        spec_mapping = {v: k for k, v in spec_mapping.items()}
         spec_mapper = SubsetFieldMapper().create_mapper_from_dict(spec_mapping)
 
         # Validate the remapping

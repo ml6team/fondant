@@ -37,10 +37,10 @@ def examples_mapping():
     """Returns examples as tuples of mapping dicts, component and expected output_manifest."""
     spec_mapping = {
         "1": {
-            "images_data": "pictures_array",
+            "pictures_array": "images_data",
         },
         "2": {
-            "texts_data": "text_lines",
+            "text_lines": "texts_data",
         },
     }
 

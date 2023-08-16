@@ -166,7 +166,6 @@ class DaskDataWriter(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        output_partition_size: t.Optional[t.Union[str]] = None,
         spec_mapper: t.Optional[SubsetFieldMapper] = None,
         inverse_spec_mapper: t.Optional[SubsetFieldMapper] = None,
     ):
