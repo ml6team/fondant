@@ -13,9 +13,7 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - None
-    - --output_partition_size
-    - None
-    - --disable_automatic_indexing
+    - --index_column
     - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
@@ -36,10 +34,8 @@ services:
     - '0'
     - --input_partition_rows
     - None
-    - --output_partition_size
-    - None
     - --index_column
-    - "False"
+    - None
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
       borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",

@@ -264,13 +264,6 @@ class KubeflowComponentSpec:
                     "default": "None",
                 },
                 {
-                    "name": "output_partition_size",
-                    "description": "The size of the output partition size, defaults"
-                    " to 250MB. Set to `disable` to disable the automatic partitioning",
-                    "type": "String",
-                    "default": "None",
-                },
-                {
                     "name": "index_column",
                     "description": "Column to set index to in the load component, if not specified"
                     " a default monotonically increasing index that starts from 1 will be set",
@@ -308,8 +301,6 @@ class KubeflowComponentSpec:
                         {"inputValue": "component_spec"},
                         "--input_partition_rows",
                         {"inputValue": "input_partition_rows"},
-                        "--output_partition_size",
-                        {"inputValue": "output_partition_size"},
                         "--index_column",
                         {"inputValue": "index_column"},
                         *cls._dump_args(fondant_component.args.values()),

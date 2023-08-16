@@ -8,8 +8,6 @@ components take care of processing, filtering and extending the data.
 import argparse
 import json
 import logging
-import random
-import sys
 import typing as t
 from abc import abstractmethod
 from pathlib import Path
@@ -27,7 +25,7 @@ from fondant.component import (
 from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
-from fondant.schema import validate_partition_number, validate_partition_size
+from fondant.schema import validate_partition_number
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +42,6 @@ class Executor(t.Generic[Component]):
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
-        output_partition_size: t.Optional[str] = None,
         index_column: t.Optional[str] = None,
     ) -> None:
         self.spec = spec
@@ -53,7 +50,6 @@ class Executor(t.Generic[Component]):
         self.metadata = metadata
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
-        self.output_partition_size = output_partition_size
         self.index_column = index_column
 
     @classmethod
@@ -62,7 +58,6 @@ class Executor(t.Generic[Component]):
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
-        parser.add_argument("--output_partition_size", type=validate_partition_size)
         parser.add_argument(
             "--index_column",
             type=lambda value: None if value == "None" else value,
@@ -75,13 +70,11 @@ class Executor(t.Generic[Component]):
 
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
-        output_partition_size = args.output_partition_size
         index_column = args.index_column
 
         return cls.from_spec(
             component_spec,
             input_partition_rows=input_partition_rows,
-            output_partition_size=output_partition_size,
             index_column=index_column,
         )
 
@@ -91,7 +84,6 @@ class Executor(t.Generic[Component]):
         component_spec: ComponentSpec,
         *,
         input_partition_rows: t.Optional[t.Union[str, int]],
-        output_partition_size: t.Optional[str],
         index_column: t.Optional[str],
     ) -> "Executor":
         """Create an executor from a component spec."""
@@ -102,9 +94,6 @@ class Executor(t.Generic[Component]):
 
         if "input_partition_rows" in args_dict:
             args_dict.pop("input_partition_rows")
-
-        if "output_partition_size" in args_dict:
-            args_dict.pop("output_partition_size")
 
         if "index_column" in args_dict:
             args_dict.pop("index_column")
@@ -121,7 +110,6 @@ class Executor(t.Generic[Component]):
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
-            output_partition_size=output_partition_size,
             index_column=index_column,
         )
 
@@ -198,7 +186,6 @@ class Executor(t.Generic[Component]):
         data_writer = DaskDataWriter(
             manifest=manifest,
             component_spec=self.spec,
-            output_partition_size=self.output_partition_size,
         )
 
         data_writer.write_dataframe(dataframe)
@@ -290,15 +277,15 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
                 " monotonically increasing index",
             )
 
-            def _set_unique_index(dataframe):
-                rng = random.SystemRandom()
-                partition_uid = str(rng.randint(0, sys.maxsize))
-                dataframe.index = pd.Index(
-                    [
-                        partition_uid + "_a_" + str(x)
-                        for x in range(dataframe.index.size)
-                    ],
+            def _set_unique_index(dataframe: pd.DataFrame, partition_info=None):
+                """Function that sets a unique index based on the partition and row number."""
+                dataframe["id"] = 1
+                dataframe["id"] = (
+                    str(partition_info["number"])
+                    + "_"
+                    + (dataframe.id.cumsum()).astype(str)
                 )
+                dataframe.index = dataframe.pop("id")
                 return dataframe
 
             dask_df = dask_df.map_partitions(_set_unique_index, meta=dask_df.head())

@@ -13,8 +13,6 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - disable
-    - --output_partition_size
-    - disable
     - --index_column
     - None
     - --component_spec
@@ -37,8 +35,6 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - '10'
-    - --output_partition_size
-    - 30MB
     - --index_column
     - None
     - --component_spec
@@ -67,8 +63,6 @@ services:
     - --some_list
     - '[1, 2, 3]'
     - --input_partition_rows
-    - None
-    - --output_partition_size
     - None
     - --index_column
     - None

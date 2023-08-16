@@ -4,14 +4,15 @@ metadata:
   annotations:
     pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
     pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00'
-    pipelines.kubeflow.org/pipeline_spec: '{"name": "Kfp pipeline"}'
-  generateName: kfp-pipeline-
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "description of the test
+      pipeline", "name": "test_pipeline"}'
+  generateName: test-pipeline-
   labels:
     pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
 spec:
   arguments:
     parameters: []
-  entrypoint: kfp-pipeline
+  entrypoint: test-pipeline
   serviceAccountName: pipeline-runner
   templates:
   - container:
@@ -29,8 +30,6 @@ spec:
         "name": "First component", "produces": {"captions": {"fields": {"data": {"type":
         "string"}}}, "images": {"fields": {"data": {"type": "binary"}}}}}'
       - --input_partition_rows
-      - disable
-      - --output_partition_size
       - disable
       - --index_column
       - None
@@ -54,27 +53,24 @@ spec:
           {\"data\": {\"type\": \"string\"}}}, \"images\": {\"fields\": {\"data\":
           {\"type\": \"binary\"}}}}}", "index_column": "None", "input_partition_rows":
           "disable", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
-          "output_partition_size": "disable", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "31fd0f3179f420fd171e35ebcbb1e8e8410ebd11f481ecc091c07c0a63d565c4"}'
+          "storage_args": "a dummy string arg"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "86897a318593785f09cc9a50400873b0b284a7abffc526289710de78fb7616ae"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--output_partition_size",
-          {"inputValue": "output_partition_size"}, "--index_column", {"inputValue":
-          "index_column"}, "--storage_args", {"inputValue": "storage_args"}, "--output_manifest_path",
-          {"outputPath": "output_manifest_path"}], "image": "example_component:latest"}},
-          "inputs": [{"description": "Path to the input manifest", "name": "input_manifest_path",
-          "type": "String"}, {"description": "Metadata arguments containing the run
-          id and base path", "name": "metadata", "type": "String"}, {"default": "None",
-          "description": "The component specification as a dictionary", "name": "component_spec",
-          "type": "JsonObject"}, {"default": "None", "description": "The number of
-          rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"default": "None", "description":
-          "The size of the output partition size, defaults to 250MB. Set to `disable`
-          to disable the automatic partitioning", "name": "output_partition_size",
-          "type": "String"}, {"default": "False", "description": "Column to set index
-          to in the load component, if not specified a default monotonically increasing
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--index_column",
+          {"inputValue": "index_column"}, "--storage_args", {"inputValue": "storage_args"},
+          "--output_manifest_path", {"outputPath": "output_manifest_path"}], "image":
+          "example_component:latest"}}, "inputs": [{"description": "Path to the input
+          manifest", "name": "input_manifest_path", "type": "String"}, {"description":
+          "Metadata arguments containing the run id and base path", "name": "metadata",
+          "type": "String"}, {"default": "None", "description": "The component specification
+          as a dictionary", "name": "component_spec", "type": "JsonObject"}, {"default":
+          "None", "description": "The number of rows to load per partition. Set to
+          override the automatic partitioning", "name": "input_partition_rows", "type":
+          "String"}, {"default": "False", "description": "Column to set index to in
+          the load component, if not specified a default monotonically increasing
           index that starts from 1 will be set", "name": "index_column", "type": "String"},
           {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
           "name": "First component", "outputs": [{"description": "Path to the output
@@ -87,6 +83,75 @@ spec:
     outputs:
       artifacts:
       - name: first-component-output_manifest_path
+        path: /tmp/outputs/output_manifest_path/data
+  - container:
+      args: []
+      command:
+      - python3
+      - main.py
+      - --input_manifest_path
+      - /tmp/inputs/input_manifest_path/data
+      - --metadata
+      - '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}'
+      - --component_spec
+      - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
+        "consumes": {"images": {"fields": {"data": {"type": "binary"}}}}, "description":
+        "This is an example component", "image": "example_component:latest", "name":
+        "Second component", "produces": {"embeddings": {"fields": {"data": {"items":
+        {"type": "float32"}, "type": "array"}}}}}'
+      - --input_partition_rows
+      - '10'
+      - --index_column
+      - None
+      - --storage_args
+      - a dummy string arg
+      - --output_manifest_path
+      - /tmp/outputs/output_manifest_path/data
+      image: example_component:latest
+    inputs:
+      artifacts:
+      - name: first-component-output_manifest_path
+        path: /tmp/inputs/input_manifest_path/data
+    metadata:
+      annotations:
+        pipelines.kubeflow.org/arguments.parameters: '{"component_spec": "{\"args\":
+          {\"storage_args\": {\"description\": \"Storage arguments\", \"type\": \"str\"}},
+          \"consumes\": {\"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}},
+          \"description\": \"This is an example component\", \"image\": \"example_component:latest\",
+          \"name\": \"Second component\", \"produces\": {\"embeddings\": {\"fields\":
+          {\"data\": {\"items\": {\"type\": \"float32\"}, \"type\": \"array\"}}}}}",
+          "index_column": "None", "input_partition_rows": "10", "metadata": "{\"base_path\":
+          \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "storage_args": "a dummy
+          string arg"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "72488fbf4028952c602bb95fe7e30295090d60e66a5c05df9a06e06d78125e07"}'
+        pipelines.kubeflow.org/component_spec: '{"description": "This is an example
+          component", "implementation": {"container": {"command": ["python3", "main.py",
+          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--index_column",
+          {"inputValue": "index_column"}, "--storage_args", {"inputValue": "storage_args"},
+          "--output_manifest_path", {"outputPath": "output_manifest_path"}], "image":
+          "example_component:latest"}}, "inputs": [{"description": "Path to the input
+          manifest", "name": "input_manifest_path", "type": "String"}, {"description":
+          "Metadata arguments containing the run id and base path", "name": "metadata",
+          "type": "String"}, {"default": "None", "description": "The component specification
+          as a dictionary", "name": "component_spec", "type": "JsonObject"}, {"default":
+          "None", "description": "The number of rows to load per partition. Set to
+          override the automatic partitioning", "name": "input_partition_rows", "type":
+          "String"}, {"default": "False", "description": "Column to set index to in
+          the load component, if not specified a default monotonically increasing
+          index that starts from 1 will be set", "name": "index_column", "type": "String"},
+          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
+          "name": "Second component", "outputs": [{"description": "Path to the output
+          manifest", "name": "output_manifest_path", "type": "String"}]}'
+      labels:
+        pipelines.kubeflow.org/enable_caching: 'true'
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+    name: second-component
+    outputs:
+      artifacts:
+      - name: second-component-output_manifest_path
         path: /tmp/outputs/output_manifest_path/data
   - dag:
       tasks:
@@ -108,81 +173,7 @@ spec:
         - second-component
         name: third-component
         template: third-component
-    name: kfp-pipeline
-  - container:
-      args: []
-      command:
-      - python3
-      - main.py
-      - --input_manifest_path
-      - /tmp/inputs/input_manifest_path/data
-      - --metadata
-      - '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}'
-      - --component_spec
-      - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
-        "consumes": {"images": {"fields": {"data": {"type": "binary"}}}}, "description":
-        "This is an example component", "image": "example_component:latest", "name":
-        "Second component", "produces": {"embeddings": {"fields": {"data": {"items":
-        {"type": "float32"}, "type": "array"}}}}}'
-      - --input_partition_rows
-      - '10'
-      - --output_partition_size
-      - 30MB
-      - --index_column
-      - None
-      - --storage_args
-      - a dummy string arg
-      - --output_manifest_path
-      - /tmp/outputs/output_manifest_path/data
-      image: example_component:latest
-    inputs:
-      artifacts:
-      - name: first-component-output_manifest_path
-        path: /tmp/inputs/input_manifest_path/data
-    metadata:
-      annotations:
-        pipelines.kubeflow.org/arguments.parameters: '{"component_spec": "{\"args\":
-          {\"storage_args\": {\"description\": \"Storage arguments\", \"type\": \"str\"}},
-          \"consumes\": {\"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}},
-          \"description\": \"This is an example component\", \"image\": \"example_component:latest\",
-          \"name\": \"Second component\", \"produces\": {\"embeddings\": {\"fields\":
-          {\"data\": {\"items\": {\"type\": \"float32\"}, \"type\": \"array\"}}}}}",
-          "index_column": "None", "input_partition_rows": "10", "metadata": "{\"base_path\":
-          \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "output_partition_size":
-          "30MB", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "414dd6bc1ff4c6a5bfd9d8e752ce9fed77013188cfaacd7e6772764b06dee32f"}'
-        pipelines.kubeflow.org/component_spec: '{"description": "This is an example
-          component", "implementation": {"container": {"command": ["python3", "main.py",
-          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
-          {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--output_partition_size",
-          {"inputValue": "output_partition_size"}, "--index_column", {"inputValue":
-          "index_column"}, "--storage_args", {"inputValue": "storage_args"}, "--output_manifest_path",
-          {"outputPath": "output_manifest_path"}], "image": "example_component:latest"}},
-          "inputs": [{"description": "Path to the input manifest", "name": "input_manifest_path",
-          "type": "String"}, {"description": "Metadata arguments containing the run
-          id and base path", "name": "metadata", "type": "String"}, {"default": "None",
-          "description": "The component specification as a dictionary", "name": "component_spec",
-          "type": "JsonObject"}, {"default": "None", "description": "The number of
-          rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"default": "None", "description":
-          "The size of the output partition size, defaults to 250MB. Set to `disable`
-          to disable the automatic partitioning", "name": "output_partition_size",
-          "type": "String"}, {"default": "False", "description": "Column to set index
-          to in the load component, if not specified a default monotonically increasing
-          index that starts from 1 will be set", "name": "index_column", "type": "String"},
-          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
-          "name": "Second component", "outputs": [{"description": "Path to the output
-          manifest", "name": "output_manifest_path", "type": "String"}]}'
-      labels:
-        pipelines.kubeflow.org/enable_caching: 'true'
-        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-        pipelines.kubeflow.org/pipeline-sdk-type: kfp
-    name: second-component
-    outputs:
-      artifacts:
-      - name: second-component-output_manifest_path
-        path: /tmp/outputs/output_manifest_path/data
+    name: test-pipeline
   - container:
       args: []
       command:
@@ -202,8 +193,6 @@ spec:
         component", "produces": {"additionalSubsets": false, "images": {"fields":
         {"data": {"type": "binary"}}}}}'
       - --input_partition_rows
-      - None
-      - --output_partition_size
       - None
       - --index_column
       - None
@@ -231,34 +220,30 @@ spec:
           component\", \"produces\": {\"additionalSubsets\": false, \"images\": {\"fields\":
           {\"data\": {\"type\": \"binary\"}}}}}", "index_column": "None", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
-          "output_partition_size": "None", "some_list": "[1, 2, 3]", "storage_args":
-          "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "7777c46e5d6baee6f8a89b46a8503df4e26d7b36fc8d98e927b9164c535eaee7"}'
+          "some_list": "[1, 2, 3]", "storage_args": "a dummy string arg"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "add12b2079a4ae4d23c4e3917764c5265951acca04e584905a882b7cc30a226d"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--output_partition_size",
-          {"inputValue": "output_partition_size"}, "--index_column", {"inputValue":
-          "index_column"}, "--storage_args", {"inputValue": "storage_args"}, "--some_list",
-          {"inputValue": "some_list"}, "--output_manifest_path", {"outputPath": "output_manifest_path"}],
-          "image": "example_component:latest"}}, "inputs": [{"description": "Path
-          to the input manifest", "name": "input_manifest_path", "type": "String"},
-          {"description": "Metadata arguments containing the run id and base path",
-          "name": "metadata", "type": "String"}, {"default": "None", "description":
-          "The component specification as a dictionary", "name": "component_spec",
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--index_column",
+          {"inputValue": "index_column"}, "--storage_args", {"inputValue": "storage_args"},
+          "--some_list", {"inputValue": "some_list"}, "--output_manifest_path", {"outputPath":
+          "output_manifest_path"}], "image": "example_component:latest"}}, "inputs":
+          [{"description": "Path to the input manifest", "name": "input_manifest_path",
+          "type": "String"}, {"description": "Metadata arguments containing the run
+          id and base path", "name": "metadata", "type": "String"}, {"default": "None",
+          "description": "The component specification as a dictionary", "name": "component_spec",
           "type": "JsonObject"}, {"default": "None", "description": "The number of
           rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"default": "None", "description":
-          "The size of the output partition size, defaults to 250MB. Set to `disable`
-          to disable the automatic partitioning", "name": "output_partition_size",
-          "type": "String"}, {"default": "False", "description": "Column to set index
-          to in the load component, if not specified a default monotonically increasing
-          index that starts from 1 will be set", "name": "index_column", "type": "String"},
-          {"description": "Storage arguments", "name": "storage_args", "type": "String"},
-          {"description": "Some list", "name": "some_list", "type": "JsonArray"}],
-          "name": "Third component", "outputs": [{"description": "Path to the output
-          manifest", "name": "output_manifest_path", "type": "String"}]}'
+          "name": "input_partition_rows", "type": "String"}, {"default": "False",
+          "description": "Column to set index to in the load component, if not specified
+          a default monotonically increasing index that starts from 1 will be set",
+          "name": "index_column", "type": "String"}, {"description": "Storage arguments",
+          "name": "storage_args", "type": "String"}, {"description": "Some list",
+          "name": "some_list", "type": "JsonArray"}], "name": "Third component", "outputs":
+          [{"description": "Path to the output manifest", "name": "output_manifest_path",
+          "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22

@@ -153,49 +153,11 @@ class DaskDataWriter(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        output_partition_size: t.Optional[t.Union[str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
 
-        self.output_partition_size = output_partition_size
-
-    def partition_written_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
-        """
-        Function that partitions the written dataframe to smaller partitions based on a given
-        partition size.
-        """
-        if self.output_partition_size != "disable":
-            if isinstance(self.output_partition_size, str):
-                dataframe = dataframe.repartition(
-                    partition_size=self.output_partition_size,
-                )
-                logger.info(
-                    f"Repartitioning the written data such that the size per partition is approx."
-                    f" {self.output_partition_size}",
-                )
-
-            elif self.output_partition_size is None:
-                dataframe = dataframe.repartition(partition_size="250MB")
-                logger.info(
-                    "Repartitioning the written data such that the size per partition is approx."
-                    " 250MB. (Automatic repartitioning)",
-                )
-            else:
-                msg = (
-                    f"{self.output_partition_size} is not a valid argument. Choose either the"
-                    f" number of size of the partition (e.g. '250Mb' or set to 'disable' to"
-                    f" disable automated partitioning"
-                )
-                raise ValueError(
-                    msg,
-                )
-
-        return dataframe
-
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
         write_tasks = []
-
-        dataframe = self.partition_written_dataframe(dataframe)
 
         dataframe.index = dataframe.index.rename("id").astype("string")
 

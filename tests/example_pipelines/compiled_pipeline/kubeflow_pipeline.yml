@@ -4,14 +4,15 @@ metadata:
   annotations:
     pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
     pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00'
-    pipelines.kubeflow.org/pipeline_spec: '{"name": "Kfp pipeline"}'
-  generateName: kfp-pipeline-
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "description of the test
+      pipeline", "name": "test_pipeline"}'
+  generateName: test-pipeline-
   labels:
     pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
 spec:
   arguments:
     parameters: []
-  entrypoint: kfp-pipeline
+  entrypoint: test-pipeline
   serviceAccountName: pipeline-runner
   templates:
   - container:
@@ -30,8 +31,6 @@ spec:
         "string"}}}, "images": {"fields": {"data": {"type": "binary"}}}}}'
       - --input_partition_rows
       - None
-      - --output_partition_size
-      - None
       - --index_column
       - None
       - --storage_args
@@ -42,11 +41,6 @@ spec:
       resources:
         limits:
           nvidia.com/gpu: 1
-        requests:
-          ephemeral-storage: 1Gi
-      volumeMounts:
-      - mountPath: /mnt
-        name: mypvc
     inputs:
       artifacts:
       - name: input_manifest_path
@@ -62,27 +56,24 @@ spec:
           {\"data\": {\"type\": \"string\"}}}, \"images\": {\"fields\": {\"data\":
           {\"type\": \"binary\"}}}}}", "index_column": "None", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
-          "output_partition_size": "None", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "31fd0f3179f420fd171e35ebcbb1e8e8410ebd11f481ecc091c07c0a63d565c4"}'
+          "storage_args": "a dummy string arg"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "86897a318593785f09cc9a50400873b0b284a7abffc526289710de78fb7616ae"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--output_partition_size",
-          {"inputValue": "output_partition_size"}, "--index_column", {"inputValue":
-          "index_column"}, "--storage_args", {"inputValue": "storage_args"}, "--output_manifest_path",
-          {"outputPath": "output_manifest_path"}], "image": "example_component:latest"}},
-          "inputs": [{"description": "Path to the input manifest", "name": "input_manifest_path",
-          "type": "String"}, {"description": "Metadata arguments containing the run
-          id and base path", "name": "metadata", "type": "String"}, {"default": "None",
-          "description": "The component specification as a dictionary", "name": "component_spec",
-          "type": "JsonObject"}, {"default": "None", "description": "The number of
-          rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"default": "None", "description":
-          "The size of the output partition size, defaults to 250MB. Set to `disable`
-          to disable the automatic partitioning", "name": "output_partition_size",
-          "type": "String"}, {"default": "False", "description": "Column to set index
-          to in the load component, if not specified a default monotonically increasing
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--index_column",
+          {"inputValue": "index_column"}, "--storage_args", {"inputValue": "storage_args"},
+          "--output_manifest_path", {"outputPath": "output_manifest_path"}], "image":
+          "example_component:latest"}}, "inputs": [{"description": "Path to the input
+          manifest", "name": "input_manifest_path", "type": "String"}, {"description":
+          "Metadata arguments containing the run id and base path", "name": "metadata",
+          "type": "String"}, {"default": "None", "description": "The component specification
+          as a dictionary", "name": "component_spec", "type": "JsonObject"}, {"default":
+          "None", "description": "The number of rows to load per partition. Set to
+          override the automatic partitioning", "name": "input_partition_rows", "type":
+          "String"}, {"default": "False", "description": "Column to set index to in
+          the load component, if not specified a default monotonically increasing
           index that starts from 1 will be set", "name": "index_column", "type": "String"},
           {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
           "name": "First component", "outputs": [{"description": "Path to the output
@@ -98,11 +89,8 @@ spec:
       artifacts:
       - name: first-component-output_manifest_path
         path: /tmp/outputs/output_manifest_path/data
-    volumes:
-    - emptyDir: {}
-      name: mypvc
   - dag:
       tasks:
       - name: first-component
         template: first-component
-    name: kfp-pipeline
+    name: test-pipeline

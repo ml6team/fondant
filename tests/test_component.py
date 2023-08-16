@@ -86,10 +86,10 @@ def test_component_arguments():
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--index_column",
+        "column_1",
         "--input_partition_rows",
         "100",
-        "--output_partition_size",
-        "100MB",
         "--override_default_arg",
         "bar",
         "--override_default_none_arg",
@@ -110,7 +110,7 @@ def test_component_arguments():
     executor = MyExecutor.from_args()
     expected_partition_row_arg = 100
     assert executor.input_partition_rows == expected_partition_row_arg
-    assert executor.output_partition_size == "100MB"
+    assert executor.index_column == "column_1"
     assert executor.user_arguments == {
         "string_default_arg": "foo",
         "integer_default_arg": 0,
@@ -169,7 +169,6 @@ def test_load_component(tmp_path_factory):
 
             executor = DaskLoadExecutor.from_args()
             assert executor.input_partition_rows is None
-            assert executor.output_partition_size is None
             load = patch_method_class(MyLoadComponent.load)
             with mock.patch.object(MyLoadComponent, "load", load):
                 executor.execute(MyLoadComponent)
@@ -185,10 +184,7 @@ def test_load_component(tmp_path_factory):
             if index_column == "custom_index":
                 assert index_list == ["42", "51"]
             else:
-                p0_id, _, p_0_counter = index_list[0].rsplit("_")
-                p1_id, _, p_1_counter = index_list[1].rsplit("_")
-                assert p_0_counter == p_1_counter == "0"
-                assert p0_id != p1_id
+                assert index_list == ["0_1", "1_1"]
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
@@ -205,8 +201,6 @@ def test_dask_transform_component():
         "--value",
         "1",
         "--input_partition_rows",
-        "disable",
-        "--output_partition_size",
         "disable",
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
@@ -227,7 +221,6 @@ def test_dask_transform_component():
 
     executor = DaskTransformExecutor.from_args()
     assert executor.input_partition_rows == "disable"
-    assert executor.output_partition_size == "disable"
     transform = patch_method_class(MyDaskComponent.transform)
     with mock.patch.object(
         MyDaskComponent,
