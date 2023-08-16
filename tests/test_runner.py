@@ -56,6 +56,8 @@ def test_kubeflow_runner():
         runner = KubeflowRunner(host="some_host")
         runner.run(input_spec=input_spec_path)
 
+        assert runner.client.host == "some_host"
+
 
 def test_kubeflow_runner_new_experiment():
     input_spec_path = str(VALID_PIPELINE / "kubeflow_pipeline.yml")
