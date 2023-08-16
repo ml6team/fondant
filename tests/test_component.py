@@ -17,13 +17,13 @@ from fondant.component import (
 from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.executor import (
-    DaskLoadExecutor,
     DaskTransformExecutor,
     DaskWriteExecutor,
     Executor,
     PandasTransformExecutor,
 )
 from fondant.manifest import Manifest
+from fondant.runner import ComponentRunner
 
 components_path = Path(__file__).parent / "example_specs/components"
 N_PARTITIONS = 2
@@ -159,11 +159,13 @@ def test_load_component():
             }
             return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
 
-    executor = DaskLoadExecutor.from_args()
+    component_runner = ComponentRunner(MyLoadComponent)
+    executor = component_runner._get_executor()
     assert executor.input_partition_rows is None
+
     load = patch_method_class(MyLoadComponent.load)
     with mock.patch.object(MyLoadComponent, "load", load):
-        executor.execute(MyLoadComponent)
+        component_runner.run()
         load.mock.assert_called_once()
 
 
