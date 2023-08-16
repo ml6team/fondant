@@ -39,6 +39,8 @@ args:
     default: 5
   target_language:
     description: Limit html extraction to target language based on metadata tags.
+    type: str
+    default: None
   aws_access_key_id:
      description: AWS access key id used for authentication to load common crawl files
      type: str

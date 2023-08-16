@@ -29,7 +29,6 @@ load_from_files = ComponentOp(
         "directory_uri": "./data.zip", # change this to your
                                        # directory_uri, remote or local
     },
-    output_partition_size="10MB",
 )
 
 my_pipeline.add_op(load_from_files, dependencies=[])

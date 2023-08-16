@@ -9,12 +9,18 @@ consumes:
         type: string
 
 args:
+  remove_additional_whitespaces:
+    description: If true remove all additional whitespace, tabs.
+    type: bool
   apply_nfc:
     description: If true apply nfc normalization
+    type: bool
+  normalize_lines:
+    description: If true analyze documents line-by-line and apply various rules to discard or edit lines. Used to removed common patterns in webpages, e.g. counter
     type: bool
   do_lowercase:
     description: If true apply lowercasing
     type: bool
-  characters_to_remove:
-    description: List of characters which will be removed, e.g. [?,.!,@#%]
-    type: list
+  remove_punctuation:
+    description: If true punctuation will be removed
+    type: str
