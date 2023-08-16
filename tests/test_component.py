@@ -86,6 +86,8 @@ def test_component_arguments():
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--spec_mapping",
+        '{"col_1": "col_2"}',
         "--input_partition_rows",
         "100",
         "--override_default_arg",
@@ -107,7 +109,9 @@ def test_component_arguments():
 
     executor = MyExecutor.from_args()
     expected_partition_row_arg = 100
+    expected_spec_mapping = {"col_1": "col_2"}
     assert executor.input_partition_rows == expected_partition_row_arg
+    assert executor.spec_mapping == expected_spec_mapping
     assert executor.user_arguments == {
         "string_default_arg": "foo",
         "integer_default_arg": 0,

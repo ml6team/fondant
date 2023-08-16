@@ -2,6 +2,7 @@
 and pipelines.
 """
 
+import json
 import re
 import typing as t
 
@@ -160,7 +161,7 @@ class Field(t.NamedTuple):
 def validate_spec_mapping(arg_value):
     if arg_value in [None, "None"]:
         return arg_value if arg_value != "None" else None
-    return None
+    return json.dumps(arg_value)
 
 
 def validate_partition_number(arg_value):

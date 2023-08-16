@@ -56,21 +56,25 @@ class Executor(t.Generic[Component]):
         self.metadata = metadata
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
+        self.spec_mapping = spec_mapping
         self.spec_mapper = None
         self.inverse_spec_mapper = None
 
-        if spec_mapping:
-            self.spec_mapper = SubsetFieldMapper.create_mapper_from_dict(spec_mapping)
+        if self.spec_mapping:
+            self.spec_mapper = SubsetFieldMapper.create_mapper_from_dict(
+                self.spec_mapping,
+            )
             self.inverse_spec_mapper = SubsetFieldMapper.create_mapper_from_dict(
-                {v: k for k, v in spec_mapping.items()},
+                {v: k for k, v in self.spec_mapping.items()},
             )
 
     @classmethod
     def from_args(cls) -> "Executor":
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
-        parser.add_argument("--component_spec", type=json.loads)
+        parser.add_argument("--component_spec", type=kubeflow2python_type("JsonObject"))
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
+        parser.add_argument("--spec_mapping", type=kubeflow2python_type("JsonObject"))
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -82,6 +86,7 @@ class Executor(t.Generic[Component]):
         return cls.from_spec(
             component_spec,
             input_partition_rows=args.input_partition_rows,
+            spec_mapping=args.spec_mapping,
         )
 
     @classmethod
@@ -90,6 +95,7 @@ class Executor(t.Generic[Component]):
         component_spec: ComponentSpec,
         *,
         input_partition_rows: t.Optional[t.Union[str, int]],
+        spec_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
@@ -102,7 +108,6 @@ class Executor(t.Generic[Component]):
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
         metadata = json.loads(metadata) if metadata else {}
-        spec_mapping = args_dict.pop("spec_mapping")
 
         return cls(
             component_spec,

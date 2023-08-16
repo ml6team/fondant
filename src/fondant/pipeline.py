@@ -1,5 +1,4 @@
 """This module defines classes to represent a Fondant Pipeline."""
-import json
 import logging
 import re
 import typing as t
@@ -90,11 +89,7 @@ class ComponentOp:
         spec_mapping = validate_spec_mapping(self.spec_mapping)
 
         arguments["input_partition_rows"] = str(input_partition_rows)
-        arguments["spec_mapping"] = (
-            json.dumps(spec_mapping)
-            if isinstance(spec_mapping, dict)
-            else str(spec_mapping)
-        )
+        arguments["spec_mapping"] = str(spec_mapping)
 
         return arguments
 
