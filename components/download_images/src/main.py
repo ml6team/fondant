@@ -63,7 +63,8 @@ class DownloadImagesComponent(PandasTransformComponent):
         transport = httpx.AsyncHTTPTransport(retries=self.retries)
         async with httpx.AsyncClient(transport=transport) as client:
             try:
-                response = await client.get(url, timeout=self.timeout)
+                response = await client.get(url, timeout=self.timeout,
+                                            headers={"User-Agent": user_agent_string})
                 image_stream = response.content
             except Exception as e:
                 logger.warning(f"Skipping {url}: {e}")
