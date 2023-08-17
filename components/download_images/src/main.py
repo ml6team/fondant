@@ -97,9 +97,13 @@ class DownloadImagesComponent(PandasTransformComponent):
 
         asyncio.run(download_dataframe())
 
-        results_df = pd.DataFrame(results)
+        columns = ["id", ("images", "data"), ("images", "width"), ("images", "height")]
+        if results:
+            results_df = pd.DataFrame(results, columns=columns)
+        else:
+            results_df = pd.DataFrame(columns=columns)
+
         results_df = results_df.dropna()
-        results_df.columns = ["id", ("images", "data"), ("images", "width"), ("images", "height")]
         results_df.set_index("id", drop=True)
 
         return results_df
