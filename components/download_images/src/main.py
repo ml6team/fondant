@@ -6,6 +6,7 @@ Some functions here are directly taken from
 https://github.com/rom1504/img2dataset/blob/main/img2dataset/downloader.py.
 """
 import asyncio
+import io
 import logging
 import typing as t
 
@@ -76,7 +77,7 @@ class DownloadImagesComponent(PandasTransformComponent):
             -> t.Tuple[str, t.Optional[bytes], t.Optional[int], t.Optional[int]]:
         image_stream = await self.download_image(url)
         if image_stream is not None:
-            image_stream, width, height = self.resizer(image_stream)
+            image_stream, width, height = self.resizer(io.BytesIO(image_stream))
         else:
             image_stream, width, height = None, None, None
         return id_, image_stream, width, height
@@ -97,6 +98,7 @@ class DownloadImagesComponent(PandasTransformComponent):
         asyncio.run(download_dataframe())
 
         results_df = pd.DataFrame(results)
+        results_df = results_df.dropna()
         results_df.columns = ["id", ("images", "data"), ("images", "width"), ("images", "height")]
         results_df.set_index("id", drop=True)
 
