@@ -7,6 +7,7 @@ import io
 import logging
 import typing as t
 
+import dask
 import httpx
 import pandas as pd
 from fondant.component import PandasTransformComponent
@@ -14,6 +15,8 @@ from fondant.executor import PandasTransformExecutor
 from resizer import Resizer
 
 logger = logging.getLogger(__name__)
+
+dask.config.set(scheduler='processes')
 
 
 class DownloadImagesComponent(PandasTransformComponent):
