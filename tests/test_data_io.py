@@ -3,7 +3,7 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pytest
-from fondant.component_spec import ColumnMapping, ComponentSpec, SubsetFieldMapper
+from fondant.component_spec import ColumnMapping, ComponentSpec, SpecMapper
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
@@ -74,7 +74,7 @@ def test_load_dataframe_mapping_dict(manifest, component_spec):
     ]
     column_mapping = ColumnMapping.list_to_dict(column_mapping_list)
 
-    spec_mapper = SubsetFieldMapper.from_dict(column_mapping)
+    spec_mapper = SpecMapper.from_dict(column_mapping)
 
     dl = DaskDataLoader(
         manifest=manifest,
@@ -159,56 +159,6 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
         # override the base path of the manifest with the temp dir
         manifest.update_metadata("base_path", str(fn))
         data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
-        # write dataframe to temp dir
-        data_writer.write_dataframe(dataframe)
-        # read written data and assert
-        for subset, subset_columns in subset_columns_dict.items():
-            dataframe = dd.read_parquet(fn / subset)
-            assert len(dataframe) == NUMBER_OF_TEST_ROWS
-            assert list(dataframe.columns) == subset_columns
-            assert dataframe.index.name == "id"
-
-
-def test_write_subsets_mapping_dict(
-    tmp_path_factory,
-    dataframe,
-    manifest,
-    component_spec,
-):
-    """Test writing out subsets."""
-    column_mapping_list = [
-        ColumnMapping(
-            dataset_column="properties_Name",
-            component_column="properties_LastName",
-        ),
-        ColumnMapping(
-            dataset_column="properties_HP",
-            component_column="properties_HorsePower",
-        ),
-    ]
-    column_mapping = ColumnMapping.list_to_dict(column_mapping_list)
-    # remap name to mock data renaming when spec mapping is specified
-    dataframe = dataframe.rename(columns=column_mapping)
-
-    spec_mapper = SubsetFieldMapper.from_dict(column_mapping)
-    inverse_spec_mapper = SubsetFieldMapper.from_dict(
-        {v: k for k, v in column_mapping.items()},
-    )
-
-    subset_columns_dict = {
-        "index": [],
-        "properties": ["Name", "HP"],
-        "types": ["Type 1", "Type 2"],
-    }
-    with tmp_path_factory.mktemp("temp") as fn:
-        # override the base path of the manifest with the temp dir
-        manifest.update_metadata("base_path", str(fn))
-        data_writer = DaskDataWriter(
-            manifest=manifest,
-            component_spec=component_spec,
-            spec_mapper=spec_mapper,
-            inverse_spec_mapper=inverse_spec_mapper,
-        )
         # write dataframe to temp dir
         data_writer.write_dataframe(dataframe)
         # read written data and assert

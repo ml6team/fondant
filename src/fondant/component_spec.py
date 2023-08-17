@@ -135,7 +135,7 @@ class ColumnMapping:
         return column_mapping
 
 
-class SubsetFieldMapper:
+class SpecMapper:
     """Class that represents a mapping between different subsets and fields."""
 
     def __init__(self):
@@ -214,15 +214,15 @@ class SubsetFieldMapper:
     def from_dict(
         cls,
         column_mapping: t.Dict[str, str],
-    ) -> "SubsetFieldMapper":
+    ) -> "SpecMapper":
         """
-        Create a SubsetFieldMapper instance from a dictionary containing remapping information.
+        Create a SpecMapper instance from a dictionary containing remapping information.
 
         Args:
             column_mapping: A dictionary containing source subset-field mappings.
 
         Returns:
-            A new instance of SubsetFieldMapper with the mappings from the remapping_dict.
+            A new instance of SpecMapper with the mappings from the remapping_dict.
         """
         subset_field_mapper = cls()
         for source_value, mapped_value in column_mapping.items():
@@ -298,7 +298,7 @@ class ComponentSpec:
          other column names that match a given component specification
         """
 
-        def _validate_remapping_in_spec(mapper: SubsetFieldMapper):
+        def _validate_remapping_in_spec(mapper: SpecMapper):
             """Check that all the subsets and fields specified in the remapping dict exist in the
             component spec.
             """
@@ -320,7 +320,7 @@ class ComponentSpec:
                     )
                     raise InvalidComponentSpec(msg)
 
-        def _add_defaults_to_mapper(mapper: SubsetFieldMapper):
+        def _add_defaults_to_mapper(mapper: SpecMapper):
             """
             Add default subset-field pairs to the mapper if no valid mapping pair is present in
             the component spec.
@@ -337,7 +337,7 @@ class ComponentSpec:
                                     field_name,
                                 )
 
-        def _get_mapped_specification(mapper: SubsetFieldMapper) -> t.Dict[str, t.Any]:
+        def _get_mapped_specification(mapper: SpecMapper) -> t.Dict[str, t.Any]:
             """Map the specification based on the remapping dictionary."""
             modified_specification = copy.deepcopy(self._specification)
 
@@ -367,7 +367,7 @@ class ComponentSpec:
 
         # Create the mapper from the remapping dictionary
         column_mapping = {v: k for k, v in column_mapping.items()}
-        spec_mapper = SubsetFieldMapper().from_dict(column_mapping)
+        spec_mapper = SpecMapper().from_dict(column_mapping)
 
         # Validate the remapping
         _validate_remapping_in_spec(mapper=spec_mapper)
@@ -545,8 +545,9 @@ class KubeflowComponentSpec:
                 "container": {
                     "image": fondant_component.image,
                     "command": [
-                        "python3",
-                        "main.py",
+                        "fondant",
+                        "execute",
+                        "main",
                         "--input_manifest_path",
                         {"inputPath": "input_manifest_path"},
                         "--metadata",

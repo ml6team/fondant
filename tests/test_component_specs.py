@@ -11,7 +11,7 @@ from fondant.component_spec import (
     ComponentSpec,
     ComponentSubset,
     KubeflowComponentSpec,
-    SubsetFieldMapper,
+    SpecMapper,
 )
 from fondant.exceptions import InvalidComponentSpec, InvalidSubsetMapping
 from fondant.schema import Type
@@ -87,7 +87,7 @@ def test_subset_field_mapping():
         ColumnMapping(dataset_column="images_size", component_column="picture_area"),
     ]
     column_mapping = ColumnMapping.list_to_dict(column_mapping_list)
-    mapper = SubsetFieldMapper.from_dict(column_mapping)
+    mapper = SpecMapper.from_dict(column_mapping)
     expected_mapping = {
         ("images", "data"): ("picture", "array"),
         ("images", "size"): ("picture", "area"),
@@ -121,7 +121,7 @@ def test_invalid_subset_field_mapping():
     for invalid_example in invalid_examples:
         column_mapping = ColumnMapping.list_to_dict(invalid_example)
         with pytest.raises(InvalidSubsetMapping):
-            SubsetFieldMapper.from_dict(column_mapping)
+            SpecMapper.from_dict(column_mapping)
 
 
 def test_component_spec_no_args(valid_fondant_schema_no_args):

@@ -6,7 +6,7 @@ import dask
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
-from fondant.component_spec import ComponentSpec, ComponentSubset, SubsetFieldMapper
+from fondant.component_spec import ComponentSpec, ComponentSubset, SpecMapper
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class DaskDataLoader(DataIO):
         manifest: Manifest,
         component_spec: ComponentSpec,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
-        spec_mapper: t.Optional[SubsetFieldMapper] = None,
+        spec_mapper: t.Optional[SpecMapper] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows
@@ -163,8 +163,8 @@ class DaskDataWriter(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        spec_mapper: t.Optional[SubsetFieldMapper] = None,
-        inverse_spec_mapper: t.Optional[SubsetFieldMapper] = None,
+        spec_mapper: t.Optional[SpecMapper] = None,
+        inverse_spec_mapper: t.Optional[SpecMapper] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
 
@@ -210,72 +210,24 @@ class DaskDataWriter(DataIO):
         subset_spec: ComponentSubset,
     ) -> dd.DataFrame:
         """Create subset dataframe to save with the original field name as the column name."""
+        # Create a new dataframe with only the columns needed for the output subset
+        subset_columns = [f"{subset_name}_{field}" for field in subset_spec.fields]
+        try:
+            subset_df = dataframe[subset_columns]
+        except KeyError as e:
+            msg = (
+                f"Field {e.args[0]} defined in output subset {subset_name} "
+                f"but not found in dataframe"
+            )
+            raise ValueError(
+                msg,
+            )
 
-        def _get_subset_columns() -> t.List[str]:
-            # Create a new dataframe with only the columns needed for the output subset
-            subset_cols = []
-
-            for field_name in subset_spec.fields:
-                column_name = f"{subset_name}_{field_name}"
-
-                if self.spec_mapper is not None:
-                    mapped_subset_field = self.spec_mapper[(subset_name, field_name)]
-
-                    if mapped_subset_field:
-                        mapped_subset, mapped_field = mapped_subset_field
-                        column_name = f"{mapped_subset}_{mapped_field}"
-
-                subset_cols.append(column_name)
-
-            return subset_cols
-
-        def _extract_subset_dataframe(
-            original_dataframe: dd.DataFrame,
-            subset_cols: t.List[str],
-        ) -> dd.DataFrame:
-            try:
-                subset_df = original_dataframe[subset_cols]
-            except KeyError as e:
-                msg = (
-                    f"Field {e.args[0]} defined in output subset {subset_name} "
-                    f"but not found in dataframe"
-                )
-                raise ValueError(
-                    msg,
-                )
-            return subset_df
-
-        def _rename_subset_columns(
-            subset_df: dd.DataFrame,
-            subset_cols: t.List[str],
-        ) -> dd.DataFrame:
-            # Initialize the column rename dictionary
-            column_rename_dict = {}
-
-            for subset_field in subset_cols:
-                subset, field = subset_field.rsplit("_")
-
-                # Use the original field if inverse_spec_mapper is not available
-                if self.inverse_spec_mapper:
-                    original_subset_field = self.inverse_spec_mapper[(subset, field)]
-                    original_field = (
-                        original_subset_field[1] if original_subset_field else field
-                    )
-                else:
-                    original_field = field
-
-                column_rename_dict[f"{subset}_{field}"] = original_field
-
-            return subset_df.rename(columns=column_rename_dict)
-
-        subset_columns = _get_subset_columns()
-        subset_dataframe = _extract_subset_dataframe(
-            original_dataframe=dataframe,
-            subset_cols=subset_columns,
+        # Remove the subset prefix from the column names
+        subset_df = subset_df.rename(
+            columns={col: col[(len(f"{subset_name}_")) :] for col in subset_columns},
         )
-        subset_dataframe = _rename_subset_columns(subset_dataframe, subset_columns)
-
-        return subset_dataframe
+        return subset_df
 
     def _write_subset(
         self,

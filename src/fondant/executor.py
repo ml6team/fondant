@@ -26,7 +26,7 @@ from fondant.component import (
 from fondant.component_spec import (
     Argument,
     ComponentSpec,
-    SubsetFieldMapper,
+    SpecMapper,
     kubeflow2python_type,
 )
 from fondant.data_io import DaskDataLoader, DaskDataWriter
@@ -61,10 +61,10 @@ class Executor(t.Generic[Component]):
         self.inverse_spec_mapper = None
 
         if self.column_mapping:
-            self.spec_mapper = SubsetFieldMapper.from_dict(
+            self.spec_mapper = SpecMapper.from_dict(
                 self.column_mapping,
             )
-            self.inverse_spec_mapper = SubsetFieldMapper.from_dict(
+            self.inverse_spec_mapper = SpecMapper.from_dict(
                 {v: k for k, v in self.column_mapping.items()},
             )
 
