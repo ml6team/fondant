@@ -11,8 +11,7 @@ import httpx
 import pandas as pd
 from fondant.component import PandasTransformComponent
 from fondant.executor import PandasTransformExecutor
-
-from .resizer import Resizer
+from resizer import Resizer
 
 logger = logging.getLogger(__name__)
 

@@ -17,6 +17,7 @@ RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@$
 # Set the working directory to the component folder
 WORKDIR /component
 COPY src/ src/
+ENV PYTHONPATH "${PYTHONPATH}:./src"
 
 FROM base as test
 COPY test_requirements.txt .
