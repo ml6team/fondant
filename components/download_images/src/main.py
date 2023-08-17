@@ -1,9 +1,6 @@
 """
 This component downloads images based on URLs, and resizes them based on various settings like
 minimum image size and aspect ratio.
-
-Some functions here are directly taken from
-https://github.com/rom1504/img2dataset/blob/main/img2dataset/downloader.py.
 """
 import asyncio
 import io
@@ -14,7 +11,8 @@ import httpx
 import pandas as pd
 from fondant.component import PandasTransformComponent
 from fondant.executor import PandasTransformExecutor
-from resizer import Resizer
+
+from .resizer import Resizer
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +81,6 @@ class DownloadImagesComponent(PandasTransformComponent):
         return id_, image_stream, width, height
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-
         logger.info(f"Downloading {len(dataframe)} images...")
 
         results: t.List[t.Tuple[str, bytes, int, int]] = []
@@ -97,14 +94,15 @@ class DownloadImagesComponent(PandasTransformComponent):
 
         asyncio.run(download_dataframe())
 
-        columns = ["id", ("images", "data"), ("images", "width"), ("images", "height")]
+        columns = ["id", "data", "width", "height"]
         if results:
             results_df = pd.DataFrame(results, columns=columns)
         else:
             results_df = pd.DataFrame(columns=columns)
 
         results_df = results_df.dropna()
-        results_df.set_index("id", drop=True)
+        results_df = results_df.set_index("id", drop=True)
+        results_df.columns = pd.MultiIndex.from_product([["images"], results_df.columns])
 
         return results_df
 
