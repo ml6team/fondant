@@ -103,10 +103,7 @@ class DaskDataLoader(DataIO):
         if self.spec_mapper:
             # Update the column renaming scheme based on the mapper
             for col in subset_df.columns:
-                mapped_subset_col = self.spec_mapper.get_mapping(
-                    source_subset=subset_name,
-                    source_field=col,
-                )
+                mapped_subset_col = self.spec_mapper[(subset_name, col)]
                 if mapped_subset_col:
                     mapped_subset, mapped_col = mapped_subset_col
                     column_rename_dict[col] = f"{mapped_subset}_{mapped_col}"
@@ -222,10 +219,7 @@ class DaskDataWriter(DataIO):
                 column_name = f"{subset_name}_{field_name}"
 
                 if self.spec_mapper is not None:
-                    mapped_subset_field = self.spec_mapper.get_mapping(
-                        source_subset=subset_name,
-                        source_field=field_name,
-                    )
+                    mapped_subset_field = self.spec_mapper[(subset_name, field_name)]
 
                     if mapped_subset_field:
                         mapped_subset, mapped_field = mapped_subset_field
@@ -263,10 +257,7 @@ class DaskDataWriter(DataIO):
 
                 # Use the original field if inverse_spec_mapper is not available
                 if self.inverse_spec_mapper:
-                    original_subset_field = self.inverse_spec_mapper.get_mapping(
-                        subset,
-                        field,
-                    )
+                    original_subset_field = self.inverse_spec_mapper[(subset, field)]
                     original_field = (
                         original_subset_field[1] if original_subset_field else field
                     )

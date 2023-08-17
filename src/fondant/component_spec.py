@@ -97,7 +97,7 @@ class SubsetFieldMapper:
     def __init__(self):
         self.subset_field_mapping = {}
 
-    def add_mapping(
+    def __setitem__(
         self,
         source_subset_field: t.Tuple[str, str],
         target_subset_field: t.Tuple[str, str],
@@ -116,61 +116,55 @@ class SubsetFieldMapper:
 
         self.subset_field_mapping[source_subset_field] = target_subset_field
 
-    def get_mapping(
+    def __getitem__(
         self,
-        source_subset: str,
-        source_field: str,
+        source_subset_field: t.Tuple[str, str],
     ) -> t.Union[t.Tuple[str, str], None]:
         """
         Retrieve the mapping for the given source subset and field.
 
         Args:
-            source_subset: The source subset name.
-            source_field: The source field name.
+            source_subset_field: The source subset and field as a tuple.
 
         Returns:
             The corresponding target subset and field.
         """
-        return self.subset_field_mapping.get((source_subset, source_field))
+        return self.subset_field_mapping.get(source_subset_field)
 
     def _check_for_conflicting_mapping(
         self,
-        source_column: str,
-        target_column: str,
+        source_subset: str,
+        target_subset: str,
     ) -> None:
         """
         Check if the added column is used in any existing mapping with a different source column.
 
         Args:
-            source_column: The name of the source column to add.
-            target_column: The name of the target column to add.
+            source_subset: The name of the source subset to add.
+            target_subset: The name of the target subset to add.
         """
         for mapped_source, mapped_target in self.subset_field_mapping.items():
             mapped_source_column, mapped_source_field = mapped_source
             mapped_target_column, mapped_target_field = mapped_target
             if (
-                source_column == mapped_source_column
-                and target_column != mapped_target_column
+                source_subset == mapped_source_column
+                and target_subset != mapped_target_column
             ):
                 msg = (
-                    f"Conflicting mapping: Source column '{source_column}' is already mapped to"
-                    f" '{mapped_target_column}' cannot map it to '{target_column}'."
+                    f"Conflicting mapping: Source column '{source_subset}' is already mapped to"
+                    f" '{mapped_target_column}' cannot map it to '{target_subset}'."
                 )
                 raise InvalidSubsetMapping(msg)
             if (
-                target_column == mapped_target_column
-                and source_column != mapped_source_column
+                target_subset == mapped_target_column
+                and source_subset != mapped_source_column
             ):
                 msg = (
-                    f"Conflicting mapping: target column '{target_column}' "
+                    f"Conflicting mapping: target column '{target_subset}' "
                     f"is already mapped to '{mapped_source_column}` cannot map it to"
-                    f" '{source_column}'."
+                    f" '{source_subset}'."
                 )
                 raise InvalidSubsetMapping(msg)
-
-    @property
-    def mapping(self):
-        return self.subset_field_mapping
 
     @classmethod
     def create_mapper_from_dict(
@@ -190,10 +184,11 @@ class SubsetFieldMapper:
         for source_value, mapped_value in spec_mapping.items():
             source_subset, source_field = source_value.rsplit("_")
             mapped_subset, mapped_field = mapped_value.rsplit("_")
-            subset_field_mapper.add_mapping(
-                (source_subset, source_field),
-                (mapped_subset, mapped_field),
+            subset_field_mapper[(source_subset, source_field)] = (
+                mapped_subset,
+                mapped_field,
             )
+
         return subset_field_mapper
 
 
@@ -263,7 +258,7 @@ class ComponentSpec:
             """Check that all the subsets and fields specified in the remapping dict exist in the
             component spec.
             """
-            for source_subset, source_field in mapper.mapping:
+            for source_subset, source_field in mapper.subset_field_mapping:
                 if source_subset not in self._specification["consumes"]:
                     msg = (
                         f"`{source_subset}`does not exist in `{source_subset}` in the"
@@ -292,10 +287,10 @@ class ComponentSpec:
                         subset_type
                     ].items():
                         for field_name in subset_fields["fields"]:
-                            if mapper.get_mapping(subset_name, field_name) is None:
-                                mapper.add_mapping(
-                                    (subset_name, field_name),
-                                    (subset_name, field_name),
+                            if mapper[(subset_name, field_name)] is None:
+                                mapper[(subset_name, field_name)] = (
+                                    subset_name,
+                                    field_name,
                                 )
 
         def _get_mapped_specification(mapper: SubsetFieldMapper) -> t.Dict[str, t.Any]:
@@ -310,10 +305,7 @@ class ComponentSpec:
                         subset_type
                     ].items():
                         for field_name, field_schema in subset_fields["fields"].items():
-                            mapped_subset_field = mapper.get_mapping(
-                                subset_name,
-                                field_name,
-                            )
+                            mapped_subset_field = mapper[(subset_name, field_name)]
 
                             if mapped_subset_field is not None:
                                 mapped_subset, mapped_field = mapped_subset_field

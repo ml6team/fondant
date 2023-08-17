@@ -91,7 +91,7 @@ def test_subset_field_mapping():
         ("images", "size"): ("picture", "area"),
     }
 
-    assert mapper.mapping == expected_mapping
+    assert mapper.subset_field_mapping == expected_mapping
 
 
 def test_invalid_subset_field_mapping():
