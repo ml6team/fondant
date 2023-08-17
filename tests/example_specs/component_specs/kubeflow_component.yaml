@@ -16,7 +16,7 @@ inputs:
         partitioning
     type: String
     default: None
--   name: spec_mapping
+-   name: column_mapping
     description: A dictionary that maps the column names of the consumed dataset to
         other column names that match a given component specification
     type: JsonObject
@@ -42,8 +42,8 @@ implementation:
         -   inputValue: component_spec
         - --input_partition_rows
         -   inputValue: input_partition_rows
-        - --spec_mapping
-        -   inputValue: spec_mapping
+        - --column_mapping
+        -   inputValue: column_mapping
         - --storage_args
         -   inputValue: storage_args
         - --output_manifest_path

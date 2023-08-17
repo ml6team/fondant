@@ -13,7 +13,7 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - disable
-    - --spec_mapping
+    - --column_mapping
     - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
@@ -35,7 +35,7 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - '10'
-    - --spec_mapping
+    - --column_mapping
     - None
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
@@ -64,7 +64,7 @@ services:
     - '[1, 2, 3]'
     - --input_partition_rows
     - None
-    - --spec_mapping
+    - --column_mapping
     - None
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",

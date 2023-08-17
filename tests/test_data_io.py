@@ -3,7 +3,7 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pytest
-from fondant.component_spec import ComponentSpec, SubsetFieldMapper
+from fondant.component_spec import ColumnMapping, ComponentSpec, SubsetFieldMapper
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
 
@@ -62,11 +62,19 @@ def test_load_dataframe(manifest, component_spec):
 
 def test_load_dataframe_mapping_dict(manifest, component_spec):
     """Test merging of subsets in a dataframe based on a component_spec."""
-    spec_mapping = {
-        "properties_Name": "properties_LastName",
-        "properties_HP": "properties_HorsePower",
-    }
-    spec_mapper = SubsetFieldMapper.create_mapper_from_dict(spec_mapping)
+    column_mapping_list = [
+        ColumnMapping(
+            dataset_column="properties_Name",
+            component_column="properties_LastName",
+        ),
+        ColumnMapping(
+            dataset_column="properties_HP",
+            component_column="properties_HorsePower",
+        ),
+    ]
+    column_mapping = ColumnMapping.list_to_dict(column_mapping_list)
+
+    spec_mapper = SubsetFieldMapper.from_dict(column_mapping)
 
     dl = DaskDataLoader(
         manifest=manifest,
@@ -168,16 +176,23 @@ def test_write_subsets_mapping_dict(
     component_spec,
 ):
     """Test writing out subsets."""
-    spec_mapping = {
-        "properties_Name": "properties_LastName",
-        "properties_HP": "properties_HorsePower",
-    }
+    column_mapping_list = [
+        ColumnMapping(
+            dataset_column="properties_Name",
+            component_column="properties_LastName",
+        ),
+        ColumnMapping(
+            dataset_column="properties_HP",
+            component_column="properties_HorsePower",
+        ),
+    ]
+    column_mapping = ColumnMapping.list_to_dict(column_mapping_list)
     # remap name to mock data renaming when spec mapping is specified
-    dataframe = dataframe.rename(columns=spec_mapping)
+    dataframe = dataframe.rename(columns=column_mapping)
 
-    spec_mapper = SubsetFieldMapper.create_mapper_from_dict(spec_mapping)
-    inverse_spec_mapper = SubsetFieldMapper.create_mapper_from_dict(
-        {v: k for k, v in spec_mapping.items()},
+    spec_mapper = SubsetFieldMapper.from_dict(column_mapping)
+    inverse_spec_mapper = SubsetFieldMapper.from_dict(
+        {v: k for k, v in column_mapping.items()},
     )
 
     subset_columns_dict = {

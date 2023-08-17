@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from fondant.component_spec import ComponentSpec
+from fondant.component_spec import ColumnMapping, ComponentSpec
 from fondant.manifest import Manifest
 
 examples_path = Path(__file__).parent / "example_specs/evolution_examples"
@@ -35,20 +35,23 @@ def examples():
 
 def examples_mapping():
     """Returns examples as tuples of mapping dicts, component and expected output_manifest."""
-    spec_mapping = {
-        "1": {
-            "pictures_array": "images_data",
-        },
-        "2": {
-            "text_lines": "texts_data",
-        },
+    column_mapping_list = {
+        "1": [
+            ColumnMapping(
+                dataset_column="pictures_array",
+                component_column="images_data",
+            ),
+        ],
+        "2": [
+            ColumnMapping(dataset_column="text_lines", component_column="texts_data"),
+        ],
     }
 
     for directory in (f for f in examples_path_mapping.iterdir() if f.is_dir()):
         with open(directory / "component.yaml") as c, open(
             directory / "output_manifest.json",
         ) as o:
-            yield spec_mapping[directory.name], yaml.safe_load(c), json.load(o)
+            yield column_mapping_list[directory.name], yaml.safe_load(c), json.load(o)
 
 
 @pytest.mark.parametrize(("component_spec", "output_manifest"), list(examples()))
@@ -61,19 +64,20 @@ def test_evolution(input_manifest, component_spec, output_manifest):
 
 
 @pytest.mark.parametrize(
-    ("spec_mapping", "component_spec", "output_manifest"),
+    ("column_mapping_list", "component_spec", "output_manifest"),
     list(examples_mapping()),
 )
 def test_evolution_mapping(
     input_manifest_mapping,
-    spec_mapping,
+    column_mapping_list,
     component_spec,
     output_manifest,
 ):
+    column_mapping = ColumnMapping.list_to_dict(column_mapping_list)
     manifest = Manifest(input_manifest_mapping)
     component_spec = ComponentSpec(
         component_spec,
-        spec_mapping=spec_mapping,
+        column_mapping=column_mapping,
     )
     evolved_manifest = manifest.evolve(component_spec=component_spec)
 

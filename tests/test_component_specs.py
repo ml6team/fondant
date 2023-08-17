@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 import yaml
 from fondant.component_spec import (
+    ColumnMapping,
     ComponentSpec,
     ComponentSubset,
     KubeflowComponentSpec,
@@ -81,11 +82,12 @@ def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
 
 def test_subset_field_mapping():
     """Test that the subset field mapper returns a valid mapping dictionary."""
-    mapping_dict = {
-        "images_data": "picture_array",
-        "images_size": "picture_area",
-    }
-    mapper = SubsetFieldMapper.create_mapper_from_dict(mapping_dict)
+    column_mapping_list = [
+        ColumnMapping(dataset_column="images_data", component_column="picture_array"),
+        ColumnMapping(dataset_column="images_size", component_column="picture_area"),
+    ]
+    column_mapping = ColumnMapping.list_to_dict(column_mapping_list)
+    mapper = SubsetFieldMapper.from_dict(column_mapping)
     expected_mapping = {
         ("images", "data"): ("picture", "array"),
         ("images", "size"): ("picture", "area"),
@@ -98,20 +100,28 @@ def test_invalid_subset_field_mapping():
     """Test that the subset field mapper returns a valid error when the mapping dictionary
     contains conflicting mapping between subsets.
     """
+    """Test that the subset field mapper returns a valid mapping dictionary."""
     invalid_examples = [
-        {
-            "images_data": "picture_array",
-            "images_size": "images_area",
-        },
-        {
-            "images_data": "picture_array",
-            "photo_size": "picture_area",
-        },
+        [
+            ColumnMapping(
+                dataset_column="images_data",
+                component_column="picture_array",
+            ),
+            ColumnMapping(dataset_column="images_size", component_column="images_area"),
+        ],
+        [
+            ColumnMapping(
+                dataset_column="images_data",
+                component_column="picture_array",
+            ),
+            ColumnMapping(dataset_column="photo_size", component_column="picture_area"),
+        ],
     ]
 
     for invalid_example in invalid_examples:
+        column_mapping = ColumnMapping.list_to_dict(invalid_example)
         with pytest.raises(InvalidSubsetMapping):
-            SubsetFieldMapper.create_mapper_from_dict(invalid_example)
+            SubsetFieldMapper.from_dict(column_mapping)
 
 
 def test_component_spec_no_args(valid_fondant_schema_no_args):
@@ -138,15 +148,17 @@ def test_component_spec_to_file(valid_fondant_schema):
         assert written_data == valid_fondant_schema
 
 
-def test_component_spec_mapping(valid_fondant_schema):
+def test_component_column_mapping(valid_fondant_schema):
     """Test the component spec subset mapping method."""
-    valid_spec_mapping = {
-        "pictures_array": "images_data",
-    }
+    column_mapping_list = [
+        ColumnMapping(dataset_column="pictures_array", component_column="images_data"),
+    ]
+    column_mapping = ColumnMapping.list_to_dict(column_mapping_list)
+
     original_component_spec = ComponentSpec(valid_fondant_schema)
     mapped_component_spec = ComponentSpec(
         valid_fondant_schema,
-        spec_mapping=valid_spec_mapping,
+        column_mapping=column_mapping,
     )
 
     assert (
@@ -155,29 +167,45 @@ def test_component_spec_mapping(valid_fondant_schema):
     )
 
     # Non existing subsets/fields
-    invalid_spec_mappings = [
-        {"non+existing+subset_data": "pictures_array"},
-        {"images_non+existing+field": "pictures_array"},
+    invalid_column_mappings = [
+        [
+            ColumnMapping(
+                dataset_column="non+existing+subset_data",
+                component_column="pictures_array",
+            ),
+        ],
+        [
+            ColumnMapping(
+                dataset_column="images_non+existing+field`",
+                component_column="pictures_array",
+            ),
+        ],
     ]
 
-    for invalid_spec_mapping in invalid_spec_mappings:
+    for invalid_column_mapping in invalid_column_mappings:
+        column_mapping = ColumnMapping.list_to_dict(invalid_column_mapping)
         with pytest.raises(InvalidComponentSpec):
             ComponentSpec(
                 valid_fondant_schema,
-                spec_mapping=invalid_spec_mapping,
+                column_mapping=column_mapping,
             )
 
     # Conflicting subset mapping
-    invalid_spec_mappings = [
-        {"images_data": "embeddings_data"},
+    invalid_column_mappings = [
+        [
+            ColumnMapping(
+                dataset_column="images_data",
+                component_column="embeddings_data",
+            ),
+        ],
     ]
-
-    for invalid_spec_mapping in invalid_spec_mappings:
-        with pytest.raises(InvalidSubsetMapping):
-            ComponentSpec(
-                valid_fondant_schema,
-                spec_mapping=invalid_spec_mapping,
-            )
+    for invalid_column_mapping in invalid_column_mappings:
+        column_mapping = ColumnMapping.list_to_dict(invalid_column_mapping)
+    with pytest.raises(InvalidSubsetMapping):
+        ComponentSpec(
+            valid_fondant_schema,
+            column_mapping=column_mapping,
+        )
 
 
 def test_kubeflow_component_spec_to_file(valid_kubeflow_schema):

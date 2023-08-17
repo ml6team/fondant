@@ -13,7 +13,7 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - None
-    - --spec_mapping
+    - --column_mapping
     - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
@@ -34,7 +34,7 @@ services:
     - '0'
     - --input_partition_rows
     - None
-    - --spec_mapping
+    - --column_mapping
     - None
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored

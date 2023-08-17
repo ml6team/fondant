@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from fondant.component_spec import ColumnMapping
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
 
@@ -116,7 +117,7 @@ def test_valid_pipeline(
         ),
     ],
 )
-def test_valid_pipeline_with_spec_mapping(
+def test_valid_pipeline_with_column_mapping(
     default_pipeline_args,
     valid_pipeline_example,
     tmp_path,
@@ -139,10 +140,16 @@ def test_valid_pipeline_with_spec_mapping(
     custom_component_op = ComponentOp(
         Path(components_path / component_names[1]),
         arguments=component_args,
-        spec_mapping={
-            "images_data": "pictures_array",
-            "captions_data": "text_english",
-        },
+        column_mapping_list=[
+            ColumnMapping(
+                dataset_column="images_data",
+                component_column="pictures_array",
+            ),
+            ColumnMapping(
+                dataset_column="captions_data",
+                component_column="text_english",
+            ),
+        ],
     )
 
     pipeline.add_op(first_component_op)

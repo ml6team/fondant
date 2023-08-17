@@ -158,7 +158,7 @@ class Field(t.NamedTuple):
     type: Type
 
 
-def validate_spec_mapping(arg_value):
+def validate_column_mapping(arg_value):
     if arg_value in [None, "None"]:
         return arg_value if arg_value != "None" else None
     return json.dumps(arg_value)

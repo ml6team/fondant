@@ -48,7 +48,7 @@ class Executor(t.Generic[Component]):
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
-        spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        column_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
@@ -56,16 +56,16 @@ class Executor(t.Generic[Component]):
         self.metadata = metadata
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
-        self.spec_mapping = spec_mapping
+        self.column_mapping = column_mapping
         self.spec_mapper = None
         self.inverse_spec_mapper = None
 
-        if self.spec_mapping:
-            self.spec_mapper = SubsetFieldMapper.create_mapper_from_dict(
-                self.spec_mapping,
+        if self.column_mapping:
+            self.spec_mapper = SubsetFieldMapper.from_dict(
+                self.column_mapping,
             )
-            self.inverse_spec_mapper = SubsetFieldMapper.create_mapper_from_dict(
-                {v: k for k, v in self.spec_mapping.items()},
+            self.inverse_spec_mapper = SubsetFieldMapper.from_dict(
+                {v: k for k, v in self.column_mapping.items()},
             )
 
     @classmethod
@@ -74,7 +74,7 @@ class Executor(t.Generic[Component]):
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=kubeflow2python_type("JsonObject"))
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
-        parser.add_argument("--spec_mapping", type=kubeflow2python_type("JsonObject"))
+        parser.add_argument("--column_mapping", type=kubeflow2python_type("JsonObject"))
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -86,7 +86,7 @@ class Executor(t.Generic[Component]):
         return cls.from_spec(
             component_spec,
             input_partition_rows=args.input_partition_rows,
-            spec_mapping=args.spec_mapping,
+            column_mapping=args.column_mapping,
         )
 
     @classmethod
@@ -95,7 +95,7 @@ class Executor(t.Generic[Component]):
         component_spec: ComponentSpec,
         *,
         input_partition_rows: t.Optional[t.Union[str, int]],
-        spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        column_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
@@ -113,7 +113,7 @@ class Executor(t.Generic[Component]):
             component_spec,
             input_manifest_path=input_manifest_path,
             output_manifest_path=output_manifest_path,
-            spec_mapping=spec_mapping,
+            column_mapping=column_mapping,
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,

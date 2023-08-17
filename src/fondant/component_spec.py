@@ -91,6 +91,50 @@ class ComponentSubset:
         return self._specification.get("additionalFields", True)
 
 
+@dataclass
+class ColumnMapping:
+    """
+    Represents a column mapping between a source dataset column and a target component column.
+    This class is used to facilitate the alignment of column names between different datasets
+    and component specifications.
+
+    Args:
+        dataset_column: The name of the source column in your dataset that you want to map with
+          format <subset_field>.
+        component_column: The name of the corresponding target column in a component's
+          specification that you want to align with.
+
+    Example:
+        Consider a scenario where your dataset has a column named 'images_data', but a specific
+        component you are using requires the column to be named 'images_array'. You can create a
+        ColumnMapping instance to link 'images_data' to 'images_array', ensuring alignment
+        between your dataset and the component's requirements.
+    """
+
+    dataset_column: str
+    component_column: str
+
+    @classmethod
+    def list_to_dict(
+        cls,
+        column_mapping_list: t.List["ColumnMapping"],
+    ) -> t.Dict[str, str]:
+        """
+        Convert a list of ColumnMapping instances to a dictionary where keys are dataset column
+        names and values are corresponding component column names.
+
+        Args:
+            column_mapping_list (list): List of ColumnMapping instances.
+
+        Returns:
+            dict: A dictionary containing the mapping of dataset columns to component columns.
+        """
+        column_mapping = {}
+        for mapping in column_mapping_list:
+            column_mapping[mapping.dataset_column] = mapping.component_column
+        return column_mapping
+
+
 class SubsetFieldMapper:
     """Class that represents a mapping between different subsets and fields."""
 
@@ -167,21 +211,21 @@ class SubsetFieldMapper:
                 raise InvalidSubsetMapping(msg)
 
     @classmethod
-    def create_mapper_from_dict(
+    def from_dict(
         cls,
-        spec_mapping: t.Dict[str, str],
+        column_mapping: t.Dict[str, str],
     ) -> "SubsetFieldMapper":
         """
         Create a SubsetFieldMapper instance from a dictionary containing remapping information.
 
         Args:
-            spec_mapping: A dictionary containing source subset-field mappings.
+            column_mapping: A dictionary containing source subset-field mappings.
 
         Returns:
             A new instance of SubsetFieldMapper with the mappings from the remapping_dict.
         """
         subset_field_mapper = cls()
-        for source_value, mapped_value in spec_mapping.items():
+        for source_value, mapped_value in column_mapping.items():
             source_subset, source_field = source_value.rsplit("_")
             mapped_subset, mapped_field = mapped_value.rsplit("_")
             subset_field_mapper[(source_subset, source_field)] = (
@@ -198,7 +242,7 @@ class ComponentSpec:
 
     Args:
         specification: The fondant component specification as a Python dict
-        spec_mapping: Optional dictionary that maps the column names of the consumed dataset to
+        column_mapping: Optional dictionary that maps the column names of the consumed dataset to
          other column names that match a given component specification
     """
 
@@ -206,11 +250,11 @@ class ComponentSpec:
         self,
         specification: t.Dict[str, t.Any],
         *,
-        spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        column_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> None:
         self._specification = copy.deepcopy(specification)
-        if spec_mapping:
-            self._specification = self._remap_specification(spec_mapping)
+        if column_mapping:
+            self._specification = self._remap_specification(column_mapping)
         self._validate_spec()
 
     def _validate_spec(self) -> None:
@@ -244,13 +288,13 @@ class ComponentSpec:
 
     def _remap_specification(
         self,
-        spec_mapping: t.Dict[str, str],
+        column_mapping: t.Dict[str, str],
     ) -> t.Dict[str, t.Any]:
         """
         Remap fields and subsets of a component specification based on a remapping dictionary.
 
         Args:
-            spec_mapping: A dictionary that maps the column names of the consumed dataset to
+            column_mapping: A dictionary that maps the column names of the consumed dataset to
          other column names that match a given component specification
         """
 
@@ -322,8 +366,8 @@ class ComponentSpec:
             return modified_specification
 
         # Create the mapper from the remapping dictionary
-        spec_mapping = {v: k for k, v in spec_mapping.items()}
-        spec_mapper = SubsetFieldMapper().create_mapper_from_dict(spec_mapping)
+        column_mapping = {v: k for k, v in column_mapping.items()}
+        spec_mapper = SubsetFieldMapper().from_dict(column_mapping)
 
         # Validate the remapping
         _validate_remapping_in_spec(mapper=spec_mapper)
@@ -338,14 +382,14 @@ class ComponentSpec:
     def from_file(
         cls,
         path: t.Union[str, Path],
-        spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        column_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> "ComponentSpec":
         """Load the component spec from the file specified by the provided path."""
         with open(path, encoding="utf-8") as file_:
             specification = yaml.safe_load(file_)
             return cls(
                 specification,
-                spec_mapping=spec_mapping,
+                column_mapping=column_mapping,
             )
 
     def to_file(self, path) -> None:
@@ -473,9 +517,10 @@ class KubeflowComponentSpec:
                     "default": "None",
                 },
                 {
-                    "name": "spec_mapping",
+                    "name": "column_mapping",
                     "description": "A dictionary that maps the column names of the consumed"
-                    " dataset to other column names that match a given component specification",
+                    " dataset to other column names that match a given"
+                    " component specification",
                     "type": "JsonObject",
                     "default": "None",
                 },
@@ -510,8 +555,8 @@ class KubeflowComponentSpec:
                         {"inputValue": "component_spec"},
                         "--input_partition_rows",
                         {"inputValue": "input_partition_rows"},
-                        "--spec_mapping",
-                        {"inputValue": "spec_mapping"},
+                        "--column_mapping",
+                        {"inputValue": "column_mapping"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},

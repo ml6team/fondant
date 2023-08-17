@@ -10,12 +10,12 @@ try:
 except ImportError:
     from importlib_resources import files  # type: ignore
 
-from fondant.component_spec import ComponentSpec
+from fondant.component_spec import ColumnMapping, ComponentSpec
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.manifest import Manifest
 from fondant.schema import (
+    validate_column_mapping,
     validate_partition_number,
-    validate_spec_mapping,
 )
 
 logger = logging.getLogger(__name__)
@@ -34,8 +34,9 @@ class ComponentOp:
         number_of_gpus: The number of gpus to assign to the operation
          node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
-        spec_mapping: A dictionary that maps the column names of the consumed dataset to
-         other column names that match a given component specification
+        column_mapping_list: List of ColumnMapping instances between a source dataset columns
+         and a target component columns. Used to facilitate the alignment of column names
+          between different datasets and component specifications.
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
@@ -58,14 +59,18 @@ class ComponentOp:
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
-        spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        column_mapping_list: t.Optional[t.List[ColumnMapping]] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
-        self.spec_mapping = spec_mapping
+        self.column_mapping = (
+            ColumnMapping.list_to_dict(column_mapping_list)
+            if column_mapping_list is not None
+            else None
+        )
         self.component_spec = ComponentSpec.from_file(
             self.component_dir / self.COMPONENT_SPEC_NAME,
-            spec_mapping=self.spec_mapping,
+            column_mapping=self.column_mapping,
         )
         self.arguments = self._set_arguments(arguments)
         self.arguments.setdefault("component_spec", self.component_spec.specification)
@@ -86,10 +91,10 @@ class ComponentOp:
         arguments = arguments or {}
 
         input_partition_rows = validate_partition_number(self.input_partition_rows)
-        spec_mapping = validate_spec_mapping(self.spec_mapping)
+        column_mapping = validate_column_mapping(self.column_mapping)
 
         arguments["input_partition_rows"] = str(input_partition_rows)
-        arguments["spec_mapping"] = str(spec_mapping)
+        arguments["column_mapping"] = str(column_mapping)
 
         return arguments
 
@@ -118,7 +123,7 @@ class ComponentOp:
         *,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
-        spec_mapping: t.Optional[t.Dict[str, str]] = None,
+        column_mapping_list: t.Optional[t.List[ColumnMapping]] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
@@ -130,11 +135,12 @@ class ComponentOp:
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
-            spec_mapping: A dictionary that maps the column names of the consumed dataset
-             to other column names
             number_of_gpus: The number of gpus to assign to the operation
             node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.
+            column_mapping_list: List of ColumnMapping instances between a source dataset columns
+             and a target component columns. Used to facilitate the alignment of column names
+              between different datasets and component specifications.
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -146,7 +152,7 @@ class ComponentOp:
             components_dir,
             arguments=arguments,
             input_partition_rows=input_partition_rows,
-            spec_mapping=spec_mapping,
+            column_mapping_list=column_mapping_list,
             number_of_gpus=number_of_gpus,
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
