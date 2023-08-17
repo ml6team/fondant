@@ -266,7 +266,7 @@ class KubeflowComponentSpec:
                 {
                     "name": "index_column",
                     "description": "Column to set index to in the load component, if not specified"
-                    " a default monotonically increasing index that starts from 1 will be set",
+                    " a globally unique index will be set",
                     "type": "String",
                     "default": "False",
                 },

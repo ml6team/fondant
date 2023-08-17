@@ -54,7 +54,7 @@ spec:
           {\"type\": \"binary\"}}}}}", "index_column": "None", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "86897a318593785f09cc9a50400873b0b284a7abffc526289710de78fb7616ae"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "ba12b7622eb727220a3528753368b65abd12ff4b4cb7b961c60e1eab7f584423"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -70,11 +70,11 @@ spec:
           "None", "description": "The number of rows to load per partition. Set to
           override the automatic partitioning", "name": "input_partition_rows", "type":
           "String"}, {"default": "False", "description": "Column to set index to in
-          the load component, if not specified a default monotonically increasing
-          index that starts from 1 will be set", "name": "index_column", "type": "String"},
-          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
-          "name": "First component", "outputs": [{"description": "Path to the output
-          manifest", "name": "output_manifest_path", "type": "String"}]}'
+          the load component, if not specified a globally unique index will be set",
+          "name": "index_column", "type": "String"}, {"description": "Storage arguments",
+          "name": "storage_args", "type": "String"}], "name": "First component", "outputs":
+          [{"description": "Path to the output manifest", "name": "output_manifest_path",
+          "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
@@ -136,7 +136,7 @@ spec:
           "cropping_threshold": "0", "index_column": "None", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
           "padding": "0"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "d59318a61bdac5984b4879a63a091e238d07fd16afd5c0cdeaa456112b14a51e"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "ca731d183acde281c4b6e8663f72626e7d8fe10ed0dc67b1d2ea207f5ac0067e"}'
         pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
           single-colored borders around images and crops them appropriately", "implementation":
           {"container": {"command": ["python3", "main.py", "--input_manifest_path",
@@ -154,15 +154,14 @@ spec:
           rows to load per partition. Set to override the automatic partitioning",
           "name": "input_partition_rows", "type": "String"}, {"default": "False",
           "description": "Column to set index to in the load component, if not specified
-          a default monotonically increasing index that starts from 1 will be set",
-          "name": "index_column", "type": "String"}, {"default": -30, "description":
-          "Threshold parameter used for detecting borders. A lower (negative) parameter
-          results in a more performant border detection, but can cause overcropping.
-          Default is -30", "name": "cropping_threshold", "type": "Integer"}, {"default":
-          10, "description": "Padding for the image cropping. The padding is added
-          to all borders of the image.", "name": "padding", "type": "Integer"}], "name":
-          "Image cropping", "outputs": [{"description": "Path to the output manifest",
-          "name": "output_manifest_path", "type": "String"}]}'
+          a globally unique index will be set", "name": "index_column", "type": "String"},
+          {"default": -30, "description": "Threshold parameter used for detecting
+          borders. A lower (negative) parameter results in a more performant border
+          detection, but can cause overcropping. Default is -30", "name": "cropping_threshold",
+          "type": "Integer"}, {"default": 10, "description": "Padding for the image
+          cropping. The padding is added to all borders of the image.", "name": "padding",
+          "type": "Integer"}], "name": "Image cropping", "outputs": [{"description":
+          "Path to the output manifest", "name": "output_manifest_path", "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22

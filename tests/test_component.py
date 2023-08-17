@@ -174,7 +174,7 @@ def test_load_component(tmp_path_factory):
                 executor.execute(MyLoadComponent)
                 load.mock.assert_called_once()
 
-            # Test that an automatic monotonically increasing index is created when using the
+            # Test that a globally unique index will be set
             # DaskLoadComponent
             subset_path = Manifest.from_file(
                 executor.output_manifest_path,

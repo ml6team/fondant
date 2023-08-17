@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 class LoadFromHubComponent(DaskLoadComponent):
 
     def __init__(self, *_,
-                 dataset_name: str,
-                 column_name_mapping: dict,
-                 image_column_names: t.Optional[list],
-                 n_rows_to_load: t.Optional[int],
+             dataset_name: str,
+             column_name_mapping: dict,
+             image_column_names: t.Optional[list],
+             n_rows_to_load: t.Optional[int],
                  ) -> None:
         """
         Args:

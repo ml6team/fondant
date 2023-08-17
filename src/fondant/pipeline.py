@@ -29,7 +29,7 @@ class ComponentOp:
         input_partition_rows: The number of rows to load per partition. Set to override the
         automatic partitioning
         index_column: Column to set index to in the load component, if not specified a default
-         monotonically increasing index that starts from 1 will be set
+         globally unique index will be set
         number_of_gpus: The number of gpus to assign to the operation
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
@@ -127,8 +127,8 @@ class ComponentOp:
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
             index_column: Disable automating indexing if applicable. Automatic
-             indexing is enabled in the DaskLoadComponent by default and sets a monotonically
-             increasing index that starts from 1
+             indexing is enabled in the DaskLoadComponent by default and sets a globally unique
+              index
             number_of_gpus: The number of gpus to assign to the operation
             node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.

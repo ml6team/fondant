@@ -273,8 +273,7 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
         if self.index_column is None:
             # Set monotonically increasing index
             logger.info(
-                "Index column not specified, setting an automatic"
-                " monotonically increasing index",
+                "Index column not specified, setting a globally unique index",
             )
 
             def _set_unique_index(dataframe: pd.DataFrame, partition_info=None):

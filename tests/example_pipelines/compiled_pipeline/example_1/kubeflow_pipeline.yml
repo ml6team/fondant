@@ -54,7 +54,7 @@ spec:
           {\"type\": \"binary\"}}}}}", "index_column": "None", "input_partition_rows":
           "disable", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "86897a318593785f09cc9a50400873b0b284a7abffc526289710de78fb7616ae"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "ba12b7622eb727220a3528753368b65abd12ff4b4cb7b961c60e1eab7f584423"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -70,11 +70,11 @@ spec:
           "None", "description": "The number of rows to load per partition. Set to
           override the automatic partitioning", "name": "input_partition_rows", "type":
           "String"}, {"default": "False", "description": "Column to set index to in
-          the load component, if not specified a default monotonically increasing
-          index that starts from 1 will be set", "name": "index_column", "type": "String"},
-          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
-          "name": "First component", "outputs": [{"description": "Path to the output
-          manifest", "name": "output_manifest_path", "type": "String"}]}'
+          the load component, if not specified a globally unique index will be set",
+          "name": "index_column", "type": "String"}, {"description": "Storage arguments",
+          "name": "storage_args", "type": "String"}], "name": "First component", "outputs":
+          [{"description": "Path to the output manifest", "name": "output_manifest_path",
+          "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
@@ -123,7 +123,7 @@ spec:
           "index_column": "None", "input_partition_rows": "10", "metadata": "{\"base_path\":
           \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "storage_args": "a dummy
           string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "72488fbf4028952c602bb95fe7e30295090d60e66a5c05df9a06e06d78125e07"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "a24d803a28b7cf7333564c4278287bdc44ca93b0581c1724bfb93e64c19a179d"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -139,11 +139,11 @@ spec:
           "None", "description": "The number of rows to load per partition. Set to
           override the automatic partitioning", "name": "input_partition_rows", "type":
           "String"}, {"default": "False", "description": "Column to set index to in
-          the load component, if not specified a default monotonically increasing
-          index that starts from 1 will be set", "name": "index_column", "type": "String"},
-          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
-          "name": "Second component", "outputs": [{"description": "Path to the output
-          manifest", "name": "output_manifest_path", "type": "String"}]}'
+          the load component, if not specified a globally unique index will be set",
+          "name": "index_column", "type": "String"}, {"description": "Storage arguments",
+          "name": "storage_args", "type": "String"}], "name": "Second component",
+          "outputs": [{"description": "Path to the output manifest", "name": "output_manifest_path",
+          "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
@@ -221,7 +221,7 @@ spec:
           {\"data\": {\"type\": \"binary\"}}}}}", "index_column": "None", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
           "some_list": "[1, 2, 3]", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "add12b2079a4ae4d23c4e3917764c5265951acca04e584905a882b7cc30a226d"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "c291e9f2a59943ad7e7e43bd04645673ef374b84e9e0db95e4d52950df6c5d8a"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -238,12 +238,11 @@ spec:
           rows to load per partition. Set to override the automatic partitioning",
           "name": "input_partition_rows", "type": "String"}, {"default": "False",
           "description": "Column to set index to in the load component, if not specified
-          a default monotonically increasing index that starts from 1 will be set",
-          "name": "index_column", "type": "String"}, {"description": "Storage arguments",
-          "name": "storage_args", "type": "String"}, {"description": "Some list",
-          "name": "some_list", "type": "JsonArray"}], "name": "Third component", "outputs":
-          [{"description": "Path to the output manifest", "name": "output_manifest_path",
-          "type": "String"}]}'
+          a globally unique index will be set", "name": "index_column", "type": "String"},
+          {"description": "Storage arguments", "name": "storage_args", "type": "String"},
+          {"description": "Some list", "name": "some_list", "type": "JsonArray"}],
+          "name": "Third component", "outputs": [{"description": "Path to the output
+          manifest", "name": "output_manifest_path", "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
