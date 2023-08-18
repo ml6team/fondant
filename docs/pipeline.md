@@ -247,4 +247,4 @@ fondant run <pipeline_ref> --local
 
 NOTE: that the pipeline ref is the path to the compiled pipeline spec OR a reference to an fondant pipeline in which case the compiler will compile the pipeline first before running.
 
-This will start the pipeline and provide logs per component(service)
+This will start the pipeline and provide logs per component(service).
