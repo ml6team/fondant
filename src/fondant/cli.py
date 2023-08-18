@@ -16,12 +16,15 @@ If you want to extend the cli you can add a new subcommand by registering a new 
 """
 import argparse
 import importlib
+import inspect
 import logging
 import shutil
 import sys
 import textwrap
+import typing as t
 
 from fondant.compiler import DockerCompiler
+from fondant.component import BaseComponent, Component
 from fondant.explorer import (
     DEFAULT_CONTAINER,
     DEFAULT_PORT,
@@ -29,7 +32,7 @@ from fondant.explorer import (
     run_explorer_app,
 )
 from fondant.pipeline import Pipeline
-from fondant.runner import DockerRunner
+from fondant.runner import ComponentRunner, DockerRunner
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +66,7 @@ def entrypoint():
     )
     subparsers = parser.add_subparsers()
     register_explore(subparsers)
+    register_execute(subparsers)
     register_compile(subparsers)
     register_run(subparsers)
 
@@ -315,8 +319,37 @@ def run(args):
         raise NotImplementedError(msg)
 
 
+def register_execute(parent_parser):
+    parser = parent_parser.add_parser(
+        "execute",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent(
+            """
+        TODO: Insert description
+        """,
+        ),
+    )
+    parser.add_argument(
+        "ref",
+        help="""Reference to the module containing the component to run""",
+        action="store",
+    )
+
+    parser.set_defaults(func=execute)
+
+
+def execute(args):
+    component = component_from_module(args.ref)
+    component_runner = ComponentRunner(component)
+    component_runner.run()
+
+
 class ImportFromStringError(Exception):
     """Error raised when an import string is not valid."""
+
+
+class ImportFromModuleError(Exception):
+    """Error raised when an import from module is not valid."""
 
 
 def pipeline_from_string(import_string: str) -> Pipeline:
@@ -348,3 +381,50 @@ def pipeline_from_string(import_string: str) -> Pipeline:
         raise ImportFromStringError(msg)
 
     return instance
+
+
+def component_from_module(module_str: str) -> t.Type[Component]:
+    """Try to import a component from a module otherwise raise an ImportFromModuleError."""
+    if ".py" in module_str:
+        module_str = module_str.rsplit(".py", 1)[0]
+
+    module_str = module_str.replace("/", ".")
+
+    try:
+        class_members = inspect.getmembers(
+            importlib.import_module(module_str),
+            inspect.isclass,
+        )
+    except ModuleNotFoundError:
+        msg = f"`{module_str}` was not found. Please provide a valid module."
+        raise ImportFromModuleError(
+            msg,
+        )
+
+    component_found = False
+    component = None
+    base_component_order = 2
+
+    for name, cls in class_members:
+        method_order = cls.__mro__
+        if (
+            len(method_order) > base_component_order
+            and method_order[base_component_order] == BaseComponent
+        ):
+            logger.info(f"Component `{name}` found in module {module_str}")
+
+            if component_found:
+                msg = (
+                    f"More than one component found in module {module_str}. Only one component "
+                    f"can be present"
+                )
+                raise ImportFromModuleError(msg)
+
+            component_found = True
+            component = cls
+
+    if component is None:
+        msg = f"No Component found in module {module_str}"
+        raise ImportFromModuleError(msg)
+
+    return component
