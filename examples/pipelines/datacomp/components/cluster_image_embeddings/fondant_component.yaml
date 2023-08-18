@@ -8,9 +8,9 @@ consumes:
       url:
         type: string
       width:
-        type: int16
+        type: int32
       height:
-        type: int16
+        type: int32
       face_bboxes:
         type: array
         items:

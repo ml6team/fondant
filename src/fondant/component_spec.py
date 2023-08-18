@@ -264,13 +264,6 @@ class KubeflowComponentSpec:
                     "default": "None",
                 },
                 {
-                    "name": "output_partition_size",
-                    "description": "The size of the output partition size, defaults"
-                    " to 250MB. Set to `disable` to disable the automatic partitioning",
-                    "type": "String",
-                    "default": "None",
-                },
-                {
                     "name": "execute_component",
                     "description": "Internal argument that decides whether a component should "
                     "execute or not. If False, the component will just produce a "
@@ -309,8 +302,6 @@ class KubeflowComponentSpec:
                         {"inputValue": "component_spec"},
                         "--input_partition_rows",
                         {"inputValue": "input_partition_rows"},
-                        "--output_partition_size",
-                        {"inputValue": "output_partition_size"},
                         "--execute_component",
                         {"inputValue": "execute_component"},
                         *cls._dump_args(fondant_component.args.values()),

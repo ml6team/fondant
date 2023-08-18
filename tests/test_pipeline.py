@@ -4,7 +4,10 @@ from pathlib import Path
 
 import pytest
 import yaml
-from fondant.exceptions import InvalidPipelineDefinition, InvalidTypeSchema
+from fondant.exceptions import (
+    InvalidImageDigest,
+    InvalidPipelineDefinition,
+)
 from fondant.pipeline import ComponentOp, Pipeline
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
@@ -64,28 +67,96 @@ def test_component_op(
     mocked_component_op(
         Path(components_path / component_names[0]),
         arguments=component_args,
-        output_partition_size=None,
     )
 
     mocked_component_op(
         Path(components_path / component_names[0]),
         arguments=component_args,
-        output_partition_size="250MB",
     )
 
-    with pytest.raises(InvalidTypeSchema):
+    with pytest.raises(InvalidPipelineDefinition):
         mocked_component_op(
             Path(components_path / component_names[0]),
             arguments=component_args,
-            output_partition_size="10",
+            node_pool_label="dummy_label",
         )
 
-    with pytest.raises(InvalidTypeSchema):
-        mocked_component_op(
-            Path(components_path / component_names[0]),
-            arguments=component_args,
-            output_partition_size="250 MB",
+
+@pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+            "example_1",
+            ["first_component", "second_component", "third_component"],
+        ),
+    ],
+)
+def test_parsing_docker_image_manifest(monkeypatch, valid_pipeline_example):
+    example_dir, component_names = valid_pipeline_example
+    components_path = Path(valid_pipeline_path / example_dir)
+    example_manifests = {
+        "manifest_schema_valid_1": {
+            "schemaVersion": 2,
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "config": {
+                "mediaType": "application/vnd.docker.container.image.v1+json",
+                "size": 8930,
+                "digest": "sha256:123",
+            },
+        },
+        "manifest_schema_valid_2": {
+            "schemaVersion": 2,
+            "mediaType": "application/vnd.oci.image.index.v1+json",
+            "manifests": [
+                {
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "size": 2390,
+                    "digest": "sha256:123",
+                    "platform": {
+                        "architecture": "amd64",
+                        "os": "linux",
+                    },
+                },
+                {
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "size": 566,
+                    "digest": "sha256:invalid_digest",
+                    "platform": {
+                        "architecture": "unknown",
+                        "os": "unknown",
+                    },
+                },
+            ],
+        },
+        "invalid_manifest_schema_1": {
+            "schemaVersion": "Unknown",
+            "mediaType": "Unknown",
+            "Unknown_key": [
+                {
+                    "Unknown_key": "Unknown_value",
+                },
+            ],
+        },
+    }
+    component_op = ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments={"storage_args": "a dummy string arg"},
+    )
+
+    for example_name, manifest in example_manifests.items():
+        monkeypatch.setattr(
+            component_op,
+            "get_image_manifest",
+            lambda image_ref: manifest,
         )
+        if "invalid" in example_name:
+            with pytest.raises(InvalidImageDigest):
+                component_op.get_component_image_hash("example_component:latest")
+        else:
+            assert (
+                component_op.get_component_image_hash("example_component:latest")
+                == "sha256:123"
+            )
 
 
 @pytest.mark.parametrize(
@@ -107,19 +178,16 @@ def test_component_op_hash(
     comp_0_op_spec_0 = ComponentOp(
         Path(components_path / component_names[0]),
         arguments={"storage_args": "a dummy string arg"},
-        output_partition_size=None,
     )
 
     comp_0_op_spec_1 = ComponentOp(
         Path(components_path / component_names[0]),
         arguments={"storage_args": "a different string arg"},
-        output_partition_size=None,
     )
 
     comp_1_op_spec_0 = ComponentOp(
         Path(components_path / component_names[1]),
         arguments={"storage_args": "a dummy string arg"},
-        output_partition_size=None,
     )
 
     monkeypatch.setattr(
@@ -219,7 +287,7 @@ def test_valid_pipeline(
     assert pipeline._graph["second_component"]["dependencies"] == ["first_component"]
     assert pipeline._graph["third_component"]["dependencies"] == ["second_component"]
 
-    pipeline.compile(cache_disabled=True)
+    pipeline._validate_pipeline_definition("test_pipeline")
 
 
 @pytest.mark.parametrize(
@@ -233,10 +301,8 @@ def test_valid_pipeline(
 )
 def test_invalid_pipeline_dependencies(
     default_pipeline_args,
-    mocked_component_op,
     valid_pipeline_example,
-    tmp_path,
-    monkeypatch,
+    mocked_component_op,
 ):
     """
     Test that an InvalidPipelineDefinition exception is raised when attempting to create a pipeline
@@ -272,17 +338,16 @@ def test_invalid_pipeline_dependencies(
     [
         ("example_1", ["first_component", "second_component"]),
         ("example_2", ["first_component", "second_component"]),
+        ("example_3", ["first_component", "second_component"]),
     ],
 )
-def test_invalid_pipeline_compilation(
+def test_invalid_pipeline_declaration(
     default_pipeline_args,
     mocked_component_op,
     invalid_pipeline_example,
-    tmp_path,
 ):
-    """
-    Test that an InvalidPipelineDefinition exception is raised when attempting to compile
-    an invalid pipeline definition.
+    """Test that an InvalidPipelineDefinition exception is raised when attempting
+    to register invalid components combinations.
     """
     example_dir, component_names = invalid_pipeline_example
     components_path = Path(invalid_pipeline_path / example_dir)
@@ -303,37 +368,40 @@ def test_invalid_pipeline_compilation(
     pipeline.add_op(second_component_op, dependencies=first_component_op)
 
     with pytest.raises(InvalidPipelineDefinition):
-        pipeline.compile(cache_disabled=True)
+        pipeline._validate_pipeline_definition("test_pipeline")
 
 
-@pytest.mark.parametrize(
-    "invalid_component_args",
-    [
-        {"invalid_arg": "a dummy string arg", "storage_args": "a dummy string arg"},
-        {"args": 1, "storage_args": "a dummy string arg"},
-    ],
-)
-def test_invalid_argument(
-    default_pipeline_args,
-    mocked_component_op,
-    invalid_component_args,
-    tmp_path,
-):
+def test_invalid_pipeline_validation(default_pipeline_args):
     """
-    Test that an exception is raised when the passed invalid argument name or type to the fondant
-    component does not match the ones specified in the fondant specifications.
+    Test that an InvalidPipelineDefinition exception is raised when attempting to compile
+    an invalid pipeline definition.
     """
-    component_operation = mocked_component_op(
-        valid_pipeline_path / "example_1" / "first_component",
-        arguments=invalid_component_args,
+    components_path = Path(invalid_pipeline_path / "example_1")
+    component_args = {"storage_args": "a dummy string arg"}
+
+    first_component_op = ComponentOp(
+        Path(components_path / "first_component"),
+        arguments=component_args,
+    )
+    second_component_op = ComponentOp(
+        Path(components_path / "second_component"),
+        arguments=component_args,
     )
 
-    pipeline = Pipeline(**default_pipeline_args)
+    # double dependency
+    pipeline1 = Pipeline(**default_pipeline_args)
+    pipeline1.add_op(first_component_op)
+    with pytest.raises(InvalidPipelineDefinition):
+        pipeline1.add_op(
+            second_component_op,
+            dependencies=[first_component_op, first_component_op],
+        )
 
-    pipeline.add_op(component_operation)
-
-    with pytest.raises((ValueError, TypeError)):
-        pipeline.compile(cache_disabled=True)
+    # 2 components with no dependencies
+    pipeline2 = Pipeline(**default_pipeline_args)
+    pipeline2.add_op(first_component_op)
+    with pytest.raises(InvalidPipelineDefinition):
+        pipeline2.add_op(second_component_op)
 
 
 def test_reusable_component_op():

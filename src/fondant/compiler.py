@@ -18,7 +18,7 @@ class Compiler(ABC):
     """Abstract base class for a compiler."""
 
     @abstractmethod
-    def compile(self, *args, **kwargs):
+    def compile(self, *args, **kwargs) -> None:
         """Abstract method to invoke compilation."""
 
 
@@ -121,8 +121,11 @@ class DockerCompiler(Compiler):
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         path, volume = self._patch_path(base_path=pipeline.base_path)
         cache_dict = pipeline.get_pipeline_cache_dict(cache_disabled)
+        run_id = f"{pipeline.name}-{timestamp}"
 
         services = {}
+
+        pipeline.validate(run_id=run_id)
 
         for component_name, component in pipeline._graph.items():
             logger.info(f"Compiling service for {component_name}")
@@ -196,3 +199,108 @@ class DockerCompiler(Compiler):
             "version": "3.8",
             "services": services,
         }
+
+
+class KubeFlowCompiler(Compiler):
+    """Compiler that creates a Kubeflow pipeline spec from a pipeline."""
+
+    def __init__(self):
+        self._resolve_imports()
+
+    def _resolve_imports(self):
+        """Resolve imports for the Kubeflow compiler."""
+        try:
+            import kfp
+
+            self.kfp = kfp
+        except ImportError:
+            msg = """You need to install kfp to use the Kubeflow compiler,\n
+                     you can install it with `pip install fondant[kfp]`"""
+            raise ImportError(
+                msg,
+            )
+
+    def compile(
+        self,
+        pipeline: Pipeline,
+        output_path: str = "kubeflow_pipeline.yml",
+        cache_disabled: t.Optional[bool] = False,
+    ) -> None:
+        """Compile a pipeline to Kubeflow pipeline spec and save it to a specified output path.
+
+        Args:
+            pipeline: the pipeline to compile
+            output_path: the path where to save the Kubeflow pipeline spec
+            cache_disabled: flag to disable cached execution of components. Disabled  by default.
+        """
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        run_id = f"{pipeline.name}-{timestamp}"
+
+        # Get cache information dictionary
+        cache_dict = pipeline.get_pipeline_cache_dict(cache_disabled=cache_disabled)
+
+        @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
+        def kfp_pipeline():
+            previous_component_task = None
+            manifest_path = ""
+            for component_name, component in self.pipeline._graph.items():
+                logger.info(f"Compiling service for {component_name}")
+
+                component_op = component["fondant_component_op"]
+
+                # convert ComponentOp to Kubeflow component
+                kubeflow_component_op = self.kfp.components.load_component(
+                    text=component_op.component_spec.kubeflow_specification.to_string(),
+                )
+
+                # Execute the Kubeflow component and pass in the output manifest path from
+                # the previous component.
+                component_args = component_op.arguments
+
+                metadata = Metadata(
+                    run_id=run_id,
+                    base_path=pipeline.base_path,
+                    component_id=component_name,
+                    cache_key=str(cache_dict[component_name]["cache_key"]),
+                )
+
+                component_task = kubeflow_component_op(
+                    input_manifest_path=manifest_path,
+                    metadata=metadata.to_json(),
+                    execute_component=cache_dict[component_name]["execute_component"],
+                    **component_args,
+                )
+                # Set optional configurations
+                component_task = self._set_configuration(
+                    component_task,
+                    component_op,
+                )
+                # Set the execution order of the component task to be after the previous
+                # component task.
+                if previous_component_task is not None:
+                    component_task.after(previous_component_task)
+
+                # Update the manifest path to be the output path of the current component task.
+                manifest_path = component_task.outputs["output_manifest_path"]
+
+                previous_component_task = component_task
+
+        self.pipeline = pipeline
+        self.pipeline.validate(run_id=run_id)
+        logger.info(f"Compiling {self.pipeline.name} to {output_path}")
+
+        self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
+        logger.info("Pipeline compiled successfully")
+
+    def _set_configuration(self, task, fondant_component_operation):
+        # Unpack optional specifications
+        number_of_gpus = fondant_component_operation.number_of_gpus
+        node_pool_name = fondant_component_operation.node_pool_name
+
+        # Assign optional specification
+        if number_of_gpus is not None:
+            task.set_gpu_limit(number_of_gpus)
+        if node_pool_name is not None:
+            task.add_node_selector_constraint("node_pool", node_pool_name)
+
+        return task

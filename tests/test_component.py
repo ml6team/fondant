@@ -91,8 +91,6 @@ def test_component_arguments():
         "True",
         "--input_partition_rows",
         "100",
-        "--output_partition_size",
-        "100MB",
         "--override_default_arg",
         "bar",
         "--override_default_none_arg",
@@ -113,7 +111,6 @@ def test_component_arguments():
     executor = MyExecutor.from_args()
     expected_partition_row_arg = 100
     assert executor.input_partition_rows == expected_partition_row_arg
-    assert executor.output_partition_size == "100MB"
     assert executor.user_arguments == {
         "string_default_arg": "foo",
         "integer_default_arg": 0,
@@ -189,7 +186,6 @@ def test_load_component_local_runner(tmp_path_factory):
 
         executor = DaskLoadExecutor.from_args()
         assert executor.input_partition_rows is None
-        assert executor.output_partition_size is None
         load = patch_method_class(MyLoadComponent.load)
 
         # Check that the load function is not executed
@@ -245,10 +241,10 @@ def test_load_component_remote_runner(monkeypatch, tmp_path_factory):
             "False",
         ]
 
-        class MyLoadComponent(DaskLoadComponent):
-            def __init__(self, *args, flag, value):
-                self.flag = flag
-                self.value = value
+    class MyLoadComponent(DaskLoadComponent):
+        def __init__(self, *args, flag, value):
+            self.flag = flag
+            self.value = value
 
             def load(self):
                 assert self.flag == "success"
@@ -259,25 +255,24 @@ def test_load_component_remote_runner(monkeypatch, tmp_path_factory):
                 }
                 return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
 
-        executor = DaskLoadExecutor.from_args()
-        monkeypatch.setattr(
-            executor,
-            "kubeflow_manifest_save_path",
-            output_manifest_kfp_artifact,
-        )
-        assert executor.input_partition_rows is None
-        assert executor.output_partition_size is None
-        load = patch_method_class(MyLoadComponent.load)
+    executor = DaskLoadExecutor.from_args()
+    monkeypatch.setattr(
+        executor,
+        "kubeflow_manifest_save_path",
+        output_manifest_kfp_artifact,
+    )
+    assert executor.input_partition_rows is None
+    load = patch_method_class(MyLoadComponent.load)
 
-        # Check that the load function is not executed
-        with mock.patch.object(MyLoadComponent, "load", load):
-            executor.execute(MyLoadComponent)
-        load.mock.assert_not_called()
+    # Check that the load function is not executed
+    with mock.patch.object(MyLoadComponent, "load", load):
+        executor.execute(MyLoadComponent)
+    load.mock.assert_not_called()
 
-        # Check that the original output manifest is not overwritten
-        current_written_date = get_file_modification_date(output_manifest_base_path)
-        assert original_written_date == current_written_date
-        assert os.path.exists(output_manifest_kfp_artifact)
+    # Check that the original output manifest is not overwritten
+    current_written_date = get_file_modification_date(output_manifest_base_path)
+    assert original_written_date == current_written_date
+    assert os.path.exists(output_manifest_kfp_artifact)
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
@@ -294,8 +289,6 @@ def test_dask_transform_component(monkeypatch):
         "--value",
         "1",
         "--input_partition_rows",
-        "disable",
-        "--output_partition_size",
         "disable",
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
@@ -319,7 +312,6 @@ def test_dask_transform_component(monkeypatch):
     executor = DaskTransformExecutor.from_args()
     monkeypatch.setattr(executor, "upload_manifest", lambda manifest, save_path: None)
     assert executor.input_partition_rows == "disable"
-    assert executor.output_partition_size == "disable"
     transform = patch_method_class(MyDaskComponent.transform)
     with mock.patch.object(
         MyDaskComponent,

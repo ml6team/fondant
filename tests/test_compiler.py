@@ -1,14 +1,16 @@
 import datetime
+import sys
 from pathlib import Path
+from unittest import mock
 
 import pytest
 import yaml
-from fondant.compiler import DockerCompiler
+from fondant.compiler import DockerCompiler, KubeFlowCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 
 COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
 
-VALID_DOCKER_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
+VALID_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
 
 TEST_PIPELINES = [
     (
@@ -18,13 +20,11 @@ TEST_PIPELINES = [
                 Path(COMPONENTS_PATH / "example_1" / "first_component"),
                 arguments={"storage_args": "a dummy string arg"},
                 input_partition_rows="disable",
-                output_partition_size="disable",
             ),
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "second_component"),
                 arguments={"storage_args": "a dummy string arg"},
                 input_partition_rows="10",
-                output_partition_size="30MB",
             ),
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "fourth_component"),
@@ -83,8 +83,6 @@ def setup_pipeline(request, tmp_path, monkeypatch):
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
-    pipeline.compile(cache_disabled=True)
-
     return example_dir, pipeline
 
 
@@ -102,7 +100,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
             cache_disabled=True,
         )
         with open(output_path) as src, open(
-            VALID_DOCKER_PIPELINE / example_dir / "docker-compose.yml",
+            VALID_PIPELINE / example_dir / "docker-compose.yml",
         ) as truth:
             assert yaml.safe_load(src) == yaml.safe_load(truth)
 
@@ -203,3 +201,62 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
             assert all(
                 extra_volume in service["volumes"] for extra_volume in extra_volumes
             )
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
+    """Test compiling a pipeline to kubeflow."""
+    example_dir, pipeline = setup_pipeline
+    compiler = KubeFlowCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "kubeflow_pipeline.yml")
+        compiler.compile(
+            pipeline=pipeline,
+            output_path=output_path,
+            cache_disabled=True,
+        )
+        with open(output_path) as src, open(
+            VALID_PIPELINE / example_dir / "kubeflow_pipeline.yml",
+        ) as truth:
+            assert yaml.safe_load(src) == yaml.safe_load(truth)
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_kubeflow_configuration(tmp_path_factory, monkeypatch):
+    """Test that the kubeflow pipeline can be configured."""
+    pipeline = Pipeline(
+        pipeline_name="test_pipeline",
+        pipeline_description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
+    component_1 = ComponentOp(
+        Path(COMPONENTS_PATH / "example_1" / "first_component"),
+        arguments={"storage_args": "a dummy string arg"},
+        node_pool_name="a_node_pool",
+        node_pool_label="a_node_pool_label",
+        number_of_gpus=1,
+    )
+
+    monkeypatch.setattr(component_1, "get_component_cache_key", lambda: "42")
+    pipeline.add_op(component_1)
+    compiler = KubeFlowCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "kubeflow_pipeline.yml")
+        compiler.compile(
+            pipeline=pipeline,
+            output_path=output_path,
+            cache_disabled=True,
+        )
+        with open(output_path) as src, open(
+            VALID_PIPELINE / "kubeflow_pipeline.yml",
+        ) as truth:
+            assert yaml.safe_load(src) == yaml.safe_load(truth)
+
+
+def test_kfp_import():
+    """Test that the kfp import throws the correct error."""
+    with mock.patch.dict(sys.modules):
+        # remove kfp from the modules
+        sys.modules["kfp"] = None
+        with pytest.raises(ImportError):
+            _ = KubeFlowCompiler()

@@ -21,7 +21,7 @@ import shutil
 import sys
 import textwrap
 
-from fondant.compiler import DockerCompiler
+from fondant.compiler import DockerCompiler, KubeFlowCompiler
 from fondant.explorer import (
     DEFAULT_CONTAINER,
     DEFAULT_PORT,
@@ -29,7 +29,7 @@ from fondant.explorer import (
     run_explorer_app,
 )
 from fondant.pipeline import Pipeline
-from fondant.runner import DockerRunner
+from fondant.runner import DockerRunner, KubeflowRunner
 
 logger = logging.getLogger(__name__)
 
@@ -141,11 +141,7 @@ def register_explore(parent_parser):
 
 def explore(args):
     if not args.data_directory:
-        logging.warning(
-            "You have not provided a data directory."
-            + "To access local files, provide a local data directory"
-            + " with the --data-directory flag.",
-        )
+        logging.error("")
     else:
         logging.info(f"Using data directory: {args.data_directory}")
         logging.info(
@@ -237,8 +233,8 @@ def compile(args):
             build_args=args.build_arg,
         )
     elif args.kubeflow:
-        msg = "Kubeflow compiler not implemented"
-        raise NotImplementedError(msg)
+        compiler = KubeFlowCompiler()
+        compiler.compile(pipeline=args.pipeline, output_path=args.output_path)
 
 
 def register_run(parent_parser):
@@ -287,6 +283,7 @@ def register_run(parent_parser):
         action="append",
         help="Build arguments to pass to `docker build`. Format {key}={value}.",
     )
+    parser.add_argument("--host", help="KubeFlow pipeline host url", required=False)
     parser.set_defaults(func=run)
 
 
@@ -311,8 +308,23 @@ def run(args):
         finally:
             DockerRunner().run(spec_ref)
     elif args.kubeflow:
-        msg = "Kubeflow runner not implemented"
-        raise NotImplementedError(msg)
+        if not args.host:
+            msg = "--host argument is required for running on Kubeflow"
+            raise ValueError(msg)
+        try:
+            pipeline = pipeline_from_string(args.ref)
+        except ImportFromStringError:
+            spec_ref = args.ref
+        else:
+            spec_ref = args.output_path
+            logging.info(
+                "Found reference to un-compiled pipeline... compiling to {spec_ref}",
+            )
+            compiler = KubeFlowCompiler()
+            compiler.compile(pipeline=pipeline, output_path=spec_ref)
+        finally:
+            runner = KubeflowRunner(host=args.host)
+            runner.run(input_spec=spec_ref)
 
 
 class ImportFromStringError(Exception):
