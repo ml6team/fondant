@@ -33,6 +33,7 @@ class LoadFromHubComponent(DaskLoadComponent):
     def load(self) -> dd.DataFrame:
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the hub...")
+        logger.info("info")
         dask_df = dd.read_parquet(f"hf://datasets/{self.dataset_name}")
 
         # 2) Make sure images are bytes instead of dicts
