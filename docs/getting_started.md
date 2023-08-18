@@ -309,3 +309,10 @@ fondant explore --data-directory "path/to/your/data"
 ```
 
 Note that if you use a remote path (S3, GCS) you can also pass credentials using the `--credentials` flag. For all the options of the data explorer run `fondant explore --help`.
+
+
+
+## Running at scale
+
+You can find more information on how to configure and run your pipeline on different runners [here](pipeline.md)
+

@@ -115,15 +115,67 @@ where processing one row significantly increases the number of rows in the datas
 By setting a lower value for input partition rows, you can mitigate issues where the processed data
 grows larger than the available memory before being written to disk.
 
-## Compiling a pipeline
+## Compiling and Running a pipeline
 
 Once all your components are added to your pipeline you can use different compilers to run your pipeline:
 
-### Kubeflow
-TODO: update this once kubeflow compiler is implemented
+!!! note "IMPORTANT"
+  When using other runners you will need to make sure that your new environment has access to:
+  - The base_path of your pipeline (can be storage bucket like S3, GCS, etc)
+  - The images used in your pipeline (make sure you have access to the registries where the images are stored)
 
-~~Once the pipeline is built, you need to initialize the client with the kubeflow host path (more info about the host path can be found in the [infrastructure documentation](https://github.com/ml6team/fondant/blob/main/docs/infrastructure.md))
-and use it to compile and run the pipeline with the `compile_and_run()` method. This performs static checking to ensure that all required arguments are provided to the components and that the required input data subsets are available. If the checks pass, a URL will be provided, allowing you to visualize and monitor the execution of your pipeline.~~
+### Kubeflow
+
+The Kubeflow compiler will take your pipeline and compile it to a Kubeflow pipeline spec. This spec can be used to run your pipeline on a Kubeflow cluster. There are 2 ways to compile your pipeline to a Kubeflow spec:
+
+- Using the CLI:
+```bash
+fondant compile <pipeline_ref> --kubeflow --output <path_to_output>
+```
+
+- Using the compiler directly:
+```python
+from fondant.compiler import KubeFlowCompiler
+
+
+pipeline = ...
+
+compiler = KubeFlowCompiler()
+compiler.compile(pipeline=pipeline, output_path="pipeline.yaml")
+```
+
+Both of these options will produce a kubeflow specification as a file, if you also want to immediately start a run you can also use the runner we provide (see below).
+
+### Running a Kubeflow compiled pipeline
+
+You will need a Kubeflow cluster to run your pipeline on and specify the host of that cluster. More info on setting up a Kubeflow pipelines deployment and the host path can be found in the [infrastructure documentation](infrastructure.md).
+
+There are 2 ways to run a Kubeflow compiled pipeline:
+
+- Using the CLI:
+```bash
+fondant run <pipeline_ref> --kubeflow --host <kubeflow_host>
+```
+NOTE: that the pipeline ref is the path to the compiled pipeline spec OR a reference to an fondant pipeline in which case the compiler will compile the pipeline first before running.
+
+
+- Using the compiler directly:
+```python
+from fondant.compiler import KubeFlowCompiler
+from fondant.runner import KubeflowRunner
+
+# Your pipeline definition here
+
+if __name__ == "__main__":
+    compiler = KubeFlowCompiler()
+    compiler.compile(pipeline=pipeline, output_path="pipeline.yaml")
+    runner = KubeflowRunner(
+        host="YOUR KUBEFLOW HOST",
+    )
+    runner.run(input_spec="pipeline.yaml")
+```
+
+Once your pipeline is running you can monitor it using the Kubeflow UI.
 
 ### Docker-Compose
 
@@ -187,5 +239,12 @@ Navigate to the folder where your docker compose is located and run (you need to
 ```bash
 docker compose up
 ```
+
+Or you can use the fondant cli to run the pipeline:
+```bash
+fondant run <pipeline_ref> --local
+```
+
+NOTE: that the pipeline ref is the path to the compiled pipeline spec OR a reference to an fondant pipeline in which case the compiler will compile the pipeline first before running.
 
 This will start the pipeline and provide logs per component(service)
