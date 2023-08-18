@@ -101,15 +101,17 @@ def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
         data_writer = DaskDataWriter(
             manifest=manifest,
             component_spec=component_spec,
-            output_partition_size="1TB",
         )
         # write out index to temp dir
         data_writer.write_dataframe(dataframe)
+        number_workers = os.cpu_count()
         # read written data and assert
         dataframe = dd.read_parquet(fn / "index")
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert dataframe.index.name == "id"
-        assert dataframe.npartitions == 1
+        assert dataframe.npartitions in list(
+            range(number_workers - 1, number_workers + 2),
+        )
 
 
 def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
@@ -168,7 +170,6 @@ def test_write_divisions(
         data_writer = DaskDataWriter(
             manifest=manifest,
             component_spec=component_spec,
-            output_partition_size="disable",
         )
 
         data_writer.write_dataframe(dataframe)

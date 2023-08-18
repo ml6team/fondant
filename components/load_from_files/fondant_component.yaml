@@ -1,0 +1,16 @@
+name: Load from files
+description: Component that loads a dataset from files
+image: ghcr.io/ml6team/load_from_files:dev
+
+produces:
+  file:
+    fields:
+      filename:
+        type: string
+      content:
+        type: binary
+      
+args:
+  directory_uri:
+    description: Local or remote path to the directory containing the files
+    type: str
