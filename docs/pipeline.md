@@ -30,7 +30,8 @@ def build_pipeline():
             "batch_size": 2,  
             "max_new_tokens": 50,  
         },  
-        number_of_gpus=1,  
+        number_of_gpus=1,
+        node_pool_label="node_pool",  
         node_pool_name="model-inference-pool",  
     )
     pipeline.add_op(caption_images_op, dependencies=load_from_hub_op)
@@ -45,6 +46,9 @@ Next, we define two operations: `load_from_hub_op`, which is a based from a reus
 
 !!! note "IMPORTANT"
     Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs will be available in future releases.
+
+## Setting Custom node pool parameters
+Each component can optionally be constrained to run on particular node(s) using `node_pool_label` and `node_pool_name`. You can find these under the Kubernetes labels of your cluster. You can use the default node label provided by Kubernetes or attach your own. Note that the value of these labels is cloud provider specific.
 
 ## Setting Custom partitioning parameters
 
@@ -82,7 +86,6 @@ caption_images_op = ComponentOp(
         "max_new_tokens": 50,  
     },  
     input_partition_rows='disable',  
-    output_partition_size='disable',  
 )
 ```
 
@@ -101,7 +104,6 @@ caption_images_op = ComponentOp(
         "max_new_tokens": 50,  
     },  
     input_partition_rows=100, 
-    output_partition_size="10MB",  
 )
 ```
 

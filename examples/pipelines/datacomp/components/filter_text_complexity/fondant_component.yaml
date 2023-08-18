@@ -1,6 +1,6 @@
 name: Filter text complexity
 description: Component that filters text based on their dependency parse complexity and number of actions
-image: ghcr.io/ml6team/filter_text_complexity:latest
+image: ghcr.io/ml6team/filter_text_complexity:dev
 
 consumes:
   text:
@@ -17,7 +17,4 @@ args:
     type: int
   min_complexity:
     description: Minimum complexity to filter text on.
-    type: int
-  min_num_actions:
-    description: Minimum number of actions a text should contain.
     type: int

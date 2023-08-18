@@ -26,7 +26,7 @@ from fondant.component import (
 from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
-from fondant.schema import validate_partition_number, validate_partition_size
+from fondant.schema import validate_partition_number
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,6 @@ class Executor(t.Generic[Component]):
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
-        output_partition_size: t.Optional[str] = None,
     ) -> None:
         self.spec = spec
         self.execute_component = execute_component
@@ -53,7 +52,6 @@ class Executor(t.Generic[Component]):
         self.metadata = metadata
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
-        self.output_partition_size = output_partition_size
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -62,7 +60,6 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--component_spec", type=json.loads)
         parser.add_argument("--execute_component", type=ast.literal_eval)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
-        parser.add_argument("--output_partition_size", type=validate_partition_size)
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -71,24 +68,21 @@ class Executor(t.Generic[Component]):
 
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
-        output_partition_size = args.output_partition_size
         execute_component = args.execute_component
 
         return cls.from_spec(
-            component_spec=component_spec,
+            component_spec,
             execute_component=execute_component,
             input_partition_rows=input_partition_rows,
-            output_partition_size=output_partition_size,
         )
 
     @classmethod
     def from_spec(
         cls,
-        *,
         component_spec: ComponentSpec,
+        *,
         execute_component: bool,
         input_partition_rows: t.Optional[t.Union[str, int]],
-        output_partition_size: t.Optional[str],
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
@@ -98,9 +92,6 @@ class Executor(t.Generic[Component]):
 
         if "input_partition_rows" in args_dict:
             args_dict.pop("input_partition_rows")
-
-        if "output_partition_size" in args_dict:
-            args_dict.pop("output_partition_size")
 
         if "execute_component" in args_dict:
             args_dict.pop("execute_component")
@@ -118,7 +109,6 @@ class Executor(t.Generic[Component]):
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
-            output_partition_size=output_partition_size,
         )
 
     @classmethod
@@ -194,7 +184,6 @@ class Executor(t.Generic[Component]):
         data_writer = DaskDataWriter(
             manifest=manifest,
             component_spec=self.spec,
-            output_partition_size=self.output_partition_size,
         )
 
         data_writer.write_dataframe(dataframe)
@@ -241,8 +230,9 @@ class Executor(t.Generic[Component]):
         if is_kubeflow_output:
             # Save to the expected base path directory
             safe_component_name = self.spec.name.replace(" ", "_").lower()
-            base_path = self.metadata["base_path"]
-            save_path_base_path = f"{base_path}/{safe_component_name}/manifest.json"
+            save_path_base_path = (
+                f"{manifest.base_path}/{safe_component_name}/manifest.json"
+            )
             Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
             manifest.to_file(save_path_base_path)
             logger.info(f"Saving output manifest to {save_path_base_path}")

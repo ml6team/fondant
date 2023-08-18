@@ -90,8 +90,6 @@ def test_component_arguments():
         "True",
         "--input_partition_rows",
         "100",
-        "--output_partition_size",
-        "100MB",
         "--override_default_arg",
         "bar",
         "--override_default_none_arg",
@@ -112,7 +110,6 @@ def test_component_arguments():
     executor = MyExecutor.from_args()
     expected_partition_row_arg = 100
     assert executor.input_partition_rows == expected_partition_row_arg
-    assert executor.output_partition_size == "100MB"
     assert executor.user_arguments == {
         "string_default_arg": "foo",
         "integer_default_arg": 0,
@@ -168,7 +165,6 @@ def test_load_component():
 
     executor = DaskLoadExecutor.from_args()
     assert executor.input_partition_rows is None
-    assert executor.output_partition_size is None
     load = patch_method_class(MyLoadComponent.load)
     with mock.patch.object(MyLoadComponent, "load", load):
         executor.execute(MyLoadComponent)
@@ -189,8 +185,6 @@ def test_dask_transform_component():
         "--value",
         "1",
         "--input_partition_rows",
-        "disable",
-        "--output_partition_size",
         "disable",
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
@@ -213,7 +207,6 @@ def test_dask_transform_component():
 
     executor = DaskTransformExecutor.from_args()
     assert executor.input_partition_rows == "disable"
-    assert executor.output_partition_size == "disable"
     transform = patch_method_class(MyDaskComponent.transform)
     with mock.patch.object(
         MyDaskComponent,

@@ -14,6 +14,6 @@ produces:
       data:
         type: binary
       width:
-        type: int16
+        type: int32
       height:
-        type: int16
+        type: int32
