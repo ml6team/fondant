@@ -10,3 +10,10 @@ If the component is unable to retrieve the image at a URL (for any reason), it w
 
 See [`fondant_component.yaml`](fondant_component.yaml) for a more detailed description on all the input/output parameters. 
 
+
+### Testing
+
+You can run the tests using docker with BuildKit. From this directory, run:
+```
+docker build . --target test
+```
