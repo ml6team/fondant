@@ -73,7 +73,7 @@ def entrypoint():
     sys.path.append(".")
 
     # display help if no arguments are provided
-    args = parser.parse_args(sys.argv[1:] or ["--help"])
+    args, _ = parser.parse_known_args(sys.argv[1:] or ["--help"])
 
     args.func(args)
 

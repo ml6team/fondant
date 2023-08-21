@@ -123,7 +123,8 @@ class Executor(t.Generic[Component]):
                 help=arg.description,
             )
 
-        return parser.parse_args()
+        args, _ = parser.parse_known_args()
+        return args
 
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
