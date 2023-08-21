@@ -4,10 +4,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from fondant.exceptions import (
-    InvalidImageDigest,
-    InvalidPipelineDefinition,
-)
+from fondant.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
@@ -65,92 +62,6 @@ def test_component_op(
         ),
     ],
 )
-def test_parsing_docker_image_manifest(monkeypatch, valid_pipeline_example):
-    example_dir, component_names = valid_pipeline_example
-    components_path = Path(valid_pipeline_path / example_dir)
-    example_manifests = {
-        "manifest_schema_valid_1": {
-            "schemaVersion": 2,
-            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
-            "config": {
-                "mediaType": "application/vnd.docker.container.image.v1+json",
-                "size": 8930,
-                "digest": "sha256:123",
-            },
-        },
-        "manifest_schema_valid_2": {
-            "schemaVersion": 2,
-            "mediaType": "application/vnd.oci.image.index.v1+json",
-            "manifests": [
-                {
-                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
-                    "size": 2390,
-                    "digest": "sha256:123",
-                    "platform": {
-                        "architecture": "amd64",
-                        "os": "linux",
-                    },
-                },
-                {
-                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
-                    "size": 566,
-                    "digest": "sha256:invalid_digest",
-                    "platform": {
-                        "architecture": "unknown",
-                        "os": "unknown",
-                    },
-                },
-            ],
-        },
-        "invalid_manifest_schema_1": {
-            "schemaVersion": "Unknown",
-            "mediaType": "Unknown",
-            "Unknown_key": [
-                {
-                    "Unknown_key": "Unknown_value",
-                },
-            ],
-        },
-    }
-    component_op = ComponentOp(
-        Path(components_path / component_names[0]),
-        arguments={"storage_args": "a dummy string arg"},
-    )
-
-    for example_name, manifest in example_manifests.items():
-        monkeypatch.setattr(
-            component_op,
-            "get_image_manifest",
-            lambda image_ref: manifest,
-        )
-        if "invalid" in example_name:
-            with pytest.raises(InvalidImageDigest):
-                component_op.get_component_image_hash("example_component:latest")
-        else:
-            assert (
-                component_op.get_component_image_hash("example_component:latest")
-                == "sha256:123"
-            )
-
-
-# Define a mock function to replace get_component_image_hash
-def mock_image_hash_1(image_ref):
-    return "1234"
-
-
-def mock_image_hash_2(image_ref):
-    return "5678"
-
-
-@pytest.mark.parametrize(
-    "valid_pipeline_example",
-    [
-        (
-            "example_1",
-            ["first_component", "second_component", "third_component"],
-        ),
-    ],
-)
 def test_component_op_hash(
     valid_pipeline_example,
     monkeypatch,
@@ -173,10 +84,6 @@ def test_component_op_hash(
         arguments={"storage_args": "a dummy string arg"},
     )
 
-    monkeypatch.setattr(comp_0_op_spec_0, "get_component_image_hash", mock_image_hash_1)
-    monkeypatch.setattr(comp_0_op_spec_1, "get_component_image_hash", mock_image_hash_1)
-    monkeypatch.setattr(comp_1_op_spec_0, "get_component_image_hash", mock_image_hash_1)
-
     comp_0_op_spec_0_copy = copy.deepcopy(comp_0_op_spec_0)
 
     assert (
@@ -190,17 +97,6 @@ def test_component_op_hash(
     assert (
         comp_0_op_spec_0.get_component_cache_key()
         != comp_1_op_spec_0.get_component_cache_key()
-    )
-
-    monkeypatch.setattr(
-        comp_0_op_spec_0_copy,
-        "get_component_image_hash",
-        mock_image_hash_2,
-    )
-
-    assert (
-        comp_0_op_spec_0.get_component_cache_key()
-        != comp_0_op_spec_0_copy.get_component_cache_key()
     )
 
 

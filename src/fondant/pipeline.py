@@ -3,7 +3,6 @@ import hashlib
 import json
 import logging
 import re
-import subprocess  # nosec
 import typing as t
 from collections import OrderedDict
 from pathlib import Path
@@ -14,7 +13,7 @@ except ImportError:
     from importlib_resources import files  # type: ignore
 
 from fondant.component_spec import ComponentSpec
-from fondant.exceptions import InvalidImageDigest, InvalidPipelineDefinition
+from fondant.exceptions import InvalidPipelineDefinition
 from fondant.manifest import Manifest
 from fondant.schema import validate_partition_number
 
@@ -142,66 +141,6 @@ class ComponentOp:
             node_pool_name=node_pool_name,
         )
 
-    @staticmethod
-    def get_image_manifest(image_ref: str):
-        """Retrieve the Docker image manifest.
-
-        Args:
-            image_ref: The Docker image reference (e.g., 'registry/image:tag').
-
-        Returns:
-            dict: The parsed JSON manifest.
-        """
-        cmd = ["docker", "manifest", "inspect", image_ref]
-        try:
-            result = subprocess.run(  # nosec
-                cmd,
-                capture_output=True,
-                check=True,
-                text=True,
-            )
-            return json.loads(result.stdout)
-        except subprocess.CalledProcessError as e:
-            msg = f"Error executing command: {e}"
-            raise Exception(msg)
-        except json.JSONDecodeError as e:
-            msg = f"Error decoding response: {e}"
-            raise Exception(msg)
-
-    def get_component_image_hash(self, image_ref):
-        """Calculate the hash of a Docker image reference. If multiple builds exist for
-        different operating systems, the hash of the amd64 CPU architecture and the linux
-        operating system is returned.
-
-        Args:
-            image_ref (str): The Docker image reference (e.g., 'registry/image:tag').
-
-        Returns:
-            str: The hash value (digest) of the Docker image.
-        """
-        manifest = self.get_image_manifest(image_ref)
-
-        hash_ = None
-
-        response_manifests = manifest.get("manifests", [])
-        for response_manifest in response_manifests:
-            platform_specs = response_manifest.get("platform", {})
-            if (
-                platform_specs.get("architecture") == "amd64"
-                and platform_specs.get("os") == "linux"
-            ):
-                hash_ = response_manifest.get("digest")
-                break
-
-        if not hash_:
-            config_digest = manifest.get("config", {}).get("digest")
-            if not config_digest:
-                msg = "No valid digest found in the image manifest."
-                raise InvalidImageDigest(msg)
-            hash_ = config_digest
-
-        return hash_
-
     def get_component_cache_key(self) -> str:
         """Calculate a cache key representing the unique identity of this ComponentOp.
 
@@ -247,15 +186,13 @@ class ComponentOp:
             return hash_object.hexdigest()
 
         component_spec_dict = self.component_spec.specification
+        arguments = (
+            get_nested_dict_hash(self.arguments) if self.arguments is not None else None
+        )
 
         component_op_uid_dict = {
             "component_spec_hash": get_nested_dict_hash(component_spec_dict),
-            "component_image_hash": self.get_component_image_hash(
-                component_spec_dict["image"],
-            ),
-            "arguments": get_nested_dict_hash(self.arguments)
-            if self.arguments is not None
-            else None,
+            "arguments": arguments,
             "input_partition_rows": self.input_partition_rows,
             "number_of_gpus": self.number_of_gpus,
             "node_pool_name": self.node_pool_name,
