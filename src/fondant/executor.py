@@ -24,7 +24,7 @@ from fondant.component import (
 )
 from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
-from fondant.manifest import Manifest
+from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class Executor(t.Generic[Component]):
         self.spec = spec
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
-        self.metadata = metadata
+        self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
 
@@ -238,8 +238,9 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
     def _load_or_create_manifest(self) -> Manifest:
         component_id = self.spec.name.lower().replace(" ", "_")
         return Manifest.create(
-            base_path=self.metadata["base_path"],
-            run_id=self.metadata["run_id"],
+            pipeline_name=self.metadata.pipeline_name,
+            base_path=self.metadata.base_path,
+            run_id=self.metadata.run_id,
             component_id=component_id,
         )
 

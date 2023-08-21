@@ -55,12 +55,13 @@ class ComponentOp:
         node_pool_name: t.Optional[str] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
-        self.input_partition_rows = input_partition_rows
-        self.arguments = self._set_arguments(arguments)
-
         self.component_spec = ComponentSpec.from_file(
             self.component_dir / self.COMPONENT_SPEC_NAME,
         )
+        self.name = self.component_spec.name.replace(" ", "_").lower()
+        self.input_partition_rows = input_partition_rows
+        self.arguments = self._set_arguments(arguments)
+
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.number_of_gpus = number_of_gpus
@@ -197,11 +198,9 @@ class Pipeline:
                 msg,
             )
 
-        dependencies_names = [
-            dependency.component_spec.name for dependency in dependencies
-        ]
+        dependencies_names = [dependency.name for dependency in dependencies]
 
-        self._graph[task.component_spec.name] = {
+        self._graph[task.name] = {
             "fondant_component_op": task,
             "dependencies": dependencies_names,
         }
@@ -242,7 +241,8 @@ class Pipeline:
         """Sort and run validation on the pipeline definition.
 
         Args:
-            run_id (str, optional): run identifier. Defaults to None.
+            run_id: run identifier
+
         """
         self.sort_graph()
         self._validate_pipeline_definition(run_id)
@@ -269,6 +269,7 @@ class Pipeline:
 
         # Create initial manifest
         manifest = Manifest.create(
+            pipeline_name=self.name,
             base_path=self.base_path,
             run_id=run_id,
             component_id=load_component_name,

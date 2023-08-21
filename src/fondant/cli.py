@@ -225,16 +225,15 @@ def register_compile(parent_parser):
 
 def compile(args):
     if args.local:
-        compiler = DockerCompiler()
+        compiler = DockerCompiler(args.pipeline)
         compiler.compile(
-            pipeline=args.pipeline,
             extra_volumes=args.extra_volumes,
             output_path=args.output_path,
             build_args=args.build_arg,
         )
     elif args.kubeflow:
-        compiler = KubeFlowCompiler()
-        compiler.compile(pipeline=args.pipeline, output_path=args.output_path)
+        compiler = KubeFlowCompiler(args.pipeline)
+        compiler.compile(output_path=args.output_path)
 
 
 def register_run(parent_parser):
@@ -298,9 +297,8 @@ def run(args):
             logging.info(
                 "Found reference to un-compiled pipeline... compiling to {spec_ref}",
             )
-            compiler = DockerCompiler()
+            compiler = DockerCompiler(pipeline)
             compiler.compile(
-                pipeline=pipeline,
                 extra_volumes=args.extra_volumes,
                 output_path=spec_ref,
                 build_args=args.build_arg,
@@ -320,8 +318,8 @@ def run(args):
             logging.info(
                 "Found reference to un-compiled pipeline... compiling to {spec_ref}",
             )
-            compiler = KubeFlowCompiler()
-            compiler.compile(pipeline=pipeline, output_path=spec_ref)
+            compiler = KubeFlowCompiler(pipeline)
+            compiler.compile(output_path=spec_ref)
         finally:
             runner = KubeflowRunner(host=args.host)
             runner.run(input_spec=spec_ref)

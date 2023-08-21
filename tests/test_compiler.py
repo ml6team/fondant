@@ -27,10 +27,9 @@ TEST_PIPELINES = [
                 input_partition_rows="10",
             ),
             ComponentOp(
-                Path(COMPONENTS_PATH / "example_1" / "fourth_component"),
+                Path(COMPONENTS_PATH / "example_1" / "third_component"),
                 arguments={
                     "storage_args": "a dummy string arg",
-                    "some_list": [1, 2, 3],
                 },
             ),
         ],
@@ -82,17 +81,17 @@ def setup_pipeline(request, tmp_path, monkeypatch):
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
-    return (example_dir, pipeline)
+    return example_dir, pipeline
 
 
 @pytest.mark.usefixtures("_freeze_time")
 def test_docker_compiler(setup_pipeline, tmp_path_factory):
     """Test compiling a pipeline to docker-compose."""
     example_dir, pipeline = setup_pipeline
-    compiler = DockerCompiler()
+    compiler = DockerCompiler(pipeline)
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
+        compiler.compile(output_path=output_path, build_args=[])
         with open(output_path) as src, open(
             VALID_PIPELINE / example_dir / "docker-compose.yml",
         ) as truth:
@@ -108,8 +107,8 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
         _, pipeline = setup_pipeline
         work_dir = f"/{fn.stem}"
         pipeline.base_path = str(fn)
-        compiler = DockerCompiler()
-        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
+        compiler = DockerCompiler(pipeline)
+        compiler.compile(output_path=fn / "docker-compose.yml")
 
         # read the generated docker-compose file
         with open(fn / "docker-compose.yml") as f_spec:
@@ -127,7 +126,8 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
             # check if commands are patched to use the working dir
             commands_with_dir = [
                 f"{work_dir}/{name}/manifest.json",
-                f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{work_dir}"}}',
+                f'{{"base_path": "{work_dir}", "pipeline_name": "{pipeline.name}",'
+                f' "run_id": "test_pipeline-20230101000000", "component_id": "{name}"}}',
             ]
             for command in commands_with_dir:
                 assert command in service["command"]
@@ -139,9 +139,9 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
     _, pipeline = setup_pipeline
     remote_dir = "gs://somebucket/artifacts"
     pipeline.base_path = remote_dir
-    compiler = DockerCompiler()
+    compiler = DockerCompiler(pipeline)
     with tmp_path_factory.mktemp("temp") as fn:
-        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
+        compiler.compile(output_path=fn / "docker-compose.yml")
 
         # read the generated docker-compose file
         with open(fn / "docker-compose.yml") as f_spec:
@@ -153,7 +153,8 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
             # check if commands are patched to use the remote dir
             commands_with_dir = [
                 f"{remote_dir}/{name}/manifest.json",
-                f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{remote_dir}"}}',
+                f'{{"base_path": "{remote_dir}", "pipeline_name": "{pipeline.name}",'
+                f' "run_id": "test_pipeline-20230101000000", "component_id": "{name}"}}',
             ]
             for command in commands_with_dir:
                 assert command in service["command"]
@@ -166,11 +167,10 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
         # this is the directory mounted in the container
         _, pipeline = setup_pipeline
         pipeline.base_path = str(fn)
-        compiler = DockerCompiler()
+        compiler = DockerCompiler(pipeline)
         # define some extra volumes to be mounted
         extra_volumes = ["hello:there", "general:kenobi"]
         compiler.compile(
-            pipeline=pipeline,
             output_path=fn / "docker-compose.yml",
             extra_volumes=extra_volumes,
         )
@@ -188,10 +188,10 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
 def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
     """Test compiling a pipeline to kubeflow."""
     example_dir, pipeline = setup_pipeline
-    compiler = KubeFlowCompiler()
+    compiler = KubeFlowCompiler(pipeline)
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(output_path=output_path)
         with open(output_path) as src, open(
             VALID_PIPELINE / example_dir / "kubeflow_pipeline.yml",
         ) as truth:
@@ -214,10 +214,10 @@ def test_kubeflow_configuration(tmp_path_factory):
         number_of_gpus=1,
     )
     pipeline.add_op(component_1)
-    compiler = KubeFlowCompiler()
+    compiler = KubeFlowCompiler(pipeline)
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(output_path=output_path)
         with open(output_path) as src, open(
             VALID_PIPELINE / "kubeflow_pipeline.yml",
         ) as truth:
@@ -226,8 +226,13 @@ def test_kubeflow_configuration(tmp_path_factory):
 
 def test_kfp_import():
     """Test that the kfp import throws the correct error."""
+    pipeline = Pipeline(
+        pipeline_name="test_pipeline",
+        pipeline_description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
     with mock.patch.dict(sys.modules):
         # remove kfp from the modules
         sys.modules["kfp"] = None
         with pytest.raises(ImportError):
-            _ = KubeFlowCompiler()
+            _ = KubeFlowCompiler(pipeline)

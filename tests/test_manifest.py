@@ -117,9 +117,11 @@ def test_manifest_creation():
     """Test the stepwise creation of a manifest via the Manifest class."""
     base_path = "gs://bucket"
     run_id = "run_id"
+    pipeline_name = "pipeline_name"
     component_id = "component_id"
 
     manifest = Manifest.create(
+        pipeline_name=pipeline_name,
         base_path=base_path,
         run_id=run_id,
         component_id=component_id,
@@ -129,6 +131,7 @@ def test_manifest_creation():
 
     assert manifest._specification == {
         "metadata": {
+            "pipeline_name": pipeline_name,
             "base_path": base_path,
             "run_id": run_id,
             "component_id": component_id,
@@ -154,11 +157,17 @@ def test_manifest_creation():
 
 
 def test_manifest_repr():
-    manifest = Manifest.create(base_path="/", run_id="A", component_id="1")
+    manifest = Manifest.create(
+        pipeline_name="NAME",
+        base_path="/",
+        run_id="A",
+        component_id="1",
+    )
     assert (
         manifest.__repr__()
-        == "Manifest({'metadata': {'base_path': '/', 'run_id': 'A', 'component_id': '1'}, "
-        "'index': {'location': '/index/A/1'}, 'subsets': {}})"
+        == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME',"
+        " 'run_id': 'A', 'component_id': '1'}, 'index': {'location': '/index/A/1'},"
+        " 'subsets': {}})"
     )
 
 
