@@ -9,8 +9,8 @@ from trafilatura.settings import use_config
 import gzip
 from warcio.archiveiterator import ArchiveIterator
 
-from fondant.component import DaskTransformComponent
-from fondant.executor import DaskTransformExecutor
+from fondant.component import PandasTransformComponent
+from fondant.executor import PandasTransformExecutor
 
 from utils.text_utils import convert_to_plain_text
 from utils.download_utils import get_warc_file_using_boto3, get_warc_file_using_requests
@@ -78,7 +78,7 @@ def get_records_from_warc_file(
         return get_records(response.raw, get_plain_text, n_records_to_download)
 
 
-class DownloadCommoncrawlSegments(DaskTransformComponent):
+class DownloadCommoncrawlSegments(PandasTransformComponent):
     def __init__(
         self,
         *_,
@@ -117,8 +117,8 @@ class DownloadCommoncrawlSegments(DaskTransformComponent):
 
     def transform(
         self,
-        dataframe: dd.DataFrame,
-    ) -> dd.DataFrame:
+        dataframe: pd.DataFrame,
+    ) -> pd.DataFrame:
         """Downloads Commoncrawl segments based on a list of WARC paths.
         Args:
             dataframe: A Dask DataFrame containing a column of WARC paths.
@@ -126,33 +126,33 @@ class DownloadCommoncrawlSegments(DaskTransformComponent):
             A Dask DataFrame containing the downloaded webpages.
         """
 
-        dataframe = (
-            dataframe.apply(
-                lambda row: get_records_from_warc_file(
-                    row["segment_path"],
+        result = []
+        for _, row in dataframe.iterrows():
+            _df = pd.DataFrame(
+                get_records_from_warc_file(
+                    row[("segment", "path")],
                     self.use_s3,
                     self.get_plain_text,
                     self.n_records_to_download,
                     self.retries,
                     self.backoff_factor,
-                ),
-                axis=1,
-                meta=("object"),
+                    s3_session=self.s3_client,
+                )
             )
-            .explode()
-            .apply(pd.Series, meta={0: "object", 1: "object"})
-        )
+
+            result.append(_df)
+
+        logger.info(f"Results: {len(result)}")
+        dataframe = pd.concat(result, ignore_index=True)
 
         dataframe.columns = [
             "webpage_url",
             "webpage_html",
         ]
 
-        dataframe = dataframe.reset_index(drop=True)
-
         return dataframe
 
 
 if __name__ == "__main__":
-    executor = DaskTransformExecutor.from_args()
+    executor = PandasTransformExecutor.from_args()
     executor.execute(DownloadCommoncrawlSegments)
