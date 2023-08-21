@@ -16,8 +16,6 @@ inputs:
         partitioning
     type: String
     default: None
-    type: String
-    default: None
 -   name: storage_args
     description: Storage arguments
     type: String
