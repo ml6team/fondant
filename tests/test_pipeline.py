@@ -1,4 +1,5 @@
 """Fondant pipelines test."""
+import copy
 from pathlib import Path
 
 import pytest
@@ -50,6 +51,53 @@ def test_component_op(
             arguments=component_args,
             node_pool_label="dummy_label",
         )
+
+
+@pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+            "example_1",
+            ["first_component", "second_component", "third_component"],
+        ),
+    ],
+)
+def test_component_op_hash(
+    valid_pipeline_example,
+    monkeypatch,
+):
+    example_dir, component_names = valid_pipeline_example
+    components_path = Path(valid_pipeline_path / example_dir)
+
+    comp_0_op_spec_0 = ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments={"storage_args": "a dummy string arg"},
+    )
+
+    comp_0_op_spec_1 = ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments={"storage_args": "a different string arg"},
+    )
+
+    comp_1_op_spec_0 = ComponentOp(
+        Path(components_path / component_names[1]),
+        arguments={"storage_args": "a dummy string arg"},
+    )
+
+    comp_0_op_spec_0_copy = copy.deepcopy(comp_0_op_spec_0)
+
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        != comp_0_op_spec_1.get_component_cache_key()
+    )
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        == comp_0_op_spec_0_copy.get_component_cache_key()
+    )
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        != comp_1_op_spec_0.get_component_cache_key()
+    )
 
 
 @pytest.mark.parametrize(
