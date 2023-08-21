@@ -106,6 +106,10 @@ args:
     description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
     type: int
     default: None
+  index_column:
+    description: Column to set index to in the load component, if not specified a default globally unique index will be set
+    type: str
+    default: None
 ```
 
 This is the component spec of the component we have just added to our pipelines, the only thing we have altered is the `produces` section. We have defined what subsets, fields and types this component produces.
