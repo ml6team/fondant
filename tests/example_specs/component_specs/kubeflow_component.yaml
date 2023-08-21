@@ -16,11 +16,6 @@ inputs:
         partitioning
     type: String
     default: None
--   name: index_column
-    description: Column to set index to in the load component, if not specified a
-        globally unique index will be set
-    type: String
-    default: 'False'
 -   name: storage_args
     description: Storage arguments
     type: String
@@ -42,8 +37,6 @@ implementation:
         -   inputValue: component_spec
         - --input_partition_rows
         -   inputValue: input_partition_rows
-        - --index_column
-        -   inputValue: index_column
         - --storage_args
         -   inputValue: storage_args
         - --output_manifest_path

@@ -86,8 +86,6 @@ def test_component_arguments():
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "arguments/component.yaml"),
-        "--index_column",
-        "column_1",
         "--input_partition_rows",
         "100",
         "--override_default_arg",
@@ -110,7 +108,6 @@ def test_component_arguments():
     executor = MyExecutor.from_args()
     expected_partition_row_arg = 100
     assert executor.input_partition_rows == expected_partition_row_arg
-    assert executor.index_column == "column_1"
     assert executor.user_arguments == {
         "string_default_arg": "foo",
         "integer_default_arg": 0,
@@ -131,60 +128,43 @@ def test_component_arguments():
     }
 
 
-def test_load_component(tmp_path_factory):
+@pytest.mark.usefixtures("_patched_data_writing")
+def test_load_component():
     # Mock CLI arguments load
-    with tmp_path_factory.mktemp("temp") as fn:
-        base_path = str(fn)
+    sys.argv = [
+        "",
+        "--metadata",
+        json.dumps({"base_path": "/bucket", "run_id": "12345"}),
+        "--flag",
+        "success",
+        "--value",
+        "1",
+        "--output_manifest_path",
+        str(components_path / "output_manifest.json"),
+        "--component_spec",
+        yaml_file_to_json_string(components_path / "component.yaml"),
+    ]
 
-        class MyLoadComponent(DaskLoadComponent):
-            def __init__(self, *args, flag, value):
-                self.flag = flag
-                self.value = value
+    class MyLoadComponent(DaskLoadComponent):
+        def __init__(self, *args, flag, value):
+            self.flag = flag
+            self.value = value
 
-            def load(self):
-                assert self.flag == "success"
-                assert self.value == 1
-                data = {
-                    "custom_index": ["42", "51"],
-                    "embeddings_data": [[0.1, 0.2], [0.1, 0.3]],
-                }
-                return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
+        def load(self):
+            assert self.flag == "success"
+            assert self.value == 1
+            data = {
+                "id": [0, 1],
+                "captions_data": ["hello world", "this is another caption"],
+            }
+            return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
 
-        for index_column in ["custom_index", "None"]:
-            sys.argv = [
-                "",
-                "--metadata",
-                json.dumps({"base_path": base_path, "run_id": "12345"}),
-                "--flag",
-                "success",
-                "--value",
-                "1",
-                "--output_manifest_path",
-                f"{base_path}/output_manifest.json",
-                "--component_spec",
-                yaml_file_to_json_string(components_path / "component.yaml"),
-                "--index_column",
-                f"{index_column}",
-            ]
-
-            executor = DaskLoadExecutor.from_args()
-            assert executor.input_partition_rows is None
-            load = patch_method_class(MyLoadComponent.load)
-            with mock.patch.object(MyLoadComponent, "load", load):
-                executor.execute(MyLoadComponent)
-                load.mock.assert_called_once()
-
-            # Test that a globally unique index will be set
-            # DaskLoadComponent
-            subset_path = Manifest.from_file(
-                executor.output_manifest_path,
-            ).index.location
-            subset_df = dd.read_parquet(subset_path)
-            index_list = list(subset_df.compute().index)
-            if index_column == "custom_index":
-                assert index_list == ["42", "51"]
-            else:
-                assert index_list == ["0_1", "1_1"]
+    executor = DaskLoadExecutor.from_args()
+    assert executor.input_partition_rows is None
+    load = patch_method_class(MyLoadComponent.load)
+    with mock.patch.object(MyLoadComponent, "load", load):
+        executor.execute(MyLoadComponent)
+        load.mock.assert_called_once()
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")

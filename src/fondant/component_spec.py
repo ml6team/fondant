@@ -263,13 +263,6 @@ class KubeflowComponentSpec:
                     "type": "String",
                     "default": "None",
                 },
-                {
-                    "name": "index_column",
-                    "description": "Column to set index to in the load component, if not specified"
-                    " a globally unique index will be set",
-                    "type": "String",
-                    "default": "False",
-                },
                 *(
                     {
                         "name": arg.name,
@@ -301,8 +294,6 @@ class KubeflowComponentSpec:
                         {"inputValue": "component_spec"},
                         "--input_partition_rows",
                         {"inputValue": "input_partition_rows"},
-                        "--index_column",
-                        {"inputValue": "index_column"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},

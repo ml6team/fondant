@@ -42,7 +42,6 @@ class Executor(t.Generic[Component]):
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
-        index_column: t.Optional[str] = None,
     ) -> None:
         self.spec = spec
         self.input_manifest_path = input_manifest_path
@@ -50,7 +49,6 @@ class Executor(t.Generic[Component]):
         self.metadata = metadata
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
-        self.index_column = index_column
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -58,10 +56,6 @@ class Executor(t.Generic[Component]):
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
-        parser.add_argument(
-            "--index_column",
-            type=lambda value: None if value == "None" else value,
-        )
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -70,21 +64,17 @@ class Executor(t.Generic[Component]):
 
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
-        index_column = args.index_column
 
         return cls.from_spec(
             component_spec,
-            input_partition_rows=input_partition_rows,
-            index_column=index_column,
+            input_partition_rows,
         )
 
     @classmethod
     def from_spec(
         cls,
         component_spec: ComponentSpec,
-        *,
         input_partition_rows: t.Optional[t.Union[str, int]],
-        index_column: t.Optional[str],
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
@@ -94,9 +84,6 @@ class Executor(t.Generic[Component]):
 
         if "input_partition_rows" in args_dict:
             args_dict.pop("input_partition_rows")
-
-        if "index_column" in args_dict:
-            args_dict.pop("index_column")
 
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
@@ -110,7 +97,6 @@ class Executor(t.Generic[Component]):
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
-            index_column=index_column,
         )
 
     @classmethod
@@ -268,31 +254,7 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
         Returns:
             A `dd.DataFrame` instance with initial data.
         """
-        dask_df = component.load()
-
-        if self.index_column is None:
-            # Set monotonically increasing index
-            logger.info(
-                "Index column not specified, setting a globally unique index",
-            )
-
-            def _set_unique_index(dataframe: pd.DataFrame, partition_info=None):
-                """Function that sets a unique index based on the partition and row number."""
-                dataframe["id"] = 1
-                dataframe["id"] = (
-                    str(partition_info["number"])
-                    + "_"
-                    + (dataframe.id.cumsum()).astype(str)
-                )
-                dataframe.index = dataframe.pop("id")
-                return dataframe
-
-            dask_df = dask_df.map_partitions(_set_unique_index, meta=dask_df.head())
-        else:
-            logger.info(f"Setting `{self.index_column}` as index")
-            dask_df = dask_df.set_index(self.index_column, drop=True)
-
-        return dask_df
+        return component.load()
 
 
 class TransformExecutor(Executor[Component]):

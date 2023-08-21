@@ -28,8 +28,6 @@ class ComponentOp:
         arguments: A dictionary containing the argument name and value for the operation.
         input_partition_rows: The number of rows to load per partition. Set to override the
         automatic partitioning
-        index_column: Column to set index to in the load component, if not specified a default
-         globally unique index will be set
         number_of_gpus: The number of gpus to assign to the operation
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
@@ -52,14 +50,12 @@ class ComponentOp:
         *,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
-        index_column: t.Optional[str] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
-        self.index_column = index_column
         self.arguments = self._set_arguments(arguments)
 
         self.component_spec = ComponentSpec.from_file(
@@ -85,7 +81,6 @@ class ComponentOp:
         input_partition_rows = validate_partition_number(self.input_partition_rows)
 
         arguments["input_partition_rows"] = str(input_partition_rows)
-        arguments["index_column"] = str(self.index_column)
 
         return arguments
 
@@ -114,7 +109,6 @@ class ComponentOp:
         *,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
-        index_column: t.Optional[str] = None,
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
@@ -126,9 +120,6 @@ class ComponentOp:
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
-            index_column: Disable automating indexing if applicable. Automatic
-             indexing is enabled in the DaskLoadComponent by default and sets a globally unique
-              index
             number_of_gpus: The number of gpus to assign to the operation
             node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.
@@ -143,7 +134,6 @@ class ComponentOp:
             components_dir,
             arguments=arguments,
             input_partition_rows=input_partition_rows,
-            index_column=index_column,
             number_of_gpus=number_of_gpus,
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
