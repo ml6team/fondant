@@ -413,26 +413,30 @@ def component_from_module(module_str: str) -> t.Type[Component]:
             msg,
         )
 
-    component_found = False
-    component = None
+    # Define the order in the method resolution order (MRO) to identify the level of inheritance
+    # depth. This corresponds to the user-defined component class that subclasses specified load/
+    # transform component (e.g. DaskLoadComponent, PandasTransformComponent, ...)
     base_component_order = 2
+    component = None
 
     for name, cls in class_members:
         method_order = cls.__mro__
+
+        # Check if the MRO has a sufficient depth to identify the user-defined component class,
+        # and if the class at that depth is the BaseComponent class.
         if (
             len(method_order) > base_component_order
             and method_order[base_component_order] == BaseComponent
         ):
             logger.info(f"Component `{name}` found in module {module_str}")
 
-            if component_found:
+            if component is not None:
                 msg = (
                     f"More than one component found in module {module_str}. Only one component "
                     f"can be present"
                 )
                 raise ImportFromModuleError(msg)
 
-            component_found = True
             component = cls
 
     if component is None:
