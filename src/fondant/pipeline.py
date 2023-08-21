@@ -152,24 +152,6 @@ class ComponentOp:
             A cache key representing the unique identity of this ComponentOp.
         """
 
-        def sorted_dict_to_json(input_dict):
-            """Convert a dictionary to a sorted JSON string.
-
-            This function recursively converts nested dictionaries to ensure all dictionaries
-            are sorted and their values are JSON-compatible (e.g., lists, dictionaries, strings,
-            numbers, booleans, or None).
-
-            Args:
-                input_dict: The dictionary to be converted.
-
-            Returns:
-                A sorted JSON string representing the dictionary.
-            """
-            if isinstance(input_dict, dict):
-                return json.dumps(input_dict, sort_keys=True)
-
-            return input_dict
-
         def get_nested_dict_hash(input_dict):
             """Calculate the hash of a nested dictionary.
 
@@ -179,7 +161,7 @@ class ComponentOp:
             Returns:
                 The hash value (MD5 digest) of the nested dictionary.
             """
-            sorted_json_string = sorted_dict_to_json(input_dict)
+            sorted_json_string = json.dumps(input_dict, sort_keys=True)
             hash_object = hashlib.md5(sorted_json_string.encode())  # nosec
             return hash_object.hexdigest()
 
