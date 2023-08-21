@@ -5,7 +5,6 @@ import logging
 
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 from pii_detection import scan_pii
 from pii_redaction import redact_pii
 
@@ -16,8 +15,8 @@ class RemovePIIComponent(PandasTransformComponent):
     """Component that detects and redacts PII from code."""
 
     def transform(
-        self,
-        dataframe: pd.DataFrame,
+            self,
+            dataframe: pd.DataFrame,
     ) -> pd.DataFrame:
         # detect PII
         result = dataframe.apply(
@@ -48,8 +47,3 @@ class RemovePIIComponent(PandasTransformComponent):
         return dataframe.drop(
             [("code", "secrets"), ("code", "has_secrets"), ("code", "number_secrets")], axis=1,
         )
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(RemovePIIComponent)

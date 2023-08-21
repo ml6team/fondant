@@ -4,7 +4,6 @@ import logging
 import fasttext
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +30,3 @@ class TextLengthFilterComponent(PandasTransformComponent):
                (caption_num_chars >= self.min_characters_length)
         dataframe = dataframe[mask]
         return dataframe
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(TextLengthFilterComponent)

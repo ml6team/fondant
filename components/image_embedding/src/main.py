@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import torch
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 from PIL import Image
 from transformers import CLIPProcessor, CLIPVisionModelWithProjection
 
@@ -23,6 +22,7 @@ def process_image(image: bytes, *, processor: CLIPProcessor, device: str) -> tor
         processor: The processor object for transforming the image.
         device: The device to move the transformed image to.
     """
+
     def load(img: bytes) -> Image:
         """Load the bytestring as an image."""
         bytes_ = io.BytesIO(img)
@@ -51,10 +51,10 @@ class EmbedImagesComponent(PandasTransformComponent):
     """Component that captions images using a model from the Hugging Face hub."""
 
     def __init__(
-        self,
-        *_,
-        model_id: str,
-        batch_size: int,
+            self,
+            *_,
+            model_id: str,
+            batch_size: int,
     ):
         """
         Args:
@@ -83,8 +83,3 @@ class EmbedImagesComponent(PandasTransformComponent):
                 results.append(embed_image_batch(batch, model=self.model).T)
 
         return pd.concat(results).to_frame(name=("embeddings", "data"))
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(EmbedImagesComponent)

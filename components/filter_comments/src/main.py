@@ -6,7 +6,6 @@ import logging
 
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 from utils.text_extraction import get_comments_to_code_ratio
 
 logger = logging.getLogger(__name__)
@@ -25,14 +24,9 @@ class FilterCommentsComponent(PandasTransformComponent):
         self.max_comments_ratio = max_comments_ratio
 
     def transform(
-        self,
-        dataframe: pd.DataFrame,
+            self,
+            dataframe: pd.DataFrame,
     ) -> pd.DataFrame:
         comment_to_code_ratio = dataframe["code"]["content"].apply(get_comments_to_code_ratio)
         mask = comment_to_code_ratio.between(self.min_comments_ratio, self.max_comments_ratio)
         return dataframe[mask]
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(FilterCommentsComponent)

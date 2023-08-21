@@ -4,7 +4,6 @@ import logging
 import fasttext
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +64,3 @@ class LanguageFilterComponent(PandasTransformComponent):
         mask = dataframe.apply(self.lang_detector.is_language, axis=1)
 
         return dataframe[mask]
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(LanguageFilterComponent)

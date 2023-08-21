@@ -60,10 +60,6 @@ class ExampleComponent(PandasTransformComponent):
         Returns:
             A pandas dataframe containing the transformed data
         """
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(ExampleComponent)
 ```
 
 
@@ -108,7 +104,7 @@ WORKDIR /component/src
 # Copy over src-files and spec of the component
 COPY src/ .
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["fondant", "execute", "main"]
 ```
 
 ## Requirements.txt

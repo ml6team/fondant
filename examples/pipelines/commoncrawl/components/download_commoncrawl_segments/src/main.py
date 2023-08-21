@@ -151,8 +151,3 @@ class DownloadCommoncrawlSegments(DaskTransformComponent):
         dataframe = dataframe.reset_index(drop=True)
 
         return dataframe
-
-
-if __name__ == "__main__":
-    executor = DaskTransformExecutor.from_args()
-    executor.execute(DownloadCommoncrawlSegments)
