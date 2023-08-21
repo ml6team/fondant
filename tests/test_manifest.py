@@ -136,10 +136,10 @@ def test_manifest_creation():
             "run_id": run_id,
             "component_id": component_id,
         },
-        "index": {"location": f"/index/{run_id}/{component_id}"},
+        "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}/index"},
         "subsets": {
             "images": {
-                "location": f"/images/{run_id}/{component_id}",
+                "location": f"/{pipeline_name}/{run_id}/{component_id}/images",
                 "fields": {
                     "width": {
                         "type": "int32",
@@ -165,9 +165,8 @@ def test_manifest_repr():
     )
     assert (
         manifest.__repr__()
-        == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME',"
-        " 'run_id': 'A', 'component_id': '1'}, 'index': {'location': '/index/A/1'},"
-        " 'subsets': {}})"
+        == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME', 'run_id': 'A',"
+        " 'component_id': '1'}, 'index': {'location': '/NAME/A/1/index'}, 'subsets': {}})"
     )
 
 

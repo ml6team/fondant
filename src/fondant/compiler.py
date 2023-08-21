@@ -113,7 +113,6 @@ class DockerCompiler(Compiler):
         """Generate a docker-compose spec as a python dictionary,
         loops over the pipeline graph to create services and their dependencies.
         """
-        datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         path, volume = self._patch_path(base_path=self.pipeline.base_path)
         run_id = self.get_run_id()
 
@@ -140,7 +139,8 @@ class DockerCompiler(Compiler):
             command.extend(
                 [
                     "--output_manifest_path",
-                    f"{path}/{component_name}/manifest.json",
+                    f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                    f"{component_name}/manifest.json",
                 ],
             )
 
@@ -162,7 +162,8 @@ class DockerCompiler(Compiler):
                     command.extend(
                         [
                             "--input_manifest_path",
-                            f"{path}/{dependency}/manifest.json",
+                            f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                            f"{dependency}/manifest.json",
                         ],
                     )
 
