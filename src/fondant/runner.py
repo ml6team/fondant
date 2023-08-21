@@ -1,27 +1,11 @@
 import json
 import logging
 import subprocess  # nosec
-import typing as t
 from abc import ABC, abstractmethod
 
 import yaml
 
-from fondant.executor import (
-    DaskLoadExecutor,
-    DaskTransformExecutor,
-    DaskWriteExecutor,
-    Executor,
-    PandasTransformExecutor,
-)
-
 logger = logging.getLogger(__name__)
-
-COMPONENT_EXECUTOR_MAPPER: t.Dict[str, t.Type[Executor]] = {
-    "DaskLoadComponent": DaskLoadExecutor,
-    "DaskTransformComponent": DaskTransformExecutor,
-    "DaskWriteComponent": DaskWriteExecutor,
-    "PandasTransformExecutor": PandasTransformExecutor,
-}
 
 
 class Runner(ABC):
