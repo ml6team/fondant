@@ -102,23 +102,32 @@ def test_execute_logic(monkeypatch):
     execute(args)
 
 
-def test_compile_logic(tmp_path_factory):
+def test_local_logic(tmp_path_factory):
     """Test that the compile command works with arguments."""
     with tmp_path_factory.mktemp("temp") as fn:
         args = argparse.Namespace(
             local=True,
+            kubeflow=False,
             pipeline=TEST_PIPELINE,
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
             build_arg=[],
         )
         compile(args)
-    args2 = argparse.Namespace(kubeflow=True, local=False, ref="some/path")
-    with pytest.raises(NotImplementedError):
-        compile(args2)
 
 
-def test_run_logic(tmp_path_factory):
+def test_kfp_compile(tmp_path_factory):
+    with tmp_path_factory.mktemp("temp") as fn:
+        args = argparse.Namespace(
+            kubeflow=True,
+            local=False,
+            pipeline=TEST_PIPELINE,
+            output_path=str(fn / "kubeflow_pipelines.yml"),
+        )
+        compile(args)
+
+
+def test_local_run(tmp_path_factory):
     """Test that the run command works with different arguments."""
     args = argparse.Namespace(local=True, ref="some/path")
     with patch("subprocess.call") as mock_call:
@@ -159,6 +168,39 @@ def test_run_logic(tmp_path_factory):
                 "--remove-orphans",
             ],
         )
-    args2 = argparse.Namespace(kubeflow=True, local=False, ref="some/path")
-    with pytest.raises(NotImplementedError):
-        run(args2)
+
+
+def test_kfp_run(tmp_path_factory):
+    """Test that the run command works in different scenarios."""
+    args = argparse.Namespace(
+        kubeflow=True,
+        local=False,
+        ref="some/path",
+        host=None,
+    )
+    with pytest.raises(
+        ValueError,
+        match="--host argument is required for running on Kubeflow",
+    ):  # no host
+        run(args)
+    with patch("fondant.cli.KubeflowRunner") as mock_runner:
+        args = argparse.Namespace(
+            kubeflow=True,
+            local=False,
+            host="localhost",
+            ref="some/path",
+        )
+        run(args)
+        mock_runner.assert_called_once_with(host="localhost")
+    with patch("fondant.cli.KubeflowRunner") as mock_runner, tmp_path_factory.mktemp(
+        "temp",
+    ) as fn:
+        args = argparse.Namespace(
+            kubeflow=True,
+            local=False,
+            host="localhost2",
+            output_path=str(fn / "kubeflow_pipelines.yml"),
+            ref=__name__ + ":TEST_PIPELINE",
+        )
+        run(args)
+        mock_runner.assert_called_once_with(host="localhost2")
