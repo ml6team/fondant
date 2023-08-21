@@ -160,15 +160,13 @@ class ComponentOp:
             numbers, booleans, or None).
 
             Args:
-            input_dict: The dictionary to be converted.
+                input_dict: The dictionary to be converted.
 
             Returns:
-            A sorted JSON string representing the dictionary.
+                A sorted JSON string representing the dictionary.
             """
             if isinstance(input_dict, dict):
-                return json.dumps(
-                    {k: sorted_dict_to_json(v) for k, v in sorted(input_dict.items())},
-                )
+                return json.dumps(input_dict, sort_keys=True)
 
             return input_dict
 
