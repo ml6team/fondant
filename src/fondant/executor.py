@@ -431,7 +431,7 @@ COMPONENT_EXECUTOR_MAPPING: t.Dict[str, t.Type[Executor]] = {
     "DaskLoadComponent": DaskLoadExecutor,
     "DaskTransformComponent": DaskTransformExecutor,
     "DaskWriteComponent": DaskWriteExecutor,
-    "PandasTransformExecutor": PandasTransformExecutor,
+    "PandasTransformComponent": PandasTransformExecutor,
 }
 
 

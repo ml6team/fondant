@@ -18,8 +18,6 @@ from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.executor import (
     ComponentRunner,
-    DaskTransformExecutor,
-    DaskWriteExecutor,
     Executor,
     PandasTransformExecutor,
 )
@@ -201,7 +199,8 @@ def test_dask_transform_component():
             assert isinstance(dataframe, dd.DataFrame)
             return dataframe
 
-    executor = DaskTransformExecutor.from_args()
+    component_runner = ComponentRunner(MyDaskComponent)
+    executor = component_runner._get_executor()
     assert executor.input_partition_rows == "disable"
     transform = patch_method_class(MyDaskComponent.transform)
     with mock.patch.object(
@@ -209,7 +208,7 @@ def test_dask_transform_component():
         "transform",
         transform,
     ):
-        executor.execute(MyDaskComponent)
+        component_runner.run()
         transform.mock.assert_called_once()
 
 
@@ -241,15 +240,15 @@ def test_pandas_transform_component():
             assert isinstance(dataframe, pd.DataFrame)
             return dataframe.rename(columns={"images": "embeddings"})
 
-    executor = PandasTransformExecutor.from_args()
     init = patch_method_class(MyPandasComponent.__init__)
     transform = patch_method_class(MyPandasComponent.transform)
+    component_runner = ComponentRunner(MyPandasComponent)
     with mock.patch.object(MyPandasComponent, "__init__", init), mock.patch.object(
         MyPandasComponent,
         "transform",
         transform,
     ):
-        executor.execute(MyPandasComponent)
+        component_runner.run()
         init.mock.assert_called_once()
         assert transform.mock.call_count == N_PARTITIONS
 
@@ -355,8 +354,8 @@ def test_write_component():
             assert self.value == 1
             assert isinstance(dataframe, dd.DataFrame)
 
-    executor = DaskWriteExecutor.from_args()
+    component_runner = ComponentRunner(MyWriteComponent)
     write = patch_method_class(MyWriteComponent.write)
     with mock.patch.object(MyWriteComponent, "write", write):
-        executor.execute(MyWriteComponent)
+        component_runner.run()
         write.mock.assert_called_once()
