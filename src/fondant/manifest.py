@@ -199,6 +199,10 @@ class Manifest:
         return self.metadata["component_id"]
 
     @property
+    def pipeline_name(self) -> str:
+        return self.metadata["pipeline_name"]
+
+    @property
     def index(self) -> Index:
         return Index(self._specification["index"], base_path=self.base_path)
 

@@ -9,6 +9,9 @@
           "type": "string",
           "format": "uri"
         },
+        "pipeline_name": {
+          "type": "string"
+        },
         "run_id": {
           "type": "string"
         },
@@ -18,6 +21,7 @@
       },
       "required": [
         "base_path",
+        "pipeline_name",
         "run_id",
         "component_id"
       ]
