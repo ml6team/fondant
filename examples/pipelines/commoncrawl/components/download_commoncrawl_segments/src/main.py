@@ -1,6 +1,6 @@
 import logging
 from typing import List, Optional
-
+import time
 import boto3
 import dask.dataframe as dd
 import pandas as pd
@@ -18,7 +18,9 @@ from utils.download_utils import get_warc_file_using_boto3, get_warc_file_using_
 logger = logging.getLogger(__name__)
 
 
-def get_records(file, get_plain_text, n_records_to_download) -> List[List[str]]:
+def get_records(
+    file, get_plain_text, n_records_to_download, target_language
+) -> List[List[str]]:
     """Extracts records from a WARC file, optionally converting HTML to plain text.
     Args:
         file: The WARC file.
@@ -32,13 +34,16 @@ def get_records(file, get_plain_text, n_records_to_download) -> List[List[str]]:
 
     records = []
     counter = 0
+    start_time = time.time()
 
     for record in ArchiveIterator(file, arc2warc=True):
         if record.rec_type == "response":
             url = record.rec_headers.get_header("WARC-Target-URI")
             content = record.content_stream().read().decode("utf-8", "replace")
             if get_plain_text:
-                content = convert_to_plain_text(content, trafilatura_config)
+                content = convert_to_plain_text(
+                    content, trafilatura_config, target_language=target_language
+                )
             if content:
                 records.append([url, content])
             counter += 1
@@ -46,6 +51,8 @@ def get_records(file, get_plain_text, n_records_to_download) -> List[List[str]]:
         if n_records_to_download and counter >= n_records_to_download:
             break
 
+    duration = start_time - time.time()
+    logger.info(f"Extracted {len(records)} in {duration} seconds")
     return records
 
 
@@ -57,6 +64,7 @@ def get_records_from_warc_file(
     retries: Optional[int] = None,
     backoff_factor: Optional[int] = None,
     s3_session=None,
+    target_language=None,
 ) -> List[List[str]]:
     """Downloads a WARC file and extracts the webpages.
     Args:
@@ -72,10 +80,20 @@ def get_records_from_warc_file(
     if use_s3:
         response = get_warc_file_using_boto3(warc_file, s3_session)
         with gzip.GzipFile(fileobj=response, mode="rb") as file:
-            return get_records(file, get_plain_text, n_records_to_download)
+            return get_records(
+                file,
+                get_plain_text,
+                n_records_to_download,
+                target_language=target_language,
+            )
     else:
         response = get_warc_file_using_requests(warc_file, retries, backoff_factor)
-        return get_records(response.raw, get_plain_text, n_records_to_download)
+        return get_records(
+            response.raw,
+            get_plain_text,
+            n_records_to_download,
+            target_language=target_language,
+        )
 
 
 class DownloadCommoncrawlSegments(PandasTransformComponent):
@@ -128,26 +146,26 @@ class DownloadCommoncrawlSegments(PandasTransformComponent):
 
         result = []
         for _, row in dataframe.iterrows():
-            _df = pd.DataFrame(
-                get_records_from_warc_file(
-                    row[("segment", "path")],
-                    self.use_s3,
-                    self.get_plain_text,
-                    self.n_records_to_download,
-                    self.retries,
-                    self.backoff_factor,
-                    s3_session=self.s3_client,
-                )
+            extracted_content = get_records_from_warc_file(
+                row[("segment", "path")],
+                self.use_s3,
+                self.get_plain_text,
+                self.n_records_to_download,
+                self.retries,
+                self.backoff_factor,
+                s3_session=self.s3_client,
+                target_language=self.target_language,
             )
 
+            extracted_content = [content for content in extracted_content if content]
+            _df = pd.DataFrame(extracted_content)
             result.append(_df)
 
-        logger.info(f"Results: {len(result)}")
         dataframe = pd.concat(result, ignore_index=True)
 
         dataframe.columns = [
-            "webpage_url",
-            "webpage_html",
+            ("webpage", "url"),
+            ("webpage", "html"),
         ]
 
         return dataframe
