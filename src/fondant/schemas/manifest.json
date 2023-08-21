@@ -9,6 +9,9 @@
           "type": "string",
           "format": "uri"
         },
+        "pipeline_name": {
+          "type": "string"
+        },
         "run_id": {
           "type": "string"
         },
