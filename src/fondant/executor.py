@@ -425,3 +425,24 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         pass
+
+
+COMPONENT_EXECUTOR_MAPPING: t.Dict[str, t.Type[Executor]] = {
+    "DaskLoadComponent": DaskLoadExecutor,
+    "DaskTransformComponent": DaskTransformExecutor,
+    "DaskWriteComponent": DaskWriteExecutor,
+    "PandasTransformExecutor": PandasTransformExecutor,
+}
+
+
+class ComponentRunner:
+    def __init__(self, component: t.Type[Component]):
+        self.component = component
+
+    def _get_executor(self) -> Executor:
+        component_type = self.component.__bases__[0].__name__
+        return COMPONENT_EXECUTOR_MAPPING[component_type].from_args()
+
+    def run(self):
+        executor = self._get_executor()
+        executor.execute(self.component)

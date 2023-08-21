@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 
 import yaml
 
-from fondant.component import Component
 from fondant.executor import (
     DaskLoadExecutor,
     DaskTransformExecutor,
@@ -31,19 +30,6 @@ class Runner(ABC):
     @abstractmethod
     def run(self, *args, **kwargs):
         """Abstract method to invoke running."""
-
-
-class ComponentRunner(Runner):
-    def __init__(self, component: t.Type[Component]):
-        self.component = component
-
-    def _get_executor(self) -> Executor:
-        component_type = self.component.__bases__[0].__name__
-        return COMPONENT_EXECUTOR_MAPPER[component_type].from_args()
-
-    def run(self):
-        executor = self._get_executor()
-        executor.execute(self.component)
 
 
 class DockerRunner(Runner):

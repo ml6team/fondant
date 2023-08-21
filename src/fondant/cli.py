@@ -22,9 +22,11 @@ import shutil
 import sys
 import textwrap
 import typing as t
+from collections import defaultdict
 
 from fondant.compiler import DockerCompiler, KubeFlowCompiler
 from fondant.component import BaseComponent, Component
+from fondant.executor import ComponentRunner
 from fondant.explorer import (
     DEFAULT_CONTAINER,
     DEFAULT_PORT,
@@ -32,7 +34,7 @@ from fondant.explorer import (
     run_explorer_app,
 )
 from fondant.pipeline import Pipeline
-from fondant.runner import ComponentRunner, DockerRunner, KubeflowRunner
+from fondant.runner import DockerRunner, KubeflowRunner
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +76,8 @@ def entrypoint():
 
     # display help if no arguments are provided
     args, _ = parser.parse_known_args(sys.argv[1:] or ["--help"])
+    if args.func.__name__ != "execute":
+        args = parser.parse_args(sys.argv[1:] or ["--help"])
 
     args.func(args)
 
@@ -413,34 +417,28 @@ def component_from_module(module_str: str) -> t.Type[Component]:
             msg,
         )
 
-    # Define the order in the method resolution order (MRO) to identify the level of inheritance
-    # depth. This corresponds to the user-defined component class that subclasses specified load/
-    # transform component (e.g. DaskLoadComponent, PandasTransformComponent, ...)
-    base_component_order = 2
-    component = None
+    component_classes_dict = defaultdict(list)
 
     for name, cls in class_members:
-        method_order = cls.__mro__
+        if issubclass(cls, BaseComponent):
+            order = len(cls.__mro__)
+            component_classes_dict[order].append((name, cls))
 
-        # Check if the MRO has a sufficient depth to identify the user-defined component class,
-        # and if the class at that depth is the BaseComponent class.
-        if (
-            len(method_order) > base_component_order
-            and method_order[base_component_order] == BaseComponent
-        ):
-            logger.info(f"Component `{name}` found in module {module_str}")
-
-            if component is not None:
-                msg = (
-                    f"More than one component found in module {module_str}. Only one component "
-                    f"can be present"
-                )
-                raise ImportFromModuleError(msg)
-
-            component = cls
-
-    if component is None:
+    if len(component_classes_dict) == 0:
         msg = f"No Component found in module {module_str}"
         raise ImportFromModuleError(msg)
 
-    return component
+    max_order = max(component_classes_dict)
+    found_components = component_classes_dict[max_order]
+
+    if len(found_components) > 1:
+        msg = (
+            f"Found multiple components in {module_str}: {found_components}. Only one component "
+            f"can be present"
+        )
+        raise ImportFromModuleError(msg)
+
+    component_name, component_cls = found_components[0]
+    logger.info(f"Component `{component_name}` found in module {module_str}")
+
+    return component_cls

@@ -17,13 +17,13 @@ from fondant.component import (
 from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.executor import (
+    ComponentRunner,
     DaskTransformExecutor,
     DaskWriteExecutor,
     Executor,
     PandasTransformExecutor,
 )
 from fondant.manifest import Manifest
-from fondant.runner import ComponentRunner
 
 components_path = Path(__file__).parent / "example_specs/components"
 N_PARTITIONS = 2

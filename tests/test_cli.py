@@ -13,8 +13,8 @@ from fondant.cli import (
     run,
 )
 from fondant.component import DaskLoadComponent
+from fondant.executor import ComponentRunner
 from fondant.pipeline import Pipeline
-from fondant.runner import ComponentRunner
 
 commands = [
     "fondant",
