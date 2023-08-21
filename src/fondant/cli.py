@@ -341,7 +341,17 @@ def register_execute(parent_parser):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
             """
-        TODO: Insert description
+        Execute a Fondant component using specified pipeline parameters.
+
+        This command is intended to be included in the entrypoint of a component's Dockerfile. The provided argument
+        to this command should indicate the module where the component's implementation resides.
+
+        The command attempts to import the user-implemented component from the specified module and
+        then executes it with the user-provided arguments.
+
+        Example:
+
+        fondant execute main.py
         """,
         ),
     )
