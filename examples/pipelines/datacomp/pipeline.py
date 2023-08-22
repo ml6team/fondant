@@ -36,7 +36,7 @@ load_from_hub_op = ComponentOp(
     arguments={
         "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 100,
+        "n_rows_to_load": 1000,
         "index_column": "uid",
     },
     node_pool_label="node_pool",
