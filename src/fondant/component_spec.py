@@ -264,10 +264,10 @@ class KubeflowComponentSpec:
                     "default": "None",
                 },
                 {
-                    "name": "disable_caching",
-                    "description": "Set to True to disable caching, False by default.",
+                    "name": "cache",
+                    "description": "Set to False to disable caching, True by default.",
                     "type": "Boolean",
-                    "default": "False",
+                    "default": "True",
                 },
                 *(
                     {
@@ -300,8 +300,8 @@ class KubeflowComponentSpec:
                         {"inputValue": "component_spec"},
                         "--input_partition_rows",
                         {"inputValue": "input_partition_rows"},
-                        "--disable_caching",
-                        {"inputValue": "disable_caching"},
+                        "--cache",
+                        {"inputValue": "cache"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},

@@ -13,8 +13,8 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - None
-    - --disable_caching
-    - 'False'
+    - --cache
+    - 'True'
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -34,8 +34,8 @@ services:
     - '0'
     - --input_partition_rows
     - None
-    - --disable_caching
-    - 'False'
+    - --cache
+    - 'True'
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
       borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",

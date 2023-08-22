@@ -16,10 +16,10 @@ inputs:
         partitioning
     type: String
     default: None
--   name: disable_caching
-    description: Set to True to disable caching, False by default.
+-   name: cache
+    description: Set to False to disable caching, True by default.
     type: Boolean
-    default: 'False'
+    default: 'True'
 -   name: storage_args
     description: Storage arguments
     type: String
@@ -41,8 +41,8 @@ implementation:
         -   inputValue: component_spec
         - --input_partition_rows
         -   inputValue: input_partition_rows
-        - --disable_caching
-        -   inputValue: disable_caching
+        - --cache
+        -   inputValue: cache
         - --storage_args
         -   inputValue: storage_args
         - --output_manifest_path

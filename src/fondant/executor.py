@@ -38,7 +38,7 @@ class Executor(t.Generic[Component]):
         self,
         spec: ComponentSpec,
         *,
-        disable_caching: bool,
+        cache: bool,
         input_manifest_path: t.Union[str, Path],
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
@@ -46,7 +46,7 @@ class Executor(t.Generic[Component]):
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
     ) -> None:
         self.spec = spec
-        self.disable_caching = disable_caching
+        self.cache = cache
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
         self.metadata = metadata
@@ -58,7 +58,7 @@ class Executor(t.Generic[Component]):
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
-        parser.add_argument("--disable_caching", type=ast.literal_eval)
+        parser.add_argument("--cache", type=ast.literal_eval)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
         args, _ = parser.parse_known_args()
 
@@ -68,11 +68,11 @@ class Executor(t.Generic[Component]):
 
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
-        disable_caching = args.disable_caching
+        cache = args.cache
 
         return cls.from_spec(
             component_spec,
-            disable_caching=disable_caching,
+            cache=cache,
             input_partition_rows=input_partition_rows,
         )
 
@@ -81,7 +81,7 @@ class Executor(t.Generic[Component]):
         cls,
         component_spec: ComponentSpec,
         *,
-        disable_caching: bool,
+        cache: bool,
         input_partition_rows: t.Optional[t.Union[str, int]],
     ) -> "Executor":
         """Create an executor from a component spec."""
@@ -93,8 +93,8 @@ class Executor(t.Generic[Component]):
         if "input_partition_rows" in args_dict:
             args_dict.pop("input_partition_rows")
 
-        if "disable_caching" in args_dict:
-            args_dict.pop("disable_caching")
+        if "cache" in args_dict:
+            args_dict.pop("cache")
 
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
@@ -105,7 +105,7 @@ class Executor(t.Generic[Component]):
             component_spec,
             input_manifest_path=input_manifest_path,
             output_manifest_path=output_manifest_path,
-            disable_caching=disable_caching,
+            cache=cache,
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
@@ -211,12 +211,12 @@ class Executor(t.Generic[Component]):
         else:
             logger.info("No previous matching execution found")
 
-        if self.disable_caching:
+        if self.cache:
             logger.info("Caching for the component is disabled")
         else:
             logger.info("Caching for the component is enabled")
 
-        if self.disable_caching is False and matching_execution_exists:
+        if self.cache is False and matching_execution_exists:
             logging.info("Cached component run. Skipping component execution")
             output_manifest = self._load_cached_output_manifest()
         else:

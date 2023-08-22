@@ -147,12 +147,16 @@ class DockerCompiler(Compiler):
 
             component_op = component["fondant_component_op"]
 
-            command = [
-                "--metadata",
-                json.dumps(asdict(metadata)),
-                "--output_manifest_path",
-                f"{path}/{safe_component_name}/manifest.json",
-            ]
+            # add metadata argument to command
+            command = ["--metadata", json.dumps(asdict(metadata))]
+
+            # add in and out manifest paths to command
+            command.extend(
+                [
+                    "--output_manifest_path",
+                    f"{path}/{safe_component_name}/manifest.json",
+                ],
+            )
 
             # add arguments if any to command
             for key, value in component_op.arguments.items():
