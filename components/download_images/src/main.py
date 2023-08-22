@@ -11,7 +11,6 @@ import dask
 import httpx
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 from resizer import Resizer
 
 logger = logging.getLogger(__name__)
@@ -108,8 +107,3 @@ class DownloadImagesComponent(PandasTransformComponent):
         results_df.columns = pd.MultiIndex.from_product([["images"], results_df.columns])
 
         return results_df
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(DownloadImagesComponent)

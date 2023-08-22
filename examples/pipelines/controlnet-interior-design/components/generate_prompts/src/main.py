@@ -120,8 +120,3 @@ class GeneratePromptsComponent(DaskLoadComponent):
         df = dd.from_pandas(pandas_df, npartitions=1)
 
         return df
-
-
-if __name__ == "__main__":
-    executor = DaskLoadExecutor.from_args()
-    executor.execute(GeneratePromptsComponent)

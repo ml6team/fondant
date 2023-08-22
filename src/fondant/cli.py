@@ -16,12 +16,17 @@ If you want to extend the cli you can add a new subcommand by registering a new 
 """
 import argparse
 import importlib
+import inspect
 import logging
 import shutil
 import sys
 import textwrap
+import typing as t
+from collections import defaultdict
 
 from fondant.compiler import DockerCompiler, KubeFlowCompiler
+from fondant.component import BaseComponent, Component
+from fondant.executor import ExecutorFactory
 from fondant.explorer import (
     DEFAULT_CONTAINER,
     DEFAULT_PORT,
@@ -63,13 +68,16 @@ def entrypoint():
     )
     subparsers = parser.add_subparsers()
     register_explore(subparsers)
+    register_execute(subparsers)
     register_compile(subparsers)
     register_run(subparsers)
 
     sys.path.append(".")
 
     # display help if no arguments are provided
-    args = parser.parse_args(sys.argv[1:] or ["--help"])
+    args, _ = parser.parse_known_args(sys.argv[1:] or ["--help"])
+    if args.func.__name__ != "execute":
+        args = parser.parse_args(sys.argv[1:] or ["--help"])
 
     args.func(args)
 
@@ -225,15 +233,16 @@ def register_compile(parent_parser):
 
 def compile(args):
     if args.local:
-        compiler = DockerCompiler(args.pipeline)
+        compiler = DockerCompiler()
         compiler.compile(
+            pipeline=args.pipeline,
             extra_volumes=args.extra_volumes,
             output_path=args.output_path,
             build_args=args.build_arg,
         )
     elif args.kubeflow:
-        compiler = KubeFlowCompiler(args.pipeline)
-        compiler.compile(output_path=args.output_path)
+        compiler = KubeFlowCompiler()
+        compiler.compile(pipeline=args.pipeline, output_path=args.output_path)
 
 
 def register_run(parent_parser):
@@ -297,8 +306,9 @@ def run(args):
             logging.info(
                 "Found reference to un-compiled pipeline... compiling to {spec_ref}",
             )
-            compiler = DockerCompiler(pipeline)
+            compiler = DockerCompiler()
             compiler.compile(
+                pipeline=pipeline,
                 extra_volumes=args.extra_volumes,
                 output_path=spec_ref,
                 build_args=args.build_arg,
@@ -318,15 +328,55 @@ def run(args):
             logging.info(
                 "Found reference to un-compiled pipeline... compiling to {spec_ref}",
             )
-            compiler = KubeFlowCompiler(pipeline)
-            compiler.compile(output_path=spec_ref)
+            compiler = KubeFlowCompiler()
+            compiler.compile(pipeline=pipeline, output_path=spec_ref)
         finally:
             runner = KubeflowRunner(host=args.host)
             runner.run(input_spec=spec_ref)
 
 
+def register_execute(parent_parser):
+    parser = parent_parser.add_parser(
+        "execute",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent(
+            """
+        Execute a Fondant component using specified pipeline parameters.
+
+        This command is intended to be included in the entrypoint of a component's Dockerfile. The provided argument
+        to this command should indicate the module where the component's implementation resides.
+
+        The command attempts to import the user-implemented component from the specified module and
+        then executes it with the user-provided arguments.
+
+        Example:
+
+        fondant execute main.py
+        """,
+        ),
+    )
+    parser.add_argument(
+        "ref",
+        help="""Reference to the module containing the component to run""",
+        action="store",
+    )
+
+    parser.set_defaults(func=execute)
+
+
+def execute(args):
+    component = component_from_module(args.ref)
+    executor_factory = ExecutorFactory(component)
+    executor = executor_factory.get_executor()
+    executor.execute(component)
+
+
 class ImportFromStringError(Exception):
     """Error raised when an import string is not valid."""
+
+
+class ImportFromModuleError(Exception):
+    """Error raised when an import from module is not valid."""
 
 
 def pipeline_from_string(import_string: str) -> Pipeline:
@@ -358,3 +408,48 @@ def pipeline_from_string(import_string: str) -> Pipeline:
         raise ImportFromStringError(msg)
 
     return instance
+
+
+def component_from_module(module_str: str) -> t.Type[Component]:
+    """Try to import a component from a module otherwise raise an ImportFromModuleError."""
+    if ".py" in module_str:
+        module_str = module_str.rsplit(".py", 1)[0]
+
+    module_str = module_str.replace("/", ".")
+
+    try:
+        class_members = inspect.getmembers(
+            importlib.import_module(module_str),
+            inspect.isclass,
+        )
+    except ModuleNotFoundError:
+        msg = f"`{module_str}` was not found. Please provide a valid module."
+        raise ImportFromModuleError(
+            msg,
+        )
+
+    component_classes_dict = defaultdict(list)
+
+    for name, cls in class_members:
+        if issubclass(cls, BaseComponent):
+            order = len(cls.__mro__)
+            component_classes_dict[order].append((name, cls))
+
+    if len(component_classes_dict) == 0:
+        msg = f"No Component found in module {module_str}"
+        raise ImportFromModuleError(msg)
+
+    max_order = max(component_classes_dict)
+    found_components = component_classes_dict[max_order]
+
+    if len(found_components) > 1:
+        msg = (
+            f"Found multiple components in {module_str}: {found_components}. Only one component "
+            f"can be present"
+        )
+        raise ImportFromModuleError(msg)
+
+    component_name, component_cls = found_components[0]
+    logger.info(f"Component `{component_name}` found in module {module_str}")
+
+    return component_cls

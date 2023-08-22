@@ -1,8 +1,7 @@
-import datetime
 import json
 import logging
 import typing as t
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -15,17 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 class Compiler(ABC):
-    """Abstract base class for a pipeline compiler."""
+    """Abstract base class for a compiler."""
 
-    def __init__(
-        self,
-        pipeline: Pipeline,
-    ):
-        self.pipeline = pipeline
-
-    def get_run_id(self) -> str:
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        return f"{self.pipeline.name}-{timestamp}"
+    @abstractmethod
+    def compile(self, *args, **kwargs) -> None:
+        """Abstract method to invoke compilation."""
 
 
 @dataclass
@@ -49,6 +42,8 @@ class DockerCompiler(Compiler):
 
     def compile(
         self,
+        pipeline: Pipeline,
+        *,
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Optional[list] = None,
         build_args: t.Optional[t.List[str]] = None,
@@ -56,6 +51,7 @@ class DockerCompiler(Compiler):
         """Compile a pipeline to docker-compose spec and save it to a specified output path.
 
         Args:
+            pipeline: the pipeline to compile
             output_path: the path where to save the docker-compose spec
             extra_volumes: a list of extra volumes (using the Short syntax:
               https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
@@ -65,8 +61,9 @@ class DockerCompiler(Compiler):
         if extra_volumes is None:
             extra_volumes = []
 
-        logger.info(f"Compiling {self.pipeline.name} to {output_path}")
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
         spec = self._generate_spec(
+            pipeline,
             extra_volumes=extra_volumes,
             build_args=build_args or [],
         )
@@ -107,22 +104,24 @@ class DockerCompiler(Compiler):
 
     def _generate_spec(
         self,
+        pipeline: Pipeline,
+        *,
         extra_volumes: t.List[str],
         build_args: t.List[str],
     ) -> dict:
         """Generate a docker-compose spec as a python dictionary,
         loops over the pipeline graph to create services and their dependencies.
         """
-        path, volume = self._patch_path(base_path=self.pipeline.base_path)
-        run_id = self.get_run_id()
+        path, volume = self._patch_path(base_path=pipeline.base_path)
+        run_id = pipeline.get_run_id()
 
         services = {}
 
-        self.pipeline.validate(run_id=run_id)
+        pipeline.validate(run_id=run_id)
 
-        for component_name, component in self.pipeline._graph.items():
+        for component_name, component in pipeline._graph.items():
             metadata = Metadata(
-                pipeline_name=self.pipeline.name,
+                pipeline_name=pipeline.name,
                 run_id=run_id,
                 base_path=path,
                 component_id=component_name,
@@ -190,7 +189,7 @@ class DockerCompiler(Compiler):
             else:
                 services[component_name]["image"] = component_op.component_spec.image
         return {
-            "name": self.pipeline.name,
+            "name": pipeline.name,
             "version": "3.8",
             "services": services,
         }
@@ -199,8 +198,7 @@ class DockerCompiler(Compiler):
 class KubeFlowCompiler(Compiler):
     """Compiler that creates a Kubeflow pipeline spec from a pipeline."""
 
-    def __init__(self, pipeline: Pipeline):
-        super().__init__(pipeline)
+    def __init__(self):
         self._resolve_imports()
 
     def _resolve_imports(self):
@@ -218,28 +216,27 @@ class KubeFlowCompiler(Compiler):
 
     def compile(
         self,
+        pipeline: Pipeline,
         output_path: str = "kubeflow_pipeline.yml",
     ) -> None:
         """Compile a pipeline to Kubeflow pipeline spec and save it to a specified output path.
 
         Args:
+            pipeline: the pipeline to compile
             output_path: the path where to save the Kubeflow pipeline spec
         """
-        run_id = self.get_run_id()
+        run_id = pipeline.get_run_id()
 
-        @self.kfp.dsl.pipeline(
-            name=self.pipeline.name,
-            description=self.pipeline.description,
-        )
+        @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
             previous_component_task = None
             manifest_path = ""
 
-            for component_name, component in self.pipeline._graph.items():
+            for component_name, component in pipeline._graph.items():
                 metadata = Metadata(
-                    pipeline_name=self.pipeline.name,
+                    pipeline_name=pipeline.name,
                     run_id=run_id,
-                    base_path=self.pipeline.base_path,
+                    base_path=pipeline.base_path,
                     component_id=component_name,
                 )
 
@@ -275,6 +272,7 @@ class KubeFlowCompiler(Compiler):
 
                 previous_component_task = component_task
 
+        self.pipeline = pipeline
         self.pipeline.validate(run_id=run_id)
         logger.info(f"Compiling {self.pipeline.name} to {output_path}")
 
