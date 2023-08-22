@@ -427,22 +427,26 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
         pass
 
 
-COMPONENT_EXECUTOR_MAPPING: t.Dict[str, t.Type[Executor]] = {
-    "DaskLoadComponent": DaskLoadExecutor,
-    "DaskTransformComponent": DaskTransformExecutor,
-    "DaskWriteComponent": DaskWriteExecutor,
-    "PandasTransformComponent": PandasTransformExecutor,
-}
-
-
-class ComponentRunner:
+class ExecutorFactory:
     def __init__(self, component: t.Type[Component]):
         self.component = component
+        self.component_executor_mapping: t.Dict[str, t.Type[Executor]] = {
+            "DaskLoadComponent": DaskLoadExecutor,
+            "DaskTransformComponent": DaskTransformExecutor,
+            "DaskWriteComponent": DaskWriteExecutor,
+            "PandasTransformComponent": PandasTransformExecutor,
+        }
 
-    def _get_executor(self) -> Executor:
+    def get_executor(self) -> Executor:
         component_type = self.component.__bases__[0].__name__
-        return COMPONENT_EXECUTOR_MAPPING[component_type].from_args()
-
-    def run(self):
-        executor = self._get_executor()
-        executor.execute(self.component)
+        try:
+            executor = self.component_executor_mapping[component_type].from_args()
+        except KeyError:
+            msg = (
+                f"The component `{self.component.__name__}` of type `{component_type}` has no"
+                f" corresponding executor.\n "
+                f"Component executor mapping:"
+                f" {json.dumps(self.component_executor_mapping, indent=4)}"
+            )
+            raise ValueError(msg)
+        return executor

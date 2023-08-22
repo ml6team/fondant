@@ -13,7 +13,7 @@ from fondant.cli import (
     run,
 )
 from fondant.component import DaskLoadComponent
-from fondant.executor import ComponentRunner
+from fondant.executor import Executor, ExecutorFactory
 from fondant.pipeline import Pipeline
 
 commands = [
@@ -98,7 +98,8 @@ def test_pipeline_from_string_error(import_string):
 def test_execute_logic(monkeypatch):
     """Test that the execute command works with arguments."""
     args = argparse.Namespace(ref=__name__)
-    monkeypatch.setattr(ComponentRunner, "run", lambda self: None)
+    monkeypatch.setattr(ExecutorFactory, "get_executor", lambda self: Executor)
+    monkeypatch.setattr(Executor, "execute", lambda component_cls: None)
     execute(args)
 
 

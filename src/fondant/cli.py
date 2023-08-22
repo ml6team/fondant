@@ -26,7 +26,7 @@ from collections import defaultdict
 
 from fondant.compiler import DockerCompiler, KubeFlowCompiler
 from fondant.component import BaseComponent, Component
-from fondant.executor import ComponentRunner
+from fondant.executor import ExecutorFactory
 from fondant.explorer import (
     DEFAULT_CONTAINER,
     DEFAULT_PORT,
@@ -366,8 +366,9 @@ def register_execute(parent_parser):
 
 def execute(args):
     component = component_from_module(args.ref)
-    component_runner = ComponentRunner(component)
-    component_runner.run()
+    executor_factory = ExecutorFactory(component)
+    executor = executor_factory.get_executor()
+    executor.execute(component)
 
 
 class ImportFromStringError(Exception):
