@@ -123,7 +123,8 @@ class Executor(t.Generic[Component]):
                 help=arg.description,
             )
 
-        return parser.parse_args()
+        args, _ = parser.parse_known_args()
+        return args
 
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
@@ -424,3 +425,28 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         pass
+
+
+class ExecutorFactory:
+    def __init__(self, component: t.Type[Component]):
+        self.component = component
+        self.component_executor_mapping: t.Dict[str, t.Type[Executor]] = {
+            "DaskLoadComponent": DaskLoadExecutor,
+            "DaskTransformComponent": DaskTransformExecutor,
+            "DaskWriteComponent": DaskWriteExecutor,
+            "PandasTransformComponent": PandasTransformExecutor,
+        }
+
+    def get_executor(self) -> Executor:
+        component_type = self.component.__bases__[0].__name__
+        try:
+            executor = self.component_executor_mapping[component_type].from_args()
+        except KeyError:
+            msg = (
+                f"The component `{self.component.__name__}` of type `{component_type}` has no"
+                f" corresponding executor.\n "
+                f"Component executor mapping:"
+                f" {json.dumps(self.component_executor_mapping, indent=4)}"
+            )
+            raise ValueError(msg)
+        return executor

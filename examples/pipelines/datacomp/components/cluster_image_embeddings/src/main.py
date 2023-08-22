@@ -37,8 +37,3 @@ class ClusterImageEmbeddingsComponent(DaskTransformComponent):
         )
 
         return dataframe
-
-
-if __name__ == "__main__":
-    executor = DaskTransformExecutor.from_args()
-    executor.execute(ClusterImageEmbeddingsComponent)

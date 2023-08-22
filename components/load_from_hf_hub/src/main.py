@@ -5,7 +5,6 @@ import typing as t
 import dask.dataframe as dd
 import pandas as pd
 from fondant.component import DaskLoadComponent
-from fondant.executor import DaskLoadExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +86,3 @@ class LoadFromHubComponent(DaskLoadComponent):
             dask_df = dask_df.set_index(self.index_column, drop=True)
 
         return dask_df
-
-
-if __name__ == "__main__":
-    executor = DaskLoadExecutor.from_args()
-    executor.execute(LoadFromHubComponent)

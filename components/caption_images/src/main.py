@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import torch
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 from PIL import Image
 from transformers import BatchEncoding, BlipForConditionalGeneration, BlipProcessor
 
@@ -85,6 +84,3 @@ class CaptionImagesComponent(PandasTransformComponent):
         return pd.concat(results).to_frame(name=("captions", "text"))
 
 
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(CaptionImagesComponent)
