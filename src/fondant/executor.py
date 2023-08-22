@@ -196,7 +196,7 @@ class Executor(t.Generic[Component]):
     def _has_matching_execution(self) -> bool:
         """Function that checks if there is an existing previous matching execution."""
         # TODO: implement
-        return True
+        return False
 
     def execute(self, component_cls: t.Type[Component]) -> None:
         """Execute a component.
