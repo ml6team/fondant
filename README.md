@@ -248,10 +248,6 @@ class ExampleComponent(PandasTransformComponent):
         Returns:
             A pandas dataframe containing the transformed data
         """
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(ExampleComponent)
 ```
 
 For more advanced use cases, you can use the `DaskTransformComponent` instead.

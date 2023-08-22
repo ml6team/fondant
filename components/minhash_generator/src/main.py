@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from datasketch import MinHash
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 from nltk.util import ngrams
 
 logger = logging.getLogger(__name__)
@@ -19,15 +18,17 @@ def create_shingles(text: str) -> list:
     # Generate shingles of size 3 using nltk's ngrams function
     return list(ngrams(words, 3))
 
+
 def compute_minhash(shingles: list) -> np.ndarray:
-        """Calculate minhash based on the shingles."""
-        minhash = MinHash()
+    """Calculate minhash based on the shingles."""
+    minhash = MinHash()
 
-        # Update the MinHash object with the shingles
-        for shingle in shingles:
-            minhash.update(" ".join(shingle).encode("utf-8"))
+    # Update the MinHash object with the shingles
+    for shingle in shingles:
+        minhash.update(" ".join(shingle).encode("utf-8"))
 
-        return minhash.hashvalues
+    return minhash.hashvalues
+
 
 class MinHashGeneratorComponent(PandasTransformComponent):
     """Component generates minhashes of text."""
@@ -58,8 +59,3 @@ class MinHashGeneratorComponent(PandasTransformComponent):
         )
 
         return dataframe
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(MinHashGeneratorComponent)

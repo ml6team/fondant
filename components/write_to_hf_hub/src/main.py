@@ -11,7 +11,6 @@ import huggingface_hub
 from datasets.features.features import generate_from_arrow_type
 from fondant.component import DaskWriteComponent
 from fondant.component_spec import ComponentSpec
-from fondant.executor import DaskWriteExecutor
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -103,6 +102,3 @@ class WriteToHubComponent(DaskWriteComponent):
         dd.to_parquet(dataframe, path=f"{self.repo_path}/data", schema=schema)
 
 
-if __name__ == "__main__":
-    executor = DaskWriteExecutor.from_args()
-    executor.execute(WriteToHubComponent)

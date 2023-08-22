@@ -27,4 +27,4 @@ RUN python -m pytest tests
 
 FROM base
 WORKDIR /component/src
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["fondant", "execute", "main"]

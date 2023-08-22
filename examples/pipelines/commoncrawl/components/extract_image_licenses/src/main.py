@@ -81,8 +81,3 @@ class ExtractImageLicenses(PandasTransformComponent):
         ]
 
         return df
-
-
-if __name__ == "__main__":
-    component = ExtractImageLicenses.from_args()
-    component.run()

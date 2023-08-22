@@ -6,7 +6,6 @@ import logging
 import numpy as np
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +31,3 @@ class FilterImageResolutionComponent(PandasTransformComponent):
         mask = (min_image_dim >= self.min_image_dim) & (aspect_ratio <= self.max_aspect_ratio)
 
         return dataframe[mask]
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(FilterImageResolutionComponent)

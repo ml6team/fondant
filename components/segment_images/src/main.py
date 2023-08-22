@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import torch
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 from palette import palette
 from PIL import Image
 from transformers import AutoModelForSemanticSegmentation, BatchFeature, SegformerImageProcessor
@@ -119,8 +118,3 @@ class SegmentImagesComponent(PandasTransformComponent):
                 )
 
         return pd.concat(results).to_frame(name=("segmentations", "data"))
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(SegmentImagesComponent)
