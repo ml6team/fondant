@@ -9,7 +9,7 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/first_component/manifest.json
-    - --execute_component
+    - --disable_caching
     - "True"
     - --storage_args
     - a dummy string arg
@@ -31,7 +31,7 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/second_component/manifest.json
-    - --execute_component
+    - --disable_caching
     - "True"
     - --storage_args
     - a dummy string arg
@@ -58,7 +58,7 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/third_component/manifest.json
-    - --execute_component
+    - --disable_caching
     - "True"
     - --storage_args
     - a dummy string arg

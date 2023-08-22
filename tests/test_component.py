@@ -86,7 +86,7 @@ def test_component_arguments():
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "arguments/component.yaml"),
-        "--execute_component",
+        "--disable_caching",
         "True",
         "--input_partition_rows",
         "100",
@@ -145,7 +145,7 @@ def test_load_component():
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
-        "--execute_component",
+        "--disable_caching",
         "False",
     ]
 
@@ -190,7 +190,7 @@ def test_dask_transform_component():
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
-        "--execute_component",
+        "--disable_caching",
         "False",
     ]
 
@@ -234,7 +234,7 @@ def test_pandas_transform_component():
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
-        "--execute_component",
+        "--disable_caching",
         "True",
     ]
 
@@ -349,7 +349,7 @@ def test_write_component():
         "1",
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
-        "--execute_component",
+        "--disable_caching",
         "True",
     ]
 

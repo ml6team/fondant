@@ -106,6 +106,10 @@ args:
     description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
     type: int
     default: None
+  index_column:
+    description: Column to set index to in the load component, if not specified a default globally unique index will be set
+    type: str
+    default: None
 ```
 
 This is the component spec of the component we have just added to our pipelines, the only thing we have altered is the `produces` section. We have defined what subsets, fields and types this component produces.
@@ -309,3 +313,10 @@ fondant explore --data-directory "path/to/your/data"
 ```
 
 Note that if you use a remote path (S3, GCS) you can also pass credentials using the `--credentials` flag. For all the options of the data explorer run `fondant explore --help`.
+
+
+
+## Running at scale
+
+You can find more information on how to configure and run your pipeline on different runners [here](pipeline.md)
+

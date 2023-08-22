@@ -146,15 +146,12 @@ class DockerCompiler(Compiler):
             safe_component_name = self._safe_component_name(component_name)
 
             component_op = component["fondant_component_op"]
-            execute_component = pipeline.execute_component(component_op)
 
             command = [
                 "--metadata",
                 json.dumps(asdict(metadata)),
                 "--output_manifest_path",
                 f"{path}/{safe_component_name}/manifest.json",
-                "--execute_component",
-                f"{execute_component}",
             ]
 
             # add arguments if any to command
@@ -250,7 +247,6 @@ class KubeFlowCompiler(Compiler):
                 logger.info(f"Compiling service for {component_name}")
 
                 component_op = component["fondant_component_op"]
-                execute_component = pipeline.execute_component(component_op)
 
                 # convert ComponentOp to Kubeflow component
                 kubeflow_component_op = self.kfp.components.load_component(
@@ -270,7 +266,6 @@ class KubeFlowCompiler(Compiler):
                 component_task = kubeflow_component_op(
                     input_manifest_path=manifest_path,
                     metadata=metadata,
-                    execute_component=execute_component,
                     **component_args,
                 )
                 # Set optional configurations

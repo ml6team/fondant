@@ -31,7 +31,7 @@ spec:
         "string"}}}, "images": {"fields": {"data": {"type": "binary"}}}}}'
       - --input_partition_rows
       - None
-      - --execute_component
+      - --disable_caching
       - 'True'
       - --storage_args
       - a dummy string arg

@@ -264,7 +264,7 @@ class KubeflowComponentSpec:
                     "default": "None",
                 },
                 {
-                    "name": "execute_component",
+                    "name": "disable_caching",
                     "description": "Internal argument that decides whether a component should "
                     "execute or not. If False, the component will just produce a "
                     "manifest",
@@ -302,8 +302,8 @@ class KubeflowComponentSpec:
                         {"inputValue": "component_spec"},
                         "--input_partition_rows",
                         {"inputValue": "input_partition_rows"},
-                        "--execute_component",
-                        {"inputValue": "execute_component"},
+                        "--disable_caching",
+                        {"inputValue": "disable_caching"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},
