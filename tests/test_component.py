@@ -21,7 +21,7 @@ from fondant.executor import (
     ExecutorFactory,
     PandasTransformExecutor,
 )
-from fondant.manifest import Manifest
+from fondant.manifest import Manifest, Metadata
 
 components_path = Path(__file__).parent / "example_specs/components"
 N_PARTITIONS = 2
@@ -31,6 +31,16 @@ def yaml_file_to_json_string(file_path):
     with open(file_path) as file:
         data = yaml.safe_load(file)
         return json.dumps(data)
+
+
+@pytest.fixture()
+def metadata():
+    return Metadata(
+        pipeline_name="pipeline",
+        base_path="/bucket",
+        component_id="load_component",
+        run_id="12345",
+    )
 
 
 @pytest.fixture()
@@ -72,14 +82,14 @@ def patch_method_class(method):
     return wrapper
 
 
-def test_component_arguments():
+def test_component_arguments(metadata):
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
         str(components_path / "arguments/input_manifest.json"),
         "--metadata",
-        "{}",
+        metadata.to_json(),
         "--output_manifest_path",
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
@@ -127,12 +137,13 @@ def test_component_arguments():
 
 
 @pytest.mark.usefixtures("_patched_data_writing")
-def test_load_component():
+def test_load_component(metadata):
     # Mock CLI arguments load
+
     sys.argv = [
         "",
         "--metadata",
-        json.dumps({"base_path": "/bucket", "run_id": "12345"}),
+        metadata.to_json(),
         "--flag",
         "success",
         "--value",
@@ -168,14 +179,14 @@ def test_load_component():
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
-def test_dask_transform_component():
+def test_dask_transform_component(metadata):
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
         str(components_path / "input_manifest.json"),
         "--metadata",
-        "{}",
+        metadata.to_json(),
         "--flag",
         "success",
         "--value",
@@ -213,14 +224,14 @@ def test_dask_transform_component():
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
-def test_pandas_transform_component():
+def test_pandas_transform_component(metadata):
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
         str(components_path / "input_manifest.json"),
         "--metadata",
-        "{}",
+        metadata.to_json(),
         "--flag",
         "success",
         "--value",
@@ -329,14 +340,14 @@ def test_wrap_transform():
 
 
 @pytest.mark.usefixtures("_patched_data_loading")
-def test_write_component():
+def test_write_component(metadata):
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
         str(components_path / "input_manifest.json"),
         "--metadata",
-        "{}",
+        metadata.to_json(),
         "--flag",
         "success",
         "--value",

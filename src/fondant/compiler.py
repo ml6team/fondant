@@ -1,4 +1,3 @@
-import datetime
 import json
 import logging
 import typing as t
@@ -8,6 +7,7 @@ from pathlib import Path
 
 import yaml
 
+from fondant.manifest import Metadata
 from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
@@ -35,19 +35,6 @@ class DockerVolume:
     type: str
     source: str
     target: str
-
-
-@dataclass
-class MetaData:
-    """Dataclass representing the metadata arguments of a pipeline.
-
-    Args:
-        run_id: identifier of the current pipeline run
-        base_path: the base path used to store the artifacts.
-    """
-
-    run_id: str
-    base_path: str
 
 
 class DockerCompiler(Compiler):
@@ -91,13 +78,6 @@ class DockerCompiler(Compiler):
         logger.info(f"Successfully compiled to {output_path}")
 
     @staticmethod
-    def _safe_component_name(component_name: str) -> str:
-        """Transform a component name to a docker-compose friendly one.
-        eg: `Component A` -> `component_a`.
-        """
-        return component_name.replace(" ", "_").lower()
-
-    @staticmethod
     def _patch_path(base_path: str) -> t.Tuple[str, t.Optional[DockerVolume]]:
         """Helper that checks if the base_path is local or remote,
         if local it patches the base_path and prepares a bind mount
@@ -132,29 +112,33 @@ class DockerCompiler(Compiler):
         """Generate a docker-compose spec as a python dictionary,
         loops over the pipeline graph to create services and their dependencies.
         """
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         path, volume = self._patch_path(base_path=pipeline.base_path)
-        run_id = f"{pipeline.name}-{timestamp}"
-        metadata = MetaData(run_id=run_id, base_path=path)
+        run_id = pipeline.get_run_id()
 
         services = {}
 
         pipeline.validate(run_id=run_id)
 
         for component_name, component in pipeline._graph.items():
+            metadata = Metadata(
+                pipeline_name=pipeline.name,
+                run_id=run_id,
+                base_path=path,
+                component_id=component_name,
+            )
+
             logger.info(f"Compiling service for {component_name}")
-            safe_component_name = self._safe_component_name(component_name)
 
             component_op = component["fondant_component_op"]
 
             # add metadata argument to command
-            command = ["--metadata", json.dumps(asdict(metadata))]
+            command = ["--metadata", metadata.to_json()]
 
             # add in and out manifest paths to command
             command.extend(
                 [
                     "--output_manifest_path",
-                    f"{path}/{safe_component_name}/manifest.json",
+                    f"{path}/{component_name}/manifest.json",
                 ],
             )
 
@@ -169,15 +153,14 @@ class DockerCompiler(Compiler):
             depends_on = {}
             if component["dependencies"]:
                 for dependency in component["dependencies"]:
-                    safe_dependency = self._safe_component_name(dependency)
-                    depends_on[safe_dependency] = {
+                    depends_on[dependency] = {
                         "condition": "service_completed_successfully",
                     }
                     # there is only an input manifest if the component has dependencies
                     command.extend(
                         [
                             "--input_manifest_path",
-                            f"{path}/{safe_dependency}/manifest.json",
+                            f"{path}/{dependency}/manifest.json",
                         ],
                     )
 
@@ -187,7 +170,7 @@ class DockerCompiler(Compiler):
             if extra_volumes:
                 volumes.extend(extra_volumes)
 
-            services[safe_component_name] = {
+            services[component_name] = {
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
@@ -197,14 +180,12 @@ class DockerCompiler(Compiler):
                 logger.info(
                     f"Found Dockerfile for {component_name}, adding build step.",
                 )
-                services[safe_component_name]["build"] = {
+                services[component_name]["build"] = {
                     "context": str(component_op.component_dir),
                     "args": build_args,
                 }
             else:
-                services[safe_component_name][
-                    "image"
-                ] = component_op.component_spec.image
+                services[component_name]["image"] = component_op.component_spec.image
         return {
             "name": pipeline.name,
             "version": "3.8",
@@ -242,12 +223,21 @@ class KubeFlowCompiler(Compiler):
             pipeline: the pipeline to compile
             output_path: the path where to save the Kubeflow pipeline spec
         """
+        run_id = pipeline.get_run_id()
 
         @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
             previous_component_task = None
             manifest_path = ""
-            for component_name, component in self.pipeline._graph.items():
+
+            for component_name, component in pipeline._graph.items():
+                metadata = Metadata(
+                    pipeline_name=pipeline.name,
+                    run_id=run_id,
+                    base_path=pipeline.base_path,
+                    component_id=component_name,
+                )
+
                 logger.info(f"Compiling service for {component_name}")
 
                 component_op = component["fondant_component_op"]
@@ -259,16 +249,10 @@ class KubeFlowCompiler(Compiler):
                 # Execute the Kubeflow component and pass in the output manifest path from
                 # the previous component.
                 component_args = component_op.arguments
-                metadata = json.dumps(
-                    {
-                        "base_path": self.pipeline.base_path,
-                        "run_id": "{{workflow.name}}",
-                    },
-                )
 
                 component_task = kubeflow_component_op(
                     input_manifest_path=manifest_path,
-                    metadata=metadata,
+                    metadata=metadata.to_json(),
                     **component_args,
                 )
                 # Set optional configurations
@@ -287,7 +271,7 @@ class KubeFlowCompiler(Compiler):
                 previous_component_task = component_task
 
         self.pipeline = pipeline
-        self.pipeline.validate(run_id="{{workflow.name}}")
+        self.pipeline.validate(run_id=run_id)
         logger.info(f"Compiling {self.pipeline.name} to {output_path}")
 
         self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore

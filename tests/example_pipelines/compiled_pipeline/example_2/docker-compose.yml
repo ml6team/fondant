@@ -6,7 +6,8 @@ services:
       context: tests/example_pipelines/valid_pipeline/example_1/first_component
     command:
     - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
+    - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+      "component_id": "first_component"}'
     - --output_manifest_path
     - /foo/bar/first_component/manifest.json
     - --storage_args
@@ -23,7 +24,8 @@ services:
   image_cropping:
     command:
     - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
+    - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+      "component_id": "image_cropping"}'
     - --output_manifest_path
     - /foo/bar/image_cropping/manifest.json
     - --cropping_threshold

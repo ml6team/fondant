@@ -6,7 +6,8 @@ services:
       context: tests/example_pipelines/valid_pipeline/example_1/first_component
     command:
     - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
+    - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+      "component_id": "first_component"}'
     - --output_manifest_path
     - /foo/bar/first_component/manifest.json
     - --storage_args
@@ -26,7 +27,8 @@ services:
       context: tests/example_pipelines/valid_pipeline/example_1/second_component
     command:
     - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
+    - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+      "component_id": "second_component"}'
     - --output_manifest_path
     - /foo/bar/second_component/manifest.json
     - --storage_args
@@ -48,16 +50,15 @@ services:
   third_component:
     build:
       args: []
-      context: tests/example_pipelines/valid_pipeline/example_1/fourth_component
+      context: tests/example_pipelines/valid_pipeline/example_1/third_component
     command:
     - --metadata
-    - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
+    - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+      "component_id": "third_component"}'
     - --output_manifest_path
     - /foo/bar/third_component/manifest.json
     - --storage_args
     - a dummy string arg
-    - --some_list
-    - '[1, 2, 3]'
     - --input_partition_rows
     - None
     - --component_spec
@@ -67,8 +68,7 @@ services:
       "embeddings": {"fields": {"data": {"type": "array", "items": {"type": "float32"}}}}},
       "produces": {"images": {"fields": {"data": {"type": "binary"}}}, "additionalSubsets":
       false}, "args": {"storage_args": {"description": "Storage arguments", "type":
-      "str"}, "some_list": {"description": "Some list", "type": "list", "items": {"type":
-      "int"}}}}'
+      "str"}}}'
     - --input_manifest_path
     - /foo/bar/second_component/manifest.json
     depends_on:
