@@ -1,7 +1,4 @@
-"""This component filters text based on:
-
-- complexity of the dependency parse tree
-- number of actions.
+"""This component filters text based on complexity of the dependency parse tree.
 
 As proposed in [Radenovic et al., 2023](https://arxiv.org/abs/2301.02280).
 """
@@ -9,7 +6,6 @@ import logging
 
 import pandas as pd
 import spacy
-from spacy.symbols import nsubj, VERB
 
 from fondant.component import PandasTransformComponent
 from fondant.executor import PandasTransformExecutor
@@ -28,10 +24,7 @@ def get_text_complexity(doc: spacy.tokens.doc.Doc):
 
 
 class FilterTextComplexity(PandasTransformComponent):
-    """Component that filters text based on:
-
-    - complexity of the dependency parse tree
-    - number of actions"""
+    """Component that filters text based on complexity of the dependency parse tree."""
 
     def __init__(
         self,
