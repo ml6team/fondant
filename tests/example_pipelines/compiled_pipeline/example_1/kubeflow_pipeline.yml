@@ -54,7 +54,7 @@ spec:
           {\"type\": \"binary\"}}}}}", "disable_caching": "False", "input_partition_rows":
           "disable", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "0eb0d56c7fb345bef31f4ff2b742ce5a1a720094ce2f72f71d5e15ed1b1af810"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "fa86c1df2781fb9bfd006d221fc66f3f63a21bf7eb33d7e87f05f30aa9eb8747"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -69,12 +69,11 @@ spec:
           as a dictionary", "name": "component_spec", "type": "JsonObject"}, {"default":
           "None", "description": "The number of rows to load per partition. Set to
           override the automatic partitioning", "name": "input_partition_rows", "type":
-          "String"}, {"default": "True", "description": "Internal argument that decides
-          whether a component should execute or not. If False, the component will
-          just produce a manifest", "name": "disable_caching", "type": "Boolean"},
-          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
-          "name": "First component", "outputs": [{"description": "Path to the output
-          manifest", "name": "output_manifest_path", "type": "String"}]}'
+          "String"}, {"default": "False", "description": "Set to True to disable caching,
+          False by default.", "name": "disable_caching", "type": "Boolean"}, {"description":
+          "Storage arguments", "name": "storage_args", "type": "String"}], "name":
+          "First component", "outputs": [{"description": "Path to the output manifest",
+          "name": "output_manifest_path", "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
@@ -123,7 +122,7 @@ spec:
           "disable_caching": "False", "input_partition_rows": "10", "metadata": "{\"base_path\":
           \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "storage_args": "a dummy
           string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "37f3d315bfd42589f4183d6266d994214846018439fbe657f826d4fb2592522c"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "2885bccb0d5153065a2731917b00dc0ddab4a14a49f79d902f644081226d6a7b"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -138,12 +137,11 @@ spec:
           as a dictionary", "name": "component_spec", "type": "JsonObject"}, {"default":
           "None", "description": "The number of rows to load per partition. Set to
           override the automatic partitioning", "name": "input_partition_rows", "type":
-          "String"}, {"default": "True", "description": "Internal argument that decides
-          whether a component should execute or not. If False, the component will
-          just produce a manifest", "name": "disable_caching", "type": "Boolean"},
-          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
-          "name": "Second component", "outputs": [{"description": "Path to the output
-          manifest", "name": "output_manifest_path", "type": "String"}]}'
+          "String"}, {"default": "False", "description": "Set to True to disable caching,
+          False by default.", "name": "disable_caching", "type": "Boolean"}, {"description":
+          "Storage arguments", "name": "storage_args", "type": "String"}], "name":
+          "Second component", "outputs": [{"description": "Path to the output manifest",
+          "name": "output_manifest_path", "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
@@ -221,7 +219,7 @@ spec:
           {\"data\": {\"type\": \"binary\"}}}}}", "disable_caching": "False", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
           "some_list": "[1, 2, 3]", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "fc7e3ca5f273c47e2f10d1001d722b4c351a6c3c070bcd9b9570b4be400f3dbb"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "53bc68c41264bb740e2d8c111572d9a33a1be3719aa3055236c7bed5827b6f77"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -236,13 +234,13 @@ spec:
           "description": "The component specification as a dictionary", "name": "component_spec",
           "type": "JsonObject"}, {"default": "None", "description": "The number of
           rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"default": "True", "description":
-          "Internal argument that decides whether a component should execute or not.
-          If False, the component will just produce a manifest", "name": "disable_caching",
-          "type": "Boolean"}, {"description": "Storage arguments", "name": "storage_args",
-          "type": "String"}, {"description": "Some list", "name": "some_list", "type":
-          "JsonArray"}], "name": "Third component", "outputs": [{"description": "Path
-          to the output manifest", "name": "output_manifest_path", "type": "String"}]}'
+          "name": "input_partition_rows", "type": "String"}, {"default": "False",
+          "description": "Set to True to disable caching, False by default.", "name":
+          "disable_caching", "type": "Boolean"}, {"description": "Storage arguments",
+          "name": "storage_args", "type": "String"}, {"description": "Some list",
+          "name": "some_list", "type": "JsonArray"}], "name": "Third component", "outputs":
+          [{"description": "Path to the output manifest", "name": "output_manifest_path",
+          "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22

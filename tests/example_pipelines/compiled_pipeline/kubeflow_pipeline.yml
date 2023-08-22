@@ -57,7 +57,7 @@ spec:
           {\"type\": \"binary\"}}}}}", "disable_caching": "False", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "0eb0d56c7fb345bef31f4ff2b742ce5a1a720094ce2f72f71d5e15ed1b1af810"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "fa86c1df2781fb9bfd006d221fc66f3f63a21bf7eb33d7e87f05f30aa9eb8747"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -72,12 +72,11 @@ spec:
           as a dictionary", "name": "component_spec", "type": "JsonObject"}, {"default":
           "None", "description": "The number of rows to load per partition. Set to
           override the automatic partitioning", "name": "input_partition_rows", "type":
-          "String"}, {"default": "True", "description": "Internal argument that decides
-          whether a component should execute or not. If False, the component will
-          just produce a manifest", "name": "disable_caching", "type": "Boolean"},
-          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
-          "name": "First component", "outputs": [{"description": "Path to the output
-          manifest", "name": "output_manifest_path", "type": "String"}]}'
+          "String"}, {"default": "False", "description": "Set to True to disable caching,
+          False by default.", "name": "disable_caching", "type": "Boolean"}, {"description":
+          "Storage arguments", "name": "storage_args", "type": "String"}], "name":
+          "First component", "outputs": [{"description": "Path to the output manifest",
+          "name": "output_manifest_path", "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22

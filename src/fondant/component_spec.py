@@ -265,11 +265,9 @@ class KubeflowComponentSpec:
                 },
                 {
                     "name": "disable_caching",
-                    "description": "Internal argument that decides whether a component should "
-                    "execute or not. If False, the component will just produce a "
-                    "manifest",
+                    "description": "Set to True to disable caching, False by default.",
                     "type": "Boolean",
-                    "default": "True",
+                    "default": "False",
                 },
                 *(
                     {

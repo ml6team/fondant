@@ -23,9 +23,6 @@ services:
     depends_on: {}
     volumes: []
   image_cropping:
-    build:
-      args: []
-      context: /home/philippe/Scripts/express/src/fondant/components/image_cropping
     command:
     - --metadata
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
