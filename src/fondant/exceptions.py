@@ -11,10 +11,6 @@ class InvalidManifest(ValidationError, FondantException):
     """Thrown when a manifest cannot be validated against the schema."""
 
 
-class InvalidImageDigest(ValidationError, FondantException):
-    """Thrown when an image digest cannot be found in the artifact registry."""
-
-
 class InvalidComponentSpec(ValidationError, FondantException):
     """Thrown when a component spec cannot be validated against the schema."""
 
