@@ -213,7 +213,7 @@ class Executor(t.Generic[Component]):
         if is_kubeflow_output:
             # Save to the expected base path directory
             save_path_base_path = (
-                f"{manifest.pipeline_name}/{manifest.run_id}/"
+                f"{manifest.base_path}/{manifest.pipeline_name}/{manifest.run_id}/"
                 f"{manifest.component_id}/manifest.json"
             )
             Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
