@@ -144,7 +144,7 @@ class Manifest:
         """Create an empty manifest.
 
         Args:
-            pipeline_name: the bane of the pipeline
+            pipeline_name: the name of the pipeline
             base_path: The base path of the manifest
             run_id: The id of the current pipeline run
             component_id: The id of the current component being executed
