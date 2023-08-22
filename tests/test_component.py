@@ -146,7 +146,7 @@ def test_load_component():
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
         "--disable_caching",
-        "False",
+        "True",
     ]
 
     class MyLoadComponent(DaskLoadComponent):
@@ -168,7 +168,7 @@ def test_load_component():
     load = patch_method_class(MyLoadComponent.load)
     with mock.patch.object(MyLoadComponent, "load", load):
         executor.execute(MyLoadComponent)
-        load.mock.assert_not_called()
+        load.mock.assert_called_once()
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
@@ -191,7 +191,7 @@ def test_dask_transform_component():
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
         "--disable_caching",
-        "False",
+        "True",
     ]
 
     class MyDaskComponent(DaskTransformComponent):
@@ -214,7 +214,7 @@ def test_dask_transform_component():
         transform,
     ):
         executor.execute(MyDaskComponent)
-        transform.mock.assert_not_called()
+        transform.mock.assert_called_once()
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")

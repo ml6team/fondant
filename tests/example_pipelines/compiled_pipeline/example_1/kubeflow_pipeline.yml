@@ -32,7 +32,7 @@ spec:
       - --input_partition_rows
       - disable
       - --disable_caching
-      - 'True'
+      - 'False'
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -51,16 +51,16 @@ spec:
           \"description\": \"This is an example component\", \"image\": \"example_component:latest\",
           \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
           {\"data\": {\"type\": \"string\"}}}, \"images\": {\"fields\": {\"data\":
-          {\"type\": \"binary\"}}}}}", "execute_component": "True", "input_partition_rows":
+          {\"type\": \"binary\"}}}}}", "disable_caching": "False", "input_partition_rows":
           "disable", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "8b91e799e6a5cb2731205ae8f70496d355275a6438f66c3c9b6e60bbd6209173"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "0eb0d56c7fb345bef31f4ff2b742ce5a1a720094ce2f72f71d5e15ed1b1af810"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--execute_component",
-          {"inputValue": "execute_component"}, "--storage_args", {"inputValue": "storage_args"},
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--disable_caching",
+          {"inputValue": "disable_caching"}, "--storage_args", {"inputValue": "storage_args"},
           "--output_manifest_path", {"outputPath": "output_manifest_path"}], "image":
           "example_component:latest"}}, "inputs": [{"description": "Path to the input
           manifest", "name": "input_manifest_path", "type": "String"}, {"description":
@@ -71,7 +71,7 @@ spec:
           override the automatic partitioning", "name": "input_partition_rows", "type":
           "String"}, {"default": "True", "description": "Internal argument that decides
           whether a component should execute or not. If False, the component will
-          just produce a manifest", "name": "execute_component", "type": "Boolean"},
+          just produce a manifest", "name": "disable_caching", "type": "Boolean"},
           {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
           "name": "First component", "outputs": [{"description": "Path to the output
           manifest", "name": "output_manifest_path", "type": "String"}]}'
@@ -102,7 +102,7 @@ spec:
       - --input_partition_rows
       - '10'
       - --disable_caching
-      - 'True'
+      - 'False'
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -120,16 +120,16 @@ spec:
           \"description\": \"This is an example component\", \"image\": \"example_component:latest\",
           \"name\": \"Second component\", \"produces\": {\"embeddings\": {\"fields\":
           {\"data\": {\"items\": {\"type\": \"float32\"}, \"type\": \"array\"}}}}}",
-          "execute_component": "True", "input_partition_rows": "10", "metadata": "{\"base_path\":
+          "disable_caching": "False", "input_partition_rows": "10", "metadata": "{\"base_path\":
           \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "storage_args": "a dummy
           string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "f73693e5f680284060183d9c9effe13c7e389f3e32a607c31fac1b86aa80651a"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "37f3d315bfd42589f4183d6266d994214846018439fbe657f826d4fb2592522c"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--execute_component",
-          {"inputValue": "execute_component"}, "--storage_args", {"inputValue": "storage_args"},
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--disable_caching",
+          {"inputValue": "disable_caching"}, "--storage_args", {"inputValue": "storage_args"},
           "--output_manifest_path", {"outputPath": "output_manifest_path"}], "image":
           "example_component:latest"}}, "inputs": [{"description": "Path to the input
           manifest", "name": "input_manifest_path", "type": "String"}, {"description":
@@ -140,7 +140,7 @@ spec:
           override the automatic partitioning", "name": "input_partition_rows", "type":
           "String"}, {"default": "True", "description": "Internal argument that decides
           whether a component should execute or not. If False, the component will
-          just produce a manifest", "name": "execute_component", "type": "Boolean"},
+          just produce a manifest", "name": "disable_caching", "type": "Boolean"},
           {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
           "name": "Second component", "outputs": [{"description": "Path to the output
           manifest", "name": "output_manifest_path", "type": "String"}]}'
@@ -194,8 +194,8 @@ spec:
         {"data": {"type": "binary"}}}}}'
       - --input_partition_rows
       - None
-      - --execute_component
-      - 'True'
+      - --disable_caching
+      - 'False'
       - --storage_args
       - a dummy string arg
       - --some_list
@@ -218,16 +218,16 @@ spec:
           {\"data\": {\"type\": \"binary\"}}}}, \"description\": \"This is an example
           component\", \"image\": \"example_component:latest\", \"name\": \"Third
           component\", \"produces\": {\"additionalSubsets\": false, \"images\": {\"fields\":
-          {\"data\": {\"type\": \"binary\"}}}}}", "execute_component": "True", "input_partition_rows":
+          {\"data\": {\"type\": \"binary\"}}}}}", "disable_caching": "False", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
           "some_list": "[1, 2, 3]", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "8a8d7560aac7088fc1bddff3dca4351aab1dfeaa8bfc3d78551e52f3729e6531"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "fc7e3ca5f273c47e2f10d1001d722b4c351a6c3c070bcd9b9570b4be400f3dbb"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["python3", "main.py",
           "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--execute_component",
-          {"inputValue": "execute_component"}, "--storage_args", {"inputValue": "storage_args"},
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--disable_caching",
+          {"inputValue": "disable_caching"}, "--storage_args", {"inputValue": "storage_args"},
           "--some_list", {"inputValue": "some_list"}, "--output_manifest_path", {"outputPath":
           "output_manifest_path"}], "image": "example_component:latest"}}, "inputs":
           [{"description": "Path to the input manifest", "name": "input_manifest_path",
@@ -238,7 +238,7 @@ spec:
           rows to load per partition. Set to override the automatic partitioning",
           "name": "input_partition_rows", "type": "String"}, {"default": "True", "description":
           "Internal argument that decides whether a component should execute or not.
-          If False, the component will just produce a manifest", "name": "execute_component",
+          If False, the component will just produce a manifest", "name": "disable_caching",
           "type": "Boolean"}, {"description": "Storage arguments", "name": "storage_args",
           "type": "String"}, {"description": "Some list", "name": "some_list", "type":
           "JsonArray"}], "name": "Third component", "outputs": [{"description": "Path

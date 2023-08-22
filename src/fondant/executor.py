@@ -188,25 +188,42 @@ class Executor(t.Generic[Component]):
 
         data_writer.write_dataframe(dataframe)
 
+    def _load_cached_output_manifest(self) -> "Manifest":
+        """Function that returns the cached output manifest."""
+        raise NotImplementedError
+
+    def _has_matching_execution(self) -> bool:
+        """Function that checks if there is an existing previous matching execution."""
+        # TODO: implement
+        return True
+
     def execute(self, component_cls: t.Type[Component]) -> None:
         """Execute a component.
 
         Args:
             component_cls: The class of the component to execute
         """
-        input_manifest = self._load_or_create_manifest()
+        matching_execution_exists = self._has_matching_execution()
 
-        output_df = None
+        if matching_execution_exists:
+            logger.info("Previous matching execution found")
+        else:
+            logger.info("No previous matching execution found")
+
         if self.disable_caching:
+            logger.info("Caching for the component is disabled")
+        else:
+            logger.info("Caching for the component is enabled")
+
+        if self.disable_caching is False and matching_execution_exists:
+            logging.info("Cached component run. Skipping component execution")
+            output_manifest = self._load_cached_output_manifest()
+        else:
             logging.info("Executing component")
+            input_manifest = self._load_or_create_manifest()
             component = component_cls(self.spec, **self.user_arguments)
             output_df = self._execute_component(component, manifest=input_manifest)
-        else:
-            logging.info("Cached component run. Skipping component execution")
-
-        output_manifest = input_manifest.evolve(component_spec=self.spec)
-
-        if self.disable_caching:
+            output_manifest = input_manifest.evolve(component_spec=self.spec)
             self._write_data(dataframe=output_df, manifest=output_manifest)
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)

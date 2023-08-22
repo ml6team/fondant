@@ -9,12 +9,12 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/first_component/manifest.json
-    - --disable_caching
-    - "True"
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
     - disable
+    - --disable_caching
+    - 'False'
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -31,12 +31,12 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/second_component/manifest.json
-    - --disable_caching
-    - "True"
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
     - '10'
+    - --disable_caching
+    - 'False'
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -58,14 +58,14 @@ services:
     - '{"run_id": "test_pipeline-20230101000000", "base_path": "/foo/bar"}'
     - --output_manifest_path
     - /foo/bar/third_component/manifest.json
-    - --disable_caching
-    - "True"
     - --storage_args
     - a dummy string arg
     - --some_list
     - '[1, 2, 3]'
     - --input_partition_rows
     - None
+    - --disable_caching
+    - 'False'
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
