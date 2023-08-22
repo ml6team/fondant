@@ -1,4 +1,5 @@
 """This module defines classes to represent a Fondant Pipeline."""
+import datetime
 import hashlib
 import json
 import logging
@@ -277,6 +278,11 @@ class Pipeline:
             msg = f"The pipeline name violates the pattern {pattern}"
             raise InvalidPipelineDefinition(msg)
         return pipeline_name
+
+    def get_run_id(self) -> str:
+        """Get a unique run ID for the pipeline."""
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        return f"{self.name}-{timestamp}"
 
     def validate(self, run_id: str):
         """Sort and run validation on the pipeline definition.
