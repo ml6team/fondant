@@ -60,8 +60,3 @@ class FilterTextComplexity(PandasTransformComponent):
         mask = mask.to_numpy()
 
         return dataframe[mask]
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(FilterTextComplexity)

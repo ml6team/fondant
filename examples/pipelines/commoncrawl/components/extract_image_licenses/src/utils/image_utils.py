@@ -23,7 +23,7 @@ def get_full_image_url(image_url: str, webpage_url: str) -> str:
             pos = image_url.index("?")
             image_url = image_url[:pos]
         except:
-            pass
+            logger.info("No query parameter found in the image URL.")
 
     return image_url
 

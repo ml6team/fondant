@@ -1,4 +1,6 @@
 """This module defines classes to represent a Fondant Pipeline."""
+import hashlib
+import json
 import logging
 import re
 import typing as t
@@ -139,6 +141,45 @@ class ComponentOp:
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
         )
+
+    def get_component_cache_key(self) -> str:
+        """Calculate a cache key representing the unique identity of this ComponentOp.
+
+        The cache key is computed based on the component specification, image hash, arguments, and
+        other attributes of the ComponentOp. It is used to uniquely identify a specific instance
+        of the ComponentOp and is used for caching.
+
+        Returns:
+            A cache key representing the unique identity of this ComponentOp.
+        """
+
+        def get_nested_dict_hash(input_dict):
+            """Calculate the hash of a nested dictionary.
+
+            Args:
+                input_dict: The nested dictionary to calculate the hash for.
+
+            Returns:
+                The hash value (MD5 digest) of the nested dictionary.
+            """
+            sorted_json_string = json.dumps(input_dict, sort_keys=True)
+            hash_object = hashlib.md5(sorted_json_string.encode())  # nosec
+            return hash_object.hexdigest()
+
+        component_spec_dict = self.component_spec.specification
+        arguments = (
+            get_nested_dict_hash(self.arguments) if self.arguments is not None else None
+        )
+
+        component_op_uid_dict = {
+            "component_spec_hash": get_nested_dict_hash(component_spec_dict),
+            "arguments": arguments,
+            "input_partition_rows": self.input_partition_rows,
+            "number_of_gpus": self.number_of_gpus,
+            "node_pool_name": self.node_pool_name,
+        }
+
+        return get_nested_dict_hash(component_op_uid_dict)
 
 
 class Pipeline:

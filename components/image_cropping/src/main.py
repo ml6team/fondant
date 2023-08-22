@@ -6,7 +6,6 @@ import typing as t
 import numpy as np
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 from image_crop import remove_borders
 from PIL import Image
 
@@ -58,7 +57,3 @@ class ImageCroppingComponent(PandasTransformComponent):
 
         return dataframe
 
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(ImageCroppingComponent)

@@ -7,7 +7,6 @@ from typing import List
 import ftfy
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 from utils import is_counter, is_one_word, mainly_uppercase, only_numerical
 
 logger = logging.getLogger(__name__)
@@ -102,6 +101,3 @@ class TextNormalizationComponent(PandasTransformComponent):
         return dataframe
 
 
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(TextNormalizationComponent)

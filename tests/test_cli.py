@@ -3,16 +3,35 @@ import subprocess
 from unittest.mock import patch
 
 import pytest
-from fondant.cli import ImportFromStringError, compile, pipeline_from_string, run
+from fondant.cli import (
+    ImportFromModuleError,
+    ImportFromStringError,
+    compile,
+    component_from_module,
+    execute,
+    pipeline_from_string,
+    run,
+)
+from fondant.component import DaskLoadComponent
+from fondant.executor import Executor, ExecutorFactory
 from fondant.pipeline import Pipeline
 
 commands = [
     "fondant",
     "fondant --help",
     "fondant explore --help",
+    "fondant execute --help",
     "fondant compile --help",
     "fondant run --help",
 ]
+
+
+class MyTestComponent(DaskLoadComponent):
+    def __init__(self, *args):
+        pass
+
+    def load(self):
+        pass
 
 
 @pytest.mark.parametrize("command", commands)
@@ -23,6 +42,36 @@ def test_basic_invocation(command):
 
 
 TEST_PIPELINE = Pipeline(pipeline_name="test_pipeline", base_path="some/path")
+
+
+@pytest.mark.parametrize(
+    "module_str",
+    [
+        __name__,
+        "example_modules.valid",
+        "example_modules/valid",
+        "example_modules.valid.py",
+        "example_modules/valid.py",
+    ],
+)
+def test_component_from_module(module_str):
+    """Test that the component from module works."""
+    component = component_from_module(module_str)
+    assert component.__name__ == "MyTestComponent"
+
+
+@pytest.mark.parametrize(
+    "module_str",
+    [
+        "example_modules.None_existing_module",  # module does not exist
+        "example_modules.invalid_component",  # module contains more than one component class
+        "example_modules.invalid_double_components",  # module does not contain a component class
+    ],
+)
+def test_component_from_module_error(module_str):
+    """Test different error cases for pipeline_from_string."""
+    with pytest.raises(ImportFromModuleError):
+        component_from_module(module_str)
 
 
 def test_pipeline_from_string():
@@ -46,7 +95,15 @@ def test_pipeline_from_string_error(import_string):
         pipeline_from_string(import_string)
 
 
-def test_local_compile(tmp_path_factory):
+def test_execute_logic(monkeypatch):
+    """Test that the execute command works with arguments."""
+    args = argparse.Namespace(ref=__name__)
+    monkeypatch.setattr(ExecutorFactory, "get_executor", lambda self: Executor)
+    monkeypatch.setattr(Executor, "execute", lambda component_cls: None)
+    execute(args)
+
+
+def test_local_logic(tmp_path_factory):
     """Test that the compile command works with arguments."""
     with tmp_path_factory.mktemp("temp") as fn:
         args = argparse.Namespace(

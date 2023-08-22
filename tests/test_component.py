@@ -17,10 +17,8 @@ from fondant.component import (
 from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.executor import (
-    DaskLoadExecutor,
-    DaskTransformExecutor,
-    DaskWriteExecutor,
     Executor,
+    ExecutorFactory,
     PandasTransformExecutor,
 )
 from fondant.manifest import Manifest, Metadata
@@ -170,8 +168,10 @@ def test_load_component(metadata):
             }
             return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
 
-    executor = DaskLoadExecutor.from_args()
+    executor_factory = ExecutorFactory(MyLoadComponent)
+    executor = executor_factory.get_executor()
     assert executor.input_partition_rows is None
+
     load = patch_method_class(MyLoadComponent.load)
     with mock.patch.object(MyLoadComponent, "load", load):
         executor.execute(MyLoadComponent)
@@ -210,7 +210,8 @@ def test_dask_transform_component(metadata):
             assert isinstance(dataframe, dd.DataFrame)
             return dataframe
 
-    executor = DaskTransformExecutor.from_args()
+    executor_factory = ExecutorFactory(MyDaskComponent)
+    executor = executor_factory.get_executor()
     assert executor.input_partition_rows == "disable"
     transform = patch_method_class(MyDaskComponent.transform)
     with mock.patch.object(
@@ -250,9 +251,10 @@ def test_pandas_transform_component(metadata):
             assert isinstance(dataframe, pd.DataFrame)
             return dataframe.rename(columns={"images": "embeddings"})
 
-    executor = PandasTransformExecutor.from_args()
     init = patch_method_class(MyPandasComponent.__init__)
     transform = patch_method_class(MyPandasComponent.transform)
+    executor_factory = ExecutorFactory(MyPandasComponent)
+    executor = executor_factory.get_executor()
     with mock.patch.object(MyPandasComponent, "__init__", init), mock.patch.object(
         MyPandasComponent,
         "transform",
@@ -364,7 +366,8 @@ def test_write_component(metadata):
             assert self.value == 1
             assert isinstance(dataframe, dd.DataFrame)
 
-    executor = DaskWriteExecutor.from_args()
+    executor_factory = ExecutorFactory(MyWriteComponent)
+    executor = executor_factory.get_executor()
     write = patch_method_class(MyWriteComponent.write)
     with mock.patch.object(MyWriteComponent, "write", write):
         executor.execute(MyWriteComponent)
