@@ -33,8 +33,9 @@ the data is stored and references to the pipeline and component that were used t
 ```json
 {
   "metadata": {
+    "pipeline_name": "pipeline_name",
     "base_path": "gs://bucket",
-    "run_id": "12345",
+    "run_id": "pipeline_name_12345",
     "component_id": "67890"
   }
 }

@@ -23,7 +23,8 @@ spec:
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
-      - '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}'
+      - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+        "component_id": "first_component"}'
       - --component_spec
       - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
         "description": "This is an example component", "image": "example_component:latest",
@@ -55,7 +56,8 @@ spec:
           \"image\": \"example_component:latest\", \"name\": \"First component\",
           \"produces\": {\"captions\": {\"fields\": {\"data\": {\"type\": \"string\"}}},
           \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
-          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
+          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
+          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
           "storage_args": "a dummy string arg"}'
         pipelines.kubeflow.org/component_ref: '{"digest": "c875e284a40159fc1cf7ff72538f20d8b4e8255e2ba0a5ab8bc9f35554e63749"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example

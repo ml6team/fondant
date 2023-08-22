@@ -23,7 +23,8 @@ spec:
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
-      - '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}'
+      - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+        "component_id": "first_component"}'
       - --component_spec
       - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
         "description": "This is an example component", "image": "example_component:latest",
@@ -52,7 +53,8 @@ spec:
           \"image\": \"example_component:latest\", \"name\": \"First component\",
           \"produces\": {\"captions\": {\"fields\": {\"data\": {\"type\": \"string\"}}},
           \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
-          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
+          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
+          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
           "storage_args": "a dummy string arg"}'
         pipelines.kubeflow.org/component_ref: '{"digest": "c875e284a40159fc1cf7ff72538f20d8b4e8255e2ba0a5ab8bc9f35554e63749"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
@@ -91,7 +93,8 @@ spec:
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
-      - '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}'
+      - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+        "component_id": "image_cropping"}'
       - --component_spec
       - '{"args": {"cropping_threshold": {"default": -30, "description": "Threshold
         parameter used for detecting borders. A lower (negative) parameter results
@@ -133,7 +136,8 @@ spec:
           \"produces\": {\"images\": {\"fields\": {\"data\": {\"type\": \"binary\"},
           \"height\": {\"type\": \"int32\"}, \"width\": {\"type\": \"int32\"}}}}}",
           "cropping_threshold": "0", "input_partition_rows": "None", "metadata": "{\"base_path\":
-          \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "padding": "0"}'
+          \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\": \"test_pipeline-20230101000000\",
+          \"component_id\": \"image_cropping\"}", "padding": "0"}'
         pipelines.kubeflow.org/component_ref: '{"digest": "3c3bd1cff7f5d418ea30fe69aff203d6b188e17858b304e1dae182cf29965d6e"}'
         pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
           single-colored borders around images and crops them appropriately", "implementation":
