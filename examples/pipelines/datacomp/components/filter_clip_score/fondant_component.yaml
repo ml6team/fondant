@@ -1,0 +1,20 @@
+name: Filter Caption
+description: Component that filters out bad captions (Empty captions, Captions with weird characters, Captions that are dates)
+image: ghcr.io/ml6team/filter_clip_score:dev
+
+consumes:
+  image_text:
+    fields:
+      clip_l14_similarity_score:
+        type: float32
+
+produces:
+  image_text:
+    fields:
+      clip_l14_similarity_score:
+        type: float32
+
+args:
+  pct_treshold:
+    type: float
+    description: "Percentage treshold to filter out captions"

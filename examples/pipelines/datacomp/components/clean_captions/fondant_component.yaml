@@ -1,0 +1,15 @@
+name: Filter Caption
+description: Component that filters out bad captions (Empty captions, Captions with weird characters, Captions that are dates)
+image: ghcr.io/ml6team/filter_captions:dev
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+
+produces:
+  text:
+    fields:
+      data:
+        type: string
