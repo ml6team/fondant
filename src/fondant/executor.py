@@ -64,9 +64,6 @@ class Executor(t.Generic[Component]):
             self.spec_mapper = SpecMapper.from_dict(
                 self.column_mapping,
             )
-            self.inverse_spec_mapper = SpecMapper.from_dict(
-                {v: k for k, v in self.column_mapping.items()},
-            )
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -193,7 +190,6 @@ class Executor(t.Generic[Component]):
         data_writer = DaskDataWriter(
             manifest=manifest,
             component_spec=self.spec,
-            inverse_spec_mapper=self.inverse_spec_mapper,
         )
 
         data_writer.write_dataframe(dataframe)

@@ -325,43 +325,40 @@ class ComponentSpec:
             Add default subset-field pairs to the mapper if no valid mapping pair is present in
             the component spec.
             """
-            for subset_type in ["consumes", "produces"]:
-                if subset_type in self._specification:
-                    for subset_name, subset_fields in self._specification[
-                        subset_type
-                    ].items():
-                        for field_name in subset_fields["fields"]:
-                            if mapper[(subset_name, field_name)] is None:
-                                mapper[(subset_name, field_name)] = (
-                                    subset_name,
-                                    field_name,
-                                )
+            if "consumes" in self._specification:
+                for subset_name, subset_fields in self._specification[
+                    "consumes"
+                ].items():
+                    for field_name in subset_fields["fields"]:
+                        if mapper[(subset_name, field_name)] is None:
+                            mapper[(subset_name, field_name)] = (
+                                subset_name,
+                                field_name,
+                            )
 
         def _get_mapped_specification(mapper: SpecMapper) -> t.Dict[str, t.Any]:
             """Map the specification based on the remapping dictionary."""
             modified_specification = copy.deepcopy(self._specification)
+            if "consumes" in self._specification:
+                modified_specification.pop("consumes")
 
-            for subset_type in ["consumes", "produces"]:
-                if subset_type in self._specification:
-                    modified_specification.pop(subset_type)
+                for subset_name, subset_fields in self._specification[
+                    "consumes"
+                ].items():
+                    for field_name, field_schema in subset_fields["fields"].items():
+                        mapped_subset_field = mapper[(subset_name, field_name)]
 
-                    for subset_name, subset_fields in self._specification[
-                        subset_type
-                    ].items():
-                        for field_name, field_schema in subset_fields["fields"].items():
-                            mapped_subset_field = mapper[(subset_name, field_name)]
-
-                            if mapped_subset_field is not None:
-                                mapped_subset, mapped_field = mapped_subset_field
-                                modified_specification.setdefault(
-                                    subset_type,
-                                    {},
-                                ).setdefault(mapped_subset, {}).setdefault(
-                                    "fields",
-                                    {},
-                                )[
-                                    mapped_field
-                                ] = field_schema
+                        if mapped_subset_field is not None:
+                            mapped_subset, mapped_field = mapped_subset_field
+                            modified_specification.setdefault(
+                                "consumes",
+                                {},
+                            ).setdefault(mapped_subset, {}).setdefault(
+                                "fields",
+                                {},
+                            )[
+                                mapped_field
+                            ] = field_schema
 
             return modified_specification
 

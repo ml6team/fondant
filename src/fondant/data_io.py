@@ -163,13 +163,8 @@ class DaskDataWriter(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        spec_mapper: t.Optional[SpecMapper] = None,
-        inverse_spec_mapper: t.Optional[SpecMapper] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
-
-        self.spec_mapper = spec_mapper
-        self.inverse_spec_mapper = inverse_spec_mapper
 
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
         write_tasks = []
@@ -202,8 +197,8 @@ class DaskDataWriter(DataIO):
             logging.info("Writing data...")
             dd.compute(*write_tasks)
 
+    @staticmethod
     def _extract_subset_dataframe(
-        self,
         dataframe: dd.DataFrame,
         *,
         subset_name: str,
@@ -227,6 +222,7 @@ class DaskDataWriter(DataIO):
         subset_df = subset_df.rename(
             columns={col: col[(len(f"{subset_name}_")) :] for col in subset_columns},
         )
+
         return subset_df
 
     def _write_subset(
