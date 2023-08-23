@@ -16,11 +16,14 @@ def isNonEnglish(s):
     else:
         return False
 
+
 def get_num_nonenglish_characters(text):
     return sum([isNonEnglish(char) for char in text])
 
+
 def has_too_much_weird_characters(text, max_ratio=0.5):
     return (get_num_nonenglish_characters(text) / len(text)) > max_ratio
+
 
 def is_valid_date(date_string):
     try:
@@ -28,9 +31,10 @@ def is_valid_date(date_string):
         return True
     except (ValueError, OverflowError):
         return False
-    
+
+
 def is_empty(text):
-    return text.strip() != ""
+    return text.strip() == ""
 
 
 class FilterTextComplexity(PandasTransformComponent):
@@ -40,10 +44,7 @@ class FilterTextComplexity(PandasTransformComponent):
     - Captions that are dates
     """
 
-    def __init__(
-        self,
-        *args,
-    ) -> None:
+    def __init__(self, *args) -> None:
         pass
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -62,4 +63,3 @@ class FilterTextComplexity(PandasTransformComponent):
         dataframe = dataframe[mask]
 
         return dataframe
-
