@@ -34,7 +34,8 @@ if __name__ == "__main__":
         # extract image and numeric columns
         image_fields = get_image_fields(fields)
         numeric_fields = get_numeric_fields(fields)
-
+        print("image fields")
+        print("numeric fields")
         # build tabs
         tab_explorer, tab_numeric, tab_images = st.tabs(
             ["Data explorer", "Numerical analysis", "Image explorer"]
