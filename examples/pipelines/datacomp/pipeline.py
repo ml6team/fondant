@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    base_path=PipelineConfigs.BASE_PATH,
-    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    # base_path=PipelineConfigs.BASE_PATH,
+    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 
 # define ops
@@ -37,6 +37,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
+        "n_rows_to_load": 100,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
@@ -61,11 +62,19 @@ filter_complexity_op = ComponentOp(
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
 )
+detect_text_op = ComponentOp(
+    component_dir="components/detect_text",
+    arguments={
+        "batch_size": 2,
+    },
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool",
+)
 
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
 # pipeline.add_op(filter_complexity_op, dependencies=download_images_op)
 pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
-
+pipeline.add_op(detect_text_op, dependencies=download_images_op)
 # TODO add more ops
