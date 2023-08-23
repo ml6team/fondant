@@ -17,13 +17,11 @@ from fondant.component import (
 from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.executor import (
-    DaskLoadExecutor,
-    DaskTransformExecutor,
-    DaskWriteExecutor,
     Executor,
+    ExecutorFactory,
     PandasTransformExecutor,
 )
-from fondant.manifest import Manifest
+from fondant.manifest import Manifest, Metadata
 
 components_path = Path(__file__).parent / "example_specs/components"
 N_PARTITIONS = 2
@@ -33,6 +31,16 @@ def yaml_file_to_json_string(file_path):
     with open(file_path) as file:
         data = yaml.safe_load(file)
         return json.dumps(data)
+
+
+@pytest.fixture()
+def metadata():
+    return Metadata(
+        pipeline_name="pipeline",
+        base_path="/bucket",
+        component_id="load_component",
+        run_id="12345",
+    )
 
 
 @pytest.fixture()
@@ -74,14 +82,14 @@ def patch_method_class(method):
     return wrapper
 
 
-def test_component_arguments():
+def test_component_arguments(metadata):
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
         str(components_path / "arguments/input_manifest.json"),
         "--metadata",
-        "{}",
+        metadata.to_json(),
         "--output_manifest_path",
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
@@ -133,12 +141,13 @@ def test_component_arguments():
 
 
 @pytest.mark.usefixtures("_patched_data_writing")
-def test_load_component():
+def test_load_component(metadata):
     # Mock CLI arguments load
+
     sys.argv = [
         "",
         "--metadata",
-        json.dumps({"base_path": "/bucket", "run_id": "12345"}),
+        metadata.to_json(),
         "--flag",
         "success",
         "--value",
@@ -163,8 +172,10 @@ def test_load_component():
             }
             return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
 
-    executor = DaskLoadExecutor.from_args()
+    executor_factory = ExecutorFactory(MyLoadComponent)
+    executor = executor_factory.get_executor()
     assert executor.input_partition_rows is None
+
     load = patch_method_class(MyLoadComponent.load)
     with mock.patch.object(MyLoadComponent, "load", load):
         executor.execute(MyLoadComponent)
@@ -172,14 +183,14 @@ def test_load_component():
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
-def test_dask_transform_component():
+def test_dask_transform_component(metadata):
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
         str(components_path / "input_manifest.json"),
         "--metadata",
-        "{}",
+        metadata.to_json(),
         "--flag",
         "success",
         "--value",
@@ -203,7 +214,8 @@ def test_dask_transform_component():
             assert isinstance(dataframe, dd.DataFrame)
             return dataframe
 
-    executor = DaskTransformExecutor.from_args()
+    executor_factory = ExecutorFactory(MyDaskComponent)
+    executor = executor_factory.get_executor()
     assert executor.input_partition_rows == "disable"
     transform = patch_method_class(MyDaskComponent.transform)
     with mock.patch.object(
@@ -216,14 +228,14 @@ def test_dask_transform_component():
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
-def test_pandas_transform_component():
+def test_pandas_transform_component(metadata):
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
         str(components_path / "input_manifest.json"),
         "--metadata",
-        "{}",
+        metadata.to_json(),
         "--flag",
         "success",
         "--value",
@@ -243,9 +255,10 @@ def test_pandas_transform_component():
             assert isinstance(dataframe, pd.DataFrame)
             return dataframe.rename(columns={"images": "embeddings"})
 
-    executor = PandasTransformExecutor.from_args()
     init = patch_method_class(MyPandasComponent.__init__)
     transform = patch_method_class(MyPandasComponent.transform)
+    executor_factory = ExecutorFactory(MyPandasComponent)
+    executor = executor_factory.get_executor()
     with mock.patch.object(MyPandasComponent, "__init__", init), mock.patch.object(
         MyPandasComponent,
         "transform",
@@ -331,14 +344,14 @@ def test_wrap_transform():
 
 
 @pytest.mark.usefixtures("_patched_data_loading")
-def test_write_component():
+def test_write_component(metadata):
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
         str(components_path / "input_manifest.json"),
         "--metadata",
-        "{}",
+        metadata.to_json(),
         "--flag",
         "success",
         "--value",
@@ -357,7 +370,8 @@ def test_write_component():
             assert self.value == 1
             assert isinstance(dataframe, dd.DataFrame)
 
-    executor = DaskWriteExecutor.from_args()
+    executor_factory = ExecutorFactory(MyWriteComponent)
+    executor = executor_factory.get_executor()
     write = patch_method_class(MyWriteComponent.write)
     with mock.patch.object(MyWriteComponent, "write", write):
         executor.execute(MyWriteComponent)

@@ -106,6 +106,10 @@ args:
     description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
     type: int
     default: None
+  index_column:
+    description: Column to set index to in the load component, if not specified a default globally unique index will be set
+    type: str
+    default: None
 ```
 
 This is the component spec of the component we have just added to our pipelines, the only thing we have altered is the `produces` section. We have defined what subsets, fields and types this component produces.
@@ -233,12 +237,6 @@ class ImageResolutionExtractionComponent(PandasTransformComponent):
             dataframe[[("images", "data")]].apply(lambda x:extract_dimensions(x.images.data), axis=1)
         
         return dataframe
-
-
-if __name__ == "__main__":
-    component = ImageResolutionExtractionComponent.from_args()
-    component.run()
-
 ```
 This component is rather simple: it will take the images as input and extract the width and height of the images. It will then add these columns to the images subset and return the dataframe. We subclass the `PandasTransformComponent` where the user only needs to define the `transform` method. This method will be called with a pandas dataframe as input and should return a pandas dataframe as output. 
 
@@ -262,7 +260,7 @@ WORKDIR /component/src
 # Copy over src-files
 COPY src/ .
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["fondant", "execute", "main"]
 ```
 There is nothing special about this Dockerfile, it installs the python dependencies and copies over the source code of our component.
 
@@ -309,3 +307,10 @@ fondant explore --data-directory "path/to/your/data"
 ```
 
 Note that if you use a remote path (S3, GCS) you can also pass credentials using the `--credentials` flag. For all the options of the data explorer run `fondant explore --help`.
+
+
+
+## Running at scale
+
+You can find more information on how to configure and run your pipeline on different runners [here](pipeline.md)
+

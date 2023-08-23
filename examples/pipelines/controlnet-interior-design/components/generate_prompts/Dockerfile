@@ -22,4 +22,4 @@ WORKDIR /component/src
 COPY src/ .
 COPY fondant_component.yaml ../
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["fondant", "execute", "main"]

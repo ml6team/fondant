@@ -3,8 +3,8 @@ import logging
 import typing as t
 
 import dask.dataframe as dd
+import pandas as pd
 from fondant.component import DaskLoadComponent
-from fondant.executor import DaskLoadExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,8 @@ class LoadFromHubComponent(DaskLoadComponent):
              column_name_mapping: dict,
              image_column_names: t.Optional[list],
              n_rows_to_load: t.Optional[int],
-    ) -> None:
+             index_column:t.Optional[str],
+                 ) -> None:
         """
         Args:
             dataset_name: name of the dataset to load.
@@ -25,11 +26,14 @@ class LoadFromHubComponent(DaskLoadComponent):
                 format the image from HF hub format to a byte string
             n_rows_to_load: optional argument that defines the number of rows to load. Useful for
               testing pipeline runs on a small scale.
+            index_column: Column to set index to in the load component, if not specified a default
+                globally unique index will be set.
         """
         self.dataset_name = dataset_name
         self.column_name_mapping = column_name_mapping
         self.image_column_names = image_column_names
         self.n_rows_to_load = n_rows_to_load
+        self.index_column = index_column
 
     def load(self) -> dd.DataFrame:
         # 1) Load data, read as Dask dataframe
@@ -50,7 +54,8 @@ class LoadFromHubComponent(DaskLoadComponent):
         # 4) Optional: only return specific amount of rows
         if self.n_rows_to_load is not None:
             partitions_length = 0
-            for npartitions, partition in enumerate(dask_df.partitions):
+            npartitions = 1
+            for npartitions, partition in enumerate(dask_df.partitions, start=1):
                 if partitions_length >= self.n_rows_to_load:
                     logger.info(f"""Required number of partitions to load\n
                     {self.n_rows_to_load} is {npartitions}""")
@@ -59,15 +64,26 @@ class LoadFromHubComponent(DaskLoadComponent):
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
             dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
 
-        # Set monotonically increasing index
-        logger.info("Setting the index...")
-        dask_df["id"] = 1
-        dask_df["id"] = dask_df.id.cumsum()
-        dask_df = dask_df.set_index("id", sort=True)
+        # 4) Set the index
+        if self.index_column is None:
+            logger.info(
+                "Index column not specified, setting a globally unique index",
+            )
+
+            def _set_unique_index(dataframe: pd.DataFrame, partition_info=None):
+                """Function that sets a unique index based on the partition and row number."""
+                dataframe["id"] = 1
+                dataframe["id"] = (
+                    str(partition_info["number"])
+                    + "_"
+                    + (dataframe.id.cumsum()).astype(str)
+                )
+                dataframe.index = dataframe.pop("id")
+                return dataframe
+
+            dask_df = dask_df.map_partitions(_set_unique_index, meta=dask_df.head())
+        else:
+            logger.info(f"Setting `{self.index_column}` as index")
+            dask_df = dask_df.set_index(self.index_column, drop=True)
 
         return dask_df
-
-
-if __name__ == "__main__":
-    executor = DaskLoadExecutor.from_args()
-    executor.execute(LoadFromHubComponent)

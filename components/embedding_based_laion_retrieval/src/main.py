@@ -8,7 +8,6 @@ import typing as t
 import pandas as pd
 from clip_client import ClipClient, Modality
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +67,3 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         results_df.columns = [["images"], ["url"]]
 
         return results_df
-
-
-if __name__ == "__main__":
-    executor = PandasTransformExecutor.from_args()
-    executor.execute(LAIONRetrievalComponent)

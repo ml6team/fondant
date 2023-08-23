@@ -1,7 +1,8 @@
 {
     "metadata": {
+      "pipeline_name": "test_pipeline",
       "base_path": "tests/example_data/subsets_input",
-      "run_id": "12345",
+      "run_id": "test_pipeline_12345",
       "component_id": "67890"
     },
     "index": {

@@ -1,4 +1,7 @@
 """This module defines classes to represent a Fondant Pipeline."""
+import datetime
+import hashlib
+import json
 import logging
 import re
 import typing as t
@@ -62,6 +65,10 @@ class ComponentOp:
         column_mapping_list: t.Optional[t.List[ColumnMapping]] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
+        self.component_spec = ComponentSpec.from_file(
+            self.component_dir / self.COMPONENT_SPEC_NAME,
+        )
+        self.name = self.component_spec.name.replace(" ", "_").lower()
         self.input_partition_rows = input_partition_rows
         self.column_mapping = (
             ColumnMapping.list_to_dict(column_mapping_list)
@@ -73,6 +80,7 @@ class ComponentOp:
             column_mapping=self.column_mapping,
         )
         self.arguments = self._set_arguments(arguments)
+
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.number_of_gpus = number_of_gpus
@@ -158,6 +166,45 @@ class ComponentOp:
             node_pool_name=node_pool_name,
         )
 
+    def get_component_cache_key(self) -> str:
+        """Calculate a cache key representing the unique identity of this ComponentOp.
+
+        The cache key is computed based on the component specification, image hash, arguments, and
+        other attributes of the ComponentOp. It is used to uniquely identify a specific instance
+        of the ComponentOp and is used for caching.
+
+        Returns:
+            A cache key representing the unique identity of this ComponentOp.
+        """
+
+        def get_nested_dict_hash(input_dict):
+            """Calculate the hash of a nested dictionary.
+
+            Args:
+                input_dict: The nested dictionary to calculate the hash for.
+
+            Returns:
+                The hash value (MD5 digest) of the nested dictionary.
+            """
+            sorted_json_string = json.dumps(input_dict, sort_keys=True)
+            hash_object = hashlib.md5(sorted_json_string.encode())  # nosec
+            return hash_object.hexdigest()
+
+        component_spec_dict = self.component_spec.specification
+        arguments = (
+            get_nested_dict_hash(self.arguments) if self.arguments is not None else None
+        )
+
+        component_op_uid_dict = {
+            "component_spec_hash": get_nested_dict_hash(component_spec_dict),
+            "arguments": arguments,
+            "input_partition_rows": self.input_partition_rows,
+            "number_of_gpus": self.number_of_gpus,
+            "node_pool_name": self.node_pool_name,
+        }
+
+        return get_nested_dict_hash(component_op_uid_dict)
+
 
 class Pipeline:
     """Class representing a Fondant Pipeline."""
@@ -216,11 +263,9 @@ class Pipeline:
                 msg,
             )
 
-        dependencies_names = [
-            dependency.component_spec.name for dependency in dependencies
-        ]
+        dependencies_names = [dependency.name for dependency in dependencies]
 
-        self._graph[task.component_spec.name] = {
+        self._graph[task.name] = {
             "fondant_component_op": task,
             "dependencies": dependencies_names,
         }
@@ -257,11 +302,17 @@ class Pipeline:
             raise InvalidPipelineDefinition(msg)
         return pipeline_name
 
+    def get_run_id(self) -> str:
+        """Get a unique run ID for the pipeline."""
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        return f"{self.name}-{timestamp}"
+
     def validate(self, run_id: str):
         """Sort and run validation on the pipeline definition.
 
         Args:
-            run_id (str, optional): run identifier. Defaults to None.
+            run_id: run identifier
+
         """
         self.sort_graph()
         self._validate_pipeline_definition(run_id)
@@ -288,6 +339,7 @@ class Pipeline:
 
         # Create initial manifest
         manifest = Manifest.create(
+            pipeline_name=self.name,
             base_path=self.base_path,
             run_id=run_id,
             component_id=load_component_name,

@@ -30,7 +30,7 @@ from fondant.component_spec import (
     kubeflow2python_type,
 )
 from fondant.data_io import DaskDataLoader, DaskDataWriter
-from fondant.manifest import Manifest
+from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class Executor(t.Generic[Component]):
         self.spec = spec
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
-        self.metadata = metadata
+        self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
         self.column_mapping = column_mapping
@@ -143,7 +143,8 @@ class Executor(t.Generic[Component]):
                 help=arg.description,
             )
 
-        return parser.parse_args()
+        args, _ = parser.parse_known_args()
+        return args
 
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
@@ -259,8 +260,9 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
     def _load_or_create_manifest(self) -> Manifest:
         component_id = self.spec.name.lower().replace(" ", "_")
         return Manifest.create(
-            base_path=self.metadata["base_path"],
-            run_id=self.metadata["run_id"],
+            pipeline_name=self.metadata.pipeline_name,
+            base_path=self.metadata.base_path,
+            run_id=self.metadata.run_id,
             component_id=component_id,
         )
 
@@ -448,3 +450,28 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         pass
+
+
+class ExecutorFactory:
+    def __init__(self, component: t.Type[Component]):
+        self.component = component
+        self.component_executor_mapping: t.Dict[str, t.Type[Executor]] = {
+            "DaskLoadComponent": DaskLoadExecutor,
+            "DaskTransformComponent": DaskTransformExecutor,
+            "DaskWriteComponent": DaskWriteExecutor,
+            "PandasTransformComponent": PandasTransformExecutor,
+        }
+
+    def get_executor(self) -> Executor:
+        component_type = self.component.__bases__[0].__name__
+        try:
+            executor = self.component_executor_mapping[component_type].from_args()
+        except KeyError:
+            msg = (
+                f"The component `{self.component.__name__}` of type `{component_type}` has no"
+                f" corresponding executor.\n "
+                f"Component executor mapping:"
+                f" {json.dumps(self.component_executor_mapping, indent=4)}"
+            )
+            raise ValueError(msg)
+        return executor

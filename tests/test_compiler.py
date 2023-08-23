@@ -27,10 +27,9 @@ TEST_PIPELINES = [
                 input_partition_rows="10",
             ),
             ComponentOp(
-                Path(COMPONENTS_PATH / "example_1" / "fourth_component"),
+                Path(COMPONENTS_PATH / "example_1" / "third_component"),
                 arguments={
                     "storage_args": "a dummy string arg",
-                    "some_list": [1, 2, 3],
                 },
             ),
         ],
@@ -82,7 +81,7 @@ def setup_pipeline(request, tmp_path, monkeypatch):
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
-    return (example_dir, pipeline)
+    return example_dir, pipeline
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -127,7 +126,8 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
             # check if commands are patched to use the working dir
             commands_with_dir = [
                 f"{work_dir}/{name}/manifest.json",
-                f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{work_dir}"}}',
+                f'{{"base_path": "{work_dir}", "pipeline_name": "{pipeline.name}",'
+                f' "run_id": "test_pipeline-20230101000000", "component_id": "{name}"}}',
             ]
             for command in commands_with_dir:
                 assert command in service["command"]
@@ -153,7 +153,8 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
             # check if commands are patched to use the remote dir
             commands_with_dir = [
                 f"{remote_dir}/{name}/manifest.json",
-                f'{{"run_id": "test_pipeline-20230101000000", "base_path": "{remote_dir}"}}',
+                f'{{"base_path": "{remote_dir}", "pipeline_name": "{pipeline.name}",'
+                f' "run_id": "test_pipeline-20230101000000", "component_id": "{name}"}}',
             ]
             for command in commands_with_dir:
                 assert command in service["command"]

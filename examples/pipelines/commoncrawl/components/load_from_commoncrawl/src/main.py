@@ -123,8 +123,3 @@ class LoadFromCommonCrawlComponent(DaskLoadComponent):
         )
 
         return warc_paths_df
-
-
-if __name__ == "__main__":
-    executor = DaskLoadExecutor.from_args()
-    executor.execute(LoadFromCommonCrawlComponent)

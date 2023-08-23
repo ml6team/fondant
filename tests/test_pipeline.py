@@ -1,4 +1,5 @@
 """Fondant pipelines test."""
+import copy
 from pathlib import Path
 
 import pytest
@@ -62,6 +63,53 @@ def test_component_op(
         ),
     ],
 )
+def test_component_op_hash(
+    valid_pipeline_example,
+    monkeypatch,
+):
+    example_dir, component_names = valid_pipeline_example
+    components_path = Path(valid_pipeline_path / example_dir)
+
+    comp_0_op_spec_0 = ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments={"storage_args": "a dummy string arg"},
+    )
+
+    comp_0_op_spec_1 = ComponentOp(
+        Path(components_path / component_names[0]),
+        arguments={"storage_args": "a different string arg"},
+    )
+
+    comp_1_op_spec_0 = ComponentOp(
+        Path(components_path / component_names[1]),
+        arguments={"storage_args": "a dummy string arg"},
+    )
+
+    comp_0_op_spec_0_copy = copy.deepcopy(comp_0_op_spec_0)
+
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        != comp_0_op_spec_1.get_component_cache_key()
+    )
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        == comp_0_op_spec_0_copy.get_component_cache_key()
+    )
+    assert (
+        comp_0_op_spec_0.get_component_cache_key()
+        != comp_1_op_spec_0.get_component_cache_key()
+    )
+
+
+@pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+            "example_1",
+            ["first_component", "second_component", "third_component"],
+        ),
+    ],
+)
 def test_valid_pipeline(
     default_pipeline_args,
     valid_pipeline_example,
@@ -97,13 +145,13 @@ def test_valid_pipeline(
 
     pipeline.sort_graph()
     assert list(pipeline._graph.keys()) == [
-        "First component",
-        "Second component",
-        "Third component",
+        "first_component",
+        "second_component",
+        "third_component",
     ]
-    assert pipeline._graph["First component"]["dependencies"] == []
-    assert pipeline._graph["Second component"]["dependencies"] == ["First component"]
-    assert pipeline._graph["Third component"]["dependencies"] == ["Second component"]
+    assert pipeline._graph["first_component"]["dependencies"] == []
+    assert pipeline._graph["second_component"]["dependencies"] == ["first_component"]
+    assert pipeline._graph["third_component"]["dependencies"] == ["second_component"]
 
     pipeline._validate_pipeline_definition("test_pipeline")
 
