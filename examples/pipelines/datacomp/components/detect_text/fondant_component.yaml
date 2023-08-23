@@ -1,0 +1,23 @@
+name: Detect text
+description: Component that detects text in images using an mmocr model
+image: ghcr.io/ml6team/detect_text:dev
+
+consumes:
+  images:
+    fields:
+      data:
+        type: binary
+
+produces:
+  images:
+    fields:
+      data:
+        type: binary
+      boxes:
+        type: utf8
+
+args:
+  batch_size:
+    description: batch size to use
+    type: int
+    default: 8

@@ -10,9 +10,6 @@ COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip3 install -U openmim
 RUN mim install mmengine
-RUN mim install mmcv
-RUN mim install mmdet
-RUN mim install mmocr
 
 # Install Fondant
 # This is split from other requirements to leverage caching
