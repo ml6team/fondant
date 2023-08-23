@@ -37,6 +37,9 @@ spec:
       - --output_manifest_path
       - /tmp/outputs/output_manifest_path/data
       image: example_component:latest
+      resources:
+        limits:
+          nvidia.com/gpu: 1
     inputs:
       artifacts:
       - name: input_manifest_path
