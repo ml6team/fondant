@@ -9,7 +9,6 @@ import streamlit as st
 
 LOGGER = logging.getLogger(__name__)
 
-dask.config.set({"dataframe.convert-string": False})
 pd.options.plotting.backend = "plotly"
 
 
