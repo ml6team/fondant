@@ -10,8 +10,10 @@ from fondant.pipeline import ComponentOp, Pipeline
 
 logger = logging.getLogger(__name__)
 # General configs
-pipeline_name = "Test fondant pipeline"
-pipeline_description = "A test pipeline"
+pipeline_name = "stable_diffusion_pipeline"
+pipeline_description = (
+    "Pipeline to prepare and collect data for finetuning stable diffusion"
+)
 
 load_component_column_mapping = {"image": "images_data", "text": "captions_data"}
 
@@ -25,7 +27,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "logo-wizard/modern-logo-dataset",
         "column_name_mapping": load_component_column_mapping,
         "image_column_names": ["image"],
-        "nb_rows_to_load": None,
+        "n_rows_to_load": None,
     },
 )
 
