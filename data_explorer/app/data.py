@@ -4,6 +4,7 @@ import logging
 from typing import List, Tuple
 from urllib.parse import urlparse
 
+import dask
 import dask.dataframe as dd
 import streamlit as st
 from exceptions import RemoteFileNotFoundException
@@ -12,7 +13,7 @@ from fsspec import open as fs_open
 from fondant.manifest import Manifest
 
 LOGGER = logging.getLogger(__name__)
-
+dask.config.set({"dataframe.convert-string": False})
 
 def is_remote(path: str) -> bool:
     """Check if path is remote
