@@ -10,8 +10,10 @@ from fondant.pipeline import ComponentOp, Pipeline
 
 logger = logging.getLogger(__name__)
 # General configs
-pipeline_name = "Test fondant pipeline"
-pipeline_description = "A test pipeline"
+pipeline_name = "stable_diffusion_pipeline"
+pipeline_description = (
+    "Pipeline to prepare and collect data for finetuning stable diffusion"
+)
 
 load_component_column_mapping = {"image": "images_data", "text": "captions_data"}
 
@@ -25,7 +27,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "logo-wizard/modern-logo-dataset",
         "column_name_mapping": load_component_column_mapping,
         "image_column_names": ["image"],
-        "nb_rows_to_load": None,
+        "n_rows_to_load": None,
     },
 )
 
@@ -81,12 +83,15 @@ write_to_hub = ComponentOp(
     number_of_gpus=1,
 )
 
-pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
+pipeline = Pipeline(
+    pipeline_name=pipeline_name,
+    base_path="/home/philippe/Scripts/express/local_artifact/new",
+)
 
 pipeline.add_op(load_from_hub_op)
-pipeline.add_op(image_resolution_extraction_op, dependencies=load_from_hub_op)
-pipeline.add_op(image_embedding_op, dependencies=image_resolution_extraction_op)
-pipeline.add_op(laion_retrieval_op, dependencies=image_embedding_op)
-pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
-pipeline.add_op(caption_images_op, dependencies=download_images_op)
-pipeline.add_op(write_to_hub, dependencies=caption_images_op)
+# pipeline.add_op(image_resolution_extraction_op, dependencies=load_from_hub_op)
+# pipeline.add_op(image_embedding_op, dependencies=image_resolution_extraction_op)
+# pipeline.add_op(laion_retrieval_op, dependencies=image_embedding_op)
+# pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
+# pipeline.add_op(caption_images_op, dependencies=download_images_op)
+# pipeline.add_op(write_to_hub, dependencies=caption_images_op)
