@@ -9,7 +9,7 @@ services:
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
       "component_id": "first_component"}'
     - --output_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
@@ -38,7 +38,7 @@ services:
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
       "component_id": "second_component"}'
     - --output_manifest_path
-    - /foo/bar/second_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/second_component/manifest.json
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
@@ -50,7 +50,7 @@ services:
       "array", "items": {"type": "float32"}}}}}, "args": {"storage_args": {"description":
       "Storage arguments", "type": "str"}}}'
     - --input_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
     depends_on:
       first_component:
         condition: service_completed_successfully
@@ -64,7 +64,7 @@ services:
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
       "component_id": "third_component"}'
     - --output_manifest_path
-    - /foo/bar/third_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/third_component/manifest.json
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
@@ -78,7 +78,7 @@ services:
       false}, "args": {"storage_args": {"description": "Storage arguments", "type":
       "str"}}}'
     - --input_manifest_path
-    - /foo/bar/second_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/second_component/manifest.json
     depends_on:
       second_component:
         condition: service_completed_successfully

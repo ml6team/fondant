@@ -9,7 +9,7 @@ services:
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
       "component_id": "first_component"}'
     - --output_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
@@ -27,7 +27,7 @@ services:
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
       "component_id": "image_cropping"}'
     - --output_manifest_path
-    - /foo/bar/image_cropping/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/image_cropping/manifest.json
     - --cropping_threshold
     - '0'
     - --padding
@@ -46,7 +46,7 @@ services:
       for the image cropping. The padding is added to all borders of the image.",
       "type": "int", "default": 10}}}'
     - --input_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
     depends_on:
       first_component:
         condition: service_completed_successfully

@@ -6,11 +6,11 @@
     "component_id": "example_component"
   },
   "index": {
-    "location": "/index/12345/example_component"
+    "location": "/test_pipeline/12345/example_component/index"
   },
   "subsets": {
     "images": {
-      "location": "/images/12345/example_component",
+      "location": "/test_pipeline/12345/example_component/images",
       "fields": {
         "width": {
           "type": "int32"
@@ -24,7 +24,7 @@
       }
     },
     "captions": {
-      "location": "/captions/12345/example_component",
+      "location": "/test_pipeline/12345/example_component/captions",
       "fields": {
         "data": {
           "type": "binary"

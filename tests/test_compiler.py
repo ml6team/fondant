@@ -115,6 +115,7 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
         with open(fn / "docker-compose.yml") as f_spec:
             spec = yaml.safe_load(f_spec)
 
+        expected_run_id = "test_pipeline-20230101000000"
         for name, service in spec["services"].items():
             # check if volumes are defined correctly
             assert service["volumes"] == [
@@ -126,9 +127,9 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
             ]
             # check if commands are patched to use the working dir
             commands_with_dir = [
-                f"{work_dir}/{name}/manifest.json",
+                f"{work_dir}/{pipeline.name}/{expected_run_id}/{name}/manifest.json",
                 f'{{"base_path": "{work_dir}", "pipeline_name": "{pipeline.name}",'
-                f' "run_id": "test_pipeline-20230101000000", "component_id": "{name}"}}',
+                f' "run_id": "{expected_run_id}", "component_id": "{name}"}}',
             ]
             for command in commands_with_dir:
                 assert command in service["command"]
@@ -148,14 +149,15 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
         with open(fn / "docker-compose.yml") as f_spec:
             spec = yaml.safe_load(f_spec)
 
+        expected_run_id = "test_pipeline-20230101000000"
         for name, service in spec["services"].items():
             # check that no volumes are created
             assert service["volumes"] == []
             # check if commands are patched to use the remote dir
             commands_with_dir = [
-                f"{remote_dir}/{name}/manifest.json",
+                f"{remote_dir}/{pipeline.name}/{expected_run_id}/{name}/manifest.json",
                 f'{{"base_path": "{remote_dir}", "pipeline_name": "{pipeline.name}",'
-                f' "run_id": "test_pipeline-20230101000000", "component_id": "{name}"}}',
+                f' "run_id": "{expected_run_id}", "component_id": "{name}"}}',
             ]
             for command in commands_with_dir:
                 assert command in service["command"]

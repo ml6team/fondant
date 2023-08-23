@@ -158,7 +158,7 @@ class Manifest:
 
         specification = {
             "metadata": metadata.to_dict(),
-            "index": {"location": f"/index/{run_id}/{component_id}"},
+            "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}/index"},
             "subsets": {},
         }
         return cls(specification)
@@ -226,7 +226,7 @@ class Manifest:
             raise ValueError(msg)
 
         self._specification["subsets"][name] = {
-            "location": f"/{name}/{self.run_id}/{self.component_id}",
+            "location": f"/{self.pipeline_name}/{self.run_id}/{self.component_id}/{name}",
             "fields": {name: type_.to_json() for name, type_ in fields},
         }
 
@@ -254,7 +254,7 @@ class Manifest:
         # Update index location as this is currently always rewritten
         evolved_manifest.index._specification[
             "location"
-        ] = f"/index/{self.run_id}/{component_id}"
+        ] = f"/{self.pipeline_name}/{self.run_id}/{component_id}/index"
 
         # If additionalSubsets is False in consumes,
         # Remove all subsets from the manifest that are not listed
@@ -305,7 +305,7 @@ class Manifest:
                 # Update subset location as this is currently always rewritten
                 evolved_manifest.subsets[subset_name]._specification[
                     "location"
-                ] = f"/{subset_name}/{self.run_id}/{component_id}"
+                ] = f"{self.pipeline_name}/{self.run_id}/{component_id}/{subset_name}"
 
             # Subset is not yet in manifest, add it
             else:
