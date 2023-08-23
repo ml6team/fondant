@@ -18,8 +18,9 @@ spec:
   - container:
       args: []
       command:
-      - python3
-      - main.py
+      - fondant
+      - execute
+      - main
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
@@ -54,10 +55,10 @@ spec:
           "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
           \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "2a304ce49a15404ba50dfd8b56ec43fa8ac8c29f80579d1c8fb974d3f1a5c87f"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "c53791e5eba77643348ea14b01bc20f273c32d827f5f1b1b896ef6965fd12d82"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
-          component", "implementation": {"container": {"command": ["python3", "main.py",
-          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          component", "implementation": {"container": {"command": ["fondant", "execute",
+          "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
           "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--storage_args",
           {"inputValue": "storage_args"}, "--output_manifest_path", {"outputPath":
@@ -84,8 +85,9 @@ spec:
   - container:
       args: []
       command:
-      - python3
-      - main.py
+      - fondant
+      - execute
+      - main
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
@@ -120,10 +122,10 @@ spec:
           \"pipeline_name\": \"test_pipeline\", \"run_id\": \"test_pipeline-20230101000000\",
           \"component_id\": \"second_component\"}", "storage_args": "a dummy string
           arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "a02b0189397a2d9318982201f020dbbbe3962427ed150fe58cc69ff508cc68bb"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "455aeccd323115d9caae33621d3ecf5ad4de86da321f97c3761f77bc962f7fc2"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
-          component", "implementation": {"container": {"command": ["python3", "main.py",
-          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          component", "implementation": {"container": {"command": ["fondant", "execute",
+          "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
           "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--storage_args",
           {"inputValue": "storage_args"}, "--output_manifest_path", {"outputPath":
@@ -171,8 +173,9 @@ spec:
   - container:
       args: []
       command:
-      - python3
-      - main.py
+      - fondant
+      - execute
+      - main
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
@@ -210,10 +213,10 @@ spec:
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
           \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"third_component\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "698791c6aa2ed14d4b337840116a7a995f403e5be414389b05ccf7942b9e4437"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "4e728e3a6242c68816de163eb5ec0398940c5fb6746adf57223ca595103e6c2a"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
-          component", "implementation": {"container": {"command": ["python3", "main.py",
-          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          component", "implementation": {"container": {"command": ["fondant", "execute",
+          "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
           "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--storage_args",
           {"inputValue": "storage_args"}, "--output_manifest_path", {"outputPath":

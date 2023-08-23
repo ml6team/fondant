@@ -2,7 +2,6 @@
 import logging
 from typing import List
 
-import dask
 import dask.dataframe as dd
 import pandas as pd
 import streamlit as st

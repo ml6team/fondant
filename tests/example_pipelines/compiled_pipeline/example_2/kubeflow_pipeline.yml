@@ -18,8 +18,9 @@ spec:
   - container:
       args: []
       command:
-      - python3
-      - main.py
+      - fondant
+      - execute
+      - main
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
@@ -54,10 +55,10 @@ spec:
           "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
           \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "2a304ce49a15404ba50dfd8b56ec43fa8ac8c29f80579d1c8fb974d3f1a5c87f"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "c53791e5eba77643348ea14b01bc20f273c32d827f5f1b1b896ef6965fd12d82"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
-          component", "implementation": {"container": {"command": ["python3", "main.py",
-          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          component", "implementation": {"container": {"command": ["fondant", "execute",
+          "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
           "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--storage_args",
           {"inputValue": "storage_args"}, "--output_manifest_path", {"outputPath":
@@ -84,8 +85,9 @@ spec:
   - container:
       args: []
       command:
-      - python3
-      - main.py
+      - fondant
+      - execute
+      - main
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
@@ -132,10 +134,10 @@ spec:
           "cropping_threshold": "0", "input_partition_rows": "None", "metadata": "{\"base_path\":
           \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\": \"test_pipeline-20230101000000\",
           \"component_id\": \"image_cropping\"}", "padding": "0"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "e86f02b6b9cc878b6187e44bb3caf9291c3ce42c1939e19b0a97dacdc78a9d72"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "8a3c2b5736cf8297ad5848ec043987aed42c6fb12e6e26db25b922467b4d2d7f"}'
         pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
           single-colored borders around images and crops them appropriately", "implementation":
-          {"container": {"command": ["python3", "main.py", "--input_manifest_path",
+          {"container": {"command": ["fondant", "execute", "main", "--input_manifest_path",
           {"inputPath": "input_manifest_path"}, "--metadata", {"inputValue": "metadata"},
           "--component_spec", {"inputValue": "component_spec"}, "--input_partition_rows",
           {"inputValue": "input_partition_rows"}, "--cropping_threshold", {"inputValue":
