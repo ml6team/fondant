@@ -1,4 +1,4 @@
-git+https://github.com/ml6team/fondant@71214bb9de30cd4302d09af97acf117d4b0e9231
+git+https://github.com/ml6team/fondant@main
 streamlit==1.23.1
 streamlit-aggrid==0.3.4
 matplotlib==3.7.1

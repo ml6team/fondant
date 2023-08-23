@@ -129,7 +129,7 @@ def build_explorer_table(
 
 
 def build_numeric_analysis_table(
-        dataframe: Union[dd.DataFrame, pd.DataFrame], numeric_fields: Union[List[str], None]
+        dataframe: Union[dd.DataFrame, pd.DataFrame], numeric_fields: List[str]
 ) -> None:
     """Build the numeric analysis table.
 
@@ -161,7 +161,7 @@ def build_numeric_analysis_table(
 
 
 def build_numeric_analysis_plots(
-        dataframe: Union[dd.DataFrame, pd.DataFrame], numeric_fields: Union[List[str], None]
+        dataframe: Union[dd.DataFrame, pd.DataFrame], numeric_fields: List[str]
 ) -> None:
     """Build the numeric analysis plots.
 
@@ -186,7 +186,7 @@ def build_numeric_analysis_plots(
         make_numeric_plot(dataframe, numeric_field, plot_type)
 
 
-def build_image_explorer(dataframe: dd.DataFrame, image_fields: Union[List[str], None]):
+def build_image_explorer(dataframe: dd.DataFrame, image_fields: List[str]):
     """Build the image explorer
     This explorer shows a gallery of the images in a certain column.
 
@@ -198,6 +198,9 @@ def build_image_explorer(dataframe: dd.DataFrame, image_fields: Union[List[str],
     if len(image_fields) == 0:
         st.warning("There are no image fields in this subset")
     else:
+        st.write("## Image explorer")
+        st.write("In this table, you can explore the images")
+
         image_field = st.selectbox("Image field", image_fields)
 
         images = dataframe[image_field].compute()

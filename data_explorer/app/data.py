@@ -1,10 +1,9 @@
 """This file contains data loading logic"""
 import json
 import logging
-from typing import List, Tuple
+from typing import List
 from urllib.parse import urlparse
 
-import dask
 import dask.dataframe as dd
 import streamlit as st
 from exceptions import RemoteFileNotFoundException
@@ -13,6 +12,7 @@ from fsspec import open as fs_open
 from fondant.manifest import Manifest
 
 LOGGER = logging.getLogger(__name__)
+
 
 def is_remote(path: str) -> bool:
     """Check if path is remote
