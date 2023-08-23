@@ -1,5 +1,6 @@
 {
   "metadata": {
+    "pipeline_name": "test_pipeline",
     "base_path": "gs://bucket",
     "run_id": "12345",
     "component_id": "67890"

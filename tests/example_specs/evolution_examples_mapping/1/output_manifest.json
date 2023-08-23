@@ -3,6 +3,7 @@
       "location":"/index/12345/example_component"
    },
    "metadata":{
+      "pipeline_name": "test_pipeline",
       "base_path":"gs://bucket",
       "component_id":"example_component",
       "run_id":"12345"

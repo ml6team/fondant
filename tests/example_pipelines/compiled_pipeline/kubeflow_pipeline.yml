@@ -18,12 +18,14 @@ spec:
   - container:
       args: []
       command:
-      - python3
-      - main.py
+      - fondant
+      - execute
+      - main
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
-      - '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}'
+      - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+        "component_id": "first_component"}'
       - --component_spec
       - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
         "description": "This is an example component", "image": "example_component:latest",
@@ -55,12 +57,13 @@ spec:
           \"image\": \"example_component:latest\", \"name\": \"First component\",
           \"produces\": {\"captions\": {\"fields\": {\"data\": {\"type\": \"string\"}}},
           \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
-          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
+          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
+          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "fb031e61c2d31e3922a137e736b599c8dfa4e7d8d88a58261275ea3f9004085e"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "f86b48ec776e4cc2480b547e3d75bc97748722fafae648e399647bcf0071a34d"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
-          component", "implementation": {"container": {"command": ["python3", "main.py",
-          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          component", "implementation": {"container": {"command": ["fondant", "execute",
+          "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
           "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--column_mapping",
           {"inputValue": "column_mapping"}, "--storage_args", {"inputValue": "storage_args"},
