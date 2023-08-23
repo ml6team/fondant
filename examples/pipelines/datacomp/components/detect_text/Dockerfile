@@ -8,8 +8,6 @@ RUN apt-get update && \
 # install requirements
 COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r requirements.txt
-RUN pip3 install -U openmim
-RUN mim install mmengine
 
 # Install Fondant
 # This is split from other requirements to leverage caching
