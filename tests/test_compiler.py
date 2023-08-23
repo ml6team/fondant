@@ -20,6 +20,7 @@ TEST_PIPELINES = [
                 Path(COMPONENTS_PATH / "example_1" / "first_component"),
                 arguments={"storage_args": "a dummy string arg"},
                 input_partition_rows="disable",
+                number_of_gpus=1,
             ),
             ComponentOp(
                 Path(COMPONENTS_PATH / "example_1" / "second_component"),
