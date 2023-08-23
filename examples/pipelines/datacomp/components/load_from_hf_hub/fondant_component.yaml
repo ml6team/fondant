@@ -1,6 +1,6 @@
 name: Load from hub
 description: Component that loads a dataset from the hub
-image: ghcr.io/ml6team/load_from_hf_hub:9840649b8b0b378366e5754a9242fde1990c8d9e
+image: ghcr.io/ml6team/load_from_hf_hub:9f08b48c510b2ba78c9d8b72756ad29a222a9d7f
 
 produces:
   images:

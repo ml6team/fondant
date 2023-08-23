@@ -36,14 +36,14 @@ load_from_hub_op = ComponentOp(
     arguments={
         "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 1000,
         "index_column": "uid",
+        "n_rows_to_load": 100,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
 )
-download_images_op = ComponentOp(
-    component_dir="components/download_images",
+download_images_op = ComponentOp.from_registry(
+    name="download_images",
     arguments={
         "retries": 2,
         "min_image_size": 0,
