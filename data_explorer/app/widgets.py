@@ -78,7 +78,7 @@ def build_sidebar() -> Tuple[Optional[str], Optional[str], Optional[Dict]]:
 
 
 def build_explorer_table(
-    dataframe: Union[dd.DataFrame, pd.DataFrame], image_fields: List[str]
+        dataframe: Union[dd.DataFrame, pd.DataFrame], image_fields: List[str]
 ) -> None:
     """Build the dataframe explorer table.
 
@@ -129,7 +129,7 @@ def build_explorer_table(
 
 
 def build_numeric_analysis_table(
-    dataframe: Union[dd.DataFrame, pd.DataFrame], numeric_fields: List[str]
+        dataframe: Union[dd.DataFrame, pd.DataFrame], numeric_fields: List[str]
 ) -> None:
     """Build the numeric analysis table.
 
@@ -138,7 +138,9 @@ def build_numeric_analysis_table(
         numeric_fields (List[str]): list of numeric fields
     """
     # check if there are numeric fields
-    if len(numeric_fields) > 0:
+    if len(numeric_fields) == 0:
+        st.warning("There are no numeric fields in this subset")
+    else:
         st.write("## Numerical statistics")
 
         # make numeric statistics table
@@ -159,7 +161,7 @@ def build_numeric_analysis_table(
 
 
 def build_numeric_analysis_plots(
-    dataframe: Union[dd.DataFrame, pd.DataFrame], numeric_fields: List[str]
+        dataframe: Union[dd.DataFrame, pd.DataFrame], numeric_fields: List[str]
 ) -> None:
     """Build the numeric analysis plots.
 
@@ -167,17 +169,21 @@ def build_numeric_analysis_plots(
         dataframe (Union[dd.DataFrame, pd.DataFrame]): dataframe to explore
         numeric_fields (List[str]): list of numeric fields
     """
-    st.write("## Show numeric distributions")
+    # check if there are numeric fields
+    if len(numeric_fields) == 0:
+        st.warning("There are no numeric fields in this subset")
+    else:
+        st.write("## Show numeric distributions")
 
-    # choose a numeric field in dropdown
-    cols = st.columns(2)
-    with cols[0]:
-        numeric_field = st.selectbox("Field", numeric_fields)
-    with cols[1]:
-        plot_type = st.selectbox("Plot type",
-                                 ["histogram", "violin", "density", "categorical"])
+        # choose a numeric field in dropdown
+        cols = st.columns(2)
+        with cols[0]:
+            numeric_field = st.selectbox("Field", numeric_fields)
+        with cols[1]:
+            plot_type = st.selectbox("Plot type",
+                                     ["histogram", "violin", "density", "categorical"])
 
-    make_numeric_plot(dataframe, numeric_field, plot_type)
+        make_numeric_plot(dataframe, numeric_field, plot_type)
 
 
 def build_image_explorer(dataframe: dd.DataFrame, image_fields: List[str]):
@@ -188,12 +194,13 @@ def build_image_explorer(dataframe: dd.DataFrame, image_fields: List[str]):
         dataframe (dd.DataFrame): dataframe to explore
         image_fields (List[str]): list of image fields
     """
-    st.write("## Image explorer")
-    st.write("In this table, you can explore the images")
 
     if len(image_fields) == 0:
         st.warning("There are no image fields in this subset")
     else:
+        st.write("## Image explorer")
+        st.write("In this table, you can explore the images")
+
         image_field = st.selectbox("Image field", image_fields)
 
         images = dataframe[image_field].compute()

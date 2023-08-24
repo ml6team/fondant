@@ -45,7 +45,7 @@ def get_image_fields(fields: Dict[str, str]) -> List[str]:
     # check which of the columns contain byte data
     image_fields = []
     for k, v in fields.items():
-        if v == "object":
+        if v == "binary":
             image_fields.append(k)
     return image_fields
 
