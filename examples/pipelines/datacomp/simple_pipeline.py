@@ -16,7 +16,6 @@ pipeline = Pipeline(
     pipeline_name="datacomp-filtering",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
     base_path=PipelineConfigs.BASE_PATH,
-    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 
 # define ops
