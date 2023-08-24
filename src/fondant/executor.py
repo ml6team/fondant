@@ -191,15 +191,16 @@ class Executor(t.Generic[Component]):
 
         data_writer.write_dataframe(dataframe)
 
-    def _load_cached_output_manifest(self, run_id: str) -> "Manifest":
-        """Function that returns the cached output manifest."""
-        raise NotImplementedError
-
-    def _find_matching_executions(self) -> t.Union[Manifest, None]:
+    def _get_latest_matching_manifest(self) -> t.Union[Manifest, None]:
         """
-        Function that checks if there is an existing previous matching execution for the
-         component exists.
+        Find and return the most recent matching execution's Manifest for the component,
+        if it exists.
 
+        This function searches for previous execution manifests that match the component's metadata.
+
+        Returns:
+            The Manifest object representing the most recent matching execution,
+            or None if no matching execution is found.
         """
         matching_manifest_glob_pattern = (
             f"{self.metadata.base_path}/{self.metadata.pipeline_name}/*/"
@@ -229,43 +230,70 @@ class Executor(t.Generic[Component]):
 
         return None
 
-    def _is_previous_cached(self) -> bool:
-        """Function that checks if the previous running component is cached."""
-        _is_previous_cached = True
+    def _is_previous_cached(self, input_manifest: Manifest) -> bool:
+        """
+        Checks whether the previous component's output is cached based on its run ID.
 
-        if _is_previous_cached:
-            logger.info("Previous component is cached.")
-        else:
-            logger.info("Previous component is not cached")
+        This function compares the run ID of the input manifest
+         (representing the previous component) with the run ID of the current component metadata.
+        If the run IDs are different, it indicates that the previous component's output belongs to
+        another pipeline run, implying that it is cached. Otherwise, if the run IDs match, it
+        suggests that the previous component was not cached and had to execute to produce the
+         current output.
 
-        return _is_previous_cached
+        Args:
+            input_manifest: The manifest representing the output of the previous component.
+
+        Returns:
+            True if the previous component's output is cached, False otherwise.
+        """
+        previous_component_id = input_manifest.component_id
+
+        if input_manifest.run_id == self.metadata.run_id:
+            logger.info(
+                f"Previous component `{previous_component_id}` is not cached."
+                f" Invalidating cache for current and subsequent components",
+            )
+            return False
+
+        logger.info(
+            f"Previous component `{previous_component_id}` run was cached. "
+            f"Cached pipeline id: {input_manifest.run_id}",
+        )
+        return True
 
     def execute(self, component_cls: t.Type[Component]) -> None:
-        """Execute a component.
+        """
+        Execute a component.
 
         Args:
             component_cls: The class of the component to execute
         """
-        if self.cache is True:
-            if (
-                self._is_previous_cached()
-                and self._find_matching_executions() is not None
-            ):
-                pass
+
+        def _run_execution(inner_input_manifest: Manifest) -> Manifest:
+            logging.info("Executing component")
+            component = component_cls(self.spec, **self.user_arguments)
+            output_df = self._execute_component(
+                component,
+                manifest=inner_input_manifest,
+            )
+            inner_output_manifest = input_manifest.evolve(component_spec=self.spec)
+            self._write_data(dataframe=output_df, manifest=inner_output_manifest)
+
+            return inner_output_manifest
+
+        input_manifest = self._load_or_create_manifest()
+
+        if self.cache and self._is_previous_cached(input_manifest):
+            output_manifest = self._get_latest_matching_manifest()
+            if output_manifest is not None:
+                logger.info("Skipping component execution")
+            else:
+                output_manifest = _run_execution(input_manifest)
+
         else:
             logger.info("Caching disabled for the component")
-
-        output_manifest = self._find_matching_executions()
-
-        if output_manifest is not None:
-            logger.info("Skipping component execution")
-        else:
-            logging.info("Executing component")
-            input_manifest = self._load_or_create_manifest()
-            component = component_cls(self.spec, **self.user_arguments)
-            output_df = self._execute_component(component, manifest=input_manifest)
-            output_manifest = input_manifest.evolve(component_spec=self.spec)
-            self._write_data(dataframe=output_df, manifest=output_manifest)
+            output_manifest = _run_execution(input_manifest)
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 

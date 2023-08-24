@@ -158,12 +158,6 @@ def test_component_caching(metadata):
         "True",
         "--input_partition_rows",
         "100",
-        "--override_default_arg",
-        "bar",
-        "--override_default_none_arg",
-        "3.14",
-        "--override_default_arg_with_none",
-        "None",
     ]
 
     class MyExecutor(Executor):
@@ -176,7 +170,7 @@ def test_component_caching(metadata):
             pass
 
     executor = MyExecutor.from_args()
-    matching_execution_manifest = executor._find_matching_executions()
+    matching_execution_manifest = executor._get_latest_matching_manifest()
     assert matching_execution_manifest.run_id == "test_pipeline_2023"
 
 
