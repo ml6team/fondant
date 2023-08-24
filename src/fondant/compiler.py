@@ -119,17 +119,20 @@ class DockerCompiler(Compiler):
 
         pipeline.validate(run_id=run_id)
 
+        cache_key_previous_component = None
+
         for component_name, component in pipeline._graph.items():
+            component_op = component["fondant_component_op"]
+
             metadata = Metadata(
                 pipeline_name=pipeline.name,
                 run_id=run_id,
                 base_path=path,
                 component_id=component_name,
+                cache_key=component_op.get_component_cache_key(),
             )
 
             logger.info(f"Compiling service for {component_name}")
-
-            component_op = component["fondant_component_op"]
 
             # add metadata argument to command
             command = ["--metadata", metadata.to_json()]
@@ -139,7 +142,7 @@ class DockerCompiler(Compiler):
                 [
                     "--output_manifest_path",
                     f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
-                    f"{component_name}/manifest.json",
+                    f"{component_name}/manifest_{metadata.cache_key}.json",
                 ],
             )
 
@@ -162,9 +165,11 @@ class DockerCompiler(Compiler):
                         [
                             "--input_manifest_path",
                             f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
-                            f"{dependency}/manifest.json",
+                            f"{dependency}/manifest_{cache_key_previous_component}.json",
                         ],
                     )
+
+            cache_key_previous_component = metadata.cache_key
 
             volumes: t.List[t.Union[str, dict]] = []
             if volume:
@@ -249,16 +254,17 @@ class KubeFlowCompiler(Compiler):
             manifest_path = ""
 
             for component_name, component in pipeline._graph.items():
+                component_op = component["fondant_component_op"]
+
                 metadata = Metadata(
                     pipeline_name=pipeline.name,
                     run_id=run_id,
                     base_path=pipeline.base_path,
                     component_id=component_name,
+                    cache_key=component_op.get_component_cache_key(),
                 )
 
                 logger.info(f"Compiling service for {component_name}")
-
-                component_op = component["fondant_component_op"]
 
                 # convert ComponentOp to Kubeflow component
                 kubeflow_component_op = self.kfp.components.load_component(

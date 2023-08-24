@@ -358,6 +358,7 @@ class Pipeline:
             base_path=self.base_path,
             run_id=run_id,
             component_id=load_component_name,
+            cache_key="42",
         )
         for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["fondant_component_op"]

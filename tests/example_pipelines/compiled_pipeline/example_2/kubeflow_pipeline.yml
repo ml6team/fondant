@@ -25,7 +25,7 @@ spec:
       - /tmp/inputs/input_manifest_path/data
       - --metadata
       - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-        "component_id": "first_component"}'
+        "component_id": "first_component", "cache_key": "1"}'
       - --component_spec
       - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
         "description": "This is an example component", "image": "example_component:latest",
@@ -34,7 +34,7 @@ spec:
       - --input_partition_rows
       - None
       - --cache
-      - 'True'
+      - 'False'
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -48,15 +48,15 @@ spec:
           data: ''
     metadata:
       annotations:
-        pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "component_spec":
+        pipelines.kubeflow.org/arguments.parameters: '{"cache": "False", "component_spec":
           "{\"args\": {\"storage_args\": {\"description\": \"Storage arguments\",
           \"type\": \"str\"}}, \"description\": \"This is an example component\",
           \"image\": \"example_component:latest\", \"name\": \"First component\",
           \"produces\": {\"captions\": {\"fields\": {\"data\": {\"type\": \"string\"}}},
           \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
-          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
-          "storage_args": "a dummy string arg"}'
+          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
+          \"cache_key\": \"1\"}", "storage_args": "a dummy string arg"}'
         pipelines.kubeflow.org/component_ref: '{"digest": "99e50abb5261d2381b8d7ab61eadb9feff6c3d90f9a7b3ed89e69cda31c39d9b"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
@@ -96,7 +96,7 @@ spec:
       - /tmp/inputs/input_manifest_path/data
       - --metadata
       - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-        "component_id": "image_cropping"}'
+        "component_id": "image_cropping", "cache_key": "2"}'
       - --component_spec
       - '{"args": {"cropping_threshold": {"default": -30, "description": "Threshold
         parameter used for detecting borders. A lower (negative) parameter results
@@ -139,7 +139,8 @@ spec:
           \"height\": {\"type\": \"int32\"}, \"width\": {\"type\": \"int32\"}}}}}",
           "cropping_threshold": "0", "input_partition_rows": "None", "metadata": "{\"base_path\":
           \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\": \"test_pipeline-20230101000000\",
-          \"component_id\": \"image_cropping\"}", "padding": "0"}'
+          \"component_id\": \"image_cropping\", \"cache_key\": \"2\"}", "padding":
+          "0"}'
         pipelines.kubeflow.org/component_ref: '{"digest": "8c3ca8c42706df81bfe28a8f6a8447b5245fe817a4fb5ae4d0872041f1ca7f65"}'
         pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
           single-colored borders around images and crops them appropriately", "implementation":
