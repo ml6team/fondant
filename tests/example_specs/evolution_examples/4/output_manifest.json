@@ -10,7 +10,7 @@
    },
    "subsets":{
       "images":{
-         "location":"test_pipeline/12345/example_component/images",
+         "location":"/test_pipeline/12345/example_component/images",
          "fields":{
             "width":{
                "type":"int32"
