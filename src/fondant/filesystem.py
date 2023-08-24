@@ -1,7 +1,5 @@
 """This module defines common filesystem functionalities."""
 import logging
-import typing as t
-from pathlib import Path
 
 import fsspec
 
@@ -40,16 +38,3 @@ def get_filesystem(base_path: str) -> fsspec.spec.AbstractFileSystem:
     )
 
     raise ValueError(msg)
-
-
-def list_files(path: t.Union[str, Path]) -> t.List[str]:
-    """List files in the specified directory.
-
-    Args:
-        path: The path or URI of the directory.
-
-    Returns:
-        A list of absolute file paths in the specified directory.
-    """
-    fs = get_filesystem(str(path))
-    return fs.ls(str(path))

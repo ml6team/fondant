@@ -23,8 +23,8 @@ from fondant.executor import (
 )
 from fondant.manifest import Manifest, Metadata
 
-components_path = Path("example_specs/components")
-base_path = Path("example_specs/mock_base_path")
+components_path = Path(__file__).parent / "example_specs/components"
+base_path = Path(__file__).parent / "example_specs/mock_base_path"
 
 N_PARTITIONS = 2
 
@@ -40,7 +40,7 @@ def metadata():
     return Metadata(
         pipeline_name="example_pipeline",
         base_path=str(base_path),
-        component_id="component_1",
+        component_id="component_2",
         run_id="2024",
         cache_key="1",
     )
@@ -143,11 +143,12 @@ def test_component_arguments(metadata):
 
 
 def test_component_caching(metadata):
+    input_manifest_path = str(components_path / "arguments/input_manifest.json")
     # Mock CLI arguments
     sys.argv = [
         "",
         "--input_manifest_path",
-        str(components_path / "arguments/input_manifest.json"),
+        input_manifest_path,
         "--metadata",
         metadata.to_json(),
         "--output_manifest_path",
@@ -178,6 +179,9 @@ def test_component_caching(metadata):
     executor = MyExecutor.from_args()
     matching_execution_manifest = executor._get_latest_matching_manifest()
     assert matching_execution_manifest.run_id == "test_pipeline_2023"
+    assert (
+        executor._is_previous_cached(Manifest.from_file(input_manifest_path)) is False
+    )
 
 
 @pytest.mark.usefixtures("_patched_data_writing")
