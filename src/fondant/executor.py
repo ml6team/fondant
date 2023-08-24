@@ -204,7 +204,7 @@ class Executor(t.Generic[Component]):
         """
         matching_manifest_glob_pattern = (
             f"{self.metadata.base_path}/{self.metadata.pipeline_name}/*/"
-            f"{self.metadata.component_id}/manifest_*.json"
+            f"{self.metadata.component_id}/manifest_{self.metadata.cache_key}.json"
         )
 
         matching_manifests = self.filesystem.glob(matching_manifest_glob_pattern)

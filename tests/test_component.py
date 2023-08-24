@@ -42,7 +42,7 @@ def metadata():
         base_path=str(base_path),
         component_id="component_2",
         run_id="2024",
-        cache_key="1",
+        cache_key="2",
     )
 
 
