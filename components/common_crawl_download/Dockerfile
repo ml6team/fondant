@@ -15,15 +15,9 @@ ARG FONDANT_VERSION=main
 RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@${FONDANT_VERSION}
 
 # Set the working directory to the component folder
-WORKDIR /component
-COPY src/ src/
-ENV PYTHONPATH "${PYTHONPATH}:./src"
-
-FROM base as test
-RUN pip3 install pytest
-COPY tests/ tests/
-RUN python -m pytest tests
-
-FROM base
 WORKDIR /component/src
+
+# Copy over src-files
+COPY src/ .
+
 ENTRYPOINT ["fondant", "execute", "main"]
