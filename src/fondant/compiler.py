@@ -259,6 +259,7 @@ class KubeFlowCompiler(Compiler):
                 logger.info(f"Compiling service for {component_name}")
 
                 component_op = component["fondant_component_op"]
+
                 # convert ComponentOp to Kubeflow component
                 kubeflow_component_op = self.kfp.components.load_component(
                     text=component_op.component_spec.kubeflow_specification.to_string(),

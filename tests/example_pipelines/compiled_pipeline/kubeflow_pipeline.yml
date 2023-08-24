@@ -33,6 +33,8 @@ spec:
         "string"}}}, "images": {"fields": {"data": {"type": "binary"}}}}}'
       - --input_partition_rows
       - None
+      - --cache
+      - 'True'
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -49,33 +51,35 @@ spec:
           data: ''
     metadata:
       annotations:
-        pipelines.kubeflow.org/arguments.parameters: '{"component_spec": "{\"args\":
-          {\"storage_args\": {\"description\": \"Storage arguments\", \"type\": \"str\"}},
-          \"description\": \"This is an example component\", \"image\": \"example_component:latest\",
-          \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
-          {\"data\": {\"type\": \"string\"}}}, \"images\": {\"fields\": {\"data\":
-          {\"type\": \"binary\"}}}}}", "input_partition_rows": "None", "metadata":
-          "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
-          \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
+        pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "component_spec":
+          "{\"args\": {\"storage_args\": {\"description\": \"Storage arguments\",
+          \"type\": \"str\"}}, \"description\": \"This is an example component\",
+          \"image\": \"example_component:latest\", \"name\": \"First component\",
+          \"produces\": {\"captions\": {\"fields\": {\"data\": {\"type\": \"string\"}}},
+          \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
+          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
+          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "c53791e5eba77643348ea14b01bc20f273c32d827f5f1b1b896ef6965fd12d82"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "99e50abb5261d2381b8d7ab61eadb9feff6c3d90f9a7b3ed89e69cda31c39d9b"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--storage_args",
-          {"inputValue": "storage_args"}, "--output_manifest_path", {"outputPath":
-          "output_manifest_path"}], "image": "example_component:latest"}}, "inputs":
-          [{"description": "Path to the input manifest", "name": "input_manifest_path",
-          "type": "String"}, {"description": "Metadata arguments containing the run
-          id and base path", "name": "metadata", "type": "String"}, {"default": "None",
-          "description": "The component specification as a dictionary", "name": "component_spec",
-          "type": "JsonObject"}, {"default": "None", "description": "The number of
-          rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"description": "Storage
-          arguments", "name": "storage_args", "type": "String"}], "name": "First component",
-          "outputs": [{"description": "Path to the output manifest", "name": "output_manifest_path",
-          "type": "String"}]}'
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--cache",
+          {"inputValue": "cache"}, "--storage_args", {"inputValue": "storage_args"},
+          "--output_manifest_path", {"outputPath": "output_manifest_path"}], "image":
+          "example_component:latest"}}, "inputs": [{"description": "Path to the input
+          manifest", "name": "input_manifest_path", "type": "String"}, {"description":
+          "Metadata arguments containing the run id and base path", "name": "metadata",
+          "type": "String"}, {"default": "None", "description": "The component specification
+          as a dictionary", "name": "component_spec", "type": "JsonObject"}, {"default":
+          "None", "description": "The number of rows to load per partition. Set to
+          override the automatic partitioning", "name": "input_partition_rows", "type":
+          "String"}, {"default": "True", "description": "Set to False to disable caching,
+          True by default.", "name": "cache", "type": "Boolean"}, {"description":
+          "Storage arguments", "name": "storage_args", "type": "String"}], "name":
+          "First component", "outputs": [{"description": "Path to the output manifest",
+          "name": "output_manifest_path", "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22

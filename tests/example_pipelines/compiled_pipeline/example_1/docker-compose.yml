@@ -14,6 +14,8 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - disable
+    - --cache
+    - 'True'
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -43,6 +45,8 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - '10'
+    - --cache
+    - 'True'
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -69,6 +73,8 @@ services:
     - a dummy string arg
     - --input_partition_rows
     - None
+    - --cache
+    - 'True'
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":

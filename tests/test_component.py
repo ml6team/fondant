@@ -94,6 +94,8 @@ def test_component_arguments(metadata):
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--cache",
+        "True",
         "--input_partition_rows",
         "100",
         "--override_default_arg",
@@ -116,6 +118,7 @@ def test_component_arguments(metadata):
     executor = MyExecutor.from_args()
     expected_partition_row_arg = 100
     assert executor.input_partition_rows == expected_partition_row_arg
+    assert executor.cache is True
     assert executor.user_arguments == {
         "string_default_arg": "foo",
         "integer_default_arg": 0,
@@ -152,6 +155,8 @@ def test_load_component(metadata):
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--cache",
+        "False",
     ]
 
     class MyLoadComponent(DaskLoadComponent):
@@ -197,6 +202,8 @@ def test_dask_transform_component(metadata):
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--cache",
+        "False",
     ]
 
     class MyDaskComponent(DaskTransformComponent):
@@ -240,6 +247,8 @@ def test_pandas_transform_component(metadata):
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--cache",
+        "False",
     ]
 
     class MyPandasComponent(PandasTransformComponent):
@@ -354,6 +363,8 @@ def test_write_component(metadata):
         "1",
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--cache",
+        "False",
     ]
 
     class MyWriteComponent(DaskWriteComponent):

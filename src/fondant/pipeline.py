@@ -34,6 +34,7 @@ class ComponentOp:
         number_of_gpus: The number of gpus to assign to the operation
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
+        cache: Set to False to disable caching, True by default.
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
@@ -56,14 +57,17 @@ class ComponentOp:
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
+        cache: t.Optional[bool] = True,
     ) -> None:
         self.component_dir = Path(component_dir)
+        self.input_partition_rows = input_partition_rows
+        self.cache = cache
+        self.arguments = self._set_arguments(arguments)
+
         self.component_spec = ComponentSpec.from_file(
             self.component_dir / self.COMPONENT_SPEC_NAME,
         )
         self.name = self.component_spec.name.replace(" ", "_").lower()
-        self.input_partition_rows = input_partition_rows
-        self.arguments = self._set_arguments(arguments)
 
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
@@ -85,6 +89,7 @@ class ComponentOp:
         input_partition_rows = validate_partition_number(self.input_partition_rows)
 
         arguments["input_partition_rows"] = str(input_partition_rows)
+        arguments["cache"] = str(self.cache)
 
         return arguments
 
@@ -116,6 +121,7 @@ class ComponentOp:
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
+        cache: t.Optional[bool] = True,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -127,6 +133,7 @@ class ComponentOp:
             number_of_gpus: The number of gpus to assign to the operation
             node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.
+            cache: Set to False to disable caching, True by default.
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -141,6 +148,7 @@ class ComponentOp:
             number_of_gpus=number_of_gpus,
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
+            cache=cache,
         )
 
     def get_component_cache_key(self) -> str:
@@ -324,6 +332,7 @@ class Pipeline:
         for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["fondant_component_op"]
             component_spec = fondant_component_op.component_spec
+
             if not load_component:
                 # Check subset exists
                 for (
@@ -375,3 +384,7 @@ class Pipeline:
             load_component = False
 
         logger.info("All pipeline component specifications match.")
+
+    def __repr__(self) -> str:
+        """Return a string representation of the FondantPipeline object."""
+        return f"{self.__class__.__name__}({self._graph!r}"

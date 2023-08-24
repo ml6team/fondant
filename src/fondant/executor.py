@@ -6,6 +6,7 @@ components take care of processing, filtering and extending the data.
 """
 
 import argparse
+import ast
 import json
 import logging
 import typing as t
@@ -37,6 +38,7 @@ class Executor(t.Generic[Component]):
         self,
         spec: ComponentSpec,
         *,
+        cache: bool,
         input_manifest_path: t.Union[str, Path],
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
@@ -44,6 +46,7 @@ class Executor(t.Generic[Component]):
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
     ) -> None:
         self.spec = spec
+        self.cache = cache
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
         self.metadata = Metadata.from_dict(metadata)
@@ -55,6 +58,7 @@ class Executor(t.Generic[Component]):
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
+        parser.add_argument("--cache", type=ast.literal_eval)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
         args, _ = parser.parse_known_args()
 
@@ -64,16 +68,20 @@ class Executor(t.Generic[Component]):
 
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
+        cache = args.cache
 
         return cls.from_spec(
             component_spec,
-            input_partition_rows,
+            cache=cache,
+            input_partition_rows=input_partition_rows,
         )
 
     @classmethod
     def from_spec(
         cls,
         component_spec: ComponentSpec,
+        *,
+        cache: bool,
         input_partition_rows: t.Optional[t.Union[str, int]],
     ) -> "Executor":
         """Create an executor from a component spec."""
@@ -85,6 +93,9 @@ class Executor(t.Generic[Component]):
         if "input_partition_rows" in args_dict:
             args_dict.pop("input_partition_rows")
 
+        if "cache" in args_dict:
+            args_dict.pop("cache")
+
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
@@ -94,6 +105,7 @@ class Executor(t.Generic[Component]):
             component_spec,
             input_manifest_path=input_manifest_path,
             output_manifest_path=output_manifest_path,
+            cache=cache,
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
@@ -177,20 +189,43 @@ class Executor(t.Generic[Component]):
 
         data_writer.write_dataframe(dataframe)
 
+    def _load_cached_output_manifest(self) -> "Manifest":
+        """Function that returns the cached output manifest."""
+        raise NotImplementedError
+
+    def _has_matching_execution(self) -> bool:
+        """Function that checks if there is an existing previous matching execution."""
+        # TODO: implement
+        return False
+
     def execute(self, component_cls: t.Type[Component]) -> None:
         """Execute a component.
 
         Args:
             component_cls: The class of the component to execute
         """
-        input_manifest = self._load_or_create_manifest()
+        matching_execution_exists = self._has_matching_execution()
 
-        component = component_cls(self.spec, **self.user_arguments)
-        output_df = self._execute_component(component, manifest=input_manifest)
+        if matching_execution_exists:
+            logger.info("Previous matching execution found")
+        else:
+            logger.info("No previous matching execution found")
 
-        output_manifest = input_manifest.evolve(component_spec=self.spec)
+        if self.cache:
+            logger.info("Caching for the component is disabled")
+        else:
+            logger.info("Caching for the component is enabled")
 
-        self._write_data(dataframe=output_df, manifest=output_manifest)
+        if self.cache is False and matching_execution_exists:
+            logging.info("Cached component run. Skipping component execution")
+            output_manifest = self._load_cached_output_manifest()
+        else:
+            logging.info("Executing component")
+            input_manifest = self._load_or_create_manifest()
+            component = component_cls(self.spec, **self.user_arguments)
+            output_df = self._execute_component(component, manifest=input_manifest)
+            output_manifest = input_manifest.evolve(component_spec=self.spec)
+            self._write_data(dataframe=output_df, manifest=output_manifest)
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 

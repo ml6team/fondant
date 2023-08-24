@@ -263,6 +263,12 @@ class KubeflowComponentSpec:
                     "type": "String",
                     "default": "None",
                 },
+                {
+                    "name": "cache",
+                    "description": "Set to False to disable caching, True by default.",
+                    "type": "Boolean",
+                    "default": "True",
+                },
                 *(
                     {
                         "name": arg.name,
@@ -295,6 +301,8 @@ class KubeflowComponentSpec:
                         {"inputValue": "component_spec"},
                         "--input_partition_rows",
                         {"inputValue": "input_partition_rows"},
+                        "--cache",
+                        {"inputValue": "cache"},
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},
