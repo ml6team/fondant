@@ -128,6 +128,10 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
     def load(self) -> dd.DataFrame:
         index_ddf = self.load_index()
 
+        # Repartition to parallelize and reduce memory footprint of each partition.
+        # Each (unfiltered) index file contains around ~10M urls. The numbers below are chosen so
+        # they end up with around 10k urls per partition. With an estimated content of ~25KB per
+        # page, this brings us close to the recommended partition size of 250MB.
         if self.n_records_to_download is not None:
             n_partitions = max(os.cpu_count(), self.n_records_to_download // 10000)  # type: ignore
             logging.info(f"Repartitioning to {n_partitions} partitions.")
