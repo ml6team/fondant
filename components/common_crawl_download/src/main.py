@@ -88,7 +88,7 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
 
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(url, headers=headers)
+                response = await client.get(url, headers=headers, timeout=60)
         except Exception as e:
             logger.warning(f"Error downloading {url} with headers {headers}: {repr(e)}")
             return row.Index, url, None
