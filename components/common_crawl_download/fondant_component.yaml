@@ -1,0 +1,25 @@
+name: Common crawl download component
+description: A component that downloads parts of the common crawl
+image: ghcr.io/ml6team/common_crawl_download:latest
+
+produces:
+  webpage:
+    fields:
+      url:
+        type: string
+      content:
+        type: string
+
+args:
+  common_crawl_indices:
+    description: List of common crawl indices which will be used to filter webpages
+  filters:
+    description: PyArrow filter which selects the pages to download
+    type: list
+  extract_plain_text:
+    description: If set to true the data contains the plain text without html tags
+    type: bool
+  n_records_to_download:
+    description: Number of records to download
+    type: int
+    default: None
