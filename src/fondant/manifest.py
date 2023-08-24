@@ -305,7 +305,7 @@ class Manifest:
                 # Update subset location as this is currently always rewritten
                 evolved_manifest.subsets[subset_name]._specification[
                     "location"
-                ] = f"{self.pipeline_name}/{self.run_id}/{component_id}/{subset_name}"
+                ] = f"/{self.pipeline_name}/{self.run_id}/{component_id}/{subset_name}"
 
             # Subset is not yet in manifest, add it
             else:
