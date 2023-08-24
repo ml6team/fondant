@@ -18,11 +18,14 @@ RUN python3 -m pip install -r /tmp/requirements.txt
 # This is split from other requirements to leverage caching
 ARG FONDANT_VERSION=main
 RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@${FONDANT_VERSION}
+RUN pip3 install -U numpy
 
 # Set the working directory to the component folder
 WORKDIR /component/src
 
 # Copy over src-files
 COPY src/ .
+
+RUN bash compile.sh
 
 ENTRYPOINT ["fondant", "execute", "main"]
