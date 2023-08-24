@@ -90,7 +90,7 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, headers=headers)
         except Exception as e:
-            logger.warning(f"Error downloading {url} with headers {headers}: {e}")
+            logger.warning(f"Error downloading {url} with headers {headers}: {repr(e)}")
             return row.Index, url, None
         else:
             warc_stream = io.BytesIO(response.content)
