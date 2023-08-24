@@ -37,7 +37,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
-        "n_rows_to_load": 100000,
+        "n_rows_to_load": 1000,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
@@ -69,7 +69,8 @@ detect_text_op = ComponentOp(
         "batch_size": 2,
     },
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
+    node_pool_name="model-inference-pool",
+    number_of_gpus=1,
 )
 
 
@@ -77,5 +78,5 @@ detect_text_op = ComponentOp(
 pipeline.add_op(load_from_hub_op)
 # pipeline.add_op(filter_complexity_op, dependencies=download_images_op)
 pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
-# pipeline.add_op(detect_text_op, dependencies=download_images_op)
+pipeline.add_op(detect_text_op, dependencies=download_images_op)
 # TODO add more ops
