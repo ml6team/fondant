@@ -35,7 +35,7 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
         extract_plain_text: bool,
         n_records_to_download: t.Optional[int] = None,
     ):
-        self.filters = parse_commoncrawl_index_filters(filters)
+        self.filters = parse_commoncrawl_index_filters(filters) if filters else None
         self.extract_plain_text = extract_plain_text
         self.n_records_to_download = n_records_to_download
         self.index_files = [self.get_http_url_path(url) for url in common_crawl_indices]

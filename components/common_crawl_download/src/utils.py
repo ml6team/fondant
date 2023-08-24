@@ -38,27 +38,24 @@ def parse_commoncrawl_index_filters(filters: t.List) -> t.List:
     """Parse and validate the provided filters."""
     logger.info(f"Validating filters: {filters}")
 
-    try:
-        if not isinstance(filters, list):
-            msg = "filters must be a list"
+    if not isinstance(filters, list):
+        msg = "filters must be a list"
+        raise TypeError(msg)
+
+    filters = [(d["field"], d["operator"], d["value"]) for d in filters]
+
+    for filter_tuple in filters:
+        if not isinstance(filter_tuple, tuple):
+            msg = "filters must be a list of tuples"
             raise TypeError(msg)
 
-        filters = [(d["field"], d["operator"], d["value"]) for d in filters]
+        field, operator, value = filter_tuple
+        if field not in VALID_COMMONCRAWL_INDEX_FILTERS:
+            msg = f"Invalid field: {field} in filter expression: {filter_tuple}"
+            raise ValueError(msg)
 
-        for filter_tuple in filters:
-            if not isinstance(filter_tuple, tuple):
-                msg = "filters must be a list of tuples"
-                raise TypeError(msg)
+        if operator not in VALID_OPERATORS:
+            msg = f"Invalid operator: {operator} in filter expression: {filter_tuple}"
+            raise ValueError(msg)
 
-            field, operator, value = filter_tuple
-            if field not in VALID_COMMONCRAWL_INDEX_FILTERS:
-                msg = f"Invalid field: {field} in filter expression: {filter_tuple}"
-                raise ValueError(msg)
-
-            if operator not in VALID_OPERATORS:
-                msg = f"Invalid operator: {operator} in filter expression: {filter_tuple}"
-                raise ValueError(msg)
-
-        return filters
-    except Exception as e:
-        raise e
+    return filters
