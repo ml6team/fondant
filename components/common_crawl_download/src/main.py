@@ -68,8 +68,12 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
 
         return dataframe.set_index("url_surtkey", sorted=True, drop=True)
 
-    async def download_warc_content(self, row: t.Any, client: httpx.AsyncClient) \
-            -> t.Tuple[str, str, t.Optional[str]]:
+    async def download_warc_content(
+        self,
+        row: t.Any,
+        client: httpx.AsyncClient,
+        semaphore: asyncio.Semaphore,
+    ) -> t.Tuple[str, str, t.Optional[str]]:
         """
         Download content of a single web page.
 
@@ -77,6 +81,7 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
             row: This should be a NamedTuple returned by df.itertuples(), but cannot be
                  typehinted as such.
             client: Httpx client to use
+            semaphore: Semaphore to limit amount of concurrent requests
 
         Returns:
             A tuple containing the index, url, and extracted content
@@ -88,7 +93,8 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
         }
 
         try:
-            response = await client.get(url, headers=headers)
+            async with semaphore:
+                response = await client.get(url, headers=headers)
         except Exception as e:
             logger.warning(f"Error downloading {url} with headers {headers}: {repr(e)}")
             return row.Index, url, None
@@ -106,9 +112,11 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
         html_content = []
 
         async def download_dataframe() -> None:
+            semaphore = asyncio.Semaphore(10)
+
             async with httpx.AsyncClient() as client:
                 html = await asyncio.gather(
-                    *[self.download_warc_content(row, client=client)
+                    *[self.download_warc_content(row, client=client, semaphore=semaphore)
                       for row in dataframe.itertuples()],
                 )
                 html_content.extend(html)
