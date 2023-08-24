@@ -7,6 +7,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install git -y && \
     apt-get install gcc -y && \
+    apt-get install g++ -y && \
     apt-get install ffmpeg libsm6 libxext6  -y
 
 # install requirements
@@ -20,9 +21,6 @@ RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@$
 
 # Set the working directory to the component folder
 WORKDIR /component/src
-
-# compile postprocessing kernels
-RUN sh compile.sh
 
 # Copy over src-files
 COPY src/ .

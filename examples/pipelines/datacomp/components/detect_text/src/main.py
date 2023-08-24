@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 
 from mmengine.config import Config
 
+from subprocess import call
+
+# make sure to compile the postprocessing scripts
+rc = call("./compile.sh")  # nosec
+
 from models import build_model
 from models.utils import fuse_module, rep_model_convert
 
