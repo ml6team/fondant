@@ -26,19 +26,14 @@ text, providing flexibility for your specific use case.
 Common Crawl data is accessible via HTTP requests, with the columnar index's Parquet files residing
 in a publicly available S3 bucket. You can access these files through HTTP requests. However,
 obtaining a comprehensive list of available index files using unauthenticated HTTP requests is not
-feasible.
 
-To retrieve a list of all columnar index files for a specific crawl you can utilise the `aws cli` as
-follows:
-
-```bash
-CRAWL=CC-MAIN-2023-23 # replace it with the specific crawl identifier
-aws s3 ls --recursive --human-readable --summarize "s3://commoncrawl/cc-index/table/cc-main/warc/crawl=${CRAWL}"
-```
+To retrieve a list of all columnar index files for a specific crawl you can download the 
+`cc-index-table.paths.gz` file from the announcement page (eg. CC-MAIN-2023-23), and 
+extract all the urls containing `subset=warc`.
 
 > Note: A list of all available crawl identifies you can find
 > on [here](https://data.commoncrawl.org/cc-index/collections/index.html)
 
 Depending on your specific use case, we recommend restricting the initial list of index files. For
-instance, the index for `CC-MAIN-2023-23` comprises 900 files, totaling around 265GiB in compressed
-size.
+instance, the index for `CC-MAIN-2023-23` comprises 300 files, each close to 1GB in size when 
+downloaded.
