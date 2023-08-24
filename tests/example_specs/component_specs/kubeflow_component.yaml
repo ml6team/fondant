@@ -31,8 +31,9 @@ implementation:
     container:
         image: example_component:latest
         command:
-        - python3
-        - main.py
+        - fondant
+        - execute
+        - main
         - --input_manifest_path
         -   inputPath: input_manifest_path
         - --metadata

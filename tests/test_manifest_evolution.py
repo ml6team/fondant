@@ -46,5 +46,5 @@ def test_component_spec_location_update():
 
     assert (
         evolved_manifest._specification["subsets"]["images"]["location"]
-        == "/images/12345/example_component"
+        == "test_pipeline/12345/example_component/images"
     )

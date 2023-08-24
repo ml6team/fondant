@@ -56,6 +56,8 @@ class DownloadImagesComponent(PandasTransformComponent):
         )
 
     async def download_image(self, url: str) -> t.Optional[bytes]:
+        url = url.strip()
+
         user_agent_string = (
             "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0"
         )

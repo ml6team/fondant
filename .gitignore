@@ -74,6 +74,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.tox
 MANIFEST
 
 # DS_Store (MacOS)
@@ -85,8 +86,12 @@ MANIFEST
 # kubeflow artifacts
 *.tgz
 
+# Coverage files
+*.coverage
+
 # docker artifacts
 examples/pipelines/**/docker-compose.yml
+examples/pipelines/**/pipeline.yaml
 
 # yaml-e files
 *.yaml-e

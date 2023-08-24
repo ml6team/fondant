@@ -73,7 +73,7 @@ class DockerCompiler(Compiler):
                 return True
 
         with open(output_path, "w") as outfile:
-            yaml.dump(spec, outfile, Dumper=NoAliasDumper)
+            yaml.dump(spec, outfile, Dumper=NoAliasDumper, default_flow_style=False)
 
         logger.info(f"Successfully compiled to {output_path}")
 
@@ -138,7 +138,8 @@ class DockerCompiler(Compiler):
             command.extend(
                 [
                     "--output_manifest_path",
-                    f"{path}/{component_name}/manifest.json",
+                    f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                    f"{component_name}/manifest.json",
                 ],
             )
 
@@ -160,7 +161,8 @@ class DockerCompiler(Compiler):
                     command.extend(
                         [
                             "--input_manifest_path",
-                            f"{path}/{dependency}/manifest.json",
+                            f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                            f"{dependency}/manifest.json",
                         ],
                     )
 
@@ -176,6 +178,21 @@ class DockerCompiler(Compiler):
                 "volumes": volumes,
             }
 
+            if component_op.number_of_gpus is not None:
+                services[component_name]["deploy"] = {
+                    "resources": {
+                        "reservations": {
+                            "devices": [
+                                {
+                                    "driver": "nvidia",
+                                    "count": component_op.number_of_gpus,
+                                    "capabilities": ["gpu"],
+                                },
+                            ],
+                        },
+                    },
+                }
+
             if component_op.dockerfile_path is not None:
                 logger.info(
                     f"Found Dockerfile for {component_name}, adding build step.",
@@ -186,6 +203,7 @@ class DockerCompiler(Compiler):
                 }
             else:
                 services[component_name]["image"] = component_op.component_spec.image
+
         return {
             "name": pipeline.name,
             "version": "3.8",

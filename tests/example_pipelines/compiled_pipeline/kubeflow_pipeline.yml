@@ -18,8 +18,9 @@ spec:
   - container:
       args: []
       command:
-      - python3
-      - main.py
+      - fondant
+      - execute
+      - main
       - --input_manifest_path
       - /tmp/inputs/input_manifest_path/data
       - --metadata
@@ -59,10 +60,10 @@ spec:
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
           \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
           "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "c875e284a40159fc1cf7ff72538f20d8b4e8255e2ba0a5ab8bc9f35554e63749"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "99e50abb5261d2381b8d7ab61eadb9feff6c3d90f9a7b3ed89e69cda31c39d9b"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
-          component", "implementation": {"container": {"command": ["python3", "main.py",
-          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          component", "implementation": {"container": {"command": ["fondant", "execute",
+          "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
           "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--cache",
           {"inputValue": "cache"}, "--storage_args", {"inputValue": "storage_args"},
