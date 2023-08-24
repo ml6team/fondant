@@ -142,7 +142,7 @@ def test_component_arguments(metadata):
     }
 
 
-def test_component_caching(metadata):
+def test_component_caching(metadata, monkeypatch):
     input_manifest_path = str(components_path / "arguments/input_manifest.json")
     # Mock CLI arguments
     sys.argv = [
@@ -176,9 +176,21 @@ def test_component_caching(metadata):
         def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
             pass
 
+    def mock_fs_created(path):
+        if "2023" in path:
+            return 2023
+
+        if "2022" in path:
+            return 2022
+
+        return 1970
+
     executor = MyExecutor.from_args()
+    monkeypatch.setattr(executor.filesystem, "created", mock_fs_created)
     matching_execution_manifest = executor._get_latest_matching_manifest()
+    # Check that the latest manifest is returned
     assert matching_execution_manifest.run_id == "test_pipeline_2023"
+    # Check that the previous component is not cached due to differing run IDs
     assert (
         executor._is_previous_cached(Manifest.from_file(input_manifest_path)) is False
     )
