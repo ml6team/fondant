@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    # base_path=PipelineConfigs.BASE_PATH,
-    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    base_path=PipelineConfigs.BASE_PATH,
+    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 
 # define ops
@@ -27,8 +27,8 @@ load_component_column_mapping = {
     "face_bboxes": "images_face_bboxes",
     "sha256": "images_sha256",
     "text": "text_data",
-    "clip_b32_similarity_score": "image_text_clip_b32_similarity_score",
-    "clip_l14_similarity_score": "image_text_clip_l14_similarity_score",
+    "clip_b32_similarity_score": "imagetext_clipb32score",
+    "clip_l14_similarity_score": "imagetext_clipl14score",
 }
 
 load_from_hub_op = ComponentOp(
@@ -51,6 +51,7 @@ download_images_op = ComponentOp.from_registry(
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
+    input_partition_rows=1000,
 )
 filter_complexity_op = ComponentOp(
     component_dir="components/filter_text_complexity",
@@ -76,5 +77,5 @@ detect_text_op = ComponentOp(
 pipeline.add_op(load_from_hub_op)
 # pipeline.add_op(filter_complexity_op, dependencies=download_images_op)
 pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
-pipeline.add_op(detect_text_op, dependencies=download_images_op)
+# pipeline.add_op(detect_text_op, dependencies=download_images_op)
 # TODO add more ops

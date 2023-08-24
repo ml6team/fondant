@@ -21,15 +21,8 @@ RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@$
 # Set the working directory to the component folder
 WORKDIR /component/src
 
-# compile postprocessing kernels (compile.sh script)
-RUN pwd && ls
-RUN cd models/post_processing/pa/
-RUN python setup.py build_ext --inplace
-RUN cd ../pse/
-RUN python setup.py build_ext --inplace
-RUN cd ../ccl/
-RUN python setup.py build_ext --inplace
-RUN cd ../../../
+# compile postprocessing kernels
+RUN sh compile.sh
 
 # Copy over src-files
 COPY src/ .
