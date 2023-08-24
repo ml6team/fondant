@@ -23,8 +23,8 @@ from fondant.executor import (
 )
 from fondant.manifest import Manifest, Metadata
 
-components_path = Path(__file__).parent / "example_specs/components"
-base_path = Path(__file__).parent / "example_specs/mock_base_path"
+components_path = Path("example_specs/components")
+base_path = Path("example_specs/mock_base_path")
 
 N_PARTITIONS = 2
 
@@ -158,6 +158,12 @@ def test_component_caching(metadata):
         "True",
         "--input_partition_rows",
         "100",
+        "--override_default_arg",
+        "bar",
+        "--override_default_none_arg",
+        "3.14",
+        "--override_default_arg_with_none",
+        "None",
     ]
 
     class MyExecutor(Executor):
