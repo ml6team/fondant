@@ -14,7 +14,11 @@ produces:
       data:
         type: binary
       boxes:
-        type: utf8
+        type: array
+        items:
+          type: array
+          items:
+            type: int32
 
 args:
   batch_size:
