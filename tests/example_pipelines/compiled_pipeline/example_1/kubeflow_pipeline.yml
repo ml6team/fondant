@@ -40,6 +40,7 @@ spec:
       - --output_manifest_path
       - /tmp/outputs/output_manifest_path/data
       image: example_component:latest
+      imagePullPolicy: Always
       resources:
         limits:
           nvidia.com/gpu: 1
@@ -115,6 +116,7 @@ spec:
       - --output_manifest_path
       - /tmp/outputs/output_manifest_path/data
       image: example_component:latest
+      imagePullPolicy: Always
     inputs:
       artifacts:
       - name: first-component-output_manifest_path
@@ -209,6 +211,7 @@ spec:
       - --output_manifest_path
       - /tmp/outputs/output_manifest_path/data
       image: example_component:latest
+      imagePullPolicy: Always
     inputs:
       artifacts:
       - name: second-component-output_manifest_path
