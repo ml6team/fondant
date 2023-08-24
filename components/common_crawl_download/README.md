@@ -1,7 +1,7 @@
 # Common Crawl Download component
 
 The Common Crawl Download Component serves as a LoadComponent for initializing a dataset from the
-Common Crawl. The component takes a list of
+Common Crawl repository. The component takes a list of
 [columnar common crawl index files](https://commoncrawl.org/2018/03/index-to-warc-files-and-urls-in-columnar-format/)
 and applies provided pyarrow filters to narrow down the download to relevant webpages.
 The available filters allow you to precisely define the scope of the download. The component offers
