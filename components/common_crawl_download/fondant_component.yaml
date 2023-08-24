@@ -13,6 +13,7 @@ produces:
 args:
   common_crawl_indices:
     description: List of common crawl indices which will be used to filter webpages
+    type: list
   filters:
     description: PyArrow filter which selects the pages to download
     type: list
