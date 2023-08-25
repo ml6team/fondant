@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 from mmengine.config import Config
 
 # import subprocess
-# make sure to compile the postprocessing scripts
+# # make sure to compile the postprocessing scripts
 # subprocess.call(["sh", "./compile.sh"])  # nosec
 
 from models import build_model

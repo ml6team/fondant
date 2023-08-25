@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+FROM --platform=linux/amd64 pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -18,7 +18,6 @@ RUN python3 -m pip install -r /tmp/requirements.txt
 # This is split from other requirements to leverage caching
 ARG FONDANT_VERSION=main
 RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@${FONDANT_VERSION}
-RUN pip3 install -U numpy
 
 # Set the working directory to the component folder
 WORKDIR /component/src
@@ -26,6 +25,6 @@ WORKDIR /component/src
 # Copy over src-files
 COPY src/ .
 
-RUN bash compile.sh
+RUN sh ./compile.sh
 
 ENTRYPOINT ["fondant", "execute", "main"]
