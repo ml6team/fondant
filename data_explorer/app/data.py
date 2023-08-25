@@ -1,7 +1,7 @@
 """This file contains data loading logic"""
 import json
 import logging
-from typing import List, Tuple
+from typing import List
 from urllib.parse import urlparse
 
 import dask.dataframe as dd

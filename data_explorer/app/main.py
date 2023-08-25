@@ -1,12 +1,15 @@
 """Main file of the data explorer interface"""
 import logging
 
+import dask
 import streamlit as st
 from data import load_dataframe
 from table import get_image_fields, get_numeric_fields
 from widgets import (build_explorer_table, build_image_explorer,
                      build_numeric_analysis_plots,
                      build_numeric_analysis_table, build_sidebar)
+
+dask.config.set({"dataframe.convert-string": False})
 
 LOGGER = logging.getLogger(__name__)
 # streamlit wide
@@ -31,7 +34,6 @@ if __name__ == "__main__":
         # extract image and numeric columns
         image_fields = get_image_fields(fields)
         numeric_fields = get_numeric_fields(fields)
-
         # build tabs
         tab_explorer, tab_numeric, tab_images = st.tabs(
             ["Data explorer", "Numerical analysis", "Image explorer"]

@@ -285,6 +285,10 @@ class KubeFlowCompiler(Compiler):
                     component_task,
                     component_op,
                 )
+
+                # Set image pull policy to always
+                component_task.container.set_image_pull_policy("Always")
+
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if previous_component_task is not None:
