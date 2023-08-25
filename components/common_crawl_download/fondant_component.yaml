@@ -1,6 +1,6 @@
 name: Common crawl download component
 description: A component that downloads parts of the common crawl
-image: ghcr.io/ml6team/common_crawl_download:e919e70
+image: ghcr.io/ml6team/common_crawl_download:9c979a6
 
 produces:
   webpage:
