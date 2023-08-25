@@ -1,0 +1,20 @@
+name: Mask images
+description: Component that masks text from images using bounding boxes (sets the part of the image in the bounding box to the average color of the bounding box)
+image: ghcr.io/ml6team/mask_images:dev
+
+consumes:
+  images:
+    fields:
+      data:
+        type: binary
+      bounding_boxes:
+        type: list
+
+produces:
+  images:
+    fields:
+      data:
+        type: binary
+      bounding_boxes:
+        type: list
+
