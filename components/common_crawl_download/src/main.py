@@ -99,8 +99,8 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
             logger.warning(f"Error downloading {url} with headers {headers}: {repr(e)}")
             return row.Index, url, None
         else:
-            warc_stream = io.BytesIO(response.content)
-            content = read_warc_content(warc_stream)
+            with io.BytesIO(response.content) as warc_stream:
+                content = read_warc_content(warc_stream)
 
             if self.extract_plain_text and content is not None:
                 content = extract_html(content)
@@ -114,7 +114,8 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
         async def download_dataframe() -> None:
             semaphore = asyncio.Semaphore(10)
 
-            async with httpx.AsyncClient() as client:
+            transport = httpx.AsyncHTTPTransport(retries=1)
+            async with httpx.AsyncClient(transport=transport, timeout=10) as client:
                 html = await asyncio.gather(
                     *[self.download_warc_content(row, client=client, semaphore=semaphore)
                       for row in dataframe.itertuples()],
