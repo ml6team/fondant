@@ -98,6 +98,7 @@ for dir in "${components_to_build[@]}"; do
    --build-arg="FONDANT_VERSION=${tags[0]}" \
    --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
    --progress=plain \
+   --no-cache \
    .
 
   popd

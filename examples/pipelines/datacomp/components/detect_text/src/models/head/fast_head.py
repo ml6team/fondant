@@ -13,11 +13,15 @@ import cv2
 import pyximport
 
 pyximport.install()
-# from ..post_processing import ccl_cuda
-from models.post_processing.ccl import ccl_cuda
 
-# except:
-#     print("ccl_cuda is not installed!")
+ccl_cuda_success = False
+try:
+    # from ..post_processing import ccl_cuda
+    from models.post_processing.ccl import ccl_cuda
+
+    ccl_cuda_success = True
+except:
+    print("ccl_cuda is not installed!")
 
 
 class FASTHead(nn.Module):
@@ -83,9 +87,9 @@ class FASTHead(nn.Module):
         return x
 
     def get_results(self, out, img_meta, cfg, scale=2):
-        if not self.training:
-            torch.cuda.synchronize()
-            start = time.time()
+        # if not self.training:
+        #     torch.cuda.synchronize()
+        #     start = time.time()
 
         org_img_size = img_meta["org_img_size"][0]
         img_size = img_meta["img_size"][0]  # 640*640
@@ -105,7 +109,7 @@ class FASTHead(nn.Module):
         score_maps = score_maps.squeeze(1)  # B*640*640
 
         kernels = (out[:, 0, :, :] > 0).to(torch.uint8)  # B*160*160
-        if kernels.is_cuda:
+        if kernels.is_cuda and ccl_cuda_success:
             labels_ = ccl_cuda.ccl_batch(kernels)  # B*160*160
         else:
             labels_ = []
@@ -126,9 +130,9 @@ class FASTHead(nn.Module):
 
         keys = [torch.unique(labels_[i], sorted=True) for i in range(batch_size)]
 
-        if not self.training:
-            torch.cuda.synchronize()
-            outputs.update(dict(post_time=time.time() - start))
+        # if not self.training:
+        #     torch.cuda.synchronize()
+        #     outputs.update(dict(post_time=time.time() - start))
 
         outputs.update(dict(kernels=kernels.data.cpu()))
 

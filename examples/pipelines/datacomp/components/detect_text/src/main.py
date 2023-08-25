@@ -62,9 +62,9 @@ def process_image(image: bytes, *, image_transform, device: str) -> torch.Tensor
 
     def transform(img: Image) -> torch.Tensor:
         """Transform the image to a tensor and move it to the specified device."""
-        return image_transform(images=img)[0][0].to(device)
+        return image_transform(img)[0][0].to(device)
 
-    return transform(load(image))["pixel_values"]
+    return transform(load(image))
 
 
 def detect_text_batch(
@@ -74,7 +74,7 @@ def detect_text_batch(
     model,
 ) -> pd.Series:
     """Detext text on a batch of images."""
-    imgs = torch.stack(image_batch, dim=0)
+    imgs = torch.stack(list(image_batch), dim=0)
     batch_size = imgs.shape[0]
     img_metas = {
         "filename": [None for i in range(batch_size)],
@@ -120,31 +120,31 @@ class DetectTextComponent(PandasTransformComponent):
         )
 
         cfg = Config.fromfile("config/fast/tt/fast_tiny_tt_512_finetune_ic17mlt.py")
-        model = build_model(cfg.model)
-        model = rep_model_convert(model)
-        model = fuse_module(model)
-        # load weights
-        state_dict = self.load_state_dict()
-        model.load(state_dict)
-        model.eval()
-
         self.cfg = cfg
-        self.model = model
 
-    def load_state_dict():
-        filepath = hf_hub_download(
+        checkpoint_path = hf_hub_download(
             repo_id="ml6team/fast",
             filename="fast_tiny_tt_512_finetune_ic17mlt.pth",
             repo_type="model",
         )
-        state_dict = torch.load(filepath)["ema"]
+        self.model = build_model(cfg.model)
+        self.model = self.init_model(checkpoint_path)
 
+    def init_model(self, checkpoint_path):
+        checkpoint = torch.load(checkpoint_path)
+        state_dict = checkpoint["ema"]
         d = dict()
         for key, value in state_dict.items():
             tmp = key.replace("module.", "")
             d[tmp] = value
+        self.model.load_state_dict(d)
+        self.model = self.model.to(self.device)
 
-        return d
+        self.model = rep_model_convert(self.model)
+        # fuse conv and bn
+        self.model = fuse_module(self.model)
+        self.model.eval()
+        return self.model
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         images = pd.Series(dataframe["images"]["data"]).apply(

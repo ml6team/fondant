@@ -1,18 +1,17 @@
-FROM --platform=linux/amd64 pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
+FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
-## System dependencies
+# System dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install git -y && \
     apt-get install gcc -y && \
-    apt-get install g++ -y && \
-    apt-get install ffmpeg libsm6 libxext6  -y
+    apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 
-# install requirements
-COPY requirements.txt /tmp/requirements.txt
-RUN python3 -m pip install -r /tmp/requirements.txt
+# Install requirements
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Install Fondant
 # This is split from other requirements to leverage caching
@@ -24,7 +23,5 @@ WORKDIR /component/src
 
 # Copy over src-files
 COPY src/ .
-
-RUN sh ./compile.sh
 
 ENTRYPOINT ["fondant", "execute", "main"]
