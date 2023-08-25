@@ -169,4 +169,8 @@ class DetectTextComponent(PandasTransformComponent):
                     ).T,
                 )
 
-        return pd.concat(results).to_frame(name=("images", "boxes"))
+        result = pd.concat(results).to_frame(name=("images", "boxes"))
+
+        dataframe = pd.concat([dataframe, result], axis=1)
+
+        return dataframe
