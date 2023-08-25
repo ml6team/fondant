@@ -19,7 +19,7 @@ from utils import (
 
 logger = logging.getLogger(__name__)
 
-Client()
+Client(processes=False)
 
 CC_BASE_URL = "http://data.commoncrawl.org"
 
