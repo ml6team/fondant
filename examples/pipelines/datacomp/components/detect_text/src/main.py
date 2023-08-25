@@ -1,4 +1,7 @@
-"""This component detects text in images using an mmocr model."""
+"""This component detects text in images using an mmocr model.
+
+Based on notebook: Run inference with FAST for text detection.ipynb.
+"""
 import io
 import logging
 import typing as t
