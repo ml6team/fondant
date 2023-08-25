@@ -335,6 +335,9 @@ class Executor(t.Generic[Component]):
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
     """Base class for a Fondant load component."""
 
+    def _is_previous_cached(self, input_manifest: Manifest) -> bool:
+        return True
+
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
         return ["input_manifest_path"]
