@@ -5,7 +5,6 @@ import logging
 import os
 import typing as t
 
-import dask
 import dask.dataframe as dd
 import httpx
 import pandas as pd
@@ -20,7 +19,6 @@ from utils import (
 
 logger = logging.getLogger(__name__)
 
-dask.config.set(scheduler="processes")
 Client(SubprocessCluster())
 
 CC_BASE_URL = "http://data.commoncrawl.org"
