@@ -112,7 +112,7 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
         html_content = []
 
         async def download_dataframe() -> None:
-            semaphore = asyncio.Semaphore(10)
+            semaphore = asyncio.Semaphore(20)
 
             transport = httpx.AsyncHTTPTransport(retries=1)
             async with httpx.AsyncClient(transport=transport, timeout=10) as client:
@@ -143,12 +143,12 @@ class CommonCrawlDownloadComponent(DaskLoadComponent):
         # they end up with around 10k urls per partition. With an estimated content of ~25KB per
         # page, this brings us close to the recommended partition size of 250MB.
         if self.n_records_to_download is not None:
-            n_partitions = max(os.cpu_count(), self.n_records_to_download // 5000)  # type: ignore
+            n_partitions = max(os.cpu_count(), self.n_records_to_download // 10000)  # type: ignore
             logging.info(f"Repartitioning to {n_partitions} partitions.")
             index_ddf = dd.from_pandas(index_ddf.head(self.n_records_to_download,
                                                       npartitions=-1), npartitions=n_partitions)
         else:
-            n_partitions = len(self.index_files) * 2000
+            n_partitions = len(self.index_files) * 1000
             logging.info(f"Repartitioning to {n_partitions} partitions.")
             index_ddf = index_ddf.repartition(npartitions=n_partitions)
 
