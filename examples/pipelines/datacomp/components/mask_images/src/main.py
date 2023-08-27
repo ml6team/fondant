@@ -41,8 +41,10 @@ class MaskImagesComponent(PandasTransformComponent):
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         logger.info("Masking images based on boxes...")
-        dataframe["images"]["data"] = dataframe["images"].apply(
+        result = dataframe["images"].apply(
             lambda x: mask_image(x.data, x.boxes), axis=1
         )
+        data = {"data": result}
+        dataframe = pd.concat({"images": pd.DataFrame(data)}, axis=1)
 
         return dataframe
