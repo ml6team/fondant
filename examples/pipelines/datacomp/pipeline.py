@@ -53,16 +53,6 @@ download_images_op = ComponentOp.from_registry(
     node_pool_name="n2-standard-128-pool",
     input_partition_rows=1000,
 )
-filter_complexity_op = ComponentOp(
-    component_dir="components/filter_text_complexity",
-    arguments={
-        "spacy_pipeline": "en_core_web_sm",
-        "batch_size": 1000,
-        "min_complexity": 1,
-    },
-    node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
-)
 detect_text_op = ComponentOp(
     component_dir="components/detect_text",
     arguments={
@@ -77,12 +67,21 @@ mask_images_op = ComponentOp(
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
 )
+embed_images_op = ComponentOp.from_registry(
+    name="image_embedding",
+    arguments={
+        "batch_size": 2,
+    },
+    node_pool_label="node_pool",
+    node_pool_name="model-inference-pool",
+    # number_of_gpus=1,
+)
 
 
 # add ops to pipeline
 pipeline.add_op(load_from_hub_op)
-# pipeline.add_op(filter_complexity_op, dependencies=download_images_op)
 pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
 pipeline.add_op(detect_text_op, dependencies=download_images_op)
 pipeline.add_op(mask_images_op, dependencies=detect_text_op)
+pipeline.add_op(embed_images_op, dependencies=mask_images_op)
 # TODO add more ops
