@@ -72,6 +72,11 @@ detect_text_op = ComponentOp(
     node_pool_name="model-inference-pool",
     # number_of_gpus=1,
 )
+mask_images_op = ComponentOp(
+    component_dir="components/mask_images",
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool",
+)
 
 
 # add ops to pipeline
@@ -79,4 +84,5 @@ pipeline.add_op(load_from_hub_op)
 # pipeline.add_op(filter_complexity_op, dependencies=download_images_op)
 pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
 pipeline.add_op(detect_text_op, dependencies=download_images_op)
+pipeline.add_op(mask_images_op, dependencies=detect_text_op)
 # TODO add more ops
