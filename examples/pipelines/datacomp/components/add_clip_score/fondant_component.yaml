@@ -1,0 +1,24 @@
+name: Add CLIP score
+description: Component that adds the CLIP score
+image: ghcr.io/ml6team/add_clip_score:50f3a97878ac81670ebe624039ff0fcec0542e4f
+
+consumes:
+  embeddings:
+    fields:
+      data:
+        type: array
+        items:
+          type: float32
+  textembedding:
+    fields:
+      data:
+        type: array
+        items:
+          type: float32
+
+
+produces:
+  imagetext:
+    fields:
+      maskedclipl14score:
+        type: float32

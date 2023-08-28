@@ -32,6 +32,13 @@ produces:
       clipl14score:
         type: float32
 
+  textembedding:
+    fields:
+      data:
+        type: array
+        items:
+          type: float32
+
 args:
   dataset_name:
     description: Name of dataset on the hub

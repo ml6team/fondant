@@ -29,12 +29,13 @@ load_component_column_mapping = {
     "text": "text_data",
     "clip_b32_similarity_score": "imagetext_clipb32score",
     "clip_l14_similarity_score": "imagetext_clipl14score",
+    "clip_l14_text_embedding": "textembedding_data",
 }
 
 load_from_hub_op = ComponentOp(
     component_dir="components/load_from_hf_hub",
     arguments={
-        "dataset_name": "mlfoundations/datacomp_small",
+        "dataset_name": "nielsr/datacomp-small-with-text-embeddings",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
         "n_rows_to_load": 10,
@@ -76,6 +77,11 @@ embed_images_op = ComponentOp.from_registry(
     node_pool_name="model-inference-pool",
     # number_of_gpus=1,
 )
+add_clip_score_op = ComponentOp(
+    component_dir="components/add_clip_score",
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool",
+)
 
 
 # add ops to pipeline
@@ -84,4 +90,5 @@ pipeline.add_op(download_images_op, dependencies=load_from_hub_op)
 pipeline.add_op(detect_text_op, dependencies=download_images_op)
 pipeline.add_op(mask_images_op, dependencies=detect_text_op)
 pipeline.add_op(embed_images_op, dependencies=mask_images_op)
+pipeline.add_op(add_clip_score_op, dependencies=embed_images_op)
 # TODO add more ops
