@@ -303,12 +303,13 @@ class KubeFlowCompiler(Compiler):
     def _set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
         number_of_gpus = fondant_component_operation.number_of_gpus
+        node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
 
         # Assign optional specification
         if number_of_gpus is not None:
             task.set_gpu_limit(number_of_gpus)
-        if node_pool_name is not None:
-            task.add_node_selector_constraint("node_pool", node_pool_name)
+        if node_pool_name is not None and node_pool_label is not None:
+            task.add_node_selector_constraint(node_pool_label, node_pool_name)
 
         return task
