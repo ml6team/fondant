@@ -1,0 +1,9 @@
+name: Deduplicate images based on image source url
+description: Component that deduplicate images based on source url
+image: ghcr.io/ml6team/image_url_deduplication:latest
+
+consumes:
+  image:
+    fields:
+      image_url:
+        type: string
