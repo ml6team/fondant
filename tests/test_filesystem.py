@@ -17,11 +17,6 @@ def test_valid_filesystem():
 
 def test_invalid_filesystem():
     """Test that a data type specified with the Type class matches the expected pyarrow schema."""
-    expected_msg = (
-        "Unable to create fsspec filesystem object for url `invalid_protocol://`"
-        " because of unsupported scheme: invalid_protocol.\n"
-        "Available schemes are ['file', 's3', 'gs', 'abfs']"
-    )
-
+    expected_msg = "Protocol not known: invalid_protocol"
     with pytest.raises(ValueError, match=re.escape(expected_msg)):
         get_filesystem("invalid_protocol://")

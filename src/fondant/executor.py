@@ -262,6 +262,22 @@ class Executor(t.Generic[Component]):
         )
         return True
 
+    def _run_execution(
+        self,
+        component_cls: t.Type[Component],
+        input_manifest: Manifest,
+    ) -> Manifest:
+        logging.info("Executing component")
+        component = component_cls(self.spec, **self.user_arguments)
+        output_df = self._execute_component(
+            component,
+            manifest=input_manifest,
+        )
+        output_manifest = input_manifest.evolve(component_spec=self.spec)
+        self._write_data(dataframe=output_df, manifest=output_manifest)
+
+        return output_manifest
+
     def execute(self, component_cls: t.Type[Component]) -> None:
         """
         Execute a component.
@@ -269,19 +285,6 @@ class Executor(t.Generic[Component]):
         Args:
             component_cls: The class of the component to execute
         """
-
-        def _run_execution(inner_input_manifest: Manifest) -> Manifest:
-            logging.info("Executing component")
-            component = component_cls(self.spec, **self.user_arguments)
-            output_df = self._execute_component(
-                component,
-                manifest=inner_input_manifest,
-            )
-            inner_output_manifest = input_manifest.evolve(component_spec=self.spec)
-            self._write_data(dataframe=output_df, manifest=inner_output_manifest)
-
-            return inner_output_manifest
-
         input_manifest = self._load_or_create_manifest()
 
         if self.cache and self._is_previous_cached(input_manifest):
@@ -289,11 +292,11 @@ class Executor(t.Generic[Component]):
             if output_manifest is not None:
                 logger.info("Skipping component execution")
             else:
-                output_manifest = _run_execution(input_manifest)
+                output_manifest = self._run_execution(component_cls, input_manifest)
 
         else:
             logger.info("Caching disabled for the component")
-            output_manifest = _run_execution(input_manifest)
+            output_manifest = self._run_execution(component_cls, input_manifest)
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
