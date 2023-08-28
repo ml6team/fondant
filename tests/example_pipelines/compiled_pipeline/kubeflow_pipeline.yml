@@ -88,7 +88,7 @@ spec:
         pipelines.kubeflow.org/pipeline-sdk-type: kfp
     name: first-component
     nodeSelector:
-      node_pool: a_node_pool
+      a_node_pool_label: a_node_pool
     outputs:
       artifacts:
       - name: first-component-output_manifest_path
