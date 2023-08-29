@@ -26,9 +26,6 @@ def deduplicate_dask_dataframe(dataframe: dd.DataFrame, column: str):
 
 
 class ImageUrlDeduplication(DaskTransformComponent):
-    def __init__(self):
-        pass
-
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """Deduplicate images based on source urls
         Args:

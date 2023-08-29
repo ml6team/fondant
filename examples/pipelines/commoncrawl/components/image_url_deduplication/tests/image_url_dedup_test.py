@@ -10,7 +10,7 @@ def test_image_url_deduplication():
     input_data_len = len(input_data)
 
     input_data = input_data["image_url"].rename("image_image_url")
-    component = ImageUrlDeduplication()
+    component = ImageUrlDeduplication(spec=None)
     ddf = component.transform(input_data.to_frame())
 
     # after dedup duplicates should be gone
