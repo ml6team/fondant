@@ -187,6 +187,8 @@ class DaskDataWriter(DataIO):
             )
             write_tasks.append(write_subset_task)
 
+        dask.visualize(*write_tasks, filename="/artifacts/graph")
+
         with ProgressBar():
             logging.info("Writing data...")
             dd.compute(*write_tasks)
