@@ -16,13 +16,13 @@ def deduplicate_dask_dataframe(dataframe: dd.DataFrame, column: str):
     dataframe = dataframe.sort_values(column)
 
     # Set index to column
-    dataframe = dataframe.set_index(column)
+    # dataframe = dataframe.set_index(column)
 
     # Repartition on column
     dataframe = dataframe.repartition(npartitions=num_partitions)
 
     # Dedup partition wise on exact match
-    return dataframe.index.unique()
+    return dataframe.drop_duplicates(subset=[column], keep="last")
 
 
 class ImageUrlDeduplication(DaskTransformComponent):
