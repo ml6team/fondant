@@ -7,7 +7,7 @@ import dask.dataframe as dd
 import pandas as pd
 from bs4 import BeautifulSoup
 from fondant.component import DaskTransformComponent
-from fastwarc.warc import ArchiveIterator, WarcRecordType
+from fastwarc import ArchiveIterator, StreamError, WarcRecordType
 
 from utils.download_utils import download_warc_file
 from utils.license_utils import get_license_type, get_license_location
@@ -75,17 +75,20 @@ class CommonCrawlDownloadComponent(DaskTransformComponent):
                 return False
             return True
 
-        for record in ArchiveIterator(
-            file,
-            record_types=WarcRecordType.response,
-            func_filter=filter_,
-        ):
-            url = record.headers.get("WARC-Target-URI")
-            content = record.reader.read().decode("utf-8", "replace")
-            if content:
-                image_info = self.get_image_info_from_webpage(url, content)
-                if image_info:
-                    images.extend(image_info)
+        try:
+            for record in ArchiveIterator(
+                file,
+                record_types=WarcRecordType.response,
+                func_filter=filter_,
+            ):
+                url = record.headers.get("WARC-Target-URI")
+                content = record.reader.read().decode("utf-8", "replace")
+                if content:
+                    image_info = self.get_image_info_from_webpage(url, content)
+                    if image_info:
+                        images.extend(image_info)
+        except StreamError as e:
+            logging.warning(e)
 
         return images
 
