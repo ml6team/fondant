@@ -1,6 +1,6 @@
 name: Add CLIP score
 description: Component that adds the CLIP score
-image: ghcr.io/ml6team/add_clip_score:50f3a97878ac81670ebe624039ff0fcec0542e4f
+image: ghcr.io/ml6team/add_clip_score:9a3392e75df9e4b7794f4ec4e0b18751db1e5e73
 
 consumes:
   embeddings:
