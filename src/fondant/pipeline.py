@@ -61,14 +61,12 @@ class ComponentOp:
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
-        self.cache = cache
-        self.arguments = self._set_arguments(arguments)
-
         self.component_spec = ComponentSpec.from_file(
             self.component_dir / self.COMPONENT_SPEC_NAME,
         )
         self.name = self.component_spec.name.replace(" ", "_").lower()
-
+        self.cache = self._configure_caching_from_image_tag(cache)
+        self.arguments = self._set_arguments(arguments)
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.number_of_gpus = number_of_gpus
@@ -76,6 +74,38 @@ class ComponentOp:
             node_pool_label,
             node_pool_name,
         )
+
+    def _configure_caching_from_image_tag(
+        self,
+        cache: t.Optional[bool],
+    ) -> t.Optional[bool]:
+        """
+        Adjusts the caching setting based on the image tag of the component.
+
+        If the `cache` parameter is set to `True`, this function checks the image tag of
+        the component and disables caching (`cache` set to `False`) if the image tag is "latest".
+        This is because using "latest" image tags can lead to unpredictable behavior due to
+         image updates.
+
+        Args:
+            cache: The current caching setting. Set to `True` to enable caching, `False` to disable.
+
+        Returns:
+            The adjusted caching setting based on the image tag.
+
+        """
+        if cache is True:
+            image_tag = self.component_spec.image.rsplit(":")[-1]
+
+            if image_tag == "latest":
+                logger.warning(
+                    f"Component `{self.name}` has an image tag set to latest. "
+                    f"Caching for the component will be disabled to prevent"
+                    f" unpredictable behavior due to images updates",
+                )
+                return False
+
+        return cache
 
     def _set_arguments(
         self,
@@ -328,6 +358,7 @@ class Pipeline:
             base_path=self.base_path,
             run_id=run_id,
             component_id=load_component_name,
+            cache_key="42",
         )
         for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["fondant_component_op"]

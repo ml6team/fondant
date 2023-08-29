@@ -24,6 +24,8 @@ from fondant.executor import (
 from fondant.manifest import Manifest, Metadata
 
 components_path = Path(__file__).parent / "example_specs/components"
+base_path = Path(__file__).parent / "example_specs/mock_base_path"
+
 N_PARTITIONS = 2
 
 
@@ -36,10 +38,11 @@ def yaml_file_to_json_string(file_path):
 @pytest.fixture()
 def metadata():
     return Metadata(
-        pipeline_name="pipeline",
-        base_path="/bucket",
-        component_id="load_component",
-        run_id="12345",
+        pipeline_name="example_pipeline",
+        base_path=str(base_path),
+        component_id="component_2",
+        run_id="2024",
+        cache_key="2",
     )
 
 
@@ -137,6 +140,60 @@ def test_component_arguments(metadata):
         "override_default_none_arg": 3.14,
         "override_default_arg_with_none": None,
     }
+
+
+def test_component_caching(metadata, monkeypatch):
+    input_manifest_path = str(components_path / "arguments/input_manifest.json")
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        input_manifest_path,
+        "--metadata",
+        metadata.to_json(),
+        "--output_manifest_path",
+        str(components_path / "arguments/output_manifest.json"),
+        "--component_spec",
+        yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--cache",
+        "True",
+        "--input_partition_rows",
+        "100",
+        "--override_default_arg",
+        "bar",
+        "--override_default_none_arg",
+        "3.14",
+        "--override_default_arg_with_none",
+        "None",
+    ]
+
+    class MyExecutor(Executor):
+        """Base component with dummy methods so it can be instantiated."""
+
+        def _load_or_create_manifest(self) -> Manifest:
+            pass
+
+        def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+            pass
+
+    def mock_fs_created(path):
+        if "2023" in path:
+            return 2023
+
+        if "2022" in path:
+            return 2022
+
+        return 1970
+
+    executor = MyExecutor.from_args()
+    monkeypatch.setattr(executor.filesystem, "created", mock_fs_created)
+    matching_execution_manifest = executor._get_latest_matching_manifest()
+    # Check that the latest manifest is returned
+    assert matching_execution_manifest.run_id == "test_pipeline_2023"
+    # Check that the previous component is not cached due to differing run IDs
+    assert (
+        executor._is_previous_cached(Manifest.from_file(input_manifest_path)) is False
+    )
 
 
 @pytest.mark.usefixtures("_patched_data_writing")

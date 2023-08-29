@@ -7,15 +7,15 @@ services:
     command:
     - --metadata
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-      "component_id": "first_component"}'
+      "component_id": "first_component", "cache_key": "1"}'
     - --output_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest_1.json
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
     - disable
     - --cache
-    - 'True'
+    - 'False'
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -38,15 +38,15 @@ services:
     command:
     - --metadata
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-      "component_id": "second_component"}'
+      "component_id": "second_component", "cache_key": "2"}'
     - --output_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/second_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/second_component/manifest_2.json
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
     - '10'
     - --cache
-    - 'True'
+    - 'False'
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -54,7 +54,7 @@ services:
       "array", "items": {"type": "float32"}}}}}, "args": {"storage_args": {"description":
       "Storage arguments", "type": "str"}}}'
     - --input_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest_1.json
     depends_on:
       first_component:
         condition: service_completed_successfully
@@ -66,15 +66,15 @@ services:
     command:
     - --metadata
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-      "component_id": "third_component"}'
+      "component_id": "third_component", "cache_key": "3"}'
     - --output_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/third_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/third_component/manifest_3.json
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
     - None
     - --cache
-    - 'True'
+    - 'False'
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -84,7 +84,7 @@ services:
       false}, "args": {"storage_args": {"description": "Storage arguments", "type":
       "str"}}}'
     - --input_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/second_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/second_component/manifest_2.json
     depends_on:
       second_component:
         condition: service_completed_successfully
