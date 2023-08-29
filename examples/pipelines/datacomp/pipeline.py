@@ -38,7 +38,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-text-embeddings",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
-        "n_rows_to_load": 10,
+        "n_rows_to_load": 1000,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
