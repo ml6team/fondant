@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    # base_path=PipelineConfigs.BASE_PATH,
-    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    base_path=PipelineConfigs.BASE_PATH,
+    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 
 # define ops
@@ -61,7 +61,7 @@ detect_text_op = ComponentOp(
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-pool",
-    # number_of_gpus=1,
+    number_of_gpus=1,
 )
 mask_images_op = ComponentOp(
     component_dir="components/mask_images",
@@ -75,7 +75,7 @@ embed_images_op = ComponentOp.from_registry(
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-pool",
-    # number_of_gpus=1,
+    number_of_gpus=1,
 )
 add_clip_score_op = ComponentOp(
     component_dir="components/add_clip_score",
