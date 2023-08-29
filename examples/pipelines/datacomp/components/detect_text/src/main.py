@@ -115,6 +115,7 @@ class DetectTextComponent(PandasTransformComponent):
 
     def __init__(self, *args, batch_size: int) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cpu"
         logger.info(f"Device: {self.device}")
 
         self.batch_size = batch_size
