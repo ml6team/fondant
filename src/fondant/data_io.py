@@ -93,7 +93,11 @@ class DaskDataLoader(DataIO):
 
         logger.info(f"Loading subset {subset_name} with fields {fields}...")
 
-        subset_df = dd.read_parquet(remote_path, columns=fields)
+        subset_df = dd.read_parquet(
+            remote_path,
+            columns=fields,
+            calculate_divisions=True,
+        )
 
         # add subset prefix to columns
         subset_df = subset_df.rename(
@@ -115,7 +119,7 @@ class DaskDataLoader(DataIO):
         remote_path = index.location
 
         # load index from parquet, expecting id and source columns
-        return dd.read_parquet(remote_path)
+        return dd.read_parquet(remote_path, calculate_divisions=True)
 
     def load_dataframe(self) -> dd.DataFrame:
         """
@@ -137,7 +141,7 @@ class DaskDataLoader(DataIO):
                 subset_df,
                 left_index=True,
                 right_index=True,
-                how="inner",
+                how="left",
             )
 
         dataframe = self.partition_loaded_dataframe(dataframe)
@@ -159,7 +163,7 @@ class DaskDataWriter(DataIO):
     def write_dataframe(self, dataframe: dd.DataFrame) -> None:
         write_tasks = []
 
-        dataframe.index = dataframe.index.rename("id").astype("string")
+        dataframe.index = dataframe.index.rename("id")
 
         # Turn index into an empty dataframe so we can write it
         index_df = dataframe.index.to_frame().drop(columns=["id"])
@@ -257,6 +261,7 @@ class DaskDataWriter(DataIO):
             schema=schema,
             overwrite=False,
             compute=False,
+            write_metadata_file=True,
         )
         logging.info(f"Creating write task for: {location}")
         return write_task
