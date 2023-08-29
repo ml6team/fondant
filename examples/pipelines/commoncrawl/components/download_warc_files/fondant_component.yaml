@@ -1,0 +1,29 @@
+name: download warc component
+description: A component that downloads parts of the common crawl
+image: ghcr.io/ml6team/common_crawl_download_warc:cadb918
+
+consumes:
+  warc:
+    fields:
+      url:
+        type: string
+
+produces:
+  image:
+    fields:
+      image_url:
+        type: string
+      alt_text:
+        type: string
+      webpage_url:
+        type: string
+      license_type:
+        type: string
+      license_location:
+        type: string
+
+args:
+  extract_plain_text:
+    description: If set to true the data contains the plain text without html tags
+    type: bool
+    default: "False"
