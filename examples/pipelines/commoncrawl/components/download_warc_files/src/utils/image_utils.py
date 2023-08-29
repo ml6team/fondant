@@ -13,11 +13,14 @@ def get_full_image_url(image_url: str, webpage_url: str) -> str:
     Returns:
         The full image url.
     """
-    if "http" not in image_url or image_url[0] == "/":
+    if image_url.startswith("http") is False:
         parsed_webpage_url = urlparse(webpage_url)
-        image_url = (
-            f"{parsed_webpage_url.scheme}://{parsed_webpage_url.netloc}{image_url}"
-        )
+        if image_url.startswith("//"):
+            image_url = f"{parsed_webpage_url.scheme}:{image_url}"
+        else:
+            image_url = (
+                f"{parsed_webpage_url.scheme}://{parsed_webpage_url.netloc}{image_url}"
+            )
 
         try:
             pos = image_url.index("?")
