@@ -2,6 +2,7 @@
 import logging
 import typing as t
 
+import dask
 import dask.dataframe as dd
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -13,6 +14,8 @@ from utils.license_utils import get_license_type, get_license_location
 from utils.image_utils import get_images_from_soup, get_unique_images
 
 logger = logging.getLogger(__name__)
+
+dask.config.set(scheduler="processes")
 
 CC_BASE_URL = "http://data.commoncrawl.org"
 
