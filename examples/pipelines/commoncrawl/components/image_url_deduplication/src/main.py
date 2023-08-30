@@ -1,27 +1,29 @@
 import logging
 
 import dask.dataframe as dd
+import pandas as pd
 
 from fondant.component import DaskTransformComponent
 
 logger = logging.getLogger(__name__)
 
 
-def deduplicate_dask_dataframe(dataframe: dd.DataFrame, column: str):
-    logger.info(f"Start exact deduplication of column {column}.")
+def get_license_strictness(license_string):
+    """Returns strictness of the license keys."""
+    strictness_order = {
+        "by": 1,
+        "by-sa": 2,
+        "by-nc": 3,
+        "by-nc-sa": 4,
+        "by-nd": 5,
+        "by-nc-nd": 6,
+    }
 
-    num_partitions = dataframe.npartitions
+    return strictness_order.get(license_string, 0)
 
-    # Sort the DataFrame on the column
-    dataframe = dataframe.sort_values(column)
 
-    # Set index to column
-    # dataframe = dataframe.set_index(column)
-
-    # Repartition on column
-    dataframe = dataframe.repartition(npartitions=num_partitions)
-
-    # Dedup partition wise on exact match
+def local_dedup(dataframe: pd.DataFrame, column: str) -> pd.DataFrame:
+    """Local dataframe deduplication, keep the last entry (most strict one)"""
     return dataframe.drop_duplicates(subset=[column], keep="last")
 
 
@@ -33,5 +35,15 @@ class ImageUrlDeduplication(DaskTransformComponent):
         Returns:
             A dask dataframe with the image urls
         """
+        num_partitions = dataframe.npartitions
 
-        return deduplicate_dask_dataframe(dataframe, column="image_image_url")
+        # Sort the DataFrame on the column
+        dataframe = dataframe.sort_values(
+            by=["image_image_url", "image_license_type"],
+            key=lambda col: col.apply(get_license_strictness),
+        )
+
+        # Repartition on column
+        dataframe = dataframe.repartition(npartitions=num_partitions)
+
+        return dataframe.map_partitions(local_dedup, "image_image_url")
