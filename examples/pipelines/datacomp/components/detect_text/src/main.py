@@ -154,22 +154,6 @@ class DetectTextComponent(PandasTransformComponent):
         return self.model
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        # start of dummy dataframe
-        # from PIL import Image
-        # import requests
-        # import io
-
-        # url = "https://raw.githubusercontent.com/locuslab/T-MARS/main/sample_text_detect.jpg"
-        # image = Image.open(requests.get(url, stream=True).raw)
-        # image_bytes = io.BytesIO()
-        # image.save(image_bytes, format='PNG')
-        # image_bytes = image_bytes.getvalue()
-
-        # data = {"data": [image_bytes]}
-        # dataframe = pd.DataFrame.from_dict(data)
-        # dataframe = pd.concat({"images": dataframe}, axis=1)
-        # end of dummy dataframe
-
         images = pd.Series(dataframe["images"]["data"]).apply(
             process_image,
             image_transform=self.image_transform,

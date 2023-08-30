@@ -1,7 +1,5 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import time
 
 from .backbone import build_backbone
 from .neck import build_neck
@@ -31,32 +29,14 @@ class FAST(nn.Module):
     ):
         outputs = dict()
 
-        # if not self.training:
-        #     torch.cuda.synchronize()
-        #     start = time.time()
-
         # backbone
         f = self.backbone(imgs)
-
-        # if not self.training:
-        #     torch.cuda.synchronize()
-        #     outputs.update(dict(backbone_time=time.time() - start))
-        #     start = time.time()
 
         # reduce channel
         f = self.neck(f)
 
-        # if not self.training:
-        #     torch.cuda.synchronize()
-        #     outputs.update(dict(neck_time=time.time() - start))
-        #     start = time.time()
-
         # detection
         det_out = self.det_head(f)
-
-        # if not self.training:
-        #     torch.cuda.synchronize()
-        #     outputs.update(dict(det_head_time=time.time() - start))
 
         if self.training:
             det_out = self._upsample(det_out, imgs.size(), scale=1)
