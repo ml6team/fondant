@@ -13,9 +13,9 @@ def get_license_strictness(license_string):
     strictness_order = {
         "by": 1,
         "by-sa": 2,
-        "by-nc": 3,
-        "by-nc-sa": 4,
-        "by-nd": 5,
+        "by-nd": 3,
+        "by-nc": 4,
+        "by-nc-sa": 5,
         "by-nc-nd": 6,
     }
 
