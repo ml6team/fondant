@@ -1,6 +1,6 @@
 name: Common crawl download component
 description: A component that downloads parts of the common crawl
-image: ghcr.io/ml6team/read_warc_paths:3d352e7
+image: ghcr.io/ml6team/read_warc_paths:57404ff
 
 produces:
   warc:
