@@ -26,6 +26,7 @@ class DockerRunner(Runner):
             input_spec,
             "up",
             "--build",
+            "--no-cache",
             "--pull",
             "always",
             "--remove-orphans",
