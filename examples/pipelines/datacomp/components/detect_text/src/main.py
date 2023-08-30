@@ -13,21 +13,19 @@ import torch
 from fondant.component import PandasTransformComponent
 from PIL import Image
 
-logger = logging.getLogger(__name__)
-
 from mmengine.config import Config
 
+# TODO compile custom kernels
 # import subprocess
-# # make sure to compile the postprocessing scripts
 # subprocess.call(["sh", "./compile.sh"])  # nosec
 
+from augmentations import SquarePadResizeNorm
 from models import build_model
 from models.utils import fuse_module, rep_model_convert
 
-from augmentations import SquarePadResizeNorm
-
 from huggingface_hub import hf_hub_download
 
+logger = logging.getLogger(__name__)
 
 dask.config.set(scheduler="single-threaded")
 
@@ -45,7 +43,7 @@ def poly2bbox(polygon: np.array) -> np.array:
          np.array: The converted bounding box [x1, y1, x2, y2]
     """
     if len(polygon) % 2 != 0:
-        raise ValueError("Not ok")
+        raise ValueError("Length of polygon should be even")
     polygon = np.array(polygon, dtype=np.float32)
     x = polygon[::2]
     y = polygon[1::2]

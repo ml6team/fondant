@@ -1,6 +1,6 @@
 name: Image embedding
 description: Component that embeds images using CLIP
-image: ghcr.io/ml6team/image_embedding:dev
+image: ghcr.io/ml6team/image_embedding:6f8d908c4231785afab8c2b3e87f66f9abf0452b
 
 consumes:
   images:
