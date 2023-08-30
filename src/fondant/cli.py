@@ -23,6 +23,7 @@ import sys
 import textwrap
 import typing as t
 from collections import defaultdict
+from types import ModuleType
 
 from fondant.compiler import DockerCompiler, KubeFlowCompiler
 from fondant.component import BaseComponent, Component
@@ -194,16 +195,18 @@ def register_compile(parent_parser):
         - to mount cloud credentials (see examples))
 
         Example:
-        fondant compile my_project.my_pipeline.py:pipeline --local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials
+        fondant compile my_project.my_pipeline.py --local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials
 
-        fondant compile my_project.my_pipeline.py:pipeline --kubeflow --extra-volumes $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json
+        fondant compile my_project.my_pipeline.py --kubeflow --extra-volumes $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json
         """,
         ),
     )
     parser.add_argument(
-        "pipeline",
-        help="Path to the fondant pipeline: path.to.module:instance",
-        type=pipeline_from_string,
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
     )
     # add a mutually exclusive group for the mode
     mode_group = parser.add_mutually_exclusive_group(required=True)
@@ -232,17 +235,19 @@ def register_compile(parent_parser):
 
 
 def compile(args):
+    pipeline = pipeline_from_module(args.ref)
+
     if args.local:
         compiler = DockerCompiler()
         compiler.compile(
-            pipeline=args.pipeline,
+            pipeline=pipeline,
             extra_volumes=args.extra_volumes,
             output_path=args.output_path,
             build_args=args.build_arg,
         )
     elif args.kubeflow:
         compiler = KubeFlowCompiler()
-        compiler.compile(pipeline=args.pipeline, output_path=args.output_path)
+        compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
 
 def register_run(parent_parser):
@@ -267,7 +272,8 @@ def register_run(parent_parser):
     parser.add_argument(
         "ref",
         help="""Reference to the pipeline to run, can be a path to a spec file or
-            a pipeline instance that will be compiled first""",
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
         action="store",
     )
     # add a mutually exclusive group for the mode
@@ -298,8 +304,8 @@ def register_run(parent_parser):
 def run(args):
     if args.local:
         try:
-            pipeline = pipeline_from_string(args.ref)
-        except ImportFromStringError:
+            pipeline = pipeline_from_module(args.ref)
+        except ModuleNotFoundError:
             spec_ref = args.ref
         else:
             spec_ref = args.output_path
@@ -315,13 +321,14 @@ def run(args):
             )
         finally:
             DockerRunner().run(spec_ref)
+
     elif args.kubeflow:
         if not args.host:
             msg = "--host argument is required for running on Kubeflow"
             raise ValueError(msg)
         try:
-            pipeline = pipeline_from_string(args.ref)
-        except ImportFromStringError:
+            pipeline = pipeline_from_module(args.ref)
+        except ModuleNotFoundError:
             spec_ref = args.ref
         else:
             spec_ref = args.output_path
@@ -371,62 +378,59 @@ def execute(args):
     executor.execute(component)
 
 
-class ImportFromStringError(Exception):
+class ComponentImportError(Exception):
     """Error raised when an import string is not valid."""
 
 
-class ImportFromModuleError(Exception):
+class PipelineImportError(Exception):
     """Error raised when an import from module is not valid."""
 
 
-def pipeline_from_string(import_string: str) -> Pipeline:
-    """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
-    module_str, _, attr_str = import_string.rpartition(":")
-    if not attr_str or not module_str:
-        raise ImportFromStringError(
-            f"{import_string} is not a valid import string."
-            + "Please provide a valid import string in the format of module:attr",
-        )
-
-    try:
-        module = importlib.import_module(module_str)
-    except ImportError:
-        msg = f"{module_str} is not a valid module. Please provide a valid module."
-        raise ImportFromStringError(
-            msg,
-        )
-
-    try:
-        for attr_str_element in attr_str.split("."):
-            instance = getattr(module, attr_str_element)
-    except AttributeError:
-        msg = f"{attr_str} is not found in {module}."
-        raise ImportFromStringError(msg)
-
-    if not isinstance(instance, Pipeline):
-        msg = f"{module}:{instance} is not a valid pipeline."
-        raise ImportFromStringError(msg)
-
-    return instance
-
-
-def component_from_module(module_str: str) -> t.Type[Component]:
-    """Try to import a component from a module otherwise raise an ImportFromModuleError."""
+def get_module(module_str: str) -> ModuleType:
+    """Function that retrieves module from a module string."""
     if ".py" in module_str:
         module_str = module_str.rsplit(".py", 1)[0]
 
     module_str = module_str.replace("/", ".")
 
     try:
-        class_members = inspect.getmembers(
-            importlib.import_module(module_str),
-            inspect.isclass,
-        )
+        module = importlib.import_module(module_str)
     except ModuleNotFoundError:
         msg = f"`{module_str}` was not found. Please provide a valid module."
-        raise ImportFromModuleError(
-            msg,
+        raise ModuleNotFoundError(msg)
+
+    return module
+
+
+def pipeline_from_module(module_str: str) -> Pipeline:
+    """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
+    module = get_module(module_str)
+
+    pipeline_instances = [
+        obj for obj in module.__dict__.values() if isinstance(obj, Pipeline)
+    ]
+
+    if not pipeline_instances:
+        msg = f"No pipeline found in module {module_str}"
+        raise PipelineImportError(msg)
+
+    if len(pipeline_instances) > 1:
+        msg = (
+            f"Found multiple instantiated pipelines in {module_str}. Only one pipeline "
+            f"can be present"
         )
+        raise PipelineImportError(msg)
+
+    pipeline = pipeline_instances[0]
+    logger.info(f"Pipeline `{pipeline.name}` found in module {module_str}")
+
+    return pipeline
+
+
+def component_from_module(module_str: str) -> t.Type[Component]:
+    """Try to import a component from a module otherwise raise an ImportFromModuleError."""
+    module = get_module(module_str)
+    class_members = inspect.getmembers(module, inspect.isclass)
 
     component_classes_dict = defaultdict(list)
 
@@ -437,7 +441,7 @@ def component_from_module(module_str: str) -> t.Type[Component]:
 
     if len(component_classes_dict) == 0:
         msg = f"No Component found in module {module_str}"
-        raise ImportFromModuleError(msg)
+        raise ComponentImportError(msg)
 
     max_order = max(component_classes_dict)
     found_components = component_classes_dict[max_order]
@@ -447,7 +451,7 @@ def component_from_module(module_str: str) -> t.Type[Component]:
             f"Found multiple components in {module_str}: {found_components}. Only one component "
             f"can be present"
         )
-        raise ImportFromModuleError(msg)
+        raise ComponentImportError(msg)
 
     component_name, component_cls = found_components[0]
     logger.info(f"Component `{component_name}` found in module {module_str}")
