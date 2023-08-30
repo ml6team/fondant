@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import time
 from models.loss import build_loss, ohem_batch, iou
 from models.utils.nas_utils import set_layer_from_config
 from models.utils import generate_bbox

@@ -38,7 +38,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-text-embeddings",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
-        "n_rows_to_load": 10000,
+        "n_rows_to_load": 150,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
@@ -75,7 +75,7 @@ mask_images_op = ComponentOp(
 embed_images_op = ComponentOp.from_registry(
     name="image_embedding",
     arguments={
-        "batch_size": 2,
+        "batch_size": 1,
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-pool",
