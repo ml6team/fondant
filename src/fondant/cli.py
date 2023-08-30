@@ -214,7 +214,7 @@ def register_compile(parent_parser):
         "--output-path",
         "-o",
         help="Output directory",
-        default="docker-compose.yml",
+        default=None,
     )
     parser.add_argument(
         "--extra-volumes",
@@ -233,6 +233,8 @@ def register_compile(parent_parser):
 
 def compile(args):
     if args.local:
+        if args.output_path is None:
+            args.output_path = "docker_compose.yml"
         compiler = DockerCompiler()
         compiler.compile(
             pipeline=args.pipeline,
@@ -241,6 +243,8 @@ def compile(args):
             build_args=args.build_arg,
         )
     elif args.kubeflow:
+        if args.output_path is None:
+            args.output_path = "pipeline.yaml"
         compiler = KubeFlowCompiler()
         compiler.compile(pipeline=args.pipeline, output_path=args.output_path)
 
@@ -279,7 +283,7 @@ def register_run(parent_parser):
         "--output-path",
         "-o",
         help="Output directory",
-        default="docker-compose.yml",
+        default=None,
     )
     parser.add_argument(
         "--extra-volumes",
