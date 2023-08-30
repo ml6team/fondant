@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from fondant.exceptions import InvalidManifest
 from fondant.manifest import Field, Index, Manifest, Subset, Type
+from fsspec.implementations.local import LocalFileSystem
 
 manifest_path = Path(__file__).parent / "example_specs/manifests"
 
@@ -88,13 +89,14 @@ def test_set_base_path(valid_manifest):
 def test_from_to_file(valid_manifest):
     """Test reading from and writing to file."""
     tmp_path = "/tmp/manifest.json"
+    fs = LocalFileSystem()
     with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(valid_manifest, f)
 
-    manifest = Manifest.from_file(tmp_path)
+    manifest = Manifest.from_file(tmp_path, fs)
     assert manifest.metadata == valid_manifest["metadata"]
 
-    manifest.to_file(tmp_path)
+    manifest.to_file(tmp_path, fs)
     with open(tmp_path, encoding="utf-8") as f:
         assert json.load(f) == valid_manifest
 

@@ -224,7 +224,7 @@ class Executor(t.Generic[Component]):
             else:
                 manifest_file = matching_manifests[0]
 
-            return Manifest.from_file(manifest_file)
+            return Manifest.from_file(manifest_file, self.filesystem)
 
         logger.info("No matching execution for component detected")
 
@@ -323,15 +323,15 @@ class Executor(t.Generic[Component]):
                 f"{manifest.component_id}/manifest_{manifest.cache_key}.json"
             )
             Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
-            manifest.to_file(save_path_base_path)
+            manifest.to_file(save_path_base_path, self.filesystem)
             logger.info(f"Saving output manifest to {save_path_base_path}")
             # Write manifest to the native kfp artifact path that will be passed as an artifact
             # and read by the next component
-            manifest.to_file(save_path)
+            manifest.to_file(save_path, self.filesystem)
         else:
             # Local runner
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-            manifest.to_file(save_path)
+            manifest.to_file(save_path, self.filesystem)
             logger.info(f"Saving output manifest to {save_path}")
 
 
@@ -372,7 +372,7 @@ class TransformExecutor(Executor[Component]):
     """Base class for a Fondant transform component."""
 
     def _load_or_create_manifest(self) -> Manifest:
-        return Manifest.from_file(self.input_manifest_path)
+        return Manifest.from_file(self.input_manifest_path, self.filesystem)
 
     def _execute_component(
         self,
@@ -514,7 +514,7 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
         return ["output_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
-        return Manifest.from_file(self.input_manifest_path)
+        return Manifest.from_file(self.input_manifest_path, self.filesystem)
 
     def _execute_component(
         self,
