@@ -28,6 +28,7 @@ class DockerRunner(Runner):
             "--build",
             "--pull",
             "always",
+            "--no-cache",
             "--remove-orphans",
         ]
 
