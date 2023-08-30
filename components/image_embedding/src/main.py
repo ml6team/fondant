@@ -3,6 +3,7 @@ import io
 import logging
 import typing as t
 
+import dask
 import numpy as np
 import pandas as pd
 import torch
@@ -11,6 +12,8 @@ from PIL import Image
 from transformers import CLIPProcessor, CLIPVisionModelWithProjection
 
 logger = logging.getLogger(__name__)
+
+dask.config.set(scheduler="single-threaded")
 
 
 def process_image(image: bytes, *, processor: CLIPProcessor, device: str) -> torch.Tensor:
