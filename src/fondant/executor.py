@@ -25,6 +25,7 @@ from fondant.component import (
 )
 from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
+from fondant.filesystem import get_filesystem
 from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number
 
@@ -52,6 +53,7 @@ class Executor(t.Generic[Component]):
         self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
+        self.filesystem = get_filesystem(self.metadata.base_path)
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -189,43 +191,112 @@ class Executor(t.Generic[Component]):
 
         data_writer.write_dataframe(dataframe)
 
-    def _load_cached_output_manifest(self) -> "Manifest":
-        """Function that returns the cached output manifest."""
-        raise NotImplementedError
+    def _get_latest_matching_manifest(self) -> t.Union[Manifest, None]:
+        """
+        Find and return the most recent matching execution's Manifest for the component,
+        if it exists.
 
-    def _has_matching_execution(self) -> bool:
-        """Function that checks if there is an existing previous matching execution."""
-        # TODO: implement
-        return False
+        This function searches for previous execution manifests that match the component's metadata.
+
+        Returns:
+            The Manifest object representing the most recent matching execution,
+            or None if no matching execution is found.
+        """
+        matching_manifest_glob_pattern = (
+            f"{self.metadata.base_path}/{self.metadata.pipeline_name}/*/"
+            f"{self.metadata.component_id}/manifest_{self.metadata.cache_key}.json"
+        )
+
+        matching_manifests = self.filesystem.glob(matching_manifest_glob_pattern)
+
+        if matching_manifests:
+            logger.info("Matching execution for component detected.")
+            nb_matching_manifest = len(matching_manifests)
+
+            if nb_matching_manifest > 1:
+                logger.info(
+                    f"Multiple matching executions for the component were found: "
+                    f"{nb_matching_manifest}. Picking the most recent one.",
+                )
+
+                # Get the most recent file based on the file creation date time
+                manifest_file = max(matching_manifests, key=self.filesystem.created)
+            else:
+                manifest_file = matching_manifests[0]
+
+            return Manifest.from_file(manifest_file)
+
+        logger.info("No matching execution for component detected")
+
+        return None
+
+    def _is_previous_cached(self, input_manifest: Manifest) -> bool:
+        """
+        Checks whether the previous component's output is cached based on its run ID.
+
+        This function compares the run ID of the input manifest
+         (representing the previous component) with the run ID of the current component metadata.
+        If the run IDs are different, it indicates that the previous component's output belongs to
+        another pipeline run, implying that it is cached. Otherwise, if the run IDs match, it
+        suggests that the previous component was not cached and had to execute to produce the
+         current output.
+
+        Args:
+            input_manifest: The manifest representing the output of the previous component.
+
+        Returns:
+            True if the previous component's output is cached, False otherwise.
+        """
+        previous_component_id = input_manifest.component_id
+
+        if input_manifest.run_id == self.metadata.run_id:
+            logger.info(
+                f"Previous component `{previous_component_id}` is not cached."
+                f" Invalidating cache for current and subsequent components",
+            )
+            return False
+
+        logger.info(
+            f"Previous component `{previous_component_id}` run was cached. "
+            f"Cached pipeline id: {input_manifest.run_id}",
+        )
+        return True
+
+    def _run_execution(
+        self,
+        component_cls: t.Type[Component],
+        input_manifest: Manifest,
+    ) -> Manifest:
+        logging.info("Executing component")
+        component = component_cls(self.spec, **self.user_arguments)
+        output_df = self._execute_component(
+            component,
+            manifest=input_manifest,
+        )
+        output_manifest = input_manifest.evolve(component_spec=self.spec)
+        self._write_data(dataframe=output_df, manifest=output_manifest)
+
+        return output_manifest
 
     def execute(self, component_cls: t.Type[Component]) -> None:
-        """Execute a component.
+        """
+        Execute a component.
 
         Args:
             component_cls: The class of the component to execute
         """
-        matching_execution_exists = self._has_matching_execution()
+        input_manifest = self._load_or_create_manifest()
 
-        if matching_execution_exists:
-            logger.info("Previous matching execution found")
-        else:
-            logger.info("No previous matching execution found")
+        if self.cache and self._is_previous_cached(input_manifest):
+            output_manifest = self._get_latest_matching_manifest()
+            if output_manifest is not None:
+                logger.info("Skipping component execution")
+            else:
+                output_manifest = self._run_execution(component_cls, input_manifest)
 
-        if self.cache:
-            logger.info("Caching for the component is disabled")
         else:
-            logger.info("Caching for the component is enabled")
-
-        if self.cache is False and matching_execution_exists:
-            logging.info("Cached component run. Skipping component execution")
-            output_manifest = self._load_cached_output_manifest()
-        else:
-            logging.info("Executing component")
-            input_manifest = self._load_or_create_manifest()
-            component = component_cls(self.spec, **self.user_arguments)
-            output_df = self._execute_component(component, manifest=input_manifest)
-            output_manifest = input_manifest.evolve(component_spec=self.spec)
-            self._write_data(dataframe=output_df, manifest=output_manifest)
+            logger.info("Caching disabled for the component")
+            output_manifest = self._run_execution(component_cls, input_manifest)
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
@@ -249,7 +320,7 @@ class Executor(t.Generic[Component]):
             # Save to the expected base path directory
             save_path_base_path = (
                 f"{manifest.base_path}/{manifest.pipeline_name}/{manifest.run_id}/"
-                f"{manifest.component_id}/manifest.json"
+                f"{manifest.component_id}/manifest_{manifest.cache_key}.json"
             )
             Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
             manifest.to_file(save_path_base_path)
@@ -267,17 +338,20 @@ class Executor(t.Generic[Component]):
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
     """Base class for a Fondant load component."""
 
+    def _is_previous_cached(self, input_manifest: Manifest) -> bool:
+        return True
+
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
         return ["input_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
-        component_id = self.spec.name.lower().replace(" ", "_")
         return Manifest.create(
             pipeline_name=self.metadata.pipeline_name,
             base_path=self.metadata.base_path,
             run_id=self.metadata.run_id,
-            component_id=component_id,
+            component_id=self.metadata.component_id,
+            cache_key=self.metadata.cache_key,
         )
 
     def _execute_component(

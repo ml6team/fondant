@@ -1,2 +1,0 @@
-beautifulsoup4==4.12.2
-git+https://github.com/ml6team/fondant@main

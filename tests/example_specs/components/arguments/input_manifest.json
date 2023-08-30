@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "pipeline_name": "test_pipeline",
+    "pipeline_name": "example_pipeline",
     "base_path": "/bucket",
-    "run_id": "12345",
-    "component_id": "67890"
+    "run_id": "2024",
+    "component_id": "component_1"
   },
   "index": {
     "location": "/index"

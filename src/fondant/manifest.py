@@ -73,12 +73,22 @@ class Index(Subset):
 
 @dataclass
 class Metadata:
-    """Class representing the Metadata of the manifest."""
+    """
+    Class representing the Metadata of the manifest.
+
+    Args:
+        base_path: the base path used to store the artifacts
+        pipeline_name: the name of the pipeline
+        run_id: the run id of the pipeline
+        component_id: the name of the component
+        cache_key: the cache key of the component.
+    """
 
     base_path: str
     pipeline_name: str
     run_id: str
     component_id: str
+    cache_key: str
 
     def to_dict(self):
         return asdict(self)
@@ -140,6 +150,7 @@ class Manifest:
         base_path: str,
         run_id: str,
         component_id: str,
+        cache_key: str,
     ) -> "Manifest":
         """Create an empty manifest.
 
@@ -148,12 +159,14 @@ class Manifest:
             base_path: The base path of the manifest
             run_id: The id of the current pipeline run
             component_id: The id of the current component being executed
+            cache_key: The component cache key
         """
         metadata = Metadata(
             pipeline_name=pipeline_name,
             base_path=base_path,
             run_id=run_id,
             component_id=component_id,
+            cache_key=cache_key,
         )
 
         specification = {
@@ -201,6 +214,10 @@ class Manifest:
     @property
     def pipeline_name(self) -> str:
         return self.metadata["pipeline_name"]
+
+    @property
+    def cache_key(self) -> str:
+        return self.metadata["cache_key"]
 
     @property
     def index(self) -> Index:
