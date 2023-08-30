@@ -11,24 +11,24 @@ logger = logging.getLogger(__name__)
 
 
 def mask_image(image_data, boxes):
-    image = Image.open(io.BytesIO(image_data)).convert("RGB")
-    draw = ImageDraw.Draw(image)
+    if len(boxes) > 0:
+        image = Image.open(io.BytesIO(image_data)).convert("RGB")
+        draw = ImageDraw.Draw(image)
+        for box in boxes:
+            x1, y1, x2, y2 = tuple(box)
+            # crop image
+            cropped_image = np.array(image)[y1:y2, x1:x2]
+            # compute average color within cropped image
+            avg_color_per_row = np.average(cropped_image, axis=0)
+            avg_color = np.average(avg_color_per_row, axis=0)
+            r, g, b = tuple(avg_color)
+            draw.rectangle(((x1, y1), (x2, y2)), fill=(int(r), int(g), int(b)))
 
-    for box in boxes:
-        x1, y1, x2, y2 = tuple(box)
-        # crop image
-        cropped_image = np.array(image)[y1:y2, x1:x2]
-        # compute average color within cropped image
-        avg_color_per_row = np.average(cropped_image, axis=0)
-        avg_color = np.average(avg_color_per_row, axis=0)
-        r, g, b = tuple(avg_color)
-        draw.rectangle(((x1, y1), (x2, y2)), fill=(int(r), int(g), int(b)))
+        image_bytes = io.BytesIO()
+        image.save(image_bytes, format="PNG")
+        image_data = image_bytes.getvalue()
 
-    image_bytes = io.BytesIO()
-    image.save(image_bytes, format="PNG")
-    image_bytes = image_bytes.getvalue()
-
-    return image_bytes
+    return image_data
 
 
 class MaskImagesComponent(PandasTransformComponent):
@@ -41,8 +41,13 @@ class MaskImagesComponent(PandasTransformComponent):
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         logger.info("Masking images based on boxes...")
-        dataframe[("images", "data")] = dataframe["images"].apply(
+        result = dataframe["images"].apply(
             lambda x: mask_image(x.data, x.boxes), axis=1
         )
+
+        print("Length of the result:", len(result))
+        print("Length of the dataframe:", len(dataframe))
+
+        dataframe[("images", "data")] = result
 
         return dataframe

@@ -42,6 +42,7 @@ load_from_hub_op = ComponentOp(
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
+    cache=False,
 )
 download_images_op = ComponentOp.from_registry(
     name="download_images",
@@ -53,20 +54,23 @@ download_images_op = ComponentOp.from_registry(
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
     input_partition_rows=1000,
+    cache=False,
 )
 detect_text_op = ComponentOp(
     component_dir="components/detect_text",
     arguments={
-        "batch_size": 2,
+        "batch_size": 1,
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-pool",
     number_of_gpus=1,
+    cache=False,
 )
 mask_images_op = ComponentOp(
     component_dir="components/mask_images",
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
+    cache=False,
 )
 embed_images_op = ComponentOp.from_registry(
     name="image_embedding",
@@ -76,11 +80,13 @@ embed_images_op = ComponentOp.from_registry(
     node_pool_label="node_pool",
     node_pool_name="model-inference-pool",
     number_of_gpus=1,
+    cache=False,
 )
 add_clip_score_op = ComponentOp(
     component_dir="components/add_clip_score",
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
+    cache=False,
 )
 
 

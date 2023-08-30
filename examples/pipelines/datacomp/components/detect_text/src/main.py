@@ -6,6 +6,7 @@ import io
 import logging
 import typing as t
 
+import dask
 import numpy as np
 import pandas as pd
 import torch
@@ -26,6 +27,9 @@ from models.utils import fuse_module, rep_model_convert
 from augmentations import SquarePadResizeNorm
 
 from huggingface_hub import hf_hub_download
+
+
+dask.config.set(scheduler="single-threaded")
 
 
 def poly2bbox(polygon: np.array) -> np.array:
@@ -115,7 +119,6 @@ class DetectTextComponent(PandasTransformComponent):
 
     def __init__(self, *args, batch_size: int) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.device = "cpu"
         logger.info(f"Device: {self.device}")
 
         self.batch_size = batch_size

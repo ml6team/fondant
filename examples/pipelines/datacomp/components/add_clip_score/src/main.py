@@ -9,8 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 def compute_clip_score(image_features, text_features):
-    image_features /= np.linalg.norm(image_features, axis=-1, keepdims=True)
-    text_features /= np.linalg.norm(text_features, axis=-1, keepdims=True)
+    image_features = image_features / np.linalg.norm(
+        image_features, axis=-1, keepdims=True
+    )
+    text_features = text_features / np.linalg.norm(
+        text_features, axis=-1, keepdims=True
+    )
     similarity = text_features @ image_features.T
 
     return similarity
@@ -26,11 +30,10 @@ class AddClipScore(PandasTransformComponent):
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         logger.info("Adding CLIP score...")
-        result = dataframe.apply(
+
+        dataframe[("imagetext", "maskedclipl14score")] = dataframe.apply(
             lambda x: compute_clip_score(x.embeddings.data, x.textembedding.data),
             axis=1,
         )
-        data = {"maskedclipl14score": result}
-        dataframe = pd.concat({"imagetext": pd.DataFrame(data)}, axis=1)
 
         return dataframe
