@@ -19,12 +19,12 @@ def get_license_strictness(license_string):
         "by-nc-nd": 6,
     }
 
-    return strictness_order.get(license_string, 0)
+    return strictness_order.get(license_string, float("inf"))
 
 
 def local_dedup(dataframe: pd.DataFrame, column: str) -> pd.DataFrame:
     """Local dataframe deduplication, keep the last entry (most strict one)"""
-    return dataframe.drop_duplicates(subset=[column], keep="last")
+    return dataframe.drop_duplicates(subset=[column], keep="first")
 
 
 class ImageUrlDeduplication(DaskTransformComponent):

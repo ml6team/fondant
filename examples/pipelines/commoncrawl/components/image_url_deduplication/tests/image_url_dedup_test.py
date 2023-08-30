@@ -35,4 +35,4 @@ def test_image_url_deduplication_check_license():
 
     # after dedup duplicates should be gone
     df = ddf.compute()
-    assert (df["image_license_type"] == "by-nc-nd").any()  # nosec
+    assert (df["image_license_type"] == "by").any()  # nosec
