@@ -6,6 +6,7 @@ import dask
 import dask.dataframe as dd
 import pandas as pd
 from bs4 import BeautifulSoup
+from dask.distributed import Client
 from fondant.component import DaskTransformComponent
 from fastwarc import ArchiveIterator, StreamError, WarcRecordType
 
@@ -15,7 +16,7 @@ from utils.image_utils import get_images_from_soup, get_unique_images
 
 logger = logging.getLogger(__name__)
 
-dask.config.set(scheduler="processes")
+Client()
 
 CC_BASE_URL = "http://data.commoncrawl.org"
 

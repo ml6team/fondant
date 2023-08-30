@@ -1,6 +1,6 @@
 name: download warc component
 description: A component that downloads parts of the common crawl
-image: ghcr.io/ml6team/download_warc_files:3d32987
+image: ghcr.io/ml6team/download_warc_files:143e552
 
 consumes:
   warc:
