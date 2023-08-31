@@ -20,5 +20,5 @@ consumes:
 produces:
   imagetext:
     fields:
-      maskedclipl14score:
+      clipl14score:
         type: float32
