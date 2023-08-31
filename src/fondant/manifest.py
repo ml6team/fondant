@@ -15,6 +15,7 @@ from referencing.jsonschema import DRAFT4
 
 from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidManifest
+from fondant.filesystem import get_filesystem
 from fondant.schema import Field, Type
 
 
@@ -177,28 +178,28 @@ class Manifest:
         return cls(specification)
 
     @classmethod
-    def from_file(cls, path: t.Union[str, Path], fs: AbstractFileSystem) -> "Manifest":
+    def from_file(
+        cls,
+        path: t.Union[str, Path],
+        fs: t.Optional[AbstractFileSystem] = None,
+    ) -> "Manifest":
         """Load the manifest from the file specified by the provided path."""
+        if fs is None:
+            fs = get_filesystem(path)
+
         with fs.open(path, encoding="utf-8") as file_:
             specification = json.load(file_)
             return cls(specification)
 
-    def to_file(self, path: t.Union[str, Path], fs: AbstractFileSystem) -> None:
+    def to_file(
+        self,
+        path: t.Union[str, Path],
+        fs: t.Optional[AbstractFileSystem] = None,
+    ) -> None:
         """Dump the manifest to the file specified by the provided path."""
-        print("path")
-        print(path)
-        print("fs")
-        print(fs)
-        import os
+        if fs is None:
+            fs = get_filesystem(path)
 
-        print("os exis")
-        print(os.path.exists(path))
-        print("fsspec exist")
-        print(fs.exists(path))
-        print("os exis")
-        print(os.path.exists(path))
-        print("fsspec exist")
-        print(fs.exists(path))
         with fs.open(path, "w", encoding="utf-8") as file_:
             json.dump(self._specification, file_)
 

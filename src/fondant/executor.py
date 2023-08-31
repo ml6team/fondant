@@ -15,7 +15,6 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pandas as pd
-from fsspec.implementations.local import LocalFileSystem
 
 from fondant.component import (
     Component,
@@ -54,7 +53,6 @@ class Executor(t.Generic[Component]):
         self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
-        self.filesystem = get_filesystem(self.metadata.base_path)
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -208,7 +206,8 @@ class Executor(t.Generic[Component]):
             f"{self.metadata.component_id}/manifest_{self.metadata.cache_key}.json"
         )
 
-        matching_manifests = self.filesystem.glob(matching_manifest_glob_pattern)
+        fs = get_filesystem(matching_manifest_glob_pattern)
+        matching_manifests = fs.glob(matching_manifest_glob_pattern)
 
         if matching_manifests:
             logger.info("Matching execution for component detected.")
@@ -221,11 +220,11 @@ class Executor(t.Generic[Component]):
                 )
 
                 # Get the most recent file based on the file creation date time
-                manifest_file = max(matching_manifests, key=self.filesystem.created)
+                manifest_file = max(matching_manifests, key=fs.created)
             else:
                 manifest_file = matching_manifests[0]
 
-            return Manifest.from_file(manifest_file, self.filesystem)
+            return Manifest.from_file(manifest_file, fs)
 
         logger.info("No matching execution for component detected")
 
@@ -323,17 +322,15 @@ class Executor(t.Generic[Component]):
                 f"{manifest.base_path}/{manifest.pipeline_name}/{manifest.run_id}/"
                 f"{manifest.component_id}/manifest_{manifest.cache_key}.json"
             )
-            Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
-            manifest.to_file(save_path_base_path, self.filesystem)
+            manifest.to_file(save_path_base_path)
             logger.info(f"Saving output manifest to {save_path_base_path}")
             # Write manifest to the native kfp artifact path that will be passed as an artifact
             # and read by the next component
-            local_fs = LocalFileSystem(auto_mkdir=True)
-            manifest.to_file(save_path, local_fs)
+            manifest.to_file(save_path)
         else:
             # Local runner
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-            manifest.to_file(save_path, self.filesystem)
+            manifest.to_file(save_path)
             logger.info(f"Saving output manifest to {save_path}")
 
 
@@ -374,7 +371,7 @@ class TransformExecutor(Executor[Component]):
     """Base class for a Fondant transform component."""
 
     def _load_or_create_manifest(self) -> Manifest:
-        return Manifest.from_file(self.input_manifest_path, self.filesystem)
+        return Manifest.from_file(self.input_manifest_path)
 
     def _execute_component(
         self,
@@ -516,7 +513,7 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
         return ["output_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
-        return Manifest.from_file(self.input_manifest_path, self.filesystem)
+        return Manifest.from_file(self.input_manifest_path)
 
     def _execute_component(
         self,
