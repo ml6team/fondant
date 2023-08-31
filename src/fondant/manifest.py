@@ -195,8 +195,6 @@ class Manifest:
         print(os.path.exists(path))
         print("fsspec exist")
         print(fs.exists(path))
-        print("make")
-        print(fs.mkdir(path))
         print("os exis")
         print(os.path.exists(path))
         print("fsspec exist")
