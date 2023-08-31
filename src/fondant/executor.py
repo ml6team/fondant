@@ -346,6 +346,7 @@ class Executor(t.Generic[Component]):
             )
             # Write manifest to the native kfp artifact path that will be passed as an artifact
             # and read by the next component
+            logging.info("Uploading manifest to kubeflow output artifact path")
             with open(save_path, "w") as f:
                 f.write(save_path_base_path)
         else:
