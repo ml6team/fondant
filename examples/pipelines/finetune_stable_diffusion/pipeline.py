@@ -27,6 +27,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "logo-wizard/modern-logo-dataset",
         "column_name_mapping": load_component_column_mapping,
         "image_column_names": ["image"],
+        "n_rows_to_load": None,
     },
 )
 
