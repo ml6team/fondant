@@ -41,7 +41,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-text-embeddings",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
-        "n_rows_to_load": 500,
+        "n_rows_to_load": 20000,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
@@ -62,10 +62,10 @@ download_images_op = ComponentOp.from_registry(
 detect_text_op = ComponentOp(
     component_dir="components/detect_text",
     arguments={
-        "batch_size": 1,
+        "batch_size": 256,
     },
     node_pool_label="node_pool",
-    node_pool_name="model-inference-pool",
+    node_pool_name="model-inference-mega-pool",
     number_of_gpus=1,
     cache=False,
 )
@@ -78,10 +78,10 @@ mask_images_op = ComponentOp(
 embed_images_op = ComponentOp.from_registry(
     name="image_embedding",
     arguments={
-        "batch_size": 1,
+        "batch_size": 256,
     },
     node_pool_label="node_pool",
-    node_pool_name="model-inference-pool",
+    node_pool_name="model-inference-mega-pool",
     number_of_gpus=1,
     cache=False,
 )
