@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 import yaml
-from fondant.compiler import DockerCompiler, KubeFlowCompiler
+from fondant.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 
 COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
@@ -83,7 +83,7 @@ def _freeze_time(monkeypatch):
 @pytest.fixture(params=TEST_PIPELINES)
 def setup_pipeline(request, tmp_path, monkeypatch):
     pipeline = Pipeline(
-        pipeline_name="test_pipeline",
+        pipeline_name="testpipeline",
         pipeline_description="description of the test pipeline",
         base_path="/foo/bar",
     )
@@ -265,3 +265,17 @@ def test_kfp_import():
         sys.modules["kfp"] = None
         with pytest.raises(ImportError):
             _ = KubeFlowCompiler()
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_vertex_compiler(setup_pipeline, tmp_path_factory):
+    """Test compiling a pipeline to vertex."""
+    example_dir, pipeline = setup_pipeline
+    compiler = VertexCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "vertex_pipeline.json")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        with open(output_path) as src, open(
+            VALID_PIPELINE / example_dir / "vertex_pipeline.yml",
+        ) as truth:
+            assert src.read() == truth.read()

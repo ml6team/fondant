@@ -315,3 +315,82 @@ class KubeFlowCompiler(Compiler):
             task.add_node_selector_constraint(node_pool_label, node_pool_name)
 
         return task
+
+
+class VertexCompiler(Compiler):
+    def __init__(self):
+        self.resolve_imports()
+
+    def resolve_imports(self):
+        """Resolve imports for the Vertex compiler."""
+        try:
+            import kfp
+            import kfp.v2.compiler
+            import kfp.v2.components
+            import kfp.v2.dsl
+
+            self.kfp = kfp
+
+        except ImportError:
+            msg = """You need to install kfp to use the Vertex compiler,\n
+                     you can install it with `pip install fondant[vertex]`"""
+            raise ImportError(
+                msg,
+            )
+
+    def compile(
+        self,
+        pipeline: Pipeline,
+        output_path: str = "vertex_pipeline.yml",
+    ) -> None:
+        """Compile a pipeline to vertex pipeline spec and save it to a specified output path.
+
+        Args:
+            pipeline: the pipeline to compile
+            output_path: the path where to save the Kubeflow pipeline spec
+        """
+
+        @self.kfp.v2.dsl.pipeline(name=pipeline.name, description=pipeline.description)
+        def kfp_pipeline():
+            previous_component_task = None
+            manifest_path = ""
+            for component_name, component in self.pipeline._graph.items():
+                logger.info(f"Compiling service for {component_name}")
+
+                component_op = component["fondant_component_op"]
+                # convert ComponentOp to Kubeflow component
+                kubeflow_component_op = self.kfp.components.load_component_from_text(
+                    text=component_op.component_spec.kubeflow_specification.to_string(),
+                )
+
+                # Execute the Kubeflow component and pass in the output manifest path from
+                # the previous component.
+                component_args = component_op.arguments
+                metadata = json.dumps(
+                    {
+                        "base_path": self.pipeline.base_path,
+                        "run_id": "{{workflow.name}}",
+                    },
+                )
+
+                component_task = kubeflow_component_op(
+                    input_manifest_path=manifest_path,
+                    metadata=metadata,
+                    **component_args,
+                )
+                # Set the execution order of the component task to be after the previous
+                # component task.
+                if previous_component_task is not None:
+                    component_task.after(previous_component_task)
+
+                # Update the manifest path to be the output path of the current component task.
+                manifest_path = component_task.outputs["output_manifest_path"]
+
+                previous_component_task = component_task
+
+        self.pipeline = pipeline
+        self.pipeline.validate(run_id="{{workflow.name}}")
+        logger.info(f"Compiling {self.pipeline.name} to {output_path}")
+
+        self.kfp.v2.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
+        logger.info("Pipeline compiled successfully")

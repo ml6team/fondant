@@ -294,7 +294,7 @@ class KubeflowComponentSpec:
                         "execute",
                         "main",
                         "--input_manifest_path",
-                        {"inputPath": "input_manifest_path"},
+                        {"inputValue": "input_manifest_path"},
                         "--metadata",
                         {"inputValue": "metadata"},
                         "--component_spec",
