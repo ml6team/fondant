@@ -15,6 +15,7 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pandas as pd
+from fsspec.implementations.local import LocalFileSystem
 
 from fondant.component import (
     Component,
@@ -327,7 +328,7 @@ class Executor(t.Generic[Component]):
             logger.info(f"Saving output manifest to {save_path_base_path}")
             # Write manifest to the native kfp artifact path that will be passed as an artifact
             # and read by the next component
-            manifest.to_file(save_path, self.filesystem)
+            manifest.to_file(save_path, LocalFileSystem())
         else:
             # Local runner
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
