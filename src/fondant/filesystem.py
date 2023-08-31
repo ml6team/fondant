@@ -17,7 +17,7 @@ def get_filesystem(
     are on device.
 
     Args:
-        reference_path: The base path reference
+        reference_path: The reference path url
     Returns:
         A fsspec.filesystem (if path_uri is either local or belongs to
         one of these cloud sources s3, gcs or azure blob storage) or None
