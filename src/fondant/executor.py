@@ -330,7 +330,7 @@ class Executor(t.Generic[Component]):
         is_kubeflow_output = (
             str(save_path) == "/tmp/outputs/output_manifest_path/data"  # nosec
         )
-
+        logging.info(f"Save path is: {str(save_path)}")
         if is_kubeflow_output:
             # Save to the expected base path directory
             save_path_base_path = (
@@ -396,7 +396,7 @@ class TransformExecutor(Executor[Component]):
     """Base class for a Fondant transform component."""
 
     def _load_or_create_manifest(self) -> Manifest:
-        return Manifest.from_file(self.input_manifest_path)
+        return Manifest(specification=json.loads(self.input_manifest_path))  # type: ignore
 
     def _execute_component(
         self,
