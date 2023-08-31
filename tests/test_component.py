@@ -22,6 +22,7 @@ from fondant.executor import (
     PandasTransformExecutor,
 )
 from fondant.manifest import Manifest, Metadata
+from fsspec.implementations.local import LocalFileSystem
 
 components_path = Path(__file__).parent / "example_specs/components"
 base_path = Path(__file__).parent / "example_specs/mock_base_path"
@@ -176,7 +177,7 @@ def test_component_caching(metadata, monkeypatch):
         def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
             pass
 
-    def mock_fs_created(path):
+    def mock_fs_created(fs_instance, path):
         if "2023" in path:
             return 2023
 
@@ -186,14 +187,15 @@ def test_component_caching(metadata, monkeypatch):
         return 1970
 
     executor = MyExecutor.from_args()
-    monkeypatch.setattr(executor.filesystem, "created", mock_fs_created)
+
+    monkeypatch.setattr(LocalFileSystem, "created", mock_fs_created)
     matching_execution_manifest = executor._get_latest_matching_manifest()
     # Check that the latest manifest is returned
     assert matching_execution_manifest.run_id == "test_pipeline_2023"
     # Check that the previous component is not cached due to differing run IDs
     assert (
         executor._is_previous_cached(
-            Manifest.from_file(input_manifest_path, executor.filesystem),
+            Manifest.from_file(input_manifest_path),
         )
         is False
     )
