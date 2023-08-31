@@ -328,7 +328,8 @@ class Executor(t.Generic[Component]):
             logger.info(f"Saving output manifest to {save_path_base_path}")
             # Write manifest to the native kfp artifact path that will be passed as an artifact
             # and read by the next component
-            manifest.to_file(save_path, LocalFileSystem())
+            local_fs = LocalFileSystem()
+            manifest.to_file(save_path, local_fs)
         else:
             # Local runner
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
