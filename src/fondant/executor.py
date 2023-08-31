@@ -346,7 +346,8 @@ class Executor(t.Generic[Component]):
             )
             # Write manifest to the native kfp artifact path that will be passed as an artifact
             # and read by the next component
-            manifest.to_file(save_path_base_path)
+            with open(save_path, "w") as f:
+                f.write(save_path_base_path)
         else:
             # Local runner
             manifest.to_file(save_path)
