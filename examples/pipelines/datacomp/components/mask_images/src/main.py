@@ -1,5 +1,6 @@
 import logging
 
+import dask
 import io
 import numpy as np
 import pandas as pd
@@ -8,6 +9,8 @@ from PIL import Image, ImageDraw
 from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
+
+dask.config.set(scheduler="processes")
 
 
 def mask_image(image_data, boxes):
@@ -44,9 +47,6 @@ class MaskImagesComponent(PandasTransformComponent):
         result = dataframe["images"].apply(
             lambda x: mask_image(x.data, x.boxes), axis=1
         )
-
-        print("Length of the result:", len(result))
-        print("Length of the dataframe:", len(dataframe))
 
         dataframe[("images", "data")] = result
 

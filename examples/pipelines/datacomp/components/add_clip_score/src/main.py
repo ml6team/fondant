@@ -1,11 +1,14 @@
 import logging
 
+import dask
 import numpy as np
 import pandas as pd
 
 from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
+
+dask.config.set(scheduler="processes")
 
 
 def compute_clip_score(image_features, text_features):

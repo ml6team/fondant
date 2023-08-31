@@ -1,4 +1,7 @@
-"""Pipeline used to filter the dataset of the Datacomp competition."""
+"""Pipeline used to filter the dataset of the Datacomp competition.
+
+This pipeline implements the T-MARS paper: https://arxiv.org/abs/2307.03132.
+"""
 
 import logging
 import sys
@@ -38,7 +41,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-text-embeddings",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
-        "n_rows_to_load": 10000,
+        "n_rows_to_load": 500,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
@@ -88,6 +91,14 @@ add_clip_score_op = ComponentOp(
     node_pool_name="n2-standard-128-pool",
     cache=False,
 )
+filter_clip_score_op = ComponentOp(
+    component_dir="components/filter_clip_score",
+    arguments={
+        "pct_threshold": 0.5,
+    },
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool",
+)
 
 
 # add ops to pipeline
@@ -97,4 +108,5 @@ pipeline.add_op(detect_text_op, dependencies=download_images_op)
 pipeline.add_op(mask_images_op, dependencies=detect_text_op)
 pipeline.add_op(embed_images_op, dependencies=mask_images_op)
 pipeline.add_op(add_clip_score_op, dependencies=embed_images_op)
+pipeline.add_op(filter_clip_score_op, dependencies=add_clip_score_op)
 # TODO add more ops

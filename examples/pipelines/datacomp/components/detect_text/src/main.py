@@ -77,6 +77,7 @@ def detect_text_batch(
     *,
     cfg,
     model,
+    image_size,
 ) -> pd.Series:
     """Detext text on a batch of images."""
     imgs = torch.stack(list(image_batch), dim=0)
@@ -86,7 +87,7 @@ def detect_text_batch(
     img_metas = {
         "filename": [None for i in range(batch_size)],
         "org_img_size": torch.ones((batch_size, 2)).long() * 256,
-        "img_size": torch.ones((batch_size, 2)).long() * 512,
+        "img_size": torch.ones((batch_size, 2)).long() * image_size,
     }
 
     data = dict()
@@ -115,13 +116,14 @@ def detect_text_batch(
 class DetectTextComponent(PandasTransformComponent):
     """Component that detects text in images using an mmocr model."""
 
-    def __init__(self, *args, batch_size: int) -> None:
+    def __init__(self, *args, batch_size: int, image_size: int) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Device: {self.device}")
 
         self.batch_size = batch_size
+        self.image_size = image_size
         self.image_transform = SquarePadResizeNorm(
-            img_size=512,
+            img_size=self.image_size,
             norm_mean=(0.485, 0.456, 0.406),
             norm_std=(0.229, 0.224, 0.225),
         )
@@ -170,6 +172,7 @@ class DetectTextComponent(PandasTransformComponent):
                         batch,
                         cfg=self.cfg,
                         model=self.model,
+                        image_size=self.image_size,
                     ).T,
                 )
 

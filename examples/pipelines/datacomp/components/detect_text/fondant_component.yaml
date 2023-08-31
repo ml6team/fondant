@@ -1,6 +1,6 @@
 name: Detect text
 description: Component that detects text in images using an mmocr model
-image: ghcr.io/ml6team/detect_text:7a4ef485569396aad10c68329d6487e2acfa1e61
+image: ghcr.io/ml6team/detect_text:6f8d908c4231785afab8c2b3e87f66f9abf0452b
 
 consumes:
   images:
@@ -25,3 +25,7 @@ args:
     description: batch size to use
     type: int
     default: 8
+  image_size:
+    description: size to resize the images to
+    type: int
+    default: 512

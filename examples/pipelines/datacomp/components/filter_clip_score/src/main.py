@@ -1,8 +1,11 @@
 import logging
+import dask
 import pandas as pd
 from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
+
+dask.config.set(scheduler="processes")
 
 
 class FilterTextComplexity(PandasTransformComponent):
