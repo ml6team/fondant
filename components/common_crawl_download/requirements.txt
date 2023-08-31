@@ -3,3 +3,4 @@ warcio==1.7.4
 trafilatura==1.6.1
 aiohttp==3.8.5
 distributed
+dask[diagnostics]

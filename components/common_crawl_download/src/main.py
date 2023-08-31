@@ -5,10 +5,11 @@ import logging
 import os
 import typing as t
 
+import dask
 import dask.dataframe as dd
 import httpx
 import pandas as pd
-from dask.distributed import Client, SubprocessCluster
+from dask.distributed import Client
 from fondant.component import DaskLoadComponent
 from fsspec.implementations.http import HTTPFileSystem
 from utils import (
@@ -19,7 +20,8 @@ from utils import (
 
 logger = logging.getLogger(__name__)
 
-Client(SubprocessCluster(), processes=False)
+dask.config.set({"distributed.worker.daemon": False})
+Client()
 
 CC_BASE_URL = "http://data.commoncrawl.org"
 
