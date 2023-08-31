@@ -189,6 +189,18 @@ class Manifest:
         print(path)
         print("fs")
         print(fs)
+        import os
+
+        print("os exis")
+        print(os.path.exists(path))
+        print("fsspec exist")
+        print(fs.exists(path))
+        print("make")
+        print(fs.mkdir(path))
+        print("os exis")
+        print(os.path.exists(path))
+        print("fsspec exist")
+        print(fs.exists(path))
         with fs.open(path, "w", encoding="utf-8") as file_:
             json.dump(self._specification, file_)
 
