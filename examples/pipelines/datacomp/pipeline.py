@@ -44,7 +44,7 @@ load_from_hub_op = ComponentOp(
         "n_rows_to_load": 20000,
     },
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
+    node_pool_name="n2-standard-64-pool",
     cache=False,
 )
 download_images_op = ComponentOp.from_registry(
@@ -55,7 +55,7 @@ download_images_op = ComponentOp.from_registry(
         "max_aspect_ratio": float("inf"),
     },
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
+    node_pool_name="n2-standard-64-pool",
     input_partition_rows=1000,
     cache=False,
 )
@@ -72,7 +72,7 @@ detect_text_op = ComponentOp(
 mask_images_op = ComponentOp(
     component_dir="components/mask_images",
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
+    node_pool_name="n2-standard-64-pool",
     cache=False,
 )
 embed_images_op = ComponentOp.from_registry(
@@ -88,7 +88,7 @@ embed_images_op = ComponentOp.from_registry(
 add_clip_score_op = ComponentOp(
     component_dir="components/add_clip_score",
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
+    node_pool_name="n2-standard-64-pool",
     cache=False,
 )
 filter_clip_score_op = ComponentOp(
@@ -97,7 +97,7 @@ filter_clip_score_op = ComponentOp(
         "pct_threshold": 0.5,
     },
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
+    node_pool_name="n2-standard-64-pool",
 )
 
 

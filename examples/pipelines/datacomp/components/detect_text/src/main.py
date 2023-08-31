@@ -78,10 +78,10 @@ def detect_text_batch(
     cfg,
     model,
     image_size,
+    batch_size,
 ) -> pd.Series:
     """Detext text on a batch of images."""
     imgs = torch.stack(list(image_batch), dim=0)
-    batch_size = imgs.shape[0]
     # TODO fix this, make this component also take width and height
     # as input in spec to process arbitrarly sized images
     img_metas = {
@@ -90,10 +90,11 @@ def detect_text_batch(
         "img_size": torch.ones((batch_size, 2)).long() * image_size,
     }
 
-    data = dict()
-    data["imgs"] = imgs
-    data["img_metas"] = img_metas
-    data.update(dict(cfg=cfg))
+    data = {
+        "imgs": imgs,
+        "img_metas": img_metas,
+        "cfg": cfg,
+    }
 
     # forward
     with torch.no_grad():
@@ -150,7 +151,7 @@ class DetectTextComponent(PandasTransformComponent):
         self.model = self.model.to(self.device)
 
         self.model = rep_model_convert(self.model)
-        # fuse conv and bn
+        # fuse convolutional and batch norm layers
         self.model = fuse_module(self.model)
         self.model.eval()
         return self.model
@@ -173,6 +174,7 @@ class DetectTextComponent(PandasTransformComponent):
                         cfg=self.cfg,
                         model=self.model,
                         image_size=self.image_size,
+                        batch_size=self.batch_size,
                     ).T,
                 )
 
