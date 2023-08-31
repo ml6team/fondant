@@ -7,3 +7,5 @@ consumes:
     fields:
       image_url:
         type: string
+      license_type:
+        type: string
