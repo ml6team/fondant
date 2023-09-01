@@ -97,6 +97,7 @@ for dir in "${components_to_build[@]}"; do
   docker build --push "${args[@]}" \
    --build-arg="FONDANT_VERSION=${tags[0]}" \
    --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
+   --no-cache \
    .
 
   popd

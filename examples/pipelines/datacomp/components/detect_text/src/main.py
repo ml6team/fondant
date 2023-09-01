@@ -15,9 +15,10 @@ from PIL import Image
 
 from mmengine.config import Config
 
-# TODO compile custom kernels
-# import subprocess
-# subprocess.call(["sh", "./compile.sh"])  # nosec
+# compile custom kernels, if CUDA is available
+# if torch.cuda.is_available():
+#     import subprocess
+#     subprocess.call(["sh", "./compile.sh"])  # nosec
 
 from augmentations import SquarePadResizeNorm
 from models import build_model
@@ -78,10 +79,10 @@ def detect_text_batch(
     cfg,
     model,
     image_size,
-    batch_size,
 ) -> pd.Series:
     """Detext text on a batch of images."""
     imgs = torch.stack(list(image_batch), dim=0)
+    batch_size = imgs.shape[0]
     # TODO fix this, make this component also take width and height
     # as input in spec to process arbitrarly sized images
     img_metas = {
@@ -90,15 +91,16 @@ def detect_text_batch(
         "img_size": torch.ones((batch_size, 2)).long() * image_size,
     }
 
-    data = {
-        "imgs": imgs,
-        "img_metas": img_metas,
-        "cfg": cfg,
-    }
+    data = dict()
+    data["imgs"] = imgs
+    data["img_metas"] = img_metas
+    data.update(dict(cfg=cfg))
 
     # forward
     with torch.no_grad():
         outputs = model(**data)
+
+    print("Results", outputs["results"])
 
     # get cropped images
     boxes_batch = []
@@ -174,7 +176,6 @@ class DetectTextComponent(PandasTransformComponent):
                         cfg=self.cfg,
                         model=self.model,
                         image_size=self.image_size,
-                        batch_size=self.batch_size,
                     ).T,
                 )
 

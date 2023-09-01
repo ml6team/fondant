@@ -19,6 +19,7 @@ try:
     from models.post_processing.ccl import ccl_cuda
 
     ccl_cuda_success = True
+    print("ccl_cuda successfully not installed!")
 except:
     print("ccl_cuda is not installed!")
 
