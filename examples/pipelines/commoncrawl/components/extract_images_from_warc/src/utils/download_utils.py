@@ -12,7 +12,7 @@ COMMONCRAWL_BASE_URL = "https://data.commoncrawl.org/"
 
 
 def download_warc_file(
-    warc_file: str, retries: int = 3, backoff_factor: int = 5
+    warc_file: str, retries: int = 10, backoff_factor: int = 5
 ) -> requests.Response:
     """Downloads a WARC file using http requests.
     Args:

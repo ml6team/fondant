@@ -103,8 +103,12 @@ class CommonCrawlDownloadComponent(DaskTransformComponent):
         """
         logger.warning(f"Processing WARC file: {warc_file}...")
 
-        response = download_warc_file(warc_file)
-        return self.extract_images(response.raw)
+        try:
+            response = download_warc_file(warc_file)
+            return self.extract_images(response.raw)
+        except BaseException as e:
+            logging.warning(e)
+            return []
 
     def download_and_extract_dataframe(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Download and extract all warc files in a dataframe."""
