@@ -41,4 +41,4 @@ class ReadWarcPathsComponent(DaskLoadComponent):
         if self.n_records_to_download is not None:
             df = df.head(self.n_records_to_download)
 
-        return dd.from_pandas(df, npartitions=len(df) // 10)
+        return dd.from_pandas(df, npartitions=len(df) // 100)

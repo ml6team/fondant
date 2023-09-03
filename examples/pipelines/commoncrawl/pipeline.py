@@ -10,7 +10,7 @@ from fondant.pipeline import ComponentOp, Pipeline
 logger = logging.getLogger(__name__)
 # General configs
 pipeline_name = "commoncrawl-pipeline"
-pipeline_description = "Pipeline that downloads from commoncrawl with dask.distributed"
+pipeline_description = "Pipeline that downloads from commoncrawl"
 
 read_warc_paths_op = ComponentOp(
     component_dir="components/read_warc_paths",
