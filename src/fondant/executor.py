@@ -210,8 +210,8 @@ class Executor(t.Generic[Component]):
                 cached_manifest_path = file_.read()
                 manifest = Manifest.from_file(cached_manifest_path)
                 logger.info(
-                    "Matching execution for component detected, component's last"
-                    f"execution originates from `{manifest.run_id}`",
+                    f"Matching execution detected for component. The last execution of the"
+                    f" component originated from `{manifest.run_id}`.",
                 )
                 return manifest
 
