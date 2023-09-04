@@ -82,6 +82,20 @@ def entrypoint():
     args.func(args)
 
 
+def set_default_output(args: argparse.Namespace):
+    """Set the default output path depending on the runner type."""
+    if args.output_path is None:
+        if args.local:
+            args.output_path = "docker_compose.yml"
+        elif args.kubeflow:
+            args.output_path = "pipeline.yaml"
+        else:
+            msg = "One of the arguments --local --kubeflow is required"
+            raise ValueError(msg)
+
+    return args
+
+
 def register_explore(parent_parser):
     parser = parent_parser.add_parser(
         "explore",
@@ -232,9 +246,8 @@ def register_compile(parent_parser):
 
 
 def compile(args):
+    args = set_default_output(args)
     if args.local:
-        if args.output_path is None:
-            args.output_path = "docker_compose.yml"
         compiler = DockerCompiler()
         compiler.compile(
             pipeline=args.pipeline,
@@ -243,8 +256,6 @@ def compile(args):
             build_args=args.build_arg,
         )
     elif args.kubeflow:
-        if args.output_path is None:
-            args.output_path = "pipeline.yaml"
         compiler = KubeFlowCompiler()
         compiler.compile(pipeline=args.pipeline, output_path=args.output_path)
 
@@ -300,6 +311,8 @@ def register_run(parent_parser):
 
 
 def run(args):
+    args = set_default_output(args)
+
     if args.local:
         try:
             pipeline = pipeline_from_string(args.ref)
@@ -319,6 +332,7 @@ def run(args):
             )
         finally:
             DockerRunner().run(spec_ref)
+
     elif args.kubeflow:
         if not args.host:
             msg = "--host argument is required for running on Kubeflow"
