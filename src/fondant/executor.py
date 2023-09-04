@@ -208,8 +208,12 @@ class Executor(t.Generic[Component]):
         try:
             with fs_open(manifest_reference_path, mode="rt", encoding="utf-8") as file_:
                 cached_manifest_path = file_.read()
-                logger.info("Matching execution for component detected.")
-                return Manifest.from_file(cached_manifest_path)
+                manifest = Manifest.from_file(cached_manifest_path)
+                logger.info(
+                    "Matching execution for component detected, component's last"
+                    f"execution originates from `{manifest.run_id}`",
+                )
+                return manifest
 
         except FileNotFoundError:
             logger.info("No matching execution for component detected")
