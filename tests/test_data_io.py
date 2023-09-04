@@ -6,6 +6,7 @@ import pytest
 from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
+from fsspec.implementations.local import LocalFileSystem
 
 manifest_path = Path(__file__).parent / "example_data/manifest.json"
 component_spec_path = Path(__file__).parent / "example_data/components/1.yaml"
@@ -15,7 +16,8 @@ NUMBER_OF_TEST_ROWS = 151
 
 @pytest.fixture()
 def manifest():
-    return Manifest.from_file(manifest_path)
+    fs = LocalFileSystem()
+    return Manifest.from_file(manifest_path, fs)
 
 
 @pytest.fixture()

@@ -192,7 +192,10 @@ def test_component_caching(metadata, monkeypatch):
     assert matching_execution_manifest.run_id == "test_pipeline_2023"
     # Check that the previous component is not cached due to differing run IDs
     assert (
-        executor._is_previous_cached(Manifest.from_file(input_manifest_path)) is False
+        executor._is_previous_cached(
+            Manifest.from_file(input_manifest_path, executor.filesystem),
+        )
+        is False
     )
 
 

@@ -83,6 +83,20 @@ def entrypoint():
     args.func(args)
 
 
+def set_default_output(args: argparse.Namespace):
+    """Set the default output path depending on the runner type."""
+    if args.output_path is None:
+        if args.local:
+            args.output_path = "docker_compose.yml"
+        elif args.kubeflow:
+            args.output_path = "pipeline.yaml"
+        else:
+            msg = "One of the arguments --local --kubeflow is required"
+            raise ValueError(msg)
+
+    return args
+
+
 def register_explore(parent_parser):
     parser = parent_parser.add_parser(
         "explore",
@@ -217,7 +231,7 @@ def register_compile(parent_parser):
         "--output-path",
         "-o",
         help="Output directory",
-        default="docker-compose.yml",
+        default=None,
     )
     parser.add_argument(
         "--extra-volumes",
@@ -235,6 +249,7 @@ def register_compile(parent_parser):
 
 
 def compile(args):
+    args = set_default_output(args)
     pipeline = pipeline_from_module(args.ref)
 
     if args.local:
@@ -285,7 +300,7 @@ def register_run(parent_parser):
         "--output-path",
         "-o",
         help="Output directory",
-        default="docker-compose.yml",
+        default=None,
     )
     parser.add_argument(
         "--extra-volumes",
@@ -302,6 +317,8 @@ def register_run(parent_parser):
 
 
 def run(args):
+    args = set_default_output(args)
+
     if args.local:
         try:
             pipeline = pipeline_from_module(args.ref)

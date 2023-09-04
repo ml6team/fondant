@@ -153,7 +153,7 @@ def test_kfp_compile(tmp_path_factory):
 
 def test_local_run(tmp_path_factory):
     """Test that the run command works with different arguments."""
-    args = argparse.Namespace(local=True, ref="some/path")
+    args = argparse.Namespace(local=True, ref="some/path", output_path=None)
     with patch("subprocess.call") as mock_call:
         run(args)
         mock_call.assert_called_once_with(
@@ -199,6 +199,7 @@ def test_kfp_run(tmp_path_factory):
     args = argparse.Namespace(
         kubeflow=True,
         local=False,
+        output_path=None,
         ref="some/path",
         host=None,
     )
@@ -211,6 +212,7 @@ def test_kfp_run(tmp_path_factory):
         args = argparse.Namespace(
             kubeflow=True,
             local=False,
+            output_path=None,
             host="localhost",
             ref="some/path",
         )
