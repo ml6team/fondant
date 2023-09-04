@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 pipeline = Pipeline(
     pipeline_name="datacomp-filtering-pipeline",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
-    # base_path=PipelineConfigs.BASE_PATH,
-    base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
+    base_path=PipelineConfigs.BASE_PATH,
+    # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
 )
 
 # define ops
@@ -41,7 +41,7 @@ load_from_hub_op = ComponentOp(
         "dataset_name": "nielsr/datacomp-small-with-text-embeddings",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
-        "n_rows_to_load": 500,
+        "n_rows_to_load": 1000,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-64-pool",
@@ -62,11 +62,11 @@ download_images_op = ComponentOp.from_registry(
 detect_text_op = ComponentOp(
     component_dir="components/detect_text",
     arguments={
-        "batch_size": 256,
+        "batch_size": 2,
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-mega-pool",
-    # number_of_gpus=1,
+    number_of_gpus=1,
     cache=False,
 )
 mask_images_op = ComponentOp(
@@ -78,11 +78,11 @@ mask_images_op = ComponentOp(
 embed_images_op = ComponentOp.from_registry(
     name="image_embedding",
     arguments={
-        "batch_size": 256,
+        "batch_size": 2,
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-mega-pool",
-    # number_of_gpus=1,
+    number_of_gpus=1,
     cache=False,
 )
 add_clip_score_op = ComponentOp(
