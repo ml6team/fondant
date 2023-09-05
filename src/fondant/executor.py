@@ -289,13 +289,13 @@ class Executor(t.Generic[Component]):
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
-    def _upload_manifest_reference(
+    def _upload_cache_key(
         self,
         manifest: Manifest,
         manifest_save_path: t.Union[str, Path],
     ):
         """
-        Write a reference to the manifest location of a cached component's execution.
+        Write the cache key containing the reference to the location of the written manifest..
 
         This function creates a file with the format "<cache_key>.txt" at the specified
         'manifest_save_path' to store the manifest location for future retrieval of
@@ -310,7 +310,7 @@ class Executor(t.Generic[Component]):
             f"{self.metadata.cache_key}.txt"
         )
 
-        logger.info(f"Writing manifest save location to {manifest_reference_path}")
+        logger.info(f"Writing cache key to {manifest_reference_path}")
 
         with fs_open(manifest_reference_path, mode="wt", encoding="utf-8") as file_:
             file_.write(str(manifest_save_path))
@@ -340,7 +340,7 @@ class Executor(t.Generic[Component]):
             # Upload manifest and it's reference if cache is False
             manifest.to_file(save_path_base_path)
             logger.info(f"Saving output manifest to {save_path_base_path}")
-            self._upload_manifest_reference(
+            self._upload_cache_key(
                 manifest=manifest,
                 manifest_save_path=save_path_base_path,
             )
@@ -351,7 +351,7 @@ class Executor(t.Generic[Component]):
             # Local runner
             manifest.to_file(save_path)
             logger.info(f"Saving output manifest to {save_path}")
-            self._upload_manifest_reference(
+            self._upload_cache_key(
                 manifest=manifest,
                 manifest_save_path=save_path,
             )
