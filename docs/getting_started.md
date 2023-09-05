@@ -139,10 +139,10 @@ Fondant has a feature rich CLI that helps you with these steps. Let's start by r
 First of all make sure you have [Docker Compose](https://docs.docker.com/compose/) installed on your system
 
 ```bash
-fondant run pipeline:my_pipeline --local
+fondant run pipeline.py --local
 ```
 
-We call the fondant CLI to compile and run our pipeline, we pass a reference to our pipeline using the import_string syntax `<module>:<instance>`. We also pass the `--local` flag to indicate we want to compile our pipeline for the local runner.
+We call the fondant CLI to compile and run our pipeline, we pass the module containing the pipeline instance, the instance is the automatically detected. We also pass the `--local` flag to indicate we want to compile our pipeline for the local runner.
 Running this command will create a `docker-compose.yml` file with the compiled pipeline definition. Feel free to inspect this file but changing it is not needed.
 
 Note that if you use a local `base_path` in your pipeline declaration that this path will be mounted in the docker containers. This means that the data will be stored locally on your machine. If you use a cloud storage path, the data will be stored in the cloud.
@@ -287,7 +287,7 @@ We add the component to our pipeline definition and specify that it depends on t
 We can now easily run our new pipeline:
 
 ```bash
-fondant run pipeline:my_pipeline --local
+fondant run pipeline --local
 ```
 
 You will see that the components runs sequentially and that each has its own logs. 

@@ -53,7 +53,7 @@ def entrypoint():
         This CLI is used to interact with fondant pipelines like compiling and running your pipelines.
 
         Example:
-        fondant compile my_project.my_pipeline.py:pipeline
+        fondant compile my_project.my_pipeline.py
         """,
         ),
         epilog=textwrap.dedent(
@@ -279,7 +279,7 @@ def register_run(parent_parser):
         You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
 
         Example:
-        fondant run my_project.my_pipeline.py:pipeline --local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials
+        fondant run my_project.my_pipeline.py --local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials
         fondant run ./my_compiled_kubeflow_pipeline.tgz --kubeflow
         """,
         ),
