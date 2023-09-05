@@ -48,7 +48,16 @@ Next, we define two operations: `load_from_hub_op`, which is a based from a reus
     Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs will be available in future releases.
 
 ## Setting Custom node pool parameters
-Each component can optionally be constrained to run on particular node(s) using `node_pool_label` and `node_pool_name`. You can find these under the Kubernetes labels of your cluster. You can use the default node label provided by Kubernetes or attach your own. Note that the value of these labels is cloud provider specific.
+Each component can optionally be constrained to run on particular node(s) using `node_pool_label` and `node_pool_name`. You can find these under the Kubernetes labels of your cluster. 
+You can use the default node label provided by Kubernetes or attach your own. Note that the value of these labels is cloud provider specific.  
+
+Note that you can also setup a component to use a preemptible VM by setting `preemptible` to `True`.
+This Requires the setup and assignment of a preemptible node pool. Note that preemptibles only work
+when KFP is setup on GCP. 
+
+More info here: https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+
+
 
 ## Setting Custom partitioning parameters
 

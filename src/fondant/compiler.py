@@ -222,8 +222,10 @@ class KubeFlowCompiler(Compiler):
         """Resolve imports for the Kubeflow compiler."""
         try:
             import kfp
+            import kfp.gcp as kfp_gcp
 
             self.kfp = kfp
+            self.kfp_gcp = kfp_gcp
         except ImportError:
             msg = """You need to install kfp to use the Kubeflow compiler,\n
                      you can install it with `pip install fondant[kfp]`"""
@@ -307,11 +309,20 @@ class KubeFlowCompiler(Compiler):
         number_of_gpus = fondant_component_operation.number_of_gpus
         node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
+        preemptible = fondant_component_operation.preemptible
 
         # Assign optional specification
         if number_of_gpus is not None:
             task.set_gpu_limit(number_of_gpus)
         if node_pool_name is not None and node_pool_label is not None:
             task.add_node_selector_constraint(node_pool_label, node_pool_name)
+        if preemptible is True:
+            logger.warning(
+                f"Preemptible VM enabled on component `{fondant_component_operation.name}`. Please"
+                f" note that Preemptible nodepools only works on clusters setup on GCP and "
+                f"with nodepools pre-configured with preemptible VMs. More info here:"
+                f" https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/",
+            )
+            task.apply(self.kfp_gcp.use_preemptible_nodepool())
 
         return task

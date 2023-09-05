@@ -35,6 +35,10 @@ class ComponentOp:
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
         cache: Set to False to disable caching, True by default.
+        preemptible: False by default. Set to True to use a preemptible VM.
+         Requires the setup and assignment of a preemptible node pool. Note that preemptibles only
+         work when KFP is setup on GCP. More info here:
+         https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
@@ -58,6 +62,7 @@ class ComponentOp:
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
+        preemptible: t.Optional[bool] = False,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -74,6 +79,7 @@ class ComponentOp:
             node_pool_label,
             node_pool_name,
         )
+        self.preemptible = preemptible
 
     def _configure_caching_from_image_tag(
         self,
@@ -152,6 +158,7 @@ class ComponentOp:
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
+        preemptible: t.Optional[bool] = False,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -164,6 +171,11 @@ class ComponentOp:
             node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.
             cache: Set to False to disable caching, True by default.
+            preemptible: False by default. Set to True to use a preemptible VM.
+             Requires the setup and assignment of a preemptible node pool. Note that preemptibles
+             only work when KFP is setup on GCP. More info here:
+             https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -179,6 +191,7 @@ class ComponentOp:
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
             cache=cache,
+            preemptible=preemptible,
         )
 
     def get_component_cache_key(self) -> str:
