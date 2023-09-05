@@ -119,8 +119,6 @@ class DockerCompiler(Compiler):
 
         pipeline.validate(run_id=run_id)
 
-        cache_key_previous_component = None
-
         for component_name, component in pipeline._graph.items():
             component_op = component["fondant_component_op"]
 
@@ -142,7 +140,7 @@ class DockerCompiler(Compiler):
                 [
                     "--output_manifest_path",
                     f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
-                    f"{component_name}/manifest_{metadata.cache_key}.json",
+                    f"{component_name}/manifest.json",
                 ],
             )
 
@@ -165,11 +163,9 @@ class DockerCompiler(Compiler):
                         [
                             "--input_manifest_path",
                             f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
-                            f"{dependency}/manifest_{cache_key_previous_component}.json",
+                            f"{dependency}/manifest.json",
                         ],
                     )
-
-            cache_key_previous_component = metadata.cache_key
 
             volumes: t.List[t.Union[str, dict]] = []
             if volume:

@@ -41,8 +41,8 @@ def metadata():
         pipeline_name="example_pipeline",
         base_path=str(base_path),
         component_id="component_2",
-        run_id="2024",
-        cache_key="2",
+        run_id="example_pipeline_2024",
+        cache_key="42",
     )
 
 
@@ -142,7 +142,7 @@ def test_component_arguments(metadata):
     }
 
 
-def test_component_caching(metadata, monkeypatch):
+def test_run_with_cache(metadata, monkeypatch):
     input_manifest_path = str(components_path / "arguments/input_manifest.json")
     # Mock CLI arguments
     sys.argv = [
@@ -176,27 +176,55 @@ def test_component_caching(metadata, monkeypatch):
         def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
             pass
 
-    def mock_fs_created(path):
-        if "2023" in path:
-            return 2023
+    executor = MyExecutor.from_args()
+    matching_execution_manifest = executor._get_cached_manifest()
+    # Check that the latest manifest is returned
+    assert matching_execution_manifest.run_id == "example_pipeline_2023"
+    # Check that the previous component is cached due to similar run IDs
+    assert executor._is_previous_cached(Manifest.from_file(input_manifest_path)) is True
 
-        if "2022" in path:
-            return 2022
 
-        return 1970
+def test_run_with_no_cache(metadata):
+    input_manifest_path = str(components_path / "arguments/input_manifest.json")
+
+    # Change metadata to a new cache key that's not cached
+    metadata.cache_key = "123"
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        input_manifest_path,
+        "--metadata",
+        metadata.to_json(),
+        "--output_manifest_path",
+        str(components_path / "arguments/output_manifest.json"),
+        "--component_spec",
+        yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--cache",
+        "True",
+        "--input_partition_rows",
+        "100",
+        "--override_default_arg",
+        "bar",
+        "--override_default_none_arg",
+        "3.14",
+        "--override_default_arg_with_none",
+        "None",
+    ]
+
+    class MyExecutor(Executor):
+        """Base component with dummy methods so it can be instantiated."""
+
+        def _load_or_create_manifest(self) -> Manifest:
+            pass
+
+        def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+            pass
 
     executor = MyExecutor.from_args()
-    monkeypatch.setattr(executor.filesystem, "created", mock_fs_created)
-    matching_execution_manifest = executor._get_latest_matching_manifest()
+    matching_execution_manifest = executor._get_cached_manifest()
     # Check that the latest manifest is returned
-    assert matching_execution_manifest.run_id == "test_pipeline_2023"
-    # Check that the previous component is not cached due to differing run IDs
-    assert (
-        executor._is_previous_cached(
-            Manifest.from_file(input_manifest_path, executor.filesystem),
-        )
-        is False
-    )
+    assert matching_execution_manifest is None
 
 
 @pytest.mark.usefixtures("_patched_data_writing")
