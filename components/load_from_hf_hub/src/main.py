@@ -99,8 +99,6 @@ class LoadFromHubComponent(DaskLoadComponent):
                 return pd.DataFrame(meta_dict).set_index("id")
 
             meta = _get_meta_df()
-            print("meta")
-            print(meta)
             dask_df = dask_df.map_partitions(_set_unique_index, meta=meta)
         else:
             logger.info(f"Setting `{self.index_column}` as index")
