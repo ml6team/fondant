@@ -15,6 +15,7 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pandas as pd
+from dask.distributed import Client, LocalCluster
 from fsspec import open as fs_open
 
 from fondant.component import (
@@ -45,6 +46,8 @@ class Executor(t.Generic[Component]):
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        cluster_type: t.Optional[str] = "local",
+        client_worker_kwargs: t.Optional[dict] = {},
     ) -> None:
         self.spec = spec
         self.cache = cache
@@ -53,6 +56,20 @@ class Executor(t.Generic[Component]):
         self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
+
+        if cluster_type == "local":
+            local_cluster = LocalCluster(*client_worker_kwargs)
+            self.client = Client(local_cluster)
+        elif cluster_type == "distributed":
+            msg = "The usage of the Dask distributed client is not supported yet."
+            raise NotImplementedError(msg)
+        else:
+            logger.info(
+                f"We currently do not support {cluster_type}."
+                f" Our supported options are limited to 'local' and 'distributed'."
+                f"Dask local mode will be used for further executions.",
+            )
+            self.client = None
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -188,7 +205,7 @@ class Executor(t.Generic[Component]):
             component_spec=self.spec,
         )
 
-        data_writer.write_dataframe(dataframe)
+        data_writer.write_dataframe(dataframe, self.client)
 
     def _get_cached_manifest(self) -> t.Union[Manifest, None]:
         """
