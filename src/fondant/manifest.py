@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import jsonschema.exceptions
-from fsspec import AbstractFileSystem
+from fsspec import open as fs_open
 from jsonschema import Draft4Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
@@ -177,15 +177,15 @@ class Manifest:
         return cls(specification)
 
     @classmethod
-    def from_file(cls, path: t.Union[str, Path], fs: AbstractFileSystem) -> "Manifest":
+    def from_file(cls, path: t.Union[str, Path]) -> "Manifest":
         """Load the manifest from the file specified by the provided path."""
-        with fs.open(path, encoding="utf-8") as file_:
+        with fs_open(path, encoding="utf-8") as file_:
             specification = json.load(file_)
             return cls(specification)
 
-    def to_file(self, path: t.Union[str, Path], fs: AbstractFileSystem) -> None:
+    def to_file(self, path: t.Union[str, Path]) -> None:
         """Dump the manifest to the file specified by the provided path."""
-        with fs.open(path, "w", encoding="utf-8") as file_:
+        with fs_open(path, "w", encoding="utf-8") as file_:
             json.dump(self._specification, file_)
 
     def copy(self) -> "Manifest":

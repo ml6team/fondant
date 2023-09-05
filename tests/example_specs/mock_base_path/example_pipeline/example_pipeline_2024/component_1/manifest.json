@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "pipeline_name": "test_pipeline",
-    "base_path": "gs://bucket",
-    "run_id": "test_pipeline_2022",
-    "component_id": "component_2",
-    "cache_key": "2"
+    "pipeline_name": "example_pipeline",
+    "base_path": "tests/example_data/subsets_input/mock_base_path",
+    "run_id": "example_pipeline_2024",
+    "component_id": "component_1",
+    "cache_key": "42"
   },
   "index": {
     "location": "/index"

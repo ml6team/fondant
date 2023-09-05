@@ -15,6 +15,7 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pandas as pd
+from fsspec import open as fs_open
 
 from fondant.component import (
     Component,
@@ -25,7 +26,6 @@ from fondant.component import (
 )
 from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
 from fondant.data_io import DaskDataLoader, DaskDataWriter
-from fondant.filesystem import get_filesystem
 from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number
 
@@ -53,7 +53,6 @@ class Executor(t.Generic[Component]):
         self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
-        self.filesystem = get_filesystem(self.metadata.base_path)
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -191,10 +190,9 @@ class Executor(t.Generic[Component]):
 
         data_writer.write_dataframe(dataframe)
 
-    def _get_latest_matching_manifest(self) -> t.Union[Manifest, None]:
+    def _get_cached_manifest(self) -> t.Union[Manifest, None]:
         """
-        Find and return the most recent matching execution's Manifest for the component,
-        if it exists.
+        Find and return the matching execution's Manifest for the component, if it exists.
 
         This function searches for previous execution manifests that match the component's metadata.
 
@@ -202,33 +200,24 @@ class Executor(t.Generic[Component]):
             The Manifest object representing the most recent matching execution,
             or None if no matching execution is found.
         """
-        matching_manifest_glob_pattern = (
-            f"{self.metadata.base_path}/{self.metadata.pipeline_name}/*/"
-            f"{self.metadata.component_id}/manifest_{self.metadata.cache_key}.json"
+        manifest_reference_path = (
+            f"{self.metadata.base_path}/{self.metadata.pipeline_name}/cache/"
+            f"{self.metadata.cache_key}.txt"
         )
 
-        matching_manifests = self.filesystem.glob(matching_manifest_glob_pattern)
-
-        if matching_manifests:
-            logger.info("Matching execution for component detected.")
-            nb_matching_manifest = len(matching_manifests)
-
-            if nb_matching_manifest > 1:
+        try:
+            with fs_open(manifest_reference_path, mode="rt", encoding="utf-8") as file_:
+                cached_manifest_path = file_.read()
+                manifest = Manifest.from_file(cached_manifest_path)
                 logger.info(
-                    f"Multiple matching executions for the component were found: "
-                    f"{nb_matching_manifest}. Picking the most recent one.",
+                    f"Matching execution detected for component. The last execution of the"
+                    f" component originated from `{manifest.run_id}`.",
                 )
+                return manifest
 
-                # Get the most recent file based on the file creation date time
-                manifest_file = max(matching_manifests, key=self.filesystem.created)
-            else:
-                manifest_file = matching_manifests[0]
-
-            return Manifest.from_file(manifest_file, self.filesystem)
-
-        logger.info("No matching execution for component detected")
-
-        return None
+        except FileNotFoundError:
+            logger.info("No matching execution for component detected")
+            return None
 
     def _is_previous_cached(self, input_manifest: Manifest) -> bool:
         """
@@ -288,7 +277,7 @@ class Executor(t.Generic[Component]):
         input_manifest = self._load_or_create_manifest()
 
         if self.cache and self._is_previous_cached(input_manifest):
-            output_manifest = self._get_latest_matching_manifest()
+            output_manifest = self._get_cached_manifest()
             if output_manifest is not None:
                 logger.info("Skipping component execution")
             else:
@@ -299,6 +288,32 @@ class Executor(t.Generic[Component]):
             output_manifest = self._run_execution(component_cls, input_manifest)
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
+
+    def _upload_cache_key(
+        self,
+        manifest: Manifest,
+        manifest_save_path: t.Union[str, Path],
+    ):
+        """
+        Write the cache key containing the reference to the location of the written manifest..
+
+        This function creates a file with the format "<cache_key>.txt" at the specified
+        'manifest_save_path' to store the manifest location for future retrieval of
+        cached component executions.
+
+        Args:
+            manifest: The reference manifest.
+            manifest_save_path (str): The path where the manifest is saved.
+        """
+        manifest_reference_path = (
+            f"{manifest.base_path}/{manifest.pipeline_name}/cache/"
+            f"{self.metadata.cache_key}.txt"
+        )
+
+        logger.info(f"Writing cache key to {manifest_reference_path}")
+
+        with fs_open(manifest_reference_path, mode="wt", encoding="utf-8") as file_:
+            file_.write(str(manifest_save_path))
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         """
@@ -320,19 +335,26 @@ class Executor(t.Generic[Component]):
             # Save to the expected base path directory
             save_path_base_path = (
                 f"{manifest.base_path}/{manifest.pipeline_name}/{manifest.run_id}/"
-                f"{manifest.component_id}/manifest_{manifest.cache_key}.json"
+                f"{manifest.component_id}/manifest.json"
             )
-            Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
-            manifest.to_file(save_path_base_path, self.filesystem)
+            # Upload manifest and it's reference if cache is False
+            manifest.to_file(save_path_base_path)
             logger.info(f"Saving output manifest to {save_path_base_path}")
+            self._upload_cache_key(
+                manifest=manifest,
+                manifest_save_path=save_path_base_path,
+            )
             # Write manifest to the native kfp artifact path that will be passed as an artifact
             # and read by the next component
-            manifest.to_file(save_path, self.filesystem)
+            manifest.to_file(save_path)
         else:
             # Local runner
-            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-            manifest.to_file(save_path, self.filesystem)
+            manifest.to_file(save_path)
             logger.info(f"Saving output manifest to {save_path}")
+            self._upload_cache_key(
+                manifest=manifest,
+                manifest_save_path=save_path,
+            )
 
 
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
@@ -372,7 +394,7 @@ class TransformExecutor(Executor[Component]):
     """Base class for a Fondant transform component."""
 
     def _load_or_create_manifest(self) -> Manifest:
-        return Manifest.from_file(self.input_manifest_path, self.filesystem)
+        return Manifest.from_file(self.input_manifest_path)
 
     def _execute_component(
         self,
@@ -514,7 +536,7 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
         return ["output_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
-        return Manifest.from_file(self.input_manifest_path, self.filesystem)
+        return Manifest.from_file(self.input_manifest_path)
 
     def _execute_component(
         self,
