@@ -39,6 +39,8 @@ class ComponentOp:
          Requires the setup and assignment of a preemptible node pool. Note that preemptibles only
          work when KFP is setup on GCP. More info here:
          https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+        cluster_type: The type of cluster to use for distributed execution (default is "local").
+        client_kwargs: Keyword arguments used to initialise the dask client.
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
@@ -63,6 +65,8 @@ class ComponentOp:
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
         preemptible: t.Optional[bool] = False,
+        cluster_type: t.Optional[str] = "local",
+        client_kwargs: t.Optional[dict] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -80,6 +84,9 @@ class ComponentOp:
             node_pool_name,
         )
         self.preemptible = preemptible
+
+        self.cluster_type = cluster_type
+        self.client_kwargs = client_kwargs
 
     def _configure_caching_from_image_tag(
         self,

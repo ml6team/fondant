@@ -269,6 +269,18 @@ class KubeflowComponentSpec:
                     "type": "Boolean",
                     "default": "True",
                 },
+                {
+                    "name": "cluster_type",
+                    "description": "The type of cluster to use for distributed execution",
+                    "type": "String",
+                    "default": "local",
+                },
+                {
+                    "name": "client_kwargs",
+                    "description": "Keyword arguments used to initialise the dask client",
+                    "type": "JsonObject",
+                    "default": "None",
+                },
                 *(
                     {
                         "name": arg.name,
@@ -306,6 +318,10 @@ class KubeflowComponentSpec:
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},
+                        "--cluster_type",
+                        {"inputValue": "cluster_type"},
+                        "--client_kwargs",
+                        {"inputValue": "client_kwargs"},
                     ],
                 },
             },

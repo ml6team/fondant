@@ -12,6 +12,8 @@ from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
 
+DASK_DIAGNOSTIC_DASHBOARD_PORT = 8787
+
 
 class Compiler(ABC):
     """Abstract base class for a compiler."""
@@ -174,7 +176,9 @@ class DockerCompiler(Compiler):
                 volumes.extend(extra_volumes)
 
             ports: t.List[t.Union[str, dict]] = []
-            ports.append("8787:8787")
+            ports.append(
+                f"{DASK_DIAGNOSTIC_DASHBOARD_PORT}:{DASK_DIAGNOSTIC_DASHBOARD_PORT}",
+            )
 
             services[component_name] = {
                 "command": command,
