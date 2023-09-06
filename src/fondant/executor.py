@@ -157,6 +157,12 @@ class Executor(t.Generic[Component]):
         if "cache" in args_dict:
             args_dict.pop("cache")
 
+        if "cluster_type" in args_dict:
+            args_dict.pop("cluster_type")
+
+        if "client_kwargs" in args_dict:
+            args_dict.pop("client_kwargs")
+
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")

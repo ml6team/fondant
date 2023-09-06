@@ -3,6 +3,7 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pytest
+from dask.distributed import Client
 from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest
@@ -11,6 +12,8 @@ manifest_path = Path(__file__).parent / "example_data/manifest.json"
 component_spec_path = Path(__file__).parent / "example_data/components/1.yaml"
 
 NUMBER_OF_TEST_ROWS = 151
+
+dask_client = Client()
 
 
 @pytest.fixture()
@@ -103,7 +106,7 @@ def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
             component_spec=component_spec,
         )
         # write out index to temp dir
-        data_writer.write_dataframe(dataframe)
+        data_writer.write_dataframe(dataframe, dask_client)
         number_workers = os.cpu_count()
         # read written data and assert
         dataframe = dd.read_parquet(fn / "index")
@@ -127,7 +130,7 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
         manifest.update_metadata("base_path", str(fn))
         data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
         # write dataframe to temp dir
-        data_writer.write_dataframe(dataframe)
+        data_writer.write_dataframe(dataframe, dask_client)
         # read written data and assert
         for subset, subset_columns in subset_columns_dict.items():
             dataframe = dd.read_parquet(fn / subset)
@@ -145,7 +148,7 @@ def test_write_reset_index(tmp_path_factory, dataframe, manifest, component_spec
         manifest.update_metadata("base_path", str(fn))
 
         data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
-        data_writer.write_dataframe(dataframe)
+        data_writer.write_dataframe(dataframe, dask_client)
 
         for subset in ["properties", "types", "index"]:
             dataframe = dd.read_parquet(fn / subset)
@@ -172,7 +175,7 @@ def test_write_divisions(
             component_spec=component_spec,
         )
 
-        data_writer.write_dataframe(dataframe)
+        data_writer.write_dataframe(dataframe, dask_client)
 
         for target in ["properties", "types", "index"]:
             dataframe = dd.read_parquet(fn / target)
@@ -193,4 +196,4 @@ def test_write_subsets_invalid(tmp_path_factory, dataframe, manifest, component_
             r"types but not found in dataframe"
         )
         with pytest.raises(ValueError, match=expected_error_msg):
-            data_writer.write_dataframe(dataframe)
+            data_writer.write_dataframe(dataframe, dask_client)

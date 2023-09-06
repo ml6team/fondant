@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ComponentOp:
     """
-    Class representing an operation for a Fondant Component in a Kubeflow Pipeline. An operation
+    Class representing an operation for a Fondant Component in a Fondant Pipeline. An operation
     is a representation of a function that will be executed as part of a pipeline.
 
     Arguments:
@@ -45,8 +45,8 @@ class ComponentOp:
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
           arguments.
-        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`
-         attributes are optional and can be used to specify additional
+        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`, `cache`, `cluster_type` and
+        `client_kwargs` attributes are optional and can be used to specify additional
           configurations for the operation. More information on the optional attributes that can
           be assigned to kfp components here:
           https://kubeflow-pipelines.readthedocs.io/en/1.8.13/source/kfp.dsl.html
@@ -75,7 +75,20 @@ class ComponentOp:
         )
         self.name = self.component_spec.name.replace(" ", "_").lower()
         self.cache = self._configure_caching_from_image_tag(cache)
-        self.arguments = self._set_arguments(arguments)
+        self.cluster_type = cluster_type
+        self.client_kwargs = client_kwargs
+
+        self.arguments = self._set_arguments(arguments)  #
+
+        self._add_component_argument(
+            "input_partition_rows",
+            input_partition_rows,
+            validate_partition_number,
+        )
+        self._add_component_argument("cache", cache)
+        self._add_component_argument("cluster_type", cluster_type)
+        self._add_component_argument("client_kwargs", client_kwargs)
+
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.number_of_gpus = number_of_gpus
@@ -84,9 +97,6 @@ class ComponentOp:
             node_pool_name,
         )
         self.preemptible = preemptible
-
-        self.cluster_type = cluster_type
-        self.client_kwargs = client_kwargs
 
     def _configure_caching_from_image_tag(
         self,
@@ -120,6 +130,20 @@ class ComponentOp:
 
         return cache
 
+    def _add_component_argument(
+        self,
+        argument_name: str,
+        argument_value: t.Any,
+        validator: t.Optional[t.Callable] = None,
+    ):
+        """Register component argument to arguments dict as well as component attributes."""
+        if getattr(self, "arguments") is False:
+            self.arguments = {}
+
+        if validator and validator(argument_value):
+            self.argument_name = argument_value
+            self.arguments[argument_name] = argument_value
+
     def _set_arguments(
         self,
         arguments: t.Optional[t.Dict[str, t.Any]],
@@ -133,6 +157,8 @@ class ComponentOp:
 
         arguments["input_partition_rows"] = str(input_partition_rows)
         arguments["cache"] = str(self.cache)
+        arguments["cluster_type"] = self.cluster_type
+        arguments["client_kwargs"] = self.client_kwargs
 
         return arguments
 
@@ -166,6 +192,8 @@ class ComponentOp:
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
         preemptible: t.Optional[bool] = False,
+        cluster_type: t.Optional[str] = "local",
+        client_kwargs: t.Optional[dict] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -183,6 +211,8 @@ class ComponentOp:
              only work when KFP is setup on GCP. More info here:
              https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
 
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -199,6 +229,8 @@ class ComponentOp:
             node_pool_name=node_pool_name,
             cache=cache,
             preemptible=preemptible,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
         )
 
     def get_component_cache_key(self) -> str:

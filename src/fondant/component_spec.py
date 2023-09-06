@@ -318,10 +318,7 @@ class KubeflowComponentSpec:
                         *cls._dump_args(fondant_component.args.values()),
                         "--output_manifest_path",
                         {"outputPath": "output_manifest_path"},
-                        "--cluster_type",
-                        {"inputValue": "cluster_type"},
-                        "--client_kwargs",
-                        {"inputValue": "client_kwargs"},
+                        # TODO: check if it is needed to add cluster_type and client_kwargs
                     ],
                 },
             },
