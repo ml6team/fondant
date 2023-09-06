@@ -191,7 +191,7 @@ class DaskDataWriter(DataIO):
 
         with ProgressBar():
             logging.info("Writing data...")
-            # alternative implementation:
+            # alternative implementation possible: futures = client.compute(...)
             dd.compute(*write_tasks, scheduler=dask_client)
 
     @staticmethod

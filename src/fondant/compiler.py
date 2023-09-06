@@ -173,10 +173,14 @@ class DockerCompiler(Compiler):
             if extra_volumes:
                 volumes.extend(extra_volumes)
 
+            ports: t.List[t.Union[str, dict]] = []
+            ports.append("8787:8787")
+
             services[component_name] = {
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
+                "ports": ports,
             }
 
             if component_op.number_of_gpus is not None:
