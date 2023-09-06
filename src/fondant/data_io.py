@@ -158,7 +158,11 @@ class DaskDataWriter(DataIO):
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
 
-    def write_dataframe(self, dataframe: dd.DataFrame, dask_client: Client) -> None:
+    def write_dataframe(
+        self,
+        dataframe: dd.DataFrame,
+        dask_client: t.Optional[Client] = None,
+    ) -> None:
         write_tasks = []
 
         dataframe.index = dataframe.index.rename("id")
@@ -187,7 +191,8 @@ class DaskDataWriter(DataIO):
 
         with ProgressBar():
             logging.info("Writing data...")
-            dask_client.compute(*write_tasks)
+            # alternative implementation:
+            dd.compute(*write_tasks, scheduler=dask_client)
 
     @staticmethod
     def _extract_subset_dataframe(

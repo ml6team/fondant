@@ -9,6 +9,7 @@ import argparse
 import ast
 import json
 import logging
+import os
 import typing as t
 from abc import abstractmethod
 from pathlib import Path
@@ -47,7 +48,7 @@ class Executor(t.Generic[Component]):
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         cluster_type: t.Optional[str] = "local",
-        client_worker_kwargs: t.Optional[dict] = {},
+        client_kwargs: t.Optional[dict] = None,
     ) -> None:
         self.spec = spec
         self.cache = cache
@@ -57,16 +58,25 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
 
+        if client_kwargs is None:
+            client_kwargs = {}
+
         if cluster_type == "local":
-            local_cluster = LocalCluster(*client_worker_kwargs)
+            local_cluster = LocalCluster(
+                processes=True,
+                memory_limit=client_kwargs.get("memory_limit"),
+                n_workers=client_kwargs.get("n_workers", os.cpu_count()),
+                threads_per_worker=client_kwargs.get("thread_per_worker", 1),
+            )
             self.client = Client(local_cluster)
+
         elif cluster_type == "distributed":
             msg = "The usage of the Dask distributed client is not supported yet."
             raise NotImplementedError(msg)
         else:
             logger.info(
-                f"We currently do not support {cluster_type}."
-                f" Our supported options are limited to 'local' and 'distributed'."
+                f"We currently do not support {cluster_type}. "
+                f"Our supported options are limited to 'local' and 'distributed'. "
                 f"Dask local mode will be used for further executions.",
             )
             self.client = None
