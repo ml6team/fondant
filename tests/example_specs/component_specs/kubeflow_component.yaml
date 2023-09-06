@@ -1,50 +1,214 @@
-name: Example component
-description: This is an example component
-inputs:
--   name: input_manifest_path
-    description: Path to the input manifest
-    type: String
--   name: metadata
-    description: Metadata arguments containing the run id and base path
-    type: String
--   name: component_spec
-    description: The component specification as a dictionary
-    type: JsonObject
-    default: None
--   name: input_partition_rows
-    description: The number of rows to load per partition. Set to override the automatic
-        partitioning
-    type: String
-    default: None
--   name: cache
-    description: Set to False to disable caching, True by default.
-    type: Boolean
-    default: 'True'
--   name: storage_args
-    description: Storage arguments
-    type: String
-outputs:
--   name: output_manifest_path
-    description: Path to the output manifest
-    type: String
-implementation:
-    container:
-        image: example_component:latest
-        command:
-        - fondant
-        - execute
-        - main
-        - --input_manifest_path
-        -   inputPath: input_manifest_path
-        - --metadata
-        -   inputValue: metadata
-        - --component_spec
-        -   inputValue: component_spec
-        - --input_partition_rows
-        -   inputValue: input_partition_rows
-        - --cache
-        -   inputValue: cache
-        - --storage_args
-        -   inputValue: storage_args
-        - --output_manifest_path
-        -   outputPath: output_manifest_path
+{
+    "components":
+        {
+            "comp-Example_component":
+                {
+                    "executorLabel": "exec-Example_component",
+                    "inputDefinitions":
+                        {
+                            "artifacts":
+                                {
+                                    "input_manifest_path":
+                                        {
+                                            "description": "Path to the input manifest",
+                                            "artifactType":
+                                                {
+                                                    "schemaTitle": "system.Artifact",
+                                                    "schemaVersion": "0.0.1",
+                                                },
+                                            "isOptional": True,
+                                        },
+                                },
+                            "parameters":
+                                {
+                                    "component_spec":
+                                        {
+                                            "description": "The component specification as a dictionary",
+                                            "defaultValue": {},
+                                            "isOptional": True,
+                                            "parameterType": "STRUCT",
+                                        },
+                                    "input_partition_rows":
+                                        {
+                                            "description": "The number of rows to load per partition. Set to override the automatic partitioning",
+                                            "isOptional": True,
+                                            "parameterType": "STRING",
+                                            "defaultValue": "None",
+                                        },
+                                    "metadata":
+                                        {
+                                            "description": "Metadata arguments containing the run id and base path",
+                                            "parameterType": "STRING",
+                                        },
+                                    "storage_args":
+                                        {
+                                            "parameterType": "STRING",
+                                            "description": "Storage arguments",
+                                        },
+                                },
+                        },
+                    "outputDefinitions":
+                        {
+                            "artifacts":
+                                {
+                                    "output_manifest_path":
+                                        {
+                                            "artifactType":
+                                                {
+                                                    "schemaTitle": "system.Artifact",
+                                                    "schemaVersion": "0.0.1",
+                                                },
+                                            "description": "Path to the output manifest",
+                                        },
+                                },
+                        },
+                },
+        },
+    "deploymentSpec":
+        {
+            "executors":
+                {
+                    "exec-Example_component":
+                        {
+                            "container":
+                                {
+                                    "args":
+                                        [
+                                            "--input_manifest_path",
+                                            "{{$.inputs.artifacts['input_manifest_path'].uri}}",
+                                            "--metadata",
+                                            "{{$.inputs.parameters['metadata']}}",
+                                            "--component_spec",
+                                            "{{$.inputs.parameters['component_spec']}}",
+                                            "--input_partition_rows",
+                                            "{{$.inputs.parameters['input_partition_rows']}}",
+                                            "--storage_args",
+                                            "{{$.inputs.parameters['storage_args']}}",
+                                            "--output_manifest_path",
+                                            "{{$.outputs.artifacts['output_manifest_path'].uri}}",
+                                        ],
+                                    "command": ["python3", "main.py"],
+                                    "image": "example_component:latest",
+                                },
+                        },
+                },
+        },
+    "pipelineInfo": { "name": "Example_component" },
+    "root":
+        {
+            "dag":
+                {
+                    "outputs":
+                        {
+                            "artifacts":
+                                {
+                                    "output_manifest_path":
+                                        {
+                                            "artifactSelectors":
+                                                [
+                                                    {
+                                                        "outputArtifactKey": "output_manifest_path",
+                                                        "producerSubtask": "Example_component",
+                                                    },
+                                                ],
+                                        },
+                                },
+                        },
+                    "tasks":
+                        {
+                            "Example_component":
+                                {
+                                    "cachingOptions": { "enableCache": True },
+                                    "componentRef":
+                                        { "name": "comp-Example_component" },
+                                    "inputs":
+                                        {
+                                            "artifacts":
+                                                {
+                                                    "input_manifest_path":
+                                                        {
+                                                            "componentInputArtifact": "input_manifest_path",
+                                                        },
+                                                },
+                                            "parameters":
+                                                {
+                                                    "component_spec":
+                                                        {
+                                                            "componentInputParameter": "component_spec",
+                                                        },
+                                                    "input_partition_rows":
+                                                        {
+                                                            "componentInputParameter": "input_partition_rows",
+                                                        },
+                                                    "metadata":
+                                                        {
+                                                            "componentInputParameter": "metadata",
+                                                        },
+                                                },
+                                        },
+                                    "taskInfo": { "name": "Example_component" },
+                                },
+                        },
+                },
+            "inputDefinitions":
+                {
+                    "artifacts":
+                        {
+                            "input_manifest_path":
+                                {
+                                    "description": "Path to the input manifest",
+                                    "artifactType":
+                                        {
+                                            "schemaTitle": "system.Artifact",
+                                            "schemaVersion": "0.0.1",
+                                        },
+                                    "isOptional": True,
+                                },
+                        },
+                    "parameters":
+                        {
+                            "component_spec":
+                                {
+                                    "description": "The component specification as a dictionary",
+                                    "defaultValue": {},
+                                    "isOptional": True,
+                                    "parameterType": "STRUCT",
+                                },
+                            "input_partition_rows":
+                                {
+                                    "description": "The number of rows to load per partition. Set to override the automatic partitioning",
+                                    "isOptional": True,
+                                    "parameterType": "STRING",
+                                    "defaultValue": "None",
+                                },
+                            "metadata":
+                                {
+                                    "description": "Metadata arguments containing the run id and base path",
+                                    "parameterType": "STRING",
+                                },
+                            "storage_args":
+                                {
+                                    "parameterType": "STRING",
+                                    "description": "Storage arguments",
+                                },
+                        },
+                },
+            "outputDefinitions":
+                {
+                    "artifacts":
+                        {
+                            "output_manifest_path":
+                                {
+                                    "artifactType":
+                                        {
+                                            "schemaTitle": "system.Artifact",
+                                            "schemaVersion": "0.0.1",
+                                        },
+                                    "description": "Path to the output manifest",
+                                },
+                        },
+                },
+        },
+    "schemaVersion": "2.1.0",
+    "sdkVersion": "kfp-2.0.1",
+}

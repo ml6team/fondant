@@ -6,7 +6,11 @@ from unittest.mock import patch
 
 import pytest
 import yaml
-from fondant.component_spec import ComponentSpec, ComponentSubset, KubeflowComponentSpec
+from fondant.component_spec import (
+    ComponentSpec,
+    ComponentSubset,
+    KubeflowComponentSpec,
+)
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Type
 

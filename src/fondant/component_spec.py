@@ -17,14 +17,15 @@ from referencing.jsonschema import DRAFT4
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Field, KubeflowCommandArguments, Type
 
-# TODO: remove after upgrading to kfpv2
+# # TODO: remove after upgrading to kfpv2
+
 kubeflow_to_python_type_dict = {
-    "String": str,
-    "Integer": int,
-    "Float": float,
-    "Boolean": ast.literal_eval,
-    "JsonObject": json.loads,
-    "JsonArray": json.loads,
+    "STRING": str,
+    "NUMBER_INTEGER": int,
+    "NUMBER_DOUBLE": float,
+    "BOOLEAN": ast.literal_eval,
+    "STRUCT": json.loads,
+    "LIST": json.loads,
 }
 
 
@@ -242,6 +243,7 @@ class KubeflowComponentSpec:
         for arg in fondant_component.args.values():
             args[arg.name] = {
                 "parameterType": python2kubeflow_type[arg.type],
+                "description": arg.description,
                 **(
                     {"defaultValue": arg.default, "isOptional": True}
                     if arg.default is not None
@@ -256,6 +258,7 @@ class KubeflowComponentSpec:
         input_definitions = {
             "artifacts": {
                 "input_manifest_path": {
+                    "description": "Path to the input manifest",
                     "artifactType": {
                         "schemaTitle": "system.Artifact",
                         "schemaVersion": "0.0.1",
@@ -265,20 +268,26 @@ class KubeflowComponentSpec:
             },
             "parameters": {
                 "component_spec": {
+                    "description": "The component specification as a dictionary",
                     "defaultValue": {},
                     "isOptional": True,
                     "parameterType": "STRUCT",
                 },
                 "input_partition_rows": {
+                    "description": "The number of rows to load per partition."
+                    + " Set to override the automatic partitioning",
                     "isOptional": True,
                     "parameterType": "STRING",
                     "defaultValue": "None",
                 },
-                "metadata": {"parameterType": "STRING"},
                 "cache": {
                     "parameterType": "BOOLEAN",
                     "description": "Set to False to disable caching, True by default.",
                     "defaultValue": "True",
+                },
+                "metadata": {
+                    "description": "Metadata arguments containing the run id and base path",
+                    "parameterType": "STRING",
                 },
                 **cls.convert_arguments(fondant_component),
             },
@@ -295,6 +304,7 @@ class KubeflowComponentSpec:
                         "schemaTitle": "system.Artifact",
                         "schemaVersion": "0.0.1",
                     },
+                    "description": "Path to the output manifest",
                 },
             },
         }
@@ -412,31 +422,54 @@ class KubeflowComponentSpec:
     @property
     def input_arguments(self) -> t.Mapping[str, Argument]:
         """The input arguments of the component as an immutable mapping."""
-        return types.MappingProxyType(
-            {
-                info["name"]: Argument(
-                    name=info["name"],
-                    description=info["description"],
-                    type=info["type"],
-                    default=info["default"] if "default" in info else None,
+        args = {}
+        input_definitions = self._specification["root"]["inputDefinitions"]
+
+        if "artifacts" in input_definitions:
+            for arg_name, arg_info in input_definitions["artifacts"].items():
+                args[arg_name] = Argument(
+                    name=arg_name,
+                    description=arg_info["description"],
+                    type="STRING",
+                    default=None,
                 )
-                for info in self._specification["inputs"]
-            },
-        )
+        if "parameters" in input_definitions:
+            for arg_name, arg_info in input_definitions["parameters"].items():
+                args[arg_name] = Argument(
+                    name=arg_name,
+                    description=arg_info["description"],
+                    type=arg_info["parameterType"],
+                    default=arg_info["defaultValue"]
+                    if "defaultValue" in arg_info
+                    else None,
+                )
+        return types.MappingProxyType(args)
 
     @property
     def output_arguments(self) -> t.Mapping[str, Argument]:
         """The output arguments of the component as an immutable mapping."""
-        return types.MappingProxyType(
-            {
-                info["name"]: Argument(
-                    name=info["name"],
-                    description=info["description"],
-                    type=info["type"],
+        args = {}
+        output_definitions = self._specification["root"]["outputDefinitions"]
+
+        if "artifacts" in output_definitions:
+            for arg_name, arg_info in output_definitions["artifacts"].items():
+                args[arg_name] = Argument(
+                    name=arg_name,
+                    description=arg_info["description"],
+                    type="STRING",
+                    default=None,
                 )
-                for info in self._specification["outputs"]
-            },
-        )
+        if "parameters" in output_definitions:
+            for arg_name, arg_info in output_definitions["parameters"].items():
+                args[arg_name] = Argument(
+                    name=arg_name,
+                    description=arg_info["description"],
+                    type=arg_info["parameterType"],
+                    default=arg_info["defaultValue"]
+                    if "defaultValue" in arg_info
+                    else None,
+                )
+        return types.MappingProxyType(args)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r})"

@@ -243,6 +243,7 @@ class KubeFlowCompiler(Compiler):
             output_path: the path where to save the Kubeflow pipeline spec
         """
         run_id = pipeline.get_run_id()
+        pipeline.validate(run_id=run_id)
 
         @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
@@ -295,9 +296,7 @@ class KubeFlowCompiler(Compiler):
 
                 previous_component_task = component_task
 
-        self.pipeline = pipeline
-        self.pipeline.validate(run_id=run_id)
-        logger.info(f"Compiling {self.pipeline.name} to {output_path}")
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
 
         self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
