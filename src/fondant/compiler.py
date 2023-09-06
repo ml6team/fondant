@@ -325,9 +325,6 @@ class VertexCompiler(Compiler):
         """Resolve imports for the Vertex compiler."""
         try:
             import kfp
-            import kfp.v2.compiler
-            import kfp.v2.components
-            import kfp.v2.dsl
 
             self.kfp = kfp
 
@@ -349,11 +346,14 @@ class VertexCompiler(Compiler):
             pipeline: the pipeline to compile
             output_path: the path where to save the Kubeflow pipeline spec
         """
+        self.pipeline = pipeline
+        self.pipeline.validate(run_id="{{workflow.name}}")
+        logger.info(f"Compiling {self.pipeline.name} to {output_path}")
 
-        @self.kfp.v2.dsl.pipeline(name=pipeline.name, description=pipeline.description)
+        @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
             previous_component_task = None
-            manifest_path = ""
+            manifest_path = None
             for component_name, component in self.pipeline._graph.items():
                 logger.info(f"Compiling service for {component_name}")
 
@@ -373,24 +373,25 @@ class VertexCompiler(Compiler):
                     },
                 )
 
-                component_task = kubeflow_component_op(
-                    input_manifest_path=manifest_path,
-                    metadata=metadata,
-                    **component_args,
-                )
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if previous_component_task is not None:
+                    component_task = kubeflow_component_op(
+                        input_manifest_path=manifest_path,
+                        metadata=metadata,
+                        **component_args,
+                    )
                     component_task.after(previous_component_task)
 
+                else:
+                    component_task = kubeflow_component_op(
+                        metadata=metadata,
+                        **component_args,
+                    )
                 # Update the manifest path to be the output path of the current component task.
                 manifest_path = component_task.outputs["output_manifest_path"]
 
                 previous_component_task = component_task
 
-        self.pipeline = pipeline
-        self.pipeline.validate(run_id="{{workflow.name}}")
-        logger.info(f"Compiling {self.pipeline.name} to {output_path}")
-
-        self.kfp.v2.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
+        self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
