@@ -35,7 +35,32 @@ logger = logging.getLogger(__name__)
 
 
 class Executor(t.Generic[Component]):
-    """An executor executes a Component."""
+    """
+    An executor executes a Component.
+
+    Args:
+    spec (ComponentSpec): The specification of the Component to be executed.
+
+    cache (bool): Flag indicating whether to use caching for intermediate results.
+
+    input_manifest_path (Union[str, Path]): The path to the input manifest file.
+    output_manifest_path (Union[str, Path]): The path to the output manifest file.
+
+    metadata (Dict[str, Any]): Components metadata dict
+
+    user_arguments (Dict[str, Any]): User-defined component arguments.
+
+    input_partition_rows (Optional[Union[str, int]]): The number of rows to process in each
+    partition of dataframe.
+    Partitions are divided based on this number (n rows per partition).
+    Set to None for no row limit.
+
+    cluster_type (Optional[str]): The type of cluster to use for distributed execution
+    (default is "local").
+
+    client_kwargs (Optional[dict]): Additional keyword arguments dict which will be used to
+    initialise the dask client, allowing for advanced configuration.
+    """
 
     def __init__(
         self,
@@ -59,15 +84,14 @@ class Executor(t.Generic[Component]):
         self.input_partition_rows = input_partition_rows
 
         if client_kwargs is None:
-            client_kwargs = {}
+            client_kwargs = {
+                "processes": True,
+                "n_workers": os.cpu_count(),
+                "thread_per_worker": 1,
+            }
 
         if cluster_type == "local":
-            local_cluster = LocalCluster(
-                processes=True,
-                memory_limit=client_kwargs.get("memory_limit"),
-                n_workers=client_kwargs.get("n_workers", os.cpu_count()),
-                threads_per_worker=client_kwargs.get("thread_per_worker", 1),
-            )
+            local_cluster = LocalCluster(**client_kwargs)
             self.client = Client(local_cluster)
 
         elif cluster_type == "distributed":
