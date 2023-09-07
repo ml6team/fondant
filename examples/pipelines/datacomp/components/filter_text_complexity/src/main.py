@@ -8,7 +8,6 @@ import pandas as pd
 import spacy
 
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 
 logger = logging.getLogger(__name__)
 
