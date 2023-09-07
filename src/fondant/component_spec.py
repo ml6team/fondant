@@ -1,11 +1,11 @@
 """This module defines classes to represent an Fondant component specification."""
-import ast
 import copy
 import json
 import pkgutil
 import types
 import typing as t
 from dataclasses import dataclass
+from distutils.util import strtobool
 from pathlib import Path
 
 import jsonschema.exceptions
@@ -23,7 +23,7 @@ kubeflow_to_python_type_dict = {
     "STRING": str,
     "NUMBER_INTEGER": int,
     "NUMBER_DOUBLE": float,
-    "BOOLEAN": ast.literal_eval,
+    "BOOLEAN": lambda x: bool(strtobool(x)),
     "STRUCT": json.loads,
     "LIST": json.loads,
 }
@@ -231,14 +231,6 @@ class KubeflowComponentSpec:
 
     @staticmethod
     def convert_arguments(fondant_component):
-        python2kubeflow_type = {
-            "str": "STRING",
-            "int": "NUMBER_INTEGER",
-            "float": "NUMBER_DOUBLE",
-            "bool": "BOOLEAN",
-            "dict": "STRUCT",
-            "list": "LIST",
-        }
         args = {}
         for arg in fondant_component.args.values():
             args[arg.name] = {
@@ -283,7 +275,8 @@ class KubeflowComponentSpec:
                 "cache": {
                     "parameterType": "BOOLEAN",
                     "description": "Set to False to disable caching, True by default.",
-                    "defaultValue": "True",
+                    "defaultValue": True,
+                    "isOptional": True,
                 },
                 "metadata": {
                     "description": "Metadata arguments containing the run id and base path",
@@ -377,6 +370,7 @@ class KubeflowComponentSpec:
                                         "componentInputParameter": "input_partition_rows",
                                     },
                                     "metadata": {"componentInputParameter": "metadata"},
+                                    "cache": {"componentInputParameter": "cache"},
                                 },
                             },
                             "taskInfo": {"name": cleaned_component_name},

@@ -1,186 +1,553 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Workflow
-metadata:
-  generateName: test-pipeline-
-  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22, pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00',
-    pipelines.kubeflow.org/pipeline_spec: '{"description": "description of the test
-      pipeline", "name": "test_pipeline"}'}
-  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22}
-spec:
-  entrypoint: test-pipeline
-  templates:
-  - name: first-component
-    container:
-      args: []
-      command: [python3, main.py, --input_manifest_path, /tmp/inputs/input_manifest_path/data,
-        --metadata, '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}', --component_spec,
-        '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
-          "description": "This is an example component", "image": "example_component:latest",
-          "name": "First component", "produces": {"captions": {"fields": {"data":
-          {"type": "string"}}}, "images": {"fields": {"data": {"type": "binary"}}}}}',
-        --input_partition_rows, disable, --storage_args, a dummy string arg, --output_manifest_path,
-        /tmp/outputs/output_manifest_path/data]
-      image: example_component:latest
-    inputs:
+# PIPELINE DEFINITION
+# Name: testpipeline
+# Description: description of the test pipeline
+components:
+  comp-First_component:
+    executorLabel: exec-First_component
+    inputDefinitions:
       artifacts:
-      - name: input_manifest_path
-        path: /tmp/inputs/input_manifest_path/data
-        raw: {data: ''}
-    outputs:
+        input_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the input manifest
+          isOptional: true
+      parameters:
+        cache:
+          defaultValue: true
+          description: Set to False to disable caching, True by default.
+          isOptional: true
+          parameterType: BOOLEAN
+        component_spec:
+          defaultValue: {}
+          description: The component specification as a dictionary
+          isOptional: true
+          parameterType: STRUCT
+        input_partition_rows:
+          defaultValue: None
+          description: The number of rows to load per partition. Set to override the
+            automatic partitioning
+          isOptional: true
+          parameterType: STRING
+        metadata:
+          description: Metadata arguments containing the run id and base path
+          parameterType: STRING
+        storage_args:
+          description: Storage arguments
+          parameterType: STRING
+    outputDefinitions:
       artifacts:
-      - {name: first-component-output_manifest_path, path: /tmp/outputs/output_manifest_path/data}
-    metadata:
-      labels:
-        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-        pipelines.kubeflow.org/pipeline-sdk-type: kfp
-        pipelines.kubeflow.org/enable_caching: "true"
-      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "This
-          is an example component", "implementation": {"container": {"command": ["python3",
-          "main.py", "--input_manifest_path", {"inputPath": "input_manifest_path"},
-          "--metadata", {"inputValue": "metadata"}, "--component_spec", {"inputValue":
-          "component_spec"}, "--input_partition_rows", {"inputValue": "input_partition_rows"},
-          "--storage_args", {"inputValue": "storage_args"}, "--output_manifest_path",
-          {"outputPath": "output_manifest_path"}], "image": "example_component:latest"}},
-          "inputs": [{"description": "Path to the input manifest", "name": "input_manifest_path",
-          "type": "String"}, {"description": "Metadata arguments containing the run
-          id and base path", "name": "metadata", "type": "String"}, {"default": "None",
-          "description": "The component specification as a dictionary", "name": "component_spec",
-          "type": "JsonObject"}, {"default": "None", "description": "The number of
-          rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"description": "Storage
-          arguments", "name": "storage_args", "type": "String"}], "name": "First component",
-          "outputs": [{"description": "Path to the output manifest", "name": "output_manifest_path",
-          "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{"digest":
-          "2a304ce49a15404ba50dfd8b56ec43fa8ac8c29f80579d1c8fb974d3f1a5c87f"}', pipelines.kubeflow.org/arguments.parameters: '{"component_spec":
-          "{\"args\": {\"storage_args\": {\"description\": \"Storage arguments\",
-          \"type\": \"str\"}}, \"description\": \"This is an example component\",
-          \"image\": \"example_component:latest\", \"name\": \"First component\",
-          \"produces\": {\"captions\": {\"fields\": {\"data\": {\"type\": \"string\"}}},
-          \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
-          "disable", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
-          "storage_args": "a dummy string arg"}'}
-  - name: second-component
-    container:
-      args: []
-      command: [python3, main.py, --input_manifest_path, /tmp/inputs/input_manifest_path/data,
-        --metadata, '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}', --component_spec,
-        '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
-          "consumes": {"images": {"fields": {"data": {"type": "binary"}}}}, "description":
-          "This is an example component", "image": "example_component:latest", "name":
-          "Second component", "produces": {"embeddings": {"fields": {"data": {"items":
-          {"type": "float32"}, "type": "array"}}}}}', --input_partition_rows, '10',
-        --storage_args, a dummy string arg, --output_manifest_path, /tmp/outputs/output_manifest_path/data]
-      image: example_component:latest
-    inputs:
+        output_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the output manifest
+  comp-Second_component:
+    executorLabel: exec-Second_component
+    inputDefinitions:
       artifacts:
-      - {name: first-component-output_manifest_path, path: /tmp/inputs/input_manifest_path/data}
-    outputs:
+        input_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the input manifest
+          isOptional: true
+      parameters:
+        cache:
+          defaultValue: true
+          description: Set to False to disable caching, True by default.
+          isOptional: true
+          parameterType: BOOLEAN
+        component_spec:
+          defaultValue: {}
+          description: The component specification as a dictionary
+          isOptional: true
+          parameterType: STRUCT
+        input_partition_rows:
+          defaultValue: None
+          description: The number of rows to load per partition. Set to override the
+            automatic partitioning
+          isOptional: true
+          parameterType: STRING
+        metadata:
+          description: Metadata arguments containing the run id and base path
+          parameterType: STRING
+        storage_args:
+          description: Storage arguments
+          parameterType: STRING
+    outputDefinitions:
       artifacts:
-      - {name: second-component-output_manifest_path, path: /tmp/outputs/output_manifest_path/data}
-    metadata:
-      labels:
-        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-        pipelines.kubeflow.org/pipeline-sdk-type: kfp
-        pipelines.kubeflow.org/enable_caching: "true"
-      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "This
-          is an example component", "implementation": {"container": {"command": ["python3",
-          "main.py", "--input_manifest_path", {"inputPath": "input_manifest_path"},
-          "--metadata", {"inputValue": "metadata"}, "--component_spec", {"inputValue":
-          "component_spec"}, "--input_partition_rows", {"inputValue": "input_partition_rows"},
-          "--storage_args", {"inputValue": "storage_args"}, "--output_manifest_path",
-          {"outputPath": "output_manifest_path"}], "image": "example_component:latest"}},
-          "inputs": [{"description": "Path to the input manifest", "name": "input_manifest_path",
-          "type": "String"}, {"description": "Metadata arguments containing the run
-          id and base path", "name": "metadata", "type": "String"}, {"default": "None",
-          "description": "The component specification as a dictionary", "name": "component_spec",
-          "type": "JsonObject"}, {"default": "None", "description": "The number of
-          rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"description": "Storage
-          arguments", "name": "storage_args", "type": "String"}], "name": "Second
-          component", "outputs": [{"description": "Path to the output manifest", "name":
-          "output_manifest_path", "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{"digest":
-          "a02b0189397a2d9318982201f020dbbbe3962427ed150fe58cc69ff508cc68bb"}', pipelines.kubeflow.org/arguments.parameters: '{"component_spec":
-          "{\"args\": {\"storage_args\": {\"description\": \"Storage arguments\",
-          \"type\": \"str\"}}, \"consumes\": {\"images\": {\"fields\": {\"data\":
-          {\"type\": \"binary\"}}}}, \"description\": \"This is an example component\",
-          \"image\": \"example_component:latest\", \"name\": \"Second component\",
-          \"produces\": {\"embeddings\": {\"fields\": {\"data\": {\"items\": {\"type\":
-          \"float32\"}, \"type\": \"array\"}}}}}", "input_partition_rows": "10", "metadata":
-          "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}", "storage_args":
-          "a dummy string arg"}'}
-  - name: test-pipeline
+        output_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the output manifest
+  comp-Third_component:
+    executorLabel: exec-Third_component
+    inputDefinitions:
+      artifacts:
+        input_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the input manifest
+          isOptional: true
+      parameters:
+        cache:
+          defaultValue: true
+          description: Set to False to disable caching, True by default.
+          isOptional: true
+          parameterType: BOOLEAN
+        component_spec:
+          defaultValue: {}
+          description: The component specification as a dictionary
+          isOptional: true
+          parameterType: STRUCT
+        input_partition_rows:
+          defaultValue: None
+          description: The number of rows to load per partition. Set to override the
+            automatic partitioning
+          isOptional: true
+          parameterType: STRING
+        metadata:
+          description: Metadata arguments containing the run id and base path
+          parameterType: STRING
+        storage_args:
+          description: Storage arguments
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        output_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the output manifest
+  comp-first-component:
     dag:
+      outputs:
+        artifacts:
+          output_manifest_path:
+            artifactSelectors:
+            - outputArtifactKey: output_manifest_path
+              producerSubtask: First_component
       tasks:
-      - {name: first-component, template: first-component}
-      - name: second-component
-        template: second-component
-        dependencies: [first-component]
-        arguments:
-          artifacts:
-          - {name: first-component-output_manifest_path, from: '{{tasks.first-component.outputs.artifacts.first-component-output_manifest_path}}'}
-      - name: third-component
-        template: third-component
-        dependencies: [second-component]
-        arguments:
-          artifacts:
-          - {name: second-component-output_manifest_path, from: '{{tasks.second-component.outputs.artifacts.second-component-output_manifest_path}}'}
-  - name: third-component
-    container:
-      args: []
-      command: [python3, main.py, --input_manifest_path, /tmp/inputs/input_manifest_path/data,
-        --metadata, '{"base_path": "/foo/bar", "run_id": "{{workflow.name}}"}', --component_spec,
-        '{"args": {"some_list": {"description": "Some list", "items": {"type": "int"},
-          "type": "list"}, "storage_args": {"description": "Storage arguments", "type":
-          "str"}}, "consumes": {"captions": {"fields": {"data": {"type": "string"}}},
-          "embeddings": {"fields": {"data": {"items": {"type": "float32"}, "type":
-          "array"}}}, "images": {"fields": {"data": {"type": "binary"}}}}, "description":
-          "This is an example component", "image": "example_component:latest", "name":
-          "Third component", "produces": {"additionalSubsets": false, "images": {"fields":
-          {"data": {"type": "binary"}}}}}', --input_partition_rows, None, --storage_args,
-        a dummy string arg, --some_list, '[1, 2, 3]', --output_manifest_path, /tmp/outputs/output_manifest_path/data]
-      image: example_component:latest
-    inputs:
+        First_component:
+          cachingOptions:
+            enableCache: true
+          componentRef:
+            name: comp-First_component
+          inputs:
+            artifacts:
+              input_manifest_path:
+                componentInputArtifact: input_manifest_path
+            parameters:
+              cache:
+                componentInputParameter: cache
+              component_spec:
+                componentInputParameter: component_spec
+              input_partition_rows:
+                componentInputParameter: input_partition_rows
+              metadata:
+                componentInputParameter: metadata
+          taskInfo:
+            name: First_component
+    inputDefinitions:
       artifacts:
-      - {name: second-component-output_manifest_path, path: /tmp/inputs/input_manifest_path/data}
-    outputs:
+        input_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the input manifest
+          isOptional: true
+      parameters:
+        cache:
+          defaultValue: true
+          description: Set to False to disable caching, True by default.
+          isOptional: true
+          parameterType: BOOLEAN
+        component_spec:
+          defaultValue: {}
+          description: The component specification as a dictionary
+          isOptional: true
+          parameterType: STRUCT
+        input_partition_rows:
+          defaultValue: None
+          description: The number of rows to load per partition. Set to override the
+            automatic partitioning
+          isOptional: true
+          parameterType: STRING
+        metadata:
+          description: Metadata arguments containing the run id and base path
+          parameterType: STRING
+        storage_args:
+          description: Storage arguments
+          parameterType: STRING
+    outputDefinitions:
       artifacts:
-      - {name: third-component-output_manifest_path, path: /tmp/outputs/output_manifest_path/data}
-    metadata:
-      labels:
-        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-        pipelines.kubeflow.org/pipeline-sdk-type: kfp
-        pipelines.kubeflow.org/enable_caching: "true"
-      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "This
-          is an example component", "implementation": {"container": {"command": ["python3",
-          "main.py", "--input_manifest_path", {"inputPath": "input_manifest_path"},
-          "--metadata", {"inputValue": "metadata"}, "--component_spec", {"inputValue":
-          "component_spec"}, "--input_partition_rows", {"inputValue": "input_partition_rows"},
-          "--storage_args", {"inputValue": "storage_args"}, "--some_list", {"inputValue":
-          "some_list"}, "--output_manifest_path", {"outputPath": "output_manifest_path"}],
-          "image": "example_component:latest"}}, "inputs": [{"description": "Path
-          to the input manifest", "name": "input_manifest_path", "type": "String"},
-          {"description": "Metadata arguments containing the run id and base path",
-          "name": "metadata", "type": "String"}, {"default": "None", "description":
-          "The component specification as a dictionary", "name": "component_spec",
-          "type": "JsonObject"}, {"default": "None", "description": "The number of
-          rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"description": "Storage
-          arguments", "name": "storage_args", "type": "String"}, {"description": "Some
-          list", "name": "some_list", "type": "JsonArray"}], "name": "Third component",
-          "outputs": [{"description": "Path to the output manifest", "name": "output_manifest_path",
-          "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{"digest":
-          "253932349a663809f2ea6fcf63ebd58f963881c6960435269d3fbe3eb17dcf53"}', pipelines.kubeflow.org/arguments.parameters: '{"component_spec":
-          "{\"args\": {\"some_list\": {\"description\": \"Some list\", \"items\":
-          {\"type\": \"int\"}, \"type\": \"list\"}, \"storage_args\": {\"description\":
-          \"Storage arguments\", \"type\": \"str\"}}, \"consumes\": {\"captions\":
-          {\"fields\": {\"data\": {\"type\": \"string\"}}}, \"embeddings\": {\"fields\":
-          {\"data\": {\"items\": {\"type\": \"float32\"}, \"type\": \"array\"}}},
-          \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}, \"description\":
-          \"This is an example component\", \"image\": \"example_component:latest\",
-          \"name\": \"Third component\", \"produces\": {\"additionalSubsets\": false,
-          \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
-          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"run_id\": \"{{workflow.name}}\"}",
-          "some_list": "[1, 2, 3]", "storage_args": "a dummy string arg"}'}
-  arguments:
-    parameters: []
-  serviceAccountName: pipeline-runner
+        output_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the output manifest
+  comp-second-component:
+    dag:
+      outputs:
+        artifacts:
+          output_manifest_path:
+            artifactSelectors:
+            - outputArtifactKey: output_manifest_path
+              producerSubtask: Second_component
+      tasks:
+        Second_component:
+          cachingOptions:
+            enableCache: true
+          componentRef:
+            name: comp-Second_component
+          inputs:
+            artifacts:
+              input_manifest_path:
+                componentInputArtifact: input_manifest_path
+            parameters:
+              cache:
+                componentInputParameter: cache
+              component_spec:
+                componentInputParameter: component_spec
+              input_partition_rows:
+                componentInputParameter: input_partition_rows
+              metadata:
+                componentInputParameter: metadata
+          taskInfo:
+            name: Second_component
+    inputDefinitions:
+      artifacts:
+        input_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the input manifest
+          isOptional: true
+      parameters:
+        cache:
+          defaultValue: true
+          description: Set to False to disable caching, True by default.
+          isOptional: true
+          parameterType: BOOLEAN
+        component_spec:
+          defaultValue: {}
+          description: The component specification as a dictionary
+          isOptional: true
+          parameterType: STRUCT
+        input_partition_rows:
+          defaultValue: None
+          description: The number of rows to load per partition. Set to override the
+            automatic partitioning
+          isOptional: true
+          parameterType: STRING
+        metadata:
+          description: Metadata arguments containing the run id and base path
+          parameterType: STRING
+        storage_args:
+          description: Storage arguments
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        output_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the output manifest
+  comp-third-component:
+    dag:
+      outputs:
+        artifacts:
+          output_manifest_path:
+            artifactSelectors:
+            - outputArtifactKey: output_manifest_path
+              producerSubtask: Third_component
+      tasks:
+        Third_component:
+          cachingOptions:
+            enableCache: true
+          componentRef:
+            name: comp-Third_component
+          inputs:
+            artifacts:
+              input_manifest_path:
+                componentInputArtifact: input_manifest_path
+            parameters:
+              cache:
+                componentInputParameter: cache
+              component_spec:
+                componentInputParameter: component_spec
+              input_partition_rows:
+                componentInputParameter: input_partition_rows
+              metadata:
+                componentInputParameter: metadata
+          taskInfo:
+            name: Third_component
+    inputDefinitions:
+      artifacts:
+        input_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the input manifest
+          isOptional: true
+      parameters:
+        cache:
+          defaultValue: true
+          description: Set to False to disable caching, True by default.
+          isOptional: true
+          parameterType: BOOLEAN
+        component_spec:
+          defaultValue: {}
+          description: The component specification as a dictionary
+          isOptional: true
+          parameterType: STRUCT
+        input_partition_rows:
+          defaultValue: None
+          description: The number of rows to load per partition. Set to override the
+            automatic partitioning
+          isOptional: true
+          parameterType: STRING
+        metadata:
+          description: Metadata arguments containing the run id and base path
+          parameterType: STRING
+        storage_args:
+          description: Storage arguments
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        output_manifest_path:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: Path to the output manifest
+deploymentSpec:
+  executors:
+    exec-First_component:
+      container:
+        args:
+        - --input_manifest_path
+        - '{{$.inputs.artifacts[''input_manifest_path''].uri}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --input_partition_rows
+        - '{{$.inputs.parameters[''input_partition_rows'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --storage_args
+        - '{{$.inputs.parameters[''storage_args'']}}'
+        - --output_manifest_path
+        - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
+        command:
+        - python3
+        - main.py
+        image: example_component:latest
+    exec-Second_component:
+      container:
+        args:
+        - --input_manifest_path
+        - '{{$.inputs.artifacts[''input_manifest_path''].uri}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --input_partition_rows
+        - '{{$.inputs.parameters[''input_partition_rows'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --storage_args
+        - '{{$.inputs.parameters[''storage_args'']}}'
+        - --output_manifest_path
+        - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
+        command:
+        - python3
+        - main.py
+        image: example_component:latest
+    exec-Third_component:
+      container:
+        args:
+        - --input_manifest_path
+        - '{{$.inputs.artifacts[''input_manifest_path''].uri}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --input_partition_rows
+        - '{{$.inputs.parameters[''input_partition_rows'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --storage_args
+        - '{{$.inputs.parameters[''storage_args'']}}'
+        - --output_manifest_path
+        - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
+        command:
+        - python3
+        - main.py
+        image: example_component:latest
+pipelineInfo:
+  description: description of the test pipeline
+  name: testpipeline
+root:
+  dag:
+    tasks:
+      first-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-first-component
+        inputs:
+          parameters:
+            cache:
+              runtimeValue:
+                constant: false
+            component_spec:
+              runtimeValue:
+                constant:
+                  args:
+                    storage_args:
+                      description: Storage arguments
+                      type: str
+                  description: This is an example component
+                  image: example_component:latest
+                  name: First component
+                  produces:
+                    captions:
+                      fields:
+                        data:
+                          type: string
+                    images:
+                      fields:
+                        data:
+                          type: binary
+            input_partition_rows:
+              runtimeValue:
+                constant: disable
+            metadata:
+              runtimeValue:
+                constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
+                  "run_id": "testpipeline-20230101000000", "component_id": "first_component",
+                  "cache_key": "1"}'
+            storage_args:
+              runtimeValue:
+                constant: a dummy string arg
+        taskInfo:
+          name: first-component
+      second-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-second-component
+        dependentTasks:
+        - first-component
+        inputs:
+          artifacts:
+            input_manifest_path:
+              taskOutputArtifact:
+                outputArtifactKey: output_manifest_path
+                producerTask: first-component
+          parameters:
+            cache:
+              runtimeValue:
+                constant: false
+            component_spec:
+              runtimeValue:
+                constant:
+                  args:
+                    storage_args:
+                      description: Storage arguments
+                      type: str
+                  consumes:
+                    images:
+                      fields:
+                        data:
+                          type: binary
+                  description: This is an example component
+                  image: example_component:latest
+                  name: Second component
+                  produces:
+                    embeddings:
+                      fields:
+                        data:
+                          items:
+                            type: float32
+                          type: array
+            input_partition_rows:
+              runtimeValue:
+                constant: '10'
+            metadata:
+              runtimeValue:
+                constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
+                  "run_id": "testpipeline-20230101000000", "component_id": "second_component",
+                  "cache_key": "2"}'
+            storage_args:
+              runtimeValue:
+                constant: a dummy string arg
+        taskInfo:
+          name: second-component
+      third-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-third-component
+        dependentTasks:
+        - second-component
+        inputs:
+          artifacts:
+            input_manifest_path:
+              taskOutputArtifact:
+                outputArtifactKey: output_manifest_path
+                producerTask: second-component
+          parameters:
+            cache:
+              runtimeValue:
+                constant: false
+            component_spec:
+              runtimeValue:
+                constant:
+                  args:
+                    storage_args:
+                      description: Storage arguments
+                      type: str
+                  consumes:
+                    captions:
+                      fields:
+                        data:
+                          type: string
+                    embeddings:
+                      fields:
+                        data:
+                          items:
+                            type: float32
+                          type: array
+                    images:
+                      fields:
+                        data:
+                          type: binary
+                  description: This is an example component
+                  image: example_component:latest
+                  name: Third component
+                  produces:
+                    additionalSubsets: false
+                    images:
+                      fields:
+                        data:
+                          type: binary
+            input_partition_rows:
+              runtimeValue:
+                constant: None
+            metadata:
+              runtimeValue:
+                constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
+                  "run_id": "testpipeline-20230101000000", "component_id": "third_component",
+                  "cache_key": "3"}'
+            storage_args:
+              runtimeValue:
+                constant: a dummy string arg
+        taskInfo:
+          name: third-component
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.0.1

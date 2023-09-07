@@ -264,28 +264,32 @@ class KubeFlowCompiler(Compiler):
                 logger.info(f"Compiling service for {component_name}")
 
                 # convert ComponentOp to Kubeflow component
-                kubeflow_component_op = self.kfp.components.load_component(
+                kubeflow_component_op = self.kfp.components.load_component_from_text(
                     text=component_op.component_spec.kubeflow_specification.to_string(),
                 )
 
+                # # Set image pull policy to always
                 # Execute the Kubeflow component and pass in the output manifest path from
                 # the previous component.
                 component_args = component_op.arguments
 
-                component_task = kubeflow_component_op(
-                    input_manifest_path=manifest_path,
-                    metadata=metadata.to_json(),
-                    **component_args,
-                )
+                if previous_component_task is not None:
+                    component_task = kubeflow_component_op(
+                        input_manifest_path=manifest_path,
+                        metadata=metadata.to_json(),
+                        **component_args,
+                    )
+                    component_task.after(previous_component_task)
+
+                else:
+                    component_task = kubeflow_component_op(
+                        metadata=metadata.to_json(),
+                        **component_args,
+                    )
+                component_task
                 # Set optional configurations
-                component_task = self._set_configuration(
-                    component_task,
-                    component_op,
-                )
-
-                # Set image pull policy to always
-                component_task.container.set_image_pull_policy("Always")
-
+                #     component_task,
+                #     component_op,
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if previous_component_task is not None:
@@ -345,15 +349,15 @@ class VertexCompiler(Compiler):
             pipeline: the pipeline to compile
             output_path: the path where to save the Kubeflow pipeline spec
         """
-        self.pipeline = pipeline
-        self.pipeline.validate(run_id="{{workflow.name}}")
-        logger.info(f"Compiling {self.pipeline.name} to {output_path}")
+        run_id = pipeline.get_run_id()
+        pipeline.validate(run_id=run_id)
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
 
         @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
             previous_component_task = None
             manifest_path = None
-            for component_name, component in self.pipeline._graph.items():
+            for component_name, component in pipeline._graph.items():
                 logger.info(f"Compiling service for {component_name}")
 
                 component_op = component["fondant_component_op"]
@@ -364,27 +368,28 @@ class VertexCompiler(Compiler):
 
                 # Execute the Kubeflow component and pass in the output manifest path from
                 # the previous component.
-                component_args = component_op.arguments
-                metadata = json.dumps(
-                    {
-                        "base_path": self.pipeline.base_path,
-                        "run_id": "{{workflow.name}}",
-                    },
-                )
 
+                component_args = component_op.arguments
+                metadata = Metadata(
+                    pipeline_name=pipeline.name,
+                    run_id=run_id,
+                    base_path=pipeline.base_path,
+                    component_id=component_name,
+                    cache_key=component_op.get_component_cache_key(),
+                )
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if previous_component_task is not None:
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
-                        metadata=metadata,
+                        metadata=metadata.to_json(),
                         **component_args,
                     )
                     component_task.after(previous_component_task)
 
                 else:
                     component_task = kubeflow_component_op(
-                        metadata=metadata,
+                        metadata=metadata.to_json(),
                         **component_args,
                     )
                 # Update the manifest path to be the output path of the current component task.

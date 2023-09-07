@@ -119,7 +119,7 @@ class ComponentOp:
         input_partition_rows = validate_partition_number(self.input_partition_rows)
 
         arguments["input_partition_rows"] = str(input_partition_rows)
-        arguments["cache"] = str(self.cache)
+        arguments["cache"] = self.cache
 
         return arguments
 

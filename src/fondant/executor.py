@@ -6,11 +6,11 @@ components take care of processing, filtering and extending the data.
 """
 
 import argparse
-import ast
 import json
 import logging
 import typing as t
 from abc import abstractmethod
+from distutils.util import strtobool
 from pathlib import Path
 
 import dask.dataframe as dd
@@ -59,7 +59,7 @@ class Executor(t.Generic[Component]):
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
-        parser.add_argument("--cache", type=ast.literal_eval)
+        parser.add_argument("--cache", type=lambda x: bool(strtobool(x)))
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
         args, _ = parser.parse_known_args()
 
