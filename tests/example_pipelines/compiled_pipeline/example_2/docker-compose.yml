@@ -16,12 +16,17 @@ services:
     - None
     - --cache
     - 'False'
+    - --cluster_type
+    - 'local'
+    - --client_kwargs
+    - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
       {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
     depends_on: {}
+    ports: ['8787:8787']
     volumes: []
   image_cropping:
     command:
@@ -38,6 +43,10 @@ services:
     - None
     - --cache
     - 'True'
+    - --cluster_type
+    - 'local'
+    - --client_kwargs
+    - None
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
       borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
@@ -54,6 +63,7 @@ services:
     depends_on:
       first_component:
         condition: service_completed_successfully
+    ports: ['8787:8787']
     image: ghcr.io/ml6team/image_cropping:dev
     volumes: []
 version: '3.8'

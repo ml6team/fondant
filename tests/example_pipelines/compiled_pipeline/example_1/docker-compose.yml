@@ -16,12 +16,17 @@ services:
     - disable
     - --cache
     - 'False'
+    - --cluster_type
+    - 'local'
+    - --client_kwargs
+    - None
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
       {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
     depends_on: {}
+    ports: ['8787:8787']
     deploy:
       resources:
         reservations:
@@ -47,6 +52,10 @@ services:
     - '10'
     - --cache
     - 'False'
+    - --cluster_type
+    - 'local'
+    - --client_kwargs
+    - None
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -58,6 +67,7 @@ services:
     depends_on:
       first_component:
         condition: service_completed_successfully
+    ports: ['8787:8787']
     volumes: []
   third_component:
     build:
@@ -75,6 +85,10 @@ services:
     - None
     - --cache
     - 'False'
+    - --cluster_type
+    - 'local'
+    - --client_kwargs
+    - None
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -88,5 +102,6 @@ services:
     depends_on:
       second_component:
         condition: service_completed_successfully
+    ports: ['8787:8787']
     volumes: []
 version: '3.8'

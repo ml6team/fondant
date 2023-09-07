@@ -45,6 +45,10 @@ spec:
       - disable
       - --cache
       - 'False'
+      - --cluster_type
+      - 'local'
+      - --client_kwargs
+      - None
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -127,6 +131,10 @@ spec:
       - '10'
       - --cache
       - 'False'
+      - --cluster_type
+      - 'local'
+      - --client_kwargs
+      - None
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -222,6 +230,10 @@ spec:
       - None
       - --cache
       - 'False'
+      - --cluster_type
+      - 'local'
+      - --client_kwargs
+      - None
       - --storage_args
       - a dummy string arg
       - --output_manifest_path

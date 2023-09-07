@@ -20,6 +20,14 @@ inputs:
     description: Set to False to disable caching, True by default.
     type: Boolean
     default: 'True'
+-   name: cluster_type
+    description: The type of cluster to use for distributed execution
+    type: String
+    default: 'local'
+-   name: client_kwargs
+    description: Keyword arguments used to initialise the dask client
+    type: JsonObject
+    default: None
 -   name: storage_args
     description: Storage arguments
     type: String
