@@ -15,11 +15,6 @@ from PIL import Image
 
 from mmengine.config import Config
 
-# compile custom kernels, if CUDA is available
-# if torch.cuda.is_available():
-#     import subprocess
-#     subprocess.call(["sh", "./compile.sh"])  # nosec
-
 from augmentations import SquarePadResizeNorm
 from models import build_model
 from models.utils import fuse_module, rep_model_convert

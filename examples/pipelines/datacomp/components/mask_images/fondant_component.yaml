@@ -1,6 +1,6 @@
 name: Mask images
 description: Component that masks images based on bounding boxes
-image: ghcr.io/ml6team/mask_images:main
+image: ghcr.io/ml6team/mask_images:dev
 
 consumes:
   images:

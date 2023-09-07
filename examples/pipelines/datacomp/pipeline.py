@@ -109,4 +109,3 @@ pipeline.add_op(mask_images_op, dependencies=detect_text_op)
 pipeline.add_op(embed_images_op, dependencies=mask_images_op)
 pipeline.add_op(add_clip_score_op, dependencies=embed_images_op)
 pipeline.add_op(filter_clip_score_op, dependencies=add_clip_score_op)
-# TODO add more ops
