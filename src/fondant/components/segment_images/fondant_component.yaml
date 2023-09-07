@@ -1,0 +1,25 @@
+name: Segment images
+description: Component that creates segmentation masks for images using a model from the Hugging Face hub
+image: ghcr.io/ml6team/segment_images:dev
+
+consumes:
+  images:
+    fields:
+      data:
+        type: binary
+
+produces:
+  segmentations:
+    fields:
+      data:
+        type: binary
+
+args:
+  model_id:
+    description: id of the model on the Hugging Face hub
+    type: str
+    default: "openmmlab/upernet-convnext-small"
+  batch_size:
+    description: batch size to use
+    type: int
+    batch_size: 8

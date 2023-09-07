@@ -1,0 +1,26 @@
+name: Normalize text.
+description: A component that normalizes text.
+image: ghcr.io/ml6team/text_normalization:latest
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+
+args:
+  remove_additional_whitespaces:
+    description: If true remove all additional whitespace, tabs.
+    type: bool
+  apply_nfc:
+    description: If true apply nfc normalization
+    type: bool
+  normalize_lines:
+    description: If true analyze documents line-by-line and apply various rules to discard or edit lines. Used to removed common patterns in webpages, e.g. counter
+    type: bool
+  do_lowercase:
+    description: If true apply lowercasing
+    type: bool
+  remove_punctuation:
+    description: If true punctuation will be removed
+    type: str

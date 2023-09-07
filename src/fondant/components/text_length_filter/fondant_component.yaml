@@ -1,0 +1,17 @@
+name: Filter text length
+description: A component that filters out text based on their length
+image: ghcr.io/ml6team/filter_text_length:latest
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+
+args:
+  min_characters_length:
+    description: Minimum number of characters
+    type: int
+  min_words_length:
+    description: Mininum number of words
+    type: int

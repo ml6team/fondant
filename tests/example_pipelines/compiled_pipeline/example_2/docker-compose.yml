@@ -24,9 +24,7 @@ services:
     depends_on: {}
     volumes: []
   image_cropping:
-    build:
-      args: []
-      context: /Users/georgeslorre/ML6/internal/express/src/fondant/components/image_cropping
+    image: ghcr.io/ml6team/image_cropping:dev
     command:
     - --metadata
     - '{"base_path": "/foo/bar", "pipeline_name": "testpipeline", "run_id": "testpipeline-20230101000000",

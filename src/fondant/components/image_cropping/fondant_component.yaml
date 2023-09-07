@@ -1,0 +1,29 @@
+name: Image cropping
+description: Component that removes single-colored borders around images and crops them appropriately
+image: ghcr.io/ml6team/image_cropping:dev
+
+consumes:
+  images:
+    fields:
+      data:
+        type: binary
+
+produces:
+  images:
+    fields:
+      data:
+        type: binary
+      width:
+        type: int32
+      height:
+        type: int32
+
+args:
+  cropping_threshold:
+    description: Threshold parameter used for detecting borders. A lower (negative) parameter results in a more performant border detection, but can cause overcropping. Default is -30
+    type: int
+    default: -30
+  padding:
+    description: Padding for the image cropping. The padding is added to all borders of the image.
+    type: int
+    default: 10
