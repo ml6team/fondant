@@ -35,7 +35,6 @@ load_from_hub_op = ComponentOp(
     arguments={
         "dataset_name": "mlfoundations/datacomp_small",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 100,
         "index_column": "uid",
     },
     node_pool_label="node_pool",
@@ -77,4 +76,3 @@ pipeline.add_op(filter_image_resolution_op, dependencies=load_from_hub_op)
 pipeline.add_op(filter_complexity_op, dependencies=filter_image_resolution_op)
 pipeline.add_op(clean_captions_op, dependencies=filter_complexity_op)
 pipeline.add_op(filter_clip_score_op, dependencies=clean_captions_op)
-# TODO add more ops

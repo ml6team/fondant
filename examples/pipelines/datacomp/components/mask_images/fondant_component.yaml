@@ -1,0 +1,21 @@
+name: Mask images
+description: Component that masks images based on bounding boxes
+image: ghcr.io/ml6team/mask_images:dev
+
+consumes:
+  images:
+    fields:
+      data:
+        type: binary
+      boxes:
+        type: array
+        items:
+          type: array
+          items:
+            type: int32
+
+produces:
+  images:
+    fields:
+      data:
+        type: binary

@@ -1,12 +1,12 @@
-FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+FROM --platform=linux/amd64 python:3.8-slim
 
-# System dependencies
+## System dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install git -y
 
-# Install requirements
-COPY requirements.txt ./
+# install requirements
+COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Install Fondant
