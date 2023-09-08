@@ -87,7 +87,7 @@ def set_default_output(args: argparse.Namespace):
     """Set the default output path depending on the runner type."""
     if args.output_path is None:
         if args.local:
-            args.output_path = "docker_compose.yml"
+            args.output_path = "docker-compose.yml"
         elif args.kubeflow:
             args.output_path = "pipeline.yaml"
         else:

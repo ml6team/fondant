@@ -77,14 +77,14 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
 
-        if client_kwargs is None:
-            client_kwargs = {
-                "processes": True,
-                "n_workers": os.cpu_count(),
-                "thread_per_worker": 1,
-            }
-
         if cluster_type == "local":
+            if client_kwargs is None:
+                client_kwargs = {
+                    "processes": True,
+                    "n_workers": os.cpu_count(),
+                    "threads_per_worker": 1,
+                }
+
             logger.info(f"Initialize local dask cluster with arguments {client_kwargs}")
 
             # Additional dask configuration have to be set before initialising the client

@@ -78,6 +78,7 @@ class ComponentOp:
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
 
+        self.arguments = arguments or {}
         self._add_component_argument(
             "input_partition_rows",
             input_partition_rows,
@@ -135,10 +136,10 @@ class ComponentOp:
         validator: t.Optional[t.Callable] = None,
     ):
         """Register component argument to arguments dict as well as component attributes."""
-        if getattr(self, "arguments") is False:
+        if hasattr(self, "arguments") is False:
             self.arguments = {}
 
-        if validator and validator(argument_value):
+        if argument_value and (not validator or validator(argument_value)):
             self.argument_name = argument_value
             self.arguments[argument_name] = argument_value
 
