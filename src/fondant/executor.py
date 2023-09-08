@@ -31,6 +31,7 @@ from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number
 
+dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)
 
 
@@ -65,7 +66,7 @@ class Executor(t.Generic[Component]):
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
-        cluster_type: t.Optional[str] = "local",
+        cluster_type: t.Optional[str] = None,
         client_kwargs: t.Optional[dict] = None,
     ) -> None:
         self.spec = spec
@@ -90,7 +91,6 @@ class Executor(t.Generic[Component]):
             # worker.daemon is set to false because creating a worker process in daemon
             # mode is not possible in our docker container setup.
             dask.config.set({"distributed.worker.daemon": False})
-            dask.config.set({"dataframe.convert-string": False})
 
             local_cluster = LocalCluster(**client_kwargs)
             self.client = Client(local_cluster)
@@ -113,7 +113,7 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--component_spec", type=json.loads)
         parser.add_argument("--cache", type=ast.literal_eval)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
-        parser.add_argument("--cluster_type", type=ast.literal_eval)
+        parser.add_argument("--cluster_type", type=str)
         parser.add_argument("--client_kwargs", type=json.loads)
         args, _ = parser.parse_known_args()
 

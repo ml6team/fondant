@@ -78,8 +78,6 @@ class ComponentOp:
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
 
-        self.arguments = self._set_arguments(arguments)  #
-
         self._add_component_argument(
             "input_partition_rows",
             input_partition_rows,
