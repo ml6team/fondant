@@ -117,6 +117,9 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--client_kwargs", type=json.loads)
         args, _ = parser.parse_known_args()
 
+        print("Exectuer args: ")
+        print(args)
+
         if "component_spec" not in args:
             msg = "Error: The --component_spec argument is required."
             raise ValueError(msg)
