@@ -1,4 +1,4 @@
-name: test_pipeline
+name: testpipeline
 services:
   first_component:
     build:
@@ -6,10 +6,10 @@ services:
       context: tests/example_pipelines/valid_pipeline/example_1/first_component
     command:
     - --metadata
-    - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+    - '{"base_path": "/foo/bar", "pipeline_name": "testpipeline", "run_id": "testpipeline-20230101000000",
       "component_id": "first_component", "cache_key": "1"}'
     - --output_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
+    - /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
     - --storage_args
     - a dummy string arg
     - --cache
@@ -26,12 +26,13 @@ services:
     - 8787:8787
     volumes: []
   image_cropping:
+    image: ghcr.io/ml6team/image_cropping:dev
     command:
     - --metadata
-    - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+    - '{"base_path": "/foo/bar", "pipeline_name": "testpipeline", "run_id": "testpipeline-20230101000000",
       "component_id": "image_cropping", "cache_key": "2"}'
     - --output_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/image_cropping/manifest.json
+    - /foo/bar/testpipeline/testpipeline-20230101000000/image_cropping/manifest.json
     - --cropping_threshold
     - '0'
     - --padding
@@ -52,11 +53,10 @@ services:
       for the image cropping. The padding is added to all borders of the image.",
       "type": "int", "default": 10}}}'
     - --input_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
+    - /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
     depends_on:
       first_component:
         condition: service_completed_successfully
-    image: ghcr.io/ml6team/image_cropping:dev
     ports:
     - 8787:8787
     volumes: []

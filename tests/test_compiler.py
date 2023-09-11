@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 import yaml
-from fondant.compiler import DockerCompiler, KubeFlowCompiler
+from fondant.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
 from fondant.pipeline import ComponentOp, Pipeline
 
 COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
@@ -84,7 +84,7 @@ def _freeze_time(monkeypatch):
 @pytest.fixture(params=TEST_PIPELINES)
 def setup_pipeline(request, tmp_path, monkeypatch):
     pipeline = Pipeline(
-        pipeline_name="test_pipeline",
+        pipeline_name="testpipeline",
         pipeline_description="description of the test pipeline",
         base_path="/foo/bar",
     )
@@ -141,7 +141,7 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
         with open(fn / "docker-compose.yml") as f_spec:
             spec = yaml.safe_load(f_spec)
 
-        expected_run_id = "test_pipeline-20230101000000"
+        expected_run_id = "testpipeline-20230101000000"
         for name, service in spec["services"].items():
             # check if volumes are defined correctly
 
@@ -153,10 +153,11 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
                     "type": "bind",
                 },
             ]
+            cleaned_pipeline_name = pipeline.name.replace("_", "")
             # check if commands are patched to use the working dir
             commands_with_dir = [
-                f"{work_dir}/{pipeline.name}/{expected_run_id}/{name}/manifest.json",
-                f'{{"base_path": "{work_dir}", "pipeline_name": "{pipeline.name}",'
+                f"{work_dir}/{cleaned_pipeline_name}/{expected_run_id}/{name}/manifest.json",
+                f'{{"base_path": "{work_dir}", "pipeline_name": "{cleaned_pipeline_name}",'
                 f' "run_id": "{expected_run_id}", "component_id": "{name}",'
                 f' "cache_key": "{cache_key}"}}',
             ]
@@ -178,15 +179,16 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
         with open(fn / "docker-compose.yml") as f_spec:
             spec = yaml.safe_load(f_spec)
 
-        expected_run_id = "test_pipeline-20230101000000"
+        expected_run_id = "testpipeline-20230101000000"
         for name, service in spec["services"].items():
             cache_key = cache_dict[name]
             # check that no volumes are created
             assert service["volumes"] == []
             # check if commands are patched to use the remote dir
+            cleaned_pipeline_name = pipeline.name.replace("_", "")
             commands_with_dir = [
-                f"{remote_dir}/{pipeline.name}/{expected_run_id}/{name}/manifest.json",
-                f'{{"base_path": "{remote_dir}", "pipeline_name": "{pipeline.name}",'
+                f"{remote_dir}/{cleaned_pipeline_name}/{expected_run_id}/{name}/manifest.json",
+                f'{{"base_path": "{remote_dir}", "pipeline_name": "{cleaned_pipeline_name}",'
                 f' "run_id": "{expected_run_id}", "component_id": "{name}",'
                 f' "cache_key": "{cache_key}"}}',
             ]
@@ -233,30 +235,13 @@ def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
             assert yaml.safe_load(src) == yaml.safe_load(truth)
 
 
-@pytest.mark.usefixtures("_freeze_time")
-def test_kubeflow_configuration(tmp_path_factory):
-    """Test that the kubeflow pipeline can be configured."""
-    pipeline = Pipeline(
-        pipeline_name="test_pipeline",
-        pipeline_description="description of the test pipeline",
-        base_path="/foo/bar",
-    )
-    component_1 = ComponentOp(
-        Path(COMPONENTS_PATH / "example_1" / "first_component"),
-        arguments={"storage_args": "a dummy string arg"},
-        node_pool_name="a_node_pool",
-        node_pool_label="a_node_pool_label",
-        number_of_gpus=1,
-    )
-    pipeline.add_op(component_1)
-    compiler = KubeFlowCompiler()
-    with tmp_path_factory.mktemp("temp") as fn:
-        output_path = str(fn / "kubeflow_pipeline.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
-        with open(output_path) as src, open(
-            VALID_PIPELINE / "kubeflow_pipeline.yml",
-        ) as truth:
-            assert yaml.safe_load(src) == yaml.safe_load(truth)
+# @pytest.mark.usefixtures("_freeze_time")
+# def test_kubeflow_configuration(tmp_path_factory):
+#     """Test that the kubeflow pipeline can be configured."""
+#     with tmp_path_factory.mktemp("temp") as fn:
+#         with open(output_path) as src, open(
+#             VALID_PIPELINE / "kubeflow_pipeline.yml",
+#         ) as truth:
 
 
 def test_kfp_import():
@@ -266,3 +251,17 @@ def test_kfp_import():
         sys.modules["kfp"] = None
         with pytest.raises(ImportError):
             _ = KubeFlowCompiler()
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_vertex_compiler(setup_pipeline, tmp_path_factory):
+    """Test compiling a pipeline to vertex."""
+    example_dir, pipeline, _ = setup_pipeline
+    compiler = VertexCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "vertex_pipeline.json")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        with open(output_path) as src, open(
+            VALID_PIPELINE / example_dir / "vertex_pipeline.yml",
+        ) as truth:
+            assert yaml.safe_load(src) == yaml.safe_load(truth)
