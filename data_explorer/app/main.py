@@ -1,5 +1,6 @@
 """Main file of the data explorer interface"""
 import logging
+import argparse
 
 import dask
 import streamlit as st
@@ -18,6 +19,17 @@ st.set_page_config(layout="wide")
 
 if __name__ == "__main__":
     # make sidebar with input fields for manifest path, subset and fields
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--remote_base_path",
+        "-rb",
+        type=str,
+        help='Optional argument that indicates a remote base path',
+        default=None
+    )
+    args = parser.parse_args()
+
+    # TODO: add remote path as an argument (Later PR)
     manifest_path, subset, fields = build_sidebar()
 
     if fields and manifest_path and subset:

@@ -28,9 +28,6 @@ from fondant.compiler import DockerCompiler, KubeFlowCompiler
 from fondant.component import BaseComponent, Component
 from fondant.executor import ExecutorFactory
 from fondant.explorer import (
-    DEFAULT_CONTAINER,
-    DEFAULT_PORT,
-    DEFAULT_TAG,
     run_explorer_app,
 )
 from fondant.pipeline import Pipeline
@@ -116,35 +113,38 @@ def register_explore(parent_parser):
         ),
     )
     parser.add_argument(
-        "--data-directory",
-        "-d",
-        help="""Path to the source directory that contains the data produced
-        by a fondant pipeline.""",
-        required=False,
+        "--base_path",
+        "-b",
         type=str,
+        help="""Path to the directory that contains the data produced
+        by a fondant pipeline.""",
     )
     parser.add_argument(
         "--container",
         "-r",
-        default=DEFAULT_CONTAINER,
+        type=str,
+        default="ghcr.io/ml6team/data_explorer",
         help="Docker container to use. Defaults to ghcr.io/ml6team/data_explorer.",
     )
     parser.add_argument(
         "--tag",
         "-t",
-        default=DEFAULT_TAG,
+        type=str,
+        default="latest",
         help="Docker image tag to use.",
     )
     parser.add_argument(
         "--port",
         "-p",
-        default=DEFAULT_PORT,
         type=int,
+        default=8501,
         help="Port to expose the container on.",
     )
     parser.add_argument(
         "--credentials",
         "-c",
+        type=str,
+        default=None,
         help="""Path mapping of the source (local) and target (docker file system)
             credential paths in the format of src:target
             \nExamples:\n
@@ -162,27 +162,13 @@ def register_explore(parent_parser):
 
 
 def explore(args):
-    if not args.data_directory:
-        logging.error("")
-    else:
-        logging.info(f"Using data directory: {args.data_directory}")
-        logging.info(
-            "This directory will be mounted to /artifacts in the container.",
-        )
-
-    if not args.credentials:
-        logging.warning(
-            "You have not provided a credentials file. If you wish to access data "
-            "from a cloud provider, mount the credentials file with the --credentials flag.",
-        )
-
     if not shutil.which("docker"):
         logging.error(
             "Docker runtime not found. Please install Docker and try again.",
         )
 
     run_explorer_app(
-        data_directory=args.data_directory,
+        base_path=args.base_path,
         container=args.container,
         tag=args.tag,
         port=args.port,
