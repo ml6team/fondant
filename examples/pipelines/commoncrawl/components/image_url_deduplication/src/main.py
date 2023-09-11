@@ -1,5 +1,5 @@
 import logging
-
+from surt import surt
 import dask.dataframe as dd
 import pandas as pd
 
@@ -23,7 +23,12 @@ def get_license_strictness(license_string):
 
 
 def local_dedup(dataframe: pd.DataFrame, column: str) -> pd.DataFrame:
-    """Local dataframe deduplication, keep the last entry (most strict one)"""
+    """Local dataframe deduplication, keep the first entry (most strict one)"""
+    dataframe = dataframe.sort_index().sort_values(
+        by=["image_license_type"],
+        key=lambda col: col.apply(get_license_strictness),
+    )
+
     return dataframe.drop_duplicates(subset=[column], keep="first")
 
 
@@ -37,13 +42,14 @@ class ImageUrlDeduplication(DaskTransformComponent):
         """
         num_partitions = dataframe.npartitions
 
-        # Sort the DataFrame on the column
-        dataframe = dataframe.sort_values(
-            by=["image_image_url", "image_license_type"],
-            key=lambda col: col.apply(get_license_strictness),
+        # Create url_surtkey of image url
+        dataframe["image_image_surt_url"] = dataframe["image_image_url"].apply(
+            lambda x: surt(x), meta=("str")
         )
 
-        # Repartition on column
-        dataframe = dataframe.repartition(npartitions=num_partitions)
+        dataframe = dataframe.set_index(
+            "image_image_surt_url", npartitions=num_partitions
+        )
 
+        # Sort the DataFrame on the column
         return dataframe.map_partitions(local_dedup, "image_image_url")
