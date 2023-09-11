@@ -1,4 +1,3 @@
-import json
 import logging
 import subprocess  # nosec
 from abc import ABC, abstractmethod
@@ -85,6 +84,4 @@ class KubeflowRunner(Runner):
         """Get the name of the pipeline from the spec."""
         with open(input_spec) as f:
             spec = yaml.safe_load(f)
-            return json.loads(
-                spec["metadata"]["annotations"]["pipelines.kubeflow.org/pipeline_spec"],
-            )["name"]
+            return spec["pipelineInfo"]["name"]

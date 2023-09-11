@@ -1,11 +1,11 @@
 """This module defines classes to represent an Fondant component specification."""
-import ast
 import copy
 import json
 import pkgutil
 import types
 import typing as t
 from dataclasses import dataclass
+from distutils.util import strtobool
 from pathlib import Path
 
 import jsonschema.exceptions
@@ -17,14 +17,15 @@ from referencing.jsonschema import DRAFT4
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Field, KubeflowCommandArguments, Type
 
-# TODO: remove after upgrading to kfpv2
+# # TODO: remove after upgrading to kfpv2
+
 kubeflow_to_python_type_dict = {
-    "String": str,
-    "Integer": int,
-    "Float": float,
-    "Boolean": ast.literal_eval,
-    "JsonObject": json.loads,
-    "JsonArray": json.loads,
+    "STRING": str,
+    "NUMBER_INTEGER": int,
+    "NUMBER_DOUBLE": float,
+    "BOOLEAN": lambda x: bool(strtobool(x)),
+    "STRUCT": json.loads,
+    "LIST": json.loads,
 }
 
 
@@ -33,15 +34,13 @@ def kubeflow2python_type(type_: str) -> t.Any:
     return lambda value: map_fn(value) if value != "None" else None  # type: ignore
 
 
-# TODO: Change after upgrading to kfp v2
-# :https://www.kubeflow.org/docs/components/pipelines/v2/data-types/parameters/
 python2kubeflow_type = {
-    "str": "String",
-    "int": "Integer",
-    "float": "Float",
-    "bool": "Boolean",
-    "dict": "JsonObject",
-    "list": "JsonArray",
+    "str": "STRING",
+    "int": "NUMBER_INTEGER",
+    "float": "NUMBER_DOUBLE",
+    "bool": "BOOLEAN",
+    "dict": "STRUCT",
+    "list": "LIST",
 }
 
 
@@ -230,85 +229,159 @@ class KubeflowComponentSpec:
     def __init__(self, specification: t.Dict[str, t.Any]) -> None:
         self._specification = specification
 
-    @classmethod
-    def from_fondant_component_spec(
-        cls,
-        fondant_component: ComponentSpec,
-    ) -> "KubeflowComponentSpec":
-        """Create a Kubeflow component spec from a Fondant component spec."""
-        specification = {
-            "name": fondant_component.name,
-            "description": fondant_component.description,
-            "inputs": [
-                {
-                    "name": "input_manifest_path",
-                    "description": "Path to the input manifest",
-                    "type": "String",
-                },
-                {
-                    "name": "metadata",
-                    "description": "Metadata arguments containing the run id and base path",
-                    "type": "String",
-                },
-                {
-                    "name": "component_spec",
-                    "description": "The component specification as a dictionary",
-                    "type": "JsonObject",
-                    "default": "None",
-                },
-                {
-                    "name": "input_partition_rows",
-                    "description": "The number of rows to load per partition. Set to override the"
-                    " automatic partitioning",
-                    "type": "String",
-                    "default": "None",
-                },
-                {
-                    "name": "cache",
-                    "description": "Set to False to disable caching, True by default.",
-                    "type": "Boolean",
-                    "default": "True",
-                },
-                *(
-                    {
-                        "name": arg.name,
-                        "description": arg.description,
-                        "type": python2kubeflow_type[arg.type],
-                        **({"default": arg.default} if arg.default is not None else {}),
-                    }
-                    for arg in fondant_component.args.values()
+    @staticmethod
+    def convert_arguments(fondant_component):
+        args = {}
+        for arg in fondant_component.args.values():
+            args[arg.name] = {
+                "parameterType": python2kubeflow_type[arg.type],
+                "description": arg.description,
+                **(
+                    {"defaultValue": arg.default, "isOptional": True}
+                    if arg.default is not None
+                    else {}
                 ),
-            ],
-            "outputs": [
-                {
-                    "name": "output_manifest_path",
-                    "description": "Path to the output manifest",
-                    "type": "String",
-                },
-            ],
-            "implementation": {
-                "container": {
-                    "image": fondant_component.image,
-                    "command": [
-                        "fondant",
-                        "execute",
-                        "main",
-                        "--input_manifest_path",
-                        {"inputPath": "input_manifest_path"},
-                        "--metadata",
-                        {"inputValue": "metadata"},
-                        "--component_spec",
-                        {"inputValue": "component_spec"},
-                        "--input_partition_rows",
-                        {"inputValue": "input_partition_rows"},
-                        "--cache",
-                        {"inputValue": "cache"},
-                        *cls._dump_args(fondant_component.args.values()),
-                        "--output_manifest_path",
-                        {"outputPath": "output_manifest_path"},
-                    ],
+            }
+        return args
+
+    @classmethod
+    def from_fondant_component_spec(cls, fondant_component: ComponentSpec):
+        """Generate a Kubeflow component spec from a ComponentOp."""
+        input_definitions = {
+            "artifacts": {
+                "input_manifest_path": {
+                    "description": "Path to the input manifest",
+                    "artifactType": {
+                        "schemaTitle": "system.Artifact",
+                        "schemaVersion": "0.0.1",
+                    },
+                    "isOptional": True,
                 },
             },
+            "parameters": {
+                "component_spec": {
+                    "description": "The component specification as a dictionary",
+                    "defaultValue": {},
+                    "isOptional": True,
+                    "parameterType": "STRUCT",
+                },
+                "input_partition_rows": {
+                    "description": "The number of rows to load per partition."
+                    + " Set to override the automatic partitioning",
+                    "isOptional": True,
+                    "parameterType": "STRING",
+                    "defaultValue": "None",
+                },
+                "cache": {
+                    "parameterType": "BOOLEAN",
+                    "description": "Set to False to disable caching, True by default.",
+                    "defaultValue": True,
+                    "isOptional": True,
+                },
+                "metadata": {
+                    "description": "Metadata arguments containing the run id and base path",
+                    "parameterType": "STRING",
+                },
+                **cls.convert_arguments(fondant_component),
+            },
+        }
+
+        cleaned_component_name = fondant_component.name.replace("-", "_").replace(
+            " ",
+            "_",
+        )
+        output_definitions = {
+            "artifacts": {
+                "output_manifest_path": {
+                    "artifactType": {
+                        "schemaTitle": "system.Artifact",
+                        "schemaVersion": "0.0.1",
+                    },
+                    "description": "Path to the output manifest",
+                },
+            },
+        }
+
+        specification = {
+            "components": {
+                "comp-"
+                + cleaned_component_name: {
+                    "executorLabel": "exec-" + cleaned_component_name,
+                    "inputDefinitions": input_definitions,
+                    "outputDefinitions": output_definitions,
+                },
+            },
+            "deploymentSpec": {
+                "executors": {
+                    "exec-"
+                    + cleaned_component_name: {
+                        "container": {
+                            "args": [
+                                "--input_manifest_path",
+                                "{{$.inputs.artifacts['input_manifest_path'].uri}}",
+                                "--metadata",
+                                "{{$.inputs.parameters['metadata']}}",
+                                "--component_spec",
+                                "{{$.inputs.parameters['component_spec']}}",
+                                "--input_partition_rows",
+                                "{{$.inputs.parameters['input_partition_rows']}}",
+                                "--cache",
+                                "{{$.inputs.parameters['cache']}}",
+                                *cls._dump_args(fondant_component.args.values()),
+                                "--output_manifest_path",
+                                "{{$.outputs.artifacts['output_manifest_path'].uri}}",
+                            ],
+                            "command": ["fondant", "execute", "main"],
+                            "image": fondant_component.image,
+                        },
+                    },
+                },
+            },
+            "pipelineInfo": {"name": cleaned_component_name},
+            "root": {
+                "dag": {
+                    "outputs": {
+                        "artifacts": {
+                            "output_manifest_path": {
+                                "artifactSelectors": [
+                                    {
+                                        "outputArtifactKey": "output_manifest_path",
+                                        "producerSubtask": cleaned_component_name,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                    "tasks": {
+                        cleaned_component_name: {
+                            "cachingOptions": {"enableCache": True},
+                            "componentRef": {"name": "comp-" + cleaned_component_name},
+                            "inputs": {
+                                "artifacts": {
+                                    "input_manifest_path": {
+                                        "componentInputArtifact": "input_manifest_path",
+                                    },
+                                },
+                                "parameters": {
+                                    "component_spec": {
+                                        "componentInputParameter": "component_spec",
+                                    },
+                                    "input_partition_rows": {
+                                        "componentInputParameter": "input_partition_rows",
+                                    },
+                                    "metadata": {"componentInputParameter": "metadata"},
+                                    "cache": {"componentInputParameter": "cache"},
+                                },
+                            },
+                            "taskInfo": {"name": cleaned_component_name},
+                        },
+                    },
+                },
+                "inputDefinitions": input_definitions,
+                "outputDefinitions": output_definitions,
+            },
+            "schemaVersion": "2.1.0",
+            "sdkVersion": "kfp-2.0.1",
         }
         return cls(specification)
 
@@ -321,7 +394,7 @@ class KubeflowComponentSpec:
             arg_name_cmd = f"--{arg_name}"
 
             dumped_args.append(arg_name_cmd)
-            dumped_args.append({"inputValue": arg_name})
+            dumped_args.append("{{$.inputs.parameters['" + f"{arg_name}" + "']}}")
 
         return dumped_args
 
@@ -343,31 +416,54 @@ class KubeflowComponentSpec:
     @property
     def input_arguments(self) -> t.Mapping[str, Argument]:
         """The input arguments of the component as an immutable mapping."""
-        return types.MappingProxyType(
-            {
-                info["name"]: Argument(
-                    name=info["name"],
-                    description=info["description"],
-                    type=info["type"],
-                    default=info["default"] if "default" in info else None,
+        args = {}
+        input_definitions = self._specification["root"]["inputDefinitions"]
+
+        if "artifacts" in input_definitions:
+            for arg_name, arg_info in input_definitions["artifacts"].items():
+                args[arg_name] = Argument(
+                    name=arg_name,
+                    description=arg_info["description"],
+                    type="STRING",
+                    default=None,
                 )
-                for info in self._specification["inputs"]
-            },
-        )
+        if "parameters" in input_definitions:
+            for arg_name, arg_info in input_definitions["parameters"].items():
+                args[arg_name] = Argument(
+                    name=arg_name,
+                    description=arg_info["description"],
+                    type=arg_info["parameterType"],
+                    default=arg_info["defaultValue"]
+                    if "defaultValue" in arg_info
+                    else None,
+                )
+        return types.MappingProxyType(args)
 
     @property
     def output_arguments(self) -> t.Mapping[str, Argument]:
         """The output arguments of the component as an immutable mapping."""
-        return types.MappingProxyType(
-            {
-                info["name"]: Argument(
-                    name=info["name"],
-                    description=info["description"],
-                    type=info["type"],
+        args = {}
+        output_definitions = self._specification["root"]["outputDefinitions"]
+
+        if "artifacts" in output_definitions:
+            for arg_name, arg_info in output_definitions["artifacts"].items():
+                args[arg_name] = Argument(
+                    name=arg_name,
+                    description=arg_info["description"],
+                    type="STRING",
+                    default=None,
                 )
-                for info in self._specification["outputs"]
-            },
-        )
+        if "parameters" in output_definitions:
+            for arg_name, arg_info in output_definitions["parameters"].items():
+                args[arg_name] = Argument(
+                    name=arg_name,
+                    description=arg_info["description"],
+                    type=arg_info["parameterType"],
+                    default=arg_info["defaultValue"]
+                    if "defaultValue" in arg_info
+                    else None,
+                )
+        return types.MappingProxyType(args)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r})"

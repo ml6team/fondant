@@ -6,11 +6,11 @@ components take care of processing, filtering and extending the data.
 """
 
 import argparse
-import ast
 import json
 import logging
 import typing as t
 from abc import abstractmethod
+from distutils.util import strtobool
 from pathlib import Path
 
 import dask.dataframe as dd
@@ -59,7 +59,7 @@ class Executor(t.Generic[Component]):
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
-        parser.add_argument("--cache", type=ast.literal_eval)
+        parser.add_argument("--cache", type=lambda x: bool(strtobool(x)))
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
         args, _ = parser.parse_known_args()
 
@@ -319,42 +319,14 @@ class Executor(t.Generic[Component]):
         """
         Uploads the manifest to the specified destination.
 
-        If the save_path points to the kubeflow output artifact temporary path,
-        it will be saved both in a specific base path and the native kfp artifact path.
-
         Args:
             manifest: The Manifest object to be uploaded.
             save_path: The path where the Manifest object will be saved.
 
         """
-        is_kubeflow_output = (
-            str(save_path) == "/tmp/outputs/output_manifest_path/data"  # nosec
-        )
-
-        if is_kubeflow_output:
-            # Save to the expected base path directory
-            save_path_base_path = (
-                f"{manifest.base_path}/{manifest.pipeline_name}/{manifest.run_id}/"
-                f"{manifest.component_id}/manifest.json"
-            )
-            # Upload manifest and it's reference if cache is False
-            manifest.to_file(save_path_base_path)
-            logger.info(f"Saving output manifest to {save_path_base_path}")
-            self._upload_cache_key(
-                manifest=manifest,
-                manifest_save_path=save_path_base_path,
-            )
-            # Write manifest to the native kfp artifact path that will be passed as an artifact
-            # and read by the next component
-            manifest.to_file(save_path)
-        else:
-            # Local runner
-            manifest.to_file(save_path)
-            logger.info(f"Saving output manifest to {save_path}")
-            self._upload_cache_key(
-                manifest=manifest,
-                manifest_save_path=save_path,
-            )
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        manifest.to_file(save_path)
+        logger.info(f"Saving output manifest to {save_path}")
 
 
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
