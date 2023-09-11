@@ -256,8 +256,9 @@ deploymentSpec:
         - --output_manifest_path
         - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
         command:
-        - python3
-        - main.py
+        - fondant
+        - execute
+        - main
         image: example_component:latest
     exec-Image_cropping:
       container:
@@ -279,8 +280,9 @@ deploymentSpec:
         - --output_manifest_path
         - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
         command:
-        - python3
-        - main.py
+        - fondant
+        - execute
+        - main
         image: ghcr.io/ml6team/image_cropping:dev
 pipelineInfo:
   description: description of the test pipeline

@@ -331,7 +331,7 @@ class KubeflowComponentSpec:
                                 "--output_manifest_path",
                                 "{{$.outputs.artifacts['output_manifest_path'].uri}}",
                             ],
-                            "command": ["python3", "main.py"],
+                            "command": ["fondant", "execute", "main"],
                             "image": fondant_component.image,
                         },
                     },

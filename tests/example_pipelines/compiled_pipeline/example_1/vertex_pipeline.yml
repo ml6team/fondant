@@ -343,8 +343,9 @@ deploymentSpec:
         - --output_manifest_path
         - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
         command:
-        - python3
-        - main.py
+        - fondant
+        - execute
+        - main
         image: example_component:latest
     exec-Second_component:
       container:
@@ -364,8 +365,9 @@ deploymentSpec:
         - --output_manifest_path
         - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
         command:
-        - python3
-        - main.py
+        - fondant
+        - execute
+        - main
         image: example_component:latest
     exec-Third_component:
       container:
@@ -385,8 +387,9 @@ deploymentSpec:
         - --output_manifest_path
         - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
         command:
-        - python3
-        - main.py
+        - fondant
+        - execute
+        - main
         image: example_component:latest
 pipelineInfo:
   description: description of the test pipeline
