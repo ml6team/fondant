@@ -85,3 +85,31 @@ class KubeflowRunner(Runner):
         with open(input_spec) as f:
             spec = yaml.safe_load(f)
             return spec["pipelineInfo"]["name"]
+
+
+class VertexRunner(Runner):
+    def __resolve_imports(self):
+        import google.cloud.aiplatform as aip
+
+        self.aip = aip
+
+    def __init__(self, project_id: str, project_region: str):
+        self.__resolve_imports()
+        self.aip.init(
+            project=project_id,
+            location=project_region,
+        )
+
+    def run(self, input_spec: str, *args, **kwargs):
+        job = self.aip.PipelineJob(
+            display_name=self.get_name_from_spec(input_spec),
+            template_path=input_spec,
+            enable_caching=False,
+        )
+        job.submit()
+
+    def get_name_from_spec(self, input_spec: str):
+        """Get the name of the pipeline from the spec."""
+        with open(input_spec) as f:
+            spec = yaml.safe_load(f)
+            return spec["pipelineInfo"]["name"]
