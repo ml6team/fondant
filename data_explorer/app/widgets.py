@@ -101,7 +101,8 @@ def build_explorer_table(
     with cols[1]:
         rows_per_page = st.slider("Amount of rows per page", 5, 50, 10)
 
-    dataframe_explorer = dataframe.head(rows)
+    dataframe_explorer = dataframe.head(rows).reset_index(drop=False)
+
     for field in image_fields:
         dataframe_explorer = convert_image_column(dataframe_explorer, field)
 
