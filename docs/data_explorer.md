@@ -4,14 +4,25 @@
 You can setup the data explorer container with the `fondant explore` CLI command, which is installed together with the Fondant python package.
 
 ```
-fondant explore --data-directory LOCAL_FOLDER_TO_MOUNT [--port PORT --container CONTAINER --tag TAG]
+fondant explore [--base_path BASE_PATH] [--container CONTAINER] [--tag TAG] [--port PORT] [--credentials CREDENTIALS]
 ```
 
+Where the base path can be either a local or remote base path. Make sure to pass the proper mount credentials arguments when using a remote base path or a local base path 
+that references remote datasets. 
+
+Example: 
+
+```bash
+fondant explore --base_path gs://foo/bar \
+ -c $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json
+```
 ## Data explorer UI
 
 The data explorer UI enables Fondant users to explore the inputs and outputs of their Fondant pipeline.
 
-The user can load a manifest file, which is produced by Fondant components, which contains metadata about which subsets are available and which columns are present in each subset. After choosing a valid manifest file, a subset (and the columns within the subset) can be explored in 3 tabs.
+The user can specify a pipeline and a specific pipeline run and component to explore. The user will then be able to explore the different subsets produced by by Fondant components.
+
+The chosen subset (and the columns within the subset) can be explored in 3 tabs.
 
 ### Sidebar
 In the sidebar, the user can specify the path to a manifest file. This will load the available subsets into a dropdown, from which the user can select one of the subsets. Finally, the columns within the subset are shown in a multiselect box, and can be used to remove / select the columns that are loaded into the exploration tabs.

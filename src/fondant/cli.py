@@ -101,14 +101,15 @@ def register_explore(parent_parser):
             """
         Explore and visualize the data produced by a fondant pipeline.
 
-        This will spin up a  docker container that hosts a web application that allows you to explore the data produced by a fondant pipeline.
+        This will spin up a docker container that hosts a web application that allows you to explore the data produced by a fondant pipeline.
 
-        The default address is http://localhost:8501. If the data that you want to explore is stored locally you can use the --data-directory flag to specify the path to the data.
-        Alternatively you can use the --credentials flag to specify the path to a file that contains the credentials to access remote data (for S3, GCS, etc).
+        The default address is http://localhost:8501. You can choose both a local and remote base path to explore. If the data that you want to explore is stored remotely, you
+         should use the --credentials flag to specify the path to a file that contains the credentials to access remote data (for S3, GCS, etc).
 
         Example:
 
-        fondant explore -d my_project/data
+        fondant explore --base_path gs://foo/bar \
+         -c $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json
         """,
         ),
     )
@@ -116,8 +117,8 @@ def register_explore(parent_parser):
         "--base_path",
         "-b",
         type=str,
-        help="""Path to the directory that contains the data produced
-        by a fondant pipeline.""",
+        help="""Base path that contains the data produced by a Fondant pipeline (local or remote)
+        .""",
     )
     parser.add_argument(
         "--container",
