@@ -1,6 +1,6 @@
-name: Image embedding
+name: Embed images
 description: Component that embeds images using CLIP
-image: ghcr.io/ml6team/image_embedding:dev
+image: ghcr.io/ml6team/embed_images:dev
 
 consumes:
   images:
@@ -18,7 +18,7 @@ produces:
 
 args:
   model_id:
-    description: Model id on the Hugging Face hub  (e.g. "openai/clip-vit-large-patch14")
+    description: Model id of a CLIP model on the Hugging Face hub
     type: str
     default: "openai/clip-vit-large-patch14"
   batch_size:

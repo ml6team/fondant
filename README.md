@@ -108,7 +108,7 @@ Fondant comes with a library of reusable components, which can jumpstart your pi
 | [embedding_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/embedding_based_laion_retrieval) | Retrieve images-text pairs from LAION using embedding similarity    |
 | [download_images](https://github.com/ml6team/fondant/tree/main/components/download_images)                                 | Download images from urls                                           |
 | **Image processing**                                                                                                       |                                                                     |
-| [image_embedding](https://github.com/ml6team/fondant/tree/main/components/image_embedding)                                 | Create embeddings for images using a model from the HF Hub          |
+| [embed_images](https://github.com/ml6team/fondant/tree/main/components/embed_images)                                 | Create embeddings for images using a model from the HF Hub          |
 | [image_resolution_extraction](https://github.com/ml6team/fondant/tree/main/components/image_resolution_extraction)         | Extract the resolution from images                                  |
 | [filter_image_resolution](https://github.com/ml6team/fondant/tree/main/components/filter_image_resolution)                 | Filter images based on their resolution                             |
 | [caption images](https://github.com/ml6team/fondant/tree/main/components/caption_images)                                   | Generate captions for images using a model from the HF Hub          |

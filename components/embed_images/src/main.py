@@ -51,7 +51,7 @@ def embed_image_batch(image_batch: pd.DataFrame, *, model: CLIPVisionModelWithPr
 
 
 class EmbedImagesComponent(PandasTransformComponent):
-    """Component that captions images using a model from the Hugging Face hub."""
+    """Component that embeds images using a CLIP model from the Hugging Face hub."""
 
     def __init__(
             self,
