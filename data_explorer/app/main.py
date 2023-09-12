@@ -18,6 +18,7 @@ st.set_page_config(layout="wide")
 
 
 if __name__ == "__main__":
+
     # make sidebar with input fields for manifest path, subset and fields
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -27,12 +28,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # TODO: add remote path as an argument (Later PR)
-    manifest_path, subset, fields = build_sidebar()
+    manifest, subset, fields = build_sidebar(args.base_path)
 
-    if fields and manifest_path and subset:
+    if fields and manifest and subset:
         # load dataframe
-        dataframe_ = load_dataframe(manifest_path, subset, list(fields.keys()))
+        dataframe_ = load_dataframe(manifest, subset, fields)
 
         # get partitions of dataframe
         if dataframe_.npartitions > 1:
