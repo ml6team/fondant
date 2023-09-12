@@ -68,6 +68,10 @@ def run_explorer_app(  # type: ignore
             ],
         )
 
+        cmd.extend(
+            ["--base_path", f"{container_path}"],
+        )
+
     else:
         if credentials is None:
             raise RuntimeError(
@@ -87,7 +91,7 @@ def run_explorer_app(  # type: ignore
 
         # Add the remote base path as a container argument
         cmd.extend(
-            ["-rb", f"{base_path}"],
+            ["--base_path", f"{base_path}"],
         )
 
     logging.info(

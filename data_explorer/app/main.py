@@ -21,11 +21,9 @@ if __name__ == "__main__":
     # make sidebar with input fields for manifest path, subset and fields
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--remote_base_path",
-        "-rb",
+        "--base_path",
         type=str,
-        help='Optional argument that indicates a remote base path',
-        default=None
+        help='Mounted or remote base path',
     )
     args = parser.parse_args()
 

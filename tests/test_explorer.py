@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -10,7 +11,7 @@ DEFAULT_PORT = 8501
 
 @pytest.fixture()
 def host_path() -> str:
-    return "/path/to/source"
+    return "tests/path/to/source"
 
 
 @pytest.fixture()
@@ -53,8 +54,10 @@ def test_run_data_explorer_local_base_path(host_path, container_path, credential
                 "-v",
                 f"{credentials}:ro",
                 "-v",
-                f"{host_path}:{container_path}",
+                f"{Path(host_path).resolve()}:{container_path}",
                 f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
+                "--base_path",
+                f"{container_path}",
             ],
             stdout=-1,
         )
@@ -83,7 +86,7 @@ def test_run_data_explorer_remote_base_path(remote_path, credentials):
                 "-v",
                 f"{credentials}:ro",
                 f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
-                "-rb",
+                "--base_path",
                 f"{remote_path}",
             ],
             stdout=-1,
