@@ -76,7 +76,7 @@ mask_images_op = ComponentOp(
     cache=False,
 )
 embed_images_op = ComponentOp.from_registry(
-    name="image_embedding",
+    name="embed_images",
     arguments={
         "batch_size": 2,
     },

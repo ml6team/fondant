@@ -295,7 +295,7 @@ You will see that the components runs sequentially and that each has its own log
 Note that with custom components the image will be built as part of running the pipeline by leveraging a `build` spec in the docker-compose file. This means that you can change the code of your component and run the pipeline again without having to rebuild the image manually.
 
 
-We now have a simple pipeline that downloads a dataset from huggingface hub and extracts the width and height of the images. A possible next step is to create a component that [filters the data based on the aspect ratio](https://github.com/ml6team/fondant/tree/main/components/filter_image_resolution) ? Or run a [clip model on the images to get captions](https://github.com/ml6team/fondant/tree/main/components/image_embedding)?
+We now have a simple pipeline that downloads a dataset from huggingface hub and extracts the width and height of the images. A possible next step is to create a component that [filters the data based on the aspect ratio](https://github.com/ml6team/fondant/tree/main/components/filter_image_resolution) ? Or run a [CLIP model on the images to get embeddings](https://github.com/ml6team/fondant/tree/main/components/embed_images)?
 
 ## Explore the data
 
