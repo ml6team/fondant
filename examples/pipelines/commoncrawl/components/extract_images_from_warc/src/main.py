@@ -2,17 +2,20 @@
 import logging
 import typing as t
 
+import dask
 import dask.dataframe as dd
 import pandas as pd
 from bs4 import BeautifulSoup
 from fondant.component import DaskTransformComponent
-from fastwarc.warc import ArchiveIterator, WarcRecordType
+from fastwarc import ArchiveIterator, StreamError, WarcRecordType
 
 from utils.download_utils import download_warc_file
 from utils.license_utils import get_license_type, get_license_location
 from utils.image_utils import get_images_from_soup, get_unique_images
 
 logger = logging.getLogger(__name__)
+
+dask.config.set(scheduler="processes")
 
 CC_BASE_URL = "http://data.commoncrawl.org"
 
@@ -72,17 +75,20 @@ class CommonCrawlDownloadComponent(DaskTransformComponent):
                 return False
             return True
 
-        for record in ArchiveIterator(
-            file,
-            record_types=WarcRecordType.response,
-            func_filter=filter_,
-        ):
-            url = record.headers.get("WARC-Target-URI")
-            content = record.reader.read().decode("utf-8", "replace")
-            if content:
-                image_info = self.get_image_info_from_webpage(url, content)
-                if image_info:
-                    images.extend(image_info)
+        try:
+            for record in ArchiveIterator(
+                file,
+                record_types=WarcRecordType.response,
+                func_filter=filter_,
+            ):
+                url = record.headers.get("WARC-Target-URI")
+                content = record.reader.read().decode("utf-8", "replace")
+                if content:
+                    image_info = self.get_image_info_from_webpage(url, content)
+                    if image_info:
+                        images.extend(image_info)
+        except StreamError as e:
+            logging.warning(e)
 
         return images
 
@@ -97,8 +103,12 @@ class CommonCrawlDownloadComponent(DaskTransformComponent):
         """
         logger.warning(f"Processing WARC file: {warc_file}...")
 
-        response = download_warc_file(warc_file)
-        return self.extract_images(response.raw)
+        try:
+            response = download_warc_file(warc_file)
+            return self.extract_images(response.raw)
+        except BaseException as e:
+            logging.warning(e)
+            return []
 
     def download_and_extract_dataframe(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Download and extract all warc files in a dataframe."""

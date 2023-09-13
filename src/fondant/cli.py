@@ -344,7 +344,7 @@ def run(args):
         else:
             spec_ref = args.output_path
             logging.info(
-                "Found reference to un-compiled pipeline... compiling to {spec_ref}",
+                f"Found reference to un-compiled pipeline... compiling to {spec_ref}",
             )
             compiler = KubeFlowCompiler()
             compiler.compile(pipeline=pipeline, output_path=spec_ref)
