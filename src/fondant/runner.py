@@ -1,5 +1,6 @@
 import logging
 import subprocess  # nosec
+import typing as t
 from abc import ABC, abstractmethod
 
 import yaml
@@ -93,7 +94,12 @@ class VertexRunner(Runner):
 
         self.aip = aip
 
-    def __init__(self, project_id: str, project_region: str, service_account: str = ""):
+    def __init__(
+        self,
+        project_id: str,
+        project_region: str,
+        service_account: t.Optional[str] = None,
+    ):
         self.__resolve_imports()
 
         self.aip.init(
@@ -108,10 +114,7 @@ class VertexRunner(Runner):
             template_path=input_spec,
             enable_caching=False,
         )
-        if self.service_account:
-            job.submit(service_account=self.service_account)
-        else:
-            job.submit()
+        job.submit(service_account=self.service_account)
 
     def get_name_from_spec(self, input_spec: str):
         """Get the name of the pipeline from the spec."""
