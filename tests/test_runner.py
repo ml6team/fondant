@@ -88,3 +88,11 @@ def test_vertex_runner():
     ):
         runner = VertexRunner(project_id="some_project", project_region="some_region")
         runner.run(input_spec=input_spec_path)
+
+        # test with service account
+        runner2 = VertexRunner(
+            project_id="some_project",
+            project_region="some_region",
+            service_account="some_account",
+        )
+        runner2.run(input_spec=input_spec_path)
