@@ -42,7 +42,7 @@ spec:
       - --cluster_type
       - local
       - --client_kwargs
-      - None
+      - '{}'
       image: example_component:latest
       imagePullPolicy: Always
       resources:
@@ -57,7 +57,7 @@ spec:
     metadata:
       annotations:
         pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
-          "None", "cluster_type": "local", "component_spec": "{\"args\": {\"storage_args\":
+          "{}", "cluster_type": "local", "component_spec": "{\"args\": {\"storage_args\":
           {\"description\": \"Storage arguments\", \"type\": \"str\"}}, \"description\":
           \"This is an example component\", \"image\": \"example_component:latest\",
           \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
@@ -67,7 +67,7 @@ spec:
           \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
           \"cache_key\": \"d02d8db2a8c7283abec87def979197f8\"}", "storage_args": "a
           dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "a43a4457efc2da731b9791fcd4f721a52591b775ff873832d69b888827ca0f91"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "fa027f119dc037eb255b5a6826e2c6697f6f4ffbac366ab4600ba3a9f94aef17"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -87,8 +87,8 @@ spec:
           "Set to False to disable caching, True by default.", "name": "cache", "type":
           "Boolean"}, {"default": "local", "description": "The type of cluster to
           use for distributed execution", "name": "cluster_type", "type": "String"},
-          {"default": "None", "description": "Keyword arguments used to initialise
-          the dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":
+          {"default": "{}", "description": "Keyword arguments used to initialise the
+          dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":
           "Storage arguments", "name": "storage_args", "type": "String"}], "name":
           "First component", "outputs": [{"description": "Path to the output manifest",
           "name": "output_manifest_path", "type": "String"}]}'

@@ -26,6 +26,9 @@ services:
     - 8787:8787
     volumes: []
   image_cropping:
+    build:
+      args: []
+      context: /Users/matthias/projects/fondant/fondant/src/fondant/components/image_cropping
     command:
     - --metadata
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
@@ -56,7 +59,6 @@ services:
     depends_on:
       first_component:
         condition: service_completed_successfully
-    image: ghcr.io/ml6team/image_cropping:dev
     ports:
     - 8787:8787
     volumes: []

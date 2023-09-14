@@ -42,7 +42,7 @@ spec:
       - --cluster_type
       - local
       - --client_kwargs
-      - None
+      - '{}'
       image: example_component:latest
       imagePullPolicy: Always
     inputs:
@@ -54,7 +54,7 @@ spec:
     metadata:
       annotations:
         pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
-          "None", "cluster_type": "local", "component_spec": "{\"args\": {\"storage_args\":
+          "{}", "cluster_type": "local", "component_spec": "{\"args\": {\"storage_args\":
           {\"description\": \"Storage arguments\", \"type\": \"str\"}}, \"description\":
           \"This is an example component\", \"image\": \"example_component:latest\",
           \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
@@ -63,7 +63,7 @@ spec:
           "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
           \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
           \"cache_key\": \"1\"}", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "a43a4457efc2da731b9791fcd4f721a52591b775ff873832d69b888827ca0f91"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "fa027f119dc037eb255b5a6826e2c6697f6f4ffbac366ab4600ba3a9f94aef17"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -83,8 +83,8 @@ spec:
           "Set to False to disable caching, True by default.", "name": "cache", "type":
           "Boolean"}, {"default": "local", "description": "The type of cluster to
           use for distributed execution", "name": "cluster_type", "type": "String"},
-          {"default": "None", "description": "Keyword arguments used to initialise
-          the dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":
+          {"default": "{}", "description": "Keyword arguments used to initialise the
+          dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":
           "Storage arguments", "name": "storage_args", "type": "String"}], "name":
           "First component", "outputs": [{"description": "Path to the output manifest",
           "name": "output_manifest_path", "type": "String"}]}'
@@ -132,7 +132,7 @@ spec:
       - --cluster_type
       - local
       - --client_kwargs
-      - None
+      - '{}'
       image: ghcr.io/ml6team/image_cropping:dev
       imagePullPolicy: Always
     inputs:
@@ -142,7 +142,7 @@ spec:
     metadata:
       annotations:
         pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
-          "None", "cluster_type": "local", "component_spec": "{\"args\": {\"cropping_threshold\":
+          "{}", "cluster_type": "local", "component_spec": "{\"args\": {\"cropping_threshold\":
           {\"default\": -30, \"description\": \"Threshold parameter used for detecting
           borders. A lower (negative) parameter results in a more performant border
           detection, but can cause overcropping. Default is -30\", \"type\": \"int\"},
@@ -157,7 +157,7 @@ spec:
           "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
           \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"image_cropping\",
           \"cache_key\": \"2\"}", "padding": "0"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "a07a6b79c816faca98fcb341389c2b1257e974aef5aceba3f60f884df75c194b"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "957fdd80bb26d6a78c7d20ca6116bed681443f982c9cbc7ee640017c2cbddbb2"}'
         pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
           single-colored borders around images and crops them appropriately", "implementation":
           {"container": {"command": ["fondant", "execute", "main", "--input_manifest_path",
@@ -178,8 +178,8 @@ spec:
           "Set to False to disable caching, True by default.", "name": "cache", "type":
           "Boolean"}, {"default": "local", "description": "The type of cluster to
           use for distributed execution", "name": "cluster_type", "type": "String"},
-          {"default": "None", "description": "Keyword arguments used to initialise
-          the dask client", "name": "client_kwargs", "type": "JsonObject"}, {"default":
+          {"default": "{}", "description": "Keyword arguments used to initialise the
+          dask client", "name": "client_kwargs", "type": "JsonObject"}, {"default":
           -30, "description": "Threshold parameter used for detecting borders. A lower
           (negative) parameter results in a more performant border detection, but
           can cause overcropping. Default is -30", "name": "cropping_threshold", "type":
