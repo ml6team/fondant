@@ -143,24 +143,6 @@ class ComponentOp:
             self.argument_name = argument_value
             self.arguments[argument_name] = argument_value
 
-    def _set_arguments(
-        self,
-        arguments: t.Optional[t.Dict[str, t.Any]],
-    ) -> t.Dict[str, t.Any]:
-        """Set component arguments based on provided arguments and relevant ComponentOp
-        parameters.
-        """
-        arguments = arguments or {}
-
-        input_partition_rows = validate_partition_number(self.input_partition_rows)
-
-        arguments["input_partition_rows"] = str(input_partition_rows)
-        arguments["cache"] = str(self.cache)
-        arguments["cluster_type"] = self.cluster_type
-        arguments["client_kwargs"] = self.client_kwargs
-
-        return arguments
-
     def _validate_node_pool_spec(
         self,
         node_pool_label,
