@@ -279,7 +279,7 @@ class KubeflowComponentSpec:
                     "name": "client_kwargs",
                     "description": "Keyword arguments used to initialise the dask client",
                     "type": "JsonObject",
-                    "default": "None",
+                    "default": "{}",
                 },
                 *(
                     {

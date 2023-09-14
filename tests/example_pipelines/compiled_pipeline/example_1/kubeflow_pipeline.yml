@@ -52,7 +52,7 @@ spec:
       - --cluster_type
       - local
       - --client_kwargs
-      - None
+      - "{}"
       image: example_component:latest
       imagePullPolicy: Always
       resources:
@@ -96,7 +96,7 @@ spec:
           "Set to False to disable caching, True by default.", "name": "cache", "type":
           "Boolean"}, {"default": "local", "description": "The type of cluster to
           use for distributed execution", "name": "cluster_type", "type": "String"},
-          {"default": "None", "description": "Keyword arguments used to initialise
+          {"default": "{}", "description": "Keyword arguments used to initialise
           the dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":
           "Storage arguments", "name": "storage_args", "type": "String"}], "name":
           "First component", "outputs": [{"description": "Path to the output manifest",
@@ -183,7 +183,7 @@ spec:
           "Set to False to disable caching, True by default.", "name": "cache", "type":
           "Boolean"}, {"default": "local", "description": "The type of cluster to
           use for distributed execution", "name": "cluster_type", "type": "String"},
-          {"default": "None", "description": "Keyword arguments used to initialise
+          {"default": "{}", "description": "Keyword arguments used to initialise
           the dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":
           "Storage arguments", "name": "storage_args", "type": "String"}], "name":
           "Second component", "outputs": [{"description": "Path to the output manifest",

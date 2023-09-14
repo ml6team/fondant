@@ -92,7 +92,7 @@ class Executor(t.Generic[Component]):
             # mode is not possible in our docker container setup.
             dask.config.set({"distributed.worker.daemon": False})
 
-            local_cluster = LocalCluster(**client_kwargs)
+            local_cluster = LocalCluster(**client_kwargs, silence_logs=logging.ERROR)
             self.client = Client(local_cluster)
 
         elif cluster_type == "distributed":
