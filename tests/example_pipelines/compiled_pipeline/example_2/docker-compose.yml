@@ -12,23 +12,23 @@ services:
     - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
     - --storage_args
     - a dummy string arg
-    - --input_partition_rows
-    - None
     - --cache
-    - 'False'
+    - 'True'
     - --cluster_type
-    - 'local'
-    - --client_kwargs
-    - None
+    - local
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
       {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
     depends_on: {}
-    ports: ['8787:8787']
+    ports:
+    - 8787:8787
     volumes: []
   image_cropping:
+    build:
+      args: []
+      context: /Users/matthias/projects/fondant/fondant/src/fondant/components/image_cropping
     command:
     - --metadata
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
@@ -39,14 +39,10 @@ services:
     - '0'
     - --padding
     - '0'
-    - --input_partition_rows
-    - None
     - --cache
     - 'True'
     - --cluster_type
-    - 'local'
-    - --client_kwargs
-    - None
+    - local
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
       borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
@@ -63,7 +59,7 @@ services:
     depends_on:
       first_component:
         condition: service_completed_successfully
-    ports: ['8787:8787']
-    image: ghcr.io/ml6team/image_cropping:dev
+    ports:
+    - 8787:8787
     volumes: []
 version: '3.8'
