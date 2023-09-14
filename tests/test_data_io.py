@@ -13,7 +13,12 @@ component_spec_path = Path(__file__).parent / "example_data/components/1.yaml"
 
 NUMBER_OF_TEST_ROWS = 151
 
-dask_client = Client()
+
+@pytest.fixture()
+def dask_client():  # noqa: PT004
+    client = Client()
+    yield
+    client.close()
 
 
 @pytest.fixture()
@@ -96,7 +101,13 @@ def test_load_dataframe_disable(manifest, component_spec):
     assert dataframe.npartitions == expected_partitions
 
 
-def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
+def test_write_index(
+    tmp_path_factory,
+    dataframe,
+    manifest,
+    component_spec,
+    dask_client,
+):
     """Test writing out the index."""
     with tmp_path_factory.mktemp("temp") as fn:
         # override the base path of the manifest with the temp dir
@@ -117,7 +128,14 @@ def test_write_index(tmp_path_factory, dataframe, manifest, component_spec):
         )
 
 
-def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
+#
+def test_write_subsets(
+    tmp_path_factory,
+    dataframe,
+    manifest,
+    component_spec,
+    dask_client,
+):
     """Test writing out subsets."""
     # Dictionary specifying the expected subsets to write and their column names
     subset_columns_dict = {
@@ -139,7 +157,13 @@ def test_write_subsets(tmp_path_factory, dataframe, manifest, component_spec):
             assert dataframe.index.name == "id"
 
 
-def test_write_reset_index(tmp_path_factory, dataframe, manifest, component_spec):
+def test_write_reset_index(
+    tmp_path_factory,
+    dataframe,
+    manifest,
+    component_spec,
+    dask_client,
+):
     """Test writing out the index and subsets that have no dask index and checking
     if the id index was created.
     """
@@ -156,12 +180,13 @@ def test_write_reset_index(tmp_path_factory, dataframe, manifest, component_spec
 
 
 @pytest.mark.parametrize("partitions", list(range(1, 5)))
-def test_write_divisions(
+def test_write_divisions(  # noqa: PLR0913
     tmp_path_factory,
     dataframe,
     manifest,
     component_spec,
     partitions,
+    dask_client,
 ):
     """Test writing out index and subsets and asserting they have the divisions of the dataframe."""
     # repartition the dataframe (default is 3 partitions)
@@ -183,7 +208,13 @@ def test_write_divisions(
             assert dataframe.npartitions == partitions
 
 
-def test_write_subsets_invalid(tmp_path_factory, dataframe, manifest, component_spec):
+def test_write_subsets_invalid(
+    tmp_path_factory,
+    dataframe,
+    manifest,
+    component_spec,
+    dask_client,
+):
     """Test writing out subsets but the dataframe columns are incomplete."""
     with tmp_path_factory.mktemp("temp") as fn:
         # override the base path of the manifest with the temp dir
