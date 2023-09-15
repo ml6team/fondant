@@ -12,7 +12,7 @@ COMMONCRAWL_BASE_URL = "https://data.commoncrawl.org/"
 
 
 def download_warc_file(
-    warc_file: str, retries: int = 3, backoff_factor: int = 5
+    warc_file: str, retries: int = 10, backoff_factor: int = 5
 ) -> requests.Response:
     """Downloads a WARC file using http requests.
     Args:
@@ -33,6 +33,6 @@ def download_warc_file(
         response = session.get(COMMONCRAWL_BASE_URL + warc_file, stream=True)
         response.raise_for_status()
         return response
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         logger.error(f"Error downloading WARC file: {e}")
         raise

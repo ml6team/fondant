@@ -69,7 +69,7 @@ The `__init__` method is called once for each component class with custom argume
 The `transform` method is called multiple times, each time containing a pandas `dataframe` 
 with a partition of your data loaded in memory.
 
-The `dataframes` passed to the `transform` method contains the data specified in the `produces` 
+The `dataframes` passed to the `transform` method contains the data specified in the `consumes` 
 section of the component specification. If a component defines that it consumes an `images` subset 
 with a `data` field, this data can be accessed using `dataframe["images"]["data"]`.
 

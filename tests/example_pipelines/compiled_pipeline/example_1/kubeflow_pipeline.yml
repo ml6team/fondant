@@ -15,7 +15,17 @@ spec:
   entrypoint: test-pipeline
   serviceAccountName: pipeline-runner
   templates:
-  - container:
+  - affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - preference:
+            matchExpressions:
+            - key: cloud.google.com/gke-preemptible
+              operator: In
+              values:
+              - 'true'
+          weight: 50
+    container:
       args: []
       command:
       - fondant
@@ -91,6 +101,11 @@ spec:
       artifacts:
       - name: first-component-output_manifest_path
         path: /tmp/outputs/output_manifest_path/data
+    tolerations:
+    - effect: NoSchedule
+      key: preemptible
+      operator: Equal
+      value: 'true'
   - container:
       args: []
       command:

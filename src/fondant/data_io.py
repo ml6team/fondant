@@ -261,7 +261,6 @@ class DaskDataWriter(DataIO):
             schema=schema,
             overwrite=False,
             compute=False,
-            write_metadata_file=True,
         )
         logging.info(f"Creating write task for: {location}")
         return write_task

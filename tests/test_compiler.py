@@ -22,6 +22,7 @@ TEST_PIPELINES = [
                     arguments={"storage_args": "a dummy string arg"},
                     input_partition_rows="disable",
                     number_of_gpus=1,
+                    preemptible=True,
                 ),
                 "cache_key": "1",
             },
