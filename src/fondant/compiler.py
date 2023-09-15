@@ -7,8 +7,13 @@ from pathlib import Path
 
 import yaml
 
+from fondant.exceptions import InvalidPipelineDefinition
 from fondant.manifest import Metadata
-from fondant.pipeline import Pipeline
+from fondant.pipeline import (
+    Pipeline,
+    valid_accelerator_types,
+    valid_vertex_accelerator_types,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -179,20 +184,7 @@ class DockerCompiler(Compiler):
                 "volumes": volumes,
             }
 
-            if component_op.number_of_gpus is not None:
-                services[component_name]["deploy"] = {
-                    "resources": {
-                        "reservations": {
-                            "devices": [
-                                {
-                                    "driver": "nvidia",
-                                    "count": component_op.number_of_gpus,
-                                    "capabilities": ["gpu"],
-                                },
-                            ],
-                        },
-                    },
-                }
+            self._set_configuration(services, component_op, component_name)
 
             if component_op.dockerfile_path is not None:
                 logger.info(
@@ -211,6 +203,40 @@ class DockerCompiler(Compiler):
             "services": services,
         }
 
+    @staticmethod
+    def _set_configuration(services, fondant_component_operation, component_name):
+        accelerator_name = fondant_component_operation.accelerator_name
+        accelerator_number = fondant_component_operation.number_of_accelerators
+
+        if accelerator_name is not None:
+            if accelerator_name not in valid_accelerator_types:
+                msg = (
+                    f"Configured accelerator `{accelerator_name}`"
+                    f" is not a valid accelerator type for Docker Compose compiler."
+                    f" Available options: {valid_vertex_accelerator_types}"
+                )
+                raise InvalidPipelineDefinition(msg)
+
+            if accelerator_name == "GPU":
+                services[component_name]["deploy"] = {
+                    "resources": {
+                        "reservations": {
+                            "devices": [
+                                {
+                                    "driver": "nvidia",
+                                    "count": accelerator_number,
+                                    "capabilities": ["gpu"],
+                                },
+                            ],
+                        },
+                    },
+                }
+            elif accelerator_name == "TPU":
+                msg = "TPU configuration is not yet implemented for Docker Compose "
+                raise NotImplementedError(msg)
+
+        return services
+
 
 class KubeFlowCompiler(Compiler):
     """Compiler that creates a Kubeflow pipeline spec from a pipeline."""
@@ -222,8 +248,11 @@ class KubeFlowCompiler(Compiler):
         """Resolve imports for the Kubeflow compiler."""
         try:
             import kfp
+            import kfp.kubernetes as kfp_kubernetes
 
             self.kfp = kfp
+            self.kfp_kubernetes = kfp_kubernetes
+
         except ImportError:
             msg = """You need to install kfp to use the Kubeflow compiler,\n
                      you can install it with `pip install fondant[kfp]`"""
@@ -286,14 +315,12 @@ class KubeFlowCompiler(Compiler):
                         metadata=metadata.to_json(),
                         **component_args,
                     )
-                component_task
+
                 # Set optional configurations
-                #     component_task,
-                #     component_op,
-                # Set the execution order of the component task to be after the previous
-                # component task.
-                if previous_component_task is not None:
-                    component_task.after(previous_component_task)
+                component_task = self._set_configuration(
+                    component_task,
+                    component_op,
+                )
 
                 # Update the manifest path to be the output path of the current component task.
                 manifest_path = component_task.outputs["output_manifest_path"]
@@ -307,15 +334,32 @@ class KubeFlowCompiler(Compiler):
 
     def _set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
-        number_of_gpus = fondant_component_operation.number_of_gpus
+        number_of_accelerators = fondant_component_operation.number_of_accelerators
+        accelerator_name = fondant_component_operation.accelerator_name
         node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
 
         # Assign optional specification
-        if number_of_gpus is not None:
-            task.set_gpu_limit(number_of_gpus)
+        if accelerator_name is not None:
+            if accelerator_name not in valid_accelerator_types:
+                msg = (
+                    f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
+                    f"for Kubeflow compiler. Available options: {valid_accelerator_types}"
+                )
+                raise InvalidPipelineDefinition(msg)
+
+            task.set_accelerator_limit(number_of_accelerators)
+            if accelerator_name == "GPU":
+                task.set_accelerator_type("nvidia.com/gpu")
+            elif accelerator_name == "TPU":
+                task.set_accelerator_type("cloud-tpus.google.com/v3")
+
         if node_pool_name is not None and node_pool_label is not None:
-            task.add_node_selector_constraint(node_pool_label, node_pool_name)
+            task = self.kfp_kubernetes.add_node_selector(
+                task,
+                node_pool_label,
+                node_pool_name,
+            )
 
         return task
 
@@ -392,6 +436,13 @@ class VertexCompiler(Compiler):
                         metadata=metadata.to_json(),
                         **component_args,
                     )
+
+                # Set optional arguments
+                component_task = self._set_configuration(
+                    component_task,
+                    component_op,
+                )
+
                 # Update the manifest path to be the output path of the current component task.
                 manifest_path = component_task.outputs["output_manifest_path"]
 
@@ -399,3 +450,23 @@ class VertexCompiler(Compiler):
 
         self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
+
+    @staticmethod
+    def _set_configuration(task, fondant_component_operation):
+        # Unpack optional specifications
+        number_of_accelerators = fondant_component_operation.number_of_accelerators
+        accelerator_name = fondant_component_operation.accelerator_name
+
+        # Assign optional specification
+        if number_of_accelerators is not None:
+            task.set_accelerator_limit(number_of_accelerators)
+            if accelerator_name not in valid_vertex_accelerator_types:
+                msg = (
+                    f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
+                    f"for Vertex compiler. Available options: {valid_vertex_accelerator_types}"
+                )
+                raise InvalidPipelineDefinition(msg)
+
+            task.set_accelerator_type(accelerator_name)
+
+        return task
