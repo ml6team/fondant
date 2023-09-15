@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
-from fondant.runner import DockerRunner, KubeflowRunner
+from fondant.runner import DockerRunner, KubeflowRunner, VertexRunner
 
 VALID_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
 
@@ -79,3 +79,20 @@ def test_kfp_import():
         sys.modules["kfp"] = None
         with pytest.raises(ImportError):
             _ = KubeflowRunner(host="some_host")
+
+
+def test_vertex_runner():
+    input_spec_path = str(VALID_PIPELINE / "kubeflow_pipeline.yml")
+    with mock.patch("google.cloud.aiplatform.init", return_value=None), mock.patch(
+        "google.cloud.aiplatform.PipelineJob",
+    ):
+        runner = VertexRunner(project_id="some_project", project_region="some_region")
+        runner.run(input_spec=input_spec_path)
+
+        # test with service account
+        runner2 = VertexRunner(
+            project_id="some_project",
+            project_region="some_region",
+            service_account="some_account",
+        )
+        runner2.run(input_spec=input_spec_path)

@@ -1,5 +1,6 @@
 import logging
 import subprocess  # nosec
+import typing as t
 from abc import ABC, abstractmethod
 
 import yaml
@@ -79,6 +80,41 @@ class KubeflowRunner(Runner):
 
         pipeline_url = f"{self.host}/#/runs/details/{runner.id}"
         logger.info(f"Pipeline is running at: {pipeline_url}")
+
+    def get_name_from_spec(self, input_spec: str):
+        """Get the name of the pipeline from the spec."""
+        with open(input_spec) as f:
+            spec = yaml.safe_load(f)
+            return spec["pipelineInfo"]["name"]
+
+
+class VertexRunner(Runner):
+    def __resolve_imports(self):
+        import google.cloud.aiplatform as aip
+
+        self.aip = aip
+
+    def __init__(
+        self,
+        project_id: str,
+        project_region: str,
+        service_account: t.Optional[str] = None,
+    ):
+        self.__resolve_imports()
+
+        self.aip.init(
+            project=project_id,
+            location=project_region,
+        )
+        self.service_account = service_account
+
+    def run(self, input_spec: str, *args, **kwargs):
+        job = self.aip.PipelineJob(
+            display_name=self.get_name_from_spec(input_spec),
+            template_path=input_spec,
+            enable_caching=False,
+        )
+        job.submit(service_account=self.service_account)
 
     def get_name_from_spec(self, input_spec: str):
         """Get the name of the pipeline from the spec."""
