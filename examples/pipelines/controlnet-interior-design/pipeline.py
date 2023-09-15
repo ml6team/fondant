@@ -45,7 +45,8 @@ caption_images_op = ComponentOp.from_registry(
         "batch_size": 2,
         "max_new_tokens": 50,
     },
-    number_of_gpus=1,
+    number_of_accelerators=1,
+    accelerator_name="GPU",
 )
 segment_images_op = ComponentOp.from_registry(
     name="segment_images",
@@ -53,7 +54,8 @@ segment_images_op = ComponentOp.from_registry(
         "model_id": "openmmlab/upernet-convnext-small",
         "batch_size": 2,
     },
-    number_of_gpus=1,
+    number_of_accelerators=1,
+    accelerator_name="GPU",
 )
 
 write_to_hub_controlnet = ComponentOp(

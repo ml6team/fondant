@@ -2,155 +2,31 @@
 # Name: testpipeline
 # Description: description of the test pipeline
 components:
-  comp-First_component:
-    executorLabel: exec-First_component
-    inputDefinitions:
-      artifacts:
-        input_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the input manifest
-          isOptional: true
-      parameters:
-        cache:
-          defaultValue: true
-          description: Set to False to disable caching, True by default.
-          isOptional: true
-          parameterType: BOOLEAN
-        component_spec:
-          defaultValue: {}
-          description: The component specification as a dictionary
-          isOptional: true
-          parameterType: STRUCT
-        input_partition_rows:
-          defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
-          isOptional: true
-          parameterType: STRING
-        metadata:
-          description: Metadata arguments containing the run id and base path
-          parameterType: STRING
-        storage_args:
-          description: Storage arguments
-          parameterType: STRING
-    outputDefinitions:
-      artifacts:
-        output_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the output manifest
-  comp-Image_cropping:
-    executorLabel: exec-Image_cropping
-    inputDefinitions:
-      artifacts:
-        input_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the input manifest
-          isOptional: true
-      parameters:
-        cache:
-          defaultValue: true
-          description: Set to False to disable caching, True by default.
-          isOptional: true
-          parameterType: BOOLEAN
-        component_spec:
-          defaultValue: {}
-          description: The component specification as a dictionary
-          isOptional: true
-          parameterType: STRUCT
-        cropping_threshold:
-          defaultValue: -30.0
-          description: Threshold parameter used for detecting borders. A lower (negative)
-            parameter results in a more performant border detection, but can cause
-            overcropping. Default is -30
-          isOptional: true
-          parameterType: NUMBER_INTEGER
-        input_partition_rows:
-          defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
-          isOptional: true
-          parameterType: STRING
-        metadata:
-          description: Metadata arguments containing the run id and base path
-          parameterType: STRING
-        padding:
-          defaultValue: 10.0
-          description: Padding for the image cropping. The padding is added to all
-            borders of the image.
-          isOptional: true
-          parameterType: NUMBER_INTEGER
-    outputDefinitions:
-      artifacts:
-        output_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the output manifest
   comp-first-component:
-    dag:
-      outputs:
-        artifacts:
-          output_manifest_path:
-            artifactSelectors:
-            - outputArtifactKey: output_manifest_path
-              producerSubtask: First_component
-      tasks:
-        First_component:
-          cachingOptions:
-            enableCache: true
-          componentRef:
-            name: comp-First_component
-          inputs:
-            artifacts:
-              input_manifest_path:
-                componentInputArtifact: input_manifest_path
-            parameters:
-              cache:
-                componentInputParameter: cache
-              component_spec:
-                componentInputParameter: component_spec
-              input_partition_rows:
-                componentInputParameter: input_partition_rows
-              metadata:
-                componentInputParameter: metadata
-          taskInfo:
-            name: First_component
+    executorLabel: exec-first-component
     inputDefinitions:
       artifacts:
         input_manifest_path:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the input manifest
           isOptional: true
       parameters:
         cache:
           defaultValue: true
-          description: Set to False to disable caching, True by default.
           isOptional: true
           parameterType: BOOLEAN
         component_spec:
           defaultValue: {}
-          description: The component specification as a dictionary
           isOptional: true
           parameterType: STRUCT
         input_partition_rows:
           defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
           isOptional: true
           parameterType: STRING
         metadata:
-          description: Metadata arguments containing the run id and base path
           parameterType: STRING
         storage_args:
-          description: Storage arguments
           parameterType: STRING
     outputDefinitions:
       artifacts:
@@ -158,75 +34,36 @@ components:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the output manifest
   comp-image-cropping:
-    dag:
-      outputs:
-        artifacts:
-          output_manifest_path:
-            artifactSelectors:
-            - outputArtifactKey: output_manifest_path
-              producerSubtask: Image_cropping
-      tasks:
-        Image_cropping:
-          cachingOptions:
-            enableCache: true
-          componentRef:
-            name: comp-Image_cropping
-          inputs:
-            artifacts:
-              input_manifest_path:
-                componentInputArtifact: input_manifest_path
-            parameters:
-              cache:
-                componentInputParameter: cache
-              component_spec:
-                componentInputParameter: component_spec
-              input_partition_rows:
-                componentInputParameter: input_partition_rows
-              metadata:
-                componentInputParameter: metadata
-          taskInfo:
-            name: Image_cropping
+    executorLabel: exec-image-cropping
     inputDefinitions:
       artifacts:
         input_manifest_path:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the input manifest
           isOptional: true
       parameters:
         cache:
           defaultValue: true
-          description: Set to False to disable caching, True by default.
           isOptional: true
           parameterType: BOOLEAN
         component_spec:
           defaultValue: {}
-          description: The component specification as a dictionary
           isOptional: true
           parameterType: STRUCT
         cropping_threshold:
           defaultValue: -30.0
-          description: Threshold parameter used for detecting borders. A lower (negative)
-            parameter results in a more performant border detection, but can cause
-            overcropping. Default is -30
           isOptional: true
           parameterType: NUMBER_INTEGER
         input_partition_rows:
           defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
           isOptional: true
           parameterType: STRING
         metadata:
-          description: Metadata arguments containing the run id and base path
           parameterType: STRING
         padding:
           defaultValue: 10.0
-          description: Padding for the image cropping. The padding is added to all
-            borders of the image.
           isOptional: true
           parameterType: NUMBER_INTEGER
     outputDefinitions:
@@ -235,10 +72,9 @@ components:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the output manifest
 deploymentSpec:
   executors:
-    exec-First_component:
+    exec-first-component:
       container:
         args:
         - --input_manifest_path
@@ -260,7 +96,7 @@ deploymentSpec:
         - execute
         - main
         image: example_component:latest
-    exec-Image_cropping:
+    exec-image-cropping:
       container:
         args:
         - --input_manifest_path

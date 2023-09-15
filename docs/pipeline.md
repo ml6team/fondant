@@ -30,7 +30,8 @@ def build_pipeline():
             "batch_size": 2,  
             "max_new_tokens": 50,  
         },  
-        number_of_gpus=1,
+        number_of_accelerators=1,
+        accelerator_name="GPU",
         node_pool_label="node_pool",  
         node_pool_name="model-inference-pool",  
     )
