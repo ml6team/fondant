@@ -2,6 +2,7 @@
 import copy
 import json
 import pkgutil
+import re
 import types
 import typing as t
 from dataclasses import dataclass
@@ -244,6 +245,19 @@ class KubeflowComponentSpec:
             }
         return args
 
+    @staticmethod
+    def sanitize_component_name(name: str) -> str:
+        """Cleans and converts a name to be k8s compatible.
+
+        Taken from https://github.com/kubeflow/pipelines/blob/
+        cfe671c485d4ee8514290ee81ca2785e8bda5c9b/sdk/python/kfp/dsl/utils.py#L52
+        """
+        return (
+            re.sub("-+", "-", re.sub("[^-0-9a-z]+", "-", name.lower()))
+            .lstrip("-")
+            .rstrip("-")
+        )
+
     @classmethod
     def from_fondant_component_spec(cls, fondant_component: ComponentSpec):
         """Generate a Kubeflow component spec from a ComponentOp."""
@@ -286,10 +300,8 @@ class KubeflowComponentSpec:
             },
         }
 
-        cleaned_component_name = fondant_component.name.replace("-", "_").replace(
-            " ",
-            "_",
-        )
+        cleaned_component_name = cls.sanitize_component_name(fondant_component.name)
+
         output_definitions = {
             "artifacts": {
                 "output_manifest_path": {
