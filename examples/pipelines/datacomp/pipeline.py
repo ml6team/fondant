@@ -66,7 +66,8 @@ detect_text_op = ComponentOp(
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-mega-pool",
-    number_of_gpus=1,
+    number_of_accelerators=1,
+    accelerator_name="GPU",
     cache=False,
 )
 mask_images_op = ComponentOp(
@@ -82,7 +83,8 @@ embed_images_op = ComponentOp.from_registry(
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-mega-pool",
-    number_of_gpus=1,
+    number_of_accelerators=1,
+    accelerator_name="GPU",
     cache=False,
 )
 add_clip_score_op = ComponentOp(

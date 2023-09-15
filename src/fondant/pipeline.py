@@ -55,11 +55,10 @@ class ComponentOp:
         automatic partitioning
         number_of_accelerators: The number of accelerators to assign to the operation (GPU, TPU)
         accelerator_name: The name of the accelerator to assign. If you're using a cluster setup
-          on GKE, select "nvidia.com/gpu" for GPU or "cloud-tpus.google.com/v3" for TPU. Make sure
+          on GKE, select "GPU" for GPU or "TPU" for TPU. Make sure
           that you select a nodepool with the available hardware. If you're running the
           pipeline on Vertex, then select one of the machines specified in the list of
           accelerators here https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec.
-          Defaults to "nvidia.com/gpu".
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
         cache: Set to False to disable caching, True by default.
@@ -67,7 +66,7 @@ class ComponentOp:
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
           arguments.
-        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`
+        - The `accelerator_name`, `node_pool_label`, `node_pool_name`
          attributes are optional and can be used to specify additional
           configurations for the operation. More information on the optional attributes that can
           be assigned to kfp components here:
@@ -215,11 +214,10 @@ class ComponentOp:
             automatic partitioning
             number_of_accelerators: The number of accelerators to assign to the operation (GPU, TPU)
             accelerator_name: The name of the accelerator to assign. If you're using a cluster setup
-              on GKE, select "nvidia.com/gpu" for GPU or "cloud-tpus.google.com/v3" for TPU. Make
+              on GKE, select "GPU" for GPU or "TPU" for TPU. Make
               sure that you select a nodepool with the available hardware. If you're running the
               pipeline on Vertex, then select one of the machines specified in the list of
               accelerators here https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec.
-              Defaults to "nvidia.com/gpu".
             node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.
             cache: Set to False to disable caching, True by default.
