@@ -247,7 +247,7 @@ class KubeflowComponentSpec:
 
     @staticmethod
     def sanitize_component_name(name: str) -> str:
-        """Cleans and converts a name to be k8s compatible.
+        """Cleans and converts a name to be kfp V2 compatible.
 
         Taken from https://github.com/kubeflow/pipelines/blob/
         cfe671c485d4ee8514290ee81ca2785e8bda5c9b/sdk/python/kfp/dsl/utils.py#L52
