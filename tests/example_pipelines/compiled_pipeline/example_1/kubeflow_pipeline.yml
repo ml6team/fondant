@@ -76,7 +76,7 @@ spec:
           "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
           \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
           \"cache_key\": \"1\"}", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "fa027f119dc037eb255b5a6826e2c6697f6f4ffbac366ab4600ba3a9f94aef17"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "99e50abb5261d2381b8d7ab61eadb9feff6c3d90f9a7b3ed89e69cda31c39d9b"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -163,7 +163,7 @@ spec:
           \"pipeline_name\": \"test_pipeline\", \"run_id\": \"test_pipeline-20230101000000\",
           \"component_id\": \"second_component\", \"cache_key\": \"2\"}", "storage_args":
           "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "95e51b6417bb05924e4ff864258f462f6cd551362e98882e38e94e9875493898"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "e157b93359593b46563237b985194771d9a8f106a3577a7c5f4746b170fe5b23"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -240,7 +240,7 @@ spec:
       - --input_partition_rows
       - None
       - --cache
-      - 'True'
+      - 'False'
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -269,7 +269,7 @@ spec:
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
           \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"third_component\",
           \"cache_key\": \"3\"}", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "dd35c317cfb8ae4ebead14a866b7677f889c4dc1bc942212c904e7fb85d33a3c"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "a8c0d8c46f876326331c3fb551bbf90530abab1e1d070a2cd7725635e7664f06"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",

@@ -12,8 +12,10 @@ services:
     - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
     - --storage_args
     - a dummy string arg
+    - --input_partition_rows
+    - None
     - --cache
-    - 'True'
+    - 'False'
     - --cluster_type
     - local
     - --component_spec
@@ -36,6 +38,8 @@ services:
     - '0'
     - --padding
     - '0'
+    - --input_partition_rows
+    - None
     - --cache
     - 'True'
     - --cluster_type
@@ -58,5 +62,6 @@ services:
         condition: service_completed_successfully
     ports:
     - 8787:8787
+    image: ghcr.io/ml6team/image_cropping:dev
     volumes: []
 version: '3.8'

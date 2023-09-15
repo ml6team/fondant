@@ -25,7 +25,7 @@ spec:
       - /tmp/inputs/input_manifest_path/data
       - --metadata
       - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-        "component_id": "first_component", "cache_key": "d02d8db2a8c7283abec87def979197f8"}'
+        "component_id": "first_component", "cache_key": "c04cb1c34b8c14e4001c992df463eb08"}'
       - --component_spec
       - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
         "description": "This is an example component", "image": "example_component:latest",
@@ -34,7 +34,7 @@ spec:
       - --input_partition_rows
       - None
       - --cache
-      - 'True'
+      - 'False'
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -65,9 +65,9 @@ spec:
           {\"type\": \"binary\"}}}}}", "input_partition_rows": "None", "metadata":
           "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
           \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
-          \"cache_key\": \"d02d8db2a8c7283abec87def979197f8\"}", "storage_args": "a
+          \"cache_key\": \"c04cb1c34b8c14e4001c992df463eb08\"}", "storage_args": "a
           dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "fa027f119dc037eb255b5a6826e2c6697f6f4ffbac366ab4600ba3a9f94aef17"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "99e50abb5261d2381b8d7ab61eadb9feff6c3d90f9a7b3ed89e69cda31c39d9b"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
