@@ -2,185 +2,31 @@
 # Name: testpipeline
 # Description: description of the test pipeline
 components:
-  comp-First_component:
-    executorLabel: exec-First_component
-    inputDefinitions:
-      artifacts:
-        input_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the input manifest
-          isOptional: true
-      parameters:
-        cache:
-          defaultValue: true
-          description: Set to False to disable caching, True by default.
-          isOptional: true
-          parameterType: BOOLEAN
-        component_spec:
-          defaultValue: {}
-          description: The component specification as a dictionary
-          isOptional: true
-          parameterType: STRUCT
-        input_partition_rows:
-          defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
-          isOptional: true
-          parameterType: STRING
-        metadata:
-          description: Metadata arguments containing the run id and base path
-          parameterType: STRING
-        storage_args:
-          description: Storage arguments
-          parameterType: STRING
-    outputDefinitions:
-      artifacts:
-        output_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the output manifest
-  comp-Second_component:
-    executorLabel: exec-Second_component
-    inputDefinitions:
-      artifacts:
-        input_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the input manifest
-          isOptional: true
-      parameters:
-        cache:
-          defaultValue: true
-          description: Set to False to disable caching, True by default.
-          isOptional: true
-          parameterType: BOOLEAN
-        component_spec:
-          defaultValue: {}
-          description: The component specification as a dictionary
-          isOptional: true
-          parameterType: STRUCT
-        input_partition_rows:
-          defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
-          isOptional: true
-          parameterType: STRING
-        metadata:
-          description: Metadata arguments containing the run id and base path
-          parameterType: STRING
-        storage_args:
-          description: Storage arguments
-          parameterType: STRING
-    outputDefinitions:
-      artifacts:
-        output_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the output manifest
-  comp-Third_component:
-    executorLabel: exec-Third_component
-    inputDefinitions:
-      artifacts:
-        input_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the input manifest
-          isOptional: true
-      parameters:
-        cache:
-          defaultValue: true
-          description: Set to False to disable caching, True by default.
-          isOptional: true
-          parameterType: BOOLEAN
-        component_spec:
-          defaultValue: {}
-          description: The component specification as a dictionary
-          isOptional: true
-          parameterType: STRUCT
-        input_partition_rows:
-          defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
-          isOptional: true
-          parameterType: STRING
-        metadata:
-          description: Metadata arguments containing the run id and base path
-          parameterType: STRING
-        storage_args:
-          description: Storage arguments
-          parameterType: STRING
-    outputDefinitions:
-      artifacts:
-        output_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          description: Path to the output manifest
   comp-first-component:
-    dag:
-      outputs:
-        artifacts:
-          output_manifest_path:
-            artifactSelectors:
-            - outputArtifactKey: output_manifest_path
-              producerSubtask: First_component
-      tasks:
-        First_component:
-          cachingOptions:
-            enableCache: true
-          componentRef:
-            name: comp-First_component
-          inputs:
-            artifacts:
-              input_manifest_path:
-                componentInputArtifact: input_manifest_path
-            parameters:
-              cache:
-                componentInputParameter: cache
-              component_spec:
-                componentInputParameter: component_spec
-              input_partition_rows:
-                componentInputParameter: input_partition_rows
-              metadata:
-                componentInputParameter: metadata
-          taskInfo:
-            name: First_component
+    executorLabel: exec-first-component
     inputDefinitions:
       artifacts:
         input_manifest_path:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the input manifest
           isOptional: true
       parameters:
         cache:
           defaultValue: true
-          description: Set to False to disable caching, True by default.
           isOptional: true
           parameterType: BOOLEAN
         component_spec:
           defaultValue: {}
-          description: The component specification as a dictionary
           isOptional: true
           parameterType: STRUCT
         input_partition_rows:
           defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
           isOptional: true
           parameterType: STRING
         metadata:
-          description: Metadata arguments containing the run id and base path
           parameterType: STRING
         storage_args:
-          description: Storage arguments
           parameterType: STRING
     outputDefinitions:
       artifacts:
@@ -188,66 +34,31 @@ components:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the output manifest
   comp-second-component:
-    dag:
-      outputs:
-        artifacts:
-          output_manifest_path:
-            artifactSelectors:
-            - outputArtifactKey: output_manifest_path
-              producerSubtask: Second_component
-      tasks:
-        Second_component:
-          cachingOptions:
-            enableCache: true
-          componentRef:
-            name: comp-Second_component
-          inputs:
-            artifacts:
-              input_manifest_path:
-                componentInputArtifact: input_manifest_path
-            parameters:
-              cache:
-                componentInputParameter: cache
-              component_spec:
-                componentInputParameter: component_spec
-              input_partition_rows:
-                componentInputParameter: input_partition_rows
-              metadata:
-                componentInputParameter: metadata
-          taskInfo:
-            name: Second_component
+    executorLabel: exec-second-component
     inputDefinitions:
       artifacts:
         input_manifest_path:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the input manifest
           isOptional: true
       parameters:
         cache:
           defaultValue: true
-          description: Set to False to disable caching, True by default.
           isOptional: true
           parameterType: BOOLEAN
         component_spec:
           defaultValue: {}
-          description: The component specification as a dictionary
           isOptional: true
           parameterType: STRUCT
         input_partition_rows:
           defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
           isOptional: true
           parameterType: STRING
         metadata:
-          description: Metadata arguments containing the run id and base path
           parameterType: STRING
         storage_args:
-          description: Storage arguments
           parameterType: STRING
     outputDefinitions:
       artifacts:
@@ -255,66 +66,31 @@ components:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the output manifest
   comp-third-component:
-    dag:
-      outputs:
-        artifacts:
-          output_manifest_path:
-            artifactSelectors:
-            - outputArtifactKey: output_manifest_path
-              producerSubtask: Third_component
-      tasks:
-        Third_component:
-          cachingOptions:
-            enableCache: true
-          componentRef:
-            name: comp-Third_component
-          inputs:
-            artifacts:
-              input_manifest_path:
-                componentInputArtifact: input_manifest_path
-            parameters:
-              cache:
-                componentInputParameter: cache
-              component_spec:
-                componentInputParameter: component_spec
-              input_partition_rows:
-                componentInputParameter: input_partition_rows
-              metadata:
-                componentInputParameter: metadata
-          taskInfo:
-            name: Third_component
+    executorLabel: exec-third-component
     inputDefinitions:
       artifacts:
         input_manifest_path:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the input manifest
           isOptional: true
       parameters:
         cache:
           defaultValue: true
-          description: Set to False to disable caching, True by default.
           isOptional: true
           parameterType: BOOLEAN
         component_spec:
           defaultValue: {}
-          description: The component specification as a dictionary
           isOptional: true
           parameterType: STRUCT
         input_partition_rows:
           defaultValue: None
-          description: The number of rows to load per partition. Set to override the
-            automatic partitioning
           isOptional: true
           parameterType: STRING
         metadata:
-          description: Metadata arguments containing the run id and base path
           parameterType: STRING
         storage_args:
-          description: Storage arguments
           parameterType: STRING
     outputDefinitions:
       artifacts:
@@ -322,10 +98,9 @@ components:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
-          description: Path to the output manifest
 deploymentSpec:
   executors:
-    exec-First_component:
+    exec-first-component:
       container:
         args:
         - --input_manifest_path
@@ -347,7 +122,7 @@ deploymentSpec:
         - execute
         - main
         image: example_component:latest
-    exec-Second_component:
+    exec-second-component:
       container:
         args:
         - --input_manifest_path
@@ -369,7 +144,7 @@ deploymentSpec:
         - execute
         - main
         image: example_component:latest
-    exec-Third_component:
+    exec-third-component:
       container:
         args:
         - --input_manifest_path
