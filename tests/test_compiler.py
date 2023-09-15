@@ -5,7 +5,9 @@ from unittest import mock
 
 import pytest
 import yaml
+
 from fondant.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
+from fondant.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
 
 COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
@@ -21,8 +23,6 @@ TEST_PIPELINES = [
                     Path(COMPONENTS_PATH / "example_1" / "first_component"),
                     arguments={"storage_args": "a dummy string arg"},
                     input_partition_rows="disable",
-                    number_of_gpus=1,
-                    preemptible=True,
                 ),
                 "cache_key": "1",
             },
@@ -222,6 +222,68 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
 
 
 @pytest.mark.usefixtures("_freeze_time")
+def test_docker_configuration(tmp_path_factory):
+    """Test that extra volumes are applied correctly."""
+    pipeline = Pipeline(
+        pipeline_name="test_pipeline",
+        pipeline_description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
+    component_1 = ComponentOp(
+        Path(COMPONENTS_PATH / "example_1" / "first_component"),
+        arguments={"storage_args": "a dummy string arg"},
+        number_of_accelerators=1,
+        accelerator_name="GPU",
+    )
+
+    expected_resources = {
+        "reservations": {
+            "devices": [
+                {
+                    "capabilities": ["gpu"],
+                    "count": 1,
+                    "driver": "nvidia",
+                },
+            ],
+        },
+    }
+
+    pipeline.add_op(component_1)
+    compiler = DockerCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "docker-compose.yaml")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        # read the generated docker-compose file
+        with open(output_path) as f_spec:
+            spec = yaml.safe_load(f_spec)
+        assert (
+            spec["services"]["first_component"]["deploy"]["resources"]
+            == expected_resources
+        )
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_invalid_docker_configuration(tmp_path_factory):
+    """Test that extra volumes are applied correctly."""
+    pipeline = Pipeline(
+        pipeline_name="test_pipeline",
+        pipeline_description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
+    component_1 = ComponentOp(
+        Path(COMPONENTS_PATH / "example_1" / "first_component"),
+        arguments={"storage_args": "a dummy string arg"},
+        number_of_accelerators=1,
+        accelerator_name="unknown resource",
+    )
+
+    pipeline.add_op(component_1)
+    compiler = DockerCompiler()
+    with pytest.raises(InvalidPipelineDefinition):
+        compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
+
+
+@pytest.mark.usefixtures("_freeze_time")
 def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
     """Test compiling a pipeline to kubeflow."""
     example_dir, pipeline, _ = setup_pipeline
@@ -235,13 +297,71 @@ def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
             assert yaml.safe_load(src) == yaml.safe_load(truth)
 
 
-# @pytest.mark.usefixtures("_freeze_time")
-# def test_kubeflow_configuration(tmp_path_factory):
-#     """Test that the kubeflow pipeline can be configured."""
-#     with tmp_path_factory.mktemp("temp") as fn:
-#         with open(output_path) as src, open(
-#             VALID_PIPELINE / "kubeflow_pipeline.yml",
-#         ) as truth:
+@pytest.mark.usefixtures("_freeze_time")
+def test_kubeflow_configuration(tmp_path_factory):
+    """Test that the kubeflow pipeline can be configured."""
+    node_pool_label = "dummy_label"
+    node_pool_name = "dummy_label"
+
+    pipeline = Pipeline(
+        pipeline_name="test_pipeline",
+        pipeline_description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
+    component_1 = ComponentOp(
+        Path(COMPONENTS_PATH / "example_1" / "first_component"),
+        arguments={"storage_args": "a dummy string arg"},
+        node_pool_label=node_pool_label,
+        node_pool_name=node_pool_name,
+        number_of_accelerators=1,
+        accelerator_name="GPU",
+    )
+    pipeline.add_op(component_1)
+    compiler = KubeFlowCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "kubeflow_pipeline.yml")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        with open(output_path) as src:
+            # Two specs are present and loaded in the yaml file (component spec and k8s specs)
+            compiled_specs = yaml.load_all(src, Loader=yaml.FullLoader)
+            for spec in compiled_specs:
+                if "platforms" in spec:
+                    component_kubernetes_spec = spec["platforms"]["kubernetes"][
+                        "deploymentSpec"
+                    ]["executors"]["exec-first-component"]
+                    assert component_kubernetes_spec["nodeSelector"]["labels"] == {
+                        node_pool_label: node_pool_name,
+                    }
+
+                elif "deploymentSpec" in spec:
+                    component_resources = spec["deploymentSpec"]["executors"][
+                        "exec-first-component"
+                    ]["container"]["resources"]
+                    assert component_resources["accelerator"]["count"] == "1"
+                    assert (
+                        component_resources["accelerator"]["type"] == "nvidia.com/gpu"
+                    )
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_invalid_kubeflow_configuration(tmp_path_factory):
+    """Test that an error is returned when an invalid resource is provided."""
+    pipeline = Pipeline(
+        pipeline_name="test_pipeline",
+        pipeline_description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
+    component_1 = ComponentOp(
+        Path(COMPONENTS_PATH / "example_1" / "first_component"),
+        arguments={"storage_args": "a dummy string arg"},
+        number_of_accelerators=1,
+        accelerator_name="unknown resource",
+    )
+
+    pipeline.add_op(component_1)
+    compiler = KubeFlowCompiler()
+    with pytest.raises(InvalidPipelineDefinition):
+        compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
 
 
 def test_kfp_import():
@@ -265,3 +385,54 @@ def test_vertex_compiler(setup_pipeline, tmp_path_factory):
             VALID_PIPELINE / example_dir / "vertex_pipeline.yml",
         ) as truth:
             assert yaml.safe_load(src) == yaml.safe_load(truth)
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_vertex_configuration(tmp_path_factory):
+    """Test that the kubeflow pipeline can be configured."""
+    pipeline = Pipeline(
+        pipeline_name="test_pipeline",
+        pipeline_description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
+    component_1 = ComponentOp(
+        Path(COMPONENTS_PATH / "example_1" / "first_component"),
+        arguments={"storage_args": "a dummy string arg"},
+        number_of_accelerators=1,
+        accelerator_name="NVIDIA_TESLA_K80",
+    )
+    pipeline.add_op(component_1)
+    compiler = VertexCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "vertex_pipeline.yml")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        with open(output_path) as src:
+            # Two specs are present and loaded in the yaml file (component spec and k8s specs)
+            compiled_specs = yaml.safe_load(src)
+
+        component_resources = compiled_specs["deploymentSpec"]["executors"][
+            "exec-first-component"
+        ]["container"]["resources"]
+        assert component_resources["accelerator"]["count"] == "1"
+        assert component_resources["accelerator"]["type"] == "NVIDIA_TESLA_K80"
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_invalid_vertex_configuration(tmp_path_factory):
+    """Test that extra volumes are applied correctly."""
+    pipeline = Pipeline(
+        pipeline_name="test_pipeline",
+        pipeline_description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
+    component_1 = ComponentOp(
+        Path(COMPONENTS_PATH / "example_1" / "first_component"),
+        arguments={"storage_args": "a dummy string arg"},
+        number_of_accelerators=1,
+        accelerator_name="unknown resource",
+    )
+
+    pipeline.add_op(component_1)
+    compiler = VertexCompiler()
+    with pytest.raises(InvalidPipelineDefinition):
+        compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")

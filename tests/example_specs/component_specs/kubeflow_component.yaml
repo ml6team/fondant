@@ -1,9 +1,9 @@
 {
     "components":
         {
-            "comp-Example_component":
+            "comp-example-component":
                 {
-                    "executorLabel": "exec-Example_component",
+                    "executorLabel": "exec-example-component",
                     "inputDefinitions":
                         {
                             "artifacts":
@@ -75,7 +75,7 @@
         {
             "executors":
                 {
-                    "exec-Example_component":
+                    "exec-example-component":
                         {
                             "container":
                                 {
@@ -102,7 +102,7 @@
                         },
                 },
         },
-    "pipelineInfo": { "name": "Example_component" },
+    "pipelineInfo": { "name": "example-component" },
     "root":
         {
             "dag":
@@ -117,7 +117,7 @@
                                                 [
                                                     {
                                                         "outputArtifactKey": "output_manifest_path",
-                                                        "producerSubtask": "Example_component",
+                                                        "producerSubtask": "example-component",
                                                     },
                                                 ],
                                         },
@@ -125,11 +125,11 @@
                         },
                     "tasks":
                         {
-                            "Example_component":
+                            "example-component":
                                 {
                                     "cachingOptions": { "enableCache": True },
                                     "componentRef":
-                                        { "name": "comp-Example_component" },
+                                        { "name": "comp-example-component" },
                                     "inputs":
                                         {
                                             "artifacts":
@@ -159,7 +159,7 @@
                                                         },
                                                 },
                                         },
-                                    "taskInfo": { "name": "Example_component" },
+                                    "taskInfo": { "name": "example-component" },
                                 },
                         },
                 },

@@ -24,16 +24,6 @@ services:
       {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
     depends_on: {}
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - capabilities:
-            - gpu
-            count: 1
-            driver: nvidia
-    ports:
-    - 8787:8787
     volumes: []
   second_component:
     build:

@@ -53,6 +53,13 @@ def test_component_op(
             node_pool_label="dummy_label",
         )
 
+    with pytest.raises(InvalidPipelineDefinition):
+        ComponentOp(
+            Path(components_path / component_names[0]),
+            arguments=component_args,
+            number_of_accelerators=1,
+        )
+
 
 @pytest.mark.parametrize(
     "valid_pipeline_example",
