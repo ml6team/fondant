@@ -22,7 +22,7 @@ TEST_PIPELINES = [
                 "component_op": ComponentOp(
                     Path(COMPONENTS_PATH / "example_1" / "first_component"),
                     arguments={"storage_args": "a dummy string arg"},
-                    input_partition_rows="disable",
+                    input_partition_rows=10,
                 ),
                 "cache_key": "1",
             },
@@ -30,7 +30,7 @@ TEST_PIPELINES = [
                 "component_op": ComponentOp(
                     Path(COMPONENTS_PATH / "example_1" / "second_component"),
                     arguments={"storage_args": "a dummy string arg"},
-                    input_partition_rows="10",
+                    input_partition_rows=10,
                 ),
                 "cache_key": "2",
             },

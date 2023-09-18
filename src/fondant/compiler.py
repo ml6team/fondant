@@ -305,10 +305,14 @@ class KubeFlowCompiler(Compiler):
                     text=component_op.component_spec.kubeflow_specification.to_string(),
                 )
 
+                # Remove None values from arguments
+                component_args = {
+                    k: v for k, v in component_op.arguments.items() if v is not None
+                }
+
                 # # Set image pull policy to always
                 # Execute the Kubeflow component and pass in the output manifest path from
                 # the previous component.
-                component_args = component_op.arguments
 
                 if previous_component_task is not None:
                     component_task = kubeflow_component_op(
@@ -414,10 +418,11 @@ class VertexCompiler(Compiler):
                     text=component_op.component_spec.kubeflow_specification.to_string(),
                 )
 
-                # Execute the Kubeflow component and pass in the output manifest path from
-                # the previous component.
+                # Remove None values from arguments
+                component_args = {
+                    k: v for k, v in component_op.arguments.items() if v is not None
+                }
 
-                component_args = component_op.arguments
                 metadata = Metadata(
                     pipeline_name=pipeline.name,
                     run_id=run_id,
@@ -428,6 +433,8 @@ class VertexCompiler(Compiler):
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if previous_component_task is not None:
+                    # Execute the Kubeflow component and pass in the output manifest path from
+                    # the previous component.
                     component_task = kubeflow_component_op(
                         input_manifest_path=manifest_path,
                         metadata=metadata.to_json(),

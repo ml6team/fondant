@@ -1,6 +1,3 @@
-# PIPELINE DEFINITION
-# Name: testpipeline
-# Description: description of the test pipeline
 components:
   comp-first-component:
     executorLabel: exec-first-component
@@ -21,9 +18,8 @@ components:
           isOptional: true
           parameterType: STRUCT
         input_partition_rows:
-          defaultValue: None
           isOptional: true
-          parameterType: STRING
+          parameterType: NUMBER_INTEGER
         metadata:
           parameterType: STRING
         storage_args:
@@ -53,9 +49,8 @@ components:
           isOptional: true
           parameterType: STRUCT
         input_partition_rows:
-          defaultValue: None
           isOptional: true
-          parameterType: STRING
+          parameterType: NUMBER_INTEGER
         metadata:
           parameterType: STRING
         storage_args:
@@ -85,9 +80,8 @@ components:
           isOptional: true
           parameterType: STRUCT
         input_partition_rows:
-          defaultValue: None
           isOptional: true
-          parameterType: STRING
+          parameterType: NUMBER_INTEGER
         metadata:
           parameterType: STRING
         storage_args:
@@ -203,7 +197,7 @@ root:
                           type: binary
             input_partition_rows:
               runtimeValue:
-                constant: disable
+                constant: 10.0
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -255,7 +249,7 @@ root:
                           type: array
             input_partition_rows:
               runtimeValue:
-                constant: '10'
+                constant: 10.0
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -314,9 +308,6 @@ root:
                       fields:
                         data:
                           type: binary
-            input_partition_rows:
-              runtimeValue:
-                constant: None
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",

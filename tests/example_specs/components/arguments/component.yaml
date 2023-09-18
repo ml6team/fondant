@@ -18,19 +18,19 @@ args:
   bool_false_default_arg:
     description: default bool argument
     type: bool
-    default: 'False'
+    default: False
   bool_true_default_arg:
     description: default bool argument
     type: bool
-    default: 'True'
+    default: True
   list_default_arg:
     description: default list argument
     type: list
-    default: '["foo", "bar"]'
+    default: ["foo", "bar"]
   dict_default_arg:
     description: default dict argument
     type: dict
-    default: '{"foo":1, "bar":2}'
+    default: {"foo":1, "bar":2}
   string_default_arg_none:
     description: default string argument
     type: str
