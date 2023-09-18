@@ -13,7 +13,7 @@ services:
     - --storage_args
     - a dummy string arg
     - --input_partition_rows
-    - disable
+    - '10'
     - --cache
     - 'False'
     - --component_spec
