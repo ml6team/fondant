@@ -60,7 +60,7 @@ def _patched_data_loading(monkeypatch):
 def _patched_data_writing(monkeypatch):
     """Mock data loading so no actual data is written."""
 
-    def mocked_write_dataframe(self, dataframe):
+    def mocked_write_dataframe(self, dataframe, dask_client=None):
         dataframe.compute()
 
     monkeypatch.setattr(DaskDataWriter, "write_dataframe", mocked_write_dataframe)
@@ -165,6 +165,7 @@ def test_run_with_cache(metadata, monkeypatch):
         "3.14",
         "--override_default_arg_with_none",
         "None",
+        "--cluster_type" "local" "--client_kwargs" "{}",
     ]
 
     class MyExecutor(Executor):

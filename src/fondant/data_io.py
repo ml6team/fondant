@@ -2,16 +2,14 @@ import logging
 import os
 import typing as t
 
-import dask
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
+from dask.distributed import Client
 
 from fondant.component_spec import ComponentSpec, ComponentSubset
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
-
-dask.config.set({"dataframe.convert-string": False})
 
 
 class DataIO:
@@ -160,7 +158,11 @@ class DaskDataWriter(DataIO):
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
 
-    def write_dataframe(self, dataframe: dd.DataFrame) -> None:
+    def write_dataframe(
+        self,
+        dataframe: dd.DataFrame,
+        dask_client: t.Optional[Client] = None,
+    ) -> None:
         write_tasks = []
 
         dataframe.index = dataframe.index.rename("id")
@@ -189,7 +191,8 @@ class DaskDataWriter(DataIO):
 
         with ProgressBar():
             logging.info("Writing data...")
-            dd.compute(*write_tasks)
+            # alternative implementation possible: futures = client.compute(...)
+            dd.compute(*write_tasks, scheduler=dask_client)
 
     @staticmethod
     def _extract_subset_dataframe(

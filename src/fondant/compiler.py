@@ -12,6 +12,8 @@ from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
 
+DASK_DIAGNOSTIC_DASHBOARD_PORT = 8787
+
 
 class Compiler(ABC):
     """Abstract base class for a compiler."""
@@ -173,10 +175,16 @@ class DockerCompiler(Compiler):
             if extra_volumes:
                 volumes.extend(extra_volumes)
 
+            ports: t.List[t.Union[str, dict]] = []
+            ports.append(
+                f"{DASK_DIAGNOSTIC_DASHBOARD_PORT}:{DASK_DIAGNOSTIC_DASHBOARD_PORT}",
+            )
+
             services[component_name] = {
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
+                "ports": ports,
             }
 
             if component_op.number_of_gpus is not None:

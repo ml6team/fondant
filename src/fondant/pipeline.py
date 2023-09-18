@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ComponentOp:
     """
-    Class representing an operation for a Fondant Component in a Kubeflow Pipeline. An operation
+    Class representing an operation for a Fondant Component in a Fondant Pipeline. An operation
     is a representation of a function that will be executed as part of a pipeline.
 
     Arguments:
@@ -39,12 +39,14 @@ class ComponentOp:
          Requires the setup and assignment of a preemptible node pool. Note that preemptibles only
          work when KFP is setup on GCP. More info here:
          https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+        cluster_type: The type of cluster to use for distributed execution (default is "local").
+        client_kwargs: Keyword arguments used to initialise the dask client.
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
           arguments.
-        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`
-         attributes are optional and can be used to specify additional
+        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`, `cache`, `cluster_type` and
+        `client_kwargs` attributes are optional and can be used to specify additional
           configurations for the operation. More information on the optional attributes that can
           be assigned to kfp components here:
           https://kubeflow-pipelines.readthedocs.io/en/1.8.13/source/kfp.dsl.html
@@ -63,6 +65,8 @@ class ComponentOp:
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
         preemptible: t.Optional[bool] = False,
+        cluster_type: t.Optional[str] = "local",
+        client_kwargs: t.Optional[dict] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -71,7 +75,19 @@ class ComponentOp:
         )
         self.name = self.component_spec.name.replace(" ", "_").lower()
         self.cache = self._configure_caching_from_image_tag(cache)
-        self.arguments = self._set_arguments(arguments)
+        self.cluster_type = cluster_type
+        self.client_kwargs = client_kwargs
+
+        self.arguments = arguments or {}
+        self._add_component_argument(
+            "input_partition_rows",
+            input_partition_rows,
+            validate_partition_number,
+        )
+        self._add_component_argument("cache", cache)
+        self._add_component_argument("cluster_type", cluster_type)
+        self._add_component_argument("client_kwargs", client_kwargs)
+
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.number_of_gpus = number_of_gpus
@@ -113,21 +129,19 @@ class ComponentOp:
 
         return cache
 
-    def _set_arguments(
+    def _add_component_argument(
         self,
-        arguments: t.Optional[t.Dict[str, t.Any]],
-    ) -> t.Dict[str, t.Any]:
-        """Set component arguments based on provided arguments and relevant ComponentOp
-        parameters.
-        """
-        arguments = arguments or {}
+        argument_name: str,
+        argument_value: t.Any,
+        validator: t.Optional[t.Callable] = None,
+    ):
+        """Register component argument to arguments dict as well as component attributes."""
+        if hasattr(self, "arguments") is False:
+            self.arguments = {}
 
-        input_partition_rows = validate_partition_number(self.input_partition_rows)
-
-        arguments["input_partition_rows"] = str(input_partition_rows)
-        arguments["cache"] = str(self.cache)
-
-        return arguments
+        if argument_value and (not validator or validator(argument_value)):
+            self.argument_name = argument_value
+            self.arguments[argument_name] = argument_value
 
     def _validate_node_pool_spec(
         self,
@@ -159,6 +173,8 @@ class ComponentOp:
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
         preemptible: t.Optional[bool] = False,
+        cluster_type: t.Optional[str] = "local",
+        client_kwargs: t.Optional[dict] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -176,6 +192,8 @@ class ComponentOp:
              only work when KFP is setup on GCP. More info here:
              https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
 
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -192,6 +210,8 @@ class ComponentOp:
             node_pool_name=node_pool_name,
             cache=cache,
             preemptible=preemptible,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
         )
 
     def get_component_cache_key(self) -> str:

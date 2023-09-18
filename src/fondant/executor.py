@@ -4,17 +4,19 @@ framework, providing a standardized interface for extending loading and transfor
 The loading component is the first component that loads the initial dataset and the transform
 components take care of processing, filtering and extending the data.
 """
-
 import argparse
 import ast
 import json
 import logging
+import os
 import typing as t
 from abc import abstractmethod
 from pathlib import Path
 
+import dask
 import dask.dataframe as dd
 import pandas as pd
+from dask.distributed import Client, LocalCluster
 from fsspec import open as fs_open
 
 from fondant.component import (
@@ -29,11 +31,30 @@ from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number
 
+dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)
 
 
 class Executor(t.Generic[Component]):
-    """An executor executes a Component."""
+    """
+    An executor executes a Component.
+
+    Args:
+        spec: The specification of the Component to be executed.
+        cache: Flag indicating whether to use caching for intermediate results.
+        input_manifest_path: The path to the input manifest file.
+        output_manifest_path: The path to the output manifest file.
+        metadata: Components metadata dict
+        user_arguments: User-defined component arguments.
+        input_partition_rows: The number of rows to process in each
+        partition of dataframe.
+        Partitions are divided based on this number (n rows per partition).
+        Set to None for no row limit.
+        cluster_type: The type of cluster to use for distributed execution
+        (default is "local").
+        client_kwargs: Additional keyword arguments dict which will be used to
+        initialise the dask client, allowing for advanced configuration.
+    """
 
     def __init__(
         self,
@@ -45,6 +66,8 @@ class Executor(t.Generic[Component]):
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        cluster_type: t.Optional[str] = None,
+        client_kwargs: t.Optional[dict] = None,
     ) -> None:
         self.spec = spec
         self.cache = cache
@@ -54,6 +77,35 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
 
+        if cluster_type == "local":
+            if client_kwargs is None:
+                client_kwargs = {
+                    "processes": True,
+                    "n_workers": os.cpu_count(),
+                    "threads_per_worker": 1,
+                }
+
+            logger.info(f"Initialize local dask cluster with arguments {client_kwargs}")
+
+            # Additional dask configuration have to be set before initialising the client
+            # worker.daemon is set to false because creating a worker process in daemon
+            # mode is not possible in our docker container setup.
+            dask.config.set({"distributed.worker.daemon": False})
+
+            local_cluster = LocalCluster(**client_kwargs, silence_logs=logging.ERROR)
+            self.client = Client(local_cluster)
+
+        elif cluster_type == "distributed":
+            msg = "The usage of the Dask distributed client is not supported yet."
+            raise NotImplementedError(msg)
+        else:
+            logger.info(
+                f"We currently do not support {cluster_type}. "
+                f"Our supported options are limited to 'local' and 'distributed'. "
+                f"Dask local mode will be used for further executions.",
+            )
+            self.client = None
+
     @classmethod
     def from_args(cls) -> "Executor":
         """Create an executor from a passed argument containing the specification as a dict."""
@@ -61,6 +113,8 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--component_spec", type=json.loads)
         parser.add_argument("--cache", type=ast.literal_eval)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
+        parser.add_argument("--cluster_type", type=str)
+        parser.add_argument("--client_kwargs", type=json.loads)
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -70,11 +124,15 @@ class Executor(t.Generic[Component]):
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
         cache = args.cache
+        cluster_type = args.cluster_type
+        client_kwargs = args.client_kwargs
 
         return cls.from_spec(
             component_spec,
             cache=cache,
             input_partition_rows=input_partition_rows,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
         )
 
     @classmethod
@@ -84,6 +142,8 @@ class Executor(t.Generic[Component]):
         *,
         cache: bool,
         input_partition_rows: t.Optional[t.Union[str, int]],
+        cluster_type: t.Optional[str],
+        client_kwargs: t.Optional[dict],
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
@@ -96,6 +156,12 @@ class Executor(t.Generic[Component]):
 
         if "cache" in args_dict:
             args_dict.pop("cache")
+
+        if "cluster_type" in args_dict:
+            args_dict.pop("cluster_type")
+
+        if "client_kwargs" in args_dict:
+            args_dict.pop("client_kwargs")
 
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
@@ -110,6 +176,8 @@ class Executor(t.Generic[Component]):
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
         )
 
     @classmethod
@@ -188,7 +256,7 @@ class Executor(t.Generic[Component]):
             component_spec=self.spec,
         )
 
-        data_writer.write_dataframe(dataframe)
+        data_writer.write_dataframe(dataframe, self.client)
 
     def _get_cached_manifest(self) -> t.Union[Manifest, None]:
         """
