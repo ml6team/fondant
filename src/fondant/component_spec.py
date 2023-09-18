@@ -55,12 +55,14 @@ class Argument:
         description: argument description
         type: the python argument type (str, int, ...)
         default: default value of the argument (defaults to None)
+        optional: whether an argument is optional or not (defaults to False)
     """
 
     name: str
     description: str
     type: str
     default: t.Optional[str] = None
+    optional: t.Optional[bool] = False
 
 
 class ComponentSubset:
@@ -192,12 +194,18 @@ class ComponentSpec:
 
     @property
     def args(self) -> t.Dict[str, Argument]:
+        def _is_optional(arg_information):
+            if "default" in arg_information:
+                return arg_information["default"] == "None"
+            return False
+
         return {
             name: Argument(
                 name=name,
                 description=arg_info["description"],
                 type=arg_info["type"],
                 default=arg_info["default"] if "default" in arg_info else None,
+                optional=_is_optional(arg_info),
             )
             for name, arg_info in self._specification.get("args", {}).items()
         }
@@ -234,15 +242,19 @@ class KubeflowComponentSpec:
     def convert_arguments(fondant_component):
         args = {}
         for arg in fondant_component.args.values():
+            arg_type_dict = {}
+
+            if arg.optional and arg.default == "None":
+                arg_type_dict["isOptional"] = True
+            if arg.default is not None and arg.default != "None":
+                arg_type_dict["defaultValue"] = arg.default
+
             args[arg.name] = {
                 "parameterType": python2kubeflow_type[arg.type],
                 "description": arg.description,
-                **(
-                    {"defaultValue": arg.default, "isOptional": True}
-                    if arg.default is not None
-                    else {}
-                ),
+                **arg_type_dict,
             }
+
         return args
 
     @staticmethod
@@ -283,8 +295,7 @@ class KubeflowComponentSpec:
                     "description": "The number of rows to load per partition."
                     + " Set to override the automatic partitioning",
                     "isOptional": True,
-                    "parameterType": "STRING",
-                    "defaultValue": "None",
+                    "parameterType": "NUMBER_INTEGER",
                 },
                 "cache": {
                     "parameterType": "BOOLEAN",
@@ -438,6 +449,7 @@ class KubeflowComponentSpec:
                     description=arg_info["description"],
                     type="STRING",
                     default=None,
+                    optional=False,
                 )
         if "parameters" in input_definitions:
             for arg_name, arg_info in input_definitions["parameters"].items():
@@ -448,6 +460,9 @@ class KubeflowComponentSpec:
                     default=arg_info["defaultValue"]
                     if "defaultValue" in arg_info
                     else None,
+                    optional=arg_info["isOptional"]
+                    if "isOptional" in arg_info
+                    else False,
                 )
         return types.MappingProxyType(args)
 
@@ -464,6 +479,7 @@ class KubeflowComponentSpec:
                     description=arg_info["description"],
                     type="STRING",
                     default=None,
+                    optional=False,
                 )
         if "parameters" in output_definitions:
             for arg_name, arg_info in output_definitions["parameters"].items():
@@ -474,6 +490,9 @@ class KubeflowComponentSpec:
                     default=arg_info["defaultValue"]
                     if "defaultValue" in arg_info
                     else None,
+                    optional=arg_info["isOptional"]
+                    if "isOptional" in arg_info
+                    else False,
                 )
         return types.MappingProxyType(args)
 

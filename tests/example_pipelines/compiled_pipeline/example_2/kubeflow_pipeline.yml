@@ -1,6 +1,3 @@
-# PIPELINE DEFINITION
-# Name: testpipeline
-# Description: description of the test pipeline
 components:
   comp-first-component:
     executorLabel: exec-first-component
@@ -21,9 +18,8 @@ components:
           isOptional: true
           parameterType: STRUCT
         input_partition_rows:
-          defaultValue: None
           isOptional: true
-          parameterType: STRING
+          parameterType: NUMBER_INTEGER
         metadata:
           parameterType: STRING
         storage_args:
@@ -57,9 +53,8 @@ components:
           isOptional: true
           parameterType: NUMBER_INTEGER
         input_partition_rows:
-          defaultValue: None
           isOptional: true
-          parameterType: STRING
+          parameterType: NUMBER_INTEGER
         metadata:
           parameterType: STRING
         padding:
@@ -155,9 +150,6 @@ root:
                       fields:
                         data:
                           type: binary
-            input_partition_rows:
-              runtimeValue:
-                constant: None
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -221,9 +213,6 @@ root:
             cropping_threshold:
               runtimeValue:
                 constant: 0.0
-            input_partition_rows:
-              runtimeValue:
-                constant: None
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",

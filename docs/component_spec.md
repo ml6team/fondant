@@ -124,8 +124,6 @@ The `args` section describes which arguments the component takes. Each argument 
 `description` and a `type`, which should be one of the builtin Python types. Additionally, you can 
 set an optional `default` value for each argument.
 
-_Note:_ default iterable arguments such as `dict` and `list` have to be passed as a string 
-(e.g. `'{"foo":1, "bar":2}`, `'["foo","bar]'`)
 ```yaml
 args:
   custom_argument:

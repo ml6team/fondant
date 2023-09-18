@@ -123,13 +123,13 @@ def test_component_arguments(metadata):
     assert executor.input_partition_rows == expected_partition_row_arg
     assert executor.cache is True
     assert executor.user_arguments == {
-        "string_default_arg": "foo",
         "integer_default_arg": 0,
         "float_default_arg": 3.14,
         "bool_false_default_arg": False,
         "bool_true_default_arg": True,
         "list_default_arg": ["foo", "bar"],
         "dict_default_arg": {"foo": 1, "bar": 2},
+        "string_default_arg": "foo",
         "string_default_arg_none": None,
         "integer_default_arg_none": None,
         "float_default_arg_none": None,
@@ -285,7 +285,7 @@ def test_dask_transform_component(metadata):
         "--value",
         "1",
         "--input_partition_rows",
-        "disable",
+        "10",
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
         "--component_spec",
@@ -307,7 +307,8 @@ def test_dask_transform_component(metadata):
 
     executor_factory = ExecutorFactory(MyDaskComponent)
     executor = executor_factory.get_executor()
-    assert executor.input_partition_rows == "disable"
+    expected_input_partition_rows = 10
+    assert executor.input_partition_rows == expected_input_partition_rows
     transform = patch_method_class(MyDaskComponent.transform)
     with mock.patch.object(
         MyDaskComponent,
