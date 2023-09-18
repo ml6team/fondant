@@ -419,7 +419,6 @@ class VertexCompiler(Compiler):
                     k: v for k, v in component_op.arguments.items() if v is not None
                 }
 
-                # Ren
                 metadata = Metadata(
                     pipeline_name=pipeline.name,
                     run_id=run_id,
