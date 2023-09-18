@@ -15,7 +15,7 @@ services:
     - --input_partition_rows
     - disable
     - --cache
-    - 'False'
+    - 'True'
     - --cluster_type
     - local
     - --component_spec
@@ -50,7 +50,7 @@ services:
     - --input_partition_rows
     - '10'
     - --cache
-    - 'False'
+    - 'True'
     - --cluster_type
     - local
     - --component_spec
@@ -79,10 +79,8 @@ services:
     - /foo/bar/test_pipeline/test_pipeline-20230101000000/third_component/manifest.json
     - --storage_args
     - a dummy string arg
-    - --input_partition_rows
-    - None
     - --cache
-    - 'False'
+    - 'True'
     - --cluster_type
     - local
     - --component_spec
