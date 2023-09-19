@@ -6,7 +6,6 @@ import re
 import types
 import typing as t
 from dataclasses import dataclass
-from distutils.util import strtobool
 from pathlib import Path
 
 import jsonschema.exceptions
@@ -35,7 +34,7 @@ class Argument:
     name: str
     description: str
     type: str
-    default: t.Optional[str] = None
+    default: t.Any = None
     optional: t.Optional[bool] = False
 
     @property
@@ -238,6 +237,7 @@ class ComponentSpec:
                         Set to override the automatic partitioning",
                     type="str",
                     default=None,
+                    optional=True,
                 ),
                 "cache": Argument(
                     name="cache",
@@ -307,7 +307,7 @@ class KubeflowComponentSpec:
             args[arg.name] = {
                 "parameterType": arg.kubeflow_type,
                 "description": arg.description,
-                **arg_type_dict,
+                **arg_type_dict,  # type: ignore
             }
 
         return args
