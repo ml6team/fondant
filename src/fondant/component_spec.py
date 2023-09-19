@@ -18,42 +18,16 @@ from referencing.jsonschema import DRAFT4
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Field, KubeflowCommandArguments, Type
 
-# # TODO: remove after upgrading to kfpv2
-
-kubeflow_to_python_type_dict = {
-    "STRING": str,
-    "NUMBER_INTEGER": int,
-    "NUMBER_DOUBLE": float,
-    "BOOLEAN": lambda x: bool(strtobool(x)),
-    "STRUCT": json.loads,
-    "LIST": json.loads,
-}
-
-
-def kubeflow2python_type(type_: str) -> t.Any:
-    map_fn = kubeflow_to_python_type_dict[type_]
-    return lambda value: map_fn(value) if value != "None" else None  # type: ignore
-
-
-python2kubeflow_type = {
-    "str": "STRING",
-    "int": "NUMBER_INTEGER",
-    "float": "NUMBER_DOUBLE",
-    "bool": "BOOLEAN",
-    "dict": "STRUCT",
-    "list": "LIST",
-}
-
 
 @dataclass
 class Argument:
     """
-    Kubeflow component argument.
+    Component argument.
 
     Args:
         name: name of the argument
         description: argument description
-        type: the python argument type (str, int, ...)
+        type: the python argument type in str format (str, int, ...)
         default: default value of the argument (defaults to None)
         optional: whether an argument is optional or not (defaults to False)
     """
@@ -63,6 +37,30 @@ class Argument:
     type: str
     default: t.Optional[str] = None
     optional: t.Optional[bool] = False
+
+    @property
+    def python_type(self) -> t.Any:
+        lookup = {
+            "str": str,
+            "int": int,
+            "float": float,
+            "bool": bool,
+            "dict": json.loads,
+            "list": json.loads,
+        }
+        return lookup[self.type]
+
+    @property
+    def kubeflow_type(self) -> str:
+        lookup = {
+            "str": "STRING",
+            "int": "NUMBER_INTEGER",
+            "float": "NUMBER_DOUBLE",
+            "bool": "BOOLEAN",
+            "dict": "STRUCT",
+            "list": "LIST",
+        }
+        return lookup[self.type]
 
 
 class ComponentSubset:
@@ -215,6 +213,63 @@ class ComponentSpec:
         return copy.deepcopy(self._specification)
 
     @property
+    def input_arguments(self) -> t.Mapping[str, Argument]:
+        """The input arguments (default + custom) of the component as an immutable mapping."""
+        args = self.args
+
+        # Add default arguments
+        args.update(
+            {
+                "input_manifest_path": Argument(
+                    name="input_manifest_path",
+                    description="Path to the input manifest",
+                    type="str",
+                    default=None,
+                ),
+                "component_spec": Argument(
+                    name="component_spec",
+                    description="The component specification as a dictionary",
+                    type="dict",
+                    default={},
+                ),
+                "input_partition_rows": Argument(
+                    name="input_partition_rows",
+                    description="The number of rows to load per partition. \
+                        Set to override the automatic partitioning",
+                    type="str",
+                    default=None,
+                ),
+                "cache": Argument(
+                    name="cache",
+                    description="Set to False to disable caching, True by default.",
+                    type="bool",
+                    default=True,
+                ),
+                "metadata": Argument(
+                    name="metadata",
+                    description="Metadata arguments containing the run id and base path",
+                    type="str",
+                    default=None,
+                ),
+            },
+        )
+        return types.MappingProxyType(args)
+
+    @property
+    def output_arguments(self) -> t.Mapping[str, Argument]:
+        """The output arguments of the component as an immutable mapping."""
+        return types.MappingProxyType(
+            {
+                "output_manifest_path": Argument(
+                    name="output_manifest_path",
+                    description="Path to the output manifest",
+                    type="str",
+                    default=None,
+                ),
+            },
+        )
+
+    @property
     def kubeflow_specification(self) -> "KubeflowComponentSpec":
         return KubeflowComponentSpec.from_fondant_component_spec(self)
 
@@ -239,7 +294,7 @@ class KubeflowComponentSpec:
         self._specification = specification
 
     @staticmethod
-    def convert_arguments(fondant_component):
+    def convert_arguments(fondant_component: ComponentSpec):
         args = {}
         for arg in fondant_component.args.values():
             arg_type_dict = {}
@@ -250,7 +305,7 @@ class KubeflowComponentSpec:
                 arg_type_dict["defaultValue"] = arg.default
 
             args[arg.name] = {
-                "parameterType": python2kubeflow_type[arg.type],
+                "parameterType": arg.kubeflow_type,
                 "description": arg.description,
                 **arg_type_dict,
             }
@@ -435,66 +490,6 @@ class KubeflowComponentSpec:
     def to_string(self) -> str:
         """Return the component specification as a string."""
         return json.dumps(self._specification)
-
-    @property
-    def input_arguments(self) -> t.Mapping[str, Argument]:
-        """The input arguments of the component as an immutable mapping."""
-        args = {}
-        input_definitions = self._specification["root"]["inputDefinitions"]
-
-        if "artifacts" in input_definitions:
-            for arg_name, arg_info in input_definitions["artifacts"].items():
-                args[arg_name] = Argument(
-                    name=arg_name,
-                    description=arg_info["description"],
-                    type="STRING",
-                    default=None,
-                    optional=False,
-                )
-        if "parameters" in input_definitions:
-            for arg_name, arg_info in input_definitions["parameters"].items():
-                args[arg_name] = Argument(
-                    name=arg_name,
-                    description=arg_info["description"],
-                    type=arg_info["parameterType"],
-                    default=arg_info["defaultValue"]
-                    if "defaultValue" in arg_info
-                    else None,
-                    optional=arg_info["isOptional"]
-                    if "isOptional" in arg_info
-                    else False,
-                )
-        return types.MappingProxyType(args)
-
-    @property
-    def output_arguments(self) -> t.Mapping[str, Argument]:
-        """The output arguments of the component as an immutable mapping."""
-        args = {}
-        output_definitions = self._specification["root"]["outputDefinitions"]
-
-        if "artifacts" in output_definitions:
-            for arg_name, arg_info in output_definitions["artifacts"].items():
-                args[arg_name] = Argument(
-                    name=arg_name,
-                    description=arg_info["description"],
-                    type="STRING",
-                    default=None,
-                    optional=False,
-                )
-        if "parameters" in output_definitions:
-            for arg_name, arg_info in output_definitions["parameters"].items():
-                args[arg_name] = Argument(
-                    name=arg_name,
-                    description=arg_info["description"],
-                    type=arg_info["parameterType"],
-                    default=arg_info["defaultValue"]
-                    if "defaultValue" in arg_info
-                    else None,
-                    optional=arg_info["isOptional"]
-                    if "isOptional" in arg_info
-                    else False,
-                )
-        return types.MappingProxyType(args)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r})"

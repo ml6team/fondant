@@ -26,7 +26,7 @@ from fondant.component import (
     DaskWriteComponent,
     PandasTransformComponent,
 )
-from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
+from fondant.component_spec import Argument, ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number
@@ -197,7 +197,7 @@ class Executor(t.Generic[Component]):
 
             parser.add_argument(
                 f"--{arg.name}",
-                type=kubeflow2python_type(arg.type),  # type: ignore
+                type=arg.python_type,  # type: ignore
                 required=input_required,
                 default=default,
                 help=arg.description,
@@ -221,9 +221,8 @@ class Executor(t.Generic[Component]):
             Input and output arguments of the component.
         """
         component_arguments: t.Dict[str, Argument] = {}
-        kubeflow_component_spec = spec.kubeflow_specification
-        component_arguments.update(kubeflow_component_spec.input_arguments)
-        component_arguments.update(kubeflow_component_spec.output_arguments)
+        component_arguments.update(spec.input_arguments)
+        component_arguments.update(spec.output_arguments)
         return component_arguments
 
     @abstractmethod
