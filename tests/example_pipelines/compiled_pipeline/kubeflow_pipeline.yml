@@ -25,7 +25,7 @@ spec:
       - /tmp/inputs/input_manifest_path/data
       - --metadata
       - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-        "component_id": "first_component", "cache_key": "d02d8db2a8c7283abec87def979197f8"}'
+        "component_id": "first_component", "cache_key": "1ba5e93659a51abe43ddd64b31bc1c59"}'
       - --component_spec
       - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
         "description": "This is an example component", "image": "example_component:latest",
@@ -40,7 +40,7 @@ spec:
       - --output_manifest_path
       - /tmp/outputs/output_manifest_path/data
       - --cluster_type
-      - local
+      - default
       - --client_kwargs
       - '{}'
       image: example_component:latest
@@ -57,7 +57,7 @@ spec:
     metadata:
       annotations:
         pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
-          "{}", "cluster_type": "local", "component_spec": "{\"args\": {\"storage_args\":
+          "{}", "cluster_type": "default", "component_spec": "{\"args\": {\"storage_args\":
           {\"description\": \"Storage arguments\", \"type\": \"str\"}}, \"description\":
           \"This is an example component\", \"image\": \"example_component:latest\",
           \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
@@ -65,9 +65,9 @@ spec:
           {\"type\": \"binary\"}}}}}", "input_partition_rows": "None", "metadata":
           "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
           \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
-          \"cache_key\": \"d02d8db2a8c7283abec87def979197f8\"}", "storage_args": "a
+          \"cache_key\": \"1ba5e93659a51abe43ddd64b31bc1c59\"}", "storage_args": "a
           dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "fa027f119dc037eb255b5a6826e2c6697f6f4ffbac366ab4600ba3a9f94aef17"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "ba182d1dd6a5f8fdffb3c9e487c84d1d1b9ebbfe4b5a137a4af02be832c0c820"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -85,7 +85,7 @@ spec:
           rows to load per partition. Set to override the automatic partitioning",
           "name": "input_partition_rows", "type": "String"}, {"default": "True", "description":
           "Set to False to disable caching, True by default.", "name": "cache", "type":
-          "Boolean"}, {"default": "local", "description": "The type of cluster to
+          "Boolean"}, {"default": "default", "description": "The type of cluster to
           use for distributed execution", "name": "cluster_type", "type": "String"},
           {"default": "{}", "description": "Keyword arguments used to initialise the
           dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":

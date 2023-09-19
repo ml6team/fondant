@@ -23,7 +23,7 @@ inputs:
 -   name: cluster_type
     description: The type of cluster to use for distributed execution
     type: String
-    default: local
+    default: default
 -   name: client_kwargs
     description: Keyword arguments used to initialise the dask client
     type: JsonObject

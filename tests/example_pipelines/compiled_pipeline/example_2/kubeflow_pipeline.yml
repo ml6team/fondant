@@ -40,7 +40,7 @@ spec:
       - --output_manifest_path
       - /tmp/outputs/output_manifest_path/data
       - --cluster_type
-      - local
+      - default
       - --client_kwargs
       - '{}'
       image: example_component:latest
@@ -54,7 +54,7 @@ spec:
     metadata:
       annotations:
         pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
-          "{}", "cluster_type": "local", "component_spec": "{\"args\": {\"storage_args\":
+          "{}", "cluster_type": "default", "component_spec": "{\"args\": {\"storage_args\":
           {\"description\": \"Storage arguments\", \"type\": \"str\"}}, \"description\":
           \"This is an example component\", \"image\": \"example_component:latest\",
           \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
@@ -63,7 +63,7 @@ spec:
           "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
           \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
           \"cache_key\": \"1\"}", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "fa027f119dc037eb255b5a6826e2c6697f6f4ffbac366ab4600ba3a9f94aef17"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "ba182d1dd6a5f8fdffb3c9e487c84d1d1b9ebbfe4b5a137a4af02be832c0c820"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
@@ -81,7 +81,7 @@ spec:
           rows to load per partition. Set to override the automatic partitioning",
           "name": "input_partition_rows", "type": "String"}, {"default": "True", "description":
           "Set to False to disable caching, True by default.", "name": "cache", "type":
-          "Boolean"}, {"default": "local", "description": "The type of cluster to
+          "Boolean"}, {"default": "default", "description": "The type of cluster to
           use for distributed execution", "name": "cluster_type", "type": "String"},
           {"default": "{}", "description": "Keyword arguments used to initialise the
           dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":
@@ -130,7 +130,7 @@ spec:
       - --output_manifest_path
       - /tmp/outputs/output_manifest_path/data
       - --cluster_type
-      - local
+      - default
       - --client_kwargs
       - '{}'
       image: ghcr.io/ml6team/image_cropping:dev
@@ -142,7 +142,7 @@ spec:
     metadata:
       annotations:
         pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
-          "{}", "cluster_type": "local", "component_spec": "{\"args\": {\"cropping_threshold\":
+          "{}", "cluster_type": "default", "component_spec": "{\"args\": {\"cropping_threshold\":
           {\"default\": -30, \"description\": \"Threshold parameter used for detecting
           borders. A lower (negative) parameter results in a more performant border
           detection, but can cause overcropping. Default is -30\", \"type\": \"int\"},
@@ -157,7 +157,7 @@ spec:
           "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
           \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"image_cropping\",
           \"cache_key\": \"2\"}", "padding": "0"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "957fdd80bb26d6a78c7d20ca6116bed681443f982c9cbc7ee640017c2cbddbb2"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "d31e5d546956a42a470f033e2be84f229d3e926dfa7a7a1703c94ff47a1cb992"}'
         pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
           single-colored borders around images and crops them appropriately", "implementation":
           {"container": {"command": ["fondant", "execute", "main", "--input_manifest_path",
@@ -176,7 +176,7 @@ spec:
           rows to load per partition. Set to override the automatic partitioning",
           "name": "input_partition_rows", "type": "String"}, {"default": "True", "description":
           "Set to False to disable caching, True by default.", "name": "cache", "type":
-          "Boolean"}, {"default": "local", "description": "The type of cluster to
+          "Boolean"}, {"default": "default", "description": "The type of cluster to
           use for distributed execution", "name": "cluster_type", "type": "String"},
           {"default": "{}", "description": "Keyword arguments used to initialise the
           dask client", "name": "client_kwargs", "type": "JsonObject"}, {"default":
