@@ -16,11 +16,7 @@ from fondant.component import (
 )
 from fondant.component_spec import ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
-from fondant.executor import (
-    Executor,
-    ExecutorFactory,
-    PandasTransformExecutor,
-)
+from fondant.executor import Executor, ExecutorFactory, PandasTransformExecutor
 from fondant.manifest import Manifest, Metadata
 
 components_path = Path(__file__).parent / "example_specs/components"
@@ -130,15 +126,15 @@ def test_component_arguments(metadata):
         "list_default_arg": ["foo", "bar"],
         "dict_default_arg": {"foo": 1, "bar": 2},
         "string_default_arg": "foo",
-        "string_default_arg_none": None,
-        "integer_default_arg_none": None,
-        "float_default_arg_none": None,
-        "bool_default_arg_none": None,
-        "list_default_arg_none": None,
-        "dict_default_arg_none": None,
+        "string_default_arg_none": "None",
+        "integer_default_arg_none": 0,
+        "float_default_arg_none": 0.0,
+        "bool_default_arg_none": False,
+        "list_default_arg_none": [],
+        "dict_default_arg_none": {},
         "override_default_arg": "bar",
-        "override_default_none_arg": 3.14,
-        "override_default_arg_with_none": None,
+        "override_default_arg_with_none": "None",
+        "optional_arg": "None",
     }
 
 
