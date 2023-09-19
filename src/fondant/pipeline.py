@@ -65,7 +65,7 @@ class ComponentOp:
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
         preemptible: t.Optional[bool] = False,
-        cluster_type: t.Optional[str] = "local",
+        cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
@@ -173,7 +173,7 @@ class ComponentOp:
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
         preemptible: t.Optional[bool] = False,
-        cluster_type: t.Optional[str] = "local",
+        cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.

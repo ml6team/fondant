@@ -17,7 +17,7 @@ services:
     - --cache
     - 'True'
     - --cluster_type
-    - local
+    - default
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
@@ -52,7 +52,7 @@ services:
     - --cache
     - 'True'
     - --cluster_type
-    - local
+    - default
     - --component_spec
     - '{"name": "Second component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":
@@ -82,7 +82,7 @@ services:
     - --cache
     - 'True'
     - --cluster_type
-    - local
+    - default
     - --component_spec
     - '{"name": "Third component", "description": "This is an example component",
       "image": "example_component:latest", "consumes": {"images": {"fields": {"data":

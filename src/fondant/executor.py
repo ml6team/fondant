@@ -100,9 +100,8 @@ class Executor(t.Generic[Component]):
             raise NotImplementedError(msg)
         else:
             logger.info(
-                f"We currently do not support {cluster_type}. "
-                f"Our supported options are limited to 'local' and 'distributed'. "
-                f"Dask local mode will be used for further executions.",
+                "Dask default local mode will be used for further executions."
+                "Our current supported options are limited to 'local' and 'default'.",
             )
             self.client = None
 

@@ -273,7 +273,7 @@ class KubeflowComponentSpec:
                     "name": "cluster_type",
                     "description": "The type of cluster to use for distributed execution",
                     "type": "String",
-                    "default": "local",
+                    "default": "default",
                 },
                 {
                     "name": "client_kwargs",
