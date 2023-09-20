@@ -280,7 +280,12 @@ class Executor(t.Generic[Component]):
         )
 
         try:
-            with fs_open(manifest_reference_path, mode="rt", encoding="utf-8") as file_:
+            with fs_open(
+                manifest_reference_path,
+                mode="rt",
+                encoding="utf-8",
+                auto_mkdir=True,
+            ) as file_:
                 cached_manifest_path = file_.read()
                 manifest = Manifest.from_file(cached_manifest_path)
                 logger.info(
@@ -386,7 +391,12 @@ class Executor(t.Generic[Component]):
 
         logger.info(f"Writing cache key to {manifest_reference_path}")
 
-        with fs_open(manifest_reference_path, mode="wt", encoding="utf-8") as file_:
+        with fs_open(
+            manifest_reference_path,
+            mode="wt",
+            encoding="utf-8",
+            auto_mkdir=True,
+        ) as file_:
             file_.write(str(manifest_save_path))
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
