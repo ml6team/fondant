@@ -399,6 +399,8 @@ def test_vertex_configuration(tmp_path_factory):
         arguments={"storage_args": "a dummy string arg"},
         number_of_accelerators=1,
         accelerator_name="NVIDIA_TESLA_K80",
+        cpu_request=16,
+        memory_request="32G",
     )
     pipeline.add_op(component_1)
     compiler = VertexCompiler()
@@ -414,6 +416,8 @@ def test_vertex_configuration(tmp_path_factory):
         ]["container"]["resources"]
         assert component_resources["accelerator"]["count"] == "1"
         assert component_resources["accelerator"]["type"] == "NVIDIA_TESLA_K80"
+        assert component_resources["cpuLimit"] == 16.0  # noqa: PLR2004
+        assert component_resources["memoryLimit"] == 32.0  # noqa: PLR2004
 
 
 @pytest.mark.usefixtures("_freeze_time")

@@ -61,7 +61,13 @@ class ComponentOp:
           accelerators here https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec.
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
-        cache: Set to False to disable caching, True by default.
+        cache: Set to False in order to disable caching, True by default.
+        cpu_request: The CPU cores to request. This string value can be a number
+         (integer value for number of CPUs), or a number followed by "m", which means 1/1000.
+         You can specify at most 96 CPUs.
+        memory_request: The RAM memory to request. This string value can be a number,
+        or a number followed by "K" (kilobyte), "M" (megabyte), or "G" (gigabyte). At most 624GB
+        is supported.
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
@@ -86,6 +92,8 @@ class ComponentOp:
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
+        cpu_request: t.Optional[int] = None,
+        memory_request: t.Optional[t.Union[str, int]] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -108,6 +116,8 @@ class ComponentOp:
             number_of_accelerators,
             accelerator_name,
         )
+        self.cpu_request = cpu_request
+        self.memory_request = memory_request
 
     def _configure_caching_from_image_tag(
         self,
@@ -204,6 +214,8 @@ class ComponentOp:
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
+        cpu_request: t.Optional[int] = None,
+        memory_request: t.Optional[t.Union[str, int]] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -221,6 +233,13 @@ class ComponentOp:
             node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.
             cache: Set to False to disable caching, True by default.
+            machine_type: the machine type to run the component on (currently only valid for Vertex)
+            cpu_request: The CPU cores to request. This string value can be a number
+             (integer value for number of CPUs), or a number followed by "m", which means 1/1000.
+             You can specify at most 96 CPUs.
+            memory_request: The RAM memory to request. This string value can be a number,
+                or a number followed by "K" (kilobyte), "M" (megabyte), or "G" (gigabyte).
+                At most 624GB is supported.
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -237,6 +256,8 @@ class ComponentOp:
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
             cache=cache,
+            cpu_request=cpu_request,
+            memory_request=memory_request,
         )
 
     def get_component_cache_key(self) -> str:

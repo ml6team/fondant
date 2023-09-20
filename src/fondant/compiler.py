@@ -463,6 +463,8 @@ class VertexCompiler(Compiler):
         # Unpack optional specifications
         number_of_accelerators = fondant_component_operation.number_of_accelerators
         accelerator_name = fondant_component_operation.accelerator_name
+        cpu_request = fondant_component_operation.cpu_request
+        memory_request = fondant_component_operation.memory_request
 
         # Assign optional specification
         if number_of_accelerators is not None:
@@ -475,5 +477,11 @@ class VertexCompiler(Compiler):
                 raise InvalidPipelineDefinition(msg)
 
             task.set_accelerator_type(accelerator_name)
+
+        if memory_request is not None:
+            task.set_memory_limit(memory_request)
+
+        if cpu_request is not None:
+            task.set_cpu_limit(str(cpu_request))
 
         return task
