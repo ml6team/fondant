@@ -21,6 +21,18 @@ inputs:
         other column names that match a given component specification
     type: JsonObject
     default: None
+-   name: cache
+    description: Set to False to disable caching, True by default.
+    type: Boolean
+    default: 'True'
+-   name: cluster_type
+    description: The type of cluster to use for distributed execution
+    type: String
+    default: default
+-   name: client_kwargs
+    description: Keyword arguments used to initialise the dask client
+    type: JsonObject
+    default: '{}'
 -   name: storage_args
     description: Storage arguments
     type: String
@@ -45,7 +57,13 @@ implementation:
         -   inputValue: input_partition_rows
         - --column_mapping
         -   inputValue: column_mapping
+        - --cache
+        -   inputValue: cache
         - --storage_args
         -   inputValue: storage_args
         - --output_manifest_path
         -   outputPath: output_manifest_path
+        - --cluster_type
+        -   inputValue: cluster_type
+        - --client_kwargs
+        -   inputValue: client_kwargs

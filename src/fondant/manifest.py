@@ -73,12 +73,22 @@ class Index(Subset):
 
 @dataclass
 class Metadata:
-    """Class representing the Metadata of the manifest."""
+    """
+    Class representing the Metadata of the manifest.
+
+    Args:
+        base_path: the base path used to store the artifacts
+        pipeline_name: the name of the pipeline
+        run_id: the run id of the pipeline
+        component_id: the name of the component
+        cache_key: the cache key of the component.
+    """
 
     base_path: str
     pipeline_name: str
     run_id: str
     component_id: str
+    cache_key: str
 
     def to_dict(self):
         return asdict(self)
@@ -140,6 +150,7 @@ class Manifest:
         base_path: str,
         run_id: str,
         component_id: str,
+        cache_key: str,
     ) -> "Manifest":
         """Create an empty manifest.
 
@@ -148,17 +159,19 @@ class Manifest:
             base_path: The base path of the manifest
             run_id: The id of the current pipeline run
             component_id: The id of the current component being executed
+            cache_key: The component cache key
         """
         metadata = Metadata(
             pipeline_name=pipeline_name,
             base_path=base_path,
             run_id=run_id,
             component_id=component_id,
+            cache_key=cache_key,
         )
 
         specification = {
             "metadata": metadata.to_dict(),
-            "index": {"location": f"/index/{run_id}/{component_id}"},
+            "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}/index"},
             "subsets": {},
         }
         return cls(specification)
@@ -203,6 +216,10 @@ class Manifest:
         return self.metadata["pipeline_name"]
 
     @property
+    def cache_key(self) -> str:
+        return self.metadata["cache_key"]
+
+    @property
     def index(self) -> Index:
         return Index(self._specification["index"], base_path=self.base_path)
 
@@ -226,7 +243,7 @@ class Manifest:
             raise ValueError(msg)
 
         self._specification["subsets"][name] = {
-            "location": f"/{name}/{self.run_id}/{self.component_id}",
+            "location": f"/{self.pipeline_name}/{self.run_id}/{self.component_id}/{name}",
             "fields": {name: type_.to_json() for name, type_ in fields},
         }
 
@@ -254,7 +271,7 @@ class Manifest:
         # Update index location as this is currently always rewritten
         evolved_manifest.index._specification[
             "location"
-        ] = f"/index/{self.run_id}/{component_id}"
+        ] = f"/{self.pipeline_name}/{self.run_id}/{component_id}/index"
 
         # If additionalSubsets is False in consumes,
         # Remove all subsets from the manifest that are not listed
@@ -305,7 +322,7 @@ class Manifest:
                 # Update subset location as this is currently always rewritten
                 evolved_manifest.subsets[subset_name]._specification[
                     "location"
-                ] = f"/{subset_name}/{self.run_id}/{component_id}"
+                ] = f"/{self.pipeline_name}/{self.run_id}/{component_id}/{subset_name}"
 
             # Subset is not yet in manifest, add it
             else:

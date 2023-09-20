@@ -1,38 +1,38 @@
 {
-  "metadata": {
-    "pipeline_name": "test_pipeline",
-    "base_path": "gs://bucket",
-    "run_id": "12345",
-    "component_id": "example_component"
-  },
-  "index": {
-    "location": "/index/12345/example_component"
-  },
-  "subsets": {
-    "images": {
-      "location": "/images/12345/example_component",
-      "fields": {
-        "width": {
-          "type": "int32"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "data": {
-          "type": "binary"
-        }
+   "metadata":{
+      "pipeline_name":"test_pipeline",
+      "base_path":"gs://bucket",
+      "run_id":"12345",
+      "component_id":"example_component"
+   },
+   "index":{
+      "location":"/test_pipeline/12345/example_component/index"
+   },
+   "subsets":{
+      "images":{
+         "location":"/test_pipeline/12345/example_component/images",
+         "fields":{
+            "width":{
+               "type":"int32"
+            },
+            "height":{
+               "type":"int32"
+            },
+            "data":{
+               "type":"binary"
+            }
+         }
+      },
+      "embeddings":{
+         "location":"/test_pipeline/12345/example_component/embeddings",
+         "fields":{
+            "data":{
+               "type":"array",
+               "items":{
+                  "type":"float32"
+               }
+            }
+         }
       }
-    },
-    "embeddings": {
-      "location": "/embeddings/12345/example_component",
-      "fields": {
-        "data": {
-          "type": "array",
-          "items": {
-            "type": "float32"
-          }
-        }
-      }
-    }
-  }
+   }
 }

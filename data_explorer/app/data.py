@@ -1,7 +1,7 @@
 """This file contains data loading logic"""
 import json
 import logging
-from typing import List, Tuple
+import typing as t
 from urllib.parse import urlparse
 
 import dask.dataframe as dd
@@ -59,22 +59,21 @@ def load_manifest(path: str) -> Manifest:
 
 
 @st.cache_data
-def load_dataframe(manifest_path: str,
+def load_dataframe(_manifest: Manifest,
                    subset_name: str,
-                   fields: List[str]) -> dd.DataFrame:
+                   fields: t.Dict[str, str]) -> dd.DataFrame:
     """Load dataframe into dask dataframe
 
     Args:
-        manifest_path (str): manifest file path
+        _manifest (Manifest): the loaded component manifest
         subset_name (str): subset name to load
         fields (List[str]): column fields to load
 
     Returns:
         dd.DataFrame: dask dataframe with loaded data
     """
-    manifest = load_manifest(manifest_path)
 
-    subset = manifest.subsets[subset_name]
+    subset = _manifest.subsets[subset_name]
     subset_path = subset.location
 
-    return dd.read_parquet(subset_path, columns=fields)
+    return dd.read_parquet(subset_path, columns=list(fields.keys()))

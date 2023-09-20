@@ -1,0 +1,29 @@
+name: Extract image licenses from warc
+description: A component that extracts images and their licenses from warc files
+image: ghcr.io/ml6team/extract_images_from_warc:d4619b5
+
+consumes:
+  warc:
+    fields:
+      url:
+        type: string
+
+produces:
+  image:
+    fields:
+      image_url:
+        type: string
+      alt_text:
+        type: string
+      webpage_url:
+        type: string
+      license_type:
+        type: string
+      license_location:
+        type: string
+
+args:
+  extract_plain_text:
+    description: If set to true the data contains the plain text without html tags
+    type: bool
+    default: "False"

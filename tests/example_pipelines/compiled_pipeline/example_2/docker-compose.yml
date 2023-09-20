@@ -7,37 +7,42 @@ services:
     command:
     - --metadata
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-      "component_id": "first_component"}'
+      "component_id": "first_component", "cache_key": "1"}'
     - --output_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
     - --storage_args
     - a dummy string arg
-    - --input_partition_rows
-    - None
-    - --column_mapping
-    - None
+    - --cache
+    - 'True'
+    - --cluster_type
+    - default
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
       {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
     depends_on: {}
+    ports:
+    - 8787:8787
     volumes: []
   image_cropping:
+    build:
+      args: []
+      context: /home/philippe/Scripts/express/src/fondant/components/image_cropping
     command:
     - --metadata
     - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-      "component_id": "image_cropping"}'
+      "component_id": "image_cropping", "cache_key": "2"}'
     - --output_manifest_path
-    - /foo/bar/image_cropping/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/image_cropping/manifest.json
     - --cropping_threshold
     - '0'
     - --padding
     - '0'
-    - --input_partition_rows
-    - None
-    - --column_mapping
-    - None
+    - --cache
+    - 'True'
+    - --cluster_type
+    - default
     - --component_spec
     - '{"name": "Image cropping", "description": "Component that removes single-colored
       borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
@@ -50,10 +55,11 @@ services:
       for the image cropping. The padding is added to all borders of the image.",
       "type": "int", "default": 10}}}'
     - --input_manifest_path
-    - /foo/bar/first_component/manifest.json
+    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
     depends_on:
       first_component:
         condition: service_completed_successfully
-    image: ghcr.io/ml6team/image_cropping:dev
+    ports:
+    - 8787:8787
     volumes: []
 version: '3.8'

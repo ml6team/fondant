@@ -25,7 +25,7 @@ spec:
       - /tmp/inputs/input_manifest_path/data
       - --metadata
       - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-        "component_id": "first_component"}'
+        "component_id": "first_component", "cache_key": "1ba5e93659a51abe43ddd64b31bc1c59"}'
       - --component_spec
       - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
         "description": "This is an example component", "image": "example_component:latest",
@@ -35,11 +35,18 @@ spec:
       - None
       - --column_mapping
       - None
+      - --cache
+      - 'True'
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
       - /tmp/outputs/output_manifest_path/data
+      - --cluster_type
+      - default
+      - --client_kwargs
+      - '{}'
       image: example_component:latest
+      imagePullPolicy: Always
       resources:
         limits:
           nvidia.com/gpu: 1
@@ -51,43 +58,52 @@ spec:
           data: ''
     metadata:
       annotations:
-        pipelines.kubeflow.org/arguments.parameters: '{"column_mapping": "None", "component_spec":
+        pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
+          "{}", "cluster_type": "default", "column_mapping": "None", "component_spec":
           "{\"args\": {\"storage_args\": {\"description\": \"Storage arguments\",
           \"type\": \"str\"}}, \"description\": \"This is an example component\",
           \"image\": \"example_component:latest\", \"name\": \"First component\",
           \"produces\": {\"captions\": {\"fields\": {\"data\": {\"type\": \"string\"}}},
           \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
-          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\"}",
-          "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "f86b48ec776e4cc2480b547e3d75bc97748722fafae648e399647bcf0071a34d"}'
+          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
+          \"cache_key\": \"1ba5e93659a51abe43ddd64b31bc1c59\"}", "storage_args": "a
+          dummy string arg"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "e3d21e0a996f5353472773c6ba51d1601724bd104fa9a3f56c2dbd3a7ce85cc7"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example
           component", "implementation": {"container": {"command": ["fondant", "execute",
           "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
           {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
           "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--column_mapping",
-          {"inputValue": "column_mapping"}, "--storage_args", {"inputValue": "storage_args"},
-          "--output_manifest_path", {"outputPath": "output_manifest_path"}], "image":
-          "example_component:latest"}}, "inputs": [{"description": "Path to the input
-          manifest", "name": "input_manifest_path", "type": "String"}, {"description":
-          "Metadata arguments containing the run id and base path", "name": "metadata",
-          "type": "String"}, {"default": "None", "description": "The component specification
-          as a dictionary", "name": "component_spec", "type": "JsonObject"}, {"default":
-          "None", "description": "The number of rows to load per partition. Set to
-          override the automatic partitioning", "name": "input_partition_rows", "type":
-          "String"}, {"default": "None", "description": "A dictionary that maps the
-          column names of the consumed dataset to other column names that match a
-          given component specification", "name": "column_mapping", "type": "JsonObject"},
-          {"description": "Storage arguments", "name": "storage_args", "type": "String"}],
-          "name": "First component", "outputs": [{"description": "Path to the output
-          manifest", "name": "output_manifest_path", "type": "String"}]}'
+          {"inputValue": "column_mapping"}, "--cache", {"inputValue": "cache"}, "--storage_args",
+          {"inputValue": "storage_args"}, "--output_manifest_path", {"outputPath":
+          "output_manifest_path"}, "--cluster_type", {"inputValue": "cluster_type"},
+          "--client_kwargs", {"inputValue": "client_kwargs"}], "image": "example_component:latest"}},
+          "inputs": [{"description": "Path to the input manifest", "name": "input_manifest_path",
+          "type": "String"}, {"description": "Metadata arguments containing the run
+          id and base path", "name": "metadata", "type": "String"}, {"default": "None",
+          "description": "The component specification as a dictionary", "name": "component_spec",
+          "type": "JsonObject"}, {"default": "None", "description": "The number of
+          rows to load per partition. Set to override the automatic partitioning",
+          "name": "input_partition_rows", "type": "String"}, {"default": "None", "description":
+          "A dictionary that maps the column names of the consumed dataset to other
+          column names that match a given component specification", "name": "column_mapping",
+          "type": "JsonObject"}, {"default": "True", "description": "Set to False
+          to disable caching, True by default.", "name": "cache", "type": "Boolean"},
+          {"default": "default", "description": "The type of cluster to use for distributed
+          execution", "name": "cluster_type", "type": "String"}, {"default": "{}",
+          "description": "Keyword arguments used to initialise the dask client", "name":
+          "client_kwargs", "type": "JsonObject"}, {"description": "Storage arguments",
+          "name": "storage_args", "type": "String"}], "name": "First component", "outputs":
+          [{"description": "Path to the output manifest", "name": "output_manifest_path",
+          "type": "String"}]}'
       labels:
         pipelines.kubeflow.org/enable_caching: 'true'
         pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
         pipelines.kubeflow.org/pipeline-sdk-type: kfp
     name: first-component
     nodeSelector:
-      node_pool: a_node_pool
+      a_node_pool_label: a_node_pool
     outputs:
       artifacts:
       - name: first-component-output_manifest_path

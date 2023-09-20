@@ -1,4 +1,4 @@
-git+https://github.com/ml6team/fondant@main
+fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@main
 streamlit==1.23.1
 streamlit-aggrid==0.3.4
 matplotlib==3.7.1

@@ -4,17 +4,21 @@ framework, providing a standardized interface for extending loading and transfor
 The loading component is the first component that loads the initial dataset and the transform
 components take care of processing, filtering and extending the data.
 """
-
 import argparse
+import ast
 import inspect
 import json
 import logging
+import os
 import typing as t
 from abc import abstractmethod
 from pathlib import Path
 
+import dask
 import dask.dataframe as dd
 import pandas as pd
+from dask.distributed import Client, LocalCluster
+from fsspec import open as fs_open
 
 from fondant.component import (
     Component,
@@ -33,24 +37,47 @@ from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest, Metadata
 from fondant.schema import validate_partition_number
 
+dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)
 
 
 class Executor(t.Generic[Component]):
-    """An executor executes a Component."""
+    """
+    An executor executes a Component.
+
+    Args:
+        spec: The specification of the Component to be executed.
+        cache: Flag indicating whether to use caching for intermediate results.
+        input_manifest_path: The path to the input manifest file.
+        output_manifest_path: The path to the output manifest file.
+        metadata: Components metadata dict
+        user_arguments: User-defined component arguments.
+        input_partition_rows: The number of rows to process in each
+        partition of dataframe.
+        Partitions are divided based on this number (n rows per partition).
+        Set to None for no row limit.
+        cluster_type: The type of cluster to use for distributed execution
+        (default is "local").
+        client_kwargs: Additional keyword arguments dict which will be used to
+        initialise the dask client, allowing for advanced configuration.
+    """
 
     def __init__(
         self,
         spec: ComponentSpec,
         *,
+        cache: bool,
         input_manifest_path: t.Union[str, Path],
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        cluster_type: t.Optional[str] = None,
+        client_kwargs: t.Optional[dict] = None,
         column_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> None:
         self.spec = spec
+        self.cache = cache
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
         self.metadata = Metadata.from_dict(metadata)
@@ -65,13 +92,44 @@ class Executor(t.Generic[Component]):
                 self.column_mapping,
             )
 
+        if cluster_type == "local":
+            if client_kwargs is None:
+                client_kwargs = {
+                    "processes": True,
+                    "n_workers": os.cpu_count(),
+                    "threads_per_worker": 1,
+                }
+
+            logger.info(f"Initialize local dask cluster with arguments {client_kwargs}")
+
+            # Additional dask configuration have to be set before initialising the client
+            # worker.daemon is set to false because creating a worker process in daemon
+            # mode is not possible in our docker container setup.
+            dask.config.set({"distributed.worker.daemon": False})
+
+            local_cluster = LocalCluster(**client_kwargs, silence_logs=logging.ERROR)
+            self.client = Client(local_cluster)
+
+        elif cluster_type == "distributed":
+            msg = "The usage of the Dask distributed client is not supported yet."
+            raise NotImplementedError(msg)
+        else:
+            logger.info(
+                "Dask default local mode will be used for further executions."
+                "Our current supported options are limited to 'local' and 'default'.",
+            )
+            self.client = None
+
     @classmethod
     def from_args(cls) -> "Executor":
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
-        parser.add_argument("--component_spec", type=kubeflow2python_type("JsonObject"))
+        parser.add_argument("--component_spec", type=json.loads)
+        parser.add_argument("--cache", type=ast.literal_eval)
         parser.add_argument("--input_partition_rows", type=validate_partition_number)
-        parser.add_argument("--column_mapping", type=kubeflow2python_type("JsonObject"))
+        parser.add_argument("--cluster_type", type=str)
+        parser.add_argument("--client_kwargs", type=json.loads)
+        parser.add_argument("--column_mapping", type=json.loads)
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -79,11 +137,17 @@ class Executor(t.Generic[Component]):
             raise ValueError(msg)
 
         component_spec = ComponentSpec(args.component_spec)
+        cache = args.cache
+        cluster_type = args.cluster_type
+        client_kwargs = args.client_kwargs
 
         return cls.from_spec(
             component_spec,
             input_partition_rows=args.input_partition_rows,
             column_mapping=args.column_mapping,
+            cache=cache,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
         )
 
     @classmethod
@@ -91,7 +155,10 @@ class Executor(t.Generic[Component]):
         cls,
         component_spec: ComponentSpec,
         *,
+        cache: bool,
         input_partition_rows: t.Optional[t.Union[str, int]],
+        cluster_type: t.Optional[str],
+        client_kwargs: t.Optional[dict],
         column_mapping: t.Optional[t.Dict[str, str]] = None,
     ) -> "Executor":
         """Create an executor from a component spec."""
@@ -111,9 +178,12 @@ class Executor(t.Generic[Component]):
             input_manifest_path=input_manifest_path,
             output_manifest_path=output_manifest_path,
             column_mapping=column_mapping,
+            cache=cache,
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
         )
 
     @classmethod
@@ -192,24 +262,132 @@ class Executor(t.Generic[Component]):
             component_spec=self.spec,
         )
 
-        data_writer.write_dataframe(dataframe)
+        data_writer.write_dataframe(dataframe, self.client)
+
+    def _get_cached_manifest(self) -> t.Union[Manifest, None]:
+        """
+        Find and return the matching execution's Manifest for the component, if it exists.
+
+        This function searches for previous execution manifests that match the component's metadata.
+
+        Returns:
+            The Manifest object representing the most recent matching execution,
+            or None if no matching execution is found.
+        """
+        manifest_reference_path = (
+            f"{self.metadata.base_path}/{self.metadata.pipeline_name}/cache/"
+            f"{self.metadata.cache_key}.txt"
+        )
+
+        try:
+            with fs_open(manifest_reference_path, mode="rt", encoding="utf-8") as file_:
+                cached_manifest_path = file_.read()
+                manifest = Manifest.from_file(cached_manifest_path)
+                logger.info(
+                    f"Matching execution detected for component. The last execution of the"
+                    f" component originated from `{manifest.run_id}`.",
+                )
+                return manifest
+
+        except FileNotFoundError:
+            logger.info("No matching execution for component detected")
+            return None
+
+    def _is_previous_cached(self, input_manifest: Manifest) -> bool:
+        """
+        Checks whether the previous component's output is cached based on its run ID.
+
+        This function compares the run ID of the input manifest
+         (representing the previous component) with the run ID of the current component metadata.
+        If the run IDs are different, it indicates that the previous component's output belongs to
+        another pipeline run, implying that it is cached. Otherwise, if the run IDs match, it
+        suggests that the previous component was not cached and had to execute to produce the
+         current output.
+
+        Args:
+            input_manifest: The manifest representing the output of the previous component.
+
+        Returns:
+            True if the previous component's output is cached, False otherwise.
+        """
+        previous_component_id = input_manifest.component_id
+
+        if input_manifest.run_id == self.metadata.run_id:
+            logger.info(
+                f"Previous component `{previous_component_id}` is not cached."
+                f" Invalidating cache for current and subsequent components",
+            )
+            return False
+
+        logger.info(
+            f"Previous component `{previous_component_id}` run was cached. "
+            f"Cached pipeline id: {input_manifest.run_id}",
+        )
+        return True
+
+    def _run_execution(
+        self,
+        component_cls: t.Type[Component],
+        input_manifest: Manifest,
+    ) -> Manifest:
+        logging.info("Executing component")
+        component = component_cls(self.spec, **self.user_arguments)
+        output_df = self._execute_component(
+            component,
+            manifest=input_manifest,
+        )
+        output_manifest = input_manifest.evolve(component_spec=self.spec)
+        self._write_data(dataframe=output_df, manifest=output_manifest)
+
+        return output_manifest
 
     def execute(self, component_cls: t.Type[Component]) -> None:
-        """Execute a component.
+        """
+        Execute a component.
 
         Args:
             component_cls: The class of the component to execute
         """
         input_manifest = self._load_or_create_manifest()
 
-        component = component_cls(self.spec, **self.user_arguments)
-        output_df = self._execute_component(component, manifest=input_manifest)
+        if self.cache and self._is_previous_cached(input_manifest):
+            output_manifest = self._get_cached_manifest()
+            if output_manifest is not None:
+                logger.info("Skipping component execution")
+            else:
+                output_manifest = self._run_execution(component_cls, input_manifest)
 
-        output_manifest = input_manifest.evolve(component_spec=self.spec)
-
-        self._write_data(dataframe=output_df, manifest=output_manifest)
+        else:
+            logger.info("Caching disabled for the component")
+            output_manifest = self._run_execution(component_cls, input_manifest)
 
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
+
+    def _upload_cache_key(
+        self,
+        manifest: Manifest,
+        manifest_save_path: t.Union[str, Path],
+    ):
+        """
+        Write the cache key containing the reference to the location of the written manifest..
+
+        This function creates a file with the format "<cache_key>.txt" at the specified
+        'manifest_save_path' to store the manifest location for future retrieval of
+        cached component executions.
+
+        Args:
+            manifest: The reference manifest.
+            manifest_save_path (str): The path where the manifest is saved.
+        """
+        manifest_reference_path = (
+            f"{manifest.base_path}/{manifest.pipeline_name}/cache/"
+            f"{self.metadata.cache_key}.txt"
+        )
+
+        logger.info(f"Writing cache key to {manifest_reference_path}")
+
+        with fs_open(manifest_reference_path, mode="wt", encoding="utf-8") as file_:
+            file_.write(str(manifest_save_path))
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         """
@@ -229,37 +407,47 @@ class Executor(t.Generic[Component]):
 
         if is_kubeflow_output:
             # Save to the expected base path directory
-            safe_component_name = self.spec.name.replace(" ", "_").lower()
             save_path_base_path = (
-                f"{manifest.base_path}/{safe_component_name}/manifest.json"
+                f"{manifest.base_path}/{manifest.pipeline_name}/{manifest.run_id}/"
+                f"{manifest.component_id}/manifest.json"
             )
-            Path(save_path_base_path).parent.mkdir(parents=True, exist_ok=True)
+            # Upload manifest and it's reference if cache is False
             manifest.to_file(save_path_base_path)
             logger.info(f"Saving output manifest to {save_path_base_path}")
+            self._upload_cache_key(
+                manifest=manifest,
+                manifest_save_path=save_path_base_path,
+            )
             # Write manifest to the native kfp artifact path that will be passed as an artifact
             # and read by the next component
             manifest.to_file(save_path)
         else:
             # Local runner
-            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             manifest.to_file(save_path)
             logger.info(f"Saving output manifest to {save_path}")
+            self._upload_cache_key(
+                manifest=manifest,
+                manifest_save_path=save_path,
+            )
 
 
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
     """Base class for a Fondant load component."""
+
+    def _is_previous_cached(self, input_manifest: Manifest) -> bool:
+        return True
 
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
         return ["input_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
-        component_id = self.spec.name.lower().replace(" ", "_")
         return Manifest.create(
             pipeline_name=self.metadata.pipeline_name,
             base_path=self.metadata.base_path,
             run_id=self.metadata.run_id,
-            component_id=component_id,
+            component_id=self.metadata.component_id,
+            cache_key=self.metadata.cache_key,
         )
 
     def _execute_component(

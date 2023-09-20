@@ -25,14 +25,19 @@ produces:
       data:
         type: string
   
-  image_text:
+  imagetext:
     fields:
-      uid: 
-        type: string
-      clip_b32_similarity_score:
+      clipb32score:
         type: float32
-      clip_l14_similarity_score:
+      clipl14score:
         type: float32
+
+  textembedding:
+    fields:
+      data:
+        type: array
+        items:
+          type: float32
 
 args:
   dataset_name:

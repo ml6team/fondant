@@ -119,13 +119,16 @@ def test_manifest_creation():
     run_id = "run_id"
     pipeline_name = "pipeline_name"
     component_id = "component_id"
+    cache_key = "42"
 
     manifest = Manifest.create(
         pipeline_name=pipeline_name,
         base_path=base_path,
         run_id=run_id,
         component_id=component_id,
+        cache_key=cache_key,
     )
+
     manifest.add_subset("images", [("width", Type("int32")), ("height", Type("int32"))])
     manifest.subsets["images"].add_field("data", Type("binary"))
 
@@ -135,11 +138,12 @@ def test_manifest_creation():
             "base_path": base_path,
             "run_id": run_id,
             "component_id": component_id,
+            "cache_key": cache_key,
         },
-        "index": {"location": f"/index/{run_id}/{component_id}"},
+        "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}/index"},
         "subsets": {
             "images": {
-                "location": f"/images/{run_id}/{component_id}",
+                "location": f"/{pipeline_name}/{run_id}/{component_id}/images",
                 "fields": {
                     "width": {
                         "type": "int32",
@@ -162,12 +166,13 @@ def test_manifest_repr():
         base_path="/",
         run_id="A",
         component_id="1",
+        cache_key="42",
     )
     assert (
         manifest.__repr__()
-        == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME',"
-        " 'run_id': 'A', 'component_id': '1'}, 'index': {'location': '/index/A/1'},"
-        " 'subsets': {}})"
+        == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME', 'run_id': 'A',"
+        " 'component_id': '1', 'cache_key': '42'},"
+        " 'index': {'location': '/NAME/A/1/index'}, 'subsets': {}})"
     )
 
 

@@ -48,7 +48,16 @@ Next, we define two operations: `load_from_hub_op`, which is a based from a reus
     Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs will be available in future releases.
 
 ## Setting Custom node pool parameters
-Each component can optionally be constrained to run on particular node(s) using `node_pool_label` and `node_pool_name`. You can find these under the Kubernetes labels of your cluster. You can use the default node label provided by Kubernetes or attach your own. Note that the value of these labels is cloud provider specific.
+Each component can optionally be constrained to run on particular node(s) using `node_pool_label` and `node_pool_name`. You can find these under the Kubernetes labels of your cluster. 
+You can use the default node label provided by Kubernetes or attach your own. Note that the value of these labels is cloud provider specific.  
+
+Note that you can also setup a component to use a preemptible VM by setting `preemptible` to `True`.
+This Requires the setup and assignment of a preemptible node pool. Note that preemptibles only work
+when KFP is setup on GCP. 
+
+More info here: https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+
+
 
 ## Setting Custom partitioning parameters
 
@@ -248,3 +257,37 @@ fondant run <pipeline_ref> --local
 NOTE: that the pipeline ref is the path to the compiled pipeline spec OR a reference to an fondant pipeline in which case the compiler will compile the pipeline first before running.
 
 This will start the pipeline and provide logs per component(service).
+
+## Caching pipeline runs
+
+When Fondant runs a pipeline, it checks to see whether an execution exists in the base path based on the cache key of each component. 
+
+The cache key is defined as the combination of the following:
+
+1) The **pipeline step's inputs.** These inputs include the input arguments' value (if any).
+
+2) **The component's specification.** This specification includes the image tag and the fields consumed and produced by each component.
+
+3) **The component resources.** Defines the hardware that was used to run the component (GPU, nodepool).
+
+If there is a matching execution in the base path (checked based on the output manifests),
+the outputs of that execution are used and the step computation is skipped.
+This helps to reduce costs by skipping computations that were completed in a previous pipeline run.
+
+
+Additionally, only the pipelines with the same pipeline name will share the cache. Caching for components
+with the `latest` image tag is disabled by default. This is because using "latest" image tags can lead to unpredictable behavior due to 
+image updates. Moreover, if one component in the pipeline is not cached then caching will be disabled for all 
+subsequent components. 
+
+You can turn off execution caching at component level by setting the following:
+
+```python
+caption_images_op = ComponentOp(  
+    component_dir="...",  
+    arguments={
+        ... 
+    },  
+    cache=False,  
+)
+```

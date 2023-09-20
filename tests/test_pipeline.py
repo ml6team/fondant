@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from fondant.component_spec import ColumnMapping
+from fondant.component_spec import ColumnMapping, ComponentSpec
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
 
@@ -99,6 +99,25 @@ def test_component_op_hash(
         comp_0_op_spec_0.get_component_cache_key()
         != comp_1_op_spec_0.get_component_cache_key()
     )
+
+
+def test_component_op_caching_strategy(monkeypatch):
+    components_path = Path(valid_pipeline_path / "example_1" / "first_component")
+    for tag in ["latest", "dev", "1234"]:
+        monkeypatch.setattr(
+            ComponentSpec,
+            "image",
+            f"ghcr.io/component/test_component:{tag}",
+        )
+        comp_0_op_spec_0 = ComponentOp(
+            components_path,
+            arguments={"storage_args": "a dummy string arg"},
+            cache=True,
+        )
+        if tag == "latest":
+            assert comp_0_op_spec_0.cache is False
+        else:
+            assert comp_0_op_spec_0.cache is True
 
 
 @pytest.mark.parametrize(

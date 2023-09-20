@@ -1,0 +1,27 @@
+name: Embed images
+description: Component that embeds images using CLIP
+image: ghcr.io/ml6team/embed_images:dev
+
+consumes:
+  images:
+      fields:
+        data:
+          type: binary
+
+produces:
+  embeddings:
+    fields:
+      data:
+        type: array
+        items:
+          type: float32
+
+args:
+  model_id:
+    description: Model id of a CLIP model on the Hugging Face hub
+    type: str
+    default: "openai/clip-vit-large-patch14"
+  batch_size:
+    description: Batch size to use when embedding
+    type: int
+    default: 8

@@ -1,6 +1,6 @@
 {
    "index":{
-      "location":"/index/12345/example_component"
+      "location":"/test_pipeline/12345/example_component/index"
    },
    "metadata":{
       "pipeline_name": "test_pipeline",
@@ -18,7 +18,7 @@
                "type":"array"
             }
          },
-         "location":"/embeddings/12345/example_component"
+         "location":"/test_pipeline/12345/example_component/embeddings"
       },
       "pictures":{
          "fields":{

@@ -12,6 +12,8 @@ from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
 
+DASK_DIAGNOSTIC_DASHBOARD_PORT = 8787
+
 
 class Compiler(ABC):
     """Abstract base class for a compiler."""
@@ -73,7 +75,7 @@ class DockerCompiler(Compiler):
                 return True
 
         with open(output_path, "w") as outfile:
-            yaml.dump(spec, outfile, Dumper=NoAliasDumper)
+            yaml.dump(spec, outfile, Dumper=NoAliasDumper, default_flow_style=False)
 
         logger.info(f"Successfully compiled to {output_path}")
 
@@ -120,16 +122,17 @@ class DockerCompiler(Compiler):
         pipeline.validate(run_id=run_id)
 
         for component_name, component in pipeline._graph.items():
+            component_op = component["fondant_component_op"]
+
             metadata = Metadata(
                 pipeline_name=pipeline.name,
                 run_id=run_id,
                 base_path=path,
                 component_id=component_name,
+                cache_key=component_op.get_component_cache_key(),
             )
 
             logger.info(f"Compiling service for {component_name}")
-
-            component_op = component["fondant_component_op"]
 
             # add metadata argument to command
             command = ["--metadata", metadata.to_json()]
@@ -138,7 +141,8 @@ class DockerCompiler(Compiler):
             command.extend(
                 [
                     "--output_manifest_path",
-                    f"{path}/{component_name}/manifest.json",
+                    f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                    f"{component_name}/manifest.json",
                 ],
             )
 
@@ -160,7 +164,8 @@ class DockerCompiler(Compiler):
                     command.extend(
                         [
                             "--input_manifest_path",
-                            f"{path}/{dependency}/manifest.json",
+                            f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                            f"{dependency}/manifest.json",
                         ],
                     )
 
@@ -170,11 +175,32 @@ class DockerCompiler(Compiler):
             if extra_volumes:
                 volumes.extend(extra_volumes)
 
+            ports: t.List[t.Union[str, dict]] = []
+            ports.append(
+                f"{DASK_DIAGNOSTIC_DASHBOARD_PORT}:{DASK_DIAGNOSTIC_DASHBOARD_PORT}",
+            )
+
             services[component_name] = {
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
+                "ports": ports,
             }
+
+            if component_op.number_of_gpus is not None:
+                services[component_name]["deploy"] = {
+                    "resources": {
+                        "reservations": {
+                            "devices": [
+                                {
+                                    "driver": "nvidia",
+                                    "count": component_op.number_of_gpus,
+                                    "capabilities": ["gpu"],
+                                },
+                            ],
+                        },
+                    },
+                }
 
             if component_op.dockerfile_path is not None:
                 logger.info(
@@ -186,6 +212,7 @@ class DockerCompiler(Compiler):
                 }
             else:
                 services[component_name]["image"] = component_op.component_spec.image
+
         return {
             "name": pipeline.name,
             "version": "3.8",
@@ -203,8 +230,10 @@ class KubeFlowCompiler(Compiler):
         """Resolve imports for the Kubeflow compiler."""
         try:
             import kfp
+            import kfp.gcp as kfp_gcp
 
             self.kfp = kfp
+            self.kfp_gcp = kfp_gcp
         except ImportError:
             msg = """You need to install kfp to use the Kubeflow compiler,\n
                      you can install it with `pip install fondant[kfp]`"""
@@ -231,16 +260,18 @@ class KubeFlowCompiler(Compiler):
             manifest_path = ""
 
             for component_name, component in pipeline._graph.items():
+                component_op = component["fondant_component_op"]
+
                 metadata = Metadata(
                     pipeline_name=pipeline.name,
                     run_id=run_id,
                     base_path=pipeline.base_path,
                     component_id=component_name,
+                    cache_key=component_op.get_component_cache_key(),
                 )
 
                 logger.info(f"Compiling service for {component_name}")
 
-                component_op = component["fondant_component_op"]
                 # convert ComponentOp to Kubeflow component
                 kubeflow_component_op = self.kfp.components.load_component(
                     text=component_op.component_spec.kubeflow_specification.to_string(),
@@ -260,6 +291,10 @@ class KubeFlowCompiler(Compiler):
                     component_task,
                     component_op,
                 )
+
+                # Set image pull policy to always
+                component_task.container.set_image_pull_policy("Always")
+
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if previous_component_task is not None:
@@ -280,12 +315,22 @@ class KubeFlowCompiler(Compiler):
     def _set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
         number_of_gpus = fondant_component_operation.number_of_gpus
+        node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
+        preemptible = fondant_component_operation.preemptible
 
         # Assign optional specification
         if number_of_gpus is not None:
             task.set_gpu_limit(number_of_gpus)
-        if node_pool_name is not None:
-            task.add_node_selector_constraint("node_pool", node_pool_name)
+        if node_pool_name is not None and node_pool_label is not None:
+            task.add_node_selector_constraint(node_pool_label, node_pool_name)
+        if preemptible is True:
+            logger.warning(
+                f"Preemptible VM enabled on component `{fondant_component_operation.name}`. Please"
+                f" note that Preemptible nodepools only works on clusters setup on GCP and "
+                f"with nodepools pre-configured with preemptible VMs. More info here:"
+                f" https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/",
+            )
+            task.apply(self.kfp_gcp.use_preemptible_nodepool())
 
         return task

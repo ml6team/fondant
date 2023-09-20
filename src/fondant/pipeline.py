@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class ComponentOp:
     """
-    Class representing an operation for a Fondant Component in a Kubeflow Pipeline. An operation
+    Class representing an operation for a Fondant Component in a Fondant Pipeline. An operation
     is a representation of a function that will be executed as part of a pipeline.
 
     Arguments:
@@ -37,6 +37,13 @@ class ComponentOp:
         number_of_gpus: The number of gpus to assign to the operation
          node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
+        cache: Set to False to disable caching, True by default.
+        preemptible: False by default. Set to True to use a preemptible VM.
+         Requires the setup and assignment of a preemptible node pool. Note that preemptibles only
+         work when KFP is setup on GCP. More info here:
+         https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+        cluster_type: The type of cluster to use for distributed execution (default is "local").
+        client_kwargs: Keyword arguments used to initialise the dask client.
         column_mapping_list: List of ColumnMapping instances between a source dataset columns
          and a target component columns. Used to facilitate the alignment of column names
           between different datasets and component specifications.
@@ -44,8 +51,8 @@ class ComponentOp:
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
           arguments.
-        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`
-         attributes are optional and can be used to specify additional
+        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`, `cache`, `cluster_type` and
+        `client_kwargs` attributes are optional and can be used to specify additional
           configurations for the operation. More information on the optional attributes that can
           be assigned to kfp components here:
           https://kubeflow-pipelines.readthedocs.io/en/1.8.13/source/kfp.dsl.html
@@ -62,13 +69,13 @@ class ComponentOp:
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
+        cache: t.Optional[bool] = True,
+        preemptible: t.Optional[bool] = False,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
         column_mapping_list: t.Optional[t.List[ColumnMapping]] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
-        self.component_spec = ComponentSpec.from_file(
-            self.component_dir / self.COMPONENT_SPEC_NAME,
-        )
-        self.name = self.component_spec.name.replace(" ", "_").lower()
         self.input_partition_rows = input_partition_rows
         self.column_mapping = (
             ColumnMapping.list_to_dict(column_mapping_list)
@@ -79,7 +86,30 @@ class ComponentOp:
             self.component_dir / self.COMPONENT_SPEC_NAME,
             column_mapping=self.column_mapping,
         )
-        self.arguments = self._set_arguments(arguments)
+        self.name = self.component_spec.name.replace(" ", "_").lower()
+        self.cache = self._configure_caching_from_image_tag(cache)
+        self.cluster_type = cluster_type
+        self.client_kwargs = client_kwargs
+
+        self.arguments = arguments or {}
+        self._add_component_argument(
+            "input_partition_rows",
+            input_partition_rows,
+            validate_partition_number,
+        )
+        self._add_component_argument("cache", cache)
+        self._add_component_argument("cluster_type", cluster_type)
+        self._add_component_argument("client_kwargs", client_kwargs)
+        self._add_component_argument(
+            "column_mapping",
+            self.column_mapping,
+            validate_column_mapping,
+        )
+
+        self.component_spec = ComponentSpec.from_file(
+            self.component_dir / self.COMPONENT_SPEC_NAME,
+            column_mapping=self.column_mapping,
+        )
 
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
@@ -88,36 +118,66 @@ class ComponentOp:
             node_pool_label,
             node_pool_name,
         )
+        self.preemptible = preemptible
 
-    def _set_arguments(
+    def _configure_caching_from_image_tag(
         self,
-        arguments: t.Optional[t.Dict[str, t.Any]],
-    ) -> t.Dict[str, t.Any]:
-        """Set component arguments based on provided arguments and relevant ComponentOp
-        parameters.
+        cache: t.Optional[bool],
+    ) -> t.Optional[bool]:
         """
-        arguments = arguments or {}
+        Adjusts the caching setting based on the image tag of the component.
 
-        input_partition_rows = validate_partition_number(self.input_partition_rows)
-        column_mapping = validate_column_mapping(self.column_mapping)
+        If the `cache` parameter is set to `True`, this function checks the image tag of
+        the component and disables caching (`cache` set to `False`) if the image tag is "latest".
+        This is because using "latest" image tags can lead to unpredictable behavior due to
+         image updates.
 
-        arguments["input_partition_rows"] = str(input_partition_rows)
-        arguments["column_mapping"] = str(column_mapping)
+        Args:
+            cache: The current caching setting. Set to `True` to enable caching, `False` to disable.
 
-        return arguments
+        Returns:
+            The adjusted caching setting based on the image tag.
+
+        """
+        if cache is True:
+            image_tag = self.component_spec.image.rsplit(":")[-1]
+
+            if image_tag == "latest":
+                logger.warning(
+                    f"Component `{self.name}` has an image tag set to latest. "
+                    f"Caching for the component will be disabled to prevent"
+                    f" unpredictable behavior due to images updates",
+                )
+                return False
+
+        return cache
+
+    def _add_component_argument(
+        self,
+        argument_name: str,
+        argument_value: t.Any,
+        validator: t.Optional[t.Callable] = None,
+    ):
+        """Register component argument to arguments dict as well as component attributes."""
+        if hasattr(self, "arguments") is False:
+            self.arguments = {}
+
+        if argument_value and (not validator or validator(argument_value)):
+            self.argument_name = argument_value
+            self.arguments[argument_name] = argument_value
 
     @staticmethod
     def _validate_node_pool_spec(
         node_pool_label: t.Optional[str],
         node_pool_name: t.Optional[str],
-    ) -> t.Tuple[str, str]:
+    ) -> t.Tuple[t.Optional[str], t.Optional[str]]:
         """Validate node pool specification."""
         if bool(node_pool_label) != bool(node_pool_name):
             msg = "Both node_pool_label and node_pool_name must be specified or both must be None."
             raise InvalidPipelineDefinition(
                 msg,
             )
-        return str(node_pool_label), str(node_pool_name)
+        return node_pool_label, node_pool_name
 
     @property
     def dockerfile_path(self) -> t.Optional[Path]:
@@ -135,6 +195,10 @@ class ComponentOp:
         number_of_gpus: t.Optional[int] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
+        cache: t.Optional[bool] = True,
+        preemptible: t.Optional[bool] = False,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -149,6 +213,14 @@ class ComponentOp:
             column_mapping_list: List of ColumnMapping instances between a source dataset columns
              and a target component columns. Used to facilitate the alignment of column names
               between different datasets and component specifications.
+            cache: Set to False to disable caching, True by default.
+            preemptible: False by default. Set to True to use a preemptible VM.
+             Requires the setup and assignment of a preemptible node pool. Note that preemptibles
+             only work when KFP is setup on GCP. More info here:
+             https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -164,6 +236,10 @@ class ComponentOp:
             number_of_gpus=number_of_gpus,
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
+            cache=cache,
+            preemptible=preemptible,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
         )
 
     def get_component_cache_key(self) -> str:
@@ -343,10 +419,12 @@ class Pipeline:
             base_path=self.base_path,
             run_id=run_id,
             component_id=load_component_name,
+            cache_key="42",
         )
         for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["fondant_component_op"]
             component_spec = fondant_component_op.component_spec
+
             if not load_component:
                 # Check subset exists
                 for (
@@ -398,3 +476,7 @@ class Pipeline:
             load_component = False
 
         logger.info("All pipeline component specifications match.")
+
+    def __repr__(self) -> str:
+        """Return a string representation of the FondantPipeline object."""
+        return f"{self.__class__.__name__}({self._graph!r}"

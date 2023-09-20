@@ -2,16 +2,14 @@ import logging
 import os
 import typing as t
 
-import dask
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
+from dask.distributed import Client
 
 from fondant.component_spec import ComponentSpec, ComponentSubset, SpecMapper
 from fondant.manifest import Manifest
 
 logger = logging.getLogger(__name__)
-
-dask.config.set({"dataframe.convert-string": False})
 
 
 class DataIO:
@@ -95,7 +93,11 @@ class DaskDataLoader(DataIO):
 
         logger.info(f"Loading subset {subset_name} with fields {fields}...")
 
-        subset_df = dd.read_parquet(remote_path, columns=fields)
+        subset_df = dd.read_parquet(
+            remote_path,
+            columns=fields,
+            calculate_divisions=True,
+        )
 
         # Define the default column renaming scheme
         column_rename_dict = {col: f"{subset_name}_{col}" for col in subset_df.columns}
@@ -125,7 +127,7 @@ class DaskDataLoader(DataIO):
         remote_path = index.location
 
         # load index from parquet, expecting id and source columns
-        return dd.read_parquet(remote_path)
+        return dd.read_parquet(remote_path, calculate_divisions=True)
 
     def load_dataframe(self) -> dd.DataFrame:
         """
@@ -147,7 +149,7 @@ class DaskDataLoader(DataIO):
                 subset_df,
                 left_index=True,
                 right_index=True,
-                how="inner",
+                how="left",
             )
 
         dataframe = self.partition_loaded_dataframe(dataframe)
@@ -166,10 +168,14 @@ class DaskDataWriter(DataIO):
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
 
-    def write_dataframe(self, dataframe: dd.DataFrame) -> None:
+    def write_dataframe(
+        self,
+        dataframe: dd.DataFrame,
+        dask_client: t.Optional[Client] = None,
+    ) -> None:
         write_tasks = []
 
-        dataframe.index = dataframe.index.rename("id").astype("string")
+        dataframe.index = dataframe.index.rename("id")
 
         # Turn index into an empty dataframe so we can write it
         index_df = dataframe.index.to_frame().drop(columns=["id"])
@@ -195,7 +201,8 @@ class DaskDataWriter(DataIO):
 
         with ProgressBar():
             logging.info("Writing data...")
-            dd.compute(*write_tasks)
+            # alternative implementation possible: futures = client.compute(...)
+            dd.compute(*write_tasks, scheduler=dask_client)
 
     @staticmethod
     def _extract_subset_dataframe(

@@ -24,6 +24,8 @@ from fondant.executor import (
 from fondant.manifest import Manifest, Metadata
 
 components_path = Path(__file__).parent / "example_specs/components"
+base_path = Path(__file__).parent / "example_specs/mock_base_path"
+
 N_PARTITIONS = 2
 
 
@@ -36,10 +38,11 @@ def yaml_file_to_json_string(file_path):
 @pytest.fixture()
 def metadata():
     return Metadata(
-        pipeline_name="pipeline",
-        base_path="/bucket",
-        component_id="load_component",
-        run_id="12345",
+        pipeline_name="example_pipeline",
+        base_path=str(base_path),
+        component_id="component_2",
+        run_id="example_pipeline_2024",
+        cache_key="42",
     )
 
 
@@ -57,7 +60,7 @@ def _patched_data_loading(monkeypatch):
 def _patched_data_writing(monkeypatch):
     """Mock data loading so no actual data is written."""
 
-    def mocked_write_dataframe(self, dataframe):
+    def mocked_write_dataframe(self, dataframe, dask_client=None):
         dataframe.compute()
 
     monkeypatch.setattr(DaskDataWriter, "write_dataframe", mocked_write_dataframe)
@@ -94,6 +97,8 @@ def test_component_arguments(metadata):
         str(components_path / "arguments/output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--cache",
+        "True",
         "--column_mapping",
         '{"col_1": "col_2"}',
         "--input_partition_rows",
@@ -120,6 +125,7 @@ def test_component_arguments(metadata):
     expected_column_mapping = {"col_1": "col_2"}
     assert executor.input_partition_rows == expected_partition_row_arg
     assert executor.column_mapping == expected_column_mapping
+    assert executor.cache is True
     assert executor.user_arguments == {
         "string_default_arg": "foo",
         "integer_default_arg": 0,
@@ -140,6 +146,92 @@ def test_component_arguments(metadata):
     }
 
 
+def test_run_with_cache(metadata, monkeypatch):
+    input_manifest_path = str(components_path / "arguments/input_manifest.json")
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        input_manifest_path,
+        "--metadata",
+        metadata.to_json(),
+        "--output_manifest_path",
+        str(components_path / "arguments/output_manifest.json"),
+        "--component_spec",
+        yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--cache",
+        "True",
+        "--input_partition_rows",
+        "100",
+        "--override_default_arg",
+        "bar",
+        "--override_default_none_arg",
+        "3.14",
+        "--override_default_arg_with_none",
+        "None",
+        "--cluster_type" "local" "--client_kwargs" "{}",
+    ]
+
+    class MyExecutor(Executor):
+        """Base component with dummy methods so it can be instantiated."""
+
+        def _load_or_create_manifest(self) -> Manifest:
+            pass
+
+        def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+            pass
+
+    executor = MyExecutor.from_args()
+    matching_execution_manifest = executor._get_cached_manifest()
+    # Check that the latest manifest is returned
+    assert matching_execution_manifest.run_id == "example_pipeline_2023"
+    # Check that the previous component is cached due to similar run IDs
+    assert executor._is_previous_cached(Manifest.from_file(input_manifest_path)) is True
+
+
+def test_run_with_no_cache(metadata):
+    input_manifest_path = str(components_path / "arguments/input_manifest.json")
+
+    # Change metadata to a new cache key that's not cached
+    metadata.cache_key = "123"
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        input_manifest_path,
+        "--metadata",
+        metadata.to_json(),
+        "--output_manifest_path",
+        str(components_path / "arguments/output_manifest.json"),
+        "--component_spec",
+        yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--cache",
+        "True",
+        "--input_partition_rows",
+        "100",
+        "--override_default_arg",
+        "bar",
+        "--override_default_none_arg",
+        "3.14",
+        "--override_default_arg_with_none",
+        "None",
+    ]
+
+    class MyExecutor(Executor):
+        """Base component with dummy methods so it can be instantiated."""
+
+        def _load_or_create_manifest(self) -> Manifest:
+            pass
+
+        def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+            pass
+
+    executor = MyExecutor.from_args()
+    matching_execution_manifest = executor._get_cached_manifest()
+    # Check that the latest manifest is returned
+    assert matching_execution_manifest is None
+
+
 @pytest.mark.usefixtures("_patched_data_writing")
 def test_load_component(metadata):
     # Mock CLI arguments load
@@ -156,6 +248,8 @@ def test_load_component(metadata):
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--cache",
+        "False",
     ]
 
     class MyLoadComponent(DaskLoadComponent):
@@ -201,6 +295,8 @@ def test_dask_transform_component(metadata):
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--cache",
+        "False",
     ]
 
     class MyDaskComponent(DaskTransformComponent):
@@ -244,6 +340,8 @@ def test_pandas_transform_component(metadata):
         str(components_path / "output_manifest.json"),
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--cache",
+        "False",
     ]
 
     class MyPandasComponent(PandasTransformComponent):
@@ -358,6 +456,8 @@ def test_write_component(metadata):
         "1",
         "--component_spec",
         yaml_file_to_json_string(components_path / "component.yaml"),
+        "--cache",
+        "False",
     ]
 
     class MyWriteComponent(DaskWriteComponent):
