@@ -118,6 +118,77 @@ default to `true`, which means that by default untouched data is passed on to th
 
 Please check the [examples](#examples) below to build a better understanding.
 
+#### Mapping Subset and Fields
+
+To enhance component reusability, you can remap dataset columns to match the names expected by a specific component, 
+as outlined in the component specification. This process is illustrated through the following example:
+
+
+<table>
+<tr>
+<th width="500px">Input dataset</th>
+<th width="500px">Component spec</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "subsets": {
+    "pictures": {
+      "location": "...",
+      "fields": {
+        "array": {
+          "type": "array",
+            "items": {
+              "type": "int8"
+            }
+          }
+        }
+      }
+    }
+  }
+```
+
+</td>
+<td>
+
+
+```yaml
+consumes:
+  images:
+    fields:
+      data:
+        type: array
+        items:
+          type: int8
+```
+
+</td>
+</tr>
+</table>
+
+
+In this scenario, you have a dataset with a column named `pictures_array`, where `pictures` represents a subset,
+and `array` is a field within that subset.
+However, you wish to use a component that expects a similar image array but is named differently, i.e., `images_data`, where 
+`images` is the subset, and `data` is the field within that subset. To align the dataset column names
+with the component specification names, you can use the `columns_mapping_list` argument:
+
+```python
+from fondant.pipeline import ComponentOp
+from fondant.component_spec import ColumnMapping
+
+custom_op = ComponentOp(
+    component_dir="components/custom_component",
+    columns_mapping_list=[
+        ColumnMapping(dataset_column="pictures_array", component_column="images_data")
+   ]
+)
+```
+
+**Note:** It is not possible to map subsets with different schemas.
+
 ### Args
 
 The `args` section describes which arguments the component takes. Each argument is defined by a 
