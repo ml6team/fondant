@@ -10,6 +10,8 @@ from fondant.pipeline import ComponentOp, Pipeline
 def create_directory_if_not_exists(path):
     p_base_path = Path(path).resolve()
     p_base_path.mkdir(parents=True, exist_ok=True)
+    cache_dir = p_base_path / PIPELINE_NAME / "cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
     return str(p_base_path)
 
 
@@ -36,7 +38,7 @@ load_component_column_mapping = {
 load_from_hf_hub = ComponentOp(
     component_dir="components/load_from_hf_hub",
     arguments={
-        "dataset_name": "fondant-ai/fondant-cc-25m",
+        "dataset_name": "mrchtr/cc-test",
         "column_name_mapping": load_component_column_mapping,
         "n_rows_to_load": 100,
     },

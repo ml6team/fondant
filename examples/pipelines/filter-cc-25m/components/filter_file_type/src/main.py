@@ -24,5 +24,4 @@ class FileTypeFilter(PandasTransformComponent):
         dataframe[("images", "mime_type")] = dataframe[("images", "url")].apply(
             self.get_mime_type
         )
-        print(dataframe.head())
         return dataframe[dataframe[("images", "mime_type")] == self.mime_type]
