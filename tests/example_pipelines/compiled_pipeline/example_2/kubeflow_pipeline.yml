@@ -1,13 +1,10 @@
+# PIPELINE DEFINITION
+# Name: testpipeline
+# Description: description of the test pipeline
 components:
   comp-first-component:
     executorLabel: exec-first-component
     inputDefinitions:
-      artifacts:
-        input_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          isOptional: true
       parameters:
         cache:
           defaultValue: true
@@ -17,28 +14,21 @@ components:
           defaultValue: {}
           isOptional: true
           parameterType: STRUCT
+        input_manifest_path:
+          isOptional: true
+          parameterType: STRING
         input_partition_rows:
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
           parameterType: STRING
+        output_manifest_path:
+          parameterType: STRING
         storage_args:
           parameterType: STRING
-    outputDefinitions:
-      artifacts:
-        output_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
   comp-image-cropping:
     executorLabel: exec-image-cropping
     inputDefinitions:
-      artifacts:
-        input_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
-          isOptional: true
       parameters:
         cache:
           defaultValue: true
@@ -52,28 +42,27 @@ components:
           defaultValue: -30.0
           isOptional: true
           parameterType: NUMBER_INTEGER
+        input_manifest_path:
+          isOptional: true
+          parameterType: STRING
         input_partition_rows:
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
           parameterType: STRING
+        output_manifest_path:
+          parameterType: STRING
         padding:
           defaultValue: 10.0
           isOptional: true
           parameterType: NUMBER_INTEGER
-    outputDefinitions:
-      artifacts:
-        output_manifest_path:
-          artifactType:
-            schemaTitle: system.Artifact
-            schemaVersion: 0.0.1
 deploymentSpec:
   executors:
     exec-first-component:
       container:
         args:
         - --input_manifest_path
-        - '{{$.inputs.artifacts[''input_manifest_path''].uri}}'
+        - '{{$.inputs.parameters[''input_manifest_path'']}}'
         - --metadata
         - '{{$.inputs.parameters[''metadata'']}}'
         - --component_spec
@@ -82,10 +71,22 @@ deploymentSpec:
         - '{{$.inputs.parameters[''input_partition_rows'']}}'
         - --cache
         - '{{$.inputs.parameters[''cache'']}}'
+        - --input_manifest_path
+        - '{{$.inputs.parameters[''input_manifest_path'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --input_partition_rows
+        - '{{$.inputs.parameters[''input_partition_rows'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        - --output_manifest_path
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
         - --storage_args
         - '{{$.inputs.parameters[''storage_args'']}}'
         - --output_manifest_path
-        - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
         command:
         - fondant
         - execute
@@ -95,7 +96,7 @@ deploymentSpec:
       container:
         args:
         - --input_manifest_path
-        - '{{$.inputs.artifacts[''input_manifest_path''].uri}}'
+        - '{{$.inputs.parameters[''input_manifest_path'']}}'
         - --metadata
         - '{{$.inputs.parameters[''metadata'']}}'
         - --component_spec
@@ -104,12 +105,24 @@ deploymentSpec:
         - '{{$.inputs.parameters[''input_partition_rows'']}}'
         - --cache
         - '{{$.inputs.parameters[''cache'']}}'
+        - --input_manifest_path
+        - '{{$.inputs.parameters[''input_manifest_path'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --input_partition_rows
+        - '{{$.inputs.parameters[''input_partition_rows'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        - --output_manifest_path
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
         - --cropping_threshold
         - '{{$.inputs.parameters[''cropping_threshold'']}}'
         - --padding
         - '{{$.inputs.parameters[''padding'']}}'
         - --output_manifest_path
-        - '{{$.outputs.artifacts[''output_manifest_path''].uri}}'
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
         command:
         - fondant
         - execute
@@ -155,6 +168,9 @@ root:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
                   "run_id": "testpipeline-20230101000000", "component_id": "first_component",
                   "cache_key": "1"}'
+            output_manifest_path:
+              runtimeValue:
+                constant: /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
             storage_args:
               runtimeValue:
                 constant: a dummy string arg
@@ -168,11 +184,6 @@ root:
         dependentTasks:
         - first-component
         inputs:
-          artifacts:
-            input_manifest_path:
-              taskOutputArtifact:
-                outputArtifactKey: output_manifest_path
-                producerTask: first-component
           parameters:
             cache:
               runtimeValue:
@@ -213,11 +224,17 @@ root:
             cropping_threshold:
               runtimeValue:
                 constant: 0.0
+            input_manifest_path:
+              runtimeValue:
+                constant: /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
                   "run_id": "testpipeline-20230101000000", "component_id": "image_cropping",
                   "cache_key": "2"}'
+            output_manifest_path:
+              runtimeValue:
+                constant: /foo/bar/testpipeline/testpipeline-20230101000000/image_cropping/manifest.json
             padding:
               runtimeValue:
                 constant: 0.0
