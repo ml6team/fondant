@@ -221,8 +221,7 @@ class Executor(t.Generic[Component]):
             Input and output arguments of the component.
         """
         component_arguments: t.Dict[str, Argument] = {}
-        component_arguments.update(spec.input_arguments)
-        component_arguments.update(spec.output_arguments)
+        component_arguments.update(spec.args)
         return component_arguments
 
     @abstractmethod
