@@ -299,14 +299,18 @@ class KubeFlowCompiler(Compiler):
                     cache_key=component_op.get_component_cache_key(),
                 )
 
-                output_manifest_path = f"{pipeline.base_path}/{pipeline.name}/"
-                f"{run_id}/{component_name}/manifest.json"
+                output_manifest_path = (
+                    f"{pipeline.base_path}/{pipeline.name}/"
+                    f"{run_id}/{component_name}/manifest.json"
+                )
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if component["dependencies"]:
                     for dependency in component["dependencies"]:
-                        input_manifest_path = f"{pipeline.base_path}/{pipeline.name}/"
-                        f"{run_id}/{dependency}/manifest.json"
+                        input_manifest_path = (
+                            f"{pipeline.base_path}/{pipeline.name}/"
+                            f"{run_id}/{dependency}/manifest.json"
+                        )
                         component_task = kubeflow_component_op(
                             input_manifest_path=input_manifest_path,
                             output_manifest_path=output_manifest_path,
@@ -425,14 +429,18 @@ class VertexCompiler(Compiler):
                     cache_key=component_op.get_component_cache_key(),
                 )
 
-                output_manifest_path = f"{pipeline.base_path}/{pipeline.name}/"
-                f"{run_id}/{component_name}/manifest.json"
+                output_manifest_path = (
+                    f"{pipeline.base_path}/{pipeline.name}/"
+                    f"{run_id}/{component_name}/manifest.json"
+                )
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if component["dependencies"]:
                     for dependency in component["dependencies"]:
-                        input_manifest_path = f"{pipeline.base_path}/{pipeline.name}/"
-                        f"{run_id}/{dependency}/manifest.json"
+                        input_manifest_path = (
+                            f"{pipeline.base_path}/{pipeline.name}/"
+                            f"{run_id}/{dependency}/manifest.json"
+                        )
                         component_task = kubeflow_component_op(
                             input_manifest_path=input_manifest_path,
                             output_manifest_path=output_manifest_path,
