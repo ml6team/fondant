@@ -188,9 +188,12 @@ class Executor(t.Generic[Component]):
             if arg.name in cls.optional_fondant_arguments():
                 input_required = False
                 default = None
-            elif arg.default is not None or arg.optional is True:
+            elif arg.default is not None and arg.optional is False:
                 input_required = False
                 default = arg.default
+            elif arg.default is not None and arg.optional is True:
+                input_required = False
+                default = None
             else:
                 input_required = True
                 default = None
@@ -204,6 +207,10 @@ class Executor(t.Generic[Component]):
             )
 
         args, _ = parser.parse_known_args()
+        args.__dict__ = {
+            k: v if v != "None" else None for k, v in args.__dict__.items()
+        }
+
         return args
 
     @staticmethod
@@ -415,7 +422,7 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
 
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
-        return ["input_manifest_path"]
+        return ["input_manifest_path", "input_partition_rows"]
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.create(
@@ -479,6 +486,10 @@ class DaskTransformExecutor(TransformExecutor[DaskTransformComponent]):
 
 
 class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
+    @staticmethod
+    def optional_fondant_arguments() -> t.List[str]:
+        return ["input_manifest_path", "input_partition_rows"]
+
     @staticmethod
     def wrap_transform(transform: t.Callable, *, spec: ComponentSpec) -> t.Callable:
         """Factory that creates a function to wrap the component transform function. The wrapper:
@@ -583,7 +594,7 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
 
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
-        return ["output_manifest_path"]
+        return ["input_partition_rows", "output_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.input_manifest_path)
