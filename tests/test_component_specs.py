@@ -6,11 +6,7 @@ from unittest.mock import patch
 
 import pytest
 import yaml
-from fondant.component_spec import (
-    ComponentSpec,
-    ComponentSubset,
-    KubeflowComponentSpec,
-)
+from fondant.component_spec import ComponentSpec, ComponentSubset, KubeflowComponentSpec
 from fondant.exceptions import InvalidComponentSpec
 from fondant.schema import Type
 
@@ -84,7 +80,7 @@ def test_component_spec_no_args(valid_fondant_schema_no_args):
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
-    assert fondant_component.args == {}
+    assert fondant_component.args == fondant_component.default_arguments
 
 
 def test_component_spec_to_file(valid_fondant_schema):
