@@ -65,5 +65,4 @@ args:
   optional_arg:
     description: optional argument
     type: str
-    optional: True
     default: None

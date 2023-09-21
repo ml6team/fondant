@@ -126,15 +126,15 @@ def test_component_arguments(metadata):
         "list_default_arg": ["foo", "bar"],
         "dict_default_arg": {"foo": 1, "bar": 2},
         "string_default_arg": "foo",
-        "string_default_arg_none": "None",
+        "string_default_arg_none": None,
         "integer_default_arg_none": 0,
         "float_default_arg_none": 0.0,
         "bool_default_arg_none": False,
         "list_default_arg_none": [],
         "dict_default_arg_none": {},
         "override_default_arg": "bar",
-        "override_default_arg_with_none": "None",
-        "optional_arg": "None",
+        "override_default_arg_with_none": None,
+        "optional_arg": None,
     }
 
 
