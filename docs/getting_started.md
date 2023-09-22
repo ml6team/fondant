@@ -20,7 +20,7 @@ fondant --help
 ```
 
 ## Demo
-For demonstration purposes, we provide sample pipelines in the Fondant GitHub repository. A great starting point is the pipeline that loads and filters creative commons images. To follow along with the upcoming instructions, you can clone the repository and navigate to the examples/pipelines/filter-cc-25m folder.
+For demonstration purposes, we provide sample pipelines in the Fondant GitHub repository. A great starting point is the pipeline that loads and filters creative commons images. To follow along with the upcoming instructions, you can clone the [repository](https://github.com/ml6team/fondant) and navigate to the `examples/pipelines/filter-cc-25m` folder.
 
 This pipeline loads an image dataset and reduces the dataset to png files. For more details on how you can build this pipeline from scratch, check out our [Tutorial](tuturials/tutorial_1.md). 
 
