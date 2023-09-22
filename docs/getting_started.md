@@ -5,6 +5,12 @@ Have a look at this page to learn how to run your first Fondant pipeline. It pro
 ## Prerequisite
 In this example, we will utilise Fondant's LocalRunner, which leverages docker compose for the pipeline execution. Therefore, it's important to ensure that docker compose is correctly installed.
 
+## Some things to pay attention to
+
+For M1/M2 ship users:
+- Make sure that Docker uses linux/amd64 platform and not arm64. 
+- In Docker Dashboards’ Settings<Features in development, make sure to uncheck `Use containerid for pulling and storing images` .
+
 ## Installation
 We suggest that you use a virtual environment for your project. Fondant supports Python >=3.8.
 To install Fondant via Pip, run:
@@ -22,7 +28,7 @@ fondant --help
 ## Demo
 For demonstration purposes, we provide sample pipelines in the Fondant GitHub repository. A great starting point is the pipeline that loads and filters creative commons images. To follow along with the upcoming instructions, you can clone the [repository](https://github.com/ml6team/fondant) and navigate to the `examples/pipelines/filter-cc-25m` folder.
 
-This pipeline loads an image dataset and reduces the dataset to png files. For more details on how you can build this pipeline from scratch, check out our [Tutorial](tuturials/tutorial_1.md). 
+This pipeline loads an image dataset and reduces the dataset to png files. For more details on how you can build this pipeline from scratch, check out our [guide](/docs/guides/build_a_simple_pipeline.md). 
 
 ## Running the sample pipeline and explore the data
 After navigating to the pipeline directory, we can run the pipeline by using the LocalRunner as follow:
@@ -37,4 +43,4 @@ fondant explore --base_path ./data
 ```
 
 ### Custom pipelines
-Fondant enables you to leverage existing reusable components and integrate them with custom components. To delve deeper into creating your own pipelines, please explore our [Tutorial](tuturials/tutorial_1.md). There, you will gain insights into components, various component types, and how to effectively utilise them.
+Fondant enables you to leverage existing reusable components and integrate them with custom components. To delve deeper into creating your own pipelines, please explore our [guide](/docs/guides/build_a_simple_pipeline.md). There, you will gain insights into components, various component types, and how to effectively utilise them.

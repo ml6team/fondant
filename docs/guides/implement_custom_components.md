@@ -1,15 +1,15 @@
-# Tutorial 2 - Implement custom components
+# Guide - Implement custom components
 
 **Level**: Beginner
 **Time**: 20min
 **Goal**: After completing this tutorial with Fondant, you will be able to build your own custom component and integrate it into a fondant pipeline. 
 
 **Prerequisite**: Make sure docker compose is installed on your local system.
-We recommend completing the first tutorial before proceeding with this one, as this tutorial builds upon the knowledge gained in the previous one.
+We recommend completing the [first tutorial](/docs/guides/build_a_simple_pipeline.md) before proceeding with this one, as this tutorial builds upon the knowledge gained in the previous one.
 
 ## Overview
 
-In the initial tutorial, you learned how to create your first Fondant pipeline. While the example demonstrates initialising the dataset from HuggingFace and using a reusable component to download images, this is just the beginning.
+In the [initial tutorial](/docs/guides/build_a_simple_pipeline.md), you learned how to create your first Fondant pipeline. While the example demonstrates initialising the dataset from HuggingFace and using a reusable component to download images, this is just the beginning.
 
 The true power of Fondant lies in its capability to enable you to construct your own data pipelines to create high-quality datasets. To achieve this, we need to implement custom components.
 
@@ -22,13 +22,13 @@ This pipeline is an extension of the one introduced in the first tutorial. After
 
 A component comprises several key elements. First, there's the ComponentSpec YAML file, serving as a blueprint for the component. It defines crucial aspects such as input and output dataframes, along with component arguments.
 
-![component architecture](/docs/art/tutorials/component.png)
+![component architecture](/docs/art/guides/component.png)
 
 The second essential part is a python class, which encapsulates the business logic that operates on the input dataframe.
 
 In addition to these core components, there are a few other necessary items, including a `Dockerfile` used for building the component and a `requirements.txt` file to specify and install required dependencies. You can find a more detailed explanation [here](custom_components.md).
 
-## Creating the ComponentSpec
+### Creating the ComponentSpec
 
 First of all we create the following ComponentSpec (fondant_component.yaml) file in the folder `components/filter_images`: 
 
@@ -61,7 +61,7 @@ Following this, we define the structure of input and output dataframes, consumes
 
 Lastly, we define custom arguments that the component will support. In our case, we include the `mime_type argument`, which allows us to filter images by different file types in the future.
 
-## Creating the Component
+### Creating the Component
 
 Now, it's time to outline the component logic. To do this, we'll create a `main.py` file within the `components/filter_images/src directory`:
 
@@ -103,7 +103,7 @@ By doing this, we create a custom component that inherits from a `PandasTransfor
 In this particular example, our component guesses the MIME type of each image based on its URL. Subsequently, it adds this information to the `images` subset of the dataframe and returns the filtered dataset based on the desired MIME type.
 
 
-##Build the component
+## Build the component
 
 
 To use the component, Fondant must package it into an executable Docker image. To achieve this, we need to define a Dockerfile. You can create this file within the `components/filter_images` folder using the following content:
@@ -139,7 +139,7 @@ As part of the Dockerfile build process, we install necessary dependencies. Cons
 
 ## Make use of your component
 
-To utilise your component, you can incorporate it into the pipeline created in [Tutorial 1](tutorials/tutorial_1.md). To do this, you'll need to add the following code to the `pipeline.py` file:
+To utilise your component, you can incorporate it into the pipeline created in [this guide](/docs/guides/build_a_simple_pipeline.md). To do this, you'll need to add the following code to the `pipeline.py` file:
 
 ```python
 # Filter mime type component
@@ -169,9 +169,3 @@ We have designed the custom component to be easily adaptable. For example, if yo
 We now have a simple pipeline that downloads a dataset from HuggingFace hub and outputs the dataset filtered by PNG images. A possible next step is to create a component that **filters the data based on the aspect ratio**? Or **run a CLIP model on the images to get embeddings**?
 
 Expanding upon the concept of custom component implementation, you have the flexibility to create additional custom components. For example, you can design custom components to filter out NSFW (Not Safe For Work) content or to identify and exclude images containing watermarks.
-
-## Some things to pay attention to
-
-For M1/M2 ship users:
-- Make sure that Docker uses linux/amd64 platform and not arm64. 
-- In Docker Dashboards’ Settings<Features in development, make sure to uncheck `Use containerid for pulling and storing images` .
