@@ -3,6 +3,7 @@ from pathlib import Path
 import logging
 import sys
 
+logger = logging.getLogger(__name__)
 sys.path.append("../")
 from fondant.pipeline import ComponentOp, Pipeline
 
@@ -10,12 +11,8 @@ from fondant.pipeline import ComponentOp, Pipeline
 def create_directory_if_not_exists(path):
     p_base_path = Path(path).resolve()
     p_base_path.mkdir(parents=True, exist_ok=True)
-    cache_dir = p_base_path / PIPELINE_NAME / "cache"
-    cache_dir.mkdir(parents=True, exist_ok=True)
     return str(p_base_path)
 
-
-logger = logging.getLogger(__name__)
 
 PIPELINE_NAME = "cc-image-filter-pipeline"
 PIPELINE_DESCRIPTION = "Load cc image dataset and reduce to PNG files"
@@ -38,24 +35,19 @@ load_component_column_mapping = {
 load_from_hf_hub = ComponentOp(
     component_dir="components/load_from_hf_hub",
     arguments={
-        "dataset_name": "mrchtr/cc-test",
+        "dataset_name": "fondant-ai/fondant-cc-25m",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 100,
+        "n_rows_to_load": 1000,
     },
-    cache=False,
 )
 
 # Filter mime type component
 filter_mime_type = ComponentOp(
-    component_dir="components/filter_file_type",
-    arguments={"mime_type": "image/png"},
-    cache=False,
+    component_dir="components/filter_file_type", arguments={"mime_type": "image/png"}
 )
 
 # Download images component
-download_images = ComponentOp(
-    component_dir="components/download_images", arguments={}, cache=False
-)
+download_images = ComponentOp.from_registry(name="download_images", arguments={})
 
 
 # Add components to the pipeline

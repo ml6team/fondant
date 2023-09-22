@@ -7,7 +7,7 @@ commons image dataset within a fondant pipeline. This dataset comprises images f
 and is available in various data formats. In this illustrative example, our objective is to refine
 the dataset to exclusively include PNG files.
 
-We with the initialization of the image dataset sourced from HuggingFace.
+We start with the initialization of the image dataset sourced from HuggingFace.
 Afterwards, we narrow down the dataset contents to exclusively encompass PNG files. Finally, we
 proceed with the downloading of these carefully selected images. Accomplishing these tasks
 necessitates the use of both pre-built reusable components (HuggingFace dataset loading and image
@@ -25,7 +25,6 @@ The directory structure is organized as follows:
 ```
 .
 ├── components
-│ ├── download_images
 │ ├── filter_file_type
 │ └── load_from_hf_hub
 └── pipeline.py
@@ -37,7 +36,7 @@ Within this folder, you will find the following items:
   execution.
 - components: This directory contains three distinct components.
 
-The load_from_hub and download_images components are reusable components, while the filter_file_type
+The `load_from_hub` and `download_images` components are reusable components, while the `filter_file_type`
 component serves as an illustrative example of a custom component.
 
 - The load_from_hf_hub component is used to initialise the dataset from huggingface hub.
@@ -47,7 +46,7 @@ component serves as an illustrative example of a custom component.
 
 ## Running the sample pipeline and explore the data
 
-Accoridingly, the getting started documenation, we can run the pipeline by using the `LocalRunner`
+Accordingly, the getting started documentation, we can run the pipeline by using the `LocalRunner`
 as follow:
 
 ```bash
@@ -57,7 +56,7 @@ fondant run pipeline --local
 After the pipeline is succeeded you can explore the data by using the fondant data explorer:
 
 ```bash
-fondant explore --base_path ./data-dir
+fondant explore --base_path ./data
 ```
 
 ### Customize the base pipeline
