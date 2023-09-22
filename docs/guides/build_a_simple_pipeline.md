@@ -47,7 +47,7 @@ If you want to learn more about components, you can check out the [components do
 ### First component to load the dataset
 
 For every pipeline, the initial step is data initialization. In our case, we aim to load the dataset into our pipeline base from HuggingFace. Fortunately, there is already a generic component available called `load_from_hub`.
-This component is categorised as a generic component because the structure of the datasets we load from HuggingFace can vary from one dataset to another. While we can leverage the implemented business logic of the component, we must customise the ComponentSpec. This customization is necessary to inform the component about the specific columns it will produce.
+This component is categorised as a generic component because the structure of the datasets we load from HuggingFace can vary from one dataset to another. While we can leverage the implemented business logic of the component, we must customise the component spec. This customization is necessary to inform the component about the specific columns it will produce.
 To utilise this component, it's time to create your first component spec.
 Create a folder `component/load_from_hub` and create a `fondant_component.yaml` with the following content:
 
@@ -93,8 +93,8 @@ args:
     default: None
 ```
 
-As mentioned earlier, the ComponentSpec specifies the data structure consumed and/or produced by the component. In this case, the component solely produces data, and this structure is defined within the `produce` section. Fondant operates with hierarchical column structures. In our example, we are defining a column called images with several subset fields.
-Now that we have created the ComponentSpec, we can incorporate the component into our python code. The next steps involve initialising the component from the ComponentSpec and adding it to our pipeline using the following code:
+As mentioned earlier, the component spec specifies the data structure consumed and/or produced by the component. In this case, the component solely produces data, and this structure is defined within the `produces` section. Fondant operates with hierarchical column structures. In our example, we are defining a column called images with several subset fields.
+Now that we have created the component spec, we can incorporate the component into our python code. The next steps involve initialising the component from the component spec and adding it to our pipeline using the following code:
 
 ```python
 from fondant.pipeline import ComponentOp

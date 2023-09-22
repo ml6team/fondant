@@ -39,7 +39,7 @@ fondant run pipeline --local
 The sample pipeline will run and execute three steps, which you can monitor in the logs. It will load data from HuggingFace, filter out images, and then download those images. The pipeline results will be saved to parquet files. If you wish to visually explore the results, you can use the data explorer.
 The following command will start the data explorer:
 ```
-fondant explore --base_path ./data
+fondant explore --base_path <base_path_dir>
 ```
 
 ### Custom pipelines

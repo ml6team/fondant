@@ -67,7 +67,7 @@ Now, it's time to outline the component logic. To do this, we'll create a `main.
 
 
 ```python
-"""A component that downloads common crawl files."""
+"""A component that filters images based on file type."""
 import logging
 import mimetypes
 import pandas as pd
@@ -103,7 +103,7 @@ By doing this, we create a custom component that inherits from a `PandasTransfor
 In this particular example, our component guesses the MIME type of each image based on its URL. Subsequently, it adds this information to the `images` subset of the dataframe and returns the filtered dataset based on the desired MIME type.
 
 
-## Build the component
+### Build the component
 
 
 To use the component, Fondant must package it into an executable Docker image. To achieve this, we need to define a Dockerfile. You can create this file within the `components/filter_images` folder using the following content:
@@ -134,7 +134,8 @@ COPY src/ .
 ENTRYPOINT ["fondant", "execute", "main"]
 ```
 
-As part of the Dockerfile build process, we install necessary dependencies. Consequently, we must create a `requirements.txt` file in the `components/filter_images` folder. If your components logic demands custom libraries, you can include them in the requirements.txt file.
+As part of the Dockerfile build process, we install necessary dependencies. Consequently, we must create a `requirements.txt` file in the `components/filter_images` folder. If your components logic demands custom libraries, you can include them in the requirements.txt file but for this example it can be empty since we don't need any extra libraries.
+
 
 
 ## Make use of your component
