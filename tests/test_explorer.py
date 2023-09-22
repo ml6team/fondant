@@ -46,6 +46,8 @@ def test_run_data_explorer_local_base_path(host_path, container_path, credential
             [
                 "docker",
                 "run",
+                "--pull",
+                "always",
                 "--name",
                 "fondant-explorer",
                 "--rm",
@@ -54,7 +56,7 @@ def test_run_data_explorer_local_base_path(host_path, container_path, credential
                 "-v",
                 f"{credentials}:ro",
                 "-v",
-                f"{Path(host_path).resolve()}:{container_path}",
+                f"/{Path(host_path).resolve()}:/{container_path}",
                 f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
                 "--base_path",
                 f"{container_path}",
@@ -78,6 +80,8 @@ def test_run_data_explorer_remote_base_path(remote_path, credentials):
             [
                 "docker",
                 "run",
+                "--pull",
+                "always",
                 "--name",
                 "fondant-explorer",
                 "--rm",
