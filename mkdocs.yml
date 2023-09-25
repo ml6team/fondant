@@ -41,7 +41,6 @@ nav:
   - Data explorer: data_explorer.md
   - Infrastructure: infrastructure.md
   - Manifest: manifest.md
-  - Contributing: contributing.md
 
 plugins:
   - mkdocstrings
@@ -61,3 +60,4 @@ markdown_extensions:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
   - admonition
+  - def_list

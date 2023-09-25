@@ -1,45 +1,40 @@
 # Getting started
 
-Have a look at this page to learn how to run your first Fondant pipeline. It provides instructions for installing, executing a sample pipeline, and visually exploring the pipeline results using Fondant on your local machine.
+Note: To execute the pipeline locally, you must have docker compose, Python >=3.8 and Git installed on your system.
 
-## Prerequisite
-In this example, we will utilise Fondant's LocalRunner, which leverages docker compose for the pipeline execution. Therefore, it's important to ensure that docker compose is correctly installed.
+Note: For Apple M1/M2 ship users: - Make sure that Docker uses linux/amd64 platform and not arm64. - In Docker Dashboards’ Settings<Features in development, make sure to uncheck Use containerid for pulling and storing images .
 
-## Some things to pay attention to
-
-For M1/M2 ship users:
-- Make sure that Docker uses linux/amd64 platform and not arm64. 
-- In Docker Dashboards’ Settings<Features in development, make sure to uncheck `Use containerid for pulling and storing images` .
-
-## Installation
-We suggest that you use a virtual environment for your project. Fondant supports Python >=3.8.
-To install Fondant via Pip, run:
-
-```
-pip install fondant
-```
-
-You can validate the installation of fondant by running its root CLI command:
-
-```
-fondant --help
-```
-
-## Demo
 For demonstration purposes, we provide sample pipelines in the Fondant GitHub repository. A great starting point is the pipeline that loads and filters creative commons images. To follow along with the upcoming instructions, you can clone the [repository](https://github.com/ml6team/fondant) and navigate to the `examples/pipelines/filter-cc-25m` folder.
 
 This pipeline loads an image dataset and reduces the dataset to png files. For more details on how you can build this pipeline from scratch, check out our [guide](/docs/guides/build_a_simple_pipeline.md). 
 
-## Running the sample pipeline and explore the data
-After navigating to the pipeline directory, we can run the pipeline by using the LocalRunner as follow:
+Install Fondant by running:
+```
+pip install fondant
+```
+
+Clone the Fondant GitHub repository
+```
+git clone https://github.com/ml6team/fondant.git
+```
+Make sure that Docker Compose is running, navigate to fondant/examples/pipelines/filter-cc-25m, and initiate the pipeline by executing:
 ```
 fondant run pipeline --local
 ```
-
-The sample pipeline will run and execute three steps, which you can monitor in the logs. It will load data from HuggingFace, filter out images, and then download those images. The pipeline results will be saved to parquet files. If you wish to visually explore the results, you can use the data explorer.
-The following command will start the data explorer:
+Note: For local testing purposes, the pipeline will only download the first 100,000 images. If you want to download the full dataset, you will need to modify the component arguments in the pipeline.py file, specifically the following part:
+```python
+load_from_hf_hub = ComponentOp(
+    component_dir="components/load_from_hf_hub",
+    arguments={
+        "dataset_name": "fondant-ai/fondant-cc-25m",
+        "column_name_mapping": load_component_column_mapping,
+        "n_rows_to_load": <HERE INSERT THE NUMBER OF IMAGES YOU WANT TO DOWNLOAD>
+    },
+)
 ```
-fondant explore --base_path <base_path_dir>
+To visually inspect the results quickly, you can use:
+```
+fondant explore --base_path ./data
 ```
 
 ### Custom pipelines
