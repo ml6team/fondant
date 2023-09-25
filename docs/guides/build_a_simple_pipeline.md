@@ -2,9 +2,9 @@
 
 We present a walkthrough to build by yourself the pipeline presented in the Getting Started section. Have fun! 
 
-**Level**: Beginner
-**Time**: 20min
-**Goal**: After completing this tutorial with Fondant, you will be able to understand the different elements of a pipeline, build, and execute your first pipeline by using existing components. 
+**Level**: Beginner </br>
+**Time**: 20min </br>
+**Goal**: After completing this tutorial with Fondant, you will be able to understand the different elements of a pipeline, build, and execute your first pipeline by using existing components. </br> 
 
 **Prerequisite**: Make sure docker compose is installed on your local system
 
@@ -30,6 +30,7 @@ base_path="./data" # The directory that will be used to store the data
  
 
 All you need to initialise a Fondant pipeline are two key parameters:
+
 - **pipeline_name**: This is a name you can use to reference your pipeline. In this example, we've named it after the creative commons-licensed dataset used in the pipeline.
 - **base_path**: This is the base path that Fondant should use for storing artifacts and data. In our case, it's a local directory path. However, it can also be a path to a remote storage bucket provided by a cloud service. Please note that the directory you reference must exist; if it doesn't, make sure to create it.
 
@@ -38,6 +39,7 @@ All you need to initialise a Fondant pipeline are two key parameters:
 Now it's time to incrementally build our pipeline by adding different execution steps. We refer to these steps as `Components`. Components are executable elements of a pipeline that consume and produce dataframes. The components are defined by a component specification. The component specification is a YAML file that outlines the input and output data structures, along with the arguments utilised by the component and a reference the the docker image used to run the component.
 
 Fondant offers three distinct component types:
+
 - **Reusable components**: These can be readily used without modification.
 - **Generic components**: They provide the business logic but may require adjustments to the component spec.
 - **Custom components**: The component implementation is user-dependent.
@@ -165,7 +167,7 @@ Finally, we add the component to the pipeline using the `add_op` method. Notably
 
 Now, you can proceed to execute your pipeline once more and explore the results. In the explorer, you will be able to view the images that have been downloaded.
 
-![explorer](/docs/art/guides/explorer.png)
+![explorer](/art/guides/explorer.png)
 
 
 

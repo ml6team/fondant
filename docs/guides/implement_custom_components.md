@@ -1,8 +1,8 @@
 # Guide - Implement custom components
 
-**Level**: Beginner
-**Time**: 20min
-**Goal**: After completing this tutorial with Fondant, you will be able to build your own custom component and integrate it into a fondant pipeline. 
+**Level**: Beginner </br>
+**Time**: 20min </br>
+**Goal**: After completing this tutorial with Fondant, you will be able to build your own custom component and integrate it into a fondant pipeline. </br> 
 
 **Prerequisite**: Make sure docker compose is installed on your local system.
 We recommend completing the [first tutorial](/docs/guides/build_a_simple_pipeline.md) before proceeding with this one, as this tutorial builds upon the knowledge gained in the previous one.
@@ -22,7 +22,7 @@ This pipeline is an extension of the one introduced in the first tutorial. After
 
 A component comprises several key elements. First, there's the ComponentSpec YAML file, serving as a blueprint for the component. It defines crucial aspects such as input and output dataframes, along with component arguments.
 
-![component architecture](/docs/art/guides/component.png)
+![component architecture](/art/guides/component.png)
 
 The second essential part is a python class, which encapsulates the business logic that operates on the input dataframe.
 
