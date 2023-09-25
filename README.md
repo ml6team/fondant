@@ -118,6 +118,7 @@ point to create datasets for training code assistants.
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
+
 ## 🧩 Reusable components
 
 Fondant comes with a library of reusable components, which can jumpstart your pipeline.
