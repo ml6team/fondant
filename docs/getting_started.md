@@ -16,7 +16,7 @@ We suggest that you use a virtual environment for your project. Fondant supports
 To install Fondant via Pip, run:
 
 ```
-pip install fondant[pipelines]
+pip install fondant
 ```
 
 You can validate the installation of fondant by running its root CLI command:
