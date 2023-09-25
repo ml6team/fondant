@@ -29,6 +29,9 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
+  - Guides:
+    - Build a simple pipeline: guides/build_a_simple_pipeline.md
+    - Implement custom components: guides/implement_custom_components.md
   - Building a pipeline: pipeline.md
   - Components:
     - Components: components.md
@@ -38,6 +41,7 @@ nav:
   - Data explorer: data_explorer.md
   - Infrastructure: infrastructure.md
   - Manifest: manifest.md
+  - Contributing: contributing.md
 
 plugins:
   - mkdocstrings
