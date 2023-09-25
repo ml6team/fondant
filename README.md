@@ -2,7 +2,7 @@
     <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" height="250px"/>
 </p>
 <p align="center">
-    <i>Sweet data-centric foundation model fine-tuning</i>
+    <i>Large-scale data processing made easy and reusable</i>
     <br>
     <a href="https://fondant.readthedocs.io/en/stable/"><strong>Explore the docs »</strong></a>
     <br>
@@ -15,36 +15,37 @@
 </p>
 
 ---
-**Fondant helps you create high quality datasets to train or fine-tune foundation models such as:**
-
-- 🎨 Stable Diffusion  
-- 📄 GPT-like Large Language Models (LLMs)  
-- 🔎 CLIP  
-- ✂️ Segment Anything (SAM)  
-- ➕ And many more
+🍫**Fondant is an open-source framework that aims to simplify and speed up large-scale data processing by making 
+containerized components reusable across pipelines and execution environments and shareable within the community.**
+It offers:
+- 🔧 Plug ‘n’ play composable pipelines for creating datasets for
+    - AI image generation model fine-tuning (Stable Diffusion, ControlNet)
+    - Large language model fine-tuning (LLaMA, Falcon)
+    - Code generation model fine-tuning (StarCoder)
+- 🧱 Library of off-the-shelf reusable components for
+    - Extracting data from public sources such as Common Crawl, LAION, ...
+    - Filtering on 
+        - Content, e.g. language, visual style, topic, format, aesthetics, etc.
+        - Context, e.g. copyright license, origin
+        - Metadata
+    - Removal of unwanted data such as toxic, NSFW or generated content
+    - Removal of unwanted data patterns such as societal bias
+    - Transforming data (resizing, cropping, reformatting, …)
+    - Tuning the data for model performance (normalization, deduplication, …)
+    - Enriching data (captioning, metadata generation, synthetics, …)
+    - Transparency, auditability, compliance
+- 📖 🖼️ 🎞️ ♾️ Out of the box multimodal capabilities: text, images, video, etc.
+- 🐍 Standardized, Python/Pandas-based way of creating custom components
+- 🏭 Production-ready, scalable deployment
+- ☁️ Multi-cloud integrations
 
 ## 🪤 Why Fondant?
 
-Foundation models simplify inference by solving multiple tasks across modalities with a simple
-prompt-based interface. But what they've gained in the front, they've lost in the back. 
-**These models require enormous amounts of data, moving complexity towards data preparation**, and 
-leaving few parties able to train their own models.
-
-We believe that **innovation is a group effort**, requiring collaboration. While the community has 
-been building and sharing models, everyone is still building their data preparation from scratch.
-**Fondant is the platform where we meet to build and share data preparation workflows.**
-
-Fondant offers a framework to build **composable data preparation pipelines, with reusable 
-components, optimized to handle massive datasets**. Stop building from scratch, and start 
-reusing components to:
-
-- Extend your data with public datasets
-- Generate new modalities using captioning, segmentation, translation, image generation, ...
-- Distill knowledge from existing foundation models
-- Filter out low quality data
-- Deduplicate data
-
-And create high quality datasets to fine-tune your own foundation models.
+In the age of Foundation Models, control over your data is key and building pipelines
+for large-scale data processing is costly, especially when they require advanced
+machine learning-based operations. This need not be the case, however, if processing
+components would be reusable and exchangeable and pipelines were easily composable. 
+Realizing this is the main vision behind Fondant.
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
@@ -55,6 +56,13 @@ Anxious to get started? Here's is a [step by step guide](https://fondant.readthe
 ## 🪄 Example pipelines
 
 Curious to see what Fondant can do? Have a look at our example pipelines:
+
+### Filtering creative commons image dataset
+
+We have published an image dataset containing 25 million images. 
+As a result, we have provided a [sample pipeline](examples/pipelines/filter-cc-25m) that 
+demonstrates the download and filtering of these images. In the pipeline folder, 
+you will find detailed instructions on how to execute the pipeline and explore the images.
 
 ### Fine-tuning ControlNet
 
@@ -94,6 +102,12 @@ point to create datasets for training code assistants.
 
 <p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
 
+### Filtering creative commons image dataset
+
+We have published an image dataset containing 25 million images. 
+As a result, we have provided a [sample pipeline](examples/pipelines/filter-cc-25m) that 
+demonstrates the download and filtering of these images. In the pipeline folder, 
+you will find detailed instructions on how to execute the pipeline and explore the images.
 
 ## 🧩 Reusable components
 
@@ -312,7 +326,7 @@ We welcome contributions of different kinds:
 | **Issues**                       | If you encounter any issue or bug, please submit them as a [Github issue](https://github.com/ml6team/fondant/issues). You can also submit a pull request directly to fix any clear bugs.                                                                                                                                  |
 | **Suggestions and feedback**     | If you have any suggestions or feedback, please reach out via our [Discord server](https://discord.gg/HnTdWhydGp) or [Github Discussions](https://github.com/ml6team/fondant/discussions)!                                                                                                                                |
 | **Framework code contributions** | If you want to help with the development of the Fondant framework, have a look at the issues marked with the [good first issue](https://github.com/ml6team/fondant/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label. If you want to add additional functionality, please submit an issue for it first. |
-| **Reusable components**          | Extending our library of reusable components is a great way to contribute. If you built a component which would be useful for other users, please submit a PR adding them to the [components/](https://github.com/ml6team/fondant/tree/main/components) directory.                                                        |
+| **Reusable components**          | Extending our library of reusable components is a great way to contribute. If you built a component which would be useful for other users, please submit a PR adding them to the [components/](https://github.com/ml6team/fondant/tree/main/components) directory. You can find a list of possible components [here](https://github.com/ml6team/fondant/issues?q=is%3Aissue+is%3Aopen+label%3A%22Component+Contribution%22) or your own ideas are also welcome!                                            |
 | **Example pipelines**            | If you built a pipeline with Fondant which can serve as an example to other users, please submit a PR adding them to the [examples/](https://github.com/ml6team/fondant/tree/main/examples) directory.                                                                                                                    |
 
 ### Environment setup
