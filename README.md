@@ -7,7 +7,7 @@
     <a href="https://fondant.readthedocs.io/en/stable/"><strong>Explore the docs »</strong></a>
     <br>
     <br>
-    <a href="https://discord.gg/HnTdWhydGp"><img alt="Discord" src="https://dcbadge.vercel.app/api/server/HnTdWhydGp?style=flat-square"></a>
+    <a href="https://discord.gg/HnTdWhydGp"><img alt="Hello" src="https://dcbadge.vercel.app/api/server/HnTdWhydGp?style=flat-square"></a>
     <a href="https://pypi.org/project/fondant/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/fondant?color=brightgreen&style=flat-square"></a>
     <a href="https://fondant.readthedocs.io/en/latest/license/"><img alt="License" src="https://img.shields.io/github/license/ml6team/fondant?style=flat-square&color=brightgreen"></a>
     <a href="https://github.com/ml6team/fondant/actions/workflows/pipeline.yaml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/ml6team/fondant/pipeline.yaml?style=flat-square"></a>
@@ -307,10 +307,8 @@ expect to run into rough edges, the foundations are ready and Fondant should alr
 speed up your data preparation work.
 
 **The following topics are on our roadmap**
-- Local pipeline execution
 - Non-linear pipeline DAGs
 - LLM-focused example pipelines and reusable components
-- Static validation, caching, and partial execution of pipelines
 - Data lineage and experiment tracking
 - Distributed execution, both on and off cluster
 - Support other dataframe libraries such as HF Datasets, Polars, Spark
