@@ -41,7 +41,6 @@ nav:
   - Data explorer: data_explorer.md
   - Infrastructure: infrastructure.md
   - Manifest: manifest.md
-  - Contributing: contributing.md
 
 plugins:
   - mkdocstrings
