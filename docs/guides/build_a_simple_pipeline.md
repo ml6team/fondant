@@ -35,7 +35,7 @@ All you need to initialise a Fondant pipeline are two key parameters:
 
 ## Adding components
 
-Now it's time to incrementally build our pipeline by adding different execution steps. We refer to these steps as `Components`. Components are executable elements of a pipeline that consume and produce dataframes. The components are defined by a component specification. The component specification is a YAML file that outlines the input and output data structures, along with the arguments utilised by the component.
+Now it's time to incrementally build our pipeline by adding different execution steps. We refer to these steps as `Components`. Components are executable elements of a pipeline that consume and produce dataframes. The components are defined by a component specification. The component specification is a YAML file that outlines the input and output data structures, along with the arguments utilised by the component and a reference the the docker image used to run the component.
 
 Fondant offers three distinct component types:
 - **Reusable components**: These can be readily used without modification.

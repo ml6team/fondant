@@ -55,7 +55,7 @@ args:
     type: str
 ```
 
-It begins by specifying the component name, providing a brief description, and naming the component's Docker image.
+It begins by specifying the component name, providing a brief description, and naming the component's Docker image url.
 
 Following this, we define the structure of input and output dataframes, consumes and `produces`, which dictate the columns and subset fields the component will operate on. In this example, our goal is to filter images based on file types. For the sake of simplicity, we will work with image URLs, assuming that the file type is identifiable within the URL (e.g., *.png). Consequently, our component consumes image_urls and produces image_urls as well.
 
