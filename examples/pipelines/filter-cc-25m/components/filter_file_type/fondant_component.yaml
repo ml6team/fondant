@@ -1,0 +1,20 @@
+name: Filter file type
+description: Component that filters on mime types
+image: filter_images
+
+consumes:
+  images:
+    fields:
+      url:
+        type: string
+
+produces:
+  images:
+    fields:
+      url:
+        type: string
+
+args:
+  mime_type:
+    description: Name of file type
+    type: str
