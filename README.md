@@ -75,7 +75,7 @@ Curious to see what Fondant can do? Have a look at our example pipelines:
 
 ### Filtering creative commons image dataset
 
-We have published an image dataset containing 25 million images. 
+We have published an [image dataset containing 25 million images](https://huggingface.co/datasets/fondant-ai/fondant-cc-25m). 
 As a result, we have provided a [sample pipeline](examples/pipelines/filter-cc-25m) that 
 demonstrates the download and filtering of these images. In the pipeline folder, 
 you will find detailed instructions on how to execute the pipeline and explore the images.
