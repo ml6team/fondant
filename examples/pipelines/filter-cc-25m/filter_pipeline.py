@@ -50,6 +50,8 @@ filter_mime_type = ComponentOp(
 download_images = ComponentOp.from_registry(name="download_images", arguments={})
 
 
-# Add components to the pipeline
+# If you are following our guide on creating your own custom component, you can utilize the
+# adapted version of the code below.
 pipeline.add_op(load_from_hf_hub)
-pipeline.add_op(download_images, dependencies=[load_from_hf_hub])
+pipeline.add_op(filter_mime_type, dependencies=[load_from_hf_hub])
+pipeline.add_op(download_images, dependencies=[filter_mime_type])

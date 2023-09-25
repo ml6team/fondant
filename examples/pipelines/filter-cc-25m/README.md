@@ -4,8 +4,12 @@
 
 We present a sample pipeline that demonstrates how to effectively utilize a creative
 commons image dataset within a fondant pipeline. This dataset comprises images from diverse sources
-and is available in various data formats. In this illustrative example, our objective is to refine
-the dataset to exclusively include PNG files.
+and is available in various data formats.
+
+In this illustrative example, we present two Fondant pipelines. The first one loads the
+dataset from HuggingFace and downloads all images afterward (`pipeline.py`). The second 
+(`filter_pipeline.py`) one incorporates an additional filtering step, showcasing the capabilities 
+of custom components.
 
 We start with the initialization of the image dataset sourced from HuggingFace.
 Afterwards, we narrow down the dataset contents to exclusively encompass PNG files. Finally, we
@@ -27,16 +31,19 @@ The directory structure is organized as follows:
 ├── components
 │ ├── filter_file_type
 │ └── load_from_hf_hub
+│── filter_pipeline.py
 └── pipeline.py
 ```
 
 Within this folder, you will find the following items:
 
 - pipeline.py: This file defines the core pipeline and serves as the starting point for the pipeline
-  execution.
+  execution. This pipeline exclusively downloads the images from the dataset.
+- filter_pipeline.py: A second Fondant pipeline that incorporates additional filtering. 
 - components: This directory contains three distinct components.
 
-The `load_from_hub` and `download_images` components are reusable components, while the `filter_file_type`
+The `load_from_hub` and `download_images` components are reusable components, while
+the `filter_file_type`
 component serves as an illustrative example of a custom component.
 
 - The load_from_hf_hub component is used to initialise the dataset from huggingface hub.
@@ -51,6 +58,17 @@ as follow:
 
 ```bash
 fondant run pipeline --local
+```
+
+> Note: The 'load_from_hub' component accepts an argument that defines the dataset size. 
+> You have the option to adjust it to load more images from HuggingFace.
+> Therefore, you can modify this line: 
+> `"n_rows_to_load": 1000`
+
+If you wish to run the entire pipeline, including the filtering step, use the following command:
+
+```bash
+fondant run filter_pipeline --local
 ```
 
 After the pipeline is succeeded you can explore the data by using the fondant data explorer:
