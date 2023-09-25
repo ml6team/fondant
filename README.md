@@ -2,7 +2,7 @@
     <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" height="250px"/>
 </p>
 <p align="center">
-    <i>Sweet data-centric foundation model fine-tuning</i>
+    <i>Large-scale data processing made easy and reusable</i>
     <br>
     <a href="https://fondant.readthedocs.io/en/stable/"><strong>Explore the docs »</strong></a>
     <br>
@@ -15,8 +15,31 @@
 </p>
 
 ---
-**Fondant helps you create high quality datasets to train or fine-tune foundation models such as:**
+🍫**Fondant is an open-source framework that aims to simplify and speed up large-scale data processing by making containerized components reusable across pipelines and execution environments and shareable within the community.
+It offers:**
 
+- 🔧 Plug ‘n’ play composable pipelines for creating datasets for
+    - AI image generation model fine-tuning (Stable Diffusion, ControlNet)
+    - Large language model fine-tuning (LLaMA, Falcon)
+    - Code generation model fine-tuning (StarCoder)
+- 🧱 Library of off-the-shelf reusable components for
+    - Extracting data from public sources such as Common Crawl, LAION, ...
+    - Filtering on 
+        - Content, e.g. language, visual style, topic, format, aesthetics, etc.
+        - Context, e.g. copyright license, origin
+        - Metadata
+    - Removal of unwanted data such as toxic, NSFW or generated content
+    - Removal of unwanted data patterns such as societal bias
+    - Transforming data (resizing, cropping, reformatting, …)
+    - Tuning the data for model performance (normalization, deduplication, …)
+    - Enriching data (captioning, metadata generation, synthetics, …)
+    - Transparency, auditability, compliance
+- 📖 🖼️ 🎞️ ♾️ Out of the box multimodal capabilities: text, images, video, etc.
+- 🐍 Standardized, Python/Pandas-based way of creating custom components
+- 🏭 Production-ready, scalable deployment
+- ☁️ Multi-cloud integrations
+
+As such, it will help you create high-quality datasets to train or fine-tune foundation models such as:
 - 🎨 Stable Diffusion  
 - 📄 GPT-like Large Language Models (LLMs)  
 - 🔎 CLIP  
@@ -55,6 +78,13 @@ Anxious to get started? Here's is a [step by step guide](https://fondant.readthe
 ## 🪄 Example pipelines
 
 Curious to see what Fondant can do? Have a look at our example pipelines:
+
+### Filtering creative commons image dataset
+
+We have published an image dataset containing 25 million images. 
+As a result, we have provided a [sample pipeline](examples/pipelines/filter-cc-25m) that 
+demonstrates the download and filtering of these images. In the pipeline folder, 
+you will find detailed instructions on how to execute the pipeline and explore the images.
 
 ### Fine-tuning ControlNet
 
