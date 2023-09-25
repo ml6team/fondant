@@ -15,6 +15,10 @@ produces:
         type: string
       webpage+url:
         type: string
+      surt+url:
+        type: string
+      top+level+domain:
+        type: string
 
 args:
   dataset_name:

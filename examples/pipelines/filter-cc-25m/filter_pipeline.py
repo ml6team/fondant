@@ -30,6 +30,8 @@ load_component_column_mapping = {
     "license_location": "images_license+location",
     "license_type": "images_license+type",
     "webpage_url": "images_webpage+url",
+    "surt_url": "images_surt+url",
+    "top_level_domain": "images_top+level+domain",
 }
 
 load_from_hf_hub = ComponentOp(
@@ -37,7 +39,7 @@ load_from_hf_hub = ComponentOp(
     arguments={
         "dataset_name": "fondant-ai/fondant-cc-25m",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 1000,  # Here you can modify the number of images you want to download.
+        "n_rows_to_load": 100000,  # Here you can modify the number of images you want to download.
     },
 )
 
