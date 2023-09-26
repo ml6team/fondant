@@ -29,6 +29,7 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
+  - Contributing: contributing.md
   - Guides:
     - Build a simple pipeline: guides/build_a_simple_pipeline.md
     - Implement custom components: guides/implement_custom_components.md

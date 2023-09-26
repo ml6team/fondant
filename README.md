@@ -7,7 +7,7 @@
     <a href="https://fondant.readthedocs.io/en/stable/"><strong>Explore the docs »</strong></a>
     <br>
     <br>
-    <a href="https://discord.gg/HnTdWhydGp"><img alt="Hello" src="https://dcbadge.vercel.app/api/server/HnTdWhydGp?style=flat-square"></a>
+    <a href="https://discord.gg/HnTdWhydGp"><img alt="Discord" src="https://dcbadge.vercel.app/api/server/HnTdWhydGp?style=flat-square"></a>
     <a href="https://pypi.org/project/fondant/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/fondant?color=brightgreen&style=flat-square"></a>
     <a href="https://fondant.readthedocs.io/en/latest/license/"><img alt="License" src="https://img.shields.io/github/license/ml6team/fondant?style=flat-square&color=brightgreen"></a>
     <a href="https://github.com/ml6team/fondant/actions/workflows/pipeline.yaml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/ml6team/fondant/pipeline.yaml?style=flat-square"></a>
@@ -327,15 +327,8 @@ board](https://github.com/orgs/ml6team/projects/1).
 
 ## 👭 Contributing
 
-We welcome contributions of different kinds:
+We welcome [contributions of different kinds](https://fondant.readthedocs.io/en/latest/contributing)
 
-|                                  |                                                                                                                                                                                                                                                                                                                           |
-|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Issues**                       | If you encounter any issue or bug, please submit them as a [Github issue](https://github.com/ml6team/fondant/issues). You can also submit a pull request directly to fix any clear bugs.                                                                                                                                  |
-| **Suggestions and feedback**     | If you have any suggestions or feedback, please reach out via our [Discord server](https://discord.gg/HnTdWhydGp) or [Github Discussions](https://github.com/ml6team/fondant/discussions)!                                                                                                                                |
-| **Framework code contributions** | If you want to help with the development of the Fondant framework, have a look at the issues marked with the [good first issue](https://github.com/ml6team/fondant/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label. If you want to add additional functionality, please submit an issue for it first. |
-| **Reusable components**          | Extending our library of reusable components is a great way to contribute. If you built a component which would be useful for other users, please submit a PR adding them to the [components/](https://github.com/ml6team/fondant/tree/main/components) directory. You can find a list of possible components [here](https://github.com/ml6team/fondant/issues?q=is%3Aissue+is%3Aopen+label%3A%22Component+Contribution%22) or your own ideas are also welcome!                                            |
-| **Example pipelines**            | If you built a pipeline with Fondant which can serve as an example to other users, please submit a PR adding them to the [examples/](https://github.com/ml6team/fondant/tree/main/examples) directory.                                                                                                                    |
 
 ### Environment setup
 

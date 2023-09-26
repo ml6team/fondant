@@ -167,7 +167,7 @@ Finally, we add the component to the pipeline using the `add_op` method. Notably
 
 Now, you can proceed to execute your pipeline once more and explore the results. In the explorer, you will be able to view the images that have been downloaded.
 
-![explorer](/art/guides/explorer.png)
+![explorer](https://github.com/ml6team/fondant/blob/main/docs/art/guides/explorer.png?raw=true)
 
 
 
