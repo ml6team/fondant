@@ -48,7 +48,7 @@ load_from_hf_hub = ComponentOp(
 # Download images component
 download_images = ComponentOp.from_registry(
     name="download_images",
-    arguments={"input_partition_rows": 1000},
+    arguments={"input_partition_rows": 1000, "resize_mode": "no"},
     # If you run the pipeline several times with the cache set to the default settings,
     # cached pipeline steps will be skipped.
     cache=False,
