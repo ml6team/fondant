@@ -22,7 +22,7 @@ This pipeline is an extension of the one introduced in the first tutorial. After
 
 A component comprises several key elements. First, there's the ComponentSpec YAML file, serving as a blueprint for the component. It defines crucial aspects such as input and output dataframes, along with component arguments.
 
-![component architecture](/art/guides/component.png)
+![component architecture](https://github.com/ml6team/fondant/blob/main/docs/art/guides/component.png?raw=true)
 
 The second essential part is a python class, which encapsulates the business logic that operates on the input dataframe.
 
