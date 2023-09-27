@@ -72,6 +72,10 @@ class DownloadImagesComponent(PandasTransformComponent):
             except Exception as e:
                 print("e")
                 print(e)
+                print("repr")
+                print(repr(e))
+                print("type")
+                print(type(e))
                 print("string")
                 print(str(e))
                 logger.warning(f"Skipping {url}: {e}")
