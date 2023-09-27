@@ -1,8 +1,14 @@
 # Getting started
 
-Note: To execute the pipeline locally, you must have docker compose, Python >=3.8 and Git installed on your system.
+!!! note
 
-Note: For Apple M1/M2 ship users: - Make sure that Docker uses linux/amd64 platform and not arm64. - In Docker Dashboards’ Settings<Features in development, make sure to uncheck Use containerid for pulling and storing images .
+    To execute the pipeline locally, you must have docker compose, Python >=3.8 and Git 
+    installed on your system.
+
+!!! note
+
+    For Apple M1/M2 ship users: - Make sure that Docker uses linux/amd64 platform and not 
+    arm64. - In Docker Dashboards’ Settings<Features in development, make sure to uncheck Use containerid for pulling and storing images.
 
 For demonstration purposes, we provide sample pipelines in the Fondant GitHub repository. A great starting point is the pipeline that loads and filters creative commons images. To follow along with the upcoming instructions, you can clone the [repository](https://github.com/ml6team/fondant) and navigate to the `examples/pipelines/filter-cc-25m` folder.
 

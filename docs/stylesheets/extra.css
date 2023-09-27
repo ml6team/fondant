@@ -1,0 +1,5 @@
+.md-banner {
+    background-color: OrangeRed;          /* This setting prevents the Material header from
+    imposing into
+     the space of the banner! */
+}
