@@ -55,7 +55,7 @@ class DownloadImagesComponent(PandasTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
-    async def download_image(self, url: str) -> t.Optional[bytes]:
+    async def download_image(self, url: str, *, semaphore: asyncio.Semaphore) -> t.Optional[bytes]:
         url = url.strip()
 
         user_agent_string = (
@@ -66,8 +66,9 @@ class DownloadImagesComponent(PandasTransformComponent):
         transport = httpx.AsyncHTTPTransport(retries=self.retries)
         async with httpx.AsyncClient(transport=transport) as client:
             try:
-                response = await client.get(url, timeout=self.timeout,
-                                            headers={"User-Agent": user_agent_string})
+                async with semaphore:
+                    response = await client.get(url, timeout=self.timeout,
+                                                headers={"User-Agent": user_agent_string})
                 image_stream = response.content
             except Exception as e:
                 logger.warning(f"Skipping {url}: {repr(e)}")
@@ -75,9 +76,9 @@ class DownloadImagesComponent(PandasTransformComponent):
 
         return image_stream
 
-    async def download_and_resize_image(self, id_: str, url: str) \
+    async def download_and_resize_image(self, id_: str, url: str, *, semaphore: asyncio.Semaphore) \
             -> t.Tuple[str, t.Optional[bytes], t.Optional[int], t.Optional[int]]:
-        image_stream = await self.download_image(url)
+        image_stream = await self.download_image(url, semaphore=semaphore)
         if image_stream is not None:
             image_stream, width, height = self.resizer(io.BytesIO(image_stream))
         else:
@@ -90,8 +91,10 @@ class DownloadImagesComponent(PandasTransformComponent):
         results: t.List[t.Tuple[str, bytes, int, int]] = []
 
         async def download_dataframe() -> None:
+            semaphore = asyncio.Semaphore(10)
+
             images = await asyncio.gather(
-                *[self.download_and_resize_image(id_, url)
+                *[self.download_and_resize_image(id_, url, semaphore=semaphore)
                   for id_, url in zip(dataframe.index, dataframe["images"]["url"])],
             )
             results.extend(images)
