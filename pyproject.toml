@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "fondant"
 version = "0.1.dev0"
-description = "Fondant - Sweet data-centric foundation model fine-tuning"
+description = "Fondant - Large-scale data processing made easy and reusable"
 readme = "README.md"
 keywords = ["data", "machine learning", "fine-tuning", "foundation models"]
 license = "Apache-2.0"
