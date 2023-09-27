@@ -353,6 +353,8 @@ class Executor(t.Generic[Component]):
 
         if self.cache and self._is_previous_cached(input_manifest):
             output_manifest = self._get_cached_manifest()
+            print("c1")
+            print(output_manifest)
             if output_manifest is not None:
                 logger.info("Skipping component execution")
             else:
@@ -363,10 +365,16 @@ class Executor(t.Generic[Component]):
             logger.info("Caching disabled for the component")
             input_manifest.update_metadata("run_id", self.metadata.run_id)
             output_manifest = self._run_execution(component_cls, input_manifest)
+            print("run")
+            print(output_manifest)
 
         # Revert run id to original loaded manifest. Used to signal subsequent components whether
         # they are cached or not
         output_manifest.update_metadata("run_id", original_run_id)
+        print("original")
+        print(original_run_id)
+        print("manifest")
+        print(output_manifest)
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
     def _upload_cache_key(
