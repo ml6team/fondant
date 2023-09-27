@@ -350,13 +350,13 @@ class Executor(t.Generic[Component]):
         original_run_id = input_manifest.run_id
         # Make sure input manifest has the same run id as the component to write new subsets
         # to that location
-        input_manifest.update_metadata("run_id", self.metadata.run_id)
 
         if self.cache and self._is_previous_cached(input_manifest):
             output_manifest = self._get_cached_manifest()
             if output_manifest is not None:
                 logger.info("Skipping component execution")
             else:
+                input_manifest.update_metadata("run_id", self.metadata.run_id)
                 output_manifest = self._run_execution(component_cls, input_manifest)
 
         else:
