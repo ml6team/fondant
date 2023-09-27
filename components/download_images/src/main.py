@@ -70,15 +70,7 @@ class DownloadImagesComponent(PandasTransformComponent):
                                             headers={"User-Agent": user_agent_string})
                 image_stream = response.content
             except Exception as e:
-                print("e")
-                print(e)
-                print("repr")
-                print(repr(e))
-                print("type")
-                print(type(e))
-                print("string")
-                print(str(e))
-                logger.warning(f"Skipping {url}: {e}")
+                logger.warning(f"Skipping {url}: {repr(e)}")
                 image_stream = None
 
         return image_stream
