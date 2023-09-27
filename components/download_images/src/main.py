@@ -64,7 +64,7 @@ class DownloadImagesComponent(PandasTransformComponent):
         user_agent_string += " (compatible; +https://github.com/ml6team/fondant)"
 
         transport = httpx.AsyncHTTPTransport(retries=self.retries)
-        async with httpx.AsyncClient(transport=transport) as client:
+        async with httpx.AsyncClient(transport=transport, follow_redirects=True) as client:
             try:
                 async with semaphore:
                     response = await client.get(url, timeout=self.timeout,
