@@ -7,7 +7,9 @@ execution environments, shared within the community.
 A current challenge for generative AI is compliance with copyright laws. For this reason,
 Fondant has developed a data-processing pipeline to create a 500-million dataset of Creative
 Commons images to train a latent diffusion image generation model that respects copyright. Today,
-as a first step, we are releasing a 25-million sample dataset and invite the open source
+as a first step, we are releasing
+a [25-million sample dataset](https://huggingface.co/datasets/fondant-ai/fondant-cc-25m) and invite
+the open source
 community to collaborate on further refinement steps.
 
 Fondant offers tools to download, explore and process the data. The current example pipeline
