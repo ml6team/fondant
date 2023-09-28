@@ -16,7 +16,7 @@ includes a component for downloading the urls and one for downloading the images
 Creating custom pipelines for specific purposes requires different building blocks. Fondant
 pipelines can mix reusable components and custom components.
 
-![explorer](https://github.com/ml6team/fondant/blob/main/docs/art/announcements/sample_pipeline_cc25.png?raw=true)
+![sample_pipeline](https://github.com/ml6team/fondant/blob/main/docs/art/announcements/sample_pipeline_cc25.png?raw=true)
 
 Additional processing components which could be
 contributed include, in order of priority:
