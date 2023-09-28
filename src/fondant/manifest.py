@@ -257,10 +257,15 @@ class Manifest:
     def evolve(  # noqa : PLR0912 (too many branches)
         self,
         component_spec: ComponentSpec,
+        write_run_id: str,
     ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
         to the component defined by the component spec.
+
+        Args:
+            component_spec: the component spec
+            write_run_id: the run id used to define the write subset path.
         """
         evolved_manifest = self.copy()
 
@@ -271,7 +276,7 @@ class Manifest:
         # Update index location as this is currently always rewritten
         evolved_manifest.index._specification[
             "location"
-        ] = f"/{self.pipeline_name}/{self.run_id}/{component_id}/index"
+        ] = f"/{self.pipeline_name}/{write_run_id}/{component_id}/index"
 
         # If additionalSubsets is False in consumes,
         # Remove all subsets from the manifest that are not listed
@@ -322,7 +327,7 @@ class Manifest:
                 # Update subset location as this is currently always rewritten
                 evolved_manifest.subsets[subset_name]._specification[
                     "location"
-                ] = f"/{self.pipeline_name}/{self.run_id}/{component_id}/{subset_name}"
+                ] = f"/{self.pipeline_name}/{write_run_id}/{component_id}/{subset_name}"
 
             # Subset is not yet in manifest, add it
             else:

@@ -334,7 +334,10 @@ class Executor(t.Generic[Component]):
             component,
             manifest=input_manifest,
         )
-        output_manifest = input_manifest.evolve(component_spec=self.spec)
+        output_manifest = input_manifest.evolve(
+            component_spec=self.spec,
+            write_run_id=self.metadata.run_id,
+        )
         self._write_data(dataframe=output_df, manifest=output_manifest)
 
         return output_manifest
@@ -350,24 +353,17 @@ class Executor(t.Generic[Component]):
 
         if self.cache and self._is_previous_cached(input_manifest):
             output_manifest = self._get_cached_manifest()
-
             if output_manifest is not None:
-                original_run_id = output_manifest.run_id
                 logger.info("Skipping component execution")
             else:
-                original_run_id = input_manifest.run_id
-                input_manifest.update_metadata("run_id", self.metadata.run_id)
                 output_manifest = self._run_execution(component_cls, input_manifest)
+                # Component not cached, make sure run id matches that of the current pipeline run
+                output_manifest.update_metadata("run_id", self.metadata.run_id)
 
         else:
             logger.info("Caching disabled for the component")
-            original_run_id = input_manifest.run_id
-            input_manifest.update_metadata("run_id", self.metadata.run_id)
             output_manifest = self._run_execution(component_cls, input_manifest)
 
-        # Revert run id to original loaded manifest. Used to signal subsequent components whether
-        # they are cached or not
-        output_manifest.update_metadata("run_id", original_run_id)
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
     def _upload_cache_key(
