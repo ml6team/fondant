@@ -45,8 +45,9 @@ class LoadFromHubComponent(DaskLoadComponent):
         dask_df = dd.read_parquet(self.dataset_uri)
 
         # 2) Rename columns
-        logger.info("Renaming columns...")
-        dask_df = dask_df.rename(columns=self.column_name_mapping)
+        if self.column_name_mapping is not None:
+            logger.info("Renaming columns...")
+            dask_df = dask_df.rename(columns=self.column_name_mapping)
 
         # 3) Optional: only return specific amount of rows
         if self.n_rows_to_load is not None:
