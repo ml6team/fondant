@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 dask.config.set({"dataframe.convert-string": False})
 
 
-class LoadFromHubComponent(DaskLoadComponent):
+class LoadFromParquet(DaskLoadComponent):
 
     def __init__(self,
                  spec: ComponentSpec,
@@ -41,7 +41,7 @@ class LoadFromHubComponent(DaskLoadComponent):
 
     def load(self) -> dd.DataFrame:
         # 1) Load data, read as Dask dataframe
-        logger.info("Loading dataset from the hub...")
+        logger.info("Loading dataset from the file...")
         dask_df = dd.read_parquet(self.dataset_uri)
 
         # 2) Rename columns
