@@ -1,0 +1,26 @@
+name: Load from hub
+description: Component that loads a dataset from the hub
+image: ghcr.io/ml6team/load_from_parquet:132347e040169ac971102f865425df80ca2d6517
+
+produces:
+  dummy_variable:  #TODO: fill in here
+    fields:
+      data:
+        type: binary
+
+args:
+  dataset_uri:
+    description: The remote path to the parquet file/folder containing the dataset
+    type: str
+  column_name_mapping:
+    description: Mapping of the consumed dataset
+    type: dict
+    default: None
+  n_rows_to_load:
+    description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
+    type: int
+    default: None
+  index_column:
+    description: Column to set index to in the load component, if not specified a default globally unique index will be set
+    type: str
+    default: None
