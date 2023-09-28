@@ -7,13 +7,13 @@
 
 !!! note
 
-    For Apple M1/M2 ship users:
-    - Make sure that Docker uses linux/amd64 platform and not arm64.
-    - In Docker Dashboards’ Settings<Features in development, make sure to uncheck Use containerid for pulling and storing images.
+    For Apple M1/M2 ship users: <br>
+    - Make sure that Docker uses linux/amd64 platform and not arm64. <br>
+    - In Docker Dashboards’ Settings<Features in development, make sure to uncheck `Use containerid for pulling and storing images`.
 
 For demonstration purposes, we provide sample pipelines in the Fondant GitHub repository. A great starting point is the pipeline that loads and filters creative commons images. To follow along with the upcoming instructions, you can clone the [repository](https://github.com/ml6team/fondant) and navigate to the `examples/pipelines/filter-cc-25m` folder.
 
-This pipeline loads an image dataset and reduces the dataset to png files. For more details on how you can build this pipeline from scratch, check out our [guide](/docs/guides/build_a_simple_pipeline.md).
+This pipeline loads an image dataset and reduces the dataset to png files. For more details on how you can build this pipeline from scratch, check out our [guide](guides/build_a_simple_pipeline.md).
 
 Install Fondant by running:
 
