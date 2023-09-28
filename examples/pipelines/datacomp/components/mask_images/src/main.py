@@ -21,11 +21,13 @@ def mask_image(image_data, boxes):
             x1, y1, x2, y2 = tuple(box)
             # crop image
             cropped_image = np.array(image)[y1:y2, x1:x2]
-            # compute average color within cropped image
-            avg_color_per_row = np.average(cropped_image, axis=0)
-            avg_color = np.average(avg_color_per_row, axis=0)
-            r, g, b = tuple(avg_color)
-            draw.rectangle(((x1, y1), (x2, y2)), fill=(int(r), int(g), int(b)))
+
+            if cropped_image.any():
+                # compute average color within cropped image
+                avg_color_per_row = np.average(cropped_image, axis=0)
+                avg_color = np.average(avg_color_per_row, axis=0)
+                r, g, b = tuple(avg_color)
+                draw.rectangle(((x1, y1), (x2, y2)), fill=(int(r), int(g), int(b)))
 
         image_bytes = io.BytesIO()
         image.save(image_bytes, format="PNG")
@@ -51,7 +53,3 @@ class MaskImagesComponent(PandasTransformComponent):
         dataframe[("images", "data")] = result
 
         return dataframe
-
-
-x1, y1 = tuple([])
-print(x1)
