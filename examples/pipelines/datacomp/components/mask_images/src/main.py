@@ -51,3 +51,7 @@ class MaskImagesComponent(PandasTransformComponent):
         dataframe[("images", "data")] = result
 
         return dataframe
+
+
+x1, y1 = tuple([])
+print(x1)
