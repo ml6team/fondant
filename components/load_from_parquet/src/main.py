@@ -49,19 +49,7 @@ class LoadFromParquet(DaskLoadComponent):
             logger.info("Renaming columns...")
             dask_df = dask_df.rename(columns=self.column_name_mapping)
 
-        # 3) Optional: only return specific amount of rows
-        if self.n_rows_to_load is not None:
-            partitions_length = 0
-            npartitions = 1
-            for npartitions, partition in enumerate(dask_df.partitions, start=1):
-                if partitions_length >= self.n_rows_to_load:
-                    logger.info(f"""Required number of partitions to load\n
-                    {self.n_rows_to_load} is {npartitions}""")
-                    break
-                partitions_length += len(partition)
-            dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
-            dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
-
+        dask_df = dask_df.head(self.n_rows_to_load)
         # 4) Set the index
         if self.index_column is None:
             logger.info(
