@@ -15,7 +15,7 @@ services:
     - --input_partition_rows
     - disable
     - --cache
-    - 'True'
+    - 'False'
     - --cluster_type
     - default
     - --component_spec
@@ -50,7 +50,7 @@ services:
     - --input_partition_rows
     - '10'
     - --cache
-    - 'True'
+    - 'False'
     - --cluster_type
     - default
     - --component_spec
@@ -80,7 +80,7 @@ services:
     - --storage_args
     - a dummy string arg
     - --cache
-    - 'True'
+    - 'False'
     - --cluster_type
     - default
     - --component_spec
