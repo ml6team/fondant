@@ -271,6 +271,7 @@ class Manifest:
 
         # Update `component_id` of the metadata
         component_id = component_spec.name.lower().replace(" ", "_")
+        evolved_manifest.update_metadata(key="run_id", value=write_run_id)
         evolved_manifest.update_metadata(key="component_id", value=component_id)
 
         # Update index location as this is currently always rewritten
