@@ -35,6 +35,10 @@ def process_image(image: bytes, *, processor: CLIPProcessor, device: str) -> tor
         """Transform the image to a tensor using a clip processor and move it to the specified
         device.
         """
+        # Edge case: https://github.com/huggingface/transformers/issues/21638
+        if img.size == (1, 1):
+            img = img.resize((224, 224))
+
         return processor(images=img, return_tensors="pt").to(device)
 
     return transform(load(image))["pixel_values"]
