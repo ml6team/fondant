@@ -84,12 +84,13 @@ class ComponentOp:
             input_partition_rows,
             validate_partition_number,
         )
-        self._add_component_argument("cache", cache)
+        self._add_component_argument("cache", self.cache)
         self._add_component_argument("cluster_type", cluster_type)
         self._add_component_argument("client_kwargs", client_kwargs)
 
         self.arguments.setdefault("component_spec", self.component_spec.specification)
-
+        print("ar")
+        print(self.arguments)
         self.number_of_gpus = number_of_gpus
         self.node_pool_label, self.node_pool_name = self._validate_node_pool_spec(
             node_pool_label,
@@ -139,8 +140,7 @@ class ComponentOp:
         if hasattr(self, "arguments") is False:
             self.arguments = {}
 
-        if argument_value and (not validator or validator(argument_value)):
-            self.argument_name = argument_value
+        if argument_value is not None and (not validator or validator(argument_value)):
             self.arguments[argument_name] = argument_value
 
     def _validate_node_pool_spec(
