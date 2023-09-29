@@ -67,6 +67,7 @@ class ComponentOp:
         preemptible: t.Optional[bool] = False,
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
+        memory_request: t.Optional[t.Union[str, int]] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -89,9 +90,9 @@ class ComponentOp:
         self._add_component_argument("client_kwargs", client_kwargs)
 
         self.arguments.setdefault("component_spec", self.component_spec.specification)
-        print("ar")
-        print(self.arguments)
+
         self.number_of_gpus = number_of_gpus
+        self.memory_request = memory_request
         self.node_pool_label, self.node_pool_name = self._validate_node_pool_spec(
             node_pool_label,
             node_pool_name,
@@ -175,6 +176,7 @@ class ComponentOp:
         preemptible: t.Optional[bool] = False,
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
+        memory_request: t.Optional[t.Union[str, int]] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -191,7 +193,7 @@ class ComponentOp:
              Requires the setup and assignment of a preemptible node pool. Note that preemptibles
              only work when KFP is setup on GCP. More info here:
              https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
-
+            memory_request: the memory requested by the component
             cluster_type: The type of cluster to use for distributed execution (default is "local").
             client_kwargs: Keyword arguments used to initialise the dask client.
         """
@@ -212,6 +214,7 @@ class ComponentOp:
             preemptible=preemptible,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
+            memory_request=memory_request,
         )
 
     def get_component_cache_key(self) -> str:
