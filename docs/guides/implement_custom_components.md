@@ -25,7 +25,7 @@ A component comprises several key elements. First, there's the ComponentSpec YAM
 
 The second essential part is a python class, which encapsulates the business logic that operates on the input dataframe.
 
-In addition to these core components, there are a few other necessary items, including a `Dockerfile` used for building the component and a `requirements.txt` file to specify and install required dependencies. You can find a more detailed explanation [here](custom_components.md).
+In addition to these core components, there are a few other necessary items, including a `Dockerfile` used for building the component and a `requirements.txt` file to specify and install required dependencies. You can find a more detailed explanation [here](/components/custom_component).
 
 ### Creating the ComponentSpec
 
