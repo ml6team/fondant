@@ -174,6 +174,7 @@ class DetectTextComponent(PandasTransformComponent):
                         image_size=self.image_size,
                     ).T,
                 )
+            torch.cuda.empty_cache()
 
         result = pd.concat(results).to_frame(name=("images", "boxes"))
 
