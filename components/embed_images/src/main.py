@@ -34,7 +34,7 @@ def process_image(image: bytes, *, processor: CLIPProcessor, device: str) -> tor
         device.
         """
         # Edge case: https://github.com/huggingface/transformers/issues/21638
-        if img.size == (1, 1):
+        if img.width == 1 or img.height == 1:
             img = img.resize((224, 224))
 
         return processor(images=img, return_tensors="pt").to(device)
