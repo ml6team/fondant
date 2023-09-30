@@ -20,7 +20,9 @@ from models import build_model
 from models.utils import fuse_module, rep_model_convert
 
 from huggingface_hub import hf_hub_download
+import os
 
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
 logger = logging.getLogger(__name__)
 
 dask.config.set(scheduler="single-threaded")
