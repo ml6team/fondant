@@ -136,6 +136,7 @@ class DetectTextComponent(PandasTransformComponent):
         )
         self.model = build_model(cfg.model)
         self.model = self.init_model(checkpoint_path)
+        torch.cuda.empty_cache()
 
     def init_model(self, checkpoint_path):
         checkpoint = torch.load(checkpoint_path)
