@@ -13,13 +13,17 @@ from transformers import CLIPProcessor, CLIPVisionModelWithProjection
 logger = logging.getLogger(__name__)
 
 
-
-def process_image(image: bytes, *, processor: CLIPProcessor, device: str) -> torch.Tensor:
+def process_image_batch(
+    images: np.ndarray,
+    *,
+    processor: CLIPProcessor,
+    device: str,
+) -> t.List[torch.Tensor]:
     """
     Process the image to a tensor.
 
     Args:
-        image: The input image as a byte string.
+        images: The input images as a numpy array containing byte strings.
         processor: The processor object for transforming the image.
         device: The device to move the transformed image to.
     """
@@ -39,14 +43,17 @@ def process_image(image: bytes, *, processor: CLIPProcessor, device: str) -> tor
 
         return processor(images=img, return_tensors="pt").to(device)
 
-    return transform(load(image))["pixel_values"]
+    return [transform(load(image))["pixel_values"] for image in images]
 
 
 @torch.no_grad()
-def embed_image_batch(image_batch: pd.DataFrame, *, model: CLIPVisionModelWithProjection) -> \
-        pd.Series:
+def embed_image_batch(
+    image_batch: t.List[torch.Tensor],
+    *,
+    model: CLIPVisionModelWithProjection,
+) -> pd.Series:
     """Embed a batch of images."""
-    input_batch = torch.cat(image_batch.tolist())
+    input_batch = torch.cat(image_batch)
     output_batch = model(input_batch)
     embeddings_batch = output_batch.image_embeds.cpu().tolist()
     return pd.Series(embeddings_batch, index=image_batch.index)
@@ -77,14 +84,20 @@ class EmbedImagesComponent(PandasTransformComponent):
         self.batch_size = batch_size
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        images = dataframe["images"]["data"].apply(
-            process_image,
-            processor=self.processor,
-            device=self.device,
-        )
+        images = dataframe["images"]["data"]
+
         results: t.List[pd.Series] = []
         for batch in np.split(images, np.arange(self.batch_size, len(images), self.batch_size)):
             if not batch.empty:
-                results.append(embed_image_batch(batch, model=self.model).T)
+                image_tensors = process_image_batch(
+                    batch,
+                    processor=self.processor,
+                    device=self.device,
+                )
+                embeddings = embed_image_batch(
+                    image_tensors,
+                    model=self.model,
+                ).T
+                results.append(embeddings)
 
         return pd.concat(results).to_frame(name=("embeddings", "data"))
