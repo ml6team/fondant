@@ -51,12 +51,13 @@ def embed_image_batch(
     image_batch: t.List[torch.Tensor],
     *,
     model: CLIPVisionModelWithProjection,
+    index: pd.Series,
 ) -> pd.Series:
     """Embed a batch of images."""
     input_batch = torch.cat(image_batch)
     output_batch = model(input_batch)
     embeddings_batch = output_batch.image_embeds.cpu().tolist()
-    return pd.Series(embeddings_batch, index=image_batch.index)
+    return pd.Series(embeddings_batch, index=index)
 
 
 class EmbedImagesComponent(PandasTransformComponent):
@@ -97,6 +98,7 @@ class EmbedImagesComponent(PandasTransformComponent):
                 embeddings = embed_image_batch(
                     image_tensors,
                     model=self.model,
+                    index=batch.index,
                 ).T
                 results.append(embeddings)
 
