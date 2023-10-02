@@ -1,6 +1,6 @@
 name: Filter CLIP score
 description: Component that filters out bad captions (Empty captions, Captions with weird characters, Captions that are dates)
-image: ghcr.io/ml6team/filter_clip_score:55d2c4962b7b5f9ac73f17b097f3330ab429ba4a
+image: ghcr.io/ml6team/filter_clip_score:242ec7a7ef45b9aeef77bf859b605fe3e3c15804
 
 consumes:
   imagetext:

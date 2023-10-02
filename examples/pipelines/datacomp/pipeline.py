@@ -2,6 +2,7 @@
 
 This pipeline implements the T-MARS paper: https://arxiv.org/abs/2307.03132.
 """
+import os
 
 import logging
 import sys
@@ -14,9 +15,10 @@ from fondant.pipeline import ComponentOp, Pipeline
 
 logger = logging.getLogger(__name__)
 
+run_id = 1
 # Initialize pipeline and client
 pipeline = Pipeline(
-    pipeline_name="datacomp-filtering-pipeline",
+    pipeline_name=f"datacomp-filtering-pipeline-{run_id}",
     pipeline_description="A pipeline for filtering the Datacomp dataset",
     base_path=PipelineConfigs.BASE_PATH,
     # base_path="/Users/nielsrogge/Documents/fondant_artifacts_datacomp",
@@ -39,51 +41,45 @@ load_component_column_mapping = {
 load_from_parquet = ComponentOp(
     component_dir="components/load_from_parquet",
     arguments={
-        "dataset_uri": "gs://soy-audio-379412_datacomp/final_dataset_multiple/test2/",
+        "dataset_uri": f"gs://soy-audio-379412_datacomp/final_dataset_multiple/{run_id}/",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
-        # "n_rows_to_load": 5000,
+        # "n_rows_to_load": 1500,
     },
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-64-pool",
-    memory_request="250G",
-    cache=False,
+    node_pool_name="n2-standard-128-pool",
+    memory_request="500G",
 )
 
 detect_text_op = ComponentOp(
     component_dir="components/detect_text",
     arguments={
-        "batch_size": 128,
+        "batch_size": 2,
     },
     node_pool_label="node_pool",
-    node_pool_name="model-inference-pool",
-    memory_request="250G",
+    node_pool_name="preemptible-model-inference-mega-pool",
     number_of_gpus=1,
-    cache=False,
 )
 mask_images_op = ComponentOp(
     component_dir="components/mask_images",
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-64-pool",
-    memory_request="250G",
-    cache=False,
+    node_pool_name="n2-standard-128-pool",
+    memory_request="500G",
 )
 embed_images_op = ComponentOp.from_registry(
     name="embed_images",
     arguments={
-        "batch_size": 128,
+        "batch_size": 16,
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-pool",
     number_of_gpus=1,
-    cache=False,
 )
 add_clip_score_op = ComponentOp(
     component_dir="components/add_clip_score",
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-64-pool",
-    memory_request="250G",
-    cache=False,
+    node_pool_name="n2-standard-128-pool",
+    memory_request="500G",
 )
 filter_clip_score_op = ComponentOp(
     component_dir="components/filter_clip_score",
@@ -91,15 +87,15 @@ filter_clip_score_op = ComponentOp(
         "pct_threshold": 0.5,
     },
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-64-pool",
-    cache=False,
+    node_pool_name="n2-standard-128-pool",
+    memory_request="500G",
 )
 
 
 # add ops to pipeline
 pipeline.add_op(load_from_parquet)
-pipeline.add_op(detect_text_op, dependencies=load_from_parquet)
-pipeline.add_op(mask_images_op, dependencies=detect_text_op)
-pipeline.add_op(embed_images_op, dependencies=mask_images_op)
-pipeline.add_op(add_clip_score_op, dependencies=embed_images_op)
-pipeline.add_op(filter_clip_score_op, dependencies=add_clip_score_op)
+# pipeline.add_op(detect_text_op, dependencies=load_from_parquet)
+# pipeline.add_op(mask_images_op, dependencies=detect_text_op)
+pipeline.add_op(embed_images_op, dependencies=load_from_parquet)
+# pipeline.add_op(add_clip_score_op, dependencies=embed_images_op)
+# pipeline.add_op(filter_clip_score_op, dependencies=add_clip_score_op)

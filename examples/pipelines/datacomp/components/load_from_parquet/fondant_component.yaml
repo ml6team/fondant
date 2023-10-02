@@ -1,6 +1,6 @@
 name: Load from parquet
 description: Component that loads a dataset from a parquet uri
-image: ghcr.io/ml6team/load_from_parquet:823553fa5825cdad2f8c62e1b7caaeee0c870648
+image: ghcr.io/ml6team/load_from_parquet:04c64c3e19dbe4d8714f145bf15ae2fac718cd4b
 
 produces:
   images:
