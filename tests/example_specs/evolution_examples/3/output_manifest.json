@@ -2,11 +2,11 @@
    "metadata":{
       "pipeline_name":"test_pipeline",
       "base_path":"gs://bucket",
-      "run_id":"12345",
+      "run_id":"custom_run_id",
       "component_id":"example_component"
    },
    "index":{
-      "location":"/test_pipeline/12345/example_component/index"
+      "location":"/test_pipeline/custom_run_id/example_component/index"
    },
    "subsets":{
       "images":{
@@ -18,7 +18,7 @@
          }
       },
       "embeddings":{
-         "location":"/test_pipeline/12345/example_component/embeddings",
+         "location":"/test_pipeline/custom_run_id/example_component/embeddings",
          "fields":{
             "data":{
                "type":"array",

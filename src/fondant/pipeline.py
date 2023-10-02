@@ -444,7 +444,7 @@ class Pipeline:
                             raise InvalidPipelineDefinition(
                                 msg,
                             )
-            manifest = manifest.evolve(component_spec, write_run_id=run_id)
+            manifest = manifest.evolve(component_spec, run_id=run_id)
             load_component = False
 
         logger.info("All pipeline component specifications match.")

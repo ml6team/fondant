@@ -26,11 +26,12 @@ def examples():
 
 @pytest.mark.parametrize(("component_spec", "output_manifest"), list(examples()))
 def test_evolution(input_manifest, component_spec, output_manifest):
+    run_id = "custom_run_id"
     manifest = Manifest(input_manifest)
     component_spec = ComponentSpec(component_spec)
     evolved_manifest = manifest.evolve(
         component_spec=component_spec,
-        write_run_id=manifest.run_id,
+        run_id=run_id,
     )
 
     assert evolved_manifest._specification == output_manifest
@@ -47,7 +48,6 @@ def test_component_spec_location_update():
     component_spec = ComponentSpec(specification)
     evolved_manifest = manifest.evolve(
         component_spec=component_spec,
-        write_run_id=manifest.run_id,
     )
 
     assert (
