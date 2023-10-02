@@ -10,6 +10,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        cluster_type:
+          defaultValue: default
+          isOptional: true
+          parameterType: STRING
         component_spec:
           defaultValue: {}
           isOptional: true
@@ -34,6 +38,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        cluster_type:
+          defaultValue: default
+          isOptional: true
+          parameterType: STRING
         component_spec:
           defaultValue: {}
           isOptional: true
@@ -58,6 +66,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        cluster_type:
+          defaultValue: default
+          isOptional: true
+          parameterType: STRING
         component_spec:
           defaultValue: {}
           isOptional: true
@@ -89,6 +101,8 @@ deploymentSpec:
         - '{{$.inputs.parameters[''input_partition_rows'']}}'
         - --cache
         - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
         - --input_manifest_path
         - '{{$.inputs.parameters[''input_manifest_path'']}}'
         - --component_spec
@@ -97,6 +111,8 @@ deploymentSpec:
         - '{{$.inputs.parameters[''input_partition_rows'']}}'
         - --cache
         - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
         - --metadata
         - '{{$.inputs.parameters[''metadata'']}}'
         - --output_manifest_path
@@ -123,6 +139,8 @@ deploymentSpec:
         - '{{$.inputs.parameters[''input_partition_rows'']}}'
         - --cache
         - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
         - --input_manifest_path
         - '{{$.inputs.parameters[''input_manifest_path'']}}'
         - --component_spec
@@ -131,6 +149,8 @@ deploymentSpec:
         - '{{$.inputs.parameters[''input_partition_rows'']}}'
         - --cache
         - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
         - --metadata
         - '{{$.inputs.parameters[''metadata'']}}'
         - --output_manifest_path
@@ -157,6 +177,8 @@ deploymentSpec:
         - '{{$.inputs.parameters[''input_partition_rows'']}}'
         - --cache
         - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
         - --input_manifest_path
         - '{{$.inputs.parameters[''input_manifest_path'']}}'
         - --component_spec
@@ -165,6 +187,8 @@ deploymentSpec:
         - '{{$.inputs.parameters[''input_partition_rows'']}}'
         - --cache
         - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
         - --metadata
         - '{{$.inputs.parameters[''metadata'']}}'
         - --output_manifest_path
@@ -194,6 +218,9 @@ root:
             cache:
               runtimeValue:
                 constant: false
+            cluster_type:
+              runtimeValue:
+                constant: default
             component_spec:
               runtimeValue:
                 constant:
@@ -241,6 +268,9 @@ root:
             cache:
               runtimeValue:
                 constant: false
+            cluster_type:
+              runtimeValue:
+                constant: default
             component_spec:
               runtimeValue:
                 constant:
@@ -294,6 +324,9 @@ root:
             cache:
               runtimeValue:
                 constant: false
+            cluster_type:
+              runtimeValue:
+                constant: default
             component_spec:
               runtimeValue:
                 constant:

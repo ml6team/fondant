@@ -370,8 +370,11 @@ class KubeFlowCompiler(Compiler):
                 task.set_accelerator_type("cloud-tpus.google.com/v3")
 
         if node_pool_name is not None and node_pool_label is not None:
-            task.add_node_selector_constraint(node_pool_label, node_pool_name)
-
+            task = self.kfp_kubernetes.add_node_selector(
+                task,
+                node_pool_label,
+                node_pool_name,
+            )
         return task
 
 

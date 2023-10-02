@@ -247,6 +247,12 @@ class ComponentSpec:
                 type="bool",
                 default=True,
             ),
+            "cluster_type": Argument(
+                name="cluster_type",
+                description="The cluster type to use for the execution",
+                type="str",
+                default="default",
+            ),
             "metadata": Argument(
                 name="metadata",
                 description="Metadata arguments containing the run id and base path",
@@ -352,6 +358,8 @@ class KubeflowComponentSpec:
                                 "{{$.inputs.parameters['input_partition_rows']}}",
                                 "--cache",
                                 "{{$.inputs.parameters['cache']}}",
+                                "--cluster_type",
+                                "{{$.inputs.parameters['cluster_type']}}",
                                 *cls._dump_args(fondant_component.args.values()),
                                 "--output_manifest_path",
                                 "{{$.inputs.parameters['output_manifest_path']}}",

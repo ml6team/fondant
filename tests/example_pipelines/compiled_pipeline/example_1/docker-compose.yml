@@ -25,6 +25,8 @@ services:
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
     depends_on: {}
     volumes: []
+    ports:
+    - 8787:8787
   second_component:
     build:
       args: []
