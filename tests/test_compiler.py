@@ -5,7 +5,6 @@ from unittest import mock
 
 import pytest
 import yaml
-
 from fondant.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
