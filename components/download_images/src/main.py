@@ -38,7 +38,8 @@ class DownloadImagesComponent(PandasTransformComponent):
             timeout: Maximum time (in seconds) to wait when trying to download an image.
             retries: Number of times to retry downloading an image if it fails.
             n_connections: Number of concurrent connections opened per process. Decrease this
-                number if you are running into timeout errors.
+                number if you are running into timeout errors. A lower number of connections can
+                increase the success rate but lower the throughput.
             image_size: Size of the images after resizing.
             resize_mode: Resize mode to use. One of "no", "keep_ratio", "center_crop", "border".
             resize_only_if_bigger: If True, resize only if image is bigger than image_size.
