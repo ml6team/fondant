@@ -28,6 +28,10 @@ args:
     description: Number of times to retry downloading an image if it fails.
     type: int
     default: 0
+  n_connections:
+    description: Number of concurrent connections opened per process. Decrease this number if you are running into timeout errors.
+    type: int
+    default: 1000
   image_size:
     description: Size of the images after resizing.
     type: int

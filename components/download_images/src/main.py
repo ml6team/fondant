@@ -25,6 +25,7 @@ class DownloadImagesComponent(PandasTransformComponent):
                  *_,
                  timeout: int,
                  retries: int,
+                 n_connections: int,
                  image_size: int,
                  resize_mode: str,
                  resize_only_if_bigger: bool,
@@ -36,6 +37,8 @@ class DownloadImagesComponent(PandasTransformComponent):
         Args:
             timeout: Maximum time (in seconds) to wait when trying to download an image.
             retries: Number of times to retry downloading an image if it fails.
+            n_connections: Number of concurrent connections opened per process. Decrease this
+                number if you are running into timeout errors.
             image_size: Size of the images after resizing.
             resize_mode: Resize mode to use. One of "no", "keep_ratio", "center_crop", "border".
             resize_only_if_bigger: If True, resize only if image is bigger than image_size.
@@ -47,6 +50,7 @@ class DownloadImagesComponent(PandasTransformComponent):
         """
         self.timeout = timeout
         self.retries = retries
+        self.n_connections = n_connections
         self.resizer = Resizer(
             image_size=image_size,
             resize_mode=resize_mode,
@@ -91,7 +95,7 @@ class DownloadImagesComponent(PandasTransformComponent):
         results: t.List[t.Tuple[str, bytes, int, int]] = []
 
         async def download_dataframe() -> None:
-            semaphore = asyncio.Semaphore(10)
+            semaphore = asyncio.Semaphore(self.n_connections)
 
             images = await asyncio.gather(
                 *[self.download_and_resize_image(id_, url, semaphore=semaphore)
