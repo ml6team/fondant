@@ -35,6 +35,10 @@ class ComponentOp:
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
         cache: Set to False to disable caching, True by default.
+        memory_request: the memory requested by the component. The value  can be a number or a
+          number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
+        memory_limit: the maximum memory that can be used by the component. The value  can be a
+         number or a number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
         preemptible: False by default. Set to True to use a preemptible VM.
          Requires the setup and assignment of a preemptible node pool. Note that preemptibles only
          work when KFP is setup on GCP. More info here:
@@ -197,8 +201,10 @@ class ComponentOp:
              Requires the setup and assignment of a preemptible node pool. Note that preemptibles
              only work when KFP is setup on GCP. More info here:
              https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
-            memory_request: the memory requested by the component
-            memory_limit: the maximum memory that can be used by the component
+            memory_request: the memory requested by the component. The value  can be a number or a
+             number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
+            memory_limit: the maximum memory that can be used by the component. The value  can be a
+            number or a number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
             cluster_type: The type of cluster to use for distributed execution (default is "local").
             client_kwargs: Keyword arguments used to initialise the dask client.
         """
