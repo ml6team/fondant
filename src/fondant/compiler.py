@@ -104,7 +104,7 @@ class DockerCompiler(Compiler):
             path = base_path
         return path, volume
 
-    def _generate_spec(  # noqa: PLR0912
+    def _generate_spec(
         self,
         pipeline: Pipeline,
         *,
@@ -126,12 +126,9 @@ class DockerCompiler(Compiler):
         for component_name, component in pipeline._graph.items():
             component_op = component["fondant_component_op"]
 
-            if component_cache_key is None:
-                component_cache_key = component_op.get_component_cache_key()
-            else:
-                component_cache_key = component_op.get_component_cache_key(
-                    previous_component_cache=component_cache_key,
-                )
+            component_cache_key = component_op.get_component_cache_key(
+                previous_component_cache=component_cache_key,
+            )
 
             metadata = Metadata(
                 pipeline_name=pipeline.name,
@@ -272,13 +269,9 @@ class KubeFlowCompiler(Compiler):
             for component_name, component in pipeline._graph.items():
                 component_op = component["fondant_component_op"]
 
-                if component_cache_key is None:
-                    component_cache_key = component_op.get_component_cache_key()
-                else:
-                    component_cache_key = component_op.get_component_cache_key(
-                        previous_component_cache=component_cache_key,
-                    )
-
+                component_cache_key = component_op.get_component_cache_key(
+                    previous_component_cache=component_cache_key,
+                )
                 metadata = Metadata(
                     pipeline_name=pipeline.name,
                     run_id=run_id,
