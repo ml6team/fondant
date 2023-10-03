@@ -318,8 +318,14 @@ class KubeFlowCompiler(Compiler):
         node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
         preemptible = fondant_component_operation.preemptible
+        memory_request = fondant_component_operation.memory_request
+        memory_limit = fondant_component_operation.memory_limit
 
         # Assign optional specification
+        if memory_request is not None:
+            task.set_memory_request(memory_request)
+        if memory_limit is not None:
+            task.set_memory_limit(memory_limit)
         if number_of_gpus is not None:
             task.set_gpu_limit(number_of_gpus)
         if node_pool_name is not None and node_pool_label is not None:
