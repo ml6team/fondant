@@ -1,55 +1,56 @@
-name: Load from hub
-description: Component that loads a dataset from the hub
-image: ghcr.io/ml6team/load_from_hf_hub:dev
+name: Load from parquet
+description: Component that loads a dataset from a parquet uri
+image: ghcr.io/ml6team/load_from_parquet:04c64c3e19dbe4d8714f145bf15ae2fac718cd4b
 
 produces:
   images:
     fields:
-      url:
-        type: string
-      width:
-        type: int32
-      height:
-        type: int32
+      data:
+        type: binary
       face_bboxes:
         type: array
         items:
           type: array
           items:
             type: float32
+      height:
+        type: int32
       sha256:
         type: utf8
-  
-  text:
-    fields:
-      data:
+      url:
         type: string
-  
-  imagetext:
-    fields:
-      clipb32score:
-        type: float32
-      clipl14score:
-        type: float32
+      width:
+        type: int32
 
-  textembedding:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
+#   text:
+#     fields:
+#       data:
+#         type: string
+
+#   imagetext:
+#     fields:
+#       clipb32score:
+#         type: float32
+#       clipl14score:
+#         type: float32
+
+#   textembedding:
+#     fields:
+#       data:
+#         type: array
+#         items:
+#           type: float32
+
+
+
 
 args:
-  dataset_name:
-    description: Name of dataset on the hub
+  dataset_uri:
+    description: The remote path to the parquet file/folder containing the dataset
     type: str
   column_name_mapping:
-    description: Mapping of the consumed hub dataset to fondant column names
+    description: Mapping of the consumed dataset
     type: dict
-  image_column_names:
-    description: Optional argument, a list containing the original image column names in case the 
-      dataset on the hub contains them. Used to format the image from HF hub format to a byte string.
-    type: list
     default: None
   n_rows_to_load:
     description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale

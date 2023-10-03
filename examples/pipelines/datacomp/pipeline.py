@@ -26,24 +26,24 @@ pipeline = Pipeline(
 
 # define ops
 load_component_column_mapping = {
-    "url": "images_url",
     "data": "images_data",
-    "original_width": "images_width",
-    "original_height": "images_height",
     "face_bboxes": "images_face_bboxes",
+    "height": "images_height",
     "sha256": "images_sha256",
-    "text": "text_data",
-    "clip_b32_similarity_score": "imagetext_clipb32score",
-    "clip_l14_similarity_score": "imagetext_clipl14score",
-    "clip_l14_text_embedding": "textembedding_data",
+    "url": "images_url",
+    "width": "images_width",
+    # "text": "text_data",
+    # "clip_b32_similarity_score": "imagetext_clipb32score",
+    # "clip_l14_similarity_score": "imagetext_clipl14score",
+    # "clip_l14_text_embedding": "textembedding_data",
 }
 
 load_from_parquet = ComponentOp(
     component_dir="components/load_from_parquet",
     arguments={
-        "dataset_uri": f"gs://soy-audio-379412_datacomp/final_dataset_multiple/{run_id}/",
+        "dataset_uri": f"gs://soy-audio-379412_kfp-artifacts/custom_artifact/datacomp-filtering-pipeline-1/datacomp-filtering-pipeline-1-20230930002646/load_from_parquet/images/part.69.parquet",
         "column_name_mapping": load_component_column_mapping,
-        "index_column": "uid",
+        # "index_column": "uid",
         # "n_rows_to_load": 1500,
     },
     node_pool_label="node_pool",
@@ -69,11 +69,12 @@ mask_images_op = ComponentOp(
 embed_images_op = ComponentOp.from_registry(
     name="embed_images",
     arguments={
-        "batch_size": 16,
+        "batch_size": 32,
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-pool",
     number_of_gpus=1,
+    input_partition_rows=3000,
 )
 add_clip_score_op = ComponentOp(
     component_dir="components/add_clip_score",
