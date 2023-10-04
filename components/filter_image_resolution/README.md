@@ -18,8 +18,8 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| min_image_dim | int | Minimum image dimension | None |
-| max_aspect_ratio | float | Maximum aspect ratio | None |
+| min_image_dim | int | Minimum image dimension | / |
+| max_aspect_ratio | float | Maximum aspect ratio | / |
 
 ### Usage
 
@@ -40,9 +40,3 @@ filter_image_resolution_op = ComponentOp.from_registry(
 pipeline.add_op(filter_image_resolution_op, dependencies=[...])  #Add previous component as dependency
 ```
 
-### Testing
-
-You can run the tests using docker with BuildKit. From this directory, run:
-```
-docker build . --target test
-```

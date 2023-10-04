@@ -17,9 +17,9 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| hf_token | str | The hugging face token used to write to the hub | None |
-| username | str | The username under which to upload the dataset | None |
-| dataset_name | str | The name of the dataset to upload | None |
+| hf_token | str | The hugging face token used to write to the hub | / |
+| username | str | The username under which to upload the dataset | / |
+| dataset_name | str | The name of the dataset to upload | / |
 | image_column_names | list | A list containing the image column names. Used to format to image to HF hub format | None |
 | column_name_mapping | dict | Mapping of the consumed fondant column names to the written hub column names | None |
 
@@ -45,9 +45,3 @@ write_to_hf_hub_op = ComponentOp.from_registry(
 pipeline.add_op(write_to_hf_hub_op, dependencies=[...])  #Add previous component as dependency
 ```
 
-### Testing
-
-You can run the tests using docker with BuildKit. From this directory, run:
-```
-docker build . --target test
-```

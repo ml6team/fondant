@@ -1,13 +1,12 @@
 import argparse
-import ast
 from pathlib import Path
 
 import jinja2
 from fondant.component_spec import ComponentSpec
 
 
-def read_component_spec(component_dir: Path) -> ComponentSpec:
-    return ComponentSpec.from_file(component_dir / "fondant_component.yaml")
+def read_component_spec(component_spec_path: Path) -> ComponentSpec:
+    return ComponentSpec.from_file(component_spec_path)
 
 
 def generate_readme(component_spec: ComponentSpec, *, component_dir: Path) -> str:
@@ -35,17 +34,20 @@ def write_readme(readme: str, component_dir: Path) -> None:
         f.write(readme)
 
 
-def main(component_dir: Path):
-    component_spec = read_component_spec(component_dir)
+def main(component_spec_path: Path):
+    component_spec = read_component_spec(component_spec_path)
+    component_dir = component_spec_path.parent
     readme = generate_readme(component_spec, component_dir=component_dir)
     write_readme(readme, component_dir=component_dir)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--component_dir",
+    parser.add_argument("component_specs",
+                        nargs="+",
                         type=Path,
-                        help="Path to the component to generate a readme for")
+                        help="Path to the component spec to generate a readme from")
     args = parser.parse_args()
 
-    main(args.component_dir)
+    for spec in args.component_specs:
+        main(spec)

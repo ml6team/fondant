@@ -41,9 +41,3 @@ embed_images_op = ComponentOp.from_registry(
 pipeline.add_op(embed_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 
-### Testing
-
-You can run the tests using docker with BuildKit. From this directory, run:
-```
-docker build . --target test
-```

@@ -20,7 +20,7 @@ The component takes the following arguments to alter its behavior:
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
 | model_id | str | id of the model on the Hugging Face hub | openmmlab/upernet-convnext-small |
-| batch_size | int | batch size to use | None |
+| batch_size | int | batch size to use | / |
 
 ### Usage
 
@@ -41,9 +41,3 @@ segment_images_op = ComponentOp.from_registry(
 pipeline.add_op(segment_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 
-### Testing
-
-You can run the tests using docker with BuildKit. From this directory, run:
-```
-docker build . --target test
-```

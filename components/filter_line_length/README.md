@@ -19,9 +19,9 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| avg_line_length_threshold | int | Threshold for average line length to filter on | None |
-| max_line_length_threshold | int | Threshold for maximum line length to filter on | None |
-| alphanum_fraction_threshold | float | Alphanum fraction to filter on | None |
+| avg_line_length_threshold | int | Threshold for average line length to filter on | / |
+| max_line_length_threshold | int | Threshold for maximum line length to filter on | / |
+| alphanum_fraction_threshold | float | Alphanum fraction to filter on | / |
 
 ### Usage
 
@@ -43,9 +43,3 @@ filter_line_length_op = ComponentOp.from_registry(
 pipeline.add_op(filter_line_length_op, dependencies=[...])  #Add previous component as dependency
 ```
 
-### Testing
-
-You can run the tests using docker with BuildKit. From this directory, run:
-```
-docker build . --target test
-```

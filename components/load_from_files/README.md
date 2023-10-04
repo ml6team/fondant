@@ -20,7 +20,7 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| directory_uri | str | Local or remote path to the directory containing the files | None |
+| directory_uri | str | Local or remote path to the directory containing the files | / |
 
 ### Usage
 

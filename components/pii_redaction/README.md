@@ -54,9 +54,3 @@ pii_redaction_op = ComponentOp.from_registry(
 pipeline.add_op(pii_redaction_op, dependencies=[...])  #Add previous component as dependency
 ```
 
-### Testing
-
-You can run the tests using docker with BuildKit. From this directory, run:
-```
-docker build . --target test
-```

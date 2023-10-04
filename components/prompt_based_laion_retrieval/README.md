@@ -24,7 +24,7 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| num_images | int | Number of images to retrieve for each prompt | None |
+| num_images | int | Number of images to retrieve for each prompt | / |
 | aesthetic_score | int | Aesthetic embedding to add to the query embedding, between 0 and 9 (higher is prettier). | 9 |
 | aesthetic_weight | float | Weight of the aesthetic embedding when added to the query, between 0 and 1 | 0.5 |
 | url | str | The url of the backend clip retrieval service, defaults to the public service | https://knn.laion.ai/knn-service |
@@ -50,9 +50,3 @@ prompt_based_laion_retrieval_op = ComponentOp.from_registry(
 pipeline.add_op(prompt_based_laion_retrieval_op, dependencies=[...])  #Add previous component as dependency
 ```
 
-### Testing
-
-You can run the tests using docker with BuildKit. From this directory, run:
-```
-docker build . --target test
-```

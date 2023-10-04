@@ -17,8 +17,8 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| min_characters_length | int | Minimum number of characters | None |
-| min_words_length | int | Mininum number of words | None |
+| min_characters_length | int | Minimum number of characters | / |
+| min_words_length | int | Mininum number of words | / |
 
 ### Usage
 
