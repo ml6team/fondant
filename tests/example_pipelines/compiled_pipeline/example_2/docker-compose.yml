@@ -41,8 +41,20 @@ services:
     - --cluster_type
     - default
     - --component_spec
-    - '{"name": "Image cropping", "description": "Component that removes single-colored
-      borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
+    - '{"name": "Image cropping", "image": "ghcr.io/ml6team/image_cropping:dev", "description":
+      "This component crops out image borders. This is typically useful when working
+      with graphical \nimages that have single-color borders (e.g. logos, icons, etc.).\n\nThe
+      component takes an image and calculates which color is most present in the border.
+      It then \ncrops the image in order to minimize this single-color border. The
+      `padding` argument will add \nextra border to the image before cropping it,
+      in order to avoid cutting off parts of the image.\nThe resulting crop will always
+      be square. If a crop is not possible, the component will return \nthe original
+      image.\n\n#### Examples\nExamples of image cropping by removing the single-color
+      border. Left side is original image, \nright side is border-cropped image.\n\n![Example
+      of image cropping by removing the single-color border. Left side is original,
+      right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n![Example
+      of image cropping by removing the single-color border. Left side is original,
+      right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n",
       "consumes": {"images": {"fields": {"data": {"type": "binary"}}}}, "produces":
       {"images": {"fields": {"data": {"type": "binary"}, "width": {"type": "int32"},
       "height": {"type": "int32"}}}}, "args": {"cropping_threshold": {"description":
