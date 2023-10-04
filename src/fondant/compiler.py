@@ -121,15 +121,21 @@ class DockerCompiler(Compiler):
 
         pipeline.validate(run_id=run_id)
 
+        component_cache_key = None
+
         for component_name, component in pipeline._graph.items():
             component_op = component["fondant_component_op"]
+
+            component_cache_key = component_op.get_component_cache_key(
+                previous_component_cache=component_cache_key,
+            )
 
             metadata = Metadata(
                 pipeline_name=pipeline.name,
                 run_id=run_id,
                 base_path=path,
                 component_id=component_name,
-                cache_key=component_op.get_component_cache_key(),
+                cache_key=component_cache_key,
             )
 
             logger.info(f"Compiling service for {component_name}")
@@ -258,16 +264,20 @@ class KubeFlowCompiler(Compiler):
         def kfp_pipeline():
             previous_component_task = None
             manifest_path = ""
+            component_cache_key = None
 
             for component_name, component in pipeline._graph.items():
                 component_op = component["fondant_component_op"]
 
+                component_cache_key = component_op.get_component_cache_key(
+                    previous_component_cache=component_cache_key,
+                )
                 metadata = Metadata(
                     pipeline_name=pipeline.name,
                     run_id=run_id,
                     base_path=pipeline.base_path,
                     component_id=component_name,
-                    cache_key=component_op.get_component_cache_key(),
+                    cache_key=component_cache_key,
                 )
 
                 logger.info(f"Compiling service for {component_name}")

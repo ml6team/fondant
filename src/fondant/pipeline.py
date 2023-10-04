@@ -214,7 +214,10 @@ class ComponentOp:
             client_kwargs=client_kwargs,
         )
 
-    def get_component_cache_key(self) -> str:
+    def get_component_cache_key(
+        self,
+        previous_component_cache: t.Optional[str] = None,
+    ) -> str:
         """Calculate a cache key representing the unique identity of this ComponentOp.
 
         The cache key is computed based on the component specification, image hash, arguments, and
@@ -250,6 +253,9 @@ class ComponentOp:
             "number_of_gpus": self.number_of_gpus,
             "node_pool_name": self.node_pool_name,
         }
+
+        if previous_component_cache is not None:
+            component_op_uid_dict["previous_component_cache"] = previous_component_cache
 
         return get_nested_dict_hash(component_op_uid_dict)
 
