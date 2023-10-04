@@ -21,14 +21,16 @@ right side is border-cropped image.
 ### Inputs / outputs
 
 **This component consumes:**
+
 - images
-  - data: binary
+    - data: binary
 
 **This component produces:**
+
 - images
-  - data: binary
-  - width: int32
-  - height: int32
+    - data: binary
+    - width: int32
+    - height: int32
 
 ### Arguments
 

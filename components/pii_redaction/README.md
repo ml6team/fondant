@@ -26,12 +26,14 @@ code.
 ### Inputs / outputs
 
 **This component consumes:**
+
 - code
-  - content: string
+    - content: string
 
 **This component produces:**
+
 - code
-  - content: string
+    - content: string
 
 ### Arguments
 

@@ -6,8 +6,9 @@ Component that filters code based on the code to comment ratio
 ### Inputs / outputs
 
 **This component consumes:**
+
 - code
-  - content: string
+    - content: string
 
 **This component produces no data.**
 

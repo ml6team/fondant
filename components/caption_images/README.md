@@ -6,12 +6,14 @@ This component captions images using a BLIP model from the Hugging Face hub
 ### Inputs / outputs
 
 **This component consumes:**
+
 - images
-  - data: binary
+    - data: binary
 
 **This component produces:**
+
 - captions
-  - text: string
+    - text: string
 
 ### Arguments
 

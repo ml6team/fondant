@@ -6,10 +6,11 @@ Component that filters code based on line length
 ### Inputs / outputs
 
 **This component consumes:**
+
 - code
-  - avg_line_length: double
-  - max_line_length: int32
-  - alphanum_fraction: double
+    - avg_line_length: double
+    - max_line_length: int32
+    - alphanum_fraction: double
 
 **This component produces no data.**
 

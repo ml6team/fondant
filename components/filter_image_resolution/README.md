@@ -6,9 +6,10 @@ Component that filters images based on minimum size and max aspect ratio
 ### Inputs / outputs
 
 **This component consumes:**
+
 - images
-  - width: int32
-  - height: int32
+    - width: int32
+    - height: int32
 
 **This component produces no data.**
 

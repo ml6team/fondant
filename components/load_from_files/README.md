@@ -10,9 +10,10 @@ location. It supports the following formats: .zip, gzip, tar and tar.gz.
 **This component consumes no data.**
 
 **This component produces:**
+
 - file
-  - filename: string
-  - content: binary
+    - filename: string
+    - content: binary
 
 ### Arguments
 

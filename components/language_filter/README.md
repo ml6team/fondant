@@ -6,8 +6,9 @@ A component that filters text based on the provided language.
 ### Inputs / outputs
 
 **This component consumes:**
+
 - text
-  - data: string
+    - data: string
 
 **This component produces no data.**
 

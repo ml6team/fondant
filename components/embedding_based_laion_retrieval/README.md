@@ -8,12 +8,14 @@ used to find images similar to the embedded images / captions.
 ### Inputs / outputs
 
 **This component consumes:**
+
 - embeddings
-  - data: list<item: float>
+    - data: list<item: float>
 
 **This component produces:**
+
 - images
-  - url: string
+    - url: string
 
 ### Arguments
 

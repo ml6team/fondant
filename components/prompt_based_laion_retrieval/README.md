@@ -11,12 +11,14 @@ This component doesn’t return the actual images, only URLs.
 ### Inputs / outputs
 
 **This component consumes:**
+
 - prompts
-  - text: string
+    - text: string
 
 **This component produces:**
+
 - images
-  - url: string
+    - url: string
 
 ### Arguments
 

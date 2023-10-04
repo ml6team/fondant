@@ -6,12 +6,14 @@ A component that generates minhashes of text.
 ### Inputs / outputs
 
 **This component consumes:**
+
 - text
-  - data: string
+    - data: string
 
 **This component produces:**
+
 - text
-  - minhash: list<item: uint64>
+    - minhash: list<item: uint64>
 
 ### Arguments
 
