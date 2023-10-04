@@ -1,17 +1,17 @@
-# Embed images
+# MinHash generator
 
 ### Description
-Component that generates CLIP embeddings from images
+A component that generates minhashes of text.
 
 ### Inputs/Outputs
 
 **The component comsumes:**
-- images
-  - data: binary
+- text
+  - data: string
 
 **The component produces:**
-- embeddings
-  - data: list<item: float>
+- text
+  - minhash: list<item: uint64>
 
 ### Arguments
 
@@ -19,8 +19,7 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description |
 | -------- | ---- | ----------- |
-| model_id | str | Model id of a CLIP model on the Hugging Face hub |
-| batch_size | int | Batch size to use when embedding |
+| shingle_ngram_size | int | Define size of ngram used for the shingle generation |
 
 ### Usage
 
@@ -30,15 +29,14 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-embed_images_op = ComponentOp.from_registry(
-    name="embed_images",
+minhash_generator_op = ComponentOp.from_registry(
+    name="minhash_generator",
     arguments={
         # Add arguments
-        "model_id": openai/clip-vit-large-patch14,
-        "batch_size": 8,
+        "shingle_ngram_size": 3,
     }
 )
-pipeline.add_op(Embed images_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(MinHash generator_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

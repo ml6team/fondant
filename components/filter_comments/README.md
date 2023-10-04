@@ -1,17 +1,15 @@
-# Embed images
+# Filter comments
 
 ### Description
-Component that generates CLIP embeddings from images
+Component that filters code based on the code to comment ratio
 
 ### Inputs/Outputs
 
 **The component comsumes:**
-- images
-  - data: binary
+- code
+  - content: string
 
 **The component produces:**
-- embeddings
-  - data: list<item: float>
 
 ### Arguments
 
@@ -19,8 +17,8 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description |
 | -------- | ---- | ----------- |
-| model_id | str | Model id of a CLIP model on the Hugging Face hub |
-| batch_size | int | Batch size to use when embedding |
+| min_comments_ratio | float | The minimum code to comment ratio |
+| max_comments_ratio | float | The maximum code to comment ratio |
 
 ### Usage
 
@@ -30,15 +28,15 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-embed_images_op = ComponentOp.from_registry(
-    name="embed_images",
+filter_comments_op = ComponentOp.from_registry(
+    name="filter_comments",
     arguments={
         # Add arguments
-        "model_id": openai/clip-vit-large-patch14,
-        "batch_size": 8,
+        "min_comments_ratio": 0.1,
+        "max_comments_ratio": 0.9,
     }
 )
-pipeline.add_op(Embed images_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(Filter comments_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

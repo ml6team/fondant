@@ -1,17 +1,16 @@
-# Embed images
+# Filter image resolution
 
 ### Description
-Component that generates CLIP embeddings from images
+Component that filters images based on minimum size and max aspect ratio
 
 ### Inputs/Outputs
 
 **The component comsumes:**
 - images
-  - data: binary
+  - width: int32
+  - height: int32
 
 **The component produces:**
-- embeddings
-  - data: list<item: float>
 
 ### Arguments
 
@@ -19,8 +18,8 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description |
 | -------- | ---- | ----------- |
-| model_id | str | Model id of a CLIP model on the Hugging Face hub |
-| batch_size | int | Batch size to use when embedding |
+| min_image_dim | int | Minimum image dimension |
+| max_aspect_ratio | float | Maximum aspect ratio |
 
 ### Usage
 
@@ -30,15 +29,13 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-embed_images_op = ComponentOp.from_registry(
-    name="embed_images",
+filter_image_resolution_op = ComponentOp.from_registry(
+    name="filter_image_resolution",
     arguments={
         # Add arguments
-        "model_id": openai/clip-vit-large-patch14,
-        "batch_size": 8,
     }
 )
-pipeline.add_op(Embed images_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(Filter image resolution_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing
