@@ -84,7 +84,7 @@ class ComponentOp:
             input_partition_rows,
             validate_partition_number,
         )
-        self._add_component_argument("cache", cache)
+        self._add_component_argument("cache", self.cache)
         self._add_component_argument("cluster_type", cluster_type)
         self._add_component_argument("client_kwargs", client_kwargs)
 
@@ -139,7 +139,7 @@ class ComponentOp:
         if hasattr(self, "arguments") is False:
             self.arguments = {}
 
-        if argument_value and (not validator or validator(argument_value)):
+        if argument_value is not None and (not validator or validator(argument_value)):
             self.argument_name = argument_value
             self.arguments[argument_name] = argument_value
 
@@ -444,7 +444,7 @@ class Pipeline:
                             raise InvalidPipelineDefinition(
                                 msg,
                             )
-            manifest = manifest.evolve(component_spec)
+            manifest = manifest.evolve(component_spec, run_id=run_id)
             load_component = False
 
         logger.info("All pipeline component specifications match.")

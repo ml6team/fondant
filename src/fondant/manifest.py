@@ -257,21 +257,30 @@ class Manifest:
     def evolve(  # noqa : PLR0912 (too many branches)
         self,
         component_spec: ComponentSpec,
+        *,
+        run_id: t.Optional[str] = None,
     ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
         to the component defined by the component spec.
+
+        Args:
+            component_spec: the component spec
+            run_id: the run id to include in the evolved manifest. If no run id is provided,
+            the run id from the original manifest is propagated.
         """
         evolved_manifest = self.copy()
 
         # Update `component_id` of the metadata
         component_id = component_spec.name.lower().replace(" ", "_")
         evolved_manifest.update_metadata(key="component_id", value=component_id)
+        if run_id is not None:
+            evolved_manifest.update_metadata(key="run_id", value=run_id)
 
         # Update index location as this is currently always rewritten
         evolved_manifest.index._specification[
             "location"
-        ] = f"/{self.pipeline_name}/{self.run_id}/{component_id}/index"
+        ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}/index"
 
         # If additionalSubsets is False in consumes,
         # Remove all subsets from the manifest that are not listed
@@ -322,7 +331,7 @@ class Manifest:
                 # Update subset location as this is currently always rewritten
                 evolved_manifest.subsets[subset_name]._specification[
                     "location"
-                ] = f"/{self.pipeline_name}/{self.run_id}/{component_id}/{subset_name}"
+                ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}/{subset_name}"
 
             # Subset is not yet in manifest, add it
             else:

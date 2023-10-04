@@ -13,7 +13,7 @@ services:
     - --storage_args
     - a dummy string arg
     - --cache
-    - 'True'
+    - 'False'
     - --cluster_type
     - default
     - --component_spec
