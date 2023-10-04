@@ -37,59 +37,32 @@ class DaskDataLoader(DataIO):
             The partitioned dataframe.
         """
         n_workers: int = os.cpu_count()  # type: ignore
-        original_n_partitions = dataframe.npartitions
 
         if self.input_partition_rows != "disable":
             if isinstance(self.input_partition_rows, int):
                 # Only load the index column to trigger a faster compute of the rows
                 total_rows = len(dataframe.index)
                 # +1 to handle any remainder rows
-                n_partitions_from_row = (total_rows // self.input_partition_rows) + 1
+                n_partitions = (total_rows // self.input_partition_rows) + 1
+                dataframe = dataframe.repartition(npartitions=n_partitions)
                 logger.info(
-                    f"Number of specified rows per partition is "
+                    f"Total number of rows is {total_rows}.\n"
+                    f"Repartitioning the data from {dataframe.partitions} partitions to have"
+                    f" {n_partitions} such that the number of partitions per row is approximately"
                     f"{self.input_partition_rows}",
                 )
-
-                if original_n_partitions > n_partitions_from_row:
-                    logger.info(
-                        f"The number of partitions required"
-                        f"to get `{self.input_partition_rows}` per row is lower than the "
-                        f"original number of partitions of the dataset "
-                        f"({original_n_partitions}.",
-                    )
-                    n_partitions = original_n_partitions
-
-                else:
-                    logger.info(
-                        f"The number of partitions required"
-                        f"to get `{self.input_partition_rows}` per row is higher than the "
-                        f"original number of partitions of the dataset "
-                        f"({original_n_partitions}.",
-                    )
-                    n_partitions = n_partitions_from_row
-
                 if n_partitions < n_workers:
-                    logger.info(
-                        f"The number of workers is larger than than {n_partitions} partitions."
-                        f" Setting the number of partitions equal to the"
-                        f" amount of workers {n_workers}",
+                    logger.warning(
+                        "Setting the `input partition rows` has caused the system to not utilize"
+                        f" all available workers {n_partitions} out of {n_workers} are used.",
                     )
-                    dataframe = dataframe.repartition(npartitions=n_workers)
-                else:
-                    logger.info(
-                        f"Total number of rows is {total_rows}.\n"
-                        f"Repartitioning the data from {dataframe.npartitions} partitions to have"
-                        f" {n_partitions} such that the number of partitions per row is"
-                        f" approximately {self.input_partition_rows}",
-                    )
-                dataframe = dataframe.repartition(npartitions=n_partitions)
 
             elif self.input_partition_rows is None:
-                if original_n_partitions < n_workers:  # type: ignore
+                n_partitions = dataframe.npartitions
+                if n_partitions < n_workers:  # type: ignore
                     logger.info(
-                        f"The number of partitions of the input dataframe is"
-                        f" {original_n_partitions}. The available number of workers is {n_workers}"
-                        f".",
+                        f"The number of partitions of the input dataframe is {n_partitions}. The "
+                        f"available number of workers is {n_workers}.",
                     )
                     dataframe = dataframe.repartition(npartitions=n_workers)
                     logger.info(

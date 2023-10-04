@@ -77,17 +77,15 @@ def test_load_dataframe_default(manifest, component_spec):
     assert dataframe.npartitions in list(range(number_workers - 1, number_workers + 2))
 
 
-def test_load_dataframe_rows(manifest, component_spec, monkeypatch):
+def test_load_dataframe_rows(manifest, component_spec):
     """Test merging of subsets in a dataframe based on a component_spec."""
-    # Set cpu count to low to partition based on the input partition rows
-    monkeypatch.setattr(os, "cpu_count", lambda: 1)
     dl = DaskDataLoader(
         manifest=manifest,
         component_spec=component_spec,
-        input_partition_rows=10,
+        input_partition_rows=100,
     )
     dataframe = dl.load_dataframe()
-    expected_partitions = 16  # dataset with 151 rows
+    expected_partitions = 2  # dataset with 151 rows
     assert dataframe.npartitions == expected_partitions
 
 
