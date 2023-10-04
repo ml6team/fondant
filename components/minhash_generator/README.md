@@ -3,13 +3,13 @@
 ### Description
 A component that generates minhashes of text.
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - text
   - data: string
 
-**The component produces:**
+**This component produces:**
 - text
   - minhash: list<item: uint64>
 
@@ -17,9 +17,9 @@ A component that generates minhashes of text.
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| shingle_ngram_size | int | Define size of ngram used for the shingle generation |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| shingle_ngram_size | int | Define size of ngram used for the shingle generation | 3 |
 
 ### Usage
 
@@ -33,10 +33,10 @@ minhash_generator_op = ComponentOp.from_registry(
     name="minhash_generator",
     arguments={
         # Add arguments
-        "shingle_ngram_size": 3,
+        # "shingle_ngram_size": 3,
     }
 )
-pipeline.add_op(MinHash generator_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(minhash_generator_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

@@ -3,22 +3,22 @@
 ### Description
 Component that filters code based on the code to comment ratio
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - code
   - content: string
 
-**The component produces:**
+**This component produces no data.**
 
 ### Arguments
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| min_comments_ratio | float | The minimum code to comment ratio |
-| max_comments_ratio | float | The maximum code to comment ratio |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| min_comments_ratio | float | The minimum code to comment ratio | 0.1 |
+| max_comments_ratio | float | The maximum code to comment ratio | 0.9 |
 
 ### Usage
 
@@ -32,11 +32,11 @@ filter_comments_op = ComponentOp.from_registry(
     name="filter_comments",
     arguments={
         # Add arguments
-        "min_comments_ratio": 0.1,
-        "max_comments_ratio": 0.9,
+        # "min_comments_ratio": 0.1,
+        # "max_comments_ratio": 0.9,
     }
 )
-pipeline.add_op(Filter comments_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(filter_comments_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

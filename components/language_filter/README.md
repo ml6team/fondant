@@ -3,21 +3,21 @@
 ### Description
 A component that filters text based on the provided language.
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - text
   - data: string
 
-**The component produces:**
+**This component produces no data.**
 
 ### Arguments
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| language | str | A valid language code or identifier (e.g., "en", "fr", "de"). |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| language | str | A valid language code or identifier (e.g., "en", "fr", "de"). | en |
 
 ### Usage
 
@@ -31,10 +31,10 @@ language_filter_op = ComponentOp.from_registry(
     name="language_filter",
     arguments={
         # Add arguments
-        "language": en,
+        # "language": "en",
     }
 )
-pipeline.add_op(Filter languages_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(language_filter_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

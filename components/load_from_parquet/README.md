@@ -3,11 +3,11 @@
 ### Description
 Component that loads a dataset from a parquet uri
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes no data.**
 
-**The component produces:**
+**This component produces:**
 - dummy_variable
   - data: binary
 
@@ -15,12 +15,12 @@ Component that loads a dataset from a parquet uri
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| dataset_uri | str | The remote path to the parquet file/folder containing the dataset |
-| column_name_mapping | dict | Mapping of the consumed dataset |
-| n_rows_to_load | int | Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale |
-| index_column | str | Column to set index to in the load component, if not specified a default globally unique index will be set |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| dataset_uri | str | The remote path to the parquet file/folder containing the dataset | None |
+| column_name_mapping | dict | Mapping of the consumed dataset | None |
+| n_rows_to_load | int | Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale | None |
+| index_column | str | Column to set index to in the load component, if not specified a default globally unique index will be set | None |
 
 ### Usage
 
@@ -34,12 +34,13 @@ load_from_parquet_op = ComponentOp.from_registry(
     name="load_from_parquet",
     arguments={
         # Add arguments
-        "column_name_mapping": None,
-        "n_rows_to_load": None,
-        "index_column": None,
+        # "dataset_uri": ,
+        # "column_name_mapping": "None",
+        # "n_rows_to_load": "None",
+        # "index_column": "None",
     }
 )
-pipeline.add_op(Load from parquet_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(load_from_parquet_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

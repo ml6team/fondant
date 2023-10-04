@@ -23,13 +23,13 @@ A component that detects and redacts Personal Identifiable Information (PII) fro
 code.
 
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - code
   - content: string
 
-**The component produces:**
+**This component produces:**
 - code
   - content: string
 
@@ -51,7 +51,7 @@ pii_redaction_op = ComponentOp.from_registry(
         # Add arguments
     }
 )
-pipeline.add_op(PII redaction_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(pii_redaction_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

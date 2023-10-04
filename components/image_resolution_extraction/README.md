@@ -3,13 +3,13 @@
 ### Description
 Component that extracts image resolution data from the images
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - images
   - data: binary
 
-**The component produces:**
+**This component produces:**
 - images
   - data: binary
   - width: int32
@@ -33,7 +33,7 @@ image_resolution_extraction_op = ComponentOp.from_registry(
         # Add arguments
     }
 )
-pipeline.add_op(Image resolution extraction_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(image_resolution_extraction_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

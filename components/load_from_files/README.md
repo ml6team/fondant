@@ -5,11 +5,11 @@ This component loads data from files in a local or remote (AWS S3, Azure Blob st
 location. It supports the following formats: .zip, gzip, tar and tar.gz.
 
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes no data.**
 
-**The component produces:**
+**This component produces:**
 - file
   - filename: string
   - content: binary
@@ -18,9 +18,9 @@ location. It supports the following formats: .zip, gzip, tar and tar.gz.
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| directory_uri | str | Local or remote path to the directory containing the files |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| directory_uri | str | Local or remote path to the directory containing the files | None |
 
 ### Usage
 
@@ -34,9 +34,10 @@ load_from_files_op = ComponentOp.from_registry(
     name="load_from_files",
     arguments={
         # Add arguments
+        # "directory_uri": ,
     }
 )
-pipeline.add_op(Load from files_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(load_from_files_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

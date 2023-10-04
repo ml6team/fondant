@@ -3,13 +3,13 @@
 ### Description
 This component captions images using a BLIP model from the Hugging Face hub
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - images
   - data: binary
 
-**The component produces:**
+**This component produces:**
 - captions
   - text: string
 
@@ -17,11 +17,11 @@ This component captions images using a BLIP model from the Hugging Face hub
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| model_id | str | Id of the BLIP model on the Hugging Face hub |
-| batch_size | int | Batch size to use for inference |
-| max_new_tokens | int | Maximum token length of each caption |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| model_id | str | Id of the BLIP model on the Hugging Face hub | Salesforce/blip-image-captioning-base |
+| batch_size | int | Batch size to use for inference | 8 |
+| max_new_tokens | int | Maximum token length of each caption | 50 |
 
 ### Usage
 
@@ -35,12 +35,12 @@ caption_images_op = ComponentOp.from_registry(
     name="caption_images",
     arguments={
         # Add arguments
-        "model_id": Salesforce/blip-image-captioning-base,
-        "batch_size": 8,
-        "max_new_tokens": 50,
+        # "model_id": "Salesforce/blip-image-captioning-base",
+        # "batch_size": 8,
+        # "max_new_tokens": 50,
     }
 )
-pipeline.add_op(Caption images_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(caption_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

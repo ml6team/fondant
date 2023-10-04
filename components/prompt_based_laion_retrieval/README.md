@@ -8,13 +8,13 @@ the prompt sentences and the captions in the LAION dataset.
 This component doesn’t return the actual images, only URLs.
 
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - prompts
   - text: string
 
-**The component produces:**
+**This component produces:**
 - images
   - url: string
 
@@ -22,12 +22,12 @@ This component doesn’t return the actual images, only URLs.
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| num_images | int | Number of images to retrieve for each prompt |
-| aesthetic_score | int | Aesthetic embedding to add to the query embedding, between 0 and 9 (higher is prettier). |
-| aesthetic_weight | float | Weight of the aesthetic embedding when added to the query, between 0 and 1 |
-| url | str | The url of the backend clip retrieval service, defaults to the public service |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| num_images | int | Number of images to retrieve for each prompt | None |
+| aesthetic_score | int | Aesthetic embedding to add to the query embedding, between 0 and 9 (higher is prettier). | 9 |
+| aesthetic_weight | float | Weight of the aesthetic embedding when added to the query, between 0 and 1 | 0.5 |
+| url | str | The url of the backend clip retrieval service, defaults to the public service | https://knn.laion.ai/knn-service |
 
 ### Usage
 
@@ -41,12 +41,13 @@ prompt_based_laion_retrieval_op = ComponentOp.from_registry(
     name="prompt_based_laion_retrieval",
     arguments={
         # Add arguments
-        "aesthetic_score": 9,
-        "aesthetic_weight": 0.5,
-        "url": https://knn.laion.ai/knn-service,
+        # "num_images": 0,
+        # "aesthetic_score": 9,
+        # "aesthetic_weight": 0.5,
+        # "url": "https://knn.laion.ai/knn-service",
     }
 )
-pipeline.add_op(LAION retrieval_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(prompt_based_laion_retrieval_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

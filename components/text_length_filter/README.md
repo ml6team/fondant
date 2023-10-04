@@ -3,22 +3,22 @@
 ### Description
 A component that filters out text based on their length
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - text
   - data: string
 
-**The component produces:**
+**This component produces no data.**
 
 ### Arguments
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| min_characters_length | int | Minimum number of characters |
-| min_words_length | int | Mininum number of words |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| min_characters_length | int | Minimum number of characters | None |
+| min_words_length | int | Mininum number of words | None |
 
 ### Usage
 
@@ -32,9 +32,11 @@ text_length_filter_op = ComponentOp.from_registry(
     name="text_length_filter",
     arguments={
         # Add arguments
+        # "min_characters_length": 0,
+        # "min_words_length": 0,
     }
 )
-pipeline.add_op(Filter text length_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(text_length_filter_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

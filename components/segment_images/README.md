@@ -3,13 +3,13 @@
 ### Description
 Component that creates segmentation masks for images using a model from the Hugging Face hub
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - images
   - data: binary
 
-**The component produces:**
+**This component produces:**
 - segmentations
   - data: binary
 
@@ -17,10 +17,10 @@ Component that creates segmentation masks for images using a model from the Hugg
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| model_id | str | id of the model on the Hugging Face hub |
-| batch_size | int | batch size to use |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| model_id | str | id of the model on the Hugging Face hub | openmmlab/upernet-convnext-small |
+| batch_size | int | batch size to use | None |
 
 ### Usage
 
@@ -34,10 +34,11 @@ segment_images_op = ComponentOp.from_registry(
     name="segment_images",
     arguments={
         # Add arguments
-        "model_id": openmmlab/upernet-convnext-small,
+        # "model_id": "openmmlab/upernet-convnext-small",
+        # "batch_size": 0,
     }
 )
-pipeline.add_op(Segment images_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(segment_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

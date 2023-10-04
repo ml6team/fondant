@@ -18,13 +18,13 @@ right side is border-cropped image.
 ![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)
 
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - images
   - data: binary
 
-**The component produces:**
+**This component produces:**
 - images
   - data: binary
   - width: int32
@@ -34,10 +34,10 @@ right side is border-cropped image.
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| cropping_threshold | int | Threshold parameter used for detecting borders. A lower (negative) parameter results in a more performant border detection, but can cause overcropping. Default is -30 |
-| padding | int | Padding for the image cropping. The padding is added to all borders of the image. |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| cropping_threshold | int | Threshold parameter used for detecting borders. A lower (negative) parameter results in a more performant border detection, but can cause overcropping. Default is -30 | -30 |
+| padding | int | Padding for the image cropping. The padding is added to all borders of the image. | 10 |
 
 ### Usage
 
@@ -51,11 +51,11 @@ image_cropping_op = ComponentOp.from_registry(
     name="image_cropping",
     arguments={
         # Add arguments
-        "cropping_threshold": -30,
-        "padding": 10,
+        # "cropping_threshold": -30,
+        # "padding": 10,
     }
 )
-pipeline.add_op(Image cropping_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(image_cropping_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

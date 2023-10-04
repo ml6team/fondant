@@ -15,25 +15,25 @@ These text normalization techniques are valuable for preparing text data before 
 the training of large language models.
 
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - text
   - data: string
 
-**The component produces:**
+**This component produces no data.**
 
 ### Arguments
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| remove_additional_whitespaces | bool | If true remove all additional whitespace, tabs. |
-| apply_nfc | bool | If true apply nfc normalization |
-| normalize_lines | bool | If true analyze documents line-by-line and apply various rules to discard or edit lines. Used to removed common patterns in webpages, e.g. counter |
-| do_lowercase | bool | If true apply lowercasing |
-| remove_punctuation | str | If true punctuation will be removed |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| remove_additional_whitespaces | bool | If true remove all additional whitespace, tabs. | None |
+| apply_nfc | bool | If true apply nfc normalization | None |
+| normalize_lines | bool | If true analyze documents line-by-line and apply various rules to discard or edit lines. Used to removed common patterns in webpages, e.g. counter | None |
+| do_lowercase | bool | If true apply lowercasing | None |
+| remove_punctuation | str | If true punctuation will be removed | None |
 
 ### Usage
 
@@ -47,9 +47,14 @@ text_normalization_op = ComponentOp.from_registry(
     name="text_normalization",
     arguments={
         # Add arguments
+        # "remove_additional_whitespaces": False,
+        # "apply_nfc": False,
+        # "normalize_lines": False,
+        # "do_lowercase": False,
+        # "remove_punctuation": ,
     }
 )
-pipeline.add_op(Normalize text_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(text_normalization_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

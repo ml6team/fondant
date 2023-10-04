@@ -3,25 +3,25 @@
 ### Description
 Component that filters code based on line length
 
-### Inputs/Outputs
+### Inputs / outputs
 
-**The component comsumes:**
+**This component consumes:**
 - code
   - avg_line_length: double
   - max_line_length: int32
   - alphanum_fraction: double
 
-**The component produces:**
+**This component produces no data.**
 
 ### Arguments
 
 The component takes the following arguments to alter its behavior:
 
-| argument | type | description |
-| -------- | ---- | ----------- |
-| avg_line_length_threshold | int | Threshold for average line length to filter on |
-| max_line_length_threshold | int | Threshold for maximum line length to filter on |
-| alphanum_fraction_threshold | float | Alphanum fraction to filter on |
+| argument | type | description | default |
+| -------- | ---- | ----------- | ------- |
+| avg_line_length_threshold | int | Threshold for average line length to filter on | None |
+| max_line_length_threshold | int | Threshold for maximum line length to filter on | None |
+| alphanum_fraction_threshold | float | Alphanum fraction to filter on | None |
 
 ### Usage
 
@@ -35,9 +35,12 @@ filter_line_length_op = ComponentOp.from_registry(
     name="filter_line_length",
     arguments={
         # Add arguments
+        # "avg_line_length_threshold": 0,
+        # "max_line_length_threshold": 0,
+        # "alphanum_fraction_threshold": 0.0,
     }
 )
-pipeline.add_op(Filter line length_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(filter_line_length_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing
