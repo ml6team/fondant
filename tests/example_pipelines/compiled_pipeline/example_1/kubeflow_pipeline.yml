@@ -57,7 +57,10 @@ spec:
       imagePullPolicy: Always
       resources:
         limits:
+          memory: 512M
           nvidia.com/gpu: 1
+        requests:
+          memory: 256M
     inputs:
       artifacts:
       - name: input_manifest_path

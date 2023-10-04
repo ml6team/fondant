@@ -24,6 +24,8 @@ TEST_PIPELINES = [
                     input_partition_rows="disable",
                     number_of_gpus=1,
                     preemptible=True,
+                    memory_limit="512M",
+                    memory_request="256M",
                 ),
                 "cache_key": "1",
             },
