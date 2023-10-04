@@ -60,7 +60,7 @@ def run_explorer_app(  # type: ignore
 
         # Mount the local base path to the container
         cmd.extend(
-            ["-v", f"/{shlex.quote(host_machine_path)}:/{shlex.quote(container_path)}"],
+            ["-v", f"{shlex.quote(host_machine_path)}:{shlex.quote(container_path)}"],
         )
 
         # add the image name
