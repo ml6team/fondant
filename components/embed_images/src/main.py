@@ -13,7 +13,6 @@ from transformers import BatchEncoding, CLIPProcessor, CLIPVisionModelWithProjec
 
 logger = logging.getLogger(__name__)
 
-os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 os.environ['TORCH_CUDNN_V8_API_DISABLED'] = "1"
 
 
