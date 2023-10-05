@@ -14,7 +14,7 @@ component specification and define the custom required/optional arguments.
 
 Each Fondant component is defined by a specification which describes its interface. This
 specification is represented by a single `fondant_component.yaml` file. See the [component
-specification page](component_spec.md) for info on how to write the specification for your component.
+specification page](../components/component_spec.md) for info on how to write the specification for your component.
 
 ### Load component
 
@@ -69,7 +69,7 @@ args:
 Here are a few things to note:
 
 - The original fields are mapped to a valid
-  [subset](https://github.com/ml6team/fondant/blob/main/docs/component_spec.md#:~:text=additionalSubsets%3A%20true-,Subsets,-A%20component%20consumes) using the `column_name_mapping` dictionary:
+  [subset](../components/component_spec.md#subsets) using the `column_name_mapping` dictionary:
 
 ```python
 column_name_mapping = {

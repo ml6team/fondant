@@ -45,7 +45,7 @@ Fondant offers three distinct component types:
 - **Generic components**: They provide the business logic but may require adjustments to the component spec.
 - **Custom components**: The component implementation is user-dependent.
 
-If you want to learn more about components, you can check out the [components documentation](/components/components).
+If you want to learn more about components, you can check out the [components documentation](../components/components.md).
 
 ### First component to load the dataset
 
@@ -147,7 +147,7 @@ You can open your browser at `localhost:8501` to explore the data and columns of
 
 Our pipeline has successfully loaded the dataset from HuggingFace. One of these columns, `image_url`, directs us to the original source of the images. To access and utilise these images directly, we must download each of them.
 
-Downloading images is a common requirement across various use cases, which is why Fondant provides a reusable component specifically for this purpose. This component is appropriately named [`download_images`](/components/download_images/README.md).
+Downloading images is a common requirement across various use cases, which is why Fondant provides a reusable component specifically for this purpose. This component is appropriately named [`download_images`](https://github.com/ml6team/fondant/tree/main/components/download_images).
 
 We can extend our code to incorporate this component into our pipeline with the following code snippet:
 
@@ -171,4 +171,4 @@ Now, you can proceed to execute your pipeline once more and explore the results.
 
 ![explorer](https://github.com/ml6team/fondant/blob/main/docs/art/guides/explorer.png?raw=true)
 
-Well done! You have now acquired the skills to construct a simple Fondant pipeline by leveraging generic and reusable components. In our [upcoming tutorial](/docs/guides/implement_custom_components.md), we'll demonstrate how you can customise the pipeline by implementing a custom component.
+Well done! You have now acquired the skills to construct a simple Fondant pipeline by leveraging generic and reusable components. In our [upcoming tutorial](../guides//implement_custom_components.md), we'll demonstrate how you can customise the pipeline by implementing a custom component.

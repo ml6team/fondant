@@ -1,4 +1,4 @@
-<a name="top"></a>
+<a id="top"></a>
 <p align="center">
     <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" height="250px"/>
 </p>
@@ -68,7 +68,7 @@ Realizing this is the main vision behind Fondant.
 
 ## 💨 Getting Started
 
-Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/stable/getting_started) to get your first pipeline up and running.
+Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting_started) to get your first pipeline up and running.
 
 ## 🪄 Example pipelines
 

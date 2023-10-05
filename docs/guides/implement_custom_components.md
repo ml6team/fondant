@@ -5,11 +5,11 @@
 **Goal**: After completing this tutorial with Fondant, you will be able to build your own custom component and integrate it into a fondant pipeline. </br>
 
 **Prerequisite**: Make sure docker compose is installed on your local system.
-We recommend completing the [first tutorial](build_a_simple_pipeline.md) before proceeding with this one, as this tutorial builds upon the knowledge gained in the previous one.
+We recommend completing the [first tutorial](../guides/build_a_simple_pipeline.md) before proceeding with this one, as this tutorial builds upon the knowledge gained in the previous one.
 
 ## Overview
 
-In the [initial tutorial](build_a_simple_pipeline.md), you learned how to create your first Fondant pipeline. While the example demonstrates initialising the dataset from HuggingFace and using a reusable component to download images, this is just the beginning.
+In the [initial tutorial](../guides/build_a_simple_pipeline.md), you learned how to create your first Fondant pipeline. While the example demonstrates initialising the dataset from HuggingFace and using a reusable component to download images, this is just the beginning.
 
 The true power of Fondant lies in its capability to enable you to construct your own data pipelines to create high-quality datasets. To achieve this, we need to implement custom components.
 
@@ -25,7 +25,7 @@ A component comprises several key elements. First, there's the ComponentSpec YAM
 
 The second essential part is a python class, which encapsulates the business logic that operates on the input dataframe.
 
-In addition to these core components, there are a few other necessary items, including a `Dockerfile` used for building the component and a `requirements.txt` file to specify and install required dependencies. You can find a more detailed explanation [here](/components/custom_component).
+In addition to these core components, there are a few other necessary items, including a `Dockerfile` used for building the component and a `requirements.txt` file to specify and install required dependencies. You can find a more detailed explanation [here](../components/custom_component.md).
 
 ### Creating the ComponentSpec
 
@@ -132,7 +132,7 @@ As part of the Dockerfile build process, we install necessary dependencies. Cons
 
 ## Make use of your component
 
-To utilise your component, you can incorporate it into the pipeline created in [this guide](/docs/guides/build_a_simple_pipeline.md). To do this, you'll need to add the following code to the `pipeline.py` file:
+To utilise your component, you can incorporate it into the pipeline created in [this guide](../guides/build_a_simple_pipeline.md). To do this, you'll need to add the following code to the `pipeline.py` file:
 
 ```python
 # Filter mime type component

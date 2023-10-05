@@ -21,7 +21,7 @@ To implement a custom component, a couple of files need to be defined:
 
 Each Fondant component is defined by a specification which describes its interface. This
 specification is represented by a single `fondant_component.yaml` file. See the [component
-specification page](component_spec.md) for info on how to write the specification for your component.
+specification page](../components/component_spec.md) for info on how to write the specification for your component.
 
 ## Main.py script
 
@@ -64,7 +64,7 @@ class ExampleComponent(PandasTransformComponent):
 ```
 
 The `__init__` method is called once for each component class with custom arguments defined in the
-`args` section of the [component specification](component_spec.md).)
+`args` section of the [component specification](../components/component_spec.md).)
 
 The `transform` method is called multiple times, each time containing a pandas `dataframe`
 with a partition of your data loaded in memory.
