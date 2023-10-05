@@ -113,7 +113,7 @@ A `requirements.txt` file lists the Python dependencies of the component. Note t
 
 ```
 fondant
-Pillow==9.4.0
+Pillow==10.0.1
 torch==2.0.1
 transformers==4.29.2
 ```
