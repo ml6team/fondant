@@ -1,21 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  annotations:
-    pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-    pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00'
-    pipelines.kubeflow.org/pipeline_spec: '{"description": "description of the test
-      pipeline", "name": "test_pipeline"}'
   generateName: test-pipeline-
-  labels:
-    pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22, pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00',
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "description of the test
+      pipeline", "name": "test_pipeline"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.22}
 spec:
-  arguments:
-    parameters: []
   entrypoint: test-pipeline
-  serviceAccountName: pipeline-runner
   templates:
-  - container:
+  - name: first-component
+    container:
       args: []
       command:
       - fondant
@@ -34,7 +29,7 @@ spec:
       - --input_partition_rows
       - None
       - --cache
-      - 'False'
+      - "False"
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -49,27 +44,21 @@ spec:
       artifacts:
       - name: input_manifest_path
         path: /tmp/inputs/input_manifest_path/data
-        raw:
-          data: ''
+        raw: {data: ''}
+    outputs:
+      artifacts:
+      - {name: first-component-output_manifest_path, path: /tmp/outputs/output_manifest_path/data}
     metadata:
-      annotations:
-        pipelines.kubeflow.org/arguments.parameters: '{"cache": "False", "client_kwargs":
-          "{}", "cluster_type": "default", "component_spec": "{\"args\": {\"storage_args\":
-          {\"description\": \"Storage arguments\", \"type\": \"str\"}}, \"description\":
-          \"This is an example component\", \"image\": \"example_component:latest\",
-          \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
-          {\"data\": {\"type\": \"string\"}}}, \"images\": {\"fields\": {\"data\":
-          {\"type\": \"binary\"}}}}}", "input_partition_rows": "None", "metadata":
-          "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
-          \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
-          \"cache_key\": \"1\"}", "storage_args": "a dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "ba182d1dd6a5f8fdffb3c9e487c84d1d1b9ebbfe4b5a137a4af02be832c0c820"}'
-        pipelines.kubeflow.org/component_spec: '{"description": "This is an example
-          component", "implementation": {"container": {"command": ["fondant", "execute",
-          "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
-          {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--cache",
-          {"inputValue": "cache"}, "--storage_args", {"inputValue": "storage_args"},
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "This
+          is an example component", "implementation": {"container": {"command": ["fondant",
+          "execute", "main", "--input_manifest_path", {"inputPath": "input_manifest_path"},
+          "--metadata", {"inputValue": "metadata"}, "--component_spec", {"inputValue":
+          "component_spec"}, "--input_partition_rows", {"inputValue": "input_partition_rows"},
+          "--cache", {"inputValue": "cache"}, "--storage_args", {"inputValue": "storage_args"},
           "--output_manifest_path", {"outputPath": "output_manifest_path"}, "--cluster_type",
           {"inputValue": "cluster_type"}, "--client_kwargs", {"inputValue": "client_kwargs"}],
           "image": "example_component:latest"}}, "inputs": [{"description": "Path
@@ -87,17 +76,19 @@ spec:
           dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":
           "Storage arguments", "name": "storage_args", "type": "String"}], "name":
           "First component", "outputs": [{"description": "Path to the output manifest",
-          "name": "output_manifest_path", "type": "String"}]}'
-      labels:
-        pipelines.kubeflow.org/enable_caching: 'true'
-        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-        pipelines.kubeflow.org/pipeline-sdk-type: kfp
-    name: first-component
-    outputs:
-      artifacts:
-      - name: first-component-output_manifest_path
-        path: /tmp/outputs/output_manifest_path/data
-  - container:
+          "name": "output_manifest_path", "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "ba182d1dd6a5f8fdffb3c9e487c84d1d1b9ebbfe4b5a137a4af02be832c0c820"}', pipelines.kubeflow.org/arguments.parameters: '{"cache":
+          "False", "client_kwargs": "{}", "cluster_type": "default", "component_spec":
+          "{\"args\": {\"storage_args\": {\"description\": \"Storage arguments\",
+          \"type\": \"str\"}}, \"description\": \"This is an example component\",
+          \"image\": \"example_component:latest\", \"name\": \"First component\",
+          \"produces\": {\"captions\": {\"fields\": {\"data\": {\"type\": \"string\"}}},
+          \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
+          "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
+          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
+          \"cache_key\": \"1\"}", "storage_args": "a dummy string arg"}'}
+  - name: image-cropping
+    container:
       args: []
       command:
       - fondant
@@ -115,14 +106,27 @@ spec:
         is -30", "type": "int"}, "padding": {"default": 10, "description": "Padding
         for the image cropping. The padding is added to all borders of the image.",
         "type": "int"}}, "consumes": {"images": {"fields": {"data": {"type": "binary"}}}},
-        "description": "Component that removes single-colored borders around images
-        and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
-        "name": "Image cropping", "produces": {"images": {"fields": {"data": {"type":
-        "binary"}, "height": {"type": "int32"}, "width": {"type": "int32"}}}}}'
+        "description": "This component crops out image borders. This is typically
+        useful when working with graphical \nimages that have single-color borders
+        (e.g. logos, icons, etc.).\n\nThe component takes an image and calculates
+        which color is most present in the border. It then \ncrops the image in order
+        to minimize this single-color border. The `padding` argument will add \nextra
+        border to the image before cropping it, in order to avoid cutting off parts
+        of the image.\nThe resulting crop will always be square. If a crop is not
+        possible, the component will return \nthe original image.\n\n#### Examples\nExamples
+        of image cropping by removing the single-color border. Left side is original
+        image, \nright side is border-cropped image.\n\n![Example of image cropping
+        by removing the single-color border. Left side is original, right side is
+        cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n![Example
+        of image cropping by removing the single-color border. Left side is original,
+        right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n",
+        "image": "ghcr.io/ml6team/image_cropping:dev", "name": "Image cropping", "produces":
+        {"images": {"fields": {"data": {"type": "binary"}, "height": {"type": "int32"},
+        "width": {"type": "int32"}}}}}'
       - --input_partition_rows
       - None
       - --cache
-      - 'True'
+      - "True"
       - --cropping_threshold
       - '0'
       - --padding
@@ -137,38 +141,38 @@ spec:
       imagePullPolicy: Always
     inputs:
       artifacts:
-      - name: first-component-output_manifest_path
-        path: /tmp/inputs/input_manifest_path/data
+      - {name: first-component-output_manifest_path, path: /tmp/inputs/input_manifest_path/data}
+    outputs:
+      artifacts:
+      - {name: image-cropping-output_manifest_path, path: /tmp/outputs/output_manifest_path/data}
     metadata:
-      annotations:
-        pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
-          "{}", "cluster_type": "default", "component_spec": "{\"args\": {\"cropping_threshold\":
-          {\"default\": -30, \"description\": \"Threshold parameter used for detecting
-          borders. A lower (negative) parameter results in a more performant border
-          detection, but can cause overcropping. Default is -30\", \"type\": \"int\"},
-          \"padding\": {\"default\": 10, \"description\": \"Padding for the image
-          cropping. The padding is added to all borders of the image.\", \"type\":
-          \"int\"}}, \"consumes\": {\"images\": {\"fields\": {\"data\": {\"type\":
-          \"binary\"}}}}, \"description\": \"Component that removes single-colored
-          borders around images and crops them appropriately\", \"image\": \"ghcr.io/ml6team/image_cropping:dev\",
-          \"name\": \"Image cropping\", \"produces\": {\"images\": {\"fields\": {\"data\":
-          {\"type\": \"binary\"}, \"height\": {\"type\": \"int32\"}, \"width\": {\"type\":
-          \"int32\"}}}}}", "cropping_threshold": "0", "input_partition_rows": "None",
-          "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
-          \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"image_cropping\",
-          \"cache_key\": \"2\"}", "padding": "0"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "d31e5d546956a42a470f033e2be84f229d3e926dfa7a7a1703c94ff47a1cb992"}'
-        pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
-          single-colored borders around images and crops them appropriately", "implementation":
-          {"container": {"command": ["fondant", "execute", "main", "--input_manifest_path",
-          {"inputPath": "input_manifest_path"}, "--metadata", {"inputValue": "metadata"},
-          "--component_spec", {"inputValue": "component_spec"}, "--input_partition_rows",
-          {"inputValue": "input_partition_rows"}, "--cache", {"inputValue": "cache"},
-          "--cropping_threshold", {"inputValue": "cropping_threshold"}, "--padding",
-          {"inputValue": "padding"}, "--output_manifest_path", {"outputPath": "output_manifest_path"},
-          "--cluster_type", {"inputValue": "cluster_type"}, "--client_kwargs", {"inputValue":
-          "client_kwargs"}], "image": "ghcr.io/ml6team/image_cropping:dev"}}, "inputs":
-          [{"description": "Path to the input manifest", "name": "input_manifest_path",
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "This
+          component crops out image borders. This is typically useful when working
+          with graphical \nimages that have single-color borders (e.g. logos, icons,
+          etc.).\n\nThe component takes an image and calculates which color is most
+          present in the border. It then \ncrops the image in order to minimize this
+          single-color border. The `padding` argument will add \nextra border to the
+          image before cropping it, in order to avoid cutting off parts of the image.\nThe
+          resulting crop will always be square. If a crop is not possible, the component
+          will return \nthe original image.\n\n#### Examples\nExamples of image cropping
+          by removing the single-color border. Left side is original image, \nright
+          side is border-cropped image.\n\n![Example of image cropping by removing
+          the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n![Example
+          of image cropping by removing the single-color border. Left side is original,
+          right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n",
+          "implementation": {"container": {"command": ["fondant", "execute", "main",
+          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--cache",
+          {"inputValue": "cache"}, "--cropping_threshold", {"inputValue": "cropping_threshold"},
+          "--padding", {"inputValue": "padding"}, "--output_manifest_path", {"outputPath":
+          "output_manifest_path"}, "--cluster_type", {"inputValue": "cluster_type"},
+          "--client_kwargs", {"inputValue": "client_kwargs"}], "image": "ghcr.io/ml6team/image_cropping:dev"}},
+          "inputs": [{"description": "Path to the input manifest", "name": "input_manifest_path",
           "type": "String"}, {"description": "Metadata arguments containing the run
           id and base path", "name": "metadata", "type": "String"}, {"default": "None",
           "description": "The component specification as a dictionary", "name": "component_spec",
@@ -186,26 +190,47 @@ spec:
           "Integer"}, {"default": 10, "description": "Padding for the image cropping.
           The padding is added to all borders of the image.", "name": "padding", "type":
           "Integer"}], "name": "Image cropping", "outputs": [{"description": "Path
-          to the output manifest", "name": "output_manifest_path", "type": "String"}]}'
-      labels:
-        pipelines.kubeflow.org/enable_caching: 'true'
-        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-        pipelines.kubeflow.org/pipeline-sdk-type: kfp
-    name: image-cropping
-    outputs:
-      artifacts:
-      - name: image-cropping-output_manifest_path
-        path: /tmp/outputs/output_manifest_path/data
-  - dag:
+          to the output manifest", "name": "output_manifest_path", "type": "String"}]}',
+        pipelines.kubeflow.org/component_ref: '{"digest": "bd073ded3bbd5c9bc5fd3abd3b8e8d19d65c17d6914f117596c78a5eddbd99d0"}',
+        pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
+          "{}", "cluster_type": "default", "component_spec": "{\"args\": {\"cropping_threshold\":
+          {\"default\": -30, \"description\": \"Threshold parameter used for detecting
+          borders. A lower (negative) parameter results in a more performant border
+          detection, but can cause overcropping. Default is -30\", \"type\": \"int\"},
+          \"padding\": {\"default\": 10, \"description\": \"Padding for the image
+          cropping. The padding is added to all borders of the image.\", \"type\":
+          \"int\"}}, \"consumes\": {\"images\": {\"fields\": {\"data\": {\"type\":
+          \"binary\"}}}}, \"description\": \"This component crops out image borders.
+          This is typically useful when working with graphical \\nimages that have
+          single-color borders (e.g. logos, icons, etc.).\\n\\nThe component takes
+          an image and calculates which color is most present in the border. It then
+          \\ncrops the image in order to minimize this single-color border. The `padding`
+          argument will add \\nextra border to the image before cropping it, in order
+          to avoid cutting off parts of the image.\\nThe resulting crop will always
+          be square. If a crop is not possible, the component will return \\nthe original
+          image.\\n\\n#### Examples\\nExamples of image cropping by removing the single-color
+          border. Left side is original image, \\nright side is border-cropped image.\\n\\n![Example
+          of image cropping by removing the single-color border. Left side is original,
+          right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\\n![Example
+          of image cropping by removing the single-color border. Left side is original,
+          right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\\n\",
+          \"image\": \"ghcr.io/ml6team/image_cropping:dev\", \"name\": \"Image cropping\",
+          \"produces\": {\"images\": {\"fields\": {\"data\": {\"type\": \"binary\"},
+          \"height\": {\"type\": \"int32\"}, \"width\": {\"type\": \"int32\"}}}}}",
+          "cropping_threshold": "0", "input_partition_rows": "None", "metadata": "{\"base_path\":
+          \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\": \"test_pipeline-20230101000000\",
+          \"component_id\": \"image_cropping\", \"cache_key\": \"2\"}", "padding":
+          "0"}'}
+  - name: test-pipeline
+    dag:
       tasks:
-      - name: first-component
-        template: first-component
-      - arguments:
-          artifacts:
-          - from: '{{tasks.first-component.outputs.artifacts.first-component-output_manifest_path}}'
-            name: first-component-output_manifest_path
-        dependencies:
-        - first-component
-        name: image-cropping
+      - {name: first-component, template: first-component}
+      - name: image-cropping
         template: image-cropping
-    name: test-pipeline
+        dependencies: [first-component]
+        arguments:
+          artifacts:
+          - {name: first-component-output_manifest_path, from: '{{tasks.first-component.outputs.artifacts.first-component-output_manifest_path}}'}
+  arguments:
+    parameters: []
+  serviceAccountName: pipeline-runner

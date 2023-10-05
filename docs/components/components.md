@@ -2,7 +2,7 @@
 
 Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
 provides a lot of components out of the box
-([overview](https://github.com/ml6team/fondant/tree/main/components)), but you can also define your
+([overview](hub.md)), but you can also define your
 own custom components.
 
 ## The anatomy of a component

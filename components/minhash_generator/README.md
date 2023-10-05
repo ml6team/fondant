@@ -1,7 +1,7 @@
-# Filter languages
+# MinHash generator
 
 ### Description
-A component that filters text based on the provided language.
+A component that generates minhashes of text.
 
 ### Inputs / outputs
 
@@ -10,7 +10,10 @@ A component that filters text based on the provided language.
 - text
     - data: string
 
-**This component produces no data.**
+**This component produces:**
+
+- text
+    - minhash: list<item: uint64>
 
 ### Arguments
 
@@ -18,7 +21,7 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| language | str | A valid language code or identifier (e.g., "en", "fr", "de"). | en |
+| shingle_ngram_size | int | Define size of ngram used for the shingle generation | 3 |
 
 ### Usage
 
@@ -28,14 +31,14 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-language_filter_op = ComponentOp.from_registry(
-    name="language_filter",
+minhash_generator_op = ComponentOp.from_registry(
+    name="minhash_generator",
     arguments={
         # Add arguments
-        # "language": "en",
+        # "shingle_ngram_size": 3,
     }
 )
-pipeline.add_op(language_filter_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(minhash_generator_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing
