@@ -1,3 +1,4 @@
+<a name="top"></a>
 <p align="center">
     <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" height="250px"/>
 </p>
@@ -63,11 +64,11 @@ machine learning-based operations. This need not be the case, however, if proces
 components would be reusable and exchangeable and pipelines were easily composable.
 Realizing this is the main vision behind Fondant.
 
-<p align="right">(<a href="">back to top</a>)</p>
+<p align="right">(<a href="top">back to top</a>)</p>
 
 ## 💨 Getting Started
 
-Anxious to get started? Here's is a [step by step guide](getting_started.md) to get your first pipeline up and running.
+Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/stable/getting_started) to get your first pipeline up and running.
 
 ## 🪄 Example pipelines
 
@@ -116,7 +117,7 @@ Eg. generating logos:
 Using our [example pipeline to train StarCoder](https://github.com/ml6team/fondant/tree/main/examples/pipelines/starcoder) provides a starting
 point to create datasets for training code assistants.
 
-<p align="right">(<a href="">back to top</a>)</p>
+<p align="right">(<a href="top">back to top</a>)</p>
 
 ## 🧩 Reusable components
 
@@ -144,7 +145,7 @@ Fondant comes with a library of reusable components, which can jumpstart your pi
 | **Language processing**                                                                                                    | Coming soon                                                         |
 | **Clustering**                                                                                                             | Coming soon                                                         |
 
-<p align="right">(<a href="">back to top</a>)</p>
+<p align="right">(<a href="top">back to top</a>)</p>
 
 ## ⚒️ Installation
 
@@ -170,7 +171,7 @@ There are 2 ways of using fondant:
 
 The same pipeline can be used in both variants allowing you to quickly develop and iterate using the local Docker Compose implementation and then using the power of Kubeflow pipelines to run a large scale pipeline.
 
-<p align="right">(<a href="">back to top</a>)</p>
+<p align="right">(<a href="top">back to top</a>)</p>
 
 ## 👨‍💻 Usage
 
@@ -292,7 +293,7 @@ Or for a subcommand:
 fondant <subcommand> --help
 ```
 
-<p align="right">(<a href="">back to top</a>)</p>
+<p align="right">(<a href="top">back to top</a>)</p>
 
 ## 🚧 Current state and roadmap
 
@@ -318,7 +319,7 @@ The roadmap and priority are defined based on community feedback. To provide inp
 For a detailed view on the roadmap and day to day development, you can check our [github project
 board](https://github.com/orgs/ml6team/projects/1).
 
-<p align="right">(<a href="">back to top</a>)</p>
+<p align="right">(<a href="top">back to top</a>)</p>
 
 ## 👭 Contributing
 
@@ -335,4 +336,4 @@ poetry install
 pre-commit install
 ```
 
-<p align="right">(<a href="">back to top</a>)</p>
+<p align="right">(<a href="top">back to top</a>)</p>

@@ -15,15 +15,21 @@ The component specification should be defined by the author of the component.
 A component spec(ification) consists of the following sections:
 
 ```yaml
-name: ...
-description: ...
-image: ...
+name:
+  ...
+description:
+  ...
+image:
+  ...
 
-consumes: ...
+consumes:
+  ...
 
-produces: ...
+produces: 
+  ...
 
-args: ...
+args: 
+  ...
 ```
 
 ### Metadata
@@ -43,7 +49,7 @@ The specification below for instance defines a component that creates an embeddi
 image-caption combination.
 
 ```yaml
----
+...
 consumes:
   images:
     fields:
@@ -78,7 +84,7 @@ consumes/produces:
 #### Subsets
 
 A component consumes or produces `subsets` which match the `subsets` from
-[the manifest](/manifest).
+[the manifest](../manifest.md).
 
 - Only those subsets defined in the `consumes` section of the
   component specification are read and passed to the component implementation.
