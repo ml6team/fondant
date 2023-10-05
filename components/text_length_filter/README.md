@@ -1,7 +1,7 @@
-# Filter languages
+# Filter text length
 
 ### Description
-A component that filters text based on the provided language.
+A component that filters out text based on their length
 
 ### Inputs / outputs
 
@@ -18,7 +18,8 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| language | str | A valid language code or identifier (e.g., "en", "fr", "de"). | en |
+| min_characters_length | int | Minimum number of characters | / |
+| min_words_length | int | Mininum number of words | / |
 
 ### Usage
 
@@ -28,14 +29,15 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-language_filter_op = ComponentOp.from_registry(
-    name="language_filter",
+text_length_filter_op = ComponentOp.from_registry(
+    name="text_length_filter",
     arguments={
         # Add arguments
-        # "language": "en",
+        # "min_characters_length": 0,
+        # "min_words_length": 0,
     }
 )
-pipeline.add_op(language_filter_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(text_length_filter_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing
