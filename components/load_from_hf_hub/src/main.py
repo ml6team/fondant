@@ -55,16 +55,18 @@ class LoadFromHubComponent(DaskLoadComponent):
                     lambda x: x["bytes"], meta=("bytes", bytes),
                 )
 
-        # 3) Only keep specified columns
+        # 3) Rename columns
+        logger.info("Renaming columns...")
+        dask_df = dask_df.rename(columns=self.column_name_mapping)
+
+        # 4) Only keep specified columns
         columns_to_keep = []
         for subset_name, subset in self.spec.produces.items():
             for field_name, field in subset.fields.items():
                 columns_to_keep.append(f"{subset_name}_{field_name}")
         dask_df = dask_df[columns_to_keep]
 
-        # 4) Rename columns
-        logger.info("Renaming columns...")
-        dask_df = dask_df.rename(columns=self.column_name_mapping)
+
 
         # 5) Optional: only return specific amount of rows
         if self.n_rows_to_load is not None:
