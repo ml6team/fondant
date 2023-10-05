@@ -321,7 +321,7 @@ def register_run(parent_parser):
         required=True,
     )
 
-    kubeflow_parser.set_defaults(func=run_kubeflow)
+    kubeflow_parser.set_defaults(func=run_kfp)
 
 
 def run_local(args):
@@ -345,7 +345,7 @@ def run_local(args):
         DockerRunner().run(spec_ref)
 
 
-def run_kubeflow(args):
+def run_kfp(args):
     if not args.host:
         msg = "--host argument is required for running on Kubeflow"
         raise ValueError(msg)
