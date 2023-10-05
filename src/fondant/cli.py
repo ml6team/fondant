@@ -170,21 +170,17 @@ def register_compile(parent_parser):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
             """
-        Compile a fondant pipeline into either a docker-compose.yml(local) or kubeflow spec file.
+        Compile a fondant pipeline into pipeline specification file file.
 
         The pipeline argument is a formatstring. The compiler will try to import the pipeline from the module specified in the formatstring.
         (NOTE: path is patched to include the current working directory so you can do relative imports)
 
-        The --local or --kubeflow flag specifies the mode in which the pipeline will be compiled.
-        You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
+        You can use different modes for fondant runners. Current existing modes are local and kubeflow.
 
-        - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
-        - to mount cloud credentials (see examples))
+        Examples of compiling component:
+        fondant compile local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials my_project.my_pipeline.py
 
-        Example:
-        fondant compile my_project.my_pipeline.py --local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials
-
-        fondant compile my_project.my_pipeline.py --kubeflow --extra-volumes $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json
+        fondant compile kubeflow --extra-volumes $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json my_project.my_pipeline.py
         """,
         ),
     )
@@ -214,7 +210,9 @@ def register_compile(parent_parser):
     )
     local_parser.add_argument(
         "--extra-volumes",
-        help="Extra volumes to mount in containers",
+        help="""Extra volumes to mount in containers. You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
+        - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
+        - to mount cloud credentials""",
         nargs="+",
     )
     local_parser.add_argument(
@@ -263,12 +261,12 @@ def register_run(parent_parser):
         pipeline (see fondant compile --help for more info)
         OR a path to a spec file in which case it will compile the pipeline first and then run it.
 
-        The --local or --kubeflow flag specifies the mode in which the pipeline will be ran.
-        You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
+        You can use different modes for fondant runners. Current existing modes are `local` and `kubeflow`.
+        You can run `fondant <mode> --help` to find out more about the specific arguments for each mode.
 
-        Example:
-        fondant run my_project.my_pipeline.py --local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials
-        fondant run ./my_compiled_kubeflow_pipeline.tgz --kubeflow
+        Examples of running component:
+        fondant run local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials my_project.my_pipeline.py
+        fondant run kubeflow ./my_compiled_kubeflow_pipeline.tgz
         """,
         ),
     )
@@ -299,7 +297,9 @@ def register_run(parent_parser):
     local_parser.add_argument(
         "--extra-volumes",
         nargs="+",
-        help="Extra volumes to mount in containers",
+        help="""Extra volumes to mount in containers. You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
+        - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
+        - to mount cloud credentials""",
     )
     local_parser.add_argument(
         "--build-arg",

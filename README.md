@@ -281,7 +281,7 @@ For more advanced use cases, you can use the `DaskTransformComponent` instead.
 Once you have a pipeline you can easily run (and compile) it by using the built-in CLI:
 
 ```bash
-fondant run pipeline.py --local
+fondant run local pipeline.py
 ```
 
 To see all available arguments you can check the fondant CLI help pages
