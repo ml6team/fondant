@@ -80,20 +80,6 @@ def entrypoint():
     args.func(args)
 
 
-def set_default_output(args: argparse.Namespace):
-    """Set the default output path depending on the runner type."""
-    if args.output_path is None:
-        if args.local:
-            args.output_path = "docker-compose.yml"
-        elif args.kubeflow:
-            args.output_path = "pipeline.yaml"
-        else:
-            msg = "One of the arguments --local --kubeflow is required"
-            raise ValueError(msg)
-
-    return args
-
-
 def register_explore(parent_parser):
     parser = parent_parser.add_parser(
         "explore",
@@ -202,6 +188,9 @@ def register_compile(parent_parser):
         """,
         ),
     )
+
+    compiler_subparser = parser.add_subparsers()
+
     parser.add_argument(
         "ref",
         help="""Reference to the pipeline to run, can be a path to a spec file or
@@ -209,47 +198,59 @@ def register_compile(parent_parser):
             """,
         action="store",
     )
-    # add a mutually exclusive group for the mode
-    mode_group = parser.add_mutually_exclusive_group(required=True)
-    mode_group.add_argument("--local", action="store_true")
-    mode_group.add_argument("--kubeflow", action="store_true")
 
-    parser.add_argument(
+    local_parser = compiler_subparser.add_parser(name="local", help="Local compiler")
+    kubeflow_parser = compiler_subparser.add_parser(
+        name="kubeflow",
+        help="Kubeflow compiler",
+    )
+
+    # Local runner parser
+    local_parser.add_argument(
         "--output-path",
         "-o",
-        help="Output directory",
-        default=None,
+        help="Output path of compiled pipeline",
+        default="docker_compose.yml",
     )
-    parser.add_argument(
+    local_parser.add_argument(
         "--extra-volumes",
         help="Extra volumes to mount in containers",
         nargs="+",
     )
-    parser.add_argument(
+    local_parser.add_argument(
         "--build-arg",
         action="append",
         help="Build arguments to pass to `docker build`. Format {key}={value}.",
         default=[],
     )
 
-    parser.set_defaults(func=compile)
+    # Kubeflow parser
+    kubeflow_parser.add_argument(
+        "--output-path",
+        "-o",
+        help="Output path of compiled pipeline",
+        default="pipeline.yaml",
+    )
+
+    local_parser.set_defaults(func=compile_local)
+    kubeflow_parser.set_defaults(func=compile_kfp)
 
 
-def compile(args):
-    args = set_default_output(args)
+def compile_local(args):
     pipeline = pipeline_from_module(args.ref)
+    compiler = DockerCompiler()
+    compiler.compile(
+        pipeline=pipeline,
+        extra_volumes=args.extra_volumes,
+        output_path=args.output_path,
+        build_args=args.build_arg,
+    )
 
-    if args.local:
-        compiler = DockerCompiler()
-        compiler.compile(
-            pipeline=pipeline,
-            extra_volumes=args.extra_volumes,
-            output_path=args.output_path,
-            build_args=args.build_arg,
-        )
-    elif args.kubeflow:
-        compiler = KubeFlowCompiler()
-        compiler.compile(pipeline=pipeline, output_path=args.output_path)
+
+def compile_kfp(args):
+    pipeline = pipeline_from_module(args.ref)
+    compiler = KubeFlowCompiler()
+    compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
 
 def register_run(parent_parser):
@@ -271,6 +272,9 @@ def register_run(parent_parser):
         """,
         ),
     )
+
+    runner_subparser = parser.add_subparsers()
+    # Define the "ref" argument once
     parser.add_argument(
         "ref",
         help="""Reference to the pipeline to run, can be a path to a spec file or
@@ -278,72 +282,87 @@ def register_run(parent_parser):
             """,
         action="store",
     )
-    # add a mutually exclusive group for the mode
-    mode_group = parser.add_mutually_exclusive_group(required=True)
-    mode_group.add_argument("--local", action="store_true")
-    mode_group.add_argument("--kubeflow", action="store_true")
 
-    parser.add_argument(
+    local_parser = runner_subparser.add_parser(name="local", help="Local runner")
+    kubeflow_parser = runner_subparser.add_parser(
+        name="kubeflow",
+        help="Kubeflow runner",
+    )
+
+    # Local runner parser
+    local_parser.add_argument(
         "--output-path",
         "-o",
-        help="Output directory",
-        default=None,
+        help="Output path of compiled pipeline",
+        default="docker_compose.yml",
     )
-    parser.add_argument(
+    local_parser.add_argument(
         "--extra-volumes",
-        help="Extra volumes to mount in containers",
         nargs="+",
+        help="Extra volumes to mount in containers",
     )
-    parser.add_argument(
+    local_parser.add_argument(
         "--build-arg",
         action="append",
-        help="Build arguments to pass to `docker build`. Format {key}={value}.",
+        help="Build arguments for `docker build`",
     )
-    parser.add_argument("--host", help="KubeFlow pipeline host url", required=False)
-    parser.set_defaults(func=run)
+    local_parser.set_defaults(func=run_local)
+
+    # kubeflow runner parser
+    kubeflow_parser.add_argument(
+        "--output-path",
+        "-o",
+        help="Output path of compiled pipeline",
+        default="pipeline.yaml",
+    )
+    kubeflow_parser.add_argument(
+        "--host",
+        help="KubeFlow pipeline host url",
+        required=True,
+    )
+
+    kubeflow_parser.set_defaults(func=run_kubeflow)
 
 
-def run(args):
-    args = set_default_output(args)
+def run_local(args):
+    try:
+        pipeline = pipeline_from_module(args.ref)
+    except ModuleNotFoundError:
+        spec_ref = args.ref
+    else:
+        spec_ref = args.output_path
+        logging.info(
+            "Found reference to un-compiled pipeline... compiling to {spec_ref}",
+        )
+        compiler = DockerCompiler()
+        compiler.compile(
+            pipeline=pipeline,
+            extra_volumes=args.extra_volumes,
+            output_path=spec_ref,
+            build_args=args.build_arg,
+        )
+    finally:
+        DockerRunner().run(spec_ref)
 
-    if args.local:
-        try:
-            pipeline = pipeline_from_module(args.ref)
-        except ModuleNotFoundError:
-            spec_ref = args.ref
-        else:
-            spec_ref = args.output_path
-            logging.info(
-                "Found reference to un-compiled pipeline... compiling to {spec_ref}",
-            )
-            compiler = DockerCompiler()
-            compiler.compile(
-                pipeline=pipeline,
-                extra_volumes=args.extra_volumes,
-                output_path=spec_ref,
-                build_args=args.build_arg,
-            )
-        finally:
-            DockerRunner().run(spec_ref)
 
-    elif args.kubeflow:
-        if not args.host:
-            msg = "--host argument is required for running on Kubeflow"
-            raise ValueError(msg)
-        try:
-            pipeline = pipeline_from_module(args.ref)
-        except ModuleNotFoundError:
-            spec_ref = args.ref
-        else:
-            spec_ref = args.output_path
-            logging.info(
-                f"Found reference to un-compiled pipeline... compiling to {spec_ref}",
-            )
-            compiler = KubeFlowCompiler()
-            compiler.compile(pipeline=pipeline, output_path=spec_ref)
-        finally:
-            runner = KubeflowRunner(host=args.host)
-            runner.run(input_spec=spec_ref)
+def run_kubeflow(args):
+    if not args.host:
+        msg = "--host argument is required for running on Kubeflow"
+        raise ValueError(msg)
+    try:
+        pipeline = pipeline_from_module(args.ref)
+    except ModuleNotFoundError:
+        spec_ref = args.ref
+    else:
+        spec_ref = args.output_path
+        logging.info(
+            "Found reference to un-compiled pipeline... compiling to {spec_ref}",
+        )
+        compiler = KubeFlowCompiler()
+        compiler.compile(pipeline=pipeline, output_path=spec_ref)
+    finally:
+        runner = KubeflowRunner(host=args.host)
+        runner.run(input_spec=spec_ref)
 
 
 def register_execute(parent_parser):
