@@ -1,5 +1,13 @@
 name: Download images
-description: Component that downloads images based on URLs
+description: |
+  Component that downloads images from a list of URLs.
+  
+  This component takes in image URLs as input and downloads the images, along with some metadata 
+  (like their height and width). The images are stored in a new colum as bytes objects. This 
+  component also resizes the images using the 
+  [resizer](https://github.com/rom1504/img2dataset/blob/main/img2dataset/resizer.py) function 
+  from the img2dataset library.
+
 image: ghcr.io/ml6team/download_images:dev
 
 consumes:
@@ -21,7 +29,7 @@ produces:
 
 args:
   timeout:
-    description: Maximum time (in seconds) to wait when trying to download an image
+    description: Maximum time (in seconds) to wait when trying to download an image,
     type: int
     default: 10
   retries:
@@ -29,7 +37,10 @@ args:
     type: int
     default: 0
   n_connections:
-    description: Number of concurrent connections opened per process. Decrease this number if you are running into timeout errors. A lower number of connections can increase the success rate but lower the throughput.
+    description: |
+      Number of concurrent connections opened per process. Decrease this number if you are running 
+      into timeout errors. A lower number of connections can increase the success rate but lower 
+      the throughput.
     type: int
     default: 100
   image_size:
