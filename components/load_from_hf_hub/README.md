@@ -8,8 +8,9 @@ Component that loads a dataset from the hub
 **This component consumes no data.**
 
 **This component produces:**
+
 - dummy_variable
-  - data: binary
+    - data: binary
 
 ### Arguments
 

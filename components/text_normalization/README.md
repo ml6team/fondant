@@ -18,8 +18,9 @@ the training of large language models.
 ### Inputs / outputs
 
 **This component consumes:**
+
 - text
-  - data: string
+    - data: string
 
 **This component produces no data.**
 

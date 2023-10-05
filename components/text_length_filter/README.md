@@ -6,8 +6,9 @@ A component that filters out text based on their length
 ### Inputs / outputs
 
 **This component consumes:**
+
 - text
-  - data: string
+    - data: string
 
 **This component produces no data.**
 

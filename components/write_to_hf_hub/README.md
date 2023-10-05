@@ -6,8 +6,9 @@ Component that writes a dataset to the hub
 ### Inputs / outputs
 
 **This component consumes:**
+
 - dummy_variable
-  - data: binary
+    - data: binary
 
 **This component produces no data.**
 
