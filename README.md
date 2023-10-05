@@ -4,7 +4,7 @@
 <p align="center">
     <i>Large-scale data processing made easy and reusable</i>
     <br>
-    <a href=""><strong>Explore the docs »</strong></a>
+    <a href="http://fondant.ai"><strong>Explore the docs »</strong></a>
     <br>
     <br>
     <a href="https://discord.gg/HnTdWhydGp"><img alt="Discord" src="https://dcbadge.vercel.app/api/server/HnTdWhydGp?style=flat-square"></a>
