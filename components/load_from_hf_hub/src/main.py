@@ -55,11 +55,18 @@ class LoadFromHubComponent(DaskLoadComponent):
                     lambda x: x["bytes"], meta=("bytes", bytes),
                 )
 
-        # 3) Rename columns
+        # 3) Only keep specified columns
+        columns_to_keep = []
+        for subset_name, subset in self.spec.produces.items():
+            for field_name, field in subset.fields.items():
+                columns_to_keep.append(f"{subset_name}_{field_name}")
+        dask_df = dask_df[columns_to_keep]
+
+        # 4) Rename columns
         logger.info("Renaming columns...")
         dask_df = dask_df.rename(columns=self.column_name_mapping)
 
-        # 4) Optional: only return specific amount of rows
+        # 5) Optional: only return specific amount of rows
         if self.n_rows_to_load is not None:
             partitions_length = 0
             npartitions = 1
@@ -72,7 +79,7 @@ class LoadFromHubComponent(DaskLoadComponent):
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
             dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
 
-        # 4) Set the index
+        # 6) Set the index
         if self.index_column is None:
             logger.info(
                 "Index column not specified, setting a globally unique index",
