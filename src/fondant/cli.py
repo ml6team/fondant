@@ -206,7 +206,7 @@ def register_compile(parent_parser):
         "--output-path",
         "-o",
         help="Output path of compiled pipeline",
-        default="docker_compose.yml",
+        default="docker-compose.yml",
     )
     local_parser.add_argument(
         "--extra-volumes",
@@ -292,7 +292,7 @@ def register_run(parent_parser):
         "--output-path",
         "-o",
         help="Output path of compiled pipeline",
-        default="docker_compose.yml",
+        default="docker-compose.yml",
     )
     local_parser.add_argument(
         "--extra-volumes",
