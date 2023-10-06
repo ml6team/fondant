@@ -131,7 +131,7 @@ Two key actions are taking place here:
 To test the pipeline, you can execute the following command within the pipeline directory:
 
 ```
-fondant run pipeline --local
+fondant run local pipeline.py
 ```
 
 The pipeline execution will start, initiating the download of the dataset from HuggingFace.
