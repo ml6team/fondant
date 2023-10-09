@@ -73,18 +73,18 @@ class KubeflowRunner(Runner):
         job_name = self.get_name_from_spec(input_spec) + "_run"
         # TODO add logic to see if pipeline exists
         runner = self.client.run_pipeline(
-            experiment_id=experiment.id,
+            experiment_id=experiment.experiment_id,
             job_name=job_name,
             pipeline_package_path=input_spec,
         )
 
-        pipeline_url = f"{self.host}/#/runs/details/{runner.id}"
+        pipeline_url = f"{self.host}/#/runs/details/{runner.run_id}"
         logger.info(f"Pipeline is running at: {pipeline_url}")
 
     def get_name_from_spec(self, input_spec: str):
         """Get the name of the pipeline from the spec."""
         with open(input_spec) as f:
-            spec = yaml.safe_load(f)
+            spec, *_ = yaml.safe_load_all(f)
             return spec["pipelineInfo"]["name"]
 
 
