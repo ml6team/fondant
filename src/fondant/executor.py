@@ -29,7 +29,6 @@ from fondant.component import (
 from fondant.component_spec import Argument, ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest, Metadata
-from fondant.schema import validate_partition_number
 
 dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)
@@ -65,7 +64,7 @@ class Executor(t.Generic[Component]):
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
-        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        input_partition_rows: int,
         cluster_type: t.Optional[str] = None,
         client_kwargs: t.Optional[dict] = None,
     ) -> None:
@@ -111,7 +110,7 @@ class Executor(t.Generic[Component]):
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
         parser.add_argument("--cache", type=lambda x: bool(strtobool(x)))
-        parser.add_argument("--input_partition_rows", type=validate_partition_number)
+        parser.add_argument("--input_partition_rows", type=int)
         parser.add_argument("--cluster_type", type=str)
         parser.add_argument("--client_kwargs", type=json.loads)
         args, _ = parser.parse_known_args()
@@ -140,7 +139,7 @@ class Executor(t.Generic[Component]):
         component_spec: ComponentSpec,
         *,
         cache: bool,
-        input_partition_rows: t.Optional[t.Union[str, int]],
+        input_partition_rows: int,
         cluster_type: t.Optional[str],
         client_kwargs: t.Optional[dict],
     ) -> "Executor":

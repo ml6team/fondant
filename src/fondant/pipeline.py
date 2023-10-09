@@ -16,7 +16,6 @@ except ImportError:
 from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.manifest import Manifest
-from fondant.schema import validate_partition_number
 
 logger = logging.getLogger(__name__)
 
@@ -107,11 +106,7 @@ class ComponentOp:
         self.client_kwargs = client_kwargs
 
         self.arguments = arguments or {}
-        self._add_component_argument(
-            "input_partition_rows",
-            input_partition_rows,
-            validate_partition_number,
-        )
+        self._add_component_argument("input_partition_rows", input_partition_rows)
         self._add_component_argument("cache", self.cache)
         self._add_component_argument("cluster_type", cluster_type)
         self._add_component_argument("client_kwargs", client_kwargs)

@@ -238,7 +238,7 @@ class ComponentSpec:
                 description="The number of rows to load per partition. \
                         Set to override the automatic partitioning",
                 type="int",
-                default=None,
+                default=-1,
                 optional=True,
             ),
             "cache": Argument(

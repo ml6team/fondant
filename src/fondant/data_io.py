@@ -24,7 +24,7 @@ class DaskDataLoader(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        input_partition_rows: t.Optional[t.Union[int, str]] = None,
+        input_partition_rows: int,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows
@@ -36,42 +36,42 @@ class DaskDataLoader(DataIO):
         Returns:
             The partitioned dataframe.
         """
-        if self.input_partition_rows != "disable":
-            if isinstance(self.input_partition_rows, int):
-                # Only load the index column to trigger a faster compute of the rows
-                total_rows = len(dataframe.index)
-                # +1 to handle any remainder rows
-                n_partitions = (total_rows // self.input_partition_rows) + 1
-                dataframe = dataframe.repartition(npartitions=n_partitions)
-                logger.info(
-                    f"Total number of rows is {total_rows}.\n"
-                    f"Repartitioning the data from {dataframe.partitions} partitions to have"
-                    f" {n_partitions} such that the number of partitions per row is approximately"
-                    f"{self.input_partition_rows}",
-                )
+        if self.input_partition_rows > 1:
+            # Only load the index column to trigger a faster compute of the rows
+            total_rows = len(dataframe.index)
+            # +1 to handle any remainder rows
+            n_partitions = (total_rows // self.input_partition_rows) + 1
+            dataframe = dataframe.repartition(npartitions=n_partitions)
+            logger.info(
+                f"Total number of rows is {total_rows}.\n"
+                f"Repartitioning the data from {dataframe.partitions} partitions to have"
+                f" {n_partitions} such that the number of partitions per row is approximately"
+                f"{self.input_partition_rows}",
+            )
 
-            elif self.input_partition_rows is None:
-                n_partitions = dataframe.npartitions
-                n_workers = os.cpu_count()
-                if n_partitions < n_workers:  # type: ignore
-                    logger.info(
-                        f"The number of partitions of the input dataframe is {n_partitions}. The "
-                        f"available number of workers is {n_workers}.",
-                    )
-                    dataframe = dataframe.repartition(npartitions=n_workers)
-                    logger.info(
-                        f"Repartitioning the data to {n_workers} partitions before processing"
-                        f" to maximize worker usage",
-                    )
-            else:
-                msg = (
-                    f"{self.input_partition_rows} is not a valid argument. Choose either "
-                    f"the number of partitions or set to 'disable' to disable automated "
-                    f"partitioning"
+        elif self.input_partition_rows == -1:
+            n_partitions = dataframe.npartitions
+            n_workers = os.cpu_count()
+            if n_partitions < n_workers:  # type: ignore
+                logger.info(
+                    f"The number of partitions of the input dataframe is {n_partitions}. The "
+                    f"available number of workers is {n_workers}.",
                 )
-                raise ValueError(
-                    msg,
+                dataframe = dataframe.repartition(npartitions=n_workers)
+                logger.info(
+                    f"Repartitioning the data to {n_workers} partitions before processing"
+                    f" to maximize worker usage",
                 )
+        else:
+            msg = (
+                f"{self.input_partition_rows} is not a valid value for the 'input_partition_rows' "
+                f"parameter. It should be a number larger than 0 to indicate the number of "
+                f"expected rows per partition, or '-1' to let Fondant optimize the number of "
+                f"partitions based on the number of available workers."
+            )
+            raise ValueError(
+                msg,
+            )
 
         return dataframe
 
