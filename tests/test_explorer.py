@@ -46,6 +46,8 @@ def test_run_data_explorer_local_base_path(host_path, container_path, credential
             [
                 "docker",
                 "run",
+                "--pull",
+                "always",
                 "--name",
                 "fondant-explorer",
                 "--rm",
@@ -78,6 +80,8 @@ def test_run_data_explorer_remote_base_path(remote_path, credentials):
             [
                 "docker",
                 "run",
+                "--pull",
+                "always",
                 "--name",
                 "fondant-explorer",
                 "--rm",

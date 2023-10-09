@@ -36,7 +36,7 @@ spec:
       - --column_mapping
       - None
       - --cache
-      - 'True'
+      - 'False'
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -55,7 +55,7 @@ spec:
           data: ''
     metadata:
       annotations:
-        pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
+        pipelines.kubeflow.org/arguments.parameters: '{"cache": "False", "client_kwargs":
           "{}", "cluster_type": "default", "column_mapping": "None", "component_spec":
           "{\"args\": {\"storage_args\": {\"description\": \"Storage arguments\",
           \"type\": \"str\"}}, \"description\": \"This is an example component\",
@@ -120,10 +120,23 @@ spec:
         is -30", "type": "int"}, "padding": {"default": 10, "description": "Padding
         for the image cropping. The padding is added to all borders of the image.",
         "type": "int"}}, "consumes": {"images": {"fields": {"data": {"type": "binary"}}}},
-        "description": "Component that removes single-colored borders around images
-        and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
-        "name": "Image cropping", "produces": {"images": {"fields": {"data": {"type":
-        "binary"}, "height": {"type": "int32"}, "width": {"type": "int32"}}}}}'
+        "description": "This component crops out image borders. This is typically
+        useful when working with graphical \nimages that have single-color borders
+        (e.g. logos, icons, etc.).\n\nThe component takes an image and calculates
+        which color is most present in the border. It then \ncrops the image in order
+        to minimize this single-color border. The `padding` argument will add \nextra
+        border to the image before cropping it, in order to avoid cutting off parts
+        of the image.\nThe resulting crop will always be square. If a crop is not
+        possible, the component will return \nthe original image.\n\n#### Examples\nExamples
+        of image cropping by removing the single-color border. Left side is original
+        image, \nright side is border-cropped image.\n\n![Example of image cropping
+        by removing the single-color border. Left side is original, right side is
+        cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n![Example
+        of image cropping by removing the single-color border. Left side is original,
+        right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n",
+        "image": "ghcr.io/ml6team/image_cropping:dev", "name": "Image cropping", "produces":
+        {"images": {"fields": {"data": {"type": "binary"}, "height": {"type": "int32"},
+        "width": {"type": "int32"}}}}}'
       - --input_partition_rows
       - None
       - --column_mapping
@@ -156,8 +169,20 @@ spec:
           Default is -30\", \"type\": \"int\"}, \"padding\": {\"default\": 10, \"description\":
           \"Padding for the image cropping. The padding is added to all borders of
           the image.\", \"type\": \"int\"}}, \"consumes\": {\"images\": {\"fields\":
-          {\"data\": {\"type\": \"binary\"}}}}, \"description\": \"Component that
-          removes single-colored borders around images and crops them appropriately\",
+          {\"data\": {\"type\": \"binary\"}}}}, \"description\": \"This component
+          crops out image borders. This is typically useful when working with graphical
+          \\nimages that have single-color borders (e.g. logos, icons, etc.).\\n\\nThe
+          component takes an image and calculates which color is most present in the
+          border. It then \\ncrops the image in order to minimize this single-color
+          border. The `padding` argument will add \\nextra border to the image before
+          cropping it, in order to avoid cutting off parts of the image.\\nThe resulting
+          crop will always be square. If a crop is not possible, the component will
+          return \\nthe original image.\\n\\n#### Examples\\nExamples of image cropping
+          by removing the single-color border. Left side is original image, \\nright
+          side is border-cropped image.\\n\\n![Example of image cropping by removing
+          the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\\n![Example
+          of image cropping by removing the single-color border. Left side is original,
+          right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\\n\",
           \"image\": \"ghcr.io/ml6team/image_cropping:dev\", \"name\": \"Image cropping\",
           \"produces\": {\"images\": {\"fields\": {\"data\": {\"type\": \"binary\"},
           \"height\": {\"type\": \"int32\"}, \"width\": {\"type\": \"int32\"}}}}}",
@@ -165,14 +190,26 @@ spec:
           \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\": \"test_pipeline-20230101000000\",
           \"component_id\": \"image_cropping\", \"cache_key\": \"2\"}", "padding":
           "0"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "6c691bd79b1a1a946e62d1f2ffac4db7e159047a7ec547c298582a8f30c7d373"}'
-        pipelines.kubeflow.org/component_spec: '{"description": "Component that removes
-          single-colored borders around images and crops them appropriately", "implementation":
-          {"container": {"command": ["fondant", "execute", "main", "--input_manifest_path",
-          {"inputPath": "input_manifest_path"}, "--metadata", {"inputValue": "metadata"},
-          "--component_spec", {"inputValue": "component_spec"}, "--input_partition_rows",
-          {"inputValue": "input_partition_rows"}, "--column_mapping", {"inputValue":
-          "column_mapping"}, "--cache", {"inputValue": "cache"}, "--cropping_threshold",
+        pipelines.kubeflow.org/component_ref: '{"digest": "adeef73817079b311bfa13b357b52de72318b1a4afae314ee4c8cecdd9b8c672"}'
+        pipelines.kubeflow.org/component_spec: '{"description": "This component crops
+          out image borders. This is typically useful when working with graphical
+          \nimages that have single-color borders (e.g. logos, icons, etc.).\n\nThe
+          component takes an image and calculates which color is most present in the
+          border. It then \ncrops the image in order to minimize this single-color
+          border. The `padding` argument will add \nextra border to the image before
+          cropping it, in order to avoid cutting off parts of the image.\nThe resulting
+          crop will always be square. If a crop is not possible, the component will
+          return \nthe original image.\n\n#### Examples\nExamples of image cropping
+          by removing the single-color border. Left side is original image, \nright
+          side is border-cropped image.\n\n![Example of image cropping by removing
+          the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n![Example
+          of image cropping by removing the single-color border. Left side is original,
+          right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n",
+          "implementation": {"container": {"command": ["fondant", "execute", "main",
+          "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
+          {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
+          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--column_mapping",
+          {"inputValue": "column_mapping"}, "--cache", {"inputValue": "cache"}, "--cropping_threshold",
           {"inputValue": "cropping_threshold"}, "--padding", {"inputValue": "padding"},
           "--output_manifest_path", {"outputPath": "output_manifest_path"}, "--cluster_type",
           {"inputValue": "cluster_type"}, "--client_kwargs", {"inputValue": "client_kwargs"}],

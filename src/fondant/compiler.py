@@ -121,15 +121,21 @@ class DockerCompiler(Compiler):
 
         pipeline.validate(run_id=run_id)
 
+        component_cache_key = None
+
         for component_name, component in pipeline._graph.items():
             component_op = component["fondant_component_op"]
+
+            component_cache_key = component_op.get_component_cache_key(
+                previous_component_cache=component_cache_key,
+            )
 
             metadata = Metadata(
                 pipeline_name=pipeline.name,
                 run_id=run_id,
                 base_path=path,
                 component_id=component_name,
-                cache_key=component_op.get_component_cache_key(),
+                cache_key=component_cache_key,
             )
 
             logger.info(f"Compiling service for {component_name}")
@@ -258,16 +264,20 @@ class KubeFlowCompiler(Compiler):
         def kfp_pipeline():
             previous_component_task = None
             manifest_path = ""
+            component_cache_key = None
 
             for component_name, component in pipeline._graph.items():
                 component_op = component["fondant_component_op"]
 
+                component_cache_key = component_op.get_component_cache_key(
+                    previous_component_cache=component_cache_key,
+                )
                 metadata = Metadata(
                     pipeline_name=pipeline.name,
                     run_id=run_id,
                     base_path=pipeline.base_path,
                     component_id=component_name,
-                    cache_key=component_op.get_component_cache_key(),
+                    cache_key=component_cache_key,
                 )
 
                 logger.info(f"Compiling service for {component_name}")
@@ -318,8 +328,14 @@ class KubeFlowCompiler(Compiler):
         node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
         preemptible = fondant_component_operation.preemptible
+        memory_request = fondant_component_operation.memory_request
+        memory_limit = fondant_component_operation.memory_limit
 
         # Assign optional specification
+        if memory_request is not None:
+            task.set_memory_request(memory_request)
+        if memory_limit is not None:
+            task.set_memory_limit(memory_limit)
         if number_of_gpus is not None:
             task.set_gpu_limit(number_of_gpus)
         if node_pool_name is not None and node_pool_label is not None:

@@ -25,7 +25,7 @@ spec:
       - /tmp/inputs/input_manifest_path/data
       - --metadata
       - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-        "component_id": "first_component", "cache_key": "1ba5e93659a51abe43ddd64b31bc1c59"}'
+        "component_id": "first_component", "cache_key": "b72c8e370be017d5a679a60d3984ab9d"}'
       - --component_spec
       - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
         "description": "This is an example component", "image": "example_component:latest",
@@ -36,7 +36,7 @@ spec:
       - --column_mapping
       - None
       - --cache
-      - 'True'
+      - 'False'
       - --storage_args
       - a dummy string arg
       - --output_manifest_path
@@ -58,7 +58,7 @@ spec:
           data: ''
     metadata:
       annotations:
-        pipelines.kubeflow.org/arguments.parameters: '{"cache": "True", "client_kwargs":
+        pipelines.kubeflow.org/arguments.parameters: '{"cache": "False", "client_kwargs":
           "{}", "cluster_type": "default", "column_mapping": "None", "component_spec":
           "{\"args\": {\"storage_args\": {\"description\": \"Storage arguments\",
           \"type\": \"str\"}}, \"description\": \"This is an example component\",
@@ -67,7 +67,7 @@ spec:
           \"images\": {\"fields\": {\"data\": {\"type\": \"binary\"}}}}}", "input_partition_rows":
           "None", "metadata": "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\",
           \"run_id\": \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
-          \"cache_key\": \"1ba5e93659a51abe43ddd64b31bc1c59\"}", "storage_args": "a
+          \"cache_key\": \"b72c8e370be017d5a679a60d3984ab9d\"}", "storage_args": "a
           dummy string arg"}'
         pipelines.kubeflow.org/component_ref: '{"digest": "e3d21e0a996f5353472773c6ba51d1601724bd104fa9a3f56c2dbd3a7ce85cc7"}'
         pipelines.kubeflow.org/component_spec: '{"description": "This is an example

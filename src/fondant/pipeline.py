@@ -35,9 +35,13 @@ class ComponentOp:
         input_partition_rows: The number of rows to load per partition. Set to override the
         automatic partitioning
         number_of_gpus: The number of gpus to assign to the operation
-         node_pool_label: The label of the node pool to which the operation will be assigned.
+        node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
         cache: Set to False to disable caching, True by default.
+        memory_request: the memory requested by the component. The value  can be a number or a
+          number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
+        memory_limit: the maximum memory that can be used by the component. The value  can be a
+         number or a number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
         preemptible: False by default. Set to True to use a preemptible VM.
          Requires the setup and assignment of a preemptible node pool. Note that preemptibles only
          work when KFP is setup on GCP. More info here:
@@ -74,6 +78,8 @@ class ComponentOp:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
         column_mapping_list: t.Optional[t.List[ColumnMapping]] = None,
+        memory_request: t.Optional[t.Union[str, int]] = None,
+        memory_limit: t.Optional[t.Union[str, int]] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -97,7 +103,7 @@ class ComponentOp:
             input_partition_rows,
             validate_partition_number,
         )
-        self._add_component_argument("cache", cache)
+        self._add_component_argument("cache", self.cache)
         self._add_component_argument("cluster_type", cluster_type)
         self._add_component_argument("client_kwargs", client_kwargs)
         self._add_component_argument(
@@ -105,15 +111,11 @@ class ComponentOp:
             self.column_mapping,
             validate_column_mapping,
         )
-
-        self.component_spec = ComponentSpec.from_file(
-            self.component_dir / self.COMPONENT_SPEC_NAME,
-            column_mapping=self.column_mapping,
-        )
-
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.number_of_gpus = number_of_gpus
+        self.memory_request = memory_request
+        self.memory_limit = memory_limit
         self.node_pool_label, self.node_pool_name = self._validate_node_pool_spec(
             node_pool_label,
             node_pool_name,
@@ -162,14 +164,14 @@ class ComponentOp:
         if hasattr(self, "arguments") is False:
             self.arguments = {}
 
-        if argument_value and (not validator or validator(argument_value)):
+        if argument_value is not None and (not validator or validator(argument_value)):
             self.argument_name = argument_value
             self.arguments[argument_name] = argument_value
 
     @staticmethod
     def _validate_node_pool_spec(
-        node_pool_label: t.Optional[str],
-        node_pool_name: t.Optional[str],
+        node_pool_label,
+        node_pool_name,
     ) -> t.Tuple[t.Optional[str], t.Optional[str]]:
         """Validate node pool specification."""
         if bool(node_pool_label) != bool(node_pool_name):
@@ -199,6 +201,8 @@ class ComponentOp:
         preemptible: t.Optional[bool] = False,
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
+        memory_request: t.Optional[t.Union[str, int]] = None,
+        memory_limit: t.Optional[t.Union[str, int]] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -218,7 +222,10 @@ class ComponentOp:
              Requires the setup and assignment of a preemptible node pool. Note that preemptibles
              only work when KFP is setup on GCP. More info here:
              https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
-
+            memory_request: the memory requested by the component. The value  can be a number or a
+             number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
+            memory_limit: the maximum memory that can be used by the component. The value  can be a
+            number or a number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
             cluster_type: The type of cluster to use for distributed execution (default is "local").
             client_kwargs: Keyword arguments used to initialise the dask client.
         """
@@ -240,9 +247,14 @@ class ComponentOp:
             preemptible=preemptible,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
+            memory_request=memory_request,
+            memory_limit=memory_limit,
         )
 
-    def get_component_cache_key(self) -> str:
+    def get_component_cache_key(
+        self,
+        previous_component_cache: t.Optional[str] = None,
+    ) -> str:
         """Calculate a cache key representing the unique identity of this ComponentOp.
 
         The cache key is computed based on the component specification, image hash, arguments, and
@@ -278,6 +290,9 @@ class ComponentOp:
             "number_of_gpus": self.number_of_gpus,
             "node_pool_name": self.node_pool_name,
         }
+
+        if previous_component_cache is not None:
+            component_op_uid_dict["previous_component_cache"] = previous_component_cache
 
         return get_nested_dict_hash(component_op_uid_dict)
 
@@ -472,7 +487,7 @@ class Pipeline:
                             raise InvalidPipelineDefinition(
                                 msg,
                             )
-            manifest = manifest.evolve(component_spec)
+            manifest = manifest.evolve(component_spec, run_id=run_id)
             load_component = False
 
         logger.info("All pipeline component specifications match.")

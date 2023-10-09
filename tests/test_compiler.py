@@ -1,4 +1,5 @@
 import datetime
+import json
 import sys
 from pathlib import Path
 from unittest import mock
@@ -23,6 +24,8 @@ TEST_PIPELINES = [
                     input_partition_rows="disable",
                     number_of_gpus=1,
                     preemptible=True,
+                    memory_limit="512M",
+                    memory_request="256M",
                 ),
                 "cache_key": "1",
             },
@@ -99,7 +102,7 @@ def setup_pipeline(request, tmp_path, monkeypatch):
         monkeypatch.setattr(
             component,
             "get_component_cache_key",
-            lambda cache_key=cache_key: cache_key,
+            lambda cache_key=cache_key, previous_component_cache=None: cache_key,
         )
         pipeline.add_op(component, dependencies=prev_comp)
         prev_comp = component
@@ -266,3 +269,92 @@ def test_kfp_import():
         sys.modules["kfp"] = None
         with pytest.raises(ImportError):
             _ = KubeFlowCompiler()
+
+
+def test_caching_dependency_docker(tmp_path_factory):
+    """Test that the component cache key changes when a depending component cache key change for
+    the docker compiler.
+    """
+    arg_list = ["dummy_arg_1", "dummy_arg_2"]
+    second_component_cache_key_dict = {}
+
+    for arg in arg_list:
+        pipeline = Pipeline(
+            pipeline_name="test_pipeline",
+            pipeline_description="description of the test pipeline",
+            base_path="/foo/bar",
+        )
+        compiler = DockerCompiler()
+
+        component_1 = ComponentOp(
+            Path(COMPONENTS_PATH / "example_1" / "first_component"),
+            arguments={"storage_args": f"{arg}"},
+        )
+        component_2 = ComponentOp(
+            Path(COMPONENTS_PATH / "example_1" / "second_component"),
+            arguments={"storage_args": "a dummy string arg"},
+        )
+
+        pipeline.add_op(component_1)
+        pipeline.add_op(component_2, dependencies=component_1)
+
+        with tmp_path_factory.mktemp("temp") as fn:
+            output_path = str(fn / "docker-compose.yml")
+            compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
+            with open(output_path) as src:
+                spec = yaml.safe_load(src)
+                command = spec["services"]["second_component"]["command"]
+                cache_key = json.loads(command[command.index("--metadata") + 1])[
+                    "cache_key"
+                ]
+
+            second_component_cache_key_dict[arg] = cache_key
+
+    assert (
+        second_component_cache_key_dict[arg_list[0]]
+        != second_component_cache_key_dict[arg_list[1]]
+    )
+
+
+def test_caching_dependency_kfp(tmp_path_factory):
+    """Test that the component cache key changes when a depending component cache key change for
+    the kubeflow compiler.
+    """
+    arg_list = ["dummy_arg_1", "dummy_arg_2"]
+    second_component_cache_key_dict = {}
+
+    for arg in arg_list:
+        pipeline = Pipeline(
+            pipeline_name="test_pipeline",
+            pipeline_description="description of the test pipeline",
+            base_path="/foo/bar",
+        )
+        compiler = KubeFlowCompiler()
+
+        component_1 = ComponentOp(
+            Path(COMPONENTS_PATH / "example_1" / "first_component"),
+            arguments={"storage_args": f"{arg}"},
+        )
+        component_2 = ComponentOp(
+            Path(COMPONENTS_PATH / "example_1" / "second_component"),
+            arguments={"storage_args": "a dummy string arg"},
+        )
+
+        pipeline.add_op(component_1)
+        pipeline.add_op(component_2, dependencies=component_1)
+
+        with tmp_path_factory.mktemp("temp") as fn:
+            output_path = str(fn / "kubeflow_pipeline.yml")
+            compiler.compile(pipeline=pipeline, output_path=output_path)
+            with open(output_path) as src:
+                spec = yaml.safe_load(src)
+                commands = spec["spec"]["templates"][1]["container"]["command"]
+                cache_key = json.loads(commands[commands.index("--metadata") + 1])[
+                    "cache_key"
+                ]
+            second_component_cache_key_dict[arg] = cache_key
+
+    assert (
+        second_component_cache_key_dict[arg_list[0]]
+        != second_component_cache_key_dict[arg_list[1]]
+    )

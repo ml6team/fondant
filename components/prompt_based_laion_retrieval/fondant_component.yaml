@@ -1,5 +1,10 @@
 name: LAION retrieval
-description: A component that retrieves image URLs from LAION-5B based on a set of seed prompts
+description: |
+  This component retrieves image URLs from the [LAION-5B dataset](https://laion.ai/blog/laion-5b/) 
+  based on text prompts. The retrieval itself is done based on CLIP embeddings similarity between 
+  the prompt sentences and the captions in the LAION dataset. 
+  
+  This component doesn’t return the actual images, only URLs.
 image: ghcr.io/ml6team/prompt_based_laion_retrieval:dev
 
 consumes:

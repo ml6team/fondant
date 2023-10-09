@@ -1,2 +1,2 @@
 huggingface_hub==0.14.1
-Pillow==9.4.0
+Pillow==10.0.1

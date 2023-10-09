@@ -38,6 +38,8 @@ class DaskDataLoader(DataIO):
         Returns:
             The partitioned dataframe.
         """
+        n_workers: int = os.cpu_count()  # type: ignore
+
         if self.input_partition_rows != "disable":
             if isinstance(self.input_partition_rows, int):
                 # Only load the index column to trigger a faster compute of the rows
@@ -51,10 +53,14 @@ class DaskDataLoader(DataIO):
                     f" {n_partitions} such that the number of partitions per row is approximately"
                     f"{self.input_partition_rows}",
                 )
+                if n_partitions < n_workers:
+                    logger.warning(
+                        "Setting the `input partition rows` has caused the system to not utilize"
+                        f" all available workers {n_partitions} out of {n_workers} are used.",
+                    )
 
             elif self.input_partition_rows is None:
                 n_partitions = dataframe.npartitions
-                n_workers = os.cpu_count()
                 if n_partitions < n_workers:  # type: ignore
                     logger.info(
                         f"The number of partitions of the input dataframe is {n_partitions}. The "

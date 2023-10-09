@@ -25,6 +25,7 @@ class DownloadImagesComponent(PandasTransformComponent):
                  *_,
                  timeout: int,
                  retries: int,
+                 n_connections: int,
                  image_size: int,
                  resize_mode: str,
                  resize_only_if_bigger: bool,
@@ -36,6 +37,9 @@ class DownloadImagesComponent(PandasTransformComponent):
         Args:
             timeout: Maximum time (in seconds) to wait when trying to download an image.
             retries: Number of times to retry downloading an image if it fails.
+            n_connections: Number of concurrent connections opened per process. Decrease this
+                number if you are running into timeout errors. A lower number of connections can
+                increase the success rate but lower the throughput.
             image_size: Size of the images after resizing.
             resize_mode: Resize mode to use. One of "no", "keep_ratio", "center_crop", "border".
             resize_only_if_bigger: If True, resize only if image is bigger than image_size.
@@ -47,6 +51,7 @@ class DownloadImagesComponent(PandasTransformComponent):
         """
         self.timeout = timeout
         self.retries = retries
+        self.n_connections = n_connections
         self.resizer = Resizer(
             image_size=image_size,
             resize_mode=resize_mode,
@@ -55,7 +60,7 @@ class DownloadImagesComponent(PandasTransformComponent):
             max_aspect_ratio=max_aspect_ratio,
         )
 
-    async def download_image(self, url: str) -> t.Optional[bytes]:
+    async def download_image(self, url: str, *, semaphore: asyncio.Semaphore) -> t.Optional[bytes]:
         url = url.strip()
 
         user_agent_string = (
@@ -64,20 +69,21 @@ class DownloadImagesComponent(PandasTransformComponent):
         user_agent_string += " (compatible; +https://github.com/ml6team/fondant)"
 
         transport = httpx.AsyncHTTPTransport(retries=self.retries)
-        async with httpx.AsyncClient(transport=transport) as client:
+        async with httpx.AsyncClient(transport=transport, follow_redirects=True) as client:
             try:
-                response = await client.get(url, timeout=self.timeout,
-                                            headers={"User-Agent": user_agent_string})
+                async with semaphore:
+                    response = await client.get(url, timeout=self.timeout,
+                                                headers={"User-Agent": user_agent_string})
                 image_stream = response.content
             except Exception as e:
-                logger.warning(f"Skipping {url}: {e}")
+                logger.warning(f"Skipping {url}: {repr(e)}")
                 image_stream = None
 
         return image_stream
 
-    async def download_and_resize_image(self, id_: str, url: str) \
+    async def download_and_resize_image(self, id_: str, url: str, *, semaphore: asyncio.Semaphore) \
             -> t.Tuple[str, t.Optional[bytes], t.Optional[int], t.Optional[int]]:
-        image_stream = await self.download_image(url)
+        image_stream = await self.download_image(url, semaphore=semaphore)
         if image_stream is not None:
             image_stream, width, height = self.resizer(io.BytesIO(image_stream))
         else:
@@ -90,8 +96,10 @@ class DownloadImagesComponent(PandasTransformComponent):
         results: t.List[t.Tuple[str, bytes, int, int]] = []
 
         async def download_dataframe() -> None:
+            semaphore = asyncio.Semaphore(self.n_connections)
+
             images = await asyncio.gather(
-                *[self.download_and_resize_image(id_, url)
+                *[self.download_and_resize_image(id_, url, semaphore=semaphore)
                   for id_, url in zip(dataframe.index, dataframe["images"]["url"])],
             )
             results.extend(images)

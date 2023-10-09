@@ -278,7 +278,7 @@ class ComponentSpec:
             contents = json.loads(path.read_text())
             return Resource.from_contents(contents, default_specification=DRAFT4)
 
-        registry = Registry(retrieve=retrieve_from_filesystem)
+        registry = Registry(retrieve=retrieve_from_filesystem)  # type: ignore
         validator = Draft4Validator(spec_schema, registry=registry)  # type: ignore
 
         try:
