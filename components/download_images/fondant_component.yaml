@@ -47,4 +47,4 @@ args:
   max_aspect_ratio:
     description: Maximum aspect ratio of the images.
     type: float
-    default: 'inf'
+    default: 99.9
