@@ -191,13 +191,7 @@ class ComponentSpec:
 
     @property
     def args(self) -> t.Mapping[str, Argument]:
-        def _is_optional(arg_information):
-            if "default" in arg_information:
-                return arg_information["default"] == "None"
-            return False
-
         args = self.default_arguments
-
         args.update(
             {
                 name: Argument(
@@ -205,7 +199,7 @@ class ComponentSpec:
                     description=arg_info["description"],
                     type=arg_info["type"],
                     default=arg_info["default"] if "default" in arg_info else None,
-                    optional=_is_optional(arg_info),
+                    optional=arg_info.get("default") == "None",
                 )
                 for name, arg_info in self._specification.get("args", {}).items()
             },
@@ -320,7 +314,7 @@ class KubeflowComponentSpec:
 
     @classmethod
     def from_fondant_component_spec(cls, fondant_component: ComponentSpec):
-        """Generate a Kubeflow component spec from a ComponentOp."""
+        """Generate a Kubeflow component spec from a Fondant component spec."""
         input_definitions = {
             "parameters": {
                 **cls.convert_arguments(fondant_component),
