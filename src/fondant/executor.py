@@ -411,6 +411,7 @@ class Executor(t.Generic[Component]):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         manifest.to_file(save_path)
         logger.info(f"Saving output manifest to {save_path}")
+        self._upload_cache_key(manifest=manifest, manifest_save_path=save_path)
 
 
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
