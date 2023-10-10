@@ -60,7 +60,7 @@ aws = ["fsspec", "s3fs"]
 azure = ["fsspec", "adlfs"]
 gcp = ["fsspec", "gcsfs"]
 kfp = ["kfp"]
-vertex = ["google-cloud-aiplatform"]
+vertex = ["kfp", "google-cloud-aiplatform"]
 
 [tool.poetry.group.test.dependencies]
 pre-commit = "^3.1.1"
