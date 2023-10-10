@@ -55,12 +55,12 @@ def run_explorer_app(  # type: ignore
                 "from a cloud provider, mount the credentials file with the --credentials flag.",
             )
         data_directory_path = Path(base_path).resolve()
-        host_machine_path = str(data_directory_path)
+        host_machine_path = data_directory_path.as_posix()
         container_path = os.path.join("/", data_directory_path.name)
 
         # Mount the local base path to the container
         cmd.extend(
-            ["-v", f"/{shlex.quote(host_machine_path)}:/{shlex.quote(container_path)}"],
+            ["-v", f"{shlex.quote(host_machine_path)}:{shlex.quote(container_path)}"],
         )
 
         # add the image name

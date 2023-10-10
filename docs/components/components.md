@@ -2,12 +2,12 @@
 
 Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
 provides a lot of components out of the box
-([overview](https://github.com/ml6team/fondant/tree/main/components)), but you can also define your
+([overview](hub.md)), but you can also define your
 own custom components.
 
 ## The anatomy of a component
 
-A component is completely defined by its [component specification](component_spec.md) and a 
+A component is completely defined by its [component specification](../components/component_spec.md) and a 
 docker image. The specification defines the docker image fondant should run to execute the 
 component, which data it consumes and produces, and which arguments it takes.
 
@@ -96,7 +96,7 @@ component_op = ComponentOp(
           members: []
           show_source: false
 
-See our [best practices on creating a custom component](custom_component.md).
+See our [best practices on creating a custom component](../components/custom_component.md).
 
 ### Generic components
 

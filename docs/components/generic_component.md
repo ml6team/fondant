@@ -4,28 +4,28 @@ Fondant provides a set of reusable generic components that facilitate loading an
 datasets to/from different platforms.
 
 We currently have components that interface with the following platforms:
-* Hugging Face Hub ([Read](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub)/[Write](https://github.com/ml6team/fondant/tree/main/components/write_to_hf_hub)). 
 
+- Hugging Face Hub ([Read](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub)/[Write](https://github.com/ml6team/fondant/tree/main/components/write_to_hf_hub)).
 
 To integrate a generic Read/Write component into your pipeline, you only need to modify the
 component specification and define the custom required/optional arguments.
 
 ## Using Generic components
 
-Each Fondant component is defined by a specification which describes its interface. This 
-specification is represented by a single `fondant_component.yaml` file. See the [component 
-specification page](component_spec) for info on how to write the specification for your component.
+Each Fondant component is defined by a specification which describes its interface. This
+specification is represented by a single `fondant_component.yaml` file. See the [component
+specification page](../components/component_spec.md) for info on how to write the specification for your component.
 
+### Load component
 
-### Load component 
-To use a Load component, you need to modify the subset of data **produced** by the component. 
+To use a Load component, you need to modify the subset of data **produced** by the component.
 These subsets define the fields that will be read from the source dataset.
 
-For example, let's consider the [`load_from_hf_hub`]((https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub/fondant_component.yaml)) 
+For example, let's consider the [`load_from_hf_hub`](<(https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub/fondant_component.yaml)>)
 Suppose we are interested in reading two columns, width and height, from a given input dataset:
 
 | width<br/>(int32) | height<br/>(int32) |
-|-------------------|--------------------|
+| ----------------- | ------------------ |
 | Value             | Value              |
 
 The component specification can be modified as follows
@@ -36,7 +36,7 @@ description: Component that loads a dataset from the hub
 image: ghcr.io/ml6team/load_from_hf_hub:latest
 
 consumes:
-  images:  
+  images:
     fields:
       width:
         type: int32
@@ -51,7 +51,8 @@ args:
     description: Mapping of the consumed hub dataset to fondant column names
     type: dict
   image_column_names:
-    description: Optional argument, a list containing the original image column names in case the
+    description:
+      Optional argument, a list containing the original image column names in case the
       dataset on the hub contains them. Used to format the image from HF hub format to a byte string.
     type: list
     default: None
@@ -63,12 +64,12 @@ args:
     description: Column to set index to in the load component, if not specified a default globally unique index will be set
     type: str
     default: None
-
 ```
 
 Here are a few things to note:
-* The original fields are mapped to a valid
-[subset](https://github.com/ml6team/fondant/blob/main/docs/component_spec.md#:~:text=additionalSubsets%3A%20true-,Subsets,-A%20component%20consumes) using the `column_name_mapping` dictionary:
+
+- The original fields are mapped to a valid
+  [subset](../components/component_spec.md#subsets) using the `column_name_mapping` dictionary:
 
 ```python
 column_name_mapping = {
@@ -76,24 +77,25 @@ column_name_mapping = {
   "height":"images_height"
 }
 ```
+
 This mapping changes the names of the original dataset fields to match the component specification,
 enabling their use in subsequent pipeline steps.
 
-* The specification includes pre-defined arguments, some of which are required (e.g., `dataset_name`),
-while others are optional but necessary in certain scenarios (e.g., `image_column_names`).
+- The specification includes pre-defined arguments, some of which are required (e.g., `dataset_name`),
+  while others are optional but necessary in certain scenarios (e.g., `image_column_names`).
 
+### Write component
 
-### Write component  
-To use a Write component, you need to modify the subset of data **consumed** by the component. 
+To use a Write component, you need to modify the subset of data **consumed** by the component.
 These subsets define the fields that will be written in the final dataset.
 
 For example, let's consider the dataset that was loaded by the previous component, which currently has the following schema:
 
 | images_width<br/>(int32) | images_height<br/>(int32) |
-|--------------------------|---------------------------|
+| ------------------------ | ------------------------- |
 | Value                    | Value                     |
 
-If we want to write this dataset to a Hugging Face Hub location, we can use the [`write_to_hf_hub`]((https://github.com/ml6team/fondant/tree/main/components/write_to_hf_hub/fondant_component.yaml)) 
+If we want to write this dataset to a Hugging Face Hub location, we can use the [`write_to_hf_hub`](<(https://github.com/ml6team/fondant/tree/main/components/write_to_hf_hub/fondant_component.yaml)>)
 
 ```yaml
 name: Write to hub
@@ -101,7 +103,7 @@ description: Component that writes a dataset to the hub
 image: ghcr.io/ml6team/write_to_hf_hub:latest
 
 consumes:
-  images:  
+  images:
     fields:
       width:
         type: int32
@@ -138,7 +140,7 @@ column_name_mapping = {
 }
 ```
 
-For a practical example of using and adapting load/write components, refer to the 
+For a practical example of using and adapting load/write components, refer to the
 [stable_diffusion_finetuning](https://github.com/ml6team/fondant/blob/main/examples/pipelines/finetune_stable_diffusion/pipeline.py) example.
 
 Feel free to explore the Fondant documentation for more information on these components and their usage.

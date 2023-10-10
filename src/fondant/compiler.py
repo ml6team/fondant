@@ -126,15 +126,21 @@ class DockerCompiler(Compiler):
 
         pipeline.validate(run_id=run_id)
 
+        component_cache_key = None
+
         for component_name, component in pipeline._graph.items():
             component_op = component["fondant_component_op"]
+
+            component_cache_key = component_op.get_component_cache_key(
+                previous_component_cache=component_cache_key,
+            )
 
             metadata = Metadata(
                 pipeline_name=pipeline.name,
                 run_id=run_id,
                 base_path=path,
                 component_id=component_name,
-                cache_key=component_op.get_component_cache_key(),
+                cache_key=component_cache_key,
             )
 
             logger.info(f"Compiling service for {component_name}")
@@ -285,6 +291,8 @@ class KubeFlowCompiler(Compiler):
         @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
             previous_component_task = None
+            component_cache_key = None
+
             for component_name, component in pipeline._graph.items():
                 logger.info(f"Compiling service for {component_name}")
 
@@ -299,12 +307,15 @@ class KubeFlowCompiler(Compiler):
                     k: v for k, v in component_op.arguments.items() if v is not None
                 }
 
+                component_cache_key = component_op.get_component_cache_key(
+                    previous_component_cache=component_cache_key,
+                )
                 metadata = Metadata(
                     pipeline_name=pipeline.name,
                     run_id=run_id,
                     base_path=pipeline.base_path,
                     component_id=component_name,
-                    cache_key=component_op.get_component_cache_key(),
+                    cache_key=component_cache_key,
                 )
 
                 output_manifest_path = (
@@ -353,8 +364,14 @@ class KubeFlowCompiler(Compiler):
         accelerator_name = fondant_component_operation.accelerator_name
         node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
+        memory_request = fondant_component_operation.memory_request
+        memory_limit = fondant_component_operation.memory_limit
 
         # Assign optional specification
+        if memory_request is not None:
+            task.set_memory_request(memory_request)
+        if memory_limit is not None:
+            task.set_memory_limit(memory_limit)
         if accelerator_name is not None:
             if accelerator_name not in valid_accelerator_types:
                 msg = (
@@ -368,7 +385,6 @@ class KubeFlowCompiler(Compiler):
                 task.set_accelerator_type("nvidia.com/gpu")
             elif accelerator_name == "TPU":
                 task.set_accelerator_type("cloud-tpus.google.com/v3")
-
         if node_pool_name is not None and node_pool_label is not None:
             task = self.kfp_kubernetes.add_node_selector(
                 task,

@@ -42,6 +42,7 @@ nav:
     - Creating custom components: components/custom_component.md
     - Read / write components: components/generic_component.md
     - Component spec: components/component_spec.md
+    - Hub: components/hub.md
   - Data explorer: data_explorer.md
   - Infrastructure: infrastructure.md
   - Manifest: manifest.md
@@ -67,3 +68,5 @@ markdown_extensions:
       emoji_generator: !!python/name:materialx.emoji.to_svg
   - admonition
   - def_list
+  - toc:
+      permalink: "#"

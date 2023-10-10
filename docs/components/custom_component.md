@@ -1,13 +1,13 @@
 # Creating custom components
 
-Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant 
-provides a lot of components out of the box 
-([overview](https://github.com/ml6team/fondant/tree/main/components), but you can also define your 
-own custom components. 
+Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
+provides a lot of components out of the box
+([overview](https://github.com/ml6team/fondant/tree/main/components), but you can also define your
+own custom components.
 
-To make sure components are reusable, they should implement a single logical data processing 
+To make sure components are reusable, they should implement a single logical data processing
 step (like captioning images or removing Personal Identifiable Information [PII] from text.)
-If a component grows too large, consider splitting it into multiple separate components each 
+If a component grows too large, consider splitting it into multiple separate components each
 tackling one logical part.
 
 To implement a custom component, a couple of files need to be defined:
@@ -19,23 +19,24 @@ To implement a custom component, a couple of files need to be defined:
 
 ## Fondant component specification
 
-Each Fondant component is defined by a specification which describes its interface. This 
-specification is represented by a single `fondant_component.yaml` file. See the [component 
-specification page](component_spec) for info on how to write the specification for your component.
+Each Fondant component is defined by a specification which describes its interface. This
+specification is represented by a single `fondant_component.yaml` file. See the [component
+specification page](../components/component_spec.md) for info on how to write the specification for your component.
 
 ## Main.py script
 
-The core logic of the component should be implemented in a `main.py` script in a folder called 
-`src`. 
-The logic should be implemented as a class, inheriting from one of the base `Component` classes 
+The core logic of the component should be implemented in a `main.py` script in a folder called
+`src`.
+The logic should be implemented as a class, inheriting from one of the base `Component` classes
 offered by Fondant.
 There are three large types of components:
+
 - **`LoadComponent`**: Load data into your pipeline from an external data source
 - **`TransformComponent`**: Implement a single transformation step in your pipeline
 - **`WriteComponent`**: Write the results of your pipeline to an external data sink
 
-The easiest way to implement a `TransformComponent` is to subclass the provided 
-`PandasTransformComponent`. This component streams your data and offers it in memory-sized 
+The easiest way to implement a `TransformComponent` is to subclass the provided
+`PandasTransformComponent`. This component streams your data and offers it in memory-sized
 chunks as pandas dataframes.
 
 ```python
@@ -62,24 +63,23 @@ class ExampleComponent(PandasTransformComponent):
         """
 ```
 
+The `__init__` method is called once for each component class with custom arguments defined in the
+`args` section of the [component specification](../components/component_spec.md).)
 
-The `__init__` method is called once for each component class with custom arguments defined in the 
-`args` section of the [component specification](component_spec).)
-
-The `transform` method is called multiple times, each time containing a pandas `dataframe` 
+The `transform` method is called multiple times, each time containing a pandas `dataframe`
 with a partition of your data loaded in memory.
 
-The `dataframes` passed to the `transform` method contains the data specified in the `consumes` 
-section of the component specification. If a component defines that it consumes an `images` subset 
+The `dataframes` passed to the `transform` method contains the data specified in the `consumes`
+section of the component specification. If a component defines that it consumes an `images` subset
 with a `data` field, this data can be accessed using `dataframe["images"]["data"]`.
 
-The `transform` method should return a single dataframe, with the columns complying to the 
+The `transform` method should return a single dataframe, with the columns complying to the
 `[subset][field]` format matching the `produces` section of the component specification.
 
-Note that the `main.py` script can be split up into several Python scripts in case it would become 
-prohibitively long. See the 
-[prompt based LAION retrieval component](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval/src) 
-as an example: the CLIP client itself is defined in a separate script called `clip_client`, 
+Note that the `main.py` script can be split up into several Python scripts in case it would become
+prohibitively long. See the
+[prompt based LAION retrieval component](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval/src)
+as an example: the CLIP client itself is defined in a separate script called `clip_client`,
 which is then imported in the `main.py` script.
 
 ## Dockerfile
@@ -113,7 +113,7 @@ A `requirements.txt` file lists the Python dependencies of the component. Note t
 
 ```
 fondant
-Pillow==9.4.0
+Pillow==10.0.1
 torch==2.0.1
 transformers==4.29.2
 ```

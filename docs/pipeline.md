@@ -140,7 +140,7 @@ The Kubeflow compiler will take your pipeline and compile it to a Kubeflow pipel
 
 - Using the CLI:
 ```bash
-fondant compile <pipeline_ref> --kubeflow --output <path_to_output>
+fondant compile kubeflow --output <path_to_output> <pipeline_ref>
 ```
 
 - Using the compiler directly:
@@ -164,7 +164,7 @@ There are 2 ways to run a Kubeflow compiled pipeline:
 
 - Using the CLI:
 ```bash
-fondant run <pipeline_ref> --kubeflow --host <kubeflow_host>
+fondant run kubeflow --host <kubeflow_host> <pipeline_ref>
 ```
 NOTE: that the pipeline ref is the path to the compiled pipeline spec OR a reference to an fondant pipeline in which case the compiler will compile the pipeline first before running.
 
@@ -252,7 +252,7 @@ docker compose up
 
 Or you can use the fondant cli to run the pipeline:
 ```bash
-fondant run <pipeline_ref> --local
+fondant run local <pipeline_ref>
 ```
 
 NOTE: that the pipeline ref is the path to the compiled pipeline spec OR a reference to an fondant pipeline in which case the compiler will compile the pipeline first before running.
