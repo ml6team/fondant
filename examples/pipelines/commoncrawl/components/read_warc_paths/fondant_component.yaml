@@ -1,6 +1,6 @@
 name: Common crawl download component
 description: A component that downloads parts of the common crawl
-image: ghcr.io/ml6team/read_warc_paths:57404ff
+image: 281086077386.dkr.ecr.us-east-1.amazonaws.com/read_warc_paths
 
 produces:
   warc:
@@ -15,4 +15,4 @@ args:
   n_records_to_download:
     description: Number of records to download
     type: int
-    default: None
+    default: -1
