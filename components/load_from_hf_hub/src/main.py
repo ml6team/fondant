@@ -19,7 +19,7 @@ class LoadFromHubComponent(DaskLoadComponent):
                  spec: ComponentSpec,
                  *_,
                  dataset_name: str,
-                 column_name_mapping: dict,
+                 column_name_mapping: t.Optional[dict],
                  image_column_names: t.Optional[list],
                  n_rows_to_load: t.Optional[int],
                  index_column: t.Optional[str],
@@ -50,12 +50,15 @@ class LoadFromHubComponent(DaskLoadComponent):
 
         # Only read required columns
         columns = []
-        if self.column_name_mapping is None:
+
+        if self.column_name_mapping is not None:
+            invert_column_name_mapping = {v: k for k, v in self.column_name_mapping.items()}
             for subset_name, subset in self.spec.produces.items():
                 for field_name, field in subset.fields.items():
-                    columns.append(f"{subset_name}_{field_name}")
-        else:
-            columns = list(self.column_name_mapping.keys())
+                    subset_field_name = f"{subset_name}_{field_name}"
+                    column_name = invert_column_name_mapping.get \
+                        (subset_field_name, subset_field_name)
+                    columns.append(column_name)
 
         logger.debug(f"Columns to keep: {columns}")
         dask_df = dd.read_parquet(f"hf://datasets/{self.dataset_name}", columns=columns)

@@ -45,12 +45,14 @@ class LoadFromParquet(DaskLoadComponent):
 
         # Only read required columns
         columns = []
-        if self.column_name_mapping is None:
+        if self.column_name_mapping is not None:
+            invert_column_name_mapping = {v: k for k, v in self.column_name_mapping.items()}
             for subset_name, subset in self.spec.produces.items():
                 for field_name, field in subset.fields.items():
-                    columns.append(f"{subset_name}_{field_name}")
-        else:
-            columns = list(self.column_name_mapping.keys())
+                    subset_field_name = f"{subset_name}_{field_name}"
+                    column_name = invert_column_name_mapping.get \
+                        (subset_field_name, subset_field_name)
+                    columns.append(column_name)
 
         logger.debug(f"Columns to keep: {columns}")
         dask_df = dd.read_parquet(self.dataset_uri, columns=columns)
