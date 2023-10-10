@@ -224,14 +224,12 @@ class ComponentSpec:
                 name="input_manifest_path",
                 description="Path to the input manifest",
                 type="str",
-                default=None,
                 optional=True,
             ),
             "component_spec": Argument(
                 name="component_spec",
                 description="The component specification as a dictionary",
                 type="dict",
-                default={},
             ),
             "input_partition_rows": Argument(
                 name="input_partition_rows",
@@ -239,7 +237,6 @@ class ComponentSpec:
                         Set to override the automatic partitioning",
                 type="int",
                 default=-1,
-                optional=True,
             ),
             "cache": Argument(
                 name="cache",
@@ -257,13 +254,11 @@ class ComponentSpec:
                 name="metadata",
                 description="Metadata arguments containing the run id and base path",
                 type="str",
-                default=None,
             ),
             "output_manifest_path": Argument(
                 name="output_manifest_path",
                 description="Path to the output manifest",
                 type="str",
-                default=None,
             ),
         }
 
@@ -297,7 +292,7 @@ class KubeflowComponentSpec:
         for arg in fondant_component.args.values():
             arg_type_dict = {}
 
-            if arg.optional or arg.default is None:
+            if arg.optional or arg.default is not None:
                 arg_type_dict["isOptional"] = True
             if arg.default is not None:
                 arg_type_dict["defaultValue"] = arg.default
@@ -347,23 +342,7 @@ class KubeflowComponentSpec:
                     "exec-"
                     + cleaned_component_name: {
                         "container": {
-                            "args": [
-                                "--input_manifest_path",
-                                "{{$.inputs.parameters['input_manifest_path']}}",
-                                "--metadata",
-                                "{{$.inputs.parameters['metadata']}}",
-                                "--component_spec",
-                                "{{$.inputs.parameters['component_spec']}}",
-                                "--input_partition_rows",
-                                "{{$.inputs.parameters['input_partition_rows']}}",
-                                "--cache",
-                                "{{$.inputs.parameters['cache']}}",
-                                "--cluster_type",
-                                "{{$.inputs.parameters['cluster_type']}}",
-                                *cls._dump_args(fondant_component.args.values()),
-                                "--output_manifest_path",
-                                "{{$.inputs.parameters['output_manifest_path']}}",
-                            ],
+                            "args": cls._dump_args(fondant_component.args.values()),
                             "command": ["fondant", "execute", "main"],
                             "image": fondant_component.image,
                         },

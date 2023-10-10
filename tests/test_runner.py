@@ -31,7 +31,7 @@ def test_docker_runner():
 class MockKfpClient:
     def __init__(self, host):
         self.host = host
-        self._experiments = {"Default": SimpleNamespace(id="123")}
+        self._experiments = {"Default": SimpleNamespace(experiment_id="123")}
 
     def get_experiment(self, experiment_name):
         try:
@@ -40,11 +40,11 @@ class MockKfpClient:
             raise ValueError
 
     def create_experiment(self, experiment_name):
-        self._experiments[experiment_name] = SimpleNamespace(id="456")
+        self._experiments[experiment_name] = SimpleNamespace(experiment_id="456")
         return self.get_experiment(experiment_name)
 
     def run_pipeline(self, experiment_id, job_name, pipeline_package_path):
-        return SimpleNamespace(id="xyz")
+        return SimpleNamespace(run_id="xyz")
 
 
 def test_kubeflow_runner():

@@ -24,7 +24,7 @@ class DaskDataLoader(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        input_partition_rows: int,
+        input_partition_rows: int = -1,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows

@@ -15,13 +15,12 @@ components:
           isOptional: true
           parameterType: STRING
         component_spec:
-          defaultValue: {}
-          isOptional: true
           parameterType: STRUCT
         input_manifest_path:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
+          defaultValue: -1
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -43,13 +42,12 @@ components:
           isOptional: true
           parameterType: STRING
         component_spec:
-          defaultValue: {}
-          isOptional: true
           parameterType: STRUCT
         input_manifest_path:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
+          defaultValue: -1
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -71,13 +69,12 @@ components:
           isOptional: true
           parameterType: STRING
         component_spec:
-          defaultValue: {}
-          isOptional: true
           parameterType: STRUCT
         input_manifest_path:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
+          defaultValue: -1
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -91,36 +88,22 @@ deploymentSpec:
     exec-first-component:
       container:
         args:
-        - --input_manifest_path
-        - '{{$.inputs.parameters[''input_manifest_path'']}}'
-        - --metadata
-        - '{{$.inputs.parameters[''metadata'']}}'
-        - --component_spec
-        - '{{$.inputs.parameters[''component_spec'']}}'
-        - --input_partition_rows
-        - '{{$.inputs.parameters[''input_partition_rows'']}}'
-        - --cache
-        - '{{$.inputs.parameters[''cache'']}}'
-        - --cluster_type
-        - '{{$.inputs.parameters[''cluster_type'']}}'
-        - --input_manifest_path
-        - '{{$.inputs.parameters[''input_manifest_path'']}}'
-        - --component_spec
-        - '{{$.inputs.parameters[''component_spec'']}}'
-        - --input_partition_rows
-        - '{{$.inputs.parameters[''input_partition_rows'']}}'
-        - --cache
-        - '{{$.inputs.parameters[''cache'']}}'
-        - --cluster_type
-        - '{{$.inputs.parameters[''cluster_type'']}}'
-        - --metadata
-        - '{{$.inputs.parameters[''metadata'']}}'
-        - --output_manifest_path
-        - '{{$.inputs.parameters[''output_manifest_path'']}}'
-        - --storage_args
-        - '{{$.inputs.parameters[''storage_args'']}}'
-        - --output_manifest_path
-        - '{{$.inputs.parameters[''output_manifest_path'']}}'
+        - "--input_manifest_path"
+        - "{{$.inputs.parameters['input_manifest_path']}}"
+        - "--component_spec"
+        - "{{$.inputs.parameters['component_spec']}}"
+        - "--input_partition_rows"
+        - "{{$.inputs.parameters['input_partition_rows']}}"
+        - "--cache"
+        - "{{$.inputs.parameters['cache']}}"
+        - "--cluster_type"
+        - "{{$.inputs.parameters['cluster_type']}}"
+        - "--metadata"
+        - "{{$.inputs.parameters['metadata']}}"
+        - "--output_manifest_path"
+        - "{{$.inputs.parameters['output_manifest_path']}}"
+        - "--storage_args"
+        - "{{$.inputs.parameters['storage_args']}}"
         command:
         - fondant
         - execute
@@ -129,36 +112,22 @@ deploymentSpec:
     exec-second-component:
       container:
         args:
-        - --input_manifest_path
-        - '{{$.inputs.parameters[''input_manifest_path'']}}'
-        - --metadata
-        - '{{$.inputs.parameters[''metadata'']}}'
-        - --component_spec
-        - '{{$.inputs.parameters[''component_spec'']}}'
-        - --input_partition_rows
-        - '{{$.inputs.parameters[''input_partition_rows'']}}'
-        - --cache
-        - '{{$.inputs.parameters[''cache'']}}'
-        - --cluster_type
-        - '{{$.inputs.parameters[''cluster_type'']}}'
-        - --input_manifest_path
-        - '{{$.inputs.parameters[''input_manifest_path'']}}'
-        - --component_spec
-        - '{{$.inputs.parameters[''component_spec'']}}'
-        - --input_partition_rows
-        - '{{$.inputs.parameters[''input_partition_rows'']}}'
-        - --cache
-        - '{{$.inputs.parameters[''cache'']}}'
-        - --cluster_type
-        - '{{$.inputs.parameters[''cluster_type'']}}'
-        - --metadata
-        - '{{$.inputs.parameters[''metadata'']}}'
-        - --output_manifest_path
-        - '{{$.inputs.parameters[''output_manifest_path'']}}'
-        - --storage_args
-        - '{{$.inputs.parameters[''storage_args'']}}'
-        - --output_manifest_path
-        - '{{$.inputs.parameters[''output_manifest_path'']}}'
+        - "--input_manifest_path"
+        - "{{$.inputs.parameters['input_manifest_path']}}"
+        - "--component_spec"
+        - "{{$.inputs.parameters['component_spec']}}"
+        - "--input_partition_rows"
+        - "{{$.inputs.parameters['input_partition_rows']}}"
+        - "--cache"
+        - "{{$.inputs.parameters['cache']}}"
+        - "--cluster_type"
+        - "{{$.inputs.parameters['cluster_type']}}"
+        - "--metadata"
+        - "{{$.inputs.parameters['metadata']}}"
+        - "--output_manifest_path"
+        - "{{$.inputs.parameters['output_manifest_path']}}"
+        - "--storage_args"
+        - "{{$.inputs.parameters['storage_args']}}"
         command:
         - fondant
         - execute
@@ -167,36 +136,22 @@ deploymentSpec:
     exec-third-component:
       container:
         args:
-        - --input_manifest_path
-        - '{{$.inputs.parameters[''input_manifest_path'']}}'
-        - --metadata
-        - '{{$.inputs.parameters[''metadata'']}}'
-        - --component_spec
-        - '{{$.inputs.parameters[''component_spec'']}}'
-        - --input_partition_rows
-        - '{{$.inputs.parameters[''input_partition_rows'']}}'
-        - --cache
-        - '{{$.inputs.parameters[''cache'']}}'
-        - --cluster_type
-        - '{{$.inputs.parameters[''cluster_type'']}}'
-        - --input_manifest_path
-        - '{{$.inputs.parameters[''input_manifest_path'']}}'
-        - --component_spec
-        - '{{$.inputs.parameters[''component_spec'']}}'
-        - --input_partition_rows
-        - '{{$.inputs.parameters[''input_partition_rows'']}}'
-        - --cache
-        - '{{$.inputs.parameters[''cache'']}}'
-        - --cluster_type
-        - '{{$.inputs.parameters[''cluster_type'']}}'
-        - --metadata
-        - '{{$.inputs.parameters[''metadata'']}}'
-        - --output_manifest_path
-        - '{{$.inputs.parameters[''output_manifest_path'']}}'
-        - --storage_args
-        - '{{$.inputs.parameters[''storage_args'']}}'
-        - --output_manifest_path
-        - '{{$.inputs.parameters[''output_manifest_path'']}}'
+        - "--input_manifest_path"
+        - "{{$.inputs.parameters['input_manifest_path']}}"
+        - "--component_spec"
+        - "{{$.inputs.parameters['component_spec']}}"
+        - "--input_partition_rows"
+        - "{{$.inputs.parameters['input_partition_rows']}}"
+        - "--cache"
+        - "{{$.inputs.parameters['cache']}}"
+        - "--cluster_type"
+        - "{{$.inputs.parameters['cluster_type']}}"
+        - "--metadata"
+        - "{{$.inputs.parameters['metadata']}}"
+        - "--output_manifest_path"
+        - "{{$.inputs.parameters['output_manifest_path']}}"
+        - "--storage_args"
+        - "{{$.inputs.parameters['storage_args']}}"
         command:
         - fondant
         - execute
@@ -242,7 +197,7 @@ root:
                           type: binary
             input_partition_rows:
               runtimeValue:
-                constant: 10.0
+                constant: 10
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -250,7 +205,7 @@ root:
                   "cache_key": "1"}'
             output_manifest_path:
               runtimeValue:
-                constant: /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
+                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
             storage_args:
               runtimeValue:
                 constant: a dummy string arg
@@ -295,10 +250,10 @@ root:
                           type: array
             input_manifest_path:
               runtimeValue:
-                constant: /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
+                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
             input_partition_rows:
               runtimeValue:
-                constant: 10.0
+                constant: 10
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -306,7 +261,7 @@ root:
                   "cache_key": "2"}'
             output_manifest_path:
               runtimeValue:
-                constant: /foo/bar/testpipeline/testpipeline-20230101000000/second_component/manifest.json
+                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/second_component/manifest.json"
             storage_args:
               runtimeValue:
                 constant: a dummy string arg
@@ -360,7 +315,7 @@ root:
                           type: binary
             input_manifest_path:
               runtimeValue:
-                constant: /foo/bar/testpipeline/testpipeline-20230101000000/second_component/manifest.json
+                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/second_component/manifest.json"
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -368,7 +323,7 @@ root:
                   "cache_key": "3"}'
             output_manifest_path:
               runtimeValue:
-                constant: /foo/bar/testpipeline/testpipeline-20230101000000/third_component/manifest.json
+                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/third_component/manifest.json"
             storage_args:
               runtimeValue:
                 constant: a dummy string arg

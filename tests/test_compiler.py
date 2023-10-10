@@ -518,10 +518,11 @@ def test_caching_dependency_kfp(tmp_path_factory):
             compiler.compile(pipeline=pipeline, output_path=output_path)
             with open(output_path) as src:
                 spec = yaml.safe_load(src)
-                commands = spec["spec"]["templates"][1]["container"]["command"]
-                cache_key = json.loads(commands[commands.index("--metadata") + 1])[
-                    "cache_key"
+                params = spec["root"]["dag"]["tasks"]["second-component"]["inputs"][
+                    "parameters"
                 ]
+                metadata = params["metadata"]["runtimeValue"]["constant"]
+                cache_key = json.loads(metadata)["cache_key"]
             second_component_cache_key_dict[arg] = cache_key
 
     assert (

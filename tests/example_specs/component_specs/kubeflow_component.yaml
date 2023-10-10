@@ -6,13 +6,14 @@ components:
         cache:
           defaultValue: true
           description: Set to False to disable caching, True by default.
+          isOptional: true
           parameterType: BOOLEAN
         cluster_type:
           defaultValue: default
           description: The cluster type to use for the execution
+          isOptional: true
           parameterType: STRING
         component_spec:
-          defaultValue: {}
           description: The component specification as a dictionary
           parameterType: STRUCT
         input_manifest_path:
@@ -20,6 +21,7 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
+          defaultValue: -1
           description: The number of rows to load per partition.                         Set
             to override the automatic partitioning
           isOptional: true
@@ -40,18 +42,6 @@ deploymentSpec:
         args:
         - --input_manifest_path
         - '{{$.inputs.parameters[''input_manifest_path'']}}'
-        - --metadata
-        - '{{$.inputs.parameters[''metadata'']}}'
-        - --component_spec
-        - '{{$.inputs.parameters[''component_spec'']}}'
-        - --input_partition_rows
-        - '{{$.inputs.parameters[''input_partition_rows'']}}'
-        - --cache
-        - '{{$.inputs.parameters[''cache'']}}'
-        - --cluster_type
-        - '{{$.inputs.parameters[''cluster_type'']}}'
-        - --input_manifest_path
-        - '{{$.inputs.parameters[''input_manifest_path'']}}'
         - --component_spec
         - '{{$.inputs.parameters[''component_spec'']}}'
         - --input_partition_rows
@@ -66,8 +56,6 @@ deploymentSpec:
         - '{{$.inputs.parameters[''output_manifest_path'']}}'
         - --storage_args
         - '{{$.inputs.parameters[''storage_args'']}}'
-        - --output_manifest_path
-        - '{{$.inputs.parameters[''output_manifest_path'']}}'
         command:
         - fondant
         - execute
