@@ -1,9 +1,9 @@
 # Component specification
 
-Each Fondant component is defined by a component specification which describes its interface. 
+Each Fondant component is defined by a component specification which describes its interface.
 The component specification is used for a couple of things:
 
-- To define which input data Fondant should provide to the component, and which output data it should 
+- To define which input data Fondant should provide to the component, and which output data it should
   write to storage.
 - To validate compatibility with other components.
 - To execute the component with the correct parameters.
@@ -15,17 +15,20 @@ The component specification should be defined by the author of the component.
 A component spec(ification) consists of the following sections:
 
 ```yaml
-name: ...
-description: ...
-image: ...
+name:
+  ...
+description:
+  ...
+image:
+  ...
 
 consumes:
   ...
 
-produces:
+produces: 
   ...
 
-args:
+args: 
   ...
 ```
 
@@ -37,13 +40,12 @@ The metadata tracks metadata about the component, such as its name, description,
 name: Example component
 description: This is an example component
 image: example_component:latest
-...
 ```
 
 ### Consumes & produces
 
-The `consumes` and `produces` sections describe which data the component consumes and produces. 
-The specification below for instance defines a component that creates an embedding from an 
+The `consumes` and `produces` sections describe which data the component consumes and produces.
+The specification below for instance defines a component that creates an embedding from an
 image-caption combination.
 
 ```yaml
@@ -65,7 +67,6 @@ produces:
         type: array
         items:
           type: float32
-...
 ```
 
 The `consumes` and `produces` sections follow the schema below:
@@ -82,50 +83,53 @@ consumes/produces:
 
 #### Subsets
 
-A component consumes or produces `subsets` which match the `subsets` from 
-[the manifest](manifest.md). 
-- Only those subsets defined in the `consumes` section of the 
-component specification are read and passed to the component implementation.
-- Only those subsets defined in the `produces` section of the component specification are 
+A component consumes or produces `subsets` which match the `subsets` from
+[the manifest](../manifest.md).
+
+- Only those subsets defined in the `consumes` section of the
+  component specification are read and passed to the component implementation.
+- Only those subsets defined in the `produces` section of the component specification are
   written to storage.
 
 #### Fields
 
 Each subset defines a list of `fields`, which again match those from the manifest.
-- Only those fields defined in the `consumes` section of the component specification are read 
+
+- Only those fields defined in the `consumes` section of the component specification are read
   and passed to the component implementation.
-- Only those fields defined in the `produces` section of the component specification are written 
+- Only those fields defined in the `produces` section of the component specification are written
   to storage
 
-Each field defines the expected data type, which should match the 
-[types defined by Fondant](https://github.com/ml6team/fondant/blob/main/fondant/schema.py#L13), 
+Each field defines the expected data type, which should match the
+[types defined by Fondant](https://github.com/ml6team/fondant/blob/main/fondant/schema.py#L13),
 which mostly match the [Arrow data types](https://arrow.apache.org/docs/python/api/datatypes.html).
 
 #### AdditionalSubsets & additionalFields
 
-The schema also defines the `additionalSubsets` and `additionalFields` keywords, which can be 
-used to define which additional data should be passed on from the input to the output. They both 
+The schema also defines the `additionalSubsets` and `additionalFields` keywords, which can be
+used to define which additional data should be passed on from the input to the output. They both
 default to `true`, which means that by default untouched data is passed on to the next component.
 
-- If `additionalSubsets` is `false` in the `consumes` section, all subsets not specified in the 
+- If `additionalSubsets` is `false` in the `consumes` section, all subsets not specified in the
   component specification's `consumes` will be dropped.
-- If `additionalSubsets` is `false` in the `produces` section, all subsets not specified in the 
+- If `additionalSubsets` is `false` in the `produces` section, all subsets not specified in the
   component specification's `produces` section will be dropped, including consumed subsets.
-- If `additionalFields` is `false` for a subset in the `consumes` section, all fields not 
+- If `additionalFields` is `false` for a subset in the `consumes` section, all fields not
   specified will be dropped.
-- If `additionalFields` is `false` for a subset in the `produces` section, all fields not 
+- If `additionalFields` is `false` for a subset in the `produces` section, all fields not
   specified will be dropped, including consumed fields.
 
 Please check the [examples](#examples) below to build a better understanding.
 
 ### Args
 
-The `args` section describes which arguments the component takes. Each argument is defined by a 
-`description` and a `type`, which should be one of the builtin Python types. Additionally, you can 
+The `args` section describes which arguments the component takes. Each argument is defined by a
+`description` and a `type`, which should be one of the builtin Python types. Additionally, you can
 set an optional `default` value for each argument.
 
-_Note:_ default iterable arguments such as `dict` and `list` have to be passed as a string 
+_Note:_ default iterable arguments such as `dict` and `list` have to be passed as a string
 (e.g. `'{"foo":1, "bar":2}`, `'["foo","bar]'`)
+
 ```yaml
 args:
   custom_argument:
@@ -135,10 +139,11 @@ args:
     description: A default argument
     type: str
     default: bar
-``` 
+```
 
-These arguments are passed in when the component is instantiated. 
+These arguments are passed in when the component is instantiated.
 If an argument is not explicitly provided, the default value will be used instead if available.
+
 ```python
 from fondant.pipeline import ComponentOp
 
@@ -169,24 +174,23 @@ class ExampleComponent(PandasTransformComponent):
 
   def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
     """Implement your custom logic in this single method
-    
+
     Args:
         dataframe: A Pandas dataframe containing the data
-        
+
     Returns:
         A pandas dataframe containing the transformed data
     """
 ```
 
-
 ## Examples
 
-Each component specification defines how the input manifest will be transformed into the output 
+Each component specification defines how the input manifest will be transformed into the output
 manifest. The following examples show how the component specification works:
 
 ### Example 1: defaults
 
-Even though only a single `subset` and `field` are defined in both `consumes` and `produces`, 
+Even though only a single `subset` and `field` are defined in both `consumes` and `produces`,
 all data is passed along since `additionalSubsets` and `additionalFields` default to `true`.
 
 <table>
@@ -229,7 +233,6 @@ all data is passed along since `additionalSubsets` and `additionalFields` defaul
 
 </td>
 <td>
-
 
 ```yaml
 consumes:
@@ -293,7 +296,7 @@ produces:
 
 ### Example 2: `additionalSubsets: false` in `consumes`
 
-When changing `additionalSubsets` in `consumes` to `false`, the unused `captions` subset is 
+When changing `additionalSubsets` in `consumes` to `false`, the unused `captions` subset is
 dropped.
 
 <table>
@@ -336,7 +339,6 @@ dropped.
 
 </td>
 <td>
-
 
 ```yaml
 consumes:
@@ -393,8 +395,8 @@ produces:
 
 ### Example 3: `additionalFields: false` in `consumes`
 
-When changing `additionalFields` in the consumed images subset to `false`, the unused fields of 
-the images subset are dropped as well. 
+When changing `additionalFields` in the consumed images subset to `false`, the unused fields of
+the images subset are dropped as well.
 
 <table>
 <tr>
@@ -436,7 +438,6 @@ the images subset are dropped as well.
 
 </td>
 <td>
-
 
 ```yaml
 consumes:
@@ -532,7 +533,6 @@ and the consumed `images` subsets are dropped.
 </td>
 <td>
 
-
 ```yaml
 consumes:
   images:
@@ -574,7 +574,7 @@ produces:
 
 ### Example 5: overwriting subsets
 
-Finally, when we define a subset both in `consumes` and `produces`, the produced fields 
+Finally, when we define a subset both in `consumes` and `produces`, the produced fields
 overwrite the consumed ones. Others are passed on according to the `additionalFields` flag.
 
 <table>
@@ -617,7 +617,6 @@ overwrite the consumed ones. Others are passed on according to the `additionalFi
 
 </td>
 <td>
-
 
 ```yaml
 consumes:

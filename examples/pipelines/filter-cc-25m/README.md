@@ -57,7 +57,7 @@ Accordingly, the getting started documentation, we can run the pipeline by using
 as follow:
 
 ```bash
-fondant run pipeline --local
+fondant run local pipeline.py
 ```
 
 > Note: The 'load_from_hub' component accepts an argument that defines the dataset size. 
@@ -68,7 +68,7 @@ fondant run pipeline --local
 If you wish to run the entire pipeline, including the filtering step, use the following command:
 
 ```bash
-fondant run filter_pipeline --local
+fondant run local filter_pipeline
 ```
 
 After the pipeline is succeeded you can explore the data by using the fondant data explorer:

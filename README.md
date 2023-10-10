@@ -1,10 +1,11 @@
+<a id="top"></a>
 <p align="center">
     <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" height="250px"/>
 </p>
 <p align="center">
     <i>Large-scale data processing made easy and reusable</i>
     <br>
-    <a href="https://fondant.readthedocs.io/en/stable/"><strong>Explore the docs »</strong></a>
+    <a href="http://fondant.ai"><strong>Explore the docs »</strong></a>
     <br>
     <br>
     <a href="https://discord.gg/HnTdWhydGp"><img alt="Discord" src="https://dcbadge.vercel.app/api/server/HnTdWhydGp?style=flat-square"></a>
@@ -15,9 +16,9 @@
 </p>
 
 ---
-🍫**Fondant is an open-source framework that aims to simplify and speed up large-scale data processing by making 
-containerized components reusable across pipelines and execution environments and shareable within the community.**
 
+🍫**Fondant is an open-source framework that aims to simplify and speed up large-scale data processing by making
+containerized components reusable across pipelines and execution environments and shareable within the community.**
 
 It offers:
 
@@ -60,14 +61,14 @@ It offers:
 In the age of Foundation Models, control over your data is key and building pipelines
 for large-scale data processing is costly, especially when they require advanced
 machine learning-based operations. This need not be the case, however, if processing
-components would be reusable and exchangeable and pipelines were easily composable. 
+components would be reusable and exchangeable and pipelines were easily composable.
 Realizing this is the main vision behind Fondant.
 
-<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 💨 Getting Started
 
-Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/stable/getting_started) to get your first pipeline up and running.
+Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting_started) to get your first pipeline up and running.
 
 ## 🪄 Example pipelines
 
@@ -75,56 +76,55 @@ Curious to see what Fondant can do? Have a look at our example pipelines:
 
 ### Filtering creative commons image dataset
 
-We have published an [image dataset containing 25 million images](https://huggingface.co/datasets/fondant-ai/fondant-cc-25m). 
-As a result, we have provided a [sample pipeline](examples/pipelines/filter-cc-25m) that 
-demonstrates the download and filtering of these images. In the pipeline folder, 
+We have published an [image dataset containing 25 million images](https://huggingface.co/datasets/fondant-ai/fondant-cc-25m).
+As a result, we have provided a [sample pipeline](https://github.com/ml6team/fondant/tree/main/examples/pipelines/filter-cc-25m) that
+demonstrates the download and filtering of these images. In the pipeline folder,
 you will find detailed instructions on how to execute the pipeline and explore the images.
 
 ### Fine-tuning ControlNet
 
-Our 
-[example pipeline to generate data for ControlNet fine-tuning](examples/pipelines/controlnet-interior-design) 
-allows you to create models that you can control using inpainting, segmentation, and 
-regeneration. All you need to get started is a set of prompts describing the type of images to 
+Our
+[example pipeline to generate data for ControlNet fine-tuning](https://github.com/ml6team/fondant/tree/main/examples/pipelines/controlnet-interior-design)
+allows you to create models that you can control using inpainting, segmentation, and
+regeneration. All you need to get started is a set of prompts describing the type of images to
 generate.
 
-For instance, using our ControlNet model fine-tuned on interior design images, allows you to 
+For instance, using our ControlNet model fine-tuned on interior design images, allows you to
 generate the room of your dreams:
 
 | Input image                                                                                                          | Output image                                                                                                           |
-|----------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/interior_design_controlnet_input1.png?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/interior_design_controlnet_output1.jpg?raw=true) |
 
-Want to try out the resulting model yourself, head over to our 
+Want to try out the resulting model yourself, head over to our
 [Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
 
 ### Fine-tuning Stable Diffusion
 
-Using our 
-[example pipeline to fine-tune Stable Diffusion](examples/pipelines/finetune_stable_diffusion) 
-allows you to create models that generate better images within a specific domain. All you need to 
+Using our
+[example pipeline to fine-tune Stable Diffusion](https://github.com/ml6team/fondant/tree/main/examples/pipelines/finetune_stable_diffusion)
+allows you to create models that generate better images within a specific domain. All you need to
 get started is a small seed dataset of example images.
 
 Eg. generating logos:
 
-| Stable Diffusion 1.5                                                                                     | Fine-tuned Stable Diffusion 1.5              |
-|----------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| Stable Diffusion 1.5                                                                                     | Fine-tuned Stable Diffusion 1.5                                                                     |
+| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_stable_diffusion.jpg?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_finetuned.jpeg?raw=true) |
 
 ### Training Starcoder
 
-Using our [example pipeline to train StarCoder](examples/pipelines/starcoder) provides a starting 
+Using our [example pipeline to train StarCoder](https://github.com/ml6team/fondant/tree/main/examples/pipelines/starcoder) provides a starting
 point to create datasets for training code assistants.
 
-<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
-
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 🧩 Reusable components
 
 Fondant comes with a library of reusable components, which can jumpstart your pipeline.
 
 | COMPONENT                                                                                                                  | DESCRIPTION                                                         |
-|----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | **Data loading / writing**                                                                                                 |                                                                     |
 | [load_from_hf_hub](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub)                               | Load a dataset from the Hugging Face Hub                            |
 | [write_to_hf_hub](https://github.com/ml6team/fondant/tree/main/components/write_to_hf_hub)                                 | Write a dataset to the Hugging Face Hub                             |
@@ -132,7 +132,7 @@ Fondant comes with a library of reusable components, which can jumpstart your pi
 | [embedding_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/embedding_based_laion_retrieval) | Retrieve images-text pairs from LAION using embedding similarity    |
 | [download_images](https://github.com/ml6team/fondant/tree/main/components/download_images)                                 | Download images from urls                                           |
 | **Image processing**                                                                                                       |                                                                     |
-| [embed_images](https://github.com/ml6team/fondant/tree/main/components/embed_images)                                 | Create embeddings for images using a model from the HF Hub          |
+| [embed_images](https://github.com/ml6team/fondant/tree/main/components/embed_images)                                       | Create embeddings for images using a model from the HF Hub          |
 | [image_resolution_extraction](https://github.com/ml6team/fondant/tree/main/components/image_resolution_extraction)         | Extract the resolution from images                                  |
 | [filter_image_resolution](https://github.com/ml6team/fondant/tree/main/components/filter_image_resolution)                 | Filter images based on their resolution                             |
 | [caption images](https://github.com/ml6team/fondant/tree/main/components/caption_images)                                   | Generate captions for images using a model from the HF Hub          |
@@ -145,7 +145,7 @@ Fondant comes with a library of reusable components, which can jumpstart your pi
 | **Language processing**                                                                                                    | Coming soon                                                         |
 | **Clustering**                                                                                                             | Coming soon                                                         |
 
-<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 ## ⚒️ Installation
 
@@ -163,26 +163,23 @@ pip install git+https://github.com/ml6team/fondant.git
 
 ### 🧱 Deploying Fondant
 
-
 There are 2 ways of using fondant:
 
 - Leveraging [Kubeflow pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/) on any Kubernetes cluster. All Fondant needs is an url pointing to the Kubeflow pipeline host and an Object Storage provider (S3, GCS, etc) to store data produced in the pipeline between steps.
   We have compiled some references and created some scripts to [get you started](https://fondant.readthedocs.io/en/latest/infrastructure) with setting up the required infrastructure.
 - Or locally by using [docker compose](https://docs.docker.com/compose/). This way is mainly aimed at helping you develop fondant pipelines and components faster by making it easier to run things on a smaller scale.
 
-
 The same pipeline can be used in both variants allowing you to quickly develop and iterate using the local Docker Compose implementation and then using the power of Kubeflow pipelines to run a large scale pipeline.
 
-<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 👨‍💻 Usage
 
 #### Pipeline
 
-Fondant allows you to easily define data pipelines comprised of both reusable and custom 
-components. The following pipeline for instance uses the reusable `load_from_hf_hub` component 
+Fondant allows you to easily define data pipelines comprised of both reusable and custom
+components. The following pipeline for instance uses the reusable `load_from_hf_hub` component
 to load a dataset from the Hugging Face Hub and process it using a custom component:
-
 
 ```python
 from fondant.pipeline import ComponentOp, Pipeline, Client
@@ -207,7 +204,7 @@ def build_pipeline():
     pipeline.add_op(custom_op, dependencies=load_from_hub_op)
 
     return pipeline
-    
+
 
 if __name__ == "__main__":
     client = Client(host="https://kfp-host.com/")
@@ -217,7 +214,7 @@ if __name__ == "__main__":
 
 #### Component
 
-To create a custom component, you first need to describe its contract as a yaml specification. 
+To create a custom component, you first need to describe its contract as a yaml specification.
 It defines the data consumed and produced by the component and any arguments it takes.
 
 ```yaml
@@ -246,8 +243,8 @@ args:
     type: str
 ```
 
-Once you have your component specification, all you need to do is implement a constructor 
-and a single `.transform` method and Fondant will do the rest. You will get the data defined in 
+Once you have your component specification, all you need to do is implement a constructor
+and a single `.transform` method and Fondant will do the rest. You will get the data defined in
 your specification partition by partition as a Pandas dataframe.
 
 ```python
@@ -276,12 +273,12 @@ class ExampleComponent(PandasTransformComponent):
 
 For more advanced use cases, you can use the `DaskTransformComponent` instead.
 
-###  Running your pipeline
+### Running your pipeline
 
 Once you have a pipeline you can easily run (and compile) it by using the built-in CLI:
 
 ```bash
-fondant run pipeline.py --local
+fondant run local pipeline.py
 ```
 
 To see all available arguments you can check the fondant CLI help pages
@@ -296,17 +293,16 @@ Or for a subcommand:
 fondant <subcommand> --help
 ```
 
-
-
-<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 🚧 Current state and roadmap
 
-Fondant is currently in the alpha stage, offering a minimal viable interface. While you should 
-expect to run into rough edges, the foundations are ready and Fondant should already be able to 
+Fondant is currently in the alpha stage, offering a minimal viable interface. While you should
+expect to run into rough edges, the foundations are ready and Fondant should already be able to
 speed up your data preparation work.
 
 **The following topics are on our roadmap**
+
 - Non-linear pipeline DAGs
 - LLM-focused example pipelines and reusable components
 - Data lineage and experiment tracking
@@ -316,19 +312,18 @@ speed up your data preparation work.
 - Create datasets of copy-right free data for fine-tuning
 - Create reusable components for bias detection and mitigation
 
-The roadmap and priority are defined based on community feedback. To provide input, you can join 
-[our discord](https://discord.gg/HnTdWhydGp) or submit an idea in our 
+The roadmap and priority are defined based on community feedback. To provide input, you can join
+[our discord](https://discord.gg/HnTdWhydGp) or submit an idea in our
 [Github Discussions](https://github.com/ml6team/fondant/discussions/categories/ideas).
 
-For a detailed view on the roadmap and day to day development, you can check our [github project 
+For a detailed view on the roadmap and day to day development, you can check our [github project
 board](https://github.com/orgs/ml6team/projects/1).
 
-<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 👭 Contributing
 
 We welcome [contributions of different kinds](https://fondant.readthedocs.io/en/latest/contributing)
-
 
 ### Environment setup
 
@@ -341,4 +336,4 @@ poetry install
 pre-commit install
 ```
 
-<p align="right">(<a href="#chocolate_bar-fondant">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>

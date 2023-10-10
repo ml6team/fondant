@@ -6,12 +6,14 @@ import pytest
 from fondant.cli import (
     ComponentImportError,
     PipelineImportError,
-    compile,
+    compile_kfp,
+    compile_local,
     component_from_module,
     execute,
     get_module,
     pipeline_from_module,
-    run,
+    run_kfp,
+    run_local,
 )
 from fondant.component import DaskLoadComponent
 from fondant.executor import Executor, ExecutorFactory
@@ -137,7 +139,7 @@ def test_local_logic(tmp_path_factory):
             extra_volumes=[],
             build_arg=[],
         )
-        compile(args)
+        compile_local(args)
 
 
 def test_kfp_compile(tmp_path_factory):
@@ -148,14 +150,14 @@ def test_kfp_compile(tmp_path_factory):
             local=False,
             output_path=str(fn / "kubeflow_pipelines.yml"),
         )
-        compile(args)
+        compile_kfp(args)
 
 
 def test_local_run(tmp_path_factory):
     """Test that the run command works with different arguments."""
     args = argparse.Namespace(local=True, ref="some/path", output_path=None)
     with patch("subprocess.call") as mock_call:
-        run(args)
+        run_local(args)
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -178,7 +180,7 @@ def test_local_run(tmp_path_factory):
             extra_volumes=[],
             build_arg=[],
         )
-        run(args1)
+        run_local(args1)
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -207,7 +209,7 @@ def test_kfp_run(tmp_path_factory):
         ValueError,
         match="--host argument is required for running on Kubeflow",
     ):  # no host
-        run(args)
+        run_kfp(args)
     with patch("fondant.cli.KubeflowRunner") as mock_runner:
         args = argparse.Namespace(
             kubeflow=True,
@@ -216,7 +218,7 @@ def test_kfp_run(tmp_path_factory):
             host="localhost",
             ref="some/path",
         )
-        run(args)
+        run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost")
     with patch("fondant.cli.KubeflowRunner") as mock_runner, tmp_path_factory.mktemp(
         "temp",
@@ -228,5 +230,5 @@ def test_kfp_run(tmp_path_factory):
             output_path=str(fn / "kubeflow_pipelines.yml"),
             ref=__name__,
         )
-        run(args)
+        run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost2")

@@ -4,9 +4,9 @@ Based on notebook: Run inference with FAST for text detection.ipynb.
 """
 import io
 import logging
+import os
 import typing as t
 
-import dask
 import numpy as np
 import pandas as pd
 import torch
@@ -23,7 +23,7 @@ from huggingface_hub import hf_hub_download
 
 logger = logging.getLogger(__name__)
 
-dask.config.set(scheduler="single-threaded")
+os.environ["TORCH_CUDNN_V8_API_DISABLED"] = "1"
 
 
 def poly2bbox(polygon: np.array) -> np.array:
@@ -46,12 +46,14 @@ def poly2bbox(polygon: np.array) -> np.array:
     return np.array([min(x), min(y), max(x), max(y)])
 
 
-def process_image(image: bytes, *, image_transform, device: str) -> torch.Tensor:
+def process_image_batch(
+    images: np.ndarray, *, image_transform: SquarePadResizeNorm, device: str
+) -> t.List[torch.Tensor]:
     """
-    Process the image to a tensor.
+    Process image in batches to a list of tensors.
 
     Args:
-        image: The input image as a byte string.
+        images: The input images as a numpy array containing byte strings.
         image_transform: The image transformation to apply.
         device: The device to move the transformed image to.
     """
@@ -65,18 +67,20 @@ def process_image(image: bytes, *, image_transform, device: str) -> torch.Tensor
         """Transform the image to a tensor and move it to the specified device."""
         return image_transform(img)[0][0].to(device)
 
-    return transform(load(image))
+    return [transform(load(image)) for image in images]
 
 
+@torch.no_grad()
 def detect_text_batch(
-    image_batch: pd.DataFrame,
+    image_batch: t.List[torch.Tensor],
     *,
-    cfg,
-    model,
-    image_size,
+    cfg: Config,
+    model: torch.nn.Module,
+    image_size: int,
+    index: pd.Series,
 ) -> pd.Series:
     """Detext text on a batch of images."""
-    imgs = torch.stack(list(image_batch), dim=0)
+    imgs = torch.stack(image_batch, dim=0)
     batch_size = imgs.shape[0]
     # TODO fix this, make this component also take width and height
     # as input in spec to process arbitrarly sized images
@@ -91,11 +95,7 @@ def detect_text_batch(
     data["img_metas"] = img_metas
     data.update(dict(cfg=cfg))
 
-    # forward
-    with torch.no_grad():
-        outputs = model(**data)
-
-    print("Results", outputs["results"])
+    outputs = model(**data)
 
     # get cropped images
     boxes_batch = []
@@ -108,13 +108,13 @@ def detect_text_batch(
             boxes.append(box)
         boxes_batch.append(boxes)
 
-    return pd.Series(boxes_batch, index=image_batch.index)
+    return pd.Series(boxes_batch, index=index)
 
 
 class DetectTextComponent(PandasTransformComponent):
     """Component that detects text in images using an mmocr model."""
 
-    def __init__(self, *args, batch_size: int, image_size: int) -> None:
+    def __init__(self, *_, batch_size: int, image_size: int):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Device: {self.device}")
 
@@ -134,10 +134,13 @@ class DetectTextComponent(PandasTransformComponent):
             filename="fast_tiny_tt_512_finetune_ic17mlt.pth",
             repo_type="model",
         )
+
         self.model = build_model(cfg.model)
         self.model = self.init_model(checkpoint_path)
 
     def init_model(self, checkpoint_path):
+        logger.info("Initializing model")
+
         checkpoint = torch.load(checkpoint_path)
         state_dict = checkpoint["ema"]
         d = dict()
@@ -151,31 +154,33 @@ class DetectTextComponent(PandasTransformComponent):
         # fuse convolutional and batch norm layers
         self.model = fuse_module(self.model)
         self.model.eval()
+
+        logger.info("Model initialized")
+
         return self.model
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        images = pd.Series(dataframe["images"]["data"]).apply(
-            process_image,
-            image_transform=self.image_transform,
-            device=self.device,
-        )
+        images = dataframe["images"]["data"]
 
         results: t.List[pd.Series] = []
         for batch in np.split(
             images, np.arange(self.batch_size, len(images), self.batch_size)
         ):
             if not batch.empty:
-                results.append(
-                    detect_text_batch(
-                        batch,
-                        cfg=self.cfg,
-                        model=self.model,
-                        image_size=self.image_size,
-                    ).T,
+                image_tensors = process_image_batch(
+                    batch, image_transform=self.image_transform, device=self.device
                 )
+
+                boxes = detect_text_batch(
+                    image_tensors,
+                    cfg=self.cfg,
+                    model=self.model,
+                    image_size=self.image_size,
+                    index=batch.index,
+                ).T
+
+                results.append(boxes)
 
         result = pd.concat(results).to_frame(name=("images", "boxes"))
 
-        dataframe = pd.concat([dataframe, result], axis=1)
-
-        return dataframe
+        return pd.concat([dataframe, result], axis=1)
