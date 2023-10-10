@@ -187,14 +187,6 @@ def register_compile(parent_parser):
 
     compiler_subparser = parser.add_subparsers()
 
-    parser.add_argument(
-        "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
-            """,
-        action="store",
-    )
-
     local_parser = compiler_subparser.add_parser(name="local", help="Local compiler")
     kubeflow_parser = compiler_subparser.add_parser(
         name="kubeflow",
@@ -202,6 +194,13 @@ def register_compile(parent_parser):
     )
 
     # Local runner parser
+    local_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
     local_parser.add_argument(
         "--output-path",
         "-o",
@@ -223,6 +222,13 @@ def register_compile(parent_parser):
     )
 
     # Kubeflow parser
+    kubeflow_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
     kubeflow_parser.add_argument(
         "--output-path",
         "-o",
@@ -272,14 +278,6 @@ def register_run(parent_parser):
     )
 
     runner_subparser = parser.add_subparsers()
-    # Define the "ref" argument once
-    parser.add_argument(
-        "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
-            """,
-        action="store",
-    )
 
     local_parser = runner_subparser.add_parser(name="local", help="Local runner")
     kubeflow_parser = runner_subparser.add_parser(
@@ -288,6 +286,13 @@ def register_run(parent_parser):
     )
 
     # Local runner parser
+    local_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
     local_parser.add_argument(
         "--output-path",
         "-o",
@@ -309,6 +314,13 @@ def register_run(parent_parser):
     local_parser.set_defaults(func=run_local)
 
     # kubeflow runner parser
+    kubeflow_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
     kubeflow_parser.add_argument(
         "--output-path",
         "-o",
