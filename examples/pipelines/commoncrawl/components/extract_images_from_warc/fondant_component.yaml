@@ -1,6 +1,6 @@
 name: Extract image licenses from warc
 description: A component that extracts images and their licenses from warc files
-image: 281086077386.dkr.ecr.us-east-1.amazonaws.com/extract_images_from_warc
+image: ghcr.io/ml6team/extract_images_from_warc
 
 consumes:
   warc:
