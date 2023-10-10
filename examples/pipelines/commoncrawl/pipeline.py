@@ -22,6 +22,7 @@ extract_images_op = ComponentOp(
     component_dir="components/extract_images_from_warc",
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool-3",
+    cluster_type="local",
 )
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)

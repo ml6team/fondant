@@ -1,7 +1,7 @@
 """A component that downloads common crawl files."""
 import logging
 import typing as t
-
+import gzip
 import dask
 import dask.dataframe as dd
 import pandas as pd
@@ -105,7 +105,8 @@ class CommonCrawlDownloadComponent(DaskTransformComponent):
 
         try:
             response = download_warc_file(warc_file)
-            return self.extract_images(response.raw)
+            with gzip.GzipFile(fileobj=response, mode="rb") as file:
+                return self.extract_images(file)
         except BaseException as e:
             logging.warning(e)
             return []
