@@ -39,8 +39,8 @@ class WriteToHubComponent(DaskWriteComponent):
             hf_token: str,
             username: str,
             dataset_name: str,
-            image_column_names: t.Optional[list],
-            column_name_mapping: t.Optional[dict],
+            image_column_names: list,
+            column_name_mapping: dict,
     ):
         """
         Args:
@@ -87,7 +87,7 @@ class WriteToHubComponent(DaskWriteComponent):
         # Map image column to hf data format
         feature_encoder = datasets.Image(decode=True)
 
-        if self.image_column_names is not None:
+        if self.image_column_names:
             for image_column_name in self.image_column_names:
                 dataframe[image_column_name] = dataframe[image_column_name].map(
                     lambda x: convert_bytes_to_image(x, feature_encoder),
