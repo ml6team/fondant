@@ -42,21 +42,25 @@ class LoadFromParquet(DaskLoadComponent):
     def load(self) -> dd.DataFrame:
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the file...")
-        dask_df = dd.read_parquet(self.dataset_uri)
+
+        # Only read required columns
+        columns = []
+        if self.column_name_mapping is None:
+            for subset_name, subset in self.spec.produces.items():
+                for field_name, field in subset.fields.items():
+                    columns.append(f"{subset_name}_{field_name}")
+        else:
+            columns = list(self.column_name_mapping.keys())
+
+        logger.debug(f"Columns to keep: {columns}")
+        dask_df = dd.read_parquet(self.dataset_uri, columns=columns)
 
         # 2) Rename columns
         if self.column_name_mapping is not None:
             logger.info("Renaming columns...")
             dask_df = dask_df.rename(columns=self.column_name_mapping)
 
-        # 3) Only keep specified columns
-        columns_to_keep = []
-        for subset_name, subset in self.spec.produces.items():
-            for field_name, field in subset.fields.items():
-                columns_to_keep.append(f"{subset_name}_{field_name}")
-        dask_df = dask_df[columns_to_keep]
-
-        # 4) Optional: only return specific amount of rows
+        # 3) Optional: only return specific amount of rows
         if self.n_rows_to_load is not None:
             partitions_length = 0
             npartitions = 1
@@ -69,7 +73,7 @@ class LoadFromParquet(DaskLoadComponent):
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
             dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
 
-        # 5) Set the index
+        # 4) Set the index
         if self.index_column is None:
             logger.info(
                 "Index column not specified, setting a globally unique index",
