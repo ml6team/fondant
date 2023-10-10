@@ -21,7 +21,7 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
+          defaultValue: -1.0
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -45,14 +45,14 @@ components:
         component_spec:
           parameterType: STRUCT
         cropping_threshold:
-          defaultValue: -30
+          defaultValue: -30.0
           isOptional: true
           parameterType: NUMBER_INTEGER
         input_manifest_path:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
+          defaultValue: -1.0
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -60,7 +60,7 @@ components:
         output_manifest_path:
           parameterType: STRING
         padding:
-          defaultValue: 10
+          defaultValue: 10.0
           isOptional: true
           parameterType: NUMBER_INTEGER
 deploymentSpec:
@@ -186,13 +186,13 @@ root:
                 constant:
                   args:
                     cropping_threshold:
-                      default: -30
+                      default: -30.0
                       description: Threshold parameter used for detecting borders.
                         A lower (negative) parameter results in a more performant
                         border detection, but can cause overcropping. Default is -30
                       type: int
                     padding:
-                      default: 10
+                      default: 10.0
                       description: Padding for the image cropping. The padding is
                         added to all borders of the image.
                       type: int
@@ -229,7 +229,7 @@ root:
                           type: int32
             cropping_threshold:
               runtimeValue:
-                constant: 0
+                constant: 0.0
             input_manifest_path:
               runtimeValue:
                 constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
@@ -243,8 +243,8 @@ root:
                 constant: "/foo/bar/testpipeline/testpipeline-20230101000000/image_cropping/manifest.json"
             padding:
               runtimeValue:
-                constant: 0
+                constant: 0.0
         taskInfo:
           name: image-cropping
 schemaVersion: 2.1.0
-sdkVersion: kfp-2.0.1
+sdkVersion: kfp-2.3.0

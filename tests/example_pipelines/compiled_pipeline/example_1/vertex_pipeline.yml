@@ -197,7 +197,7 @@ root:
                           type: binary
             input_partition_rows:
               runtimeValue:
-                constant: 10
+                constant: 10.0
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -253,7 +253,7 @@ root:
                 constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
             input_partition_rows:
               runtimeValue:
-                constant: 10
+                constant: 10.0
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -330,4 +330,4 @@ root:
         taskInfo:
           name: third-component
 schemaVersion: 2.1.0
-sdkVersion: kfp-2.0.1
+sdkVersion: kfp-2.3.0
