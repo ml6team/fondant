@@ -16,7 +16,6 @@ consumes:
         items:
           type: float32
 
-
 produces:
   imagetext:
     fields:

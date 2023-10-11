@@ -1,6 +1,5 @@
 """This component loads a seed dataset from the hub."""
 import logging
-import typing as t
 
 import dask
 import dask.dataframe as dd
@@ -19,10 +18,10 @@ class LoadFromHubComponent(DaskLoadComponent):
                  spec: ComponentSpec,
                  *_,
                  dataset_name: str,
-                 column_name_mapping: t.Optional[dict],
-                 image_column_names: t.Optional[list],
-                 n_rows_to_load: t.Optional[int],
-                 index_column: t.Optional[str],
+                 column_name_mapping: dict,
+                 image_column_names: list,
+                 n_rows_to_load: int,
+                 index_column: str,
                  ) -> None:
         """
         Args:
@@ -44,21 +43,19 @@ class LoadFromHubComponent(DaskLoadComponent):
         self.spec = spec
 
     def load(self) -> dd.DataFrame:
-
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the hub...")
 
         # Only read required columns
         columns = []
 
-        if self.column_name_mapping is not None:
-            invert_column_name_mapping = {v: k for k, v in self.column_name_mapping.items()}
-            for subset_name, subset in self.spec.produces.items():
-                for field_name, field in subset.fields.items():
-                    subset_field_name = f"{subset_name}_{field_name}"
-                    column_name = invert_column_name_mapping.get \
-                        (subset_field_name, subset_field_name)
-                    columns.append(column_name)
+        invert_column_name_mapping = {v: k for k, v in self.column_name_mapping.items()}
+        for subset_name, subset in self.spec.produces.items():
+            for field_name, field in subset.fields.items():
+                subset_field_name = f"{subset_name}_{field_name}"
+                column_name = invert_column_name_mapping.get \
+                    (subset_field_name, subset_field_name)
+                columns.append(column_name)
 
         logger.debug(f"Columns to keep: {columns}")
         dask_df = dd.read_parquet(f"hf://datasets/{self.dataset_name}", columns=columns)
@@ -75,7 +72,7 @@ class LoadFromHubComponent(DaskLoadComponent):
         dask_df = dask_df.rename(columns=self.column_name_mapping)
 
         # 4) Optional: only return specific amount of rows
-        if self.n_rows_to_load is not None:
+        if self.n_rows_to_load > 0:
             partitions_length = 0
             npartitions = 1
             for npartitions, partition in enumerate(dask_df.partitions, start=1):
@@ -88,7 +85,7 @@ class LoadFromHubComponent(DaskLoadComponent):
             dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
 
         # 5) Set the index
-        if self.index_column is None:
+        if self.index_column == "None":
             logger.info(
                 "Index column not specified, setting a globally unique index",
             )

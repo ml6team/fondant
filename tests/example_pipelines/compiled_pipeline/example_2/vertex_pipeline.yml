@@ -30,8 +30,8 @@ components:
           parameterType: STRING
         storage_args:
           parameterType: STRING
-  comp-second-component:
-    executorLabel: exec-second-component
+  comp-image-cropping:
+    executorLabel: exec-image-cropping
     inputDefinitions:
       parameters:
         cache:
@@ -44,46 +44,25 @@ components:
           parameterType: STRING
         component_spec:
           parameterType: STRUCT
+        cropping_threshold:
+          defaultValue: -30.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
         input_manifest_path:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
+          defaultValue: -1.0
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
           parameterType: STRING
         output_manifest_path:
           parameterType: STRING
-        storage_args:
-          parameterType: STRING
-  comp-third-component:
-    executorLabel: exec-third-component
-    inputDefinitions:
-      parameters:
-        cache:
-          defaultValue: true
-          isOptional: true
-          parameterType: BOOLEAN
-        cluster_type:
-          defaultValue: default
-          isOptional: true
-          parameterType: STRING
-        component_spec:
-          parameterType: STRUCT
-        input_manifest_path:
-          isOptional: true
-          parameterType: STRING
-        input_partition_rows:
-          defaultValue: -1
+        padding:
+          defaultValue: 10.0
           isOptional: true
           parameterType: NUMBER_INTEGER
-        metadata:
-          parameterType: STRING
-        output_manifest_path:
-          parameterType: STRING
-        storage_args:
-          parameterType: STRING
 deploymentSpec:
   executors:
     exec-first-component:
@@ -110,10 +89,7 @@ deploymentSpec:
         - execute
         - main
         image: example_component:latest
-        resources:
-          memoryLimit: 0.512
-          memoryRequest: 0.256
-    exec-second-component:
+    exec-image-cropping:
       container:
         args:
         - "--input_manifest_path"
@@ -130,37 +106,15 @@ deploymentSpec:
         - "{{$.inputs.parameters['metadata']}}"
         - "--output_manifest_path"
         - "{{$.inputs.parameters['output_manifest_path']}}"
-        - "--storage_args"
-        - "{{$.inputs.parameters['storage_args']}}"
+        - "--cropping_threshold"
+        - "{{$.inputs.parameters['cropping_threshold']}}"
+        - "--padding"
+        - "{{$.inputs.parameters['padding']}}"
         command:
         - fondant
         - execute
         - main
-        image: example_component:latest
-    exec-third-component:
-      container:
-        args:
-        - "--input_manifest_path"
-        - "{{$.inputs.parameters['input_manifest_path']}}"
-        - "--component_spec"
-        - "{{$.inputs.parameters['component_spec']}}"
-        - "--input_partition_rows"
-        - "{{$.inputs.parameters['input_partition_rows']}}"
-        - "--cache"
-        - "{{$.inputs.parameters['cache']}}"
-        - "--cluster_type"
-        - "{{$.inputs.parameters['cluster_type']}}"
-        - "--metadata"
-        - "{{$.inputs.parameters['metadata']}}"
-        - "--output_manifest_path"
-        - "{{$.inputs.parameters['output_manifest_path']}}"
-        - "--storage_args"
-        - "{{$.inputs.parameters['storage_args']}}"
-        command:
-        - fondant
-        - execute
-        - main
-        image: example_component:latest
+        image: ghcr.io/ml6team/image_cropping:dev
 pipelineInfo:
   description: description of the test pipeline
   name: testpipeline
@@ -198,9 +152,6 @@ root:
                       fields:
                         data:
                           type: binary
-            input_partition_rows:
-              runtimeValue:
-                constant: 10
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -214,17 +165,17 @@ root:
                 constant: a dummy string arg
         taskInfo:
           name: first-component
-      second-component:
+      image-cropping:
         cachingOptions: {}
         componentRef:
-          name: comp-second-component
+          name: comp-image-cropping
         dependentTasks:
         - first-component
         inputs:
           parameters:
             cache:
               runtimeValue:
-                constant: false
+                constant: true
             cluster_type:
               runtimeValue:
                 constant: default
@@ -232,103 +183,66 @@ root:
               runtimeValue:
                 constant:
                   args:
-                    storage_args:
-                      description: Storage arguments
-                      type: str
+                    cropping_threshold:
+                      default: -30.0
+                      description: Threshold parameter used for detecting borders.
+                        A lower (negative) parameter results in a more performant
+                        border detection, but can cause overcropping. Default is -30
+                      type: int
+                    padding:
+                      default: 10.0
+                      description: Padding for the image cropping. The padding is
+                        added to all borders of the image.
+                      type: int
                   consumes:
                     images:
                       fields:
                         data:
                           type: binary
-                  description: This is an example component
-                  image: example_component:latest
-                  name: Second component
+                  description: "This component crops out image borders. This is typically
+                    useful when working with graphical \nimages that have single-color
+                    borders (e.g. logos, icons, etc.).\n\nThe component takes an image
+                    and calculates which color is most present in the border. It then
+                    \ncrops the image in order to minimize this single-color border.
+                    The `padding` argument will add \nextra border to the image before
+                    cropping it, in order to avoid cutting off parts of the image.\nThe
+                    resulting crop will always be square. If a crop is not possible,
+                    the component will return \nthe original image.\n\n#### Examples\nExamples
+                    of image cropping by removing the single-color border. Left side
+                    is original image, \nright side is border-cropped image.\n\n![Example
+                    of image cropping by removing the single-color border. Left side
+                    is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n![Example
+                    of image cropping by removing the single-color border. Left side
+                    is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n"
+                  image: ghcr.io/ml6team/image_cropping:dev
+                  name: Image cropping
                   produces:
-                    embeddings:
+                    images:
                       fields:
                         data:
-                          items:
-                            type: float32
-                          type: array
+                          type: binary
+                        height:
+                          type: int32
+                        width:
+                          type: int32
+            cropping_threshold:
+              runtimeValue:
+                constant: 0.0
             input_manifest_path:
               runtimeValue:
                 constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
-            input_partition_rows:
-              runtimeValue:
-                constant: 10
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
-                  "run_id": "testpipeline-20230101000000", "component_id": "second_component",
+                  "run_id": "testpipeline-20230101000000", "component_id": "image_cropping",
                   "cache_key": "2"}'
             output_manifest_path:
               runtimeValue:
-                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/second_component/manifest.json"
-            storage_args:
+                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/image_cropping/manifest.json"
+            padding:
               runtimeValue:
-                constant: a dummy string arg
+                constant: 0.0
         taskInfo:
-          name: second-component
-      third-component:
-        cachingOptions: {}
-        componentRef:
-          name: comp-third-component
-        dependentTasks:
-        - second-component
-        inputs:
-          parameters:
-            cache:
-              runtimeValue:
-                constant: false
-            cluster_type:
-              runtimeValue:
-                constant: default
-            component_spec:
-              runtimeValue:
-                constant:
-                  args:
-                    storage_args:
-                      description: Storage arguments
-                      type: str
-                  consumes:
-                    captions:
-                      fields:
-                        data:
-                          type: string
-                    embeddings:
-                      fields:
-                        data:
-                          items:
-                            type: float32
-                          type: array
-                    images:
-                      fields:
-                        data:
-                          type: binary
-                  description: This is an example component
-                  image: example_component:latest
-                  name: Third component
-                  produces:
-                    additionalSubsets: false
-                    images:
-                      fields:
-                        data:
-                          type: binary
-            input_manifest_path:
-              runtimeValue:
-                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/second_component/manifest.json"
-            metadata:
-              runtimeValue:
-                constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
-                  "run_id": "testpipeline-20230101000000", "component_id": "third_component",
-                  "cache_key": "3"}'
-            output_manifest_path:
-              runtimeValue:
-                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/third_component/manifest.json"
-            storage_args:
-              runtimeValue:
-                constant: a dummy string arg
-        taskInfo:
-          name: third-component
+          name: image-cropping
 schemaVersion: 2.1.0
 sdkVersion: kfp-2.3.0

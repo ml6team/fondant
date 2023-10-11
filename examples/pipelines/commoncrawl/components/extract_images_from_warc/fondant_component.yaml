@@ -26,4 +26,4 @@ args:
   extract_plain_text:
     description: If set to true the data contains the plain text without html tags
     type: bool
-    default: "False"
+    default: False
