@@ -168,8 +168,7 @@ root:
   dag:
     tasks:
       first-component:
-        cachingOptions:
-          enableCache: true
+        cachingOptions: {}
         componentRef:
           name: comp-first-component
         inputs:
@@ -216,8 +215,7 @@ root:
         taskInfo:
           name: first-component
       second-component:
-        cachingOptions:
-          enableCache: true
+        cachingOptions: {}
         componentRef:
           name: comp-second-component
         dependentTasks:
@@ -272,8 +270,7 @@ root:
         taskInfo:
           name: second-component
       third-component:
-        cachingOptions:
-          enableCache: true
+        cachingOptions: {}
         componentRef:
           name: comp-third-component
         dependentTasks:

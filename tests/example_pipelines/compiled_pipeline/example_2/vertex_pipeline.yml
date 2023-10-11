@@ -122,8 +122,7 @@ root:
   dag:
     tasks:
       first-component:
-        cachingOptions:
-          enableCache: true
+        cachingOptions: {}
         componentRef:
           name: comp-first-component
         inputs:
@@ -167,8 +166,7 @@ root:
         taskInfo:
           name: first-component
       image-cropping:
-        cachingOptions:
-          enableCache: true
+        cachingOptions: {}
         componentRef:
           name: comp-image-cropping
         dependentTasks:

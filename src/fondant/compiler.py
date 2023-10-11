@@ -352,6 +352,9 @@ class KubeFlowCompiler(Compiler):
                     component_op,
                 )
 
+                # Disable caching
+                component_task.set_caching_options(enable_caching=False)
+
                 previous_component_task = component_task
 
         logger.info(f"Compiling {pipeline.name} to {output_path}")
@@ -489,6 +492,9 @@ class VertexCompiler(Compiler):
                     component_task,
                     component_op,
                 )
+
+                # Disable caching
+                component_task.set_caching_options(enable_caching=False)
 
                 previous_component_task = component_task
 
