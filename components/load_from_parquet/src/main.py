@@ -42,7 +42,20 @@ class LoadFromParquet(DaskLoadComponent):
     def load(self) -> dd.DataFrame:
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the file...")
-        dask_df = dd.read_parquet(self.dataset_uri)
+
+        # Only read required columns
+        columns = []
+        if self.column_name_mapping is not None:
+            invert_column_name_mapping = {v: k for k, v in self.column_name_mapping.items()}
+            for subset_name, subset in self.spec.produces.items():
+                for field_name, field in subset.fields.items():
+                    subset_field_name = f"{subset_name}_{field_name}"
+                    column_name = invert_column_name_mapping.get \
+                        (subset_field_name, subset_field_name)
+                    columns.append(column_name)
+
+        logger.debug(f"Columns to keep: {columns}")
+        dask_df = dd.read_parquet(self.dataset_uri, columns=columns)
 
         # 2) Rename columns
         if self.column_name_mapping:
