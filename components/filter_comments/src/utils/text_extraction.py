@@ -86,7 +86,8 @@ def get_docstrings(source: str) -> t.List[str]:
         source = source.read()
 
     docstrings = sorted(
-        parse_docstrings(source), key=lambda x: (NODE_TYPES.get(type(x[0])), x[1]),
+        parse_docstrings(source),
+        key=lambda x: (NODE_TYPES.get(type(x[0])), x[1]),
     )
 
     grouped = groupby(docstrings, key=lambda x: NODE_TYPES.get(type(x[0])))

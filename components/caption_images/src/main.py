@@ -13,14 +13,14 @@ from transformers import BatchEncoding, BlipForConditionalGeneration, BlipProces
 
 logger = logging.getLogger(__name__)
 
-os.environ['TORCH_CUDNN_V8_API_DISABLED'] = "1"
+os.environ["TORCH_CUDNN_V8_API_DISABLED"] = "1"
 
 
 def process_image_batch(
-        images: np.ndarray,
-        *,
-        processor: BlipProcessor,
-        device: str,
+    images: np.ndarray,
+    *,
+    processor: BlipProcessor,
+    device: str,
 ) -> t.List[torch.Tensor]:
     """
     Process image in batches to a list of tensors.
@@ -49,16 +49,19 @@ def process_image_batch(
 
 @torch.no_grad()
 def caption_image_batch(
-        image_batch: t.List[torch.Tensor],
-        *,
-        model: BlipForConditionalGeneration,
-        processor: BlipProcessor,
-        max_new_tokens: int,
-        index: pd.Series,
+    image_batch: t.List[torch.Tensor],
+    *,
+    model: BlipForConditionalGeneration,
+    processor: BlipProcessor,
+    max_new_tokens: int,
+    index: pd.Series,
 ) -> pd.Series:
     """Caption a batch of images."""
     input_batch = torch.cat(image_batch)
-    output_batch = model.generate(pixel_values=input_batch, max_new_tokens=max_new_tokens)
+    output_batch = model.generate(
+        pixel_values=input_batch,
+        max_new_tokens=max_new_tokens,
+    )
     captions_batch = processor.batch_decode(output_batch, skip_special_tokens=True)
 
     return pd.Series(captions_batch, index=index)
@@ -68,28 +71,32 @@ class CaptionImagesComponent(PandasTransformComponent):
     """Component that captions images using a model from the Hugging Face hub."""
 
     def __init__(
-            self,
-            *_,
-            model_id: str,
-            batch_size: int,
-            max_new_tokens: int,
+        self,
+        *_,
+        model_id: str,
+        batch_size: int,
+        max_new_tokens: int,
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Device: {self.device}")
 
         logger.info("Initialize model '%s'", model_id)
         self.processor = BlipProcessor.from_pretrained(model_id)
-        self.model = BlipForConditionalGeneration.from_pretrained(model_id).to(self.device)
+        self.model = BlipForConditionalGeneration.from_pretrained(model_id).to(
+            self.device,
+        )
 
         self.batch_size = batch_size
         self.max_new_tokens = max_new_tokens
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-
         images = dataframe["images"]["data"]
 
         results: t.List[pd.Series] = []
-        for batch in np.split(images, np.arange(self.batch_size, len(images), self.batch_size)):
+        for batch in np.split(
+            images,
+            np.arange(self.batch_size, len(images), self.batch_size),
+        ):
             if not batch.empty:
                 image_tensors = process_image_batch(
                     batch,

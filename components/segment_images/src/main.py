@@ -10,11 +10,15 @@ import torch
 from fondant.component import PandasTransformComponent
 from palette import palette
 from PIL import Image
-from transformers import AutoModelForSemanticSegmentation, BatchFeature, SegformerImageProcessor
+from transformers import (
+    AutoModelForSemanticSegmentation,
+    BatchFeature,
+    SegformerImageProcessor,
+)
 
 logger = logging.getLogger(__name__)
 
-os.environ['TORCH_CUDNN_V8_API_DISABLED'] = "1"
+os.environ["TORCH_CUDNN_V8_API_DISABLED"] = "1"
 
 
 def convert_to_rgb(seg: np.array) -> bytes:
@@ -28,14 +32,15 @@ def convert_to_rgb(seg: np.array) -> bytes:
         color_seg: the RGB segmentation map as a binary string
     """
     color_seg = np.zeros(
-        (seg.shape[0], seg.shape[1], 3), dtype=np.uint8,
+        (seg.shape[0], seg.shape[1], 3),
+        dtype=np.uint8,
     )  # height, width, 3
 
     for label, color in enumerate(palette):
         color_seg[seg == label, :] = color
 
     color_seg = color_seg.astype(np.uint8)
-    image = Image.fromarray(color_seg).convert('RGB')
+    image = Image.fromarray(color_seg).convert("RGB")
 
     crop_bytes = io.BytesIO()
     image.save(crop_bytes, format="JPEG")
@@ -44,10 +49,10 @@ def convert_to_rgb(seg: np.array) -> bytes:
 
 
 def process_image_batch(
-        images: np.ndarray,
-        *,
-        processor: SegformerImageProcessor,
-        device: str,
+    images: np.ndarray,
+    *,
+    processor: SegformerImageProcessor,
+    device: str,
 ) -> t.List[torch.Tensor]:
     """
     Process image in batches to a list of tensors.
@@ -78,11 +83,11 @@ def process_image_batch(
 
 @torch.no_grad()
 def segment_image_batch(
-        image_batch: t.List[torch.Tensor],
-        *,
-        model: AutoModelForSemanticSegmentation,
-        processor: SegformerImageProcessor,
-        index: pd.Series,
+    image_batch: t.List[torch.Tensor],
+    *,
+    model: AutoModelForSemanticSegmentation,
+    processor: SegformerImageProcessor,
+    index: pd.Series,
 ) -> pd.Series:
     """Embed a batch of images."""
     input_batch = torch.cat(image_batch)
@@ -90,7 +95,9 @@ def segment_image_batch(
     post_processed_batch = processor.post_process_semantic_segmentation(
         output_batch,
     )
-    segmentations_batch = [convert_to_rgb(seg.cpu().numpy()) for seg in post_processed_batch]
+    segmentations_batch = [
+        convert_to_rgb(seg.cpu().numpy()) for seg in post_processed_batch
+    ]
     return pd.Series(segmentations_batch, index=index)
 
 
@@ -98,10 +105,10 @@ class SegmentImagesComponent(PandasTransformComponent):
     """Component that segments images using a model from the Hugging Face hub."""
 
     def __init__(
-            self,
-            *_,
-            model_id: str,
-            batch_size: int,
+        self,
+        *_,
+        model_id: str,
+        batch_size: int,
     ):
         """
         Args:
@@ -113,16 +120,20 @@ class SegmentImagesComponent(PandasTransformComponent):
 
         logger.info("Initialize model '%s'", model_id)
         self.processor = SegformerImageProcessor.from_pretrained(model_id)
-        self.model = AutoModelForSemanticSegmentation.from_pretrained(model_id).to(self.device)
+        self.model = AutoModelForSemanticSegmentation.from_pretrained(model_id).to(
+            self.device,
+        )
 
         self.batch_size = batch_size
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-
         images = dataframe["images"]["data"]
 
         results: t.List[pd.Series] = []
-        for batch in np.split(images, np.arange(self.batch_size, len(images), self.batch_size)):
+        for batch in np.split(
+            images,
+            np.arange(self.batch_size, len(images), self.batch_size),
+        ):
             if not batch.empty:
                 image_tensors = process_image_batch(
                     batch,

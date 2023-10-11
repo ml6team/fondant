@@ -25,9 +25,9 @@ def test_transform(respx_mock):
 
     # Mock httpx to prevent network calls and return test images
     image_dir = "tests/images"
-    images = []
     images = [
-        open(os.path.join(image_dir, image), "rb").read() for image in os.listdir(image_dir)  # noqa
+        open(os.path.join(image_dir, image), "rb").read()  # noqa
+        for image in os.listdir(image_dir)
     ]
     for url, image in zip(urls, images):
         respx_mock.get(url).mock(return_value=Response(200, content=image))
