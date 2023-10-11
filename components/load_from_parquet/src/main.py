@@ -19,8 +19,8 @@ class LoadFromParquet(DaskLoadComponent):
                  spec: ComponentSpec,
                  *_,
                  dataset_uri: str,
-                 column_name_mapping: t.Optional[dict],
-                 n_rows_to_load: t.Optional[int],
+                 column_name_mapping: dict,
+                 n_rows_to_load: int,
                  index_column: t.Optional[str],
                  ) -> None:
         """
@@ -45,12 +45,12 @@ class LoadFromParquet(DaskLoadComponent):
         dask_df = dd.read_parquet(self.dataset_uri)
 
         # 2) Rename columns
-        if self.column_name_mapping is not None:
+        if self.column_name_mapping:
             logger.info("Renaming columns...")
             dask_df = dask_df.rename(columns=self.column_name_mapping)
 
         # 3) Optional: only return specific amount of rows
-        if self.n_rows_to_load is not None:
+        if self.n_rows_to_load > 0:
             partitions_length = 0
             npartitions = 1
             for npartitions, partition in enumerate(dask_df.partitions, start=1):

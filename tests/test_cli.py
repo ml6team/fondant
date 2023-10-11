@@ -143,7 +143,9 @@ def test_local_logic(tmp_path_factory):
 
 
 def test_kfp_compile(tmp_path_factory):
-    with tmp_path_factory.mktemp("temp") as fn:
+    with tmp_path_factory.mktemp("temp") as fn, patch(
+        "fondant.compiler.KubeFlowCompiler.compile",
+    ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
             kubeflow=True,
@@ -151,6 +153,10 @@ def test_kfp_compile(tmp_path_factory):
             output_path=str(fn / "kubeflow_pipelines.yml"),
         )
         compile_kfp(args)
+        mock_compiler.assert_called_once_with(
+            pipeline=TEST_PIPELINE,
+            output_path=str(fn / "kubeflow_pipelines.yml"),
+        )
 
 
 def test_local_run(tmp_path_factory):
@@ -220,9 +226,12 @@ def test_kfp_run(tmp_path_factory):
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost")
-    with patch("fondant.cli.KubeflowRunner") as mock_runner, tmp_path_factory.mktemp(
+    with patch("fondant.cli.KubeflowRunner") as mock_runner, patch(
+        "fondant.cli.KubeFlowCompiler",
+    ) as mock_compiler, tmp_path_factory.mktemp(
         "temp",
     ) as fn:
+        mock_compiler.compile.return_value = "some/path"
         args = argparse.Namespace(
             kubeflow=True,
             local=False,

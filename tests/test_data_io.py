@@ -89,18 +89,6 @@ def test_load_dataframe_rows(manifest, component_spec):
     assert dataframe.npartitions == expected_partitions
 
 
-def test_load_dataframe_disable(manifest, component_spec):
-    """Test merging of subsets in a dataframe based on a component_spec."""
-    dl = DaskDataLoader(
-        manifest=manifest,
-        component_spec=component_spec,
-        input_partition_rows="disable",
-    )
-    dataframe = dl.load_dataframe()
-    expected_partitions = 3  # original partitions
-    assert dataframe.npartitions == expected_partitions
-
-
 def test_write_index(
     tmp_path_factory,
     dataframe,
@@ -128,7 +116,6 @@ def test_write_index(
         )
 
 
-#
 def test_write_subsets(
     tmp_path_factory,
     dataframe,

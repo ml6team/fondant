@@ -18,19 +18,19 @@ args:
   bool_false_default_arg:
     description: default bool argument
     type: bool
-    default: 'False'
+    default: False
   bool_true_default_arg:
     description: default bool argument
     type: bool
-    default: 'True'
+    default: True
   list_default_arg:
     description: default list argument
     type: list
-    default: '["foo", "bar"]'
+    default: ["foo", "bar"]
   dict_default_arg:
     description: default dict argument
     type: dict
-    default: '{"foo":1, "bar":2}'
+    default: {"foo":1, "bar":2}
   string_default_arg_none:
     description: default string argument
     type: str
@@ -38,31 +38,31 @@ args:
   integer_default_arg_none:
     description: default integer argument
     type: int
-    default: None
+    default: 0
   float_default_arg_none:
     description: default float argument
     type: float
-    default: None
+    default: 0.0
   bool_default_arg_none:
     description: default bool argument
     type: bool
-    default: None
+    default: False
   list_default_arg_none:
     description: default list argument
     type: list
-    default: None
+    default: []
   dict_default_arg_none:
     description: default dict argument
     type: dict
-    default: None
+    default: {}
   override_default_arg:
     description: argument with default python value type that can be overriden
     type: str
     default: foo
-  override_default_none_arg:
-    description: argument with default None value type that can be overriden with a valid python type
-    type: float
-    default: None
   override_default_arg_with_none:
     description: argument with default python type that can be overriden with None
     type: str
+  optional_arg:
+    description: optional argument
+    type: str
+    default: None

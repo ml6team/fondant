@@ -1,110 +1,221 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Workflow
-metadata:
-  annotations:
-    pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-    pipelines.kubeflow.org/pipeline_compilation_time: '2023-01-01T00:00:00'
-    pipelines.kubeflow.org/pipeline_spec: '{"description": "description of the test
-      pipeline", "name": "test_pipeline"}'
-  generateName: test-pipeline-
-  labels:
-    pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-spec:
-  arguments:
-    parameters: []
-  entrypoint: test-pipeline
-  serviceAccountName: pipeline-runner
-  templates:
-  - container:
-      args: []
-      command:
-      - fondant
-      - execute
-      - main
-      - --input_manifest_path
-      - /tmp/inputs/input_manifest_path/data
-      - --metadata
-      - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
-        "component_id": "first_component", "cache_key": "b72c8e370be017d5a679a60d3984ab9d"}'
-      - --component_spec
-      - '{"args": {"storage_args": {"description": "Storage arguments", "type": "str"}},
-        "description": "This is an example component", "image": "example_component:latest",
-        "name": "First component", "produces": {"captions": {"fields": {"data": {"type":
-        "string"}}}, "images": {"fields": {"data": {"type": "binary"}}}}}'
-      - --input_partition_rows
-      - None
-      - --cache
-      - 'False'
-      - --storage_args
-      - a dummy string arg
-      - --output_manifest_path
-      - /tmp/outputs/output_manifest_path/data
-      - --cluster_type
-      - default
-      - --client_kwargs
-      - '{}'
-      image: example_component:latest
-      imagePullPolicy: Always
-      resources:
-        limits:
-          nvidia.com/gpu: 1
-    inputs:
-      artifacts:
-      - name: input_manifest_path
-        path: /tmp/inputs/input_manifest_path/data
-        raw:
-          data: ''
-    metadata:
-      annotations:
-        pipelines.kubeflow.org/arguments.parameters: '{"cache": "False", "client_kwargs":
-          "{}", "cluster_type": "default", "component_spec": "{\"args\": {\"storage_args\":
-          {\"description\": \"Storage arguments\", \"type\": \"str\"}}, \"description\":
-          \"This is an example component\", \"image\": \"example_component:latest\",
-          \"name\": \"First component\", \"produces\": {\"captions\": {\"fields\":
-          {\"data\": {\"type\": \"string\"}}}, \"images\": {\"fields\": {\"data\":
-          {\"type\": \"binary\"}}}}}", "input_partition_rows": "None", "metadata":
-          "{\"base_path\": \"/foo/bar\", \"pipeline_name\": \"test_pipeline\", \"run_id\":
-          \"test_pipeline-20230101000000\", \"component_id\": \"first_component\",
-          \"cache_key\": \"b72c8e370be017d5a679a60d3984ab9d\"}", "storage_args": "a
-          dummy string arg"}'
-        pipelines.kubeflow.org/component_ref: '{"digest": "ba182d1dd6a5f8fdffb3c9e487c84d1d1b9ebbfe4b5a137a4af02be832c0c820"}'
-        pipelines.kubeflow.org/component_spec: '{"description": "This is an example
-          component", "implementation": {"container": {"command": ["fondant", "execute",
-          "main", "--input_manifest_path", {"inputPath": "input_manifest_path"}, "--metadata",
-          {"inputValue": "metadata"}, "--component_spec", {"inputValue": "component_spec"},
-          "--input_partition_rows", {"inputValue": "input_partition_rows"}, "--cache",
-          {"inputValue": "cache"}, "--storage_args", {"inputValue": "storage_args"},
-          "--output_manifest_path", {"outputPath": "output_manifest_path"}, "--cluster_type",
-          {"inputValue": "cluster_type"}, "--client_kwargs", {"inputValue": "client_kwargs"}],
-          "image": "example_component:latest"}}, "inputs": [{"description": "Path
-          to the input manifest", "name": "input_manifest_path", "type": "String"},
-          {"description": "Metadata arguments containing the run id and base path",
-          "name": "metadata", "type": "String"}, {"default": "None", "description":
-          "The component specification as a dictionary", "name": "component_spec",
-          "type": "JsonObject"}, {"default": "None", "description": "The number of
-          rows to load per partition. Set to override the automatic partitioning",
-          "name": "input_partition_rows", "type": "String"}, {"default": "True", "description":
-          "Set to False to disable caching, True by default.", "name": "cache", "type":
-          "Boolean"}, {"default": "default", "description": "The type of cluster to
-          use for distributed execution", "name": "cluster_type", "type": "String"},
-          {"default": "{}", "description": "Keyword arguments used to initialise the
-          dask client", "name": "client_kwargs", "type": "JsonObject"}, {"description":
-          "Storage arguments", "name": "storage_args", "type": "String"}], "name":
-          "First component", "outputs": [{"description": "Path to the output manifest",
-          "name": "output_manifest_path", "type": "String"}]}'
-      labels:
-        pipelines.kubeflow.org/enable_caching: 'true'
-        pipelines.kubeflow.org/kfp_sdk_version: 1.8.22
-        pipelines.kubeflow.org/pipeline-sdk-type: kfp
-    name: first-component
-    nodeSelector:
-      a_node_pool_label: a_node_pool
-    outputs:
-      artifacts:
-      - name: first-component-output_manifest_path
-        path: /tmp/outputs/output_manifest_path/data
-  - dag:
-      tasks:
-      - name: first-component
-        template: first-component
-    name: test-pipeline
+{
+  "components":
+    {
+      "comp-example-component":
+        {
+          "executorLabel": "exec-example-component",
+          "inputDefinitions":
+            {
+              "artifacts":
+                {
+                  "input_manifest_path":
+                    {
+                      "description": "Path to the input manifest",
+                      "artifactType":
+                        {
+                          "schemaTitle": "system.Artifact",
+                          "schemaVersion": "0.0.1",
+                        },
+                      "isOptional": True,
+                    },
+                },
+              "parameters":
+                {
+                  "component_spec":
+                    {
+                      "description": "The component specification as a dictionary",
+                      "defaultValue": {},
+                      "isOptional": True,
+                      "parameterType": "STRUCT",
+                    },
+                  "input_partition_rows":
+                    {
+                      "description": "The number of rows to load per partition. Set to override the automatic partitioning",
+                      "isOptional": True,
+                      "parameterType": "STRING",
+                    },
+                  "cache":
+                    {
+                      "parameterType": "BOOLEAN",
+                      "description": "Set to False to disable caching, True by default.",
+                      "defaultValue": True,
+                      "isOptional": True,
+                    },
+                  "metadata":
+                    {
+                      "description": "Metadata arguments containing the run id and base path",
+                      "parameterType": "STRING",
+                    },
+                  "storage_args":
+                    {
+                      "parameterType": "STRING",
+                      "description": "Storage arguments",
+                    },
+                },
+            },
+          "outputDefinitions":
+            {
+              "artifacts":
+                {
+                  "output_manifest_path":
+                    {
+                      "artifactType":
+                        {
+                          "schemaTitle": "system.Artifact",
+                          "schemaVersion": "0.0.1",
+                        },
+                      "description": "Path to the output manifest",
+                    },
+                },
+            },
+        },
+    },
+  "deploymentSpec":
+    {
+      "executors":
+        {
+          "exec-example-component":
+            {
+              "container":
+                {
+                  "args":
+                    [
+                      "--input_manifest_path",
+                      "{{$.inputs.artifacts['input_manifest_path'].uri}}",
+                      "--metadata",
+                      "{{$.inputs.parameters['metadata']}}",
+                      "--component_spec",
+                      "{{$.inputs.parameters['component_spec']}}",
+                      "--input_partition_rows",
+                      "{{$.inputs.parameters['input_partition_rows']}}",
+                      "--cache",
+                      "{{$.inputs.parameters['cache']}}",
+                      "--storage_args",
+                      "{{$.inputs.parameters['storage_args']}}",
+                      "--output_manifest_path",
+                      "{{$.outputs.artifacts['output_manifest_path'].uri}}",
+                    ],
+                  "command": ["fondant", "execute", "main"],
+                  "image": "example_component:latest",
+                },
+            },
+        },
+    },
+  "pipelineInfo": { "name": "example-component" },
+  "root":
+    {
+      "dag":
+        {
+          "outputs":
+            {
+              "artifacts":
+                {
+                  "output_manifest_path":
+                    {
+                      "artifactSelectors":
+                        [
+                          {
+                            "outputArtifactKey": "output_manifest_path",
+                            "producerSubtask": "example-component",
+                          },
+                        ],
+                    },
+                },
+            },
+          "tasks":
+            {
+              "example-component":
+                {
+                  "cachingOptions": { "enableCache": True },
+                  "componentRef": { "name": "comp-example-component" },
+                  "inputs":
+                    {
+                      "artifacts":
+                        {
+                          "input_manifest_path":
+                            { "componentInputArtifact": "input_manifest_path" },
+                        },
+                      "parameters":
+                        {
+                          "component_spec":
+                            { "componentInputParameter": "component_spec" },
+                          "input_partition_rows":
+                            {
+                              "componentInputParameter": "input_partition_rows",
+                            },
+                          "metadata": { "componentInputParameter": "metadata" },
+                          "cache": { "componentInputParameter": "cache" },
+                        },
+                    },
+                  "taskInfo": { "name": "example-component" },
+                },
+            },
+        },
+      "inputDefinitions":
+        {
+          "artifacts":
+            {
+              "input_manifest_path":
+                {
+                  "description": "Path to the input manifest",
+                  "artifactType":
+                    {
+                      "schemaTitle": "system.Artifact",
+                      "schemaVersion": "0.0.1",
+                    },
+                  "isOptional": True,
+                },
+            },
+          "parameters":
+            {
+              "component_spec":
+                {
+                  "description": "The component specification as a dictionary",
+                  "defaultValue": {},
+                  "isOptional": True,
+                  "parameterType": "STRUCT",
+                },
+              "input_partition_rows":
+                {
+                  "description": "The number of rows to load per partition. Set to override the automatic partitioning",
+                  "isOptional": True,
+                  "parameterType": "STRING",
+                },
+              "cache":
+                {
+                  "parameterType": "BOOLEAN",
+                  "description": "Set to False to disable caching, True by default.",
+                  "defaultValue": True,
+                  "isOptional": True,
+                },
+              "metadata":
+                {
+                  "description": "Metadata arguments containing the run id and base path",
+                  "parameterType": "STRING",
+                },
+              "storage_args":
+                {
+                  "parameterType": "STRING",
+                  "description": "Storage arguments",
+                },
+            },
+        },
+      "outputDefinitions":
+        {
+          "artifacts":
+            {
+              "output_manifest_path":
+                {
+                  "artifactType":
+                    {
+                      "schemaTitle": "system.Artifact",
+                      "schemaVersion": "0.0.1",
+                    },
+                  "description": "Path to the output manifest",
+                },
+            },
+        },
+    },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.0.1",
+}

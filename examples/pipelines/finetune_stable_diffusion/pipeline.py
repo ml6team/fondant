@@ -69,7 +69,8 @@ caption_images_op = ComponentOp.from_registry(
         "batch_size": 2,
         "max_new_tokens": 50,
     },
-    number_of_gpus=1,
+    number_of_accelerators=1,
+    accelerator_name="GPU",
 )
 
 write_to_hub = ComponentOp(
@@ -80,7 +81,8 @@ write_to_hub = ComponentOp(
         "hf_token": "hf_token",
         "image_column_names": ["images_data"],
     },
-    number_of_gpus=1,
+    number_of_accelerators=1,
+    accelerator_name="GPU",
 )
 
 pipeline = Pipeline(

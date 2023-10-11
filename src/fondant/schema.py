@@ -157,16 +157,6 @@ class Field(t.NamedTuple):
     type: Type
 
 
-def validate_partition_number(arg_value):
-    if arg_value in ["disable", None, "None"]:
-        return arg_value if arg_value != "None" else None
-    try:
-        return int(arg_value)
-    except ValueError:
-        msg = f"Invalid format for '{arg_value}'. The value must be an integer or set to 'disable'"
-        raise InvalidTypeSchema(msg)
-
-
 def validate_partition_size(arg_value):
     if arg_value in ["disable", None, "None"]:
         return arg_value if arg_value != "None" else None

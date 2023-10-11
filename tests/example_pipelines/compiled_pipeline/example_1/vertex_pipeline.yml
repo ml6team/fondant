@@ -1,7 +1,6 @@
 # PIPELINE DEFINITION
 # Name: testpipeline
 # Description: description of the test pipeline
----
 components:
   comp-first-component:
     executorLabel: exec-first-component
@@ -110,9 +109,6 @@ deploymentSpec:
         - execute
         - main
         image: example_component:latest
-        resources:
-          memoryLimit: 0.512
-          memoryRequest: 0.256
     exec-second-component:
       container:
         args:
@@ -200,7 +196,7 @@ root:
                           type: binary
             input_partition_rows:
               runtimeValue:
-                constant: 10
+                constant: 10.0
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -255,7 +251,7 @@ root:
                 constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
             input_partition_rows:
               runtimeValue:
-                constant: 10
+                constant: 10.0
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",

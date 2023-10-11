@@ -114,7 +114,7 @@ class GeneratePromptsComponent(DaskLoadComponent):
 
         pandas_df = pd.DataFrame(prompts, columns=["prompts_text"])
 
-        if self.n_rows_to_load:
+        if self.n_rows_to_load > 0:
             pandas_df = pandas_df.head(self.n_rows_to_load)
 
         df = dd.from_pandas(pandas_df, npartitions=1)
