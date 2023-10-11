@@ -102,6 +102,6 @@ convention = "google"
 skips = ["B108", "B307", "B404", "B602"]
 
 [tool.bandit.assert_used]
-skips = ["tests/test_*.py"]
+skips = ["**/test_*.py", "**/*_test.py"]
 
 

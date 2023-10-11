@@ -26,6 +26,7 @@ repos:
         types: [python]
         files: |
             (?x)^(
+                components/.*|
                 src/.*|
                 examples/.*|
                 tests/.*|
