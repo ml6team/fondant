@@ -58,6 +58,9 @@ class LoadFromHubComponent(DaskLoadComponent):
                     (subset_field_name, subset_field_name)
                 columns.append(column_name)
 
+        if self.index_column is not None:
+            columns.append(self.index_column)
+
         logger.debug(f"Columns to keep: {columns}")
         dask_df = dd.read_parquet(f"hf://datasets/{self.dataset_name}", columns=columns)
 
