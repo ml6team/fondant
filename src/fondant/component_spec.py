@@ -34,7 +34,7 @@ class Argument:
     name: str
     description: str
     type: str
-    default: t.Any = None
+    default: t.Optional[t.Any] = None
     optional: t.Optional[bool] = False
 
     @property
@@ -230,7 +230,7 @@ class ComponentSpec:
                 description="The number of rows to load per partition. \
                         Set to override the automatic partitioning",
                 type="int",
-                default=-1,
+                optional=True,
             ),
             "cache": Argument(
                 name="cache",
@@ -286,9 +286,9 @@ class KubeflowComponentSpec:
         for arg in fondant_component.args.values():
             arg_type_dict = {}
 
-            if arg.optional or arg.default is not None:
+            if arg.optional and arg.default is None:
                 arg_type_dict["isOptional"] = True
-            if arg.default is not None:
+            if arg.default is not None and arg.default != "None":
                 arg_type_dict["defaultValue"] = arg.default
 
             args[arg.name] = {
