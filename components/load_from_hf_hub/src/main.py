@@ -45,7 +45,20 @@ class LoadFromHubComponent(DaskLoadComponent):
     def load(self) -> dd.DataFrame:
         # 1) Load data, read as Dask dataframe
         logger.info("Loading dataset from the hub...")
-        dask_df = dd.read_parquet(f"hf://datasets/{self.dataset_name}")
+
+        # Only read required columns
+        columns = []
+
+        invert_column_name_mapping = {v: k for k, v in self.column_name_mapping.items()}
+        for subset_name, subset in self.spec.produces.items():
+            for field_name, field in subset.fields.items():
+                subset_field_name = f"{subset_name}_{field_name}"
+                column_name = invert_column_name_mapping.get \
+                    (subset_field_name, subset_field_name)
+                columns.append(column_name)
+
+        logger.debug(f"Columns to keep: {columns}")
+        dask_df = dd.read_parquet(f"hf://datasets/{self.dataset_name}", columns=columns)
 
         # 2) Make sure images are bytes instead of dicts
         if self.image_column_names is not None:
@@ -71,7 +84,7 @@ class LoadFromHubComponent(DaskLoadComponent):
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
             dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
 
-        # 4) Set the index
+        # 5) Set the index
         if self.index_column == "None":
             logger.info(
                 "Index column not specified, setting a globally unique index",
