@@ -1,5 +1,6 @@
 """This component loads a seed dataset from the hub."""
 import logging
+import typing as t
 
 import dask
 import dask.dataframe as dd
@@ -19,9 +20,9 @@ class LoadFromHubComponent(DaskLoadComponent):
                  *_,
                  dataset_name: str,
                  column_name_mapping: dict,
-                 image_column_names: list,
-                 n_rows_to_load: int,
-                 index_column: str,
+                 image_column_names: t.Optional[list],
+                 n_rows_to_load: t.Optional[int],
+                 index_column: t.Optional[str],
                  ) -> None:
         """
         Args:
@@ -59,7 +60,7 @@ class LoadFromHubComponent(DaskLoadComponent):
         dask_df = dask_df.rename(columns=self.column_name_mapping)
 
         # 4) Optional: only return specific amount of rows
-        if self.n_rows_to_load > 0:
+        if self.n_rows_to_load is not None:
             partitions_length = 0
             npartitions = 1
             for npartitions, partition in enumerate(dask_df.partitions, start=1):
@@ -72,7 +73,7 @@ class LoadFromHubComponent(DaskLoadComponent):
             dask_df = dd.from_pandas(dask_df, npartitions=npartitions)
 
         # 4) Set the index
-        if self.index_column == "None":
+        if self.index_column is None:
             logger.info(
                 "Index column not specified, setting a globally unique index",
             )

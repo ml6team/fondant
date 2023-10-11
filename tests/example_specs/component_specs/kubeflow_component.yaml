@@ -6,12 +6,10 @@ components:
         cache:
           defaultValue: true
           description: Set to False to disable caching, True by default.
-          isOptional: true
           parameterType: BOOLEAN
         cluster_type:
           defaultValue: default
           description: The cluster type to use for the execution
-          isOptional: true
           parameterType: STRING
         component_spec:
           description: The component specification as a dictionary
@@ -21,7 +19,6 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
           description: The number of rows to load per partition.                         Set
             to override the automatic partitioning
           isOptional: true

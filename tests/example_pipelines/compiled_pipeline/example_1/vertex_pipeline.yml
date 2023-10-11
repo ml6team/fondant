@@ -20,7 +20,6 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -47,7 +46,6 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -74,7 +72,6 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
