@@ -19,14 +19,24 @@ class FilterCommentsComponent(PandasTransformComponent):
         max_comments_ratio: The maximum code to comment ratio
     """
 
-    def __init__(self, *args, min_comments_ratio: float, max_comments_ratio: float) -> None:
+    def __init__(
+        self,
+        *args,
+        min_comments_ratio: float,
+        max_comments_ratio: float,
+    ) -> None:
         self.min_comments_ratio = min_comments_ratio
         self.max_comments_ratio = max_comments_ratio
 
     def transform(
-            self,
-            dataframe: pd.DataFrame,
+        self,
+        dataframe: pd.DataFrame,
     ) -> pd.DataFrame:
-        comment_to_code_ratio = dataframe["code"]["content"].apply(get_comments_to_code_ratio)
-        mask = comment_to_code_ratio.between(self.min_comments_ratio, self.max_comments_ratio)
+        comment_to_code_ratio = dataframe["code"]["content"].apply(
+            get_comments_to_code_ratio,
+        )
+        mask = comment_to_code_ratio.between(
+            self.min_comments_ratio,
+            self.max_comments_ratio,
+        )
         return dataframe[mask]

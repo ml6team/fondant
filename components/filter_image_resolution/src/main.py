@@ -28,6 +28,8 @@ class FilterImageResolutionComponent(PandasTransformComponent):
         min_image_dim = np.minimum(width, height)
         max_image_dim = np.maximum(width, height)
         aspect_ratio = max_image_dim / min_image_dim
-        mask = (min_image_dim >= self.min_image_dim) & (aspect_ratio <= self.max_aspect_ratio)
+        mask = (min_image_dim >= self.min_image_dim) & (
+            aspect_ratio <= self.max_aspect_ratio
+        )
 
         return dataframe[mask]

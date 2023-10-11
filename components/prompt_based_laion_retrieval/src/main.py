@@ -15,12 +15,12 @@ class LAIONRetrievalComponent(PandasTransformComponent):
     """Component that retrieves image URLs from LAION-5B based on a set of prompts."""
 
     def __init__(
-            self,
-            *_,
-            num_images: int,
-            aesthetic_score: int,
-            aesthetic_weight: float,
-            url: str,
+        self,
+        *_,
+        num_images: int,
+        aesthetic_score: int,
+        aesthetic_weight: float,
+        url: str,
     ) -> None:
         """
 
@@ -42,8 +42,8 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         )
 
     def transform(
-            self,
-            dataframe: pd.DataFrame,
+        self,
+        dataframe: pd.DataFrame,
     ) -> pd.DataFrame:
         results: t.List[t.Tuple[str]] = []
         loop = asyncio.new_event_loop()
@@ -71,5 +71,3 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         results_df.columns = [["images"], ["url"]]
 
         return results_df
-
-

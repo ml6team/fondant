@@ -27,9 +27,9 @@ class AbstractFileHandler(ABC):
     """Abstract base class for file handlers."""
 
     def __init__(
-            self,
-            filepath: str,
-            fs: fsspec.AbstractFileSystem | None = None,
+        self,
+        filepath: str,
+        fs: fsspec.AbstractFileSystem | None = None,
     ) -> None:
         """
         Initiate a new AbstractFileHandler with filepath and filesystem (fs).
@@ -73,7 +73,7 @@ class GzipFileHandler(AbstractFileHandler):
         """
         logger.debug(f"Uncompressing {Path(self.filepath).name}......")
         with self.fs.open(self.filepath, "rb") as buffer, gzip.GzipFile(
-                fileobj=buffer,
+            fileobj=buffer,
         ) as gz:
             yield self.filepath.split("/")[-1], BytesIO(gz.read())
 
@@ -110,7 +110,7 @@ class TarFileHandler(AbstractFileHandler):
         """
         logger.info(f"Uncompressing {Path(self.filepath).name}......")
         with self.fs.open(self.filepath, "rb") as buffer, tarfile.open(
-                fileobj=buffer,
+            fileobj=buffer,
         ) as tar:
             for tarinfo in tar:
                 if tarinfo.isfile():
@@ -145,8 +145,8 @@ class DirectoryHandler(AbstractFileHandler):
 
 
 def get_file_handler(
-        filepath: str,
-        fs: fsspec.spec.AbstractFileSystem,
+    filepath: str,
+    fs: fsspec.spec.AbstractFileSystem,
 ) -> AbstractFileHandler:
     """
     This function returns an appropriate file handler based on the file extension

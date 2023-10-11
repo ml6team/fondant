@@ -14,15 +14,15 @@ dask.config.set({"dataframe.convert-string": False})
 
 
 class LoadFromParquet(DaskLoadComponent):
-
-    def __init__(self,
-                 spec: ComponentSpec,
-                 *_,
-                 dataset_uri: str,
-                 column_name_mapping: dict,
-                 n_rows_to_load: int,
-                 index_column: t.Optional[str],
-                 ) -> None:
+    def __init__(
+        self,
+        spec: ComponentSpec,
+        *_,
+        dataset_uri: str,
+        column_name_mapping: dict,
+        n_rows_to_load: int,
+        index_column: t.Optional[str],
+    ) -> None:
         """
         Args:
             spec: the component spec
@@ -46,12 +46,16 @@ class LoadFromParquet(DaskLoadComponent):
         # Only read required columns
         columns = []
         if self.column_name_mapping is not None:
-            invert_column_name_mapping = {v: k for k, v in self.column_name_mapping.items()}
+            invert_column_name_mapping = {
+                v: k for k, v in self.column_name_mapping.items()
+            }
             for subset_name, subset in self.spec.produces.items():
                 for field_name, field in subset.fields.items():
                     subset_field_name = f"{subset_name}_{field_name}"
-                    column_name = invert_column_name_mapping.get \
-                        (subset_field_name, subset_field_name)
+                    column_name = invert_column_name_mapping.get(
+                        subset_field_name,
+                        subset_field_name,
+                    )
                     columns.append(column_name)
 
         logger.debug(f"Columns to keep: {columns}")
@@ -68,8 +72,10 @@ class LoadFromParquet(DaskLoadComponent):
             npartitions = 1
             for npartitions, partition in enumerate(dask_df.partitions, start=1):
                 if partitions_length >= self.n_rows_to_load:
-                    logger.info(f"""Required number of partitions to load\n
-                    {self.n_rows_to_load} is {npartitions}""")
+                    logger.info(
+                        f"""Required number of partitions to load\n
+                    {self.n_rows_to_load} is {npartitions}""",
+                    )
                     break
                 partitions_length += len(partition)
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
@@ -85,9 +91,9 @@ class LoadFromParquet(DaskLoadComponent):
                 """Function that sets a unique index based on the partition and row number."""
                 dataframe["id"] = 1
                 dataframe["id"] = (
-                        str(partition_info["number"])
-                        + "_"
-                        + (dataframe.id.cumsum()).astype(str)
+                    str(partition_info["number"])
+                    + "_"
+                    + (dataframe.id.cumsum()).astype(str)
                 )
                 dataframe.index = dataframe.pop("id")
                 return dataframe

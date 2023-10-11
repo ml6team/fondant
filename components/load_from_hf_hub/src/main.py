@@ -13,16 +13,16 @@ dask.config.set({"dataframe.convert-string": False})
 
 
 class LoadFromHubComponent(DaskLoadComponent):
-
-    def __init__(self,
-                 spec: ComponentSpec,
-                 *_,
-                 dataset_name: str,
-                 column_name_mapping: dict,
-                 image_column_names: list,
-                 n_rows_to_load: int,
-                 index_column: str,
-                 ) -> None:
+    def __init__(
+        self,
+        spec: ComponentSpec,
+        *_,
+        dataset_name: str,
+        column_name_mapping: dict,
+        image_column_names: list,
+        n_rows_to_load: int,
+        index_column: str,
+    ) -> None:
         """
         Args:
             spec: the component spec
@@ -53,8 +53,10 @@ class LoadFromHubComponent(DaskLoadComponent):
         for subset_name, subset in self.spec.produces.items():
             for field_name, field in subset.fields.items():
                 subset_field_name = f"{subset_name}_{field_name}"
-                column_name = invert_column_name_mapping.get \
-                    (subset_field_name, subset_field_name)
+                column_name = invert_column_name_mapping.get(
+                    subset_field_name,
+                    subset_field_name,
+                )
                 columns.append(column_name)
 
         logger.debug(f"Columns to keep: {columns}")
@@ -64,7 +66,8 @@ class LoadFromHubComponent(DaskLoadComponent):
         if self.image_column_names is not None:
             for image_column_name in self.image_column_names:
                 dask_df[image_column_name] = dask_df[image_column_name].map(
-                    lambda x: x["bytes"], meta=("bytes", bytes),
+                    lambda x: x["bytes"],
+                    meta=("bytes", bytes),
                 )
 
         # 3) Rename columns
@@ -77,8 +80,10 @@ class LoadFromHubComponent(DaskLoadComponent):
             npartitions = 1
             for npartitions, partition in enumerate(dask_df.partitions, start=1):
                 if partitions_length >= self.n_rows_to_load:
-                    logger.info(f"""Required number of partitions to load\n
-                    {self.n_rows_to_load} is {npartitions}""")
+                    logger.info(
+                        f"""Required number of partitions to load\n
+                    {self.n_rows_to_load} is {npartitions}""",
+                    )
                     break
                 partitions_length += len(partition)
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
@@ -94,9 +99,9 @@ class LoadFromHubComponent(DaskLoadComponent):
                 """Function that sets a unique index based on the partition and row number."""
                 dataframe["id"] = 1
                 dataframe["id"] = (
-                        str(partition_info["number"])
-                        + "_"
-                        + (dataframe.id.cumsum()).astype(str)
+                    str(partition_info["number"])
+                    + "_"
+                    + (dataframe.id.cumsum()).astype(str)
                 )
                 dataframe.index = dataframe.pop("id")
                 return dataframe

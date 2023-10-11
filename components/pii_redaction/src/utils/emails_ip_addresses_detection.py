@@ -187,7 +187,8 @@ def detect_email_addresses(content, tag_types={"EMAIL", "IP_ADDRESS"}):
                         if matches_date_pattern(value):
                             continue
                         if filter_versions(
-                            value, content[start - 100 : end + 100],
+                            value,
+                            content[start - 100 : end + 100],
                         ) or not_ip_address(value):
                             continue
                         # combine if conditions in one

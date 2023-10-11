@@ -15,8 +15,8 @@ class RemovePIIComponent(PandasTransformComponent):
     """Component that detects and redacts PII from code."""
 
     def transform(
-            self,
-            dataframe: pd.DataFrame,
+        self,
+        dataframe: pd.DataFrame,
     ) -> pd.DataFrame:
         # detect PII
         result = dataframe.apply(
@@ -25,7 +25,11 @@ class RemovePIIComponent(PandasTransformComponent):
             result_type="expand",
             meta={0: object, 1: bool, 2: int},
         )
-        result.columns = [("code", "secrets"), ("code", "has_secrets"), ("code", "number_secrets")]
+        result.columns = [
+            ("code", "secrets"),
+            ("code", "has_secrets"),
+            ("code", "number_secrets"),
+        ]
 
         dataframe = dataframe.merge(result, left_index=True, right_index=True)
 
@@ -45,5 +49,6 @@ class RemovePIIComponent(PandasTransformComponent):
             meta=(None, "str"),
         )
         return dataframe.drop(
-            [("code", "secrets"), ("code", "has_secrets"), ("code", "number_secrets")], axis=1,
+            [("code", "secrets"), ("code", "has_secrets"), ("code", "number_secrets")],
+            axis=1,
         )

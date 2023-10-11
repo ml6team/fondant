@@ -145,9 +145,7 @@ def redact_pii_text(text, secrets, replacements, add_references=False):
     else:
         new_text = text
         references = ""
-    return (
-        (new_text, references, modified) if add_references else (new_text, modified)
-    )
+    return (new_text, references, modified) if add_references else (new_text, modified)
 
 
 def redact_pii(text, secrets, has_secrets, replacements):
