@@ -47,7 +47,8 @@ class Argument:
             "dict": json.loads,
             "list": json.loads,
         }
-        return lookup[self.type]
+        map_fn = lookup[self.type]
+        return lambda value: map_fn(value) if value != "None" else None  # type: ignore
 
     @property
     def kubeflow_type(self) -> str:
