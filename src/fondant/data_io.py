@@ -51,7 +51,7 @@ class DaskDataLoader(DataIO):
                     f" to maximize worker usage",
                 )
 
-        elif self.input_partition_rows > 1:
+        elif self.input_partition_rows >= 1:
             # Only load the index column to trigger a faster compute of the rows
             total_rows = len(dataframe.index)
             # +1 to handle any remainder rows
