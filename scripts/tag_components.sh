@@ -38,8 +38,8 @@ for dir in "$component_dir"/*/; do
 
   BASENAME=${dir%/}
   BASENAME=${BASENAME##*/}
-  old_image_name=ghcr.io/${namespace}/${BASENAME}:${old_tag}
-  new_image_name=ghcr.io/${namespace}/${BASENAME}:${new_tag}
+  old_image_name=${namespace}/${BASENAME}:${old_tag}
+  new_image_name=${namespace}/${BASENAME}:${new_tag}
   echo "$old_image_name"
   echo "$new_image_name"
 

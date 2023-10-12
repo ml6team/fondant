@@ -5,7 +5,7 @@ description: |
   the prompt sentences and the captions in the LAION dataset. 
   
   This component doesn’t return the actual images, only URLs.
-image: ghcr.io/ml6team/prompt_based_laion_retrieval:dev
+image: fndnt/prompt_based_laion_retrieval:dev
 
 consumes:
   prompts:

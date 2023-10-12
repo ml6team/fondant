@@ -33,7 +33,7 @@ The component specification can be modified as follows
 ```yaml
 name: Load from hub
 description: Component that loads a dataset from the hub
-image: ghcr.io/ml6team/load_from_hf_hub:latest
+image: fndnt/load_from_hf_hub:latest
 
 consumes:
   images:
@@ -100,7 +100,7 @@ If we want to write this dataset to a Hugging Face Hub location, we can use the 
 ```yaml
 name: Write to hub
 description: Component that writes a dataset to the hub
-image: ghcr.io/ml6team/write_to_hf_hub:latest
+image: fndnt/write_to_hf_hub:latest
 
 consumes:
   images:

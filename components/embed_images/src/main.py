@@ -13,14 +13,14 @@ from transformers import BatchEncoding, CLIPProcessor, CLIPVisionModelWithProjec
 
 logger = logging.getLogger(__name__)
 
-os.environ['TORCH_CUDNN_V8_API_DISABLED'] = "1"
+os.environ["TORCH_CUDNN_V8_API_DISABLED"] = "1"
 
 
 def process_image_batch(
-        images: np.ndarray,
-        *,
-        processor: CLIPProcessor,
-        device: str,
+    images: np.ndarray,
+    *,
+    processor: CLIPProcessor,
+    device: str,
 ) -> t.List[torch.Tensor]:
     """
     Process image in batches to a list of tensors.
@@ -51,10 +51,10 @@ def process_image_batch(
 
 @torch.no_grad()
 def embed_image_batch(
-        image_batch: t.List[torch.Tensor],
-        *,
-        model: CLIPVisionModelWithProjection,
-        index: pd.Series,
+    image_batch: t.List[torch.Tensor],
+    *,
+    model: CLIPVisionModelWithProjection,
+    index: pd.Series,
 ) -> pd.Series:
     """Embed a batch of images."""
     input_batch = torch.cat(image_batch)
@@ -67,10 +67,10 @@ class EmbedImagesComponent(PandasTransformComponent):
     """Component that embeds images using a CLIP model from the Hugging Face hub."""
 
     def __init__(
-            self,
-            *_,
-            model_id: str,
-            batch_size: int,
+        self,
+        *_,
+        model_id: str,
+        batch_size: int,
     ):
         """
         Args:
@@ -82,7 +82,9 @@ class EmbedImagesComponent(PandasTransformComponent):
 
         logger.info("Initialize model '%s'", model_id)
         self.processor = CLIPProcessor.from_pretrained(model_id)
-        self.model = CLIPVisionModelWithProjection.from_pretrained(model_id).to(self.device)
+        self.model = CLIPVisionModelWithProjection.from_pretrained(model_id).to(
+            self.device,
+        )
         logger.info("Model initialized")
 
         self.batch_size = batch_size
@@ -91,7 +93,10 @@ class EmbedImagesComponent(PandasTransformComponent):
         images = dataframe["images"]["data"]
 
         results: t.List[pd.Series] = []
-        for batch in np.split(images, np.arange(self.batch_size, len(images), self.batch_size)):
+        for batch in np.split(
+            images,
+            np.arange(self.batch_size, len(images), self.batch_size),
+        ):
             if not batch.empty:
                 image_tensors = process_image_batch(
                     batch,
@@ -104,6 +109,5 @@ class EmbedImagesComponent(PandasTransformComponent):
                     index=batch.index,
                 ).T
                 results.append(embeddings)
-
 
         return pd.concat(results).to_frame(name=("embeddings", "data"))

@@ -33,15 +33,26 @@ def normalize_lines(text):
 
     discard_conditions = [mainly_uppercase, only_numerical, is_counter, is_one_word]
     return " ".join(
-        [line for line in text.split("\n") if not any_condition_met(line, discard_conditions)])
+        [
+            line
+            for line in text.split("\n")
+            if not any_condition_met(line, discard_conditions)
+        ],
+    )
 
 
 class TextNormalizationComponent(PandasTransformComponent):
     """Component that normalizes text."""
 
-    def __init__(self, *args, remove_additional_whitespaces: bool, apply_nfc: bool,
-                 remove_bad_patterns: bool,
-                 do_lowercase: bool, remove_punctuation: bool):
+    def __init__(
+        self,
+        *args,
+        remove_additional_whitespaces: bool,
+        apply_nfc: bool,
+        remove_bad_patterns: bool,
+        do_lowercase: bool,
+        remove_punctuation: bool,
+    ):
         self.remove_additional_whitespaces = remove_additional_whitespaces
         self.apply_nfc = apply_nfc
         self.normalize_lines = remove_bad_patterns
@@ -79,25 +90,30 @@ class TextNormalizationComponent(PandasTransformComponent):
         """
         if self.normalize_lines:
             dataframe[("text", "data")] = dataframe[("text", "data")].apply(
-                normalize_lines)
+                normalize_lines,
+            )
 
         if self.do_lowercase:
-            dataframe[("text", "data")] = dataframe[("text", "data")].apply(lambda x: x.lower())
+            dataframe[("text", "data")] = dataframe[("text", "data")].apply(
+                lambda x: x.lower(),
+            )
 
         if self.apply_nfc:
             dataframe[("text", "data")] = dataframe[("text", "data")].apply(
-                self._do_nfc_normalization)
+                self._do_nfc_normalization,
+            )
 
         if self.remove_punctuation:
-            dataframe[("text", "data")] = dataframe[("text", "data")].apply(_remove_punctuation)
+            dataframe[("text", "data")] = dataframe[("text", "data")].apply(
+                _remove_punctuation,
+            )
 
         if self.remove_additional_whitespaces:
             dataframe[("text", "data")] = dataframe[("text", "data")].apply(
-                _remove_additional_whitespaces)
+                _remove_additional_whitespaces,
+            )
 
         # remove all empty rows
         dataframe = dataframe[dataframe[("text", "data")].astype(bool)]
 
         return dataframe
-
-

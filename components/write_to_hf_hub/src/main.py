@@ -16,8 +16,10 @@ from PIL import Image
 logger = logging.getLogger(__name__)
 
 
-def convert_bytes_to_image(image_bytes: bytes, feature_encoder: datasets.Image) -> \
-        t.Dict[str, t.Any]:
+def convert_bytes_to_image(
+    image_bytes: bytes,
+    feature_encoder: datasets.Image,
+) -> t.Dict[str, t.Any]:
     """
     Function that converts image bytes to hf image format
     Args:
@@ -32,15 +34,15 @@ def convert_bytes_to_image(image_bytes: bytes, feature_encoder: datasets.Image) 
 
 
 class WriteToHubComponent(DaskWriteComponent):
-
-    def __init__(self,
-            spec: ComponentSpec,
-            *,
-            hf_token: str,
-            username: str,
-            dataset_name: str,
-            image_column_names: t.Optional[list],
-            column_name_mapping: t.Optional[dict],
+    def __init__(
+        self,
+        spec: ComponentSpec,
+        *,
+        hf_token: str,
+        username: str,
+        dataset_name: str,
+        image_column_names: t.Optional[list],
+        column_name_mapping: t.Optional[dict],
     ):
         """
         Args:
@@ -79,7 +81,9 @@ class WriteToHubComponent(DaskWriteComponent):
                 if self.image_column_names and column_name in self.image_column_names:
                     schema_dict[column_name] = datasets.Image()
                 else:
-                    schema_dict[column_name] = generate_from_arrow_type(field.type.value)
+                    schema_dict[column_name] = generate_from_arrow_type(
+                        field.type.value,
+                    )
 
         schema = datasets.Features(schema_dict).arrow_schema
         dataframe = dataframe[write_columns]
@@ -100,5 +104,3 @@ class WriteToHubComponent(DaskWriteComponent):
 
         # Write dataset to the hub
         dd.to_parquet(dataframe, path=f"{self.repo_path}/data", schema=schema)
-
-

@@ -1,6 +1,6 @@
 name: Filter comments
 description: Component that filters code based on the code to comment ratio
-image: ghcr.io/ml6team/filter_comments:dev
+image: fndnt/filter_comments:dev
 
 consumes:
   code:

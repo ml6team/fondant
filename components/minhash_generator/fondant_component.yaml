@@ -1,6 +1,6 @@
 name: MinHash generator
 description: A component that generates minhashes of text.
-image: ghcr.io/ml6team/minhash_generator:latest
+image: fndnt/minhash_generator:latest
 
 consumes:
   text:

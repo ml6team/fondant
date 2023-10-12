@@ -1,5 +1,5 @@
 name: Image cropping
-image: ghcr.io/ml6team/image_cropping:dev
+image: fndnt/image_cropping:dev
 description: |
   This component crops out image borders. This is typically useful when working with graphical 
   images that have single-color borders (e.g. logos, icons, etc.).

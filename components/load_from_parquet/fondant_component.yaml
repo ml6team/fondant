@@ -1,6 +1,6 @@
 name: Load from parquet
 description: Component that loads a dataset from a parquet uri
-image: ghcr.io/ml6team/load_from_parquet:dev
+image: fndnt/load_from_parquet:dev
 
 produces:
   dummy_variable:  #TODO: fill in here

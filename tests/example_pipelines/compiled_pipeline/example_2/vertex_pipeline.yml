@@ -112,7 +112,7 @@ deploymentSpec:
         - fondant
         - execute
         - main
-        image: ghcr.io/ml6team/image_cropping:dev
+        image: fndnt/image_cropping:dev
 pipelineInfo:
   description: description of the test pipeline
   name: testpipeline
@@ -212,7 +212,7 @@ root:
                     is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n![Example
                     of image cropping by removing the single-color border. Left side
                     is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n"
-                  image: ghcr.io/ml6team/image_cropping:dev
+                  image: fndnt/image_cropping:dev
                   name: Image cropping
                   produces:
                     images:

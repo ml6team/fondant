@@ -20,7 +20,7 @@ description: |
   PII is replaced by random data which is stored in the `replacements.json` file.
   A component that detects and redacts Personal Identifiable Information (PII) from 
   code.
-image: ghcr.io/ml6team/pii_redaction:dev
+image: fndnt/pii_redaction:dev
 
 consumes:
   code:

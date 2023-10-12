@@ -26,6 +26,7 @@ repos:
         types: [python]
         files: |
             (?x)^(
+                components/.*|
                 src/.*|
                 examples/.*|
                 tests/.*|
@@ -40,6 +41,7 @@ repos:
         name: black
         files:  |
             (?x)^(
+                components/.*|
                 src/.*|
                 examples/.*|
                 tests/.*|

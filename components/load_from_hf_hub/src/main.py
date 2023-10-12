@@ -14,16 +14,16 @@ dask.config.set({"dataframe.convert-string": False})
 
 
 class LoadFromHubComponent(DaskLoadComponent):
-
-    def __init__(self,
-                 spec: ComponentSpec,
-                 *_,
-                 dataset_name: str,
-                 column_name_mapping: t.Optional[dict],
-                 image_column_names: t.Optional[list],
-                 n_rows_to_load: t.Optional[int],
-                 index_column: t.Optional[str],
-                 ) -> None:
+    def __init__(
+        self,
+        spec: ComponentSpec,
+        *_,
+        dataset_name: str,
+        column_name_mapping: t.Optional[dict],
+        image_column_names: t.Optional[list],
+        n_rows_to_load: t.Optional[int],
+        index_column: t.Optional[str],
+    ) -> None:
         """
         Args:
             spec: the component spec
@@ -44,19 +44,23 @@ class LoadFromHubComponent(DaskLoadComponent):
         self.spec = spec
 
     def get_columns_to_keep(self) -> t.List[str]:
-
         # Only read required columns
         columns = []
 
         if self.column_name_mapping:
-            invert_column_name_mapping = {v: k for k, v in self.column_name_mapping.items()}
+            invert_column_name_mapping = {
+                v: k for k, v in self.column_name_mapping.items()
+            }
         else:
             invert_column_name_mapping = {}
 
         for subset_name, subset in self.spec.produces.items():
             for field_name, field in subset.fields.items():
                 column_name = f"{subset_name}_{field_name}"
-                if invert_column_name_mapping and column_name in invert_column_name_mapping:
+                if (
+                    invert_column_name_mapping
+                    and column_name in invert_column_name_mapping
+                ):
                     columns.append(invert_column_name_mapping[column_name])
                 else:
                     columns.append(column_name)
@@ -67,17 +71,16 @@ class LoadFromHubComponent(DaskLoadComponent):
         return columns
 
     def convert_images_to_bytes(self, dask_df) -> dd.DataFrame:
-
         if self.image_column_names:
             for image_column_name in self.image_column_names:
                 dask_df[image_column_name] = dask_df[image_column_name].map(
-                    lambda x: x["bytes"], meta=("bytes", bytes),
+                    lambda x: x["bytes"],
+                    meta=("bytes", bytes),
                 )
 
         return dask_df
 
     def set_df_index(self, dask_df: dd.DataFrame) -> dd.DataFrame:
-
         if self.index_column is None:
             logger.info(
                 "Index column not specified, setting a globally unique index",
@@ -87,9 +90,9 @@ class LoadFromHubComponent(DaskLoadComponent):
                 """Function that sets a unique index based on the partition and row number."""
                 dataframe["id"] = 1
                 dataframe["id"] = (
-                        str(partition_info["number"])
-                        + "_"
-                        + (dataframe.id.cumsum()).astype(str)
+                    str(partition_info["number"])
+                    + "_"
+                    + (dataframe.id.cumsum()).astype(str)
                 )
                 dataframe.index = dataframe.pop("id")
                 return dataframe
@@ -117,8 +120,10 @@ class LoadFromHubComponent(DaskLoadComponent):
             npartitions = 1
             for npartitions, partition in enumerate(dask_df.partitions, start=1):
                 if partitions_length >= self.n_rows_to_load:
-                    logger.info(f"""Required number of partitions to load\n
-                    {self.n_rows_to_load} is {npartitions}""")
+                    logger.info(
+                        f"""Required number of partitions to load\n
+                    {self.n_rows_to_load} is {npartitions}""",
+                    )
                     break
                 partitions_length += len(partition)
             dask_df = dask_df.head(self.n_rows_to_load, npartitions=npartitions)
