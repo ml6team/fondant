@@ -91,7 +91,7 @@ class ClipClient:
             if image.startswith("http"):
                 return self.__search_knn_api__(image_url=image)
             else:
-                assert Path(image).exists(), f"{image} does not exist."
+                assert Path(image).exists(), f"{image} does not exist."  # nosec B101
                 return self.__search_knn_api__(image=image)
         elif embedding_input:
             return self.__search_knn_api__(embedding_input=embedding_input)
