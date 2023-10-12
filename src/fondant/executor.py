@@ -64,7 +64,7 @@ class Executor(t.Generic[Component]):
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
-        input_partition_rows: int,
+        input_partition_rows: int = -1,
         cluster_type: t.Optional[str] = None,
         client_kwargs: t.Optional[dict] = None,
     ) -> None:
