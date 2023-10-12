@@ -26,7 +26,7 @@ services:
     - 8787:8787
     volumes: []
   image_cropping:
-    image: ghcr.io/ml6team/image_cropping:dev
+    image: fndnt/image_cropping:dev
     command:
     - --metadata
     - '{"base_path": "/foo/bar", "pipeline_name": "testpipeline", "run_id": "testpipeline-20230101000000",
@@ -42,7 +42,7 @@ services:
     - --cluster_type
     - default
     - --component_spec
-    - '{"name": "Image cropping", "image": "ghcr.io/ml6team/image_cropping:dev", "description":
+    - '{"name": "Image cropping", "image": "fndnt/image_cropping:dev", "description":
       "This component crops out image borders. This is typically useful when working
       with graphical \nimages that have single-color borders (e.g. logos, icons, etc.).\n\nThe
       component takes an image and calculates which color is most present in the border.

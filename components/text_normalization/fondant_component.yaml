@@ -1,5 +1,5 @@
 name: Normalize text
-image: ghcr.io/ml6team/text_normalization:latest
+image: fndnt/text_normalization:latest
 description: |
   This component implements several text normalization techniques to clean and preprocess textual 
   data:

@@ -57,7 +57,7 @@ Create a folder `component/load_from_hub` and create a `fondant_component.yaml` 
 ```yaml
 name: Load from hub
 description: Component that loads a dataset from the hub
-image: ghcr.io/ml6team/load_from_hf_hub:dev
+image: fndnt/load_from_hf_hub:dev
 
 produces:
   images:

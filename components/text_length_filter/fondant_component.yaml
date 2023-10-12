@@ -1,6 +1,6 @@
 name: Filter text length
 description: A component that filters out text based on their length
-image: ghcr.io/ml6team/filter_text_length:latest
+image: fndnt/filter_text_length:latest
 
 consumes:
   text:

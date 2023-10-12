@@ -1,6 +1,6 @@
 name: Embed images
 description: Component that generates CLIP embeddings from images
-image: ghcr.io/ml6team/embed_images:dev
+image: fndnt/embed_images:dev
 
 consumes:
   images:

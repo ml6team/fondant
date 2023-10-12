@@ -24,12 +24,16 @@ jobs:
     - name: Set buildx alias
       run: docker buildx install
 
+    - name: Install docker pushrm
+      run: |
+        sudo wget https://github.com/christian-korneck/docker-pushrm/releases/download/v1.9.0/docker-pushrm_linux_amd64 -O /usr/libexec/docker/cli-plugins/docker-pushrm
+        sudo chmod +x /usr/libexec/docker/cli-plugins/docker-pushrm
+
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v2
       with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
 
     - name: Tag components
       run: ./scripts/tag_components.sh -o $GITHUB_REF_NAME -n latest

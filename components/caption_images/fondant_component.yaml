@@ -1,6 +1,6 @@
 name: Caption images
 description: This component captions images using a BLIP model from the Hugging Face hub
-image: ghcr.io/ml6team/caption_images:dev
+image: fndnt/caption_images:dev
 
 consumes:
   images:

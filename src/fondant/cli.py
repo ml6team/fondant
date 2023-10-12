@@ -111,8 +111,8 @@ def register_explore(parent_parser):
         "--container",
         "-r",
         type=str,
-        default="ghcr.io/ml6team/data_explorer",
-        help="Docker container to use. Defaults to ghcr.io/ml6team/data_explorer.",
+        default="fndnt/data_explorer",
+        help="Docker container to use. Defaults to fndnt/data_explorer.",
     )
     parser.add_argument(
         "--tag",
