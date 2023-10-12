@@ -114,7 +114,7 @@ def test_component_op_caching_strategy(monkeypatch):
         monkeypatch.setattr(
             ComponentSpec,
             "image",
-            f"ghcr.io/component/test_component:{tag}",
+            f"fndnt/test_component:{tag}",
         )
         comp_0_op_spec_0 = ComponentOp(
             components_path,

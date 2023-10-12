@@ -9,16 +9,18 @@ function usage {
   echo "  -c,  --cache <value>               Use registry caching when building the components (default:false)"
   echo "  -d,  --components-dir <value>      Directory containing components to build as subdirectories.
                                              The path should be relative to the root directory (default:components)"
-  echo "  -n, --namespace <value>            The namespace for the built images, should match the github organization (default: ml6team)"
+  echo "  -r,  --registry <value>            The docker registry prefix to use (default: null for DockerHub)"
+  echo "  -n,  --namespace <value>           The DockerHub namespace for the built images (default: fndnt)"
   echo "  -co, --component <value>           Specific component to build. Pass the component subdirectory name(s) to build
                                              certain component(s) or 'all' to build all components in the components
                                              directory (default: all)"
-  echo "  -r,  --repo <value>                Set the repo (default: fondant)"
+  echo "  -r,  --repo <value>                Set the repo (default: ml6team/fondant)"
   echo "  -h,  --help                        Display this help message"
 }
 
 # Parse the arguments
 while [[ "$#" -gt 0 ]]; do case $1 in
+  -r |--registry) registry="$2"; shift;;
   -n |--namespace) namespace="$2"; shift;;
   -d |--components-dir ) components_dir="$2"; shift;;
   -r |--repo) repo="$2"; shift;;
@@ -39,8 +41,8 @@ fi
 # Set default values for optional arguments if not passed
 component="${components:-all}"
 components_dir="${components_dir:-components}"
-namespace="${namespace:-ml6team}"
-repo="${repo:-fondant}"
+namespace="${namespace:-fndnt}"
+repo="${repo:-ml6team/fondant}"
 
 # Get the component directory
 scripts_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
@@ -65,13 +67,16 @@ for dir in "${components_to_build[@]}"; do
   full_image_names=()
   echo "Tagging image with following tags:"
   for tag in "${tags[@]}"; do
-    full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
+    full_image_name=${namespace}/${BASENAME}:${tag}
+    if [ -n "${registry}" ] ; then
+      full_image_name=${registry}/${full_image_name}
+    fi
     echo "$full_image_name"
     full_image_names+=("$full_image_name")
   done
 
   # Prevent this from mistakenly being used below
-  unset full_image_name
+#  unset full_image_name
 
   echo "Updating the image version in the fondant_component.yaml with:"
   echo "${full_image_names[0]}"
@@ -87,7 +92,7 @@ for dir in "${components_to_build[@]}"; do
   # Add cache arguments if caching is enabled
   if [ "$caching" = true ] ; then
 
-    cache_name=ghcr.io/${namespace}/${BASENAME}:build-cache
+    cache_name=${registry}/${namespace}/${BASENAME}:build-cache
     echo "Caching from/to ${cache_name}"
     args+=(--cache-to "type=registry,ref=${cache_name}")
     args+=(--cache-from "type=registry,ref=${cache_name}")
@@ -96,8 +101,20 @@ for dir in "${components_to_build[@]}"; do
   echo "Freezing Fondant dependency version to ${tags[0]}"
   docker build --push "${args[@]}" \
    --build-arg="FONDANT_VERSION=${tags[0]}" \
-   --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
+   --label org.opencontainers.image.source=https://github.com/${repo}/components/{BASENAME} \
    .
+
+  docker fake-command ${full_image_name} | echo "
+  README was not pushed.
+
+  \`docker pushrm\` might not be installed.
+
+  To install, run:
+  \`wget https://github.com/christian-korneck/docker-pushrm/releases/download/v1.9.0/docker-pushrm_linux_amd64 -O /usr/libexec/docker/cli-plugins/docker-pushrm\`
+  \`chmod +x /usr/libexec/docker/cli-plugins/docker-pushrm\`
+  And validate by running:
+  \`docker pushrm --help\`
+  "
 
   popd
 

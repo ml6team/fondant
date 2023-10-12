@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from fondant.explorer import run_explorer_app
 
-DEFAULT_CONTAINER = "ghcr.io/ml6team/data_explorer"
+DEFAULT_CONTAINER = "fndnt/data_explorer"
 DEFAULT_TAG = "latest"
 DEFAULT_PORT = 8501
 

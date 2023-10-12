@@ -8,7 +8,7 @@ description: |
   [resizer](https://github.com/rom1504/img2dataset/blob/main/img2dataset/resizer.py) function 
   from the img2dataset library.
 
-image: ghcr.io/ml6team/download_images:dev
+image: fndnt/download_images:e6501fb
 
 consumes:
   images:
