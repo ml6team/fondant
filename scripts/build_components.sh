@@ -75,9 +75,6 @@ for dir in "${components_to_build[@]}"; do
     full_image_names+=("$full_image_name")
   done
 
-  # Prevent this from mistakenly being used below
-#  unset full_image_name
-
   echo "Updating the image version in the fondant_component.yaml with:"
   echo "${full_image_names[0]}"
   sed -i -e "s|^image: .*|image: ${full_image_names[0]}|" fondant_component.yaml
@@ -107,7 +104,7 @@ for dir in "${components_to_build[@]}"; do
    --label org.opencontainers.image.source=https://github.com/${repo}/components/{BASENAME} \
    .
 
-  docker fake-command ${full_image_name} | echo "
+  docker pushrm ${full_image_name} | echo "
   README was not pushed.
 
   \`docker pushrm\` might not be installed.
