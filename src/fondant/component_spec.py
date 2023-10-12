@@ -290,7 +290,7 @@ class KubeflowComponentSpec:
             # Enable isOptional attribute in spec if arg is Optional and defaults to None
             if arg.optional and arg.default is None:
                 arg_type_dict["isOptional"] = True
-            if arg.default is not None and arg.default != "None":
+            if arg.default is not None:
                 arg_type_dict["defaultValue"] = arg.default
 
             args[arg.name] = {
