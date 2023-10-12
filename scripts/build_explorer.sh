@@ -37,7 +37,7 @@ pushd "$explorer_dir"
 
 BASENAME=${explorer_dir%/}
 BASENAME=${BASENAME##*/}
-full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
+full_image_name=${namespace}/${BASENAME}:${tag}
 
 echo "building $full_image_name"
 
