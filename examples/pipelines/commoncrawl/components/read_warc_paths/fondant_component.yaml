@@ -1,6 +1,6 @@
 name: Common crawl download component
 description: A component that downloads parts of the common crawl
-image: fndnt/read_warc_paths:57404ff
+image: fndnt/read_warc_paths:dev
 
 produces:
   warc:
