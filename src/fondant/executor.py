@@ -139,7 +139,7 @@ class Executor(t.Generic[Component]):
         component_spec: ComponentSpec,
         *,
         cache: bool,
-        input_partition_rows: int,
+        input_partition_rows: int = -1,
         cluster_type: t.Optional[str],
         client_kwargs: t.Optional[dict],
     ) -> "Executor":
