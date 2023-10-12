@@ -92,7 +92,10 @@ for dir in "${components_to_build[@]}"; do
   # Add cache arguments if caching is enabled
   if [ "$caching" = true ] ; then
 
-    cache_name=${registry}/${namespace}/${BASENAME}:build-cache
+    cache_name=${namespace}/${BASENAME}:build-cache
+    if [ -n "${registry}" ] ; then
+      cache_name=${registry}/${cache_name}
+    fi
     echo "Caching from/to ${cache_name}"
     args+=(--cache-to "type=registry,ref=${cache_name}")
     args+=(--cache-from "type=registry,ref=${cache_name}")
