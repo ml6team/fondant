@@ -1,4 +1,4 @@
- git config pull.rebase false# Creating custom components
+# Creating custom components
 
 Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
 provides a lot of components out of the box
@@ -69,8 +69,8 @@ The `__init__` method is called once for each component class with custom argume
 The `transform` method is called multiple times, each time containing a pandas `dataframe`
 with a partition of your data loaded in memory.
 
-The `dataframes` passed to the `transform` method contains the data specified in the `consumes` 
-section of the component specification. If a component defines that it consumes an `images` subset 
+The `dataframes` passed to the `transform` method contains the data specified in the `consumes`
+section of the component specification. If a component defines that it consumes an `images` subset
 with a `data` field, this data can be accessed using `dataframe["images"]["data"]`.
 
 The `transform` method should return a single dataframe, with the columns complying to the
