@@ -25,14 +25,14 @@ import typing as t
 from collections import defaultdict
 from types import ModuleType
 
-from fondant.compiler import DockerCompiler, KubeFlowCompiler
+from fondant.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
 from fondant.component import BaseComponent, Component
 from fondant.executor import ExecutorFactory
 from fondant.explorer import (
     run_explorer_app,
 )
 from fondant.pipeline import Pipeline
-from fondant.runner import DockerRunner, KubeflowRunner
+from fondant.runner import DockerRunner, KubeflowRunner, VertexRunner
 
 logger = logging.getLogger(__name__)
 
@@ -192,6 +192,10 @@ def register_compile(parent_parser):
         name="kubeflow",
         help="Kubeflow compiler",
     )
+    vertex_parser = compiler_subparser.add_parser(
+        name="vertex",
+        help="vertex compiler",
+    )
 
     # Local runner parser
     local_parser.add_argument(
@@ -236,8 +240,24 @@ def register_compile(parent_parser):
         default="pipeline.yaml",
     )
 
+    # vertex parser
+    vertex_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
+    vertex_parser.add_argument(
+        "--output-path",
+        "-o",
+        help="Output path of compiled pipeline",
+        default="vertex_pipeline.yml",
+    )
+
     local_parser.set_defaults(func=compile_local)
     kubeflow_parser.set_defaults(func=compile_kfp)
+    vertex_parser.set_defaults(func=compile_vertex)
 
 
 def compile_local(args):
@@ -254,6 +274,12 @@ def compile_local(args):
 def compile_kfp(args):
     pipeline = pipeline_from_module(args.ref)
     compiler = KubeFlowCompiler()
+    compiler.compile(pipeline=pipeline, output_path=args.output_path)
+
+
+def compile_vertex(args):
+    pipeline = pipeline_from_module(args.ref)
+    compiler = VertexCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
 
@@ -283,6 +309,10 @@ def register_run(parent_parser):
     kubeflow_parser = runner_subparser.add_parser(
         name="kubeflow",
         help="Kubeflow runner",
+    )
+    vertex_parser = runner_subparser.add_parser(
+        name="vertex",
+        help="Vertex runner",
     )
 
     # Local runner parser
@@ -335,6 +365,38 @@ def register_run(parent_parser):
 
     kubeflow_parser.set_defaults(func=run_kfp)
 
+    # Vertex runner parser
+    vertex_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
+    vertex_parser.add_argument(
+        "--project-id",
+        help="""The project id of the GCP project used to submit the pipeline""",
+    )
+    vertex_parser.add_argument(
+        "--project-region",
+        help="The project region of the GCP project used to submit the pipeline ",
+    )
+
+    vertex_parser.add_argument(
+        "--output-path",
+        "-o",
+        help="Output path of compiled pipeline",
+        default="vertex_pipeline.yaml",
+    )
+
+    vertex_parser.add_argument(
+        "--service-account",
+        help="The service account used to launch jobs",
+        default=None,
+    )
+
+    vertex_parser.set_defaults(func=run_vertex)
+
 
 def run_local(args):
     try:
@@ -374,6 +436,27 @@ def run_kfp(args):
         compiler.compile(pipeline=pipeline, output_path=spec_ref)
     finally:
         runner = KubeflowRunner(host=args.host)
+        runner.run(input_spec=spec_ref)
+
+
+def run_vertex(args):
+    try:
+        pipeline = pipeline_from_module(args.ref)
+    except ModuleNotFoundError:
+        spec_ref = args.ref
+    else:
+        spec_ref = args.output_path
+        logging.info(
+            "Found reference to un-compiled pipeline... compiling to {spec_ref}",
+        )
+        compiler = VertexCompiler()
+        compiler.compile(pipeline=pipeline, output_path=spec_ref)
+    finally:
+        runner = VertexRunner(
+            project_id=args.project_id,
+            project_region=args.project_region,
+            service_account=args.service_account,
+        )
         runner.run(input_spec=spec_ref)
 
 
