@@ -53,6 +53,13 @@ def test_component_op(
             node_pool_label="dummy_label",
         )
 
+    with pytest.raises(InvalidPipelineDefinition):
+        ComponentOp(
+            Path(components_path / component_names[0]),
+            arguments=component_args,
+            number_of_accelerators=1,
+        )
+
 
 @pytest.mark.parametrize(
     "valid_pipeline_example",
@@ -107,7 +114,7 @@ def test_component_op_caching_strategy(monkeypatch):
         monkeypatch.setattr(
             ComponentSpec,
             "image",
-            f"ghcr.io/component/test_component:{tag}",
+            f"fndnt/test_component:{tag}",
         )
         comp_0_op_spec_0 = ComponentOp(
             components_path,

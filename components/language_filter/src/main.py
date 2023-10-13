@@ -13,8 +13,7 @@ MODEL_PATH = "lid.176.ftz"
 class LanguageIdentification:
     """A class for language detection using FastText."""
 
-    def __init__(self,
-                 language: str):
+    def __init__(self, language: str):
         """
         Initializes the LanguageDetect class.
 

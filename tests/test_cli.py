@@ -4,13 +4,16 @@ from unittest.mock import patch
 
 import pytest
 from fondant.cli import (
-    ImportFromModuleError,
-    ImportFromStringError,
-    compile,
+    ComponentImportError,
+    PipelineImportError,
+    compile_kfp,
+    compile_local,
     component_from_module,
     execute,
-    pipeline_from_string,
-    run,
+    get_module,
+    pipeline_from_module,
+    run_kfp,
+    run_local,
 )
 from fondant.component import DaskLoadComponent
 from fondant.executor import Executor, ExecutorFactory
@@ -47,11 +50,29 @@ TEST_PIPELINE = Pipeline(pipeline_name="test_pipeline", base_path="some/path")
 @pytest.mark.parametrize(
     "module_str",
     [
-        __name__,
-        "example_modules.valid",
-        "example_modules/valid",
-        "example_modules.valid.py",
-        "example_modules/valid.py",
+        "example_modules.component",
+        "example_modules/component",
+        "example_modules.component.py",
+        "example_modules/component.py",
+    ],
+)
+def test_get_module(module_str):
+    """Test get module method."""
+    module = get_module(module_str)
+    assert module.__name__ == "example_modules.component"
+
+
+def test_get_module_error():
+    """Test that an error is returned when an attempting to import an invalid module."""
+    with pytest.raises(ModuleNotFoundError):
+        component_from_module("example_modules.invalid")
+
+
+@pytest.mark.parametrize(
+    "module_str",
+    [
+        __name__,  # cannot be split
+        "example_modules.component",  # module does not exist
     ],
 )
 def test_component_from_module(module_str):
@@ -63,36 +84,40 @@ def test_component_from_module(module_str):
 @pytest.mark.parametrize(
     "module_str",
     [
-        "example_modules.None_existing_module",  # module does not exist
         "example_modules.invalid_component",  # module contains more than one component class
         "example_modules.invalid_double_components",  # module does not contain a component class
     ],
 )
 def test_component_from_module_error(module_str):
     """Test different error cases for pipeline_from_string."""
-    with pytest.raises(ImportFromModuleError):
+    with pytest.raises(ComponentImportError):
         component_from_module(module_str)
 
 
-def test_pipeline_from_string():
+@pytest.mark.parametrize(
+    "module_str",
+    [
+        __name__,
+        "example_modules.pipeline",
+    ],
+)
+def test_pipeline_from_module(module_str):
     """Test that pipeline_from_string works."""
-    pipeline = pipeline_from_string(__name__ + ":TEST_PIPELINE")
-    assert pipeline == TEST_PIPELINE
+    pipeline = pipeline_from_module(module_str)
+    assert pipeline.name == "test_pipeline"
 
 
 @pytest.mark.parametrize(
-    "import_string",
+    "module_str",
     [
-        "foo.barTEST_PIPELINE",  # cannot be split
-        "foo.bar:TEST_PIPELINE",  # module does not exist
-        __name__ + ":IM_NOT_REAL",  # pipeline does not exist
-        __name__ + ":test_basic_invocation",  # not a pipeline instance
+        "example_modules.component",  # module does not contain a pipeline instance
+        "example_modules.invalid_double_pipeline",  # module contains many pipeline instances
     ],
 )
-def test_pipeline_from_string_error(import_string):
+def test_pipeline_from_module_error(module_str):
     """Test different error cases for pipeline_from_string."""
-    with pytest.raises(ImportFromStringError):
-        pipeline_from_string(import_string)
+    with pytest.raises(PipelineImportError):
+        pipeline_from_module(module_str)
 
 
 def test_execute_logic(monkeypatch):
@@ -107,32 +132,38 @@ def test_local_logic(tmp_path_factory):
     """Test that the compile command works with arguments."""
     with tmp_path_factory.mktemp("temp") as fn:
         args = argparse.Namespace(
+            ref=__name__,
             local=True,
             kubeflow=False,
-            pipeline=TEST_PIPELINE,
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
             build_arg=[],
         )
-        compile(args)
+        compile_local(args)
 
 
 def test_kfp_compile(tmp_path_factory):
-    with tmp_path_factory.mktemp("temp") as fn:
+    with tmp_path_factory.mktemp("temp") as fn, patch(
+        "fondant.compiler.KubeFlowCompiler.compile",
+    ) as mock_compiler:
         args = argparse.Namespace(
+            ref=__name__,
             kubeflow=True,
             local=False,
+            output_path=str(fn / "kubeflow_pipelines.yml"),
+        )
+        compile_kfp(args)
+        mock_compiler.assert_called_once_with(
             pipeline=TEST_PIPELINE,
             output_path=str(fn / "kubeflow_pipelines.yml"),
         )
-        compile(args)
 
 
 def test_local_run(tmp_path_factory):
     """Test that the run command works with different arguments."""
     args = argparse.Namespace(local=True, ref="some/path", output_path=None)
     with patch("subprocess.call") as mock_call:
-        run(args)
+        run_local(args)
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -150,12 +181,12 @@ def test_local_run(tmp_path_factory):
     with patch("subprocess.call") as mock_call, tmp_path_factory.mktemp("temp") as fn:
         args1 = argparse.Namespace(
             local=True,
-            ref=__name__ + ":TEST_PIPELINE",
+            ref=__name__,
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
             build_arg=[],
         )
-        run(args1)
+        run_local(args1)
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -184,7 +215,7 @@ def test_kfp_run(tmp_path_factory):
         ValueError,
         match="--host argument is required for running on Kubeflow",
     ):  # no host
-        run(args)
+        run_kfp(args)
     with patch("fondant.cli.KubeflowRunner") as mock_runner:
         args = argparse.Namespace(
             kubeflow=True,
@@ -193,17 +224,20 @@ def test_kfp_run(tmp_path_factory):
             host="localhost",
             ref="some/path",
         )
-        run(args)
+        run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost")
-    with patch("fondant.cli.KubeflowRunner") as mock_runner, tmp_path_factory.mktemp(
+    with patch("fondant.cli.KubeflowRunner") as mock_runner, patch(
+        "fondant.cli.KubeFlowCompiler",
+    ) as mock_compiler, tmp_path_factory.mktemp(
         "temp",
     ) as fn:
+        mock_compiler.compile.return_value = "some/path"
         args = argparse.Namespace(
             kubeflow=True,
             local=False,
             host="localhost2",
             output_path=str(fn / "kubeflow_pipelines.yml"),
-            ref=__name__ + ":TEST_PIPELINE",
+            ref=__name__,
         )
-        run(args)
+        run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost2")

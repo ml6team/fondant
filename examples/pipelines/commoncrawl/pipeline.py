@@ -14,14 +14,18 @@ pipeline_description = "Pipeline that downloads from commoncrawl"
 
 read_warc_paths_op = ComponentOp(
     component_dir="components/read_warc_paths",
-    arguments={"common_crawl_indices": ["CC-MAIN-2023-23"], "n_records_to_download": 1},
+    arguments={"common_crawl_indices": ["CC-MAIN-2023-06"]},
+    cache=False,
 )
 
-load_warc_files_op = ComponentOp(
-    component_dir="components/download_warc_files",
+extract_images_op = ComponentOp(
+    component_dir="components/extract_images_from_warc",
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool-3",
+    cluster_type="local",
 )
 
 pipeline = Pipeline(pipeline_name=pipeline_name, base_path=PipelineConfigs.BASE_PATH)
 
 pipeline.add_op(read_warc_paths_op)
-pipeline.add_op(load_warc_files_op, dependencies=[read_warc_paths_op])
+pipeline.add_op(extract_images_op, dependencies=[read_warc_paths_op])

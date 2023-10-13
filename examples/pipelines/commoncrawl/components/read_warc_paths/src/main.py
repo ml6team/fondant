@@ -18,7 +18,7 @@ class ReadWarcPathsComponent(DaskLoadComponent):
         self,
         *_,
         common_crawl_indices: t.List[str],
-        n_records_to_download: t.Optional[int] = None,
+        n_records_to_download: int,
     ):
         self.index_urls = [
             self.build_index_url(index_name) for index_name in common_crawl_indices
@@ -38,7 +38,7 @@ class ReadWarcPathsComponent(DaskLoadComponent):
             warc_urls.extend([line.decode() for line in extracted.split(b"\n")])
 
         df = pd.DataFrame(warc_urls, columns=["warc_url"])
-        if self.n_records_to_download is not None:
+        if self.n_records_to_download > 0:
             df = df.head(self.n_records_to_download)
 
-        return dd.from_pandas(df, npartitions=len(df))
+        return dd.from_pandas(df, npartitions=len(df) // 100)

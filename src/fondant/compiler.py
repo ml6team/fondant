@@ -7,10 +7,17 @@ from pathlib import Path
 
 import yaml
 
+from fondant.exceptions import InvalidPipelineDefinition
 from fondant.manifest import Metadata
-from fondant.pipeline import Pipeline
+from fondant.pipeline import (
+    Pipeline,
+    valid_accelerator_types,
+    valid_vertex_accelerator_types,
+)
 
 logger = logging.getLogger(__name__)
+
+DASK_DIAGNOSTIC_DASHBOARD_PORT = 8787
 
 
 class Compiler(ABC):
@@ -119,15 +126,21 @@ class DockerCompiler(Compiler):
 
         pipeline.validate(run_id=run_id)
 
+        component_cache_key = None
+
         for component_name, component in pipeline._graph.items():
             component_op = component["fondant_component_op"]
+
+            component_cache_key = component_op.get_component_cache_key(
+                previous_component_cache=component_cache_key,
+            )
 
             metadata = Metadata(
                 pipeline_name=pipeline.name,
                 run_id=run_id,
                 base_path=path,
                 component_id=component_name,
-                cache_key=component_op.get_component_cache_key(),
+                cache_key=component_cache_key,
             )
 
             logger.info(f"Compiling service for {component_name}")
@@ -173,26 +186,19 @@ class DockerCompiler(Compiler):
             if extra_volumes:
                 volumes.extend(extra_volumes)
 
+            ports: t.List[t.Union[str, dict]] = []
+            ports.append(
+                f"{DASK_DIAGNOSTIC_DASHBOARD_PORT}:{DASK_DIAGNOSTIC_DASHBOARD_PORT}",
+            )
+
             services[component_name] = {
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
+                "ports": ports,
             }
 
-            if component_op.number_of_gpus is not None:
-                services[component_name]["deploy"] = {
-                    "resources": {
-                        "reservations": {
-                            "devices": [
-                                {
-                                    "driver": "nvidia",
-                                    "count": component_op.number_of_gpus,
-                                    "capabilities": ["gpu"],
-                                },
-                            ],
-                        },
-                    },
-                }
+            self._set_configuration(services, component_op, component_name)
 
             if component_op.dockerfile_path is not None:
                 logger.info(
@@ -211,6 +217,40 @@ class DockerCompiler(Compiler):
             "services": services,
         }
 
+    @staticmethod
+    def _set_configuration(services, fondant_component_operation, component_name):
+        accelerator_name = fondant_component_operation.accelerator_name
+        accelerator_number = fondant_component_operation.number_of_accelerators
+
+        if accelerator_name is not None:
+            if accelerator_name not in valid_accelerator_types:
+                msg = (
+                    f"Configured accelerator `{accelerator_name}`"
+                    f" is not a valid accelerator type for Docker Compose compiler."
+                    f" Available options: {valid_vertex_accelerator_types}"
+                )
+                raise InvalidPipelineDefinition(msg)
+
+            if accelerator_name == "GPU":
+                services[component_name]["deploy"] = {
+                    "resources": {
+                        "reservations": {
+                            "devices": [
+                                {
+                                    "driver": "nvidia",
+                                    "count": accelerator_number,
+                                    "capabilities": ["gpu"],
+                                },
+                            ],
+                        },
+                    },
+                }
+            elif accelerator_name == "TPU":
+                msg = "TPU configuration is not yet implemented for Docker Compose "
+                raise NotImplementedError(msg)
+
+        return services
+
 
 class KubeFlowCompiler(Compiler):
     """Compiler that creates a Kubeflow pipeline spec from a pipeline."""
@@ -222,8 +262,11 @@ class KubeFlowCompiler(Compiler):
         """Resolve imports for the Kubeflow compiler."""
         try:
             import kfp
+            import kfp.kubernetes as kfp_kubernetes
 
             self.kfp = kfp
+            self.kfp_kubernetes = kfp_kubernetes
+
         except ImportError:
             msg = """You need to install kfp to use the Kubeflow compiler,\n
                      you can install it with `pip install fondant[kfp]`"""
@@ -243,75 +286,237 @@ class KubeFlowCompiler(Compiler):
             output_path: the path where to save the Kubeflow pipeline spec
         """
         run_id = pipeline.get_run_id()
+        pipeline.validate(run_id=run_id)
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
 
         @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
             previous_component_task = None
-            manifest_path = ""
+            component_cache_key = None
 
             for component_name, component in pipeline._graph.items():
-                component_op = component["fondant_component_op"]
+                logger.info(f"Compiling service for {component_name}")
 
+                component_op = component["fondant_component_op"]
+                # convert ComponentOp to Kubeflow component
+                kubeflow_component_op = self.kfp.components.load_component_from_text(
+                    text=component_op.component_spec.kubeflow_specification.to_string(),
+                )
+
+                # Remove None values from arguments
+                component_args = {
+                    k: v for k, v in component_op.arguments.items() if v is not None
+                }
+
+                component_cache_key = component_op.get_component_cache_key(
+                    previous_component_cache=component_cache_key,
+                )
                 metadata = Metadata(
                     pipeline_name=pipeline.name,
                     run_id=run_id,
                     base_path=pipeline.base_path,
                     component_id=component_name,
-                    cache_key=component_op.get_component_cache_key(),
+                    cache_key=component_cache_key,
                 )
 
-                logger.info(f"Compiling service for {component_name}")
-
-                # convert ComponentOp to Kubeflow component
-                kubeflow_component_op = self.kfp.components.load_component(
-                    text=component_op.component_spec.kubeflow_specification.to_string(),
+                output_manifest_path = (
+                    f"{pipeline.base_path}/{pipeline.name}/"
+                    f"{run_id}/{component_name}/manifest.json"
                 )
+                # Set the execution order of the component task to be after the previous
+                # component task.
+                if component["dependencies"]:
+                    for dependency in component["dependencies"]:
+                        input_manifest_path = (
+                            f"{pipeline.base_path}/{pipeline.name}/"
+                            f"{run_id}/{dependency}/manifest.json"
+                        )
+                        component_task = kubeflow_component_op(
+                            input_manifest_path=input_manifest_path,
+                            output_manifest_path=output_manifest_path,
+                            metadata=metadata.to_json(),
+                            **component_args,
+                        )
+                        component_task.after(previous_component_task)
 
-                # Execute the Kubeflow component and pass in the output manifest path from
-                # the previous component.
-                component_args = component_op.arguments
+                else:
+                    component_task = kubeflow_component_op(
+                        metadata=metadata.to_json(),
+                        output_manifest_path=output_manifest_path,
+                        **component_args,
+                    )
 
-                component_task = kubeflow_component_op(
-                    input_manifest_path=manifest_path,
-                    metadata=metadata.to_json(),
-                    **component_args,
-                )
-                # Set optional configurations
+                # Set optional arguments
                 component_task = self._set_configuration(
                     component_task,
                     component_op,
                 )
 
-                # Set image pull policy to always
-                component_task.container.set_image_pull_policy("Always")
-
-                # Set the execution order of the component task to be after the previous
-                # component task.
-                if previous_component_task is not None:
-                    component_task.after(previous_component_task)
-
-                # Update the manifest path to be the output path of the current component task.
-                manifest_path = component_task.outputs["output_manifest_path"]
+                # Disable caching
+                component_task.set_caching_options(enable_caching=False)
 
                 previous_component_task = component_task
 
-        self.pipeline = pipeline
-        self.pipeline.validate(run_id=run_id)
-        logger.info(f"Compiling {self.pipeline.name} to {output_path}")
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
 
         self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
 
     def _set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
-        number_of_gpus = fondant_component_operation.number_of_gpus
+        number_of_accelerators = fondant_component_operation.number_of_accelerators
+        accelerator_name = fondant_component_operation.accelerator_name
         node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
+        memory_request = fondant_component_operation.memory_request
+        memory_limit = fondant_component_operation.memory_limit
 
         # Assign optional specification
-        if number_of_gpus is not None:
-            task.set_gpu_limit(number_of_gpus)
+        if memory_request is not None:
+            task.set_memory_request(memory_request)
+        if memory_limit is not None:
+            task.set_memory_limit(memory_limit)
+        if accelerator_name is not None:
+            if accelerator_name not in valid_accelerator_types:
+                msg = (
+                    f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
+                    f"for Kubeflow compiler. Available options: {valid_accelerator_types}"
+                )
+                raise InvalidPipelineDefinition(msg)
+
+            task.set_accelerator_limit(number_of_accelerators)
+            if accelerator_name == "GPU":
+                task.set_accelerator_type("nvidia.com/gpu")
+            elif accelerator_name == "TPU":
+                task.set_accelerator_type("cloud-tpus.google.com/v3")
         if node_pool_name is not None and node_pool_label is not None:
-            task.add_node_selector_constraint(node_pool_label, node_pool_name)
+            task = self.kfp_kubernetes.add_node_selector(
+                task,
+                node_pool_label,
+                node_pool_name,
+            )
+        return task
+
+
+class VertexCompiler(Compiler):
+    def __init__(self):
+        self.resolve_imports()
+
+    def resolve_imports(self):
+        """Resolve imports for the Vertex compiler."""
+        try:
+            import kfp
+
+            self.kfp = kfp
+
+        except ImportError:
+            msg = """You need to install kfp to use the Vertex compiler,\n
+                     you can install it with `pip install fondant[vertex]`"""
+            raise ImportError(
+                msg,
+            )
+
+    def compile(
+        self,
+        pipeline: Pipeline,
+        output_path: str = "vertex_pipeline.yml",
+    ) -> None:
+        """Compile a pipeline to vertex pipeline spec and save it to a specified output path.
+
+        Args:
+            pipeline: the pipeline to compile
+            output_path: the path where to save the Kubeflow pipeline spec
+        """
+        run_id = pipeline.get_run_id()
+        pipeline.validate(run_id=run_id)
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
+
+        @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
+        def kfp_pipeline():
+            previous_component_task = None
+            component_cache_key = None
+
+            for component_name, component in pipeline._graph.items():
+                logger.info(f"Compiling service for {component_name}")
+
+                component_op = component["fondant_component_op"]
+                # convert ComponentOp to Kubeflow component
+                kubeflow_component_op = self.kfp.components.load_component_from_text(
+                    text=component_op.component_spec.kubeflow_specification.to_string(),
+                )
+
+                # Remove None values from arguments
+                component_args = {
+                    k: v for k, v in component_op.arguments.items() if v is not None
+                }
+                component_cache_key = component_op.get_component_cache_key(
+                    previous_component_cache=component_cache_key,
+                )
+                metadata = Metadata(
+                    pipeline_name=pipeline.name,
+                    run_id=run_id,
+                    base_path=pipeline.base_path,
+                    component_id=component_name,
+                    cache_key=component_cache_key,
+                )
+
+                output_manifest_path = (
+                    f"{pipeline.base_path}/{pipeline.name}/"
+                    f"{run_id}/{component_name}/manifest.json"
+                )
+                # Set the execution order of the component task to be after the previous
+                # component task.
+                if component["dependencies"]:
+                    for dependency in component["dependencies"]:
+                        input_manifest_path = (
+                            f"{pipeline.base_path}/{pipeline.name}/"
+                            f"{run_id}/{dependency}/manifest.json"
+                        )
+                        component_task = kubeflow_component_op(
+                            input_manifest_path=input_manifest_path,
+                            output_manifest_path=output_manifest_path,
+                            metadata=metadata.to_json(),
+                            **component_args,
+                        )
+                        component_task.after(previous_component_task)
+
+                else:
+                    component_task = kubeflow_component_op(
+                        metadata=metadata.to_json(),
+                        output_manifest_path=output_manifest_path,
+                        **component_args,
+                    )
+
+                # Set optional arguments
+                component_task = self._set_configuration(
+                    component_task,
+                    component_op,
+                )
+
+                # Disable caching
+                component_task.set_caching_options(enable_caching=False)
+
+                previous_component_task = component_task
+
+        self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
+        logger.info("Pipeline compiled successfully")
+
+    @staticmethod
+    def _set_configuration(task, fondant_component_operation):
+        # Unpack optional specifications
+        number_of_accelerators = fondant_component_operation.number_of_accelerators
+        accelerator_name = fondant_component_operation.accelerator_name
+
+        # Assign optional specification
+        if number_of_accelerators is not None:
+            task.set_accelerator_limit(number_of_accelerators)
+            if accelerator_name not in valid_vertex_accelerator_types:
+                msg = (
+                    f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
+                    f"for Vertex compiler. Available options: {valid_vertex_accelerator_types}"
+                )
+                raise InvalidPipelineDefinition(msg)
+
+            task.set_accelerator_type(accelerator_name)
 
         return task

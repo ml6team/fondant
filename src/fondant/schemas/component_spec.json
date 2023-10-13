@@ -88,6 +88,15 @@
               },
               {
                 "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array"
+              },
+              {
+                "type": "object"
               }
             ]
           }

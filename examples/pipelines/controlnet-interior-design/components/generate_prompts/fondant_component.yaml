@@ -1,6 +1,6 @@
 name: Generate prompts
 description: Component that generates a set of seed prompts
-image: ghcr.io/ml6team/generate_prompts:latest
+image: fndnt/generate_prompts:dev
 
 produces:
   prompts:
@@ -12,4 +12,4 @@ args:
   n_rows_to_load:
     description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
     type: int
-    default: None
+    default: -1

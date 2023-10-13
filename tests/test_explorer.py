@@ -1,122 +1,115 @@
-import subprocess
+from pathlib import Path
 from unittest.mock import patch
 
-from fondant.explorer import (
-    DEFAULT_CONTAINER,
-    DEFAULT_PORT,
-    DEFAULT_TAG,
-    run_explorer_app,
-)
+import pytest
+from fondant.explorer import run_explorer_app
+
+DEFAULT_CONTAINER = "fndnt/data_explorer"
+DEFAULT_TAG = "latest"
+DEFAULT_PORT = 8501
 
 
-def test_run_data_explorer_default():
-    """Test that the data explorer can be run with default arguments."""
-    with patch("subprocess.call") as mock_call:
-        run_explorer_app()
-        mock_call.assert_called_once_with(
-            [
-                "docker",
-                "run",
-                "--name",
-                "fondant-explorer",
-                "--rm",
-                "-p",
-                "8501:8501",
-                "ghcr.io/ml6team/data_explorer:latest",
-            ],
-            stdout=-1,
-        )
+@pytest.fixture()
+def host_path() -> str:
+    return "tests/path/to/source"
 
 
-def test_run_data_explorer_with_data_dir():
-    """Test that the data explorer can be run with a data directory."""
-    host_machine_path = "/path/to/source"
-    container_path = "/source"
-
-    args = {
-        "data_directory": host_machine_path,
-    }
-
-    with patch("subprocess.call") as mock_call:
-        run_explorer_app(**args)
-
-        mock_call.assert_called_once_with(
-            [
-                "docker",
-                "run",
-                "--name",
-                "fondant-explorer",
-                "--rm",
-                "-p",
-                f"{DEFAULT_PORT}:8501",
-                "-v",
-                f"{host_machine_path}:{container_path}",
-                f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
-            ],
-            stdout=subprocess.PIPE,
-        )
+@pytest.fixture()
+def remote_path() -> str:
+    return "gs://bucket/path/to/source"
 
 
-def test_run_data_explorer_with_credentials():
-    """Test that the data explorer can be run with a credentials file."""
-    credentials = "/path/to/credentials"
-    args = {
-        "credentials": credentials,
-    }
-
-    with patch("subprocess.call") as mock_call:
-        run_explorer_app(**args)
-
-        mock_call.assert_called_once_with(
-            [
-                "docker",
-                "run",
-                "--name",
-                "fondant-explorer",
-                "--rm",
-                "-p",
-                "8501:8501",
-                "-v",
-                "/path/to/credentials:ro",
-                "ghcr.io/ml6team/data_explorer:latest",
-            ],
-            stdout=-1,
-        )
+@pytest.fixture()
+def credentials() -> str:
+    return (
+        "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/"
+        "gcloud/application_default_credentials.json"
+    )
 
 
-def test_run_data_explorer_full_option():
-    """Test that the data explorer can be run with all options."""
-    credentials = "/path/to/credentials"
-    host_machine_path = "/path/to/source"
-    container_path = "/source"
+@pytest.fixture()
+def container_path() -> str:
+    return "/source"
 
-    container = "ghcr.io/ml6team/data_explorer_test"
-    tag = "earliest"
-    port = 1234
 
+def test_run_data_explorer_local_base_path(host_path, container_path, credentials):
+    """Test that the data explorer can be run with a local base path."""
     with patch("subprocess.call") as mock_call:
         run_explorer_app(
+            base_path=host_path,
+            port=DEFAULT_PORT,
+            container=DEFAULT_CONTAINER,
+            tag=DEFAULT_TAG,
             credentials=credentials,
-            data_directory=host_machine_path,
-            container=container,
-            tag=tag,
-            port=port,
+        )
+        mock_call.assert_called_once_with(
+            [
+                "docker",
+                "run",
+                "--pull",
+                "always",
+                "--name",
+                "fondant-explorer",
+                "--rm",
+                "-p",
+                "8501:8501",
+                "-v",
+                f"{credentials}:ro",
+                "-v",
+                f"{Path(host_path).resolve()}:{container_path}",
+                f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
+                "--base_path",
+                f"{container_path}",
+            ],
+            stdout=-1,
+        )
+
+
+def test_run_data_explorer_remote_base_path(remote_path, credentials):
+    """Test that the data explorer can be run with a remote base path."""
+    with patch("subprocess.call") as mock_call:
+        run_explorer_app(
+            base_path=remote_path,
+            port=DEFAULT_PORT,
+            container=DEFAULT_CONTAINER,
+            tag=DEFAULT_TAG,
+            credentials=credentials,
         )
 
         mock_call.assert_called_once_with(
             [
                 "docker",
                 "run",
+                "--pull",
+                "always",
                 "--name",
                 "fondant-explorer",
                 "--rm",
                 "-p",
-                "1234:8501",
+                "8501:8501",
                 "-v",
-                "/path/to/credentials:ro",
-                "-v",
-                f"{host_machine_path}:{container_path}",
-                "ghcr.io/ml6team/data_explorer_test:earliest",
+                f"{credentials}:ro",
+                f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
+                "--base_path",
+                f"{remote_path}",
             ],
             stdout=-1,
+        )
+
+
+def test_invalid_run_data_explorer_remote_base_path(remote_path):
+    """Test that an error is returned when attempting to use the remote base with no mounted
+    credentials.
+    """
+    expected_msg = (
+        f"Specified base path `{remote_path}`, Please provide valid credentials when"
+        f" using a remote base path"
+    )
+    with pytest.raises(RuntimeError, match=expected_msg):
+        run_explorer_app(
+            base_path=remote_path,
+            port=DEFAULT_PORT,
+            container=DEFAULT_CONTAINER,
+            tag=DEFAULT_TAG,
+            credentials=None,
         )

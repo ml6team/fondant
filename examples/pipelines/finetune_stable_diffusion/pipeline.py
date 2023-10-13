@@ -36,8 +36,8 @@ image_resolution_extraction_op = ComponentOp.from_registry(
     name="image_resolution_extraction"
 )
 
-image_embedding_op = ComponentOp.from_registry(
-    name="image_embedding",
+embed_images_op = ComponentOp.from_registry(
+    name="embed_images",
     arguments={
         "model_id": "openai/clip-vit-large-patch14",
         "batch_size": 10,
@@ -69,7 +69,8 @@ caption_images_op = ComponentOp.from_registry(
         "batch_size": 2,
         "max_new_tokens": 50,
     },
-    number_of_gpus=1,
+    number_of_accelerators=1,
+    accelerator_name="GPU",
 )
 
 write_to_hub = ComponentOp(
@@ -80,7 +81,8 @@ write_to_hub = ComponentOp(
         "hf_token": "hf_token",
         "image_column_names": ["images_data"],
     },
-    number_of_gpus=1,
+    number_of_accelerators=1,
+    accelerator_name="GPU",
 )
 
 pipeline = Pipeline(
@@ -90,8 +92,8 @@ pipeline = Pipeline(
 
 pipeline.add_op(load_from_hub_op)
 # pipeline.add_op(image_resolution_extraction_op, dependencies=load_from_hub_op)
-# pipeline.add_op(image_embedding_op, dependencies=image_resolution_extraction_op)
-# pipeline.add_op(laion_retrieval_op, dependencies=image_embedding_op)
+# pipeline.add_op(embed_images_op, dependencies=image_resolution_extraction_op)
+# pipeline.add_op(laion_retrieval_op, dependencies=embed_images_op)
 # pipeline.add_op(download_images_op, dependencies=laion_retrieval_op)
 # pipeline.add_op(caption_images_op, dependencies=download_images_op)
 # pipeline.add_op(write_to_hub, dependencies=caption_images_op)

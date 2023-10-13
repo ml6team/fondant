@@ -1,5 +1,6 @@
 """Main file of the data explorer interface"""
 import logging
+import argparse
 
 import dask
 import streamlit as st
@@ -17,12 +18,21 @@ st.set_page_config(layout="wide")
 
 
 if __name__ == "__main__":
-    # make sidebar with input fields for manifest path, subset and fields
-    manifest_path, subset, fields = build_sidebar()
 
-    if fields and manifest_path and subset:
+    # make sidebar with input fields for manifest path, subset and fields
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--base_path",
+        type=str,
+        help='Mounted or remote base path',
+    )
+    args = parser.parse_args()
+
+    manifest, subset, fields = build_sidebar(args.base_path)
+
+    if fields and manifest and subset:
         # load dataframe
-        dataframe_ = load_dataframe(manifest_path, subset, list(fields.keys()))
+        dataframe_ = load_dataframe(manifest, subset, fields)
 
         # get partitions of dataframe
         if dataframe_.npartitions > 1:

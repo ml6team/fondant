@@ -201,31 +201,36 @@ def test_get_file_handler():
     # Test case 1: For .gz file
     handler = get_file_handler("testfile.gz", fs)
     assert isinstance(
-        handler, GzipFileHandler,
+        handler,
+        GzipFileHandler,
     ), "For .gz file, the handler should be of type GzipFileHandler."
 
     # Test case 2: For .tar file
     handler = get_file_handler("testfile.tar", fs)
     assert isinstance(
-        handler, TarFileHandler,
+        handler,
+        TarFileHandler,
     ), "For .tar file, the handler should be of type TarFileHandler."
 
     # Test case 3: For .tar.gz file
     handler = get_file_handler("testfile.tar.gz", fs)
     assert isinstance(
-        handler, TarFileHandler,
+        handler,
+        TarFileHandler,
     ), "For .tar.gz file, the handler should be of type TarFileHandler."
 
     # Test case 4: For .zip file
     handler = get_file_handler("testfile.zip", fs)
     assert isinstance(
-        handler, ZipFileHandler,
+        handler,
+        ZipFileHandler,
     ), "For .zip file, the handler should be of type ZipFileHandler."
 
     # Test case 5: For unsupported file type
     handler = get_file_handler("testfile.txt", fs)
     assert isinstance(
-        handler, DirectoryHandler,
+        handler,
+        DirectoryHandler,
     ), "For unsupported file types, the handler should default to DirectoryHandler."
 
 
@@ -241,7 +246,9 @@ def test_files_to_dask_converter():
     converter = FilesToDaskConverter(handler)
     ddf = converter.to_dask_dataframe(chunksize=2)
     num_records = 2
-    assert ddf.npartitions == num_records, "Number of partitions should match chunksize."
+    assert (
+        ddf.npartitions == num_records
+    ), "Number of partitions should match chunksize."
 
     result = dask.compute(ddf)[0]
 

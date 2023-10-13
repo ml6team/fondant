@@ -1,6 +1,6 @@
 name: Segment images
 description: Component that creates segmentation masks for images using a model from the Hugging Face hub
-image: ghcr.io/ml6team/segment_images:dev
+image: fndnt/segment_images:dev
 
 consumes:
   images:
@@ -22,4 +22,4 @@ args:
   batch_size:
     description: batch size to use
     type: int
-    batch_size: 8
+    default: 8

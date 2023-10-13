@@ -1,4 +1,4 @@
-name: test_pipeline
+name: testpipeline
 services:
   first_component:
     build:
@@ -6,41 +6,56 @@ services:
       context: tests/example_pipelines/valid_pipeline/example_1/first_component
     command:
     - --metadata
-    - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+    - '{"base_path": "/foo/bar", "pipeline_name": "testpipeline", "run_id": "testpipeline-20230101000000",
       "component_id": "first_component", "cache_key": "1"}'
     - --output_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
+    - /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
     - --storage_args
     - a dummy string arg
-    - --input_partition_rows
-    - None
     - --cache
     - 'False'
+    - --cluster_type
+    - default
     - --component_spec
     - '{"name": "First component", "description": "This is an example component",
       "image": "example_component:latest", "produces": {"images": {"fields": {"data":
       {"type": "binary"}}}, "captions": {"fields": {"data": {"type": "string"}}}},
       "args": {"storage_args": {"description": "Storage arguments", "type": "str"}}}'
     depends_on: {}
+    ports:
+    - 8787:8787
     volumes: []
   image_cropping:
+    image: fndnt/image_cropping:dev
     command:
     - --metadata
-    - '{"base_path": "/foo/bar", "pipeline_name": "test_pipeline", "run_id": "test_pipeline-20230101000000",
+    - '{"base_path": "/foo/bar", "pipeline_name": "testpipeline", "run_id": "testpipeline-20230101000000",
       "component_id": "image_cropping", "cache_key": "2"}'
     - --output_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/image_cropping/manifest.json
+    - /foo/bar/testpipeline/testpipeline-20230101000000/image_cropping/manifest.json
     - --cropping_threshold
     - '0'
     - --padding
     - '0'
-    - --input_partition_rows
-    - None
     - --cache
     - 'True'
+    - --cluster_type
+    - default
     - --component_spec
-    - '{"name": "Image cropping", "description": "Component that removes single-colored
-      borders around images and crops them appropriately", "image": "ghcr.io/ml6team/image_cropping:dev",
+    - '{"name": "Image cropping", "image": "fndnt/image_cropping:dev", "description":
+      "This component crops out image borders. This is typically useful when working
+      with graphical \nimages that have single-color borders (e.g. logos, icons, etc.).\n\nThe
+      component takes an image and calculates which color is most present in the border.
+      It then \ncrops the image in order to minimize this single-color border. The
+      `padding` argument will add \nextra border to the image before cropping it,
+      in order to avoid cutting off parts of the image.\nThe resulting crop will always
+      be square. If a crop is not possible, the component will return \nthe original
+      image.\n\n#### Examples\nExamples of image cropping by removing the single-color
+      border. Left side is original image, \nright side is border-cropped image.\n\n![Example
+      of image cropping by removing the single-color border. Left side is original,
+      right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n![Example
+      of image cropping by removing the single-color border. Left side is original,
+      right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n",
       "consumes": {"images": {"fields": {"data": {"type": "binary"}}}}, "produces":
       {"images": {"fields": {"data": {"type": "binary"}, "width": {"type": "int32"},
       "height": {"type": "int32"}}}}, "args": {"cropping_threshold": {"description":
@@ -50,10 +65,11 @@ services:
       for the image cropping. The padding is added to all borders of the image.",
       "type": "int", "default": 10}}}'
     - --input_manifest_path
-    - /foo/bar/test_pipeline/test_pipeline-20230101000000/first_component/manifest.json
+    - /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
     depends_on:
       first_component:
         condition: service_completed_successfully
-    image: ghcr.io/ml6team/image_cropping:dev
+    ports:
+    - 8787:8787
     volumes: []
 version: '3.8'

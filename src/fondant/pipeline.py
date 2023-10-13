@@ -16,14 +16,35 @@ except ImportError:
 from fondant.component_spec import ComponentSpec
 from fondant.exceptions import InvalidPipelineDefinition
 from fondant.manifest import Manifest
-from fondant.schema import validate_partition_number
 
 logger = logging.getLogger(__name__)
+
+valid_accelerator_types = [
+    "GPU",
+    "TPU",
+]
+
+# Taken from https://github.com/googleapis/python-aiplatform/blob/main/google/cloud/aiplatform_v1/types
+# /accelerator_type.py
+valid_vertex_accelerator_types = [
+    "ACCELERATOR_TYPE_UNSPECIFIED",
+    "NVIDIA_TESLA_K80",
+    "NVIDIA_TESLA_P100",
+    "NVIDIA_TESLA_V100",
+    "NVIDIA_TESLA_P4",
+    "NVIDIA_TESLA_T4",
+    "NVIDIA_TESLA_A100",
+    "NVIDIA_A100_80GB",
+    "NVIDIA_L4",
+    "TPU_V2",
+    "TPU_V3",
+    "TPU_V4_POD",
+]
 
 
 class ComponentOp:
     """
-    Class representing an operation for a Fondant Component in a Kubeflow Pipeline. An operation
+    Class representing an operation for a Fondant Component in a Fondant Pipeline. An operation
     is a representation of a function that will be executed as part of a pipeline.
 
     Arguments:
@@ -31,15 +52,30 @@ class ComponentOp:
         arguments: A dictionary containing the argument name and value for the operation.
         input_partition_rows: The number of rows to load per partition. Set to override the
         automatic partitioning
-        number_of_gpus: The number of gpus to assign to the operation
+        number_of_accelerators: The number of accelerators to assign to the operation (GPU, TPU)
+        accelerator_name: The name of the accelerator to assign. If you're using a cluster setup
+          on GKE, select "GPU" for GPU or "TPU" for TPU. Make sure
+          that you select a nodepool with the available hardware. If you're running the
+          pipeline on Vertex, then select one of the machines specified in the list of
+          accelerators here https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec.
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
         cache: Set to False to disable caching, True by default.
+        memory_request: the memory requested by the component. The value  can be a number or a
+          number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
+        memory_limit: the maximum memory that can be used by the component. The value  can be a
+         number or a number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
+        preemptible: False by default. Set to True to use a preemptible VM.
+         Requires the setup and assignment of a preemptible node pool. Note that preemptibles only
+         work when KFP is setup on GCP. More info here:
+         https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+        cluster_type: The type of cluster to use for distributed execution (default is "local").
+        client_kwargs: Keyword arguments used to initialise the dask client.
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
           arguments.
-        - The `number_of_gpus`, `node_pool_label`, `node_pool_name`
+        - The `accelerator_name`, `node_pool_label`, `node_pool_name`
          attributes are optional and can be used to specify additional
           configurations for the operation. More information on the optional attributes that can
           be assigned to kfp components here:
@@ -54,10 +90,16 @@ class ComponentOp:
         *,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
-        number_of_gpus: t.Optional[int] = None,
+        number_of_accelerators: t.Optional[int] = None,
+        accelerator_name: t.Optional[str] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
+        preemptible: t.Optional[bool] = False,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
+        memory_request: t.Optional[t.Union[str, int]] = None,
+        memory_limit: t.Optional[t.Union[str, int]] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -66,13 +108,31 @@ class ComponentOp:
         )
         self.name = self.component_spec.name.replace(" ", "_").lower()
         self.cache = self._configure_caching_from_image_tag(cache)
-        self.arguments = self._set_arguments(arguments)
+        self.cluster_type = cluster_type
+        self.client_kwargs = client_kwargs
+
+        self.arguments = arguments or {}
+        self._add_component_argument("input_partition_rows", input_partition_rows)
+        self._add_component_argument("cache", self.cache)
+        self._add_component_argument("cluster_type", cluster_type)
+        self._add_component_argument("client_kwargs", client_kwargs)
+
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
-        self.number_of_gpus = number_of_gpus
+        self.memory_request = memory_request
+        self.memory_limit = memory_limit
         self.node_pool_label, self.node_pool_name = self._validate_node_pool_spec(
             node_pool_label,
             node_pool_name,
+        )
+        self.preemptible = preemptible
+
+        (
+            self.number_of_accelerators,
+            self.accelerator_name,
+        ) = self._validate_accelerator_spec(
+            number_of_accelerators,
+            accelerator_name,
         )
 
     def _configure_caching_from_image_tag(
@@ -107,24 +167,22 @@ class ComponentOp:
 
         return cache
 
-    def _set_arguments(
+    def _add_component_argument(
         self,
-        arguments: t.Optional[t.Dict[str, t.Any]],
-    ) -> t.Dict[str, t.Any]:
-        """Set component arguments based on provided arguments and relevant ComponentOp
-        parameters.
-        """
-        arguments = arguments or {}
+        argument_name: str,
+        argument_value: t.Any,
+        validator: t.Optional[t.Callable] = None,
+    ):
+        """Register component argument to arguments dict as well as component attributes."""
+        if hasattr(self, "arguments") is False:
+            self.arguments = {}
 
-        input_partition_rows = validate_partition_number(self.input_partition_rows)
+        if argument_value is not None and (not validator or validator(argument_value)):
+            self.argument_name = argument_value
+            self.arguments[argument_name] = argument_value
 
-        arguments["input_partition_rows"] = str(input_partition_rows)
-        arguments["cache"] = str(self.cache)
-
-        return arguments
-
+    @staticmethod
     def _validate_node_pool_spec(
-        self,
         node_pool_label,
         node_pool_name,
     ) -> t.Tuple[t.Optional[str], t.Optional[str]]:
@@ -135,6 +193,23 @@ class ComponentOp:
                 msg,
             )
         return node_pool_label, node_pool_name
+
+    def _validate_accelerator_spec(
+        self,
+        number_of_accelerators,
+        accelerator_name,
+    ) -> t.Tuple[t.Optional[int], t.Optional[str]]:
+        """Validate accelerator specification."""
+        if bool(number_of_accelerators) != bool(accelerator_name):
+            msg = (
+                "Both number of accelerators and accelerator name must be specified or both must"
+                " be None."
+            )
+            raise InvalidPipelineDefinition(
+                msg,
+            )
+
+        return number_of_accelerators, accelerator_name
 
     @property
     def dockerfile_path(self) -> t.Optional[Path]:
@@ -148,10 +223,16 @@ class ComponentOp:
         *,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
-        number_of_gpus: t.Optional[int] = None,
+        number_of_accelerators: t.Optional[int] = None,
+        accelerator_name: t.Optional[str] = None,
         node_pool_label: t.Optional[str] = None,
         node_pool_name: t.Optional[str] = None,
         cache: t.Optional[bool] = True,
+        preemptible: t.Optional[bool] = False,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
+        memory_request: t.Optional[t.Union[str, int]] = None,
+        memory_limit: t.Optional[t.Union[str, int]] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -160,10 +241,25 @@ class ComponentOp:
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
-            number_of_gpus: The number of gpus to assign to the operation
+            number_of_accelerators: The number of accelerators to assign to the operation (GPU, TPU)
+            accelerator_name: The name of the accelerator to assign. If you're using a cluster setup
+              on GKE, select "GPU" for GPU or "TPU" for TPU. Make
+              sure that you select a nodepool with the available hardware. If you're running the
+              pipeline on Vertex, then select one of the machines specified in the list of
+              accelerators here https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec.
             node_pool_label: The label of the node pool to which the operation will be assigned.
             node_pool_name: The name of the node pool to which the operation will be assigned.
             cache: Set to False to disable caching, True by default.
+            preemptible: False by default. Set to True to use a preemptible VM.
+             Requires the setup and assignment of a preemptible node pool. Note that preemptibles
+             only work when KFP is setup on GCP. More info here:
+             https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+            memory_request: the memory requested by the component. The value  can be a number or a
+             number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
+            memory_limit: the maximum memory that can be used by the component. The value  can be a
+            number or a number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -175,13 +271,22 @@ class ComponentOp:
             components_dir,
             arguments=arguments,
             input_partition_rows=input_partition_rows,
-            number_of_gpus=number_of_gpus,
+            number_of_accelerators=number_of_accelerators,
+            accelerator_name=accelerator_name,
             node_pool_label=node_pool_label,
             node_pool_name=node_pool_name,
             cache=cache,
+            preemptible=preemptible,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
+            memory_request=memory_request,
+            memory_limit=memory_limit,
         )
 
-    def get_component_cache_key(self) -> str:
+    def get_component_cache_key(
+        self,
+        previous_component_cache: t.Optional[str] = None,
+    ) -> str:
         """Calculate a cache key representing the unique identity of this ComponentOp.
 
         The cache key is computed based on the component specification, image hash, arguments, and
@@ -214,9 +319,13 @@ class ComponentOp:
             "component_spec_hash": get_nested_dict_hash(component_spec_dict),
             "arguments": arguments,
             "input_partition_rows": self.input_partition_rows,
-            "number_of_gpus": self.number_of_gpus,
+            "number_of_accelerators": self.number_of_accelerators,
+            "accelerator_name": self.accelerator_name,
             "node_pool_name": self.node_pool_name,
         }
+
+        if previous_component_cache is not None:
+            component_op_uid_dict["previous_component_cache"] = previous_component_cache
 
         return get_nested_dict_hash(component_op_uid_dict)
 
@@ -411,7 +520,7 @@ class Pipeline:
                             raise InvalidPipelineDefinition(
                                 msg,
                             )
-            manifest = manifest.evolve(component_spec)
+            manifest = manifest.evolve(component_spec, run_id=run_id)
             load_component = False
 
         logger.info("All pipeline component specifications match.")

@@ -1,6 +1,8 @@
-name: LAION retrieval
-description: A component that retrieves image URLs from LAION-5B based on a set of CLIP embeddings
-image: ghcr.io/ml6team/embedding_based_laion_retrieval:dev
+name: Embedding based LAION retrieval
+description: |
+  This component retrieves image URLs from LAION-5B based on a set of CLIP embeddings. It can be 
+  used to find images similar to the embedded images / captions.
+image: fndnt/embedding_based_laion_retrieval:dev
 
 consumes:
   embeddings:

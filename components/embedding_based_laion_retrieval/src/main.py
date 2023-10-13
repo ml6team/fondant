@@ -16,11 +16,11 @@ class LAIONRetrievalComponent(PandasTransformComponent):
     """Component that retrieves image URLs from LAION-5B based on a set of CLIP embeddings."""
 
     def __init__(
-            self,
-            *,
-            num_images: int,
-            aesthetic_score: int,
-            aesthetic_weight: float,
+        self,
+        *,
+        num_images: int,
+        aesthetic_score: int,
+        aesthetic_weight: float,
     ) -> None:
         """
 
@@ -41,8 +41,8 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         )
 
     def transform(
-            self,
-            dataframe: pd.DataFrame,
+        self,
+        dataframe: pd.DataFrame,
     ) -> pd.DataFrame:
         """Asynchronously retrieve image URLs and ids based on prompts in the provided dataframe."""
         results: t.List[t.Tuple[str]] = []
@@ -53,7 +53,10 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                 futures = [
                     loop.run_in_executor(
                         executor,
-                        functools.partial(self.client.query, embedding_input=embedding.tolist()),
+                        functools.partial(
+                            self.client.query,
+                            embedding_input=embedding.tolist(),
+                        ),
                     )
                     for embedding in dataframe["embeddings"]["data"]
                 ]
@@ -64,6 +67,9 @@ class LAIONRetrievalComponent(PandasTransformComponent):
 
         results_df = pd.DataFrame(results)[["id", "url"]]
         results_df = results_df.set_index("id")
+
+        # Cast the index to string
+        results_df.index = results_df.index.astype(str)
         results_df.columns = [["images"], ["url"]]
 
         return results_df

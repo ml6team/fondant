@@ -1,6 +1,6 @@
-import json
 import logging
 import subprocess  # nosec
+import typing as t
 from abc import ABC, abstractmethod
 
 import yaml
@@ -73,18 +73,51 @@ class KubeflowRunner(Runner):
         job_name = self.get_name_from_spec(input_spec) + "_run"
         # TODO add logic to see if pipeline exists
         runner = self.client.run_pipeline(
-            experiment_id=experiment.id,
+            experiment_id=experiment.experiment_id,
             job_name=job_name,
             pipeline_package_path=input_spec,
         )
 
-        pipeline_url = f"{self.host}/#/runs/details/{runner.id}"
+        pipeline_url = f"{self.host}/#/runs/details/{runner.run_id}"
         logger.info(f"Pipeline is running at: {pipeline_url}")
 
     def get_name_from_spec(self, input_spec: str):
         """Get the name of the pipeline from the spec."""
         with open(input_spec) as f:
+            spec, *_ = yaml.safe_load_all(f)
+            return spec["pipelineInfo"]["name"]
+
+
+class VertexRunner(Runner):
+    def __resolve_imports(self):
+        import google.cloud.aiplatform as aip
+
+        self.aip = aip
+
+    def __init__(
+        self,
+        project_id: str,
+        project_region: str,
+        service_account: t.Optional[str] = None,
+    ):
+        self.__resolve_imports()
+
+        self.aip.init(
+            project=project_id,
+            location=project_region,
+        )
+        self.service_account = service_account
+
+    def run(self, input_spec: str, *args, **kwargs):
+        job = self.aip.PipelineJob(
+            display_name=self.get_name_from_spec(input_spec),
+            template_path=input_spec,
+            enable_caching=False,
+        )
+        job.submit(service_account=self.service_account)
+
+    def get_name_from_spec(self, input_spec: str):
+        """Get the name of the pipeline from the spec."""
+        with open(input_spec) as f:
             spec = yaml.safe_load(f)
-            return json.loads(
-                spec["metadata"]["annotations"]["pipelines.kubeflow.org/pipeline_spec"],
-            )["name"]
+            return spec["pipelineInfo"]["name"]

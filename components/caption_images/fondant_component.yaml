@@ -1,6 +1,6 @@
 name: Caption images
-description: Component that captions images using a model from the Hugging Face hub
-image: ghcr.io/ml6team/caption_images:dev
+description: This component captions images using a BLIP model from the Hugging Face hub
+image: fndnt/caption_images:dev
 
 consumes:
   images:
@@ -16,14 +16,14 @@ produces:
 
 args:
   model_id:
-    description: id of the model on the Hugging Face hub
+    description: Id of the BLIP model on the Hugging Face hub
     type: str
     default: "Salesforce/blip-image-captioning-base"
   batch_size:
-    description: batch size to use
+    description: Batch size to use for inference
     type: int
     default: 8
   max_new_tokens:
-    description: maximum token length of each caption
+    description: Maximum token length of each caption
     type: int
     default: 50

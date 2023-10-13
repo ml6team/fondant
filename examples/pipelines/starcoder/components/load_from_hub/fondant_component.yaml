@@ -1,6 +1,6 @@
 name: Load code dataset from hub
 description: Component that loads the stack dataset from the hub
-image: ghcr.io/ml6team/load_from_hf_hub:latest
+image: fndnt/load_from_hf_hub:latest
 
 produces:
   code:
@@ -33,11 +33,11 @@ args:
     description: A list containing the original hub image column names. Used to format the image
       from HF hub format to a byte string
     type: list
-    default: None
+    default: []
   n_rows_to_load:
     description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
     type: int
-    default: None
+    default: -1
   index_column:
     description: Column to set index to in the load component, if not specified a default globally unique index will be set
     type: str

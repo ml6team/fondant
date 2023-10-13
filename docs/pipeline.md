@@ -30,7 +30,8 @@ def build_pipeline():
             "batch_size": 2,  
             "max_new_tokens": 50,  
         },  
-        number_of_gpus=1,
+        number_of_accelerators=1,
+        accelerator_name="GPU",
         node_pool_label="node_pool",  
         node_pool_name="model-inference-pool",  
     )
@@ -48,7 +49,16 @@ Next, we define two operations: `load_from_hub_op`, which is a based from a reus
     Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs will be available in future releases.
 
 ## Setting Custom node pool parameters
-Each component can optionally be constrained to run on particular node(s) using `node_pool_label` and `node_pool_name`. You can find these under the Kubernetes labels of your cluster. You can use the default node label provided by Kubernetes or attach your own. Note that the value of these labels is cloud provider specific.
+Each component can optionally be constrained to run on particular node(s) using `node_pool_label` and `node_pool_name`. You can find these under the Kubernetes labels of your cluster. 
+You can use the default node label provided by Kubernetes or attach your own. Note that the value of these labels is cloud provider specific.  
+
+Note that you can also setup a component to use a preemptible VM by setting `preemptible` to `True`.
+This Requires the setup and assignment of a preemptible node pool. Note that preemptibles only work
+when KFP is setup on GCP. 
+
+More info here: https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+
+
 
 ## Setting Custom partitioning parameters
 
@@ -130,7 +140,7 @@ The Kubeflow compiler will take your pipeline and compile it to a Kubeflow pipel
 
 - Using the CLI:
 ```bash
-fondant compile <pipeline_ref> --kubeflow --output <path_to_output>
+fondant compile kubeflow --output <path_to_output> <pipeline_ref>
 ```
 
 - Using the compiler directly:
@@ -154,7 +164,7 @@ There are 2 ways to run a Kubeflow compiled pipeline:
 
 - Using the CLI:
 ```bash
-fondant run <pipeline_ref> --kubeflow --host <kubeflow_host>
+fondant run kubeflow --host <kubeflow_host> <pipeline_ref>
 ```
 NOTE: that the pipeline ref is the path to the compiled pipeline spec OR a reference to an fondant pipeline in which case the compiler will compile the pipeline first before running.
 
@@ -242,7 +252,7 @@ docker compose up
 
 Or you can use the fondant cli to run the pipeline:
 ```bash
-fondant run <pipeline_ref> --local
+fondant run local <pipeline_ref>
 ```
 
 NOTE: that the pipeline ref is the path to the compiled pipeline spec OR a reference to an fondant pipeline in which case the compiler will compile the pipeline first before running.

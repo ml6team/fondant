@@ -22,3 +22,6 @@ build:
     post_install:
       # Install dependencies with 'docs' dependency group
       - poetry install --with docs
+    pre_build:
+      # Generate hub documentation
+      - python scripts/component_readme/generate_hub.py

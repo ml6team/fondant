@@ -4,17 +4,19 @@ framework, providing a standardized interface for extending loading and transfor
 The loading component is the first component that loads the initial dataset and the transform
 components take care of processing, filtering and extending the data.
 """
-
 import argparse
-import ast
 import json
 import logging
+import os
 import typing as t
 from abc import abstractmethod
+from distutils.util import strtobool
 from pathlib import Path
 
+import dask
 import dask.dataframe as dd
 import pandas as pd
+from dask.distributed import Client, LocalCluster
 from fsspec import open as fs_open
 
 from fondant.component import (
@@ -24,16 +26,34 @@ from fondant.component import (
     DaskWriteComponent,
     PandasTransformComponent,
 )
-from fondant.component_spec import Argument, ComponentSpec, kubeflow2python_type
+from fondant.component_spec import Argument, ComponentSpec
 from fondant.data_io import DaskDataLoader, DaskDataWriter
 from fondant.manifest import Manifest, Metadata
-from fondant.schema import validate_partition_number
 
+dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)
 
 
 class Executor(t.Generic[Component]):
-    """An executor executes a Component."""
+    """
+    An executor executes a Component.
+
+    Args:
+        spec: The specification of the Component to be executed.
+        cache: Flag indicating whether to use caching for intermediate results.
+        input_manifest_path: The path to the input manifest file.
+        output_manifest_path: The path to the output manifest file.
+        metadata: Components metadata dict
+        user_arguments: User-defined component arguments.
+        input_partition_rows: The number of rows to process in each
+        partition of dataframe.
+        Partitions are divided based on this number (n rows per partition).
+        Set to None for no row limit.
+        cluster_type: The type of cluster to use for distributed execution
+        (default is "local").
+        client_kwargs: Additional keyword arguments dict which will be used to
+        initialise the dask client, allowing for advanced configuration.
+    """
 
     def __init__(
         self,
@@ -44,7 +64,9 @@ class Executor(t.Generic[Component]):
         output_manifest_path: t.Union[str, Path],
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
-        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        input_partition_rows: int,
+        cluster_type: t.Optional[str] = None,
+        client_kwargs: t.Optional[dict] = None,
     ) -> None:
         self.spec = spec
         self.cache = cache
@@ -54,13 +76,43 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
 
+        if cluster_type == "local":
+            if client_kwargs is None:
+                client_kwargs = {
+                    "processes": True,
+                    "n_workers": os.cpu_count(),
+                    "threads_per_worker": 1,
+                }
+
+            logger.info(f"Initialize local dask cluster with arguments {client_kwargs}")
+
+            # Additional dask configuration have to be set before initialising the client
+            # worker.daemon is set to false because creating a worker process in daemon
+            # mode is not possible in our docker container setup.
+            dask.config.set({"distributed.worker.daemon": False})
+
+            local_cluster = LocalCluster(**client_kwargs, silence_logs=logging.ERROR)
+            self.client = Client(local_cluster)
+
+        elif cluster_type == "distributed":
+            msg = "The usage of the Dask distributed client is not supported yet."
+            raise NotImplementedError(msg)
+        else:
+            logger.info(
+                "Dask default local mode will be used for further executions."
+                "Our current supported options are limited to 'local' and 'default'.",
+            )
+            self.client = None
+
     @classmethod
     def from_args(cls) -> "Executor":
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--component_spec", type=json.loads)
-        parser.add_argument("--cache", type=ast.literal_eval)
-        parser.add_argument("--input_partition_rows", type=validate_partition_number)
+        parser.add_argument("--cache", type=lambda x: bool(strtobool(x)))
+        parser.add_argument("--input_partition_rows", type=int)
+        parser.add_argument("--cluster_type", type=str)
+        parser.add_argument("--client_kwargs", type=json.loads)
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -70,11 +122,15 @@ class Executor(t.Generic[Component]):
         component_spec = ComponentSpec(args.component_spec)
         input_partition_rows = args.input_partition_rows
         cache = args.cache
+        cluster_type = args.cluster_type
+        client_kwargs = args.client_kwargs
 
         return cls.from_spec(
             component_spec,
             cache=cache,
             input_partition_rows=input_partition_rows,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
         )
 
     @classmethod
@@ -83,7 +139,9 @@ class Executor(t.Generic[Component]):
         component_spec: ComponentSpec,
         *,
         cache: bool,
-        input_partition_rows: t.Optional[t.Union[str, int]],
+        input_partition_rows: int,
+        cluster_type: t.Optional[str],
+        client_kwargs: t.Optional[dict],
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
@@ -96,6 +154,12 @@ class Executor(t.Generic[Component]):
 
         if "cache" in args_dict:
             args_dict.pop("cache")
+
+        if "cluster_type" in args_dict:
+            args_dict.pop("cluster_type")
+
+        if "client_kwargs" in args_dict:
+            args_dict.pop("client_kwargs")
 
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
@@ -110,6 +174,8 @@ class Executor(t.Generic[Component]):
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
         )
 
     @classmethod
@@ -121,22 +187,29 @@ class Executor(t.Generic[Component]):
             if arg.name in cls.optional_fondant_arguments():
                 input_required = False
                 default = None
-            elif arg.default is not None:
+            elif arg.default is not None and arg.optional is False:
                 input_required = False
                 default = arg.default
+            elif arg.default is not None and arg.optional is True:
+                input_required = False
+                default = None
             else:
                 input_required = True
                 default = None
 
             parser.add_argument(
                 f"--{arg.name}",
-                type=kubeflow2python_type(arg.type),  # type: ignore
+                type=arg.python_type,  # type: ignore
                 required=input_required,
                 default=default,
                 help=arg.description,
             )
 
         args, _ = parser.parse_known_args()
+        args.__dict__ = {
+            k: v if v != "None" else None for k, v in args.__dict__.items()
+        }
+
         return args
 
     @staticmethod
@@ -154,9 +227,7 @@ class Executor(t.Generic[Component]):
             Input and output arguments of the component.
         """
         component_arguments: t.Dict[str, Argument] = {}
-        kubeflow_component_spec = spec.kubeflow_specification
-        component_arguments.update(kubeflow_component_spec.input_arguments)
-        component_arguments.update(kubeflow_component_spec.output_arguments)
+        component_arguments.update(spec.args)
         return component_arguments
 
     @abstractmethod
@@ -188,7 +259,7 @@ class Executor(t.Generic[Component]):
             component_spec=self.spec,
         )
 
-        data_writer.write_dataframe(dataframe)
+        data_writer.write_dataframe(dataframe, self.client)
 
     def _get_cached_manifest(self) -> t.Union[Manifest, None]:
         """
@@ -206,7 +277,12 @@ class Executor(t.Generic[Component]):
         )
 
         try:
-            with fs_open(manifest_reference_path, mode="rt", encoding="utf-8") as file_:
+            with fs_open(
+                manifest_reference_path,
+                mode="rt",
+                encoding="utf-8",
+                auto_mkdir=True,
+            ) as file_:
                 cached_manifest_path = file_.read()
                 manifest = Manifest.from_file(cached_manifest_path)
                 logger.info(
@@ -262,7 +338,10 @@ class Executor(t.Generic[Component]):
             component,
             manifest=input_manifest,
         )
-        output_manifest = input_manifest.evolve(component_spec=self.spec)
+        output_manifest = input_manifest.evolve(
+            component_spec=self.spec,
+            run_id=self.metadata.run_id,
+        )
         self._write_data(dataframe=output_df, manifest=output_manifest)
 
         return output_manifest
@@ -312,49 +391,27 @@ class Executor(t.Generic[Component]):
 
         logger.info(f"Writing cache key to {manifest_reference_path}")
 
-        with fs_open(manifest_reference_path, mode="wt", encoding="utf-8") as file_:
+        with fs_open(
+            manifest_reference_path,
+            mode="wt",
+            encoding="utf-8",
+            auto_mkdir=True,
+        ) as file_:
             file_.write(str(manifest_save_path))
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         """
         Uploads the manifest to the specified destination.
 
-        If the save_path points to the kubeflow output artifact temporary path,
-        it will be saved both in a specific base path and the native kfp artifact path.
-
         Args:
             manifest: The Manifest object to be uploaded.
             save_path: The path where the Manifest object will be saved.
 
         """
-        is_kubeflow_output = (
-            str(save_path) == "/tmp/outputs/output_manifest_path/data"  # nosec
-        )
-
-        if is_kubeflow_output:
-            # Save to the expected base path directory
-            save_path_base_path = (
-                f"{manifest.base_path}/{manifest.pipeline_name}/{manifest.run_id}/"
-                f"{manifest.component_id}/manifest.json"
-            )
-            # Upload manifest and it's reference if cache is False
-            manifest.to_file(save_path_base_path)
-            logger.info(f"Saving output manifest to {save_path_base_path}")
-            self._upload_cache_key(
-                manifest=manifest,
-                manifest_save_path=save_path_base_path,
-            )
-            # Write manifest to the native kfp artifact path that will be passed as an artifact
-            # and read by the next component
-            manifest.to_file(save_path)
-        else:
-            # Local runner
-            manifest.to_file(save_path)
-            logger.info(f"Saving output manifest to {save_path}")
-            self._upload_cache_key(
-                manifest=manifest,
-                manifest_save_path=save_path,
-            )
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        manifest.to_file(save_path)
+        logger.info(f"Saving output manifest to {save_path}")
+        self._upload_cache_key(manifest=manifest, manifest_save_path=save_path)
 
 
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
@@ -365,7 +422,7 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
 
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
-        return ["input_manifest_path"]
+        return ["input_manifest_path", "input_partition_rows"]
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.create(
@@ -429,6 +486,10 @@ class DaskTransformExecutor(TransformExecutor[DaskTransformComponent]):
 
 
 class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
+    @staticmethod
+    def optional_fondant_arguments() -> t.List[str]:
+        return ["input_manifest_path", "input_partition_rows"]
+
     @staticmethod
     def wrap_transform(transform: t.Callable, *, spec: ComponentSpec) -> t.Callable:
         """Factory that creates a function to wrap the component transform function. The wrapper:
@@ -533,7 +594,7 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
 
     @staticmethod
     def optional_fondant_arguments() -> t.List[str]:
-        return ["output_manifest_path"]
+        return ["input_partition_rows", "output_manifest_path"]
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.input_manifest_path)
