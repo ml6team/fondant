@@ -1,0 +1,33 @@
+name: Index embeddings
+description: Component that takes embeddings of text passages and indexes them into a vector database (weaviate).
+image: index_embeddings:latest
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+      embedding:
+        type: array
+        items:
+          type: float32
+
+args:
+  weaviate_url:
+    description: The url of the weaviate instance.
+    type: str
+    default: http://localhost:8080
+  model:
+    description: The name of the model used to generate the embeddings.
+    type: str
+    default: all-MiniLM-L6-v2
+  dataset:
+    description: The name of the text corpus from which passages were extracted.
+    type: str
+  vectorizer:
+    description: The configuration of the weaviate vectorizer corresponding to the model used to generate the embeddings. Can also be none.
+    type: dict
+  overwrite:
+    description: Whether to overwrite/ re-create the existing weaviate class and its embeddings.
+    type: bool
+    default: 0
