@@ -1,0 +1,30 @@
+name: Generate embeddings
+description: A component that generates embeddings for text passages.
+image: generate_embeddings:latest
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+
+produces:
+  text:
+    fields:
+      data:
+        type: string
+      embedding:
+        type: array
+        items:
+          type: float32
+          
+args:
+  model:
+    description: Model to generate embeddings from.
+    type: str
+    default: all-MiniLM-L6-v2
+  model_provider:
+    description: Provider of the model.
+    type: str
+    default: HuggingFace
+  
