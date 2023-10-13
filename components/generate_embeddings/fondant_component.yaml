@@ -20,11 +20,11 @@ produces:
           
 args:
   model:
-    description: Model to generate embeddings from.
+    description: The model to generate embeddings from.
     type: str
     default: all-MiniLM-L6-v2
   model_provider:
-    description: Provider of the model.
+    description: The provider of the model.
     type: str
     default: HuggingFace
   
