@@ -22,8 +22,8 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| model | str | The model to generate embeddings from. | all-MiniLM-L6-v2 |
-| model_provider | str | The provider of the model. | HuggingFace |
+| model_provider | str | The provider of the model - corresponding to langchain embedding classes. Currently the following providers are supported: aleph_alpha, cohere, huggingface, openai. | huggingface |
+| model | str | The model to generate embeddings from. Choose an available model name to pass to the model provider's langchain embedding class. | all-MiniLM-L6-v2 |
 
 ### Usage
 
@@ -37,8 +37,8 @@ generate_embeddings_op = ComponentOp.from_registry(
     name="generate_embeddings",
     arguments={
         # Add arguments
+        # "model_provider": "huggingface",
         # "model": "all-MiniLM-L6-v2",
-        # "model_provider": "HuggingFace",
     }
 )
 pipeline.add_op(generate_embeddings_op, dependencies=[...])  #Add previous component as dependency

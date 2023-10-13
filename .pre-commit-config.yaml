@@ -56,6 +56,7 @@ repos:
           - types-jsonschema
           - types-PyYAML
           - types-requests
+          - types-retry
         pass_filenames: false
 
   - repo: local

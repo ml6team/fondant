@@ -29,16 +29,16 @@ class GenerateEmbeddings(PandasTransformComponent):
 
     def get_embedding_model(self, model_provider, model: str):
         # contains a first selection of embedding models
-        if model_provider == "Alephalpha":
+        if model_provider == "aleph_alpha":
             return AlephAlphaAsymmetricSemanticEmbedding(model=model)
-        elif model_provider == "Cohere":
+        if model_provider == "cohere":
             return CohereEmbeddings(model=model)
-        elif model_provider == "HuggingFace":
+        if model_provider == "huggingface":
             return HuggingFaceEmbeddings(model_name=model)
-        elif model_provider == "Openai":
+        if model_provider == "openai":
             return OpenAIEmbeddings(model=model)
-        else:
-            raise ValueError(f"Unknown provider {model_provider}")
+        msg = f"Unknown provider {model_provider}"
+        raise ValueError(msg)
 
     @retry()  # make sure to keep trying even when api call limit is reached
     def get_embeddings_vectors(self, embedding_model, texts):
@@ -47,6 +47,7 @@ class GenerateEmbeddings(PandasTransformComponent):
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         embedding_model = self.get_embedding_model(self.model_provider, self.model)
         dataframe[("text", "embedding")] = self.get_embeddings_vectors(
-            embedding_model, dataframe[("text", "data")]
+            embedding_model,
+            dataframe[("text", "data")],
         )
         return dataframe

@@ -19,12 +19,17 @@ produces:
           type: float32
           
 args:
+  model_provider:
+    description: |
+      The provider of the model - corresponding to langchain embedding classes. 
+      Currently the following providers are supported: aleph_alpha, cohere, huggingface, openai.
+    type: str
+    default: huggingface
   model:
-    description: The model to generate embeddings from.
+    description: |
+      The model to generate embeddings from. 
+      Choose an available model name to pass to the model provider's langchain embedding class.
     type: str
     default: all-MiniLM-L6-v2
-  model_provider:
-    description: The provider of the model.
-    type: str
-    default: HuggingFace
+  
   
