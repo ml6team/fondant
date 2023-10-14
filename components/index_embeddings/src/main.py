@@ -8,7 +8,7 @@ from weaviate.util import _capitalize_first_letter
 logger = logging.getLogger(__name__)
 
 
-class EmbeddingsToWeaviate(DaskWriteComponent):
+class IndexEmbeddingsComponent(DaskWriteComponent):
     def __init__(
         self,
         *_,
@@ -37,27 +37,25 @@ class EmbeddingsToWeaviate(DaskWriteComponent):
             ],
         }
 
-        # if vectorizer "none" is provided, one has to compute embeddings before querying from weaviate
-        # e.g. computing query embeddings beforehand and running vectorstore.similarity_search_by_vector() in langchain
         self.class_obj.update(vectorizer)
 
     def write(self, dataframe: dd.DataFrame):
-        # using weaviate instead of its langchain wrapper because langchain does not yet provide ingestion of pre-computed embeddings
+        # using weaviate instead of its langchain wrapper
+        # because langchain does not yet provide ingestion of pre-computed embeddings
         if self.overwrite:
             self.client.schema.delete_class(self.class_name)
             self.client.schema.create_class(self.class_obj)
+        elif not self.client.schema.exists(self.class_name):
+            self.client.schema.create_class(self.class_obj)
         else:
-            if not self.client.schema.exists(self.class_name):
-                self.client.schema.create_class(self.class_obj)
-            else:
-                # do nothing
-                return dataframe
+            # do not index
+            return dataframe
 
         self.client.batch.configure(batch_size=100, dynamic=True, num_workers=2)
         with self.client.batch as batch:
             for part in dataframe.partitions:
-                df = part.compute()
-                for identifier, data in df.iterrows():
+                dataframe = part.compute()
+                for identifier, data in dataframe.iterrows():
                     properties = {
                         "passage": data["text_data"],
                         "identifier": identifier,
