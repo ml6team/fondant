@@ -39,13 +39,13 @@ def test_run_component_test():
 
     with open("hello_world_embedding.txt", encoding="utf-8") as f:
         hello_world_embedding = f.read()
-        HELLO_WORLD_EMBEDDING = json.loads(hello_world_embedding)
+        hello_world_embedding = json.loads(hello_world_embedding)
 
     # Then: right embeddings are generated
     assert len(dataframe) == DATA_LENTGH
     assert embeddings_close(
         dataframe.iloc[0]["text"]["embedding"],
-        HELLO_WORLD_EMBEDDING,
+        hello_world_embedding,
     )
     # Then: too long text is truncated and thus embeddings are the same
     assert (
