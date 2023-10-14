@@ -1,5 +1,5 @@
 name: Index embeddings
-description: Component that takes embeddings of text snippets and indexes them into a vector database (weaviate).
+description: Component that takes embeddings of text snippets and indexes them into a weaviate vector database.
 image: index_embeddings:latest
 
 consumes:
