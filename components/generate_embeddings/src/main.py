@@ -14,7 +14,7 @@ from utils import to_env_vars
 logger = logging.getLogger(__name__)
 
 
-class GenerateEmbeddings(PandasTransformComponent):
+class GenerateEmbeddingsComponent(PandasTransformComponent):
     def __init__(
         self,
         *_,
