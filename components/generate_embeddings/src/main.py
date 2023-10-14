@@ -9,7 +9,7 @@ from langchain.embeddings import (
     OpenAIEmbeddings,
 )
 from retry import retry
-from utils import secrets_to_env_vars
+from utils import to_env_vars
 
 logger = logging.getLogger(__name__)
 
@@ -18,14 +18,14 @@ class GenerateEmbeddings(PandasTransformComponent):
     def __init__(
         self,
         *_,
-        model: str,
         model_provider: str,
+        model: str,
+        api_keys: dict,
     ):
-        self.model = model
         self.model_provider = model_provider
+        self.model = model
 
-        # to pass embedding model API keys via env vars
-        secrets_to_env_vars()
+        to_env_vars(api_keys)
 
     def get_embedding_model(self, model_provider, model: str):
         # contains a first selection of embedding models

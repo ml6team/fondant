@@ -31,5 +31,11 @@ args:
       Choose an available model name to pass to the model provider's langchain embedding class.
     type: str
     default: all-MiniLM-L6-v2
+  api_keys:
+    description: |
+      The API keys to use for the model provider that are written to environment variables.
+      Pass only the keys required by the model provider or conveniently pass all keys you will ever need. 
+      Pay attention how to name the dictionary keys so that they can be used by the model provider.
+    type: dict
   
   
