@@ -34,8 +34,11 @@ class Argument:
     name: str
     description: str
     type: str
-    default: t.Optional[t.Any] = None
+    default: t.Any = None
     optional: t.Optional[bool] = False
+
+    def __post_init__(self):
+        self.default = None if self.default == "None" else self.default
 
     @property
     def python_type(self) -> t.Any:
@@ -192,14 +195,6 @@ class ComponentSpec:
 
     @property
     def args(self) -> t.Mapping[str, Argument]:
-        def _get_default(argument_info):
-            if "default" in argument_info:
-                if argument_info["default"] == "None":
-                    return None
-                return argument_info["default"]
-
-            return None
-
         args = self.default_arguments
         args.update(
             {
@@ -207,7 +202,7 @@ class ComponentSpec:
                     name=name,
                     description=arg_info["description"],
                     type=arg_info["type"],
-                    default=_get_default(arg_info),
+                    default=arg_info["default"] if "default" in arg_info else None,
                     optional=arg_info.get("default") == "None",
                 )
                 for name, arg_info in self._specification.get("args", {}).items()
