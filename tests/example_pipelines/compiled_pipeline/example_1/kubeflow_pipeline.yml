@@ -11,6 +11,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
         cluster_type:
           defaultValue: default
           isOptional: true
@@ -21,7 +25,7 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
+          defaultValue: -1.0
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -38,6 +42,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
         cluster_type:
           defaultValue: default
           isOptional: true
@@ -48,7 +56,7 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
+          defaultValue: -1.0
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -65,6 +73,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
         cluster_type:
           defaultValue: default
           isOptional: true
@@ -75,7 +87,7 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
+          defaultValue: -1.0
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -89,26 +101,28 @@ deploymentSpec:
     exec-first-component:
       container:
         args:
-        - "--input_manifest_path"
-        - "{{$.inputs.parameters['input_manifest_path']}}"
-        - "--component_spec"
-        - "{{$.inputs.parameters['component_spec']}}"
-        - "--input_partition_rows"
-        - "{{$.inputs.parameters['input_partition_rows']}}"
-        - "--cache"
-        - "{{$.inputs.parameters['cache']}}"
-        - "--cluster_type"
-        - "{{$.inputs.parameters['cluster_type']}}"
-        - "--metadata"
-        - "{{$.inputs.parameters['metadata']}}"
-        - "--output_manifest_path"
-        - "{{$.inputs.parameters['output_manifest_path']}}"
-        - "--storage_args"
-        - "{{$.inputs.parameters['storage_args']}}"
+          - "--input_manifest_path"
+          - "{{$.inputs.parameters['input_manifest_path']}}"
+          - "--component_spec"
+          - "{{$.inputs.parameters['component_spec']}}"
+          - "--input_partition_rows"
+          - "{{$.inputs.parameters['input_partition_rows']}}"
+          - "--cache"
+          - "{{$.inputs.parameters['cache']}}"
+          - "--cluster_type"
+          - "{{$.inputs.parameters['cluster_type']}}"
+          - "--client_kwargs"
+          - "{{$.inputs.parameters['client_kwargs']}}"
+          - "--metadata"
+          - "{{$.inputs.parameters['metadata']}}"
+          - "--output_manifest_path"
+          - "{{$.inputs.parameters['output_manifest_path']}}"
+          - "--storage_args"
+          - "{{$.inputs.parameters['storage_args']}}"
         command:
-        - fondant
-        - execute
-        - main
+          - fondant
+          - execute
+          - main
         image: example_component:latest
         resources:
           memoryLimit: 0.512
@@ -116,50 +130,54 @@ deploymentSpec:
     exec-second-component:
       container:
         args:
-        - "--input_manifest_path"
-        - "{{$.inputs.parameters['input_manifest_path']}}"
-        - "--component_spec"
-        - "{{$.inputs.parameters['component_spec']}}"
-        - "--input_partition_rows"
-        - "{{$.inputs.parameters['input_partition_rows']}}"
-        - "--cache"
-        - "{{$.inputs.parameters['cache']}}"
-        - "--cluster_type"
-        - "{{$.inputs.parameters['cluster_type']}}"
-        - "--metadata"
-        - "{{$.inputs.parameters['metadata']}}"
-        - "--output_manifest_path"
-        - "{{$.inputs.parameters['output_manifest_path']}}"
-        - "--storage_args"
-        - "{{$.inputs.parameters['storage_args']}}"
+          - "--input_manifest_path"
+          - "{{$.inputs.parameters['input_manifest_path']}}"
+          - "--component_spec"
+          - "{{$.inputs.parameters['component_spec']}}"
+          - "--input_partition_rows"
+          - "{{$.inputs.parameters['input_partition_rows']}}"
+          - "--cache"
+          - "{{$.inputs.parameters['cache']}}"
+          - "--cluster_type"
+          - "{{$.inputs.parameters['cluster_type']}}"
+          - "--client_kwargs"
+          - "{{$.inputs.parameters['client_kwargs']}}"
+          - "--metadata"
+          - "{{$.inputs.parameters['metadata']}}"
+          - "--output_manifest_path"
+          - "{{$.inputs.parameters['output_manifest_path']}}"
+          - "--storage_args"
+          - "{{$.inputs.parameters['storage_args']}}"
         command:
-        - fondant
-        - execute
-        - main
+          - fondant
+          - execute
+          - main
         image: example_component:latest
     exec-third-component:
       container:
         args:
-        - "--input_manifest_path"
-        - "{{$.inputs.parameters['input_manifest_path']}}"
-        - "--component_spec"
-        - "{{$.inputs.parameters['component_spec']}}"
-        - "--input_partition_rows"
-        - "{{$.inputs.parameters['input_partition_rows']}}"
-        - "--cache"
-        - "{{$.inputs.parameters['cache']}}"
-        - "--cluster_type"
-        - "{{$.inputs.parameters['cluster_type']}}"
-        - "--metadata"
-        - "{{$.inputs.parameters['metadata']}}"
-        - "--output_manifest_path"
-        - "{{$.inputs.parameters['output_manifest_path']}}"
-        - "--storage_args"
-        - "{{$.inputs.parameters['storage_args']}}"
+          - "--input_manifest_path"
+          - "{{$.inputs.parameters['input_manifest_path']}}"
+          - "--component_spec"
+          - "{{$.inputs.parameters['component_spec']}}"
+          - "--input_partition_rows"
+          - "{{$.inputs.parameters['input_partition_rows']}}"
+          - "--cache"
+          - "{{$.inputs.parameters['cache']}}"
+          - "--cluster_type"
+          - "{{$.inputs.parameters['cluster_type']}}"
+          - "--client_kwargs"
+          - "{{$.inputs.parameters['client_kwargs']}}"
+          - "--metadata"
+          - "{{$.inputs.parameters['metadata']}}"
+          - "--output_manifest_path"
+          - "{{$.inputs.parameters['output_manifest_path']}}"
+          - "--storage_args"
+          - "{{$.inputs.parameters['storage_args']}}"
         command:
-        - fondant
-        - execute
-        - main
+          - fondant
+          - execute
+          - main
         image: example_component:latest
 pipelineInfo:
   description: description of the test pipeline
@@ -200,7 +218,7 @@ root:
                           type: binary
             input_partition_rows:
               runtimeValue:
-                constant: 10
+                constant: 10.0
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -219,7 +237,7 @@ root:
         componentRef:
           name: comp-second-component
         dependentTasks:
-        - first-component
+          - first-component
         inputs:
           parameters:
             cache:
@@ -255,7 +273,7 @@ root:
                 constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
             input_partition_rows:
               runtimeValue:
-                constant: 10
+                constant: 10.0
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -274,7 +292,7 @@ root:
         componentRef:
           name: comp-third-component
         dependentTasks:
-        - second-component
+          - second-component
         inputs:
           parameters:
             cache:

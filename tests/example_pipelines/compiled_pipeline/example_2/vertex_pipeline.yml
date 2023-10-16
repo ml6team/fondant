@@ -11,6 +11,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
         cluster_type:
           defaultValue: default
           isOptional: true
@@ -38,6 +42,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
         cluster_type:
           defaultValue: default
           isOptional: true
@@ -45,14 +53,14 @@ components:
         component_spec:
           parameterType: STRUCT
         cropping_threshold:
-          defaultValue: -30.0
+          defaultValue: -30
           isOptional: true
           parameterType: NUMBER_INTEGER
         input_manifest_path:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1.0
+          defaultValue: -1
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -60,7 +68,7 @@ components:
         output_manifest_path:
           parameterType: STRING
         padding:
-          defaultValue: 10.0
+          defaultValue: 10
           isOptional: true
           parameterType: NUMBER_INTEGER
 deploymentSpec:
@@ -68,52 +76,56 @@ deploymentSpec:
     exec-first-component:
       container:
         args:
-        - "--input_manifest_path"
-        - "{{$.inputs.parameters['input_manifest_path']}}"
-        - "--component_spec"
-        - "{{$.inputs.parameters['component_spec']}}"
-        - "--input_partition_rows"
-        - "{{$.inputs.parameters['input_partition_rows']}}"
-        - "--cache"
-        - "{{$.inputs.parameters['cache']}}"
-        - "--cluster_type"
-        - "{{$.inputs.parameters['cluster_type']}}"
-        - "--metadata"
-        - "{{$.inputs.parameters['metadata']}}"
-        - "--output_manifest_path"
-        - "{{$.inputs.parameters['output_manifest_path']}}"
-        - "--storage_args"
-        - "{{$.inputs.parameters['storage_args']}}"
+          - "--input_manifest_path"
+          - "{{$.inputs.parameters['input_manifest_path']}}"
+          - "--component_spec"
+          - "{{$.inputs.parameters['component_spec']}}"
+          - "--input_partition_rows"
+          - "{{$.inputs.parameters['input_partition_rows']}}"
+          - "--cache"
+          - "{{$.inputs.parameters['cache']}}"
+          - "--cluster_type"
+          - "{{$.inputs.parameters['cluster_type']}}"
+          - "--client_kwargs"
+          - "{{$.inputs.parameters['client_kwargs']}}"
+          - "--metadata"
+          - "{{$.inputs.parameters['metadata']}}"
+          - "--output_manifest_path"
+          - "{{$.inputs.parameters['output_manifest_path']}}"
+          - "--storage_args"
+          - "{{$.inputs.parameters['storage_args']}}"
         command:
-        - fondant
-        - execute
-        - main
+          - fondant
+          - execute
+          - main
         image: example_component:latest
     exec-image-cropping:
       container:
         args:
-        - "--input_manifest_path"
-        - "{{$.inputs.parameters['input_manifest_path']}}"
-        - "--component_spec"
-        - "{{$.inputs.parameters['component_spec']}}"
-        - "--input_partition_rows"
-        - "{{$.inputs.parameters['input_partition_rows']}}"
-        - "--cache"
-        - "{{$.inputs.parameters['cache']}}"
-        - "--cluster_type"
-        - "{{$.inputs.parameters['cluster_type']}}"
-        - "--metadata"
-        - "{{$.inputs.parameters['metadata']}}"
-        - "--output_manifest_path"
-        - "{{$.inputs.parameters['output_manifest_path']}}"
-        - "--cropping_threshold"
-        - "{{$.inputs.parameters['cropping_threshold']}}"
-        - "--padding"
-        - "{{$.inputs.parameters['padding']}}"
+          - "--input_manifest_path"
+          - "{{$.inputs.parameters['input_manifest_path']}}"
+          - "--component_spec"
+          - "{{$.inputs.parameters['component_spec']}}"
+          - "--input_partition_rows"
+          - "{{$.inputs.parameters['input_partition_rows']}}"
+          - "--cache"
+          - "{{$.inputs.parameters['cache']}}"
+          - "--cluster_type"
+          - "{{$.inputs.parameters['cluster_type']}}"
+          - "--client_kwargs"
+          - "{{$.inputs.parameters['client_kwargs']}}"
+          - "--metadata"
+          - "{{$.inputs.parameters['metadata']}}"
+          - "--output_manifest_path"
+          - "{{$.inputs.parameters['output_manifest_path']}}"
+          - "--cropping_threshold"
+          - "{{$.inputs.parameters['cropping_threshold']}}"
+          - "--padding"
+          - "{{$.inputs.parameters['padding']}}"
         command:
-        - fondant
-        - execute
-        - main
+          - fondant
+          - execute
+          - main
         image: fndnt/image_cropping:dev
 pipelineInfo:
   description: description of the test pipeline
@@ -170,7 +182,7 @@ root:
         componentRef:
           name: comp-image-cropping
         dependentTasks:
-        - first-component
+          - first-component
         inputs:
           parameters:
             cache:
@@ -184,13 +196,13 @@ root:
                 constant:
                   args:
                     cropping_threshold:
-                      default: -30.0
+                      default: -30
                       description: Threshold parameter used for detecting borders.
                         A lower (negative) parameter results in a more performant
                         border detection, but can cause overcropping. Default is -30
                       type: int
                     padding:
-                      default: 10.0
+                      default: 10
                       description: Padding for the image cropping. The padding is
                         added to all borders of the image.
                       type: int
@@ -227,7 +239,7 @@ root:
                           type: int32
             cropping_threshold:
               runtimeValue:
-                constant: 0.0
+                constant: 0
             input_manifest_path:
               runtimeValue:
                 constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
@@ -241,7 +253,7 @@ root:
                 constant: "/foo/bar/testpipeline/testpipeline-20230101000000/image_cropping/manifest.json"
             padding:
               runtimeValue:
-                constant: 0.0
+                constant: 0
         taskInfo:
           name: image-cropping
 schemaVersion: 2.1.0
