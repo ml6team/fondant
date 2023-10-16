@@ -192,6 +192,14 @@ class ComponentSpec:
 
     @property
     def args(self) -> t.Mapping[str, Argument]:
+        def _get_default(argument_info):
+            if "default" in argument_info:
+                if argument_info["default"] == "None":
+                    return None
+                return argument_info["default"]
+
+            return None
+
         args = self.default_arguments
         args.update(
             {
@@ -199,7 +207,7 @@ class ComponentSpec:
                     name=name,
                     description=arg_info["description"],
                     type=arg_info["type"],
-                    default=arg_info["default"] if "default" in arg_info else None,
+                    default=_get_default(arg_info),
                     optional=arg_info.get("default") == "None",
                 )
                 for name, arg_info in self._specification.get("args", {}).items()

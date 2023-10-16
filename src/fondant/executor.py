@@ -190,7 +190,7 @@ class Executor(t.Generic[Component]):
             elif arg.default is not None and arg.optional is False:
                 input_required = False
                 default = arg.default
-            elif arg.default is not None and arg.optional is True:
+            elif arg.default is None and arg.optional is True:
                 input_required = False
                 default = None
             else:
