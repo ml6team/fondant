@@ -28,7 +28,7 @@ class Compiler(ABC):
         """Abstract method to invoke compilation."""
 
     @abstractmethod
-    def set_configuration(self, *args, **kwargs) -> None:
+    def _set_configuration(self, *args, **kwargs) -> None:
         """Abstract method to set pipeline configuration."""
 
 
@@ -202,7 +202,7 @@ class DockerCompiler(Compiler):
                 "ports": ports,
             }
 
-            self.set_configuration(services, component_op, component_name)
+            self._set_configuration(services, component_op, component_name)
 
             if component_op.dockerfile_path is not None:
                 logger.info(
@@ -222,7 +222,7 @@ class DockerCompiler(Compiler):
         }
 
     @staticmethod
-    def set_configuration(services, fondant_component_operation, component_name):
+    def _set_configuration(services, fondant_component_operation, component_name):
         accelerator_name = fondant_component_operation.accelerator_name
         accelerator_number = fondant_component_operation.number_of_accelerators
 
@@ -351,7 +351,7 @@ class KubeFlowCompiler(Compiler):
                     )
 
                 # Set optional arguments
-                component_task = self.set_configuration(
+                component_task = self._set_configuration(
                     component_task,
                     component_op,
                 )
@@ -366,7 +366,7 @@ class KubeFlowCompiler(Compiler):
         self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
 
-    def set_configuration(self, task, fondant_component_operation):
+    def _set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
         number_of_accelerators = fondant_component_operation.number_of_accelerators
         accelerator_name = fondant_component_operation.accelerator_name
@@ -421,7 +421,7 @@ class VertexCompiler(KubeFlowCompiler):
                 msg,
             )
 
-    def set_configuration(self, task, fondant_component_operation):
+    def _set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
         number_of_accelerators = fondant_component_operation.number_of_accelerators
         accelerator_name = fondant_component_operation.accelerator_name
