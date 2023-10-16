@@ -281,7 +281,6 @@ class Executor(t.Generic[Component]):
                 manifest_reference_path,
                 mode="rt",
                 encoding="utf-8",
-                auto_mkdir=True,
             ) as file_:
                 cached_manifest_path = file_.read()
                 manifest = Manifest.from_file(cached_manifest_path)
@@ -395,7 +394,6 @@ class Executor(t.Generic[Component]):
             manifest_reference_path,
             mode="wt",
             encoding="utf-8",
-            auto_mkdir=True,
         ) as file_:
             file_.write(str(manifest_save_path))
 
