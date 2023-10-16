@@ -27,6 +27,10 @@ class Compiler(ABC):
     def compile(self, *args, **kwargs) -> None:
         """Abstract method to invoke compilation."""
 
+    @abstractmethod
+    def set_configuration(self, *args, **kwargs) -> None:
+        """Abstract method to set pipeline configuration."""
+
 
 @dataclass
 class DockerVolume:
@@ -198,7 +202,7 @@ class DockerCompiler(Compiler):
                 "ports": ports,
             }
 
-            self._set_configuration(services, component_op, component_name)
+            self.set_configuration(services, component_op, component_name)
 
             if component_op.dockerfile_path is not None:
                 logger.info(
@@ -218,7 +222,7 @@ class DockerCompiler(Compiler):
         }
 
     @staticmethod
-    def _set_configuration(services, fondant_component_operation, component_name):
+    def set_configuration(services, fondant_component_operation, component_name):
         accelerator_name = fondant_component_operation.accelerator_name
         accelerator_number = fondant_component_operation.number_of_accelerators
 
@@ -277,7 +281,7 @@ class KubeFlowCompiler(Compiler):
     def compile(
         self,
         pipeline: Pipeline,
-        output_path: str = "kubeflow_pipeline.yml",
+        output_path: str,
     ) -> None:
         """Compile a pipeline to Kubeflow pipeline spec and save it to a specified output path.
 
@@ -347,7 +351,7 @@ class KubeFlowCompiler(Compiler):
                     )
 
                 # Set optional arguments
-                component_task = self._set_configuration(
+                component_task = self.set_configuration(
                     component_task,
                     component_op,
                 )
@@ -362,7 +366,7 @@ class KubeFlowCompiler(Compiler):
         self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
 
-    def _set_configuration(self, task, fondant_component_operation):
+    def set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
         number_of_accelerators = fondant_component_operation.number_of_accelerators
         accelerator_name = fondant_component_operation.accelerator_name
@@ -398,8 +402,9 @@ class KubeFlowCompiler(Compiler):
         return task
 
 
-class VertexCompiler(Compiler):
+class VertexCompiler(KubeFlowCompiler):
     def __init__(self):
+        super().__init__()
         self.resolve_imports()
 
     def resolve_imports(self):
@@ -416,93 +421,7 @@ class VertexCompiler(Compiler):
                 msg,
             )
 
-    def compile(
-        self,
-        pipeline: Pipeline,
-        output_path: str = "vertex_pipeline.yml",
-    ) -> None:
-        """Compile a pipeline to vertex pipeline spec and save it to a specified output path.
-
-        Args:
-            pipeline: the pipeline to compile
-            output_path: the path where to save the Kubeflow pipeline spec
-        """
-        run_id = pipeline.get_run_id()
-        pipeline.validate(run_id=run_id)
-        logger.info(f"Compiling {pipeline.name} to {output_path}")
-
-        @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
-        def kfp_pipeline():
-            previous_component_task = None
-            component_cache_key = None
-
-            for component_name, component in pipeline._graph.items():
-                logger.info(f"Compiling service for {component_name}")
-
-                component_op = component["fondant_component_op"]
-                # convert ComponentOp to Kubeflow component
-                kubeflow_component_op = self.kfp.components.load_component_from_text(
-                    text=component_op.component_spec.kubeflow_specification.to_string(),
-                )
-
-                # Remove None values from arguments
-                component_args = {
-                    k: v for k, v in component_op.arguments.items() if v is not None
-                }
-                component_cache_key = component_op.get_component_cache_key(
-                    previous_component_cache=component_cache_key,
-                )
-                metadata = Metadata(
-                    pipeline_name=pipeline.name,
-                    run_id=run_id,
-                    base_path=pipeline.base_path,
-                    component_id=component_name,
-                    cache_key=component_cache_key,
-                )
-
-                output_manifest_path = (
-                    f"{pipeline.base_path}/{pipeline.name}/"
-                    f"{run_id}/{component_name}/manifest.json"
-                )
-                # Set the execution order of the component task to be after the previous
-                # component task.
-                if component["dependencies"]:
-                    for dependency in component["dependencies"]:
-                        input_manifest_path = (
-                            f"{pipeline.base_path}/{pipeline.name}/"
-                            f"{run_id}/{dependency}/manifest.json"
-                        )
-                        component_task = kubeflow_component_op(
-                            input_manifest_path=input_manifest_path,
-                            output_manifest_path=output_manifest_path,
-                            metadata=metadata.to_json(),
-                            **component_args,
-                        )
-                        component_task.after(previous_component_task)
-
-                else:
-                    component_task = kubeflow_component_op(
-                        metadata=metadata.to_json(),
-                        output_manifest_path=output_manifest_path,
-                        **component_args,
-                    )
-
-                # Set optional arguments
-                component_task = self._set_configuration(
-                    component_task,
-                    component_op,
-                )
-
-                # Disable caching
-                component_task.set_caching_options(enable_caching=False)
-
-                previous_component_task = component_task
-
-        self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
-        logger.info("Pipeline compiled successfully")
-
-    @staticmethod
-    def _set_configuration(task, fondant_component_operation):
+    def set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
         number_of_accelerators = fondant_component_operation.number_of_accelerators
         accelerator_name = fondant_component_operation.accelerator_name
