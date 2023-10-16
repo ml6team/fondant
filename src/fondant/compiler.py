@@ -14,6 +14,7 @@ from fondant.pipeline import (
     valid_accelerator_types,
     valid_vertex_accelerator_types,
 )
+from fondant.schema import KubeflowCommandArguments  # noqa: TCH001
 
 logger = logging.getLogger(__name__)
 
@@ -289,6 +290,30 @@ class KubeFlowCompiler(Compiler):
         pipeline.validate(run_id=run_id)
         logger.info(f"Compiling {pipeline.name} to {output_path}")
 
+        def set_component_exec_args(
+            *,
+            component_op,
+            component_args: t.List[str],
+            input_manifest_path: bool,
+        ):
+            """Dump Fondant specification arguments to kfp command executor arguments."""
+            dumped_args: KubeflowCommandArguments = []
+
+            component_args.extend(["output_manifest_path", "metadata"])
+            if input_manifest_path:
+                component_args.append("input_manifest_path")
+
+            for arg in component_args:
+                arg_name = arg.strip().replace(" ", "_")
+                arg_name_cmd = f"--{arg_name}"
+
+                dumped_args.append(arg_name_cmd)
+                dumped_args.append("{{$.inputs.parameters['" + f"{arg_name}" + "']}}")
+
+            component_op.component_spec.implementation.container.args = dumped_args
+
+            return component_op
+
         @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
             previous_component_task = None
@@ -331,6 +356,11 @@ class KubeFlowCompiler(Compiler):
                             f"{pipeline.base_path}/{pipeline.name}/"
                             f"{run_id}/{dependency}/manifest.json"
                         )
+                        kubeflow_component_op = set_component_exec_args(
+                            component_op=kubeflow_component_op,
+                            component_args=list(component_args.keys()),
+                            input_manifest_path=True,
+                        )
                         component_task = kubeflow_component_op(
                             input_manifest_path=input_manifest_path,
                             output_manifest_path=output_manifest_path,
@@ -340,13 +370,18 @@ class KubeFlowCompiler(Compiler):
                         component_task.after(previous_component_task)
 
                 else:
+                    kubeflow_component_op = set_component_exec_args(
+                        component_op=kubeflow_component_op,
+                        component_args=list(component_args.keys()),
+                        input_manifest_path=False,
+                    )
                     component_task = kubeflow_component_op(
                         metadata=metadata.to_json(),
                         output_manifest_path=output_manifest_path,
                         **component_args,
                     )
 
-                # Set optional arguments
+                # Set optional configuration
                 component_task = self._set_configuration(
                     component_task,
                     component_op,
@@ -431,6 +466,30 @@ class VertexCompiler(Compiler):
         pipeline.validate(run_id=run_id)
         logger.info(f"Compiling {pipeline.name} to {output_path}")
 
+        def set_component_exec_args(
+            *,
+            component_op,
+            component_args: t.List[str],
+            input_manifest_path: bool,
+        ):
+            """Dump Fondant specification arguments to kfp command executor arguments."""
+            dumped_args: KubeflowCommandArguments = []
+
+            component_args.extend(["output_manifest_path", "metadata"])
+            if input_manifest_path:
+                component_args.append("input_manifest_path")
+
+            for arg in component_args:
+                arg_name = arg.strip().replace(" ", "_")
+                arg_name_cmd = f"--{arg_name}"
+
+                dumped_args.append(arg_name_cmd)
+                dumped_args.append("{{$.inputs.parameters['" + f"{arg_name}" + "']}}")
+
+            component_op.component_spec.implementation.container.args = dumped_args
+
+            return component_op
+
         @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
             previous_component_task = None
@@ -449,6 +508,7 @@ class VertexCompiler(Compiler):
                 component_args = {
                     k: v for k, v in component_op.arguments.items() if v is not None
                 }
+
                 component_cache_key = component_op.get_component_cache_key(
                     previous_component_cache=component_cache_key,
                 )
@@ -472,6 +532,11 @@ class VertexCompiler(Compiler):
                             f"{pipeline.base_path}/{pipeline.name}/"
                             f"{run_id}/{dependency}/manifest.json"
                         )
+                        kubeflow_component_op = set_component_exec_args(
+                            component_op=kubeflow_component_op,
+                            component_args=list(component_args.keys()),
+                            input_manifest_path=True,
+                        )
                         component_task = kubeflow_component_op(
                             input_manifest_path=input_manifest_path,
                             output_manifest_path=output_manifest_path,
@@ -481,13 +546,18 @@ class VertexCompiler(Compiler):
                         component_task.after(previous_component_task)
 
                 else:
+                    kubeflow_component_op = set_component_exec_args(
+                        component_op=kubeflow_component_op,
+                        component_args=list(component_args.keys()),
+                        input_manifest_path=False,
+                    )
                     component_task = kubeflow_component_op(
                         metadata=metadata.to_json(),
                         output_manifest_path=output_manifest_path,
                         **component_args,
                     )
 
-                # Set optional arguments
+                # Set optional configuration
                 component_task = self._set_configuration(
                     component_task,
                     component_op,
@@ -497,6 +567,8 @@ class VertexCompiler(Compiler):
                 component_task.set_caching_options(enable_caching=False)
 
                 previous_component_task = component_task
+
+        logger.info(f"Compiling {pipeline.name} to {output_path}")
 
         self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")

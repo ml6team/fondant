@@ -15,7 +15,7 @@ from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
 from fondant.exceptions import InvalidComponentSpec
-from fondant.schema import Field, KubeflowCommandArguments, Type
+from fondant.schema import Field, Type
 
 
 @dataclass
@@ -346,7 +346,6 @@ class KubeflowComponentSpec:
                     "exec-"
                     + cleaned_component_name: {
                         "container": {
-                            "args": cls._dump_args(fondant_component.args.values()),
                             "command": ["fondant", "execute", "main"],
                             "image": fondant_component.image,
                         },
@@ -376,19 +375,6 @@ class KubeflowComponentSpec:
             "sdkVersion": "kfp-2.0.1",
         }
         return cls(specification)
-
-    @staticmethod
-    def _dump_args(args: t.Iterable[Argument]) -> KubeflowCommandArguments:
-        """Dump Fondant specification arguments to kfp command arguments."""
-        dumped_args: KubeflowCommandArguments = []
-        for arg in args:
-            arg_name = arg.name.strip().replace(" ", "_")
-            arg_name_cmd = f"--{arg_name}"
-
-            dumped_args.append(arg_name_cmd)
-            dumped_args.append("{{$.inputs.parameters['" + f"{arg_name}" + "']}}")
-
-        return dumped_args
 
     def to_file(self, path: t.Union[str, Path]) -> None:
         """Dump the component specification to the file specified by the provided path."""
