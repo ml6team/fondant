@@ -276,7 +276,7 @@ def test_vertex_run(tmp_path_factory):
             local=False,
             vertex=True,
             output_path=None,
-            project_region="europe-west-1",
+            region="europe-west-1",
             project_id="project-123",
             service_account=None,
             ref="some/path",
@@ -284,7 +284,7 @@ def test_vertex_run(tmp_path_factory):
         run_vertex(args)
         mock_runner.assert_called_once_with(
             project_id="project-123",
-            project_region="europe-west-1",
+            region="europe-west-1",
             service_account=None,
         )
 
@@ -300,13 +300,13 @@ def test_vertex_run(tmp_path_factory):
             host="localhost2",
             output_path=str(fn / "kubeflow_pipelines.yml"),
             ref=__name__,
-            project_region="europe-west-1",
+            region="europe-west-1",
             project_id="project-123",
             service_account=None,
         )
         run_vertex(args)
         mock_runner.assert_called_once_with(
             project_id="project-123",
-            project_region="europe-west-1",
+            region="europe-west-1",
             service_account=None,
         )

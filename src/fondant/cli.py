@@ -378,8 +378,8 @@ def register_run(parent_parser):
         help="""The project id of the GCP project used to submit the pipeline""",
     )
     vertex_parser.add_argument(
-        "--project-region",
-        help="The project region of the GCP project used to submit the pipeline ",
+        "--region",
+        help="The region where to run the pipeline",
     )
 
     vertex_parser.add_argument(
@@ -454,7 +454,7 @@ def run_vertex(args):
     finally:
         runner = VertexRunner(
             project_id=args.project_id,
-            project_region=args.project_region,
+            region=args.region,
             service_account=args.service_account,
         )
         runner.run(input_spec=spec_ref)
