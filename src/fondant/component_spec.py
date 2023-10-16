@@ -15,7 +15,7 @@ from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
 from fondant.exceptions import InvalidComponentSpec
-from fondant.schema import Field, KubeflowCommandArguments, Type
+from fondant.schema import Field, Type
 
 
 @dataclass
@@ -37,6 +37,9 @@ class Argument:
     default: t.Any = None
     optional: t.Optional[bool] = False
 
+    def __post_init__(self):
+        self.default = None if self.default == "None" else self.default
+
     @property
     def python_type(self) -> t.Any:
         lookup = {
@@ -47,7 +50,8 @@ class Argument:
             "dict": json.loads,
             "list": json.loads,
         }
-        return lookup[self.type]
+        map_fn = lookup[self.type]
+        return lambda value: map_fn(value) if value != "None" else None  # type: ignore
 
     @property
     def kubeflow_type(self) -> str:
@@ -230,7 +234,7 @@ class ComponentSpec:
                 description="The number of rows to load per partition. \
                         Set to override the automatic partitioning",
                 type="int",
-                default=-1,
+                optional=True,
             ),
             "cache": Argument(
                 name="cache",
@@ -286,7 +290,8 @@ class KubeflowComponentSpec:
         for arg in fondant_component.args.values():
             arg_type_dict = {}
 
-            if arg.optional or arg.default is not None:
+            # Enable isOptional attribute in spec if arg is Optional and defaults to None
+            if arg.optional and arg.default is None:
                 arg_type_dict["isOptional"] = True
             if arg.default is not None:
                 arg_type_dict["defaultValue"] = arg.default
@@ -336,7 +341,6 @@ class KubeflowComponentSpec:
                     "exec-"
                     + cleaned_component_name: {
                         "container": {
-                            "args": cls._dump_args(fondant_component.args.values()),
                             "command": ["fondant", "execute", "main"],
                             "image": fondant_component.image,
                         },
@@ -366,19 +370,6 @@ class KubeflowComponentSpec:
             "sdkVersion": "kfp-2.0.1",
         }
         return cls(specification)
-
-    @staticmethod
-    def _dump_args(args: t.Iterable[Argument]) -> KubeflowCommandArguments:
-        """Dump Fondant specification arguments to kfp command arguments."""
-        dumped_args: KubeflowCommandArguments = []
-        for arg in args:
-            arg_name = arg.name.strip().replace(" ", "_")
-            arg_name_cmd = f"--{arg_name}"
-
-            dumped_args.append(arg_name_cmd)
-            dumped_args.append("{{$.inputs.parameters['" + f"{arg_name}" + "']}}")
-
-        return dumped_args
 
     def to_file(self, path: t.Union[str, Path]) -> None:
         """Dump the component specification to the file specified by the provided path."""

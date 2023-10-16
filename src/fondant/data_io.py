@@ -24,7 +24,7 @@ class DaskDataLoader(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        input_partition_rows: int = -1,
+        input_partition_rows: t.Optional[int] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows
@@ -38,7 +38,20 @@ class DaskDataLoader(DataIO):
         """
         n_workers: int = os.cpu_count()  # type: ignore
 
-        if self.input_partition_rows > 1:
+        if self.input_partition_rows is None:
+            n_partitions = dataframe.npartitions
+            if n_partitions < n_workers:  # type: ignore
+                logger.info(
+                    f"The number of partitions of the input dataframe is {n_partitions}. The "
+                    f"available number of workers is {n_workers}.",
+                )
+                dataframe = dataframe.repartition(npartitions=n_workers)
+                logger.info(
+                    f"Repartitioning the data to {n_workers} partitions before processing"
+                    f" to maximize worker usage",
+                )
+
+        elif self.input_partition_rows >= 1:
             # Only load the index column to trigger a faster compute of the rows
             total_rows = len(dataframe.index)
             # +1 to handle any remainder rows
@@ -56,23 +69,11 @@ class DaskDataLoader(DataIO):
                     f" all available workers {n_partitions} out of {n_workers} are used.",
                 )
 
-        elif self.input_partition_rows == -1:
-            n_partitions = dataframe.npartitions
-            if n_partitions < n_workers:  # type: ignore
-                logger.info(
-                    f"The number of partitions of the input dataframe is {n_partitions}. The "
-                    f"available number of workers is {n_workers}.",
-                )
-                dataframe = dataframe.repartition(npartitions=n_workers)
-                logger.info(
-                    f"Repartitioning the data to {n_workers} partitions before processing"
-                    f" to maximize worker usage",
-                )
         else:
             msg = (
                 f"{self.input_partition_rows} is not a valid value for the 'input_partition_rows' "
                 f"parameter. It should be a number larger than 0 to indicate the number of "
-                f"expected rows per partition, or '-1' to let Fondant optimize the number of "
+                f"expected rows per partition, or None to let Fondant optimize the number of "
                 f"partitions based on the number of available workers."
             )
             raise ValueError(

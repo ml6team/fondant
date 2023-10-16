@@ -21,7 +21,6 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -52,7 +51,6 @@ components:
           isOptional: true
           parameterType: STRING
         input_partition_rows:
-          defaultValue: -1.0
           isOptional: true
           parameterType: NUMBER_INTEGER
         metadata:
@@ -68,22 +66,18 @@ deploymentSpec:
     exec-first-component:
       container:
         args:
-        - "--input_manifest_path"
-        - "{{$.inputs.parameters['input_manifest_path']}}"
-        - "--component_spec"
-        - "{{$.inputs.parameters['component_spec']}}"
-        - "--input_partition_rows"
-        - "{{$.inputs.parameters['input_partition_rows']}}"
-        - "--cache"
-        - "{{$.inputs.parameters['cache']}}"
-        - "--cluster_type"
-        - "{{$.inputs.parameters['cluster_type']}}"
-        - "--metadata"
-        - "{{$.inputs.parameters['metadata']}}"
-        - "--output_manifest_path"
-        - "{{$.inputs.parameters['output_manifest_path']}}"
-        - "--storage_args"
-        - "{{$.inputs.parameters['storage_args']}}"
+        - --storage_args
+        - '{{$.inputs.parameters[''storage_args'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --output_manifest_path
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
         command:
         - fondant
         - execute
@@ -92,24 +86,22 @@ deploymentSpec:
     exec-image-cropping:
       container:
         args:
-        - "--input_manifest_path"
-        - "{{$.inputs.parameters['input_manifest_path']}}"
-        - "--component_spec"
-        - "{{$.inputs.parameters['component_spec']}}"
-        - "--input_partition_rows"
-        - "{{$.inputs.parameters['input_partition_rows']}}"
-        - "--cache"
-        - "{{$.inputs.parameters['cache']}}"
-        - "--cluster_type"
-        - "{{$.inputs.parameters['cluster_type']}}"
-        - "--metadata"
-        - "{{$.inputs.parameters['metadata']}}"
-        - "--output_manifest_path"
-        - "{{$.inputs.parameters['output_manifest_path']}}"
-        - "--cropping_threshold"
-        - "{{$.inputs.parameters['cropping_threshold']}}"
-        - "--padding"
-        - "{{$.inputs.parameters['padding']}}"
+        - --cropping_threshold
+        - '{{$.inputs.parameters[''cropping_threshold'']}}'
+        - --padding
+        - '{{$.inputs.parameters[''padding'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --output_manifest_path
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        - --input_manifest_path
+        - '{{$.inputs.parameters[''input_manifest_path'']}}'
         command:
         - fondant
         - execute
@@ -159,7 +151,7 @@ root:
                   "cache_key": "1"}'
             output_manifest_path:
               runtimeValue:
-                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
+                constant: /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
             storage_args:
               runtimeValue:
                 constant: a dummy string arg
@@ -199,21 +191,22 @@ root:
                       fields:
                         data:
                           type: binary
-                  description: "This component crops out image borders. This is typically
-                    useful when working with graphical \nimages that have single-color
-                    borders (e.g. logos, icons, etc.).\n\nThe component takes an image
-                    and calculates which color is most present in the border. It then
-                    \ncrops the image in order to minimize this single-color border.
-                    The `padding` argument will add \nextra border to the image before
-                    cropping it, in order to avoid cutting off parts of the image.\nThe
-                    resulting crop will always be square. If a crop is not possible,
-                    the component will return \nthe original image.\n\n#### Examples\nExamples
-                    of image cropping by removing the single-color border. Left side
-                    is original image, \nright side is border-cropped image.\n\n![Example
-                    of image cropping by removing the single-color border. Left side
-                    is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n![Example
-                    of image cropping by removing the single-color border. Left side
-                    is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n"
+                  description: "This component crops out image borders. This is typically\
+                    \ useful when working with graphical \nimages that have single-color\
+                    \ borders (e.g. logos, icons, etc.).\n\nThe component takes an\
+                    \ image and calculates which color is most present in the border.\
+                    \ It then \ncrops the image in order to minimize this single-color\
+                    \ border. The `padding` argument will add \nextra border to the\
+                    \ image before cropping it, in order to avoid cutting off parts\
+                    \ of the image.\nThe resulting crop will always be square. If\
+                    \ a crop is not possible, the component will return \nthe original\
+                    \ image.\n\n#### Examples\nExamples of image cropping by removing\
+                    \ the single-color border. Left side is original image, \nright\
+                    \ side is border-cropped image.\n\n![Example of image cropping\
+                    \ by removing the single-color border. Left side is original,\
+                    \ right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)\n\
+                    ![Example of image cropping by removing the single-color border.\
+                    \ Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)\n"
                   image: fndnt/image_cropping:dev
                   name: Image cropping
                   produces:
@@ -230,7 +223,7 @@ root:
                 constant: 0.0
             input_manifest_path:
               runtimeValue:
-                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json"
+                constant: /foo/bar/testpipeline/testpipeline-20230101000000/first_component/manifest.json
             metadata:
               runtimeValue:
                 constant: '{"base_path": "/foo/bar", "pipeline_name": "testpipeline",
@@ -238,7 +231,7 @@ root:
                   "cache_key": "2"}'
             output_manifest_path:
               runtimeValue:
-                constant: "/foo/bar/testpipeline/testpipeline-20230101000000/image_cropping/manifest.json"
+                constant: /foo/bar/testpipeline/testpipeline-20230101000000/image_cropping/manifest.json
             padding:
               runtimeValue:
                 constant: 0.0
