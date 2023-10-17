@@ -7,6 +7,10 @@ components:
           defaultValue: true
           description: Set to False to disable caching, True by default.
           parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          description: Keyword arguments to pass to the Dask client
+          parameterType: STRUCT
         cluster_type:
           defaultValue: default
           description: The cluster type to use for the execution
@@ -55,6 +59,8 @@ root:
           parameters:
             cache:
               componentInputParameter: cache
+            client_kwargs:
+              componentInputParameter: client_kwargs
             cluster_type:
               componentInputParameter: cluster_type
             component_spec:
