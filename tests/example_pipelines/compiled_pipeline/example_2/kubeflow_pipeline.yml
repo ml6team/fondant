@@ -1,7 +1,3 @@
-# PIPELINE DEFINITION
-# Name: testpipeline
-# Description: description of the test pipeline
----
 components:
   comp-first-component:
     executorLabel: exec-first-component
@@ -11,6 +7,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
         cluster_type:
           defaultValue: default
           isOptional: true
@@ -37,6 +37,10 @@ components:
           defaultValue: true
           isOptional: true
           parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
         cluster_type:
           defaultValue: default
           isOptional: true
