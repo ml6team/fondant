@@ -407,10 +407,16 @@ class KubeFlowCompiler(Compiler):
         accelerator_name = fondant_component_operation.accelerator_name
         node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
+        cpu_request = fondant_component_operation.cpu_request
+        cpu_limit = fondant_component_operation.cpu_limit
         memory_request = fondant_component_operation.memory_request
         memory_limit = fondant_component_operation.memory_limit
 
         # Assign optional specification
+        if cpu_request is not None:
+            task.set_memory_request(cpu_request)
+        if cpu_limit is not None:
+            task.set_memory_limit(cpu_limit)
         if memory_request is not None:
             task.set_memory_request(memory_request)
         if memory_limit is not None:
@@ -459,10 +465,16 @@ class VertexCompiler(KubeFlowCompiler):
     @staticmethod
     def _set_configuration(task, fondant_component_operation):
         # Unpack optional specifications
+        cpu_limit = fondant_component_operation.cpu_limit
+        memory_limit = fondant_component_operation.memory_limit
         number_of_accelerators = fondant_component_operation.number_of_accelerators
         accelerator_name = fondant_component_operation.accelerator_name
 
         # Assign optional specification
+        if cpu_limit is not None:
+            task.set_cpu_limit(cpu_limit)
+        if memory_limit is not None:
+            task.set_memory_limit(memory_limit)
         if number_of_accelerators is not None:
             task.set_accelerator_limit(number_of_accelerators)
             if accelerator_name not in valid_vertex_accelerator_types:
