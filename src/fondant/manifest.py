@@ -185,7 +185,7 @@ class Manifest:
 
     def to_file(self, path: t.Union[str, Path]) -> None:
         """Dump the manifest to the file specified by the provided path."""
-        with fs_open(path, "w", encoding="utf-8") as file_:
+        with fs_open(path, "w", encoding="utf-8", auto_mkdir=True) as file_:
             json.dump(self._specification, file_)
 
     def copy(self) -> "Manifest":
