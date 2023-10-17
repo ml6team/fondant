@@ -17,8 +17,8 @@
 
 ---
 
-🍫**Fondant is an open-source framework that aims to simplify and speed up large-scale data processing by making
-containerized components reusable across pipelines and execution environments and shareable within the community.**
+🍫**Fondant is an open-source framework that simplifies and speeds up data processing development
+through reusable components**
 
 It offers:
 
@@ -161,15 +161,24 @@ For the latest development version, you might want to install from source instea
 pip install git+https://github.com/ml6team/fondant.git
 ```
 
-### 🧱 Deploying Fondant
+### 🧱 Running Fondant pipelines
 
-There are 2 ways of using fondant:
+There are 3 ways to run fondant pipelines:
 
-- Leveraging [Kubeflow pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/) on any Kubernetes cluster. All Fondant needs is an url pointing to the Kubeflow pipeline host and an Object Storage provider (S3, GCS, etc) to store data produced in the pipeline between steps.
-  We have compiled some references and created some scripts to [get you started](https://fondant.readthedocs.io/en/latest/infrastructure) with setting up the required infrastructure.
-- Or locally by using [docker compose](https://docs.docker.com/compose/). This way is mainly aimed at helping you develop fondant pipelines and components faster by making it easier to run things on a smaller scale.
+- [**Local runner**](https://github.com/ml6team/fondant/blob/main/docs/pipeline.md#local-runner): leverages [docker compose](https://docs.docker.com/compose/). The local runner is mainly aimed 
+at helping you develop fondant pipelines and components faster by making it easier to run things on a smaller scale 
+and iterate quickly on your pipeline. Once you have a pipeline developed, you can use the other runners mentioned below
+to better scale and monitor your pipelines. 
+- [**Vertex runner**](https://github.com/ml6team/fondant/blob/main/docs/pipeline.md#vertex-runner): Uses Google cloud's [Vertex AI pipelines](https://cloud.google.com/vertex-ai/docs/pipelines/introduction) to help you 
+orchestrate your Fondant pipelines in a serverless manner. This makes it easy to scale up your pipelines without worrying about infrastructure 
+deployment. 
+- [**Kubeflow runner**](https://github.com/ml6team/fondant/blob/main/docs/pipeline.md#kubeflow): Leverages [Kubeflow pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/) on any Kubernetes cluster. 
+All Fondant needs is a url pointing to the Kubeflow pipeline host and an Object Storage provider (S3, GCS, etc) to store data produced in the pipeline between steps.
+We have compiled some references and created some scripts to [get you started](https://fondant.readthedocs.io/en/latest/infrastructure) with setting up the required infrastructure.
 
-The same pipeline can be used in both variants allowing you to quickly develop and iterate using the local Docker Compose implementation and then using the power of Kubeflow pipelines to run a large scale pipeline.
+
+It is worth noting that the same pipeline can be used across all runners allowing you to quickly develop and iterate using the local 
+runner and then using the Vertex or Kubeflow runner to run a large scale pipeline.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -181,35 +190,27 @@ Fondant allows you to easily define data pipelines comprised of both reusable an
 components. The following pipeline for instance uses the reusable `load_from_hf_hub` component
 to load a dataset from the Hugging Face Hub and process it using a custom component:
 
+**_pipeline.py_**
 ```python
-from fondant.pipeline import ComponentOp, Pipeline, Client
+from fondant.pipeline import ComponentOp, Pipeline
 
 
-def build_pipeline():
-    pipeline = Pipeline(pipeline_name="example pipeline", base_path="fs://bucket")
+pipeline = Pipeline(pipeline_name="example pipeline", base_path="fs://bucket")
 
-    load_from_hub_op = ComponentOp.from_registry(
-        name="load_from_hf_hub",
-        arguments={"dataset_name": "lambdalabs/pokemon-blip-captions"},
-    )
-    pipeline.add_op(load_from_hub_op)
+load_from_hub_op = ComponentOp.from_registry(
+    name="load_from_hf_hub",
+    arguments={"dataset_name": "lambdalabs/pokemon-blip-captions"},
+)
+pipeline.add_op(load_from_hub_op)
 
-    custom_op = ComponentOp(
-        component_dir="components/custom_component",
-        arguments={
-            "min_width": 600,
-            "min_height": 600,
-        },
-    )
-    pipeline.add_op(custom_op, dependencies=load_from_hub_op)
-
-    return pipeline
-
-
-if __name__ == "__main__":
-    client = Client(host="https://kfp-host.com/")
-    pipeline = build_pipeline()
-    client.compile_and_run(pipeline=pipeline)
+custom_op = ComponentOp(
+    component_dir="components/custom_component",
+    arguments={
+        "min_width": 600,
+        "min_height": 600,
+    },
+)
+pipeline.add_op(custom_op, dependencies=load_from_hub_op)
 ```
 
 #### Component
@@ -250,7 +251,6 @@ your specification partition by partition as a Pandas dataframe.
 ```python
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 
 
 class ExampleComponent(PandasTransformComponent):
@@ -281,7 +281,7 @@ Once you have a pipeline you can easily run (and compile) it by using the built-
 fondant run local pipeline.py
 ```
 
-To see all available arguments you can check the fondant CLI help pages
+To see all available runner and arguments you can check the fondant CLI help pages
 
 ```bash
 fondant --help
@@ -308,7 +308,7 @@ speed up your data preparation work.
 - Data lineage and experiment tracking
 - Distributed execution, both on and off cluster
 - Support other dataframe libraries such as HF Datasets, Polars, Spark
-- Move reusable components into a decentralized component registry
+
 - Create datasets of copy-right free data for fine-tuning
 - Create reusable components for bias detection and mitigation
 
