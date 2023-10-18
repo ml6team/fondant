@@ -29,7 +29,6 @@ load_from_hub_op = ComponentOp(
     },
 )
 
-# Define component ops
 chunk_text_op = ComponentOp(
     component_dir="components/chunk_text",
     arguments={
@@ -38,5 +37,14 @@ chunk_text_op = ComponentOp(
     },
 )
 
+embed_text_op = ComponentOp(
+    component_dir="components/embed_text",
+    arguments={
+        "model_provider": "vertexai",
+        "auth_kwargs": {"project": "soy-audio-379412"},
+    },
+)
+
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(chunk_text_op, dependencies=load_from_hub_op)
+pipeline.add_op(embed_text_op, dependencies=chunk_text_op)
