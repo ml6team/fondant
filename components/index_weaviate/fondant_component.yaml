@@ -1,6 +1,6 @@
-name: Index embeddings
+name: Index Weaviate
 description: Component that takes embeddings of text snippets and indexes them into a weaviate vector database.
-image: index_embeddings:latest
+image: index_weaviate:dev
 
 consumes:
   text:
@@ -44,15 +44,12 @@ args:
       The name of the weaviate class that will be created and used to store the embeddings.
       Should follow the weaviate naming conventions.
     type: str
-    default: Article
   vectorizer:
     description: |
-      The configuration of the weaviate vectorizer (for vectorization with text2vec-* modules) in the class object 
-      corresponding to the model used to generate the embeddings. 
-      You can find the available modules in the weaviate documentation: https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules. 
-      This can be used for smoother interaction with the weaviate instance after indexing e.g. using langchain similarity search. 
-      The module used also has to be enabled in your weaviate instance deployment. 
-      Can also be {"vectorizer": "none"} if you do not want to make use of this feature.
-    type: dict
-    default: {"vectorizer": "none"}
+      Which vectorizer to use. 
+      You can find the available vectorizers in the weaviate documentation: https://weaviate
+      .io/developers/weaviate/modules/retriever-vectorizer-modules
+      Set this to None if you want to insert your own embeddings.
+    type: str
+    default: None
   

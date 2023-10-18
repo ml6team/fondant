@@ -92,6 +92,7 @@ ignore = [
     "D107",  # Missing docstring in __init__
     "D205",  # 1 blank line required between summary line and description (autofix not working)
     "D212",  # Multi-line docstring summary should start at first line (we choose 2nd)
+    "PD901", # Pandas-df-variable-name
 ]
 line-length = 100  # Only for comments, as code is handled by black at length 88
 

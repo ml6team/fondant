@@ -1,4 +1,4 @@
-# Index embeddings
+# Index Weaviate
 
 ### Description
 Component that takes embeddings of text snippets and indexes them into a weaviate vector database.
@@ -32,8 +32,8 @@ The component takes the following arguments to alter its behavior:
 | dynamic | bool | Whether to use dynamic batching or not.Parameter of weaviate.batch.Batch().configure(). | True |
 | num_workers | int | The maximal number of concurrent threads to run batch import.Parameter of weaviate.batch.Batch().configure(). | 2 |
 | overwrite | bool | Whether to overwrite/ re-create the existing weaviate class and its embeddings. | / |
-| class_name | str | The name of the weaviate class that will be created and used to store the embeddings.Should follow the weaviate naming conventions. | Article |
-| vectorizer | dict | The configuration of the weaviate vectorizer (for vectorization with text2vec-* modules) in the class object corresponding to the model used to generate the embeddings. You can find the available modules in the weaviate documentation: https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules. This can be used for smoother interaction with the weaviate instance after indexing e.g. using langchain similarity search. The module used also has to be enabled in your weaviate instance deployment. Can also be {"vectorizer": "none"} if you do not want to make use of this feature. | {'vectorizer': 'none'} |
+| class_name | str | The name of the weaviate class that will be created and used to store the embeddings.Should follow the weaviate naming conventions. | / |
+| vectorizer | str | Which vectorizer to use. You can find the available vectorizers in the weaviate documentation: https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modulesSet this to None if you want to insert your own embeddings. | / |
 
 ### Usage
 
@@ -43,8 +43,8 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-index_embeddings_op = ComponentOp.from_registry(
-    name="index_embeddings",
+index_weaviate_op = ComponentOp.from_registry(
+    name="index_weaviate",
     arguments={
         # Add arguments
         # "input_manifest_path": ,
@@ -60,10 +60,10 @@ index_embeddings_op = ComponentOp.from_registry(
         # "dynamic": True,
         # "num_workers": 2,
         # "overwrite": False,
-        # "class_name": "Article",
-        # "vectorizer": {'vectorizer': 'none'},
+        # "class_name": ,
+        # "vectorizer": ,
     }
 )
-pipeline.add_op(index_embeddings_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(index_weaviate_op, dependencies=[...])  #Add previous component as dependency
 ```
 
