@@ -1,6 +1,6 @@
-name: Generate embeddings
+name: Embed text
 description: Component that generates embeddings of text passages.
-image: generate_embeddings:latest
+image: embed_text:latest
 
 consumes:
   text:
@@ -22,7 +22,8 @@ args:
   model_provider:
     description: |
       The provider of the model - corresponding to langchain embedding classes. 
-      Currently the following providers are supported: aleph_alpha, cohere, huggingface, openai.
+      Currently the following providers are supported: aleph_alpha, cohere, huggingface, openai, 
+      vertexai.
     type: str
     default: huggingface
   model:
@@ -30,12 +31,19 @@ args:
       The model to generate embeddings from. 
       Choose an available model name to pass to the model provider's langchain embedding class.
     type: str
-    default: all-MiniLM-L6-v2
+    default: None
   api_keys:
     description: |
       The API keys to use for the model provider that are written to environment variables.
       Pass only the keys required by the model provider or conveniently pass all keys you will ever need. 
       Pay attention how to name the dictionary keys so that they can be used by the model provider.
     type: dict
+    default: {}
+  auth_kwargs:
+    description: |
+      Additional keyword arguments required for api initialization/authentication.
+    type: dict
+    default: {}
+
   
   
