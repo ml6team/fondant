@@ -66,4 +66,4 @@ repos:
         language: python
         entry: python scripts/component_readme/generate_readme.py
         files: ^components/.*/fondant_component.yaml
-        additional_dependencies: ["fondant"]
+        additional_dependencies: ["fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@main"]

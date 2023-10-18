@@ -36,7 +36,7 @@ args:
       The API keys to use for the model provider that are written to environment variables.
       Pass only the keys required by the model provider or conveniently pass all keys you will ever need. 
       Pay attention how to name the dictionary keys so that they can be used by the model provider.
-      You can find all currently supported/ needed key in the default value.
+      You can find all supported/ needed key in the default value.
     type: dict
     default: {"ALEPH_ALPHA_API_KEY": "api_key", "COHERE_API_KEY": "api_key", "OPENAI_API_KEY": "api_key"}
   
