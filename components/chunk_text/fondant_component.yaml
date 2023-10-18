@@ -18,6 +18,8 @@ produces:
     fields:
       data:
         type: string
+      original_document_id:
+        type: string
 
 args:
   chunk_size:
