@@ -25,7 +25,7 @@ if [ -z "${old_tag}" ] || [ -z "${new_tag}" ]; then
 fi
 
 # Set github repo information
-namespace="ml6team"
+namespace="fndnt"
 
 # Get the component directory
 scripts_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
