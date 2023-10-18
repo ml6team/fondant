@@ -28,7 +28,7 @@ args:
       Whether to use dynamic batching or not.
       Parameter of weaviate.batch.Batch().configure().
     type: bool
-    default: 1
+    default: True
   num_workers:
     description: |
       The maximal number of concurrent threads to run batch import.
@@ -38,7 +38,7 @@ args:
   overwrite:
     description: Whether to overwrite/ re-create the existing weaviate class and its embeddings.
     type: bool
-    default: 0
+    default: False
   class_name:
     description: |
       The name of the weaviate class that will be created and used to store the embeddings.
@@ -54,4 +54,5 @@ args:
       The module used also has to be enabled in your weaviate instance deployment. 
       Can also be {"vectorizer": "none"} if you do not want to make use of this feature.
     type: dict
+    default: {"vectorizer": "none"}
   

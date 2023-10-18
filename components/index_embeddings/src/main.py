@@ -71,5 +71,4 @@ class WriteToWeaviateComponent(DaskWriteComponent):
                         class_name=self.class_name,
                         vector=data["text_embedding"],
                     )
-
-        return dataframe
+            return None
