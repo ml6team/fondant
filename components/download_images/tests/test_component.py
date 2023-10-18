@@ -35,6 +35,7 @@ def test_transform(respx_mock):
     component = DownloadImagesComponent(
         timeout=10,
         retries=0,
+        n_connections=10,
         image_size=image_size,
         resize_mode="border",
         resize_only_if_bigger=False,

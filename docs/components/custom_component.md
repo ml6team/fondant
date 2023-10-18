@@ -64,7 +64,10 @@ class ExampleComponent(PandasTransformComponent):
 ```
 
 The `__init__` method is called once for each component class with custom arguments defined in the
-`args` section of the [component specification](../components/component_spec.md).)
+`args` section of the [component specification](../components/component_spec.md).) This is a good 
+place to initialize resources and costly initializations such as network connections, models, 
+parsing a config file, etc. By doing so, you can effectively prevent the redundant re-initialization
+of resources each time the `transform` method is invoked.
 
 The `transform` method is called multiple times, each time containing a pandas `dataframe`
 with a partition of your data loaded in memory.

@@ -8,12 +8,14 @@ from fondant.cli import (
     PipelineImportError,
     compile_kfp,
     compile_local,
+    compile_vertex,
     component_from_module,
     execute,
     get_module,
     pipeline_from_module,
     run_kfp,
     run_local,
+    run_vertex,
 )
 from fondant.component import DaskLoadComponent
 from fondant.executor import Executor, ExecutorFactory
@@ -135,6 +137,7 @@ def test_local_logic(tmp_path_factory):
             ref=__name__,
             local=True,
             kubeflow=False,
+            vertex=False,
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
             build_arg=[],
@@ -150,12 +153,31 @@ def test_kfp_compile(tmp_path_factory):
             ref=__name__,
             kubeflow=True,
             local=False,
-            output_path=str(fn / "kubeflow_pipelines.yml"),
+            vertex=False,
+            output_path=str(fn / "kubeflow_pipeline.yml"),
         )
         compile_kfp(args)
         mock_compiler.assert_called_once_with(
             pipeline=TEST_PIPELINE,
-            output_path=str(fn / "kubeflow_pipelines.yml"),
+            output_path=str(fn / "kubeflow_pipeline.yml"),
+        )
+
+
+def test_vertex_compile(tmp_path_factory):
+    with tmp_path_factory.mktemp("temp") as fn, patch(
+        "fondant.compiler.VertexCompiler.compile",
+    ) as mock_compiler:
+        args = argparse.Namespace(
+            ref=__name__,
+            kubeflow=False,
+            local=False,
+            vertex=True,
+            output_path=str(fn / "vertex_pipeline.yml"),
+        )
+        compile_vertex(args)
+        mock_compiler.assert_called_once_with(
+            pipeline=TEST_PIPELINE,
+            output_path=str(fn / "vertex_pipeline.yml"),
         )
 
 
@@ -181,6 +203,8 @@ def test_local_run(tmp_path_factory):
     with patch("subprocess.call") as mock_call, tmp_path_factory.mktemp("temp") as fn:
         args1 = argparse.Namespace(
             local=True,
+            vertex=False,
+            kubeflow=False,
             ref=__name__,
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
@@ -207,6 +231,7 @@ def test_kfp_run(tmp_path_factory):
     args = argparse.Namespace(
         kubeflow=True,
         local=False,
+        vertex=False,
         output_path=None,
         ref="some/path",
         host=None,
@@ -241,3 +266,47 @@ def test_kfp_run(tmp_path_factory):
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost2")
+
+
+def test_vertex_run(tmp_path_factory):
+    """Test that the run command works in different scenarios."""
+    with patch("fondant.cli.VertexRunner") as mock_runner:
+        args = argparse.Namespace(
+            kubeflow=False,
+            local=False,
+            vertex=True,
+            output_path=None,
+            region="europe-west-1",
+            project_id="project-123",
+            service_account=None,
+            ref="some/path",
+        )
+        run_vertex(args)
+        mock_runner.assert_called_once_with(
+            project_id="project-123",
+            region="europe-west-1",
+            service_account=None,
+        )
+
+    with patch("fondant.cli.VertexRunner") as mock_runner, patch(
+        "fondant.cli.VertexCompiler",
+    ) as mock_compiler, tmp_path_factory.mktemp(
+        "temp",
+    ) as fn:
+        mock_compiler.compile.return_value = "some/path"
+        args = argparse.Namespace(
+            kubeflow=True,
+            local=False,
+            host="localhost2",
+            output_path=str(fn / "kubeflow_pipelines.yml"),
+            ref=__name__,
+            region="europe-west-1",
+            project_id="project-123",
+            service_account=None,
+        )
+        run_vertex(args)
+        mock_runner.assert_called_once_with(
+            project_id="project-123",
+            region="europe-west-1",
+            service_account=None,
+        )
