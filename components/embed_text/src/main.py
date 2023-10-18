@@ -1,5 +1,7 @@
 import logging
+import os
 
+import google.cloud.aiplatform as aip
 import pandas as pd
 from fondant.component import PandasTransformComponent
 from langchain.embeddings import (
@@ -7,27 +9,45 @@ from langchain.embeddings import (
     CohereEmbeddings,
     HuggingFaceEmbeddings,
     OpenAIEmbeddings,
+    VertexAIEmbeddings,
 )
+from langchain.schema.embeddings import Embeddings
 from retry import retry
-from utils import to_env_vars
 
 logger = logging.getLogger(__name__)
 
 
-class GenerateEmbeddingsComponent(PandasTransformComponent):
+def to_env_vars(api_keys: dict):
+    for key, value in api_keys.items():
+        os.environ[key] = value
+
+
+class EmbedTextComponent(PandasTransformComponent):
     def __init__(
         self,
         *_,
         model_provider: str,
         model: str,
         api_keys: dict,
+        auth_kwargs: dict,
     ):
-        self.model_provider = model_provider
-        self.model = model
+        self.embedding_model = self.get_embedding_model(
+            model_provider,
+            model,
+            auth_kwargs,
+        )
 
         to_env_vars(api_keys)
 
-    def get_embedding_model(self, model_provider, model: str):
+    @staticmethod
+    def get_embedding_model(
+        model_provider,
+        model: str,
+        auth_kwargs: dict,
+    ) -> Embeddings:
+        if model_provider == "vertexai":
+            aip.init(**auth_kwargs)
+            return VertexAIEmbeddings(model=model)
         # contains a first selection of embedding models
         if model_provider == "aleph_alpha":
             return AlephAlphaAsymmetricSemanticEmbedding(model=model)
@@ -41,13 +61,11 @@ class GenerateEmbeddingsComponent(PandasTransformComponent):
         raise ValueError(msg)
 
     @retry()  # make sure to keep trying even when api call limit is reached
-    def get_embeddings_vectors(self, embedding_model, texts):
-        return embedding_model.embed_documents(texts.tolist())
+    def get_embeddings_vectors(self, texts):
+        return self.embedding_model.embed_documents(texts.tolist())
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        embedding_model = self.get_embedding_model(self.model_provider, self.model)
         dataframe[("text", "embedding")] = self.get_embeddings_vectors(
-            embedding_model,
             dataframe[("text", "data")],
         )
         return dataframe
