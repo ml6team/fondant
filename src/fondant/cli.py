@@ -23,8 +23,10 @@ import sys
 import textwrap
 import typing as t
 from collections import defaultdict
+from pathlib import Path
 from types import ModuleType
 
+from fondant.build import build_component
 from fondant.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
 from fondant.component import BaseComponent, Component
 from fondant.executor import ExecutorFactory
@@ -66,6 +68,7 @@ def entrypoint():
     )
     subparsers = parser.add_subparsers()
     register_explore(subparsers)
+    register_build(subparsers)
     register_execute(subparsers)
     register_compile(subparsers)
     register_run(subparsers)
@@ -164,6 +167,71 @@ def explore(args):
     )
 
 
+def register_build(parent_parser):
+    parser = parent_parser.add_parser(
+        "build",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent(
+            """
+        Build a component and push it to the registry. The image name in the
+        `fondant_component.yaml` will automatically be updated to use the new image.
+
+        Example:
+
+        fondant build components/my-component -tag my-tag
+        """,
+        ),
+    )
+    parser.add_argument(
+        "component_dir",
+        type=Path,
+        help="""Path to the directory containing the component code, including a
+        `fondant_component.yaml` and `Dockerfile`.""",
+    )
+    parser.add_argument(
+        "--tag",
+        "-t",
+        type=str,
+        help="Tag to add to built container. If the tag contains a `:`, it will be used as the "
+        "full name for the image. If it does not contain a `:`, the image base name will be "
+        "read from the `fondant_component.yaml` and combined into `base_name:tag`.",
+    )
+    parser.add_argument(
+        "--build-arg",
+        action="append",
+        help="Build arguments to pass to `docker build`. Format {key}={value}, can be repeated.",
+        default=[],
+    )
+    parser.add_argument(
+        "--nocache",
+        action="store_true",
+        help="Disable cache during building.",
+    )
+    parser.add_argument(
+        "--pull",
+        action="store_true",
+        help="Downloads any updates to the FROM image in Dockerfiles.",
+    )
+    parser.add_argument(
+        "--target",
+        type=str,
+        help="Name of the build-stage to build in a multi-stage Dockerfile.",
+    )
+
+    parser.set_defaults(func=build)
+
+
+def build(args):
+    build_component(
+        args.component_dir,
+        tag=args.tag,
+        build_args=args.build_arg,
+        nocache=args.nocache,
+        pull=args.pull,
+        target=args.target,
+    )
+
+
 def register_compile(parent_parser):
     parser = parent_parser.add_parser(
         "compile",
@@ -221,7 +289,7 @@ def register_compile(parent_parser):
     local_parser.add_argument(
         "--build-arg",
         action="append",
-        help="Build arguments to pass to `docker build`. Format {key}={value}.",
+        help="Build arguments to pass to `docker build`. Format {key}={value}, can be repeated.",
         default=[],
     )
 

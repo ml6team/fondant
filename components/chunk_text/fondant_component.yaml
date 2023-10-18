@@ -1,0 +1,30 @@
+name: Chunk text
+description: |
+  Component that chunks text into smaller segments 
+  
+  This component takes a body of text and chunks into small chunks. The id of the returned dataset
+  consists of the id of the original document followed by the chunk index.
+
+image: fndnt/chunk_text:dev
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+
+produces:
+  text:
+    fields:
+      data:
+        type: string
+      original_document_id:
+        type: string
+
+args:
+  chunk_size:
+    description: Maximum size of chunks to return
+    type: int
+  chunk_overlap:
+    description: Overlap in characters between chunks
+    type: int
