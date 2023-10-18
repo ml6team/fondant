@@ -29,22 +29,33 @@ load_from_hub_op = ComponentOp(
     },
 )
 
-chunk_text_op = ComponentOp(
-    component_dir="components/chunk_text",
+chunk_text_op = ComponentOp.from_registry(
+    name="chunk_text",
     arguments={
         "chunk_size": 512,
         "chunk_overlap": 10,
     },
 )
 
-embed_text_op = ComponentOp(
-    component_dir="components/embed_text",
+embed_text_op = ComponentOp.from_registry(
+    name="embed_text",
     arguments={
         "model_provider": "vertexai",
-        "auth_kwargs": {"project": "soy-audio-379412"},
+        "auth_kwargs": {
+            "project": "<project-id>",
+        },
+    },
+)
+
+index_weaviate_op = ComponentOp.from_registry(
+    name="index_weaviate",
+    arguments={
+        "weaviate_url": "http://host.docker.internal:8080",
+        "class_name": "Passage",
     },
 )
 
 pipeline.add_op(load_from_hub_op)
 pipeline.add_op(chunk_text_op, dependencies=load_from_hub_op)
 pipeline.add_op(embed_text_op, dependencies=chunk_text_op)
+pipeline.add_op(index_weaviate_op, dependencies=embed_text_op)

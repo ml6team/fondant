@@ -1,0 +1,597 @@
+# PIPELINE DEFINITION
+# Name: rag-cc-pipeline
+# Description: Pipeline to prepare and process data for building a RAG solution
+components:
+  comp-chunk-text:
+    executorLabel: exec-chunk-text
+    inputDefinitions:
+      parameters:
+        cache:
+          defaultValue: true
+          isOptional: true
+          parameterType: BOOLEAN
+        chunk_overlap:
+          parameterType: NUMBER_INTEGER
+        chunk_size:
+          parameterType: NUMBER_INTEGER
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
+        cluster_type:
+          defaultValue: default
+          isOptional: true
+          parameterType: STRING
+        component_spec:
+          parameterType: STRUCT
+        input_manifest_path:
+          isOptional: true
+          parameterType: STRING
+        input_partition_rows:
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        metadata:
+          parameterType: STRING
+        output_manifest_path:
+          parameterType: STRING
+  comp-embed-text:
+    executorLabel: exec-embed-text
+    inputDefinitions:
+      parameters:
+        api_keys:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
+        auth_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
+        cache:
+          defaultValue: true
+          isOptional: true
+          parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
+        cluster_type:
+          defaultValue: default
+          isOptional: true
+          parameterType: STRING
+        component_spec:
+          parameterType: STRUCT
+        input_manifest_path:
+          isOptional: true
+          parameterType: STRING
+        input_partition_rows:
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        metadata:
+          parameterType: STRING
+        model:
+          isOptional: true
+          parameterType: STRING
+        model_provider:
+          defaultValue: huggingface
+          isOptional: true
+          parameterType: STRING
+        output_manifest_path:
+          parameterType: STRING
+  comp-index-weaviate:
+    executorLabel: exec-index-weaviate
+    inputDefinitions:
+      parameters:
+        batch_size:
+          defaultValue: 100.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        cache:
+          defaultValue: true
+          isOptional: true
+          parameterType: BOOLEAN
+        class_name:
+          parameterType: STRING
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
+        cluster_type:
+          defaultValue: default
+          isOptional: true
+          parameterType: STRING
+        component_spec:
+          parameterType: STRUCT
+        dynamic:
+          defaultValue: true
+          isOptional: true
+          parameterType: BOOLEAN
+        input_manifest_path:
+          isOptional: true
+          parameterType: STRING
+        input_partition_rows:
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        metadata:
+          parameterType: STRING
+        num_workers:
+          defaultValue: 2.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        output_manifest_path:
+          parameterType: STRING
+        overwrite:
+          defaultValue: false
+          isOptional: true
+          parameterType: BOOLEAN
+        vectorizer:
+          isOptional: true
+          parameterType: STRING
+        weaviate_url:
+          defaultValue: http://localhost:8080
+          isOptional: true
+          parameterType: STRING
+  comp-load-from-hub:
+    executorLabel: exec-load-from-hub
+    inputDefinitions:
+      parameters:
+        cache:
+          defaultValue: true
+          isOptional: true
+          parameterType: BOOLEAN
+        client_kwargs:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
+        cluster_type:
+          defaultValue: default
+          isOptional: true
+          parameterType: STRING
+        column_name_mapping:
+          defaultValue: {}
+          isOptional: true
+          parameterType: STRUCT
+        component_spec:
+          parameterType: STRUCT
+        dataset_name:
+          parameterType: STRING
+        image_column_names:
+          defaultValue: []
+          isOptional: true
+          parameterType: LIST
+        index_column:
+          isOptional: true
+          parameterType: STRING
+        input_manifest_path:
+          isOptional: true
+          parameterType: STRING
+        input_partition_rows:
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        metadata:
+          parameterType: STRING
+        n_rows_to_load:
+          parameterType: NUMBER_INTEGER
+        output_manifest_path:
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-chunk-text:
+      container:
+        args:
+        - --chunk_size
+        - '{{$.inputs.parameters[''chunk_size'']}}'
+        - --chunk_overlap
+        - '{{$.inputs.parameters[''chunk_overlap'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --output_manifest_path
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        - --input_manifest_path
+        - '{{$.inputs.parameters[''input_manifest_path'']}}'
+        command:
+        - fondant
+        - execute
+        - main
+        image: fndnt/chunk_text:dev
+    exec-embed-text:
+      container:
+        args:
+        - --model_provider
+        - '{{$.inputs.parameters[''model_provider'']}}'
+        - --auth_kwargs
+        - '{{$.inputs.parameters[''auth_kwargs'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --output_manifest_path
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        - --input_manifest_path
+        - '{{$.inputs.parameters[''input_manifest_path'']}}'
+        command:
+        - fondant
+        - execute
+        - main
+        image: fndnt/embed_text:dev
+    exec-index-weaviate:
+      container:
+        args:
+        - --weaviate_url
+        - '{{$.inputs.parameters[''weaviate_url'']}}'
+        - --class_name
+        - '{{$.inputs.parameters[''class_name'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --output_manifest_path
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        - --input_manifest_path
+        - '{{$.inputs.parameters[''input_manifest_path'']}}'
+        command:
+        - fondant
+        - execute
+        - main
+        image: fndnt/index_weaviate:dev
+    exec-load-from-hub:
+      container:
+        args:
+        - --dataset_name
+        - '{{$.inputs.parameters[''dataset_name'']}}'
+        - --column_name_mapping
+        - '{{$.inputs.parameters[''column_name_mapping'']}}'
+        - --n_rows_to_load
+        - '{{$.inputs.parameters[''n_rows_to_load'']}}'
+        - --index_column
+        - '{{$.inputs.parameters[''index_column'']}}'
+        - --cache
+        - '{{$.inputs.parameters[''cache'']}}'
+        - --cluster_type
+        - '{{$.inputs.parameters[''cluster_type'']}}'
+        - --component_spec
+        - '{{$.inputs.parameters[''component_spec'']}}'
+        - --output_manifest_path
+        - '{{$.inputs.parameters[''output_manifest_path'']}}'
+        - --metadata
+        - '{{$.inputs.parameters[''metadata'']}}'
+        command:
+        - fondant
+        - execute
+        - main
+        image: fndnt/load_from_hf_hub:dev
+pipelineInfo:
+  description: Pipeline to prepare and process data for building a RAG solution
+  name: rag-cc-pipeline
+root:
+  dag:
+    tasks:
+      chunk-text:
+        cachingOptions: {}
+        componentRef:
+          name: comp-chunk-text
+        dependentTasks:
+        - load-from-hub
+        inputs:
+          parameters:
+            cache:
+              runtimeValue:
+                constant: true
+            chunk_overlap:
+              runtimeValue:
+                constant: 10.0
+            chunk_size:
+              runtimeValue:
+                constant: 512.0
+            cluster_type:
+              runtimeValue:
+                constant: default
+            component_spec:
+              runtimeValue:
+                constant:
+                  args:
+                    chunk_overlap:
+                      description: Overlap in characters between chunks
+                      type: int
+                    chunk_size:
+                      description: Maximum size of chunks to return
+                      type: int
+                  consumes:
+                    text:
+                      fields:
+                        data:
+                          type: string
+                  description: "Component that chunks text into smaller segments \n\
+                    \nThis component takes a body of text and chunks into small chunks.\
+                    \ The id of the returned dataset\nconsists of the id of the original\
+                    \ document followed by the chunk index.\n"
+                  image: fndnt/chunk_text:dev
+                  name: Chunk text
+                  produces:
+                    text:
+                      fields:
+                        data:
+                          type: string
+                        original_document_id:
+                          type: string
+            input_manifest_path:
+              runtimeValue:
+                constant: gs://deductive-wares-402408_fondant-data/rag-cc-pipeline/rag-cc-pipeline-20231019003516/load_from_hub/manifest.json
+            metadata:
+              runtimeValue:
+                constant: '{"base_path": "gs://deductive-wares-402408_fondant-data",
+                  "pipeline_name": "rag-cc-pipeline", "run_id": "rag-cc-pipeline-20231019003516",
+                  "component_id": "chunk_text", "cache_key": "8ddca9e5bcc51a65d3fd1b4193d41249"}'
+            output_manifest_path:
+              runtimeValue:
+                constant: gs://deductive-wares-402408_fondant-data/rag-cc-pipeline/rag-cc-pipeline-20231019003516/chunk_text/manifest.json
+        taskInfo:
+          name: chunk-text
+      embed-text:
+        cachingOptions: {}
+        componentRef:
+          name: comp-embed-text
+        dependentTasks:
+        - chunk-text
+        inputs:
+          parameters:
+            auth_kwargs:
+              runtimeValue:
+                constant:
+                  project: deductive-wares-402408
+            cache:
+              runtimeValue:
+                constant: true
+            cluster_type:
+              runtimeValue:
+                constant: default
+            component_spec:
+              runtimeValue:
+                constant:
+                  args:
+                    api_keys:
+                      default: {}
+                      description: "The API keys to use for the model provider that\
+                        \ are written to environment variables.\nPass only the keys\
+                        \ required by the model provider or conveniently pass all\
+                        \ keys you will ever need. \nPay attention how to name the\
+                        \ dictionary keys so that they can be used by the model provider.\n"
+                      type: dict
+                    auth_kwargs:
+                      default: {}
+                      description: 'Additional keyword arguments required for api
+                        initialization/authentication.
+
+                        '
+                      type: dict
+                    model:
+                      default: None
+                      description: "The model to generate embeddings from. \nChoose\
+                        \ an available model name to pass to the model provider's\
+                        \ langchain embedding class.\n"
+                      type: str
+                    model_provider:
+                      default: huggingface
+                      description: "The provider of the model - corresponding to langchain\
+                        \ embedding classes. \nCurrently the following providers are\
+                        \ supported: aleph_alpha, cohere, huggingface, openai, \n\
+                        vertexai.\n"
+                      type: str
+                  consumes:
+                    text:
+                      fields:
+                        data:
+                          type: string
+                  description: Component that generates embeddings of text passages.
+                  image: fndnt/embed_text:dev
+                  name: Embed text
+                  produces:
+                    text:
+                      fields:
+                        data:
+                          type: string
+                        embedding:
+                          items:
+                            type: float32
+                          type: array
+            input_manifest_path:
+              runtimeValue:
+                constant: gs://deductive-wares-402408_fondant-data/rag-cc-pipeline/rag-cc-pipeline-20231019003516/chunk_text/manifest.json
+            metadata:
+              runtimeValue:
+                constant: '{"base_path": "gs://deductive-wares-402408_fondant-data",
+                  "pipeline_name": "rag-cc-pipeline", "run_id": "rag-cc-pipeline-20231019003516",
+                  "component_id": "embed_text", "cache_key": "3c4f14a6cd8f94c190805ca08fea9288"}'
+            model_provider:
+              runtimeValue:
+                constant: vertexai
+            output_manifest_path:
+              runtimeValue:
+                constant: gs://deductive-wares-402408_fondant-data/rag-cc-pipeline/rag-cc-pipeline-20231019003516/embed_text/manifest.json
+        taskInfo:
+          name: embed-text
+      index-weaviate:
+        cachingOptions: {}
+        componentRef:
+          name: comp-index-weaviate
+        dependentTasks:
+        - embed-text
+        inputs:
+          parameters:
+            cache:
+              runtimeValue:
+                constant: true
+            class_name:
+              runtimeValue:
+                constant: RobbePipeline
+            cluster_type:
+              runtimeValue:
+                constant: default
+            component_spec:
+              runtimeValue:
+                constant:
+                  args:
+                    batch_size:
+                      default: 100.0
+                      description: 'The batch size to be used.
+
+                        Parameter of weaviate.batch.Batch().configure().
+
+                        '
+                      type: int
+                    class_name:
+                      description: 'The name of the weaviate class that will be created
+                        and used to store the embeddings.
+
+                        Should follow the weaviate naming conventions.
+
+                        '
+                      type: str
+                    dynamic:
+                      default: true
+                      description: 'Whether to use dynamic batching or not.
+
+                        Parameter of weaviate.batch.Batch().configure().
+
+                        '
+                      type: bool
+                    num_workers:
+                      default: 2.0
+                      description: 'The maximal number of concurrent threads to run
+                        batch import.
+
+                        Parameter of weaviate.batch.Batch().configure().
+
+                        '
+                      type: int
+                    overwrite:
+                      default: false
+                      description: Whether to overwrite/ re-create the existing weaviate
+                        class and its embeddings.
+                      type: bool
+                    vectorizer:
+                      default: None
+                      description: "Which vectorizer to use. \nYou can find the available\
+                        \ vectorizers in the weaviate documentation: https://weaviate\n\
+                        .io/developers/weaviate/modules/retriever-vectorizer-modules\n\
+                        Set this to None if you want to insert your own embeddings.\n"
+                      type: str
+                    weaviate_url:
+                      default: http://localhost:8080
+                      description: The URL of the weaviate instance.
+                      type: str
+                  consumes:
+                    text:
+                      fields:
+                        data:
+                          type: string
+                        embedding:
+                          items:
+                            type: float32
+                          type: array
+                  description: Component that takes embeddings of text snippets and
+                    indexes them into a weaviate vector database.
+                  image: fndnt/index_weaviate:dev
+                  name: Index Weaviate
+            input_manifest_path:
+              runtimeValue:
+                constant: gs://deductive-wares-402408_fondant-data/rag-cc-pipeline/rag-cc-pipeline-20231019003516/embed_text/manifest.json
+            metadata:
+              runtimeValue:
+                constant: '{"base_path": "gs://deductive-wares-402408_fondant-data",
+                  "pipeline_name": "rag-cc-pipeline", "run_id": "rag-cc-pipeline-20231019003516",
+                  "component_id": "index_weaviate", "cache_key": "fa3b194fa6257aba53d2a7af5960e617"}'
+            output_manifest_path:
+              runtimeValue:
+                constant: gs://deductive-wares-402408_fondant-data/rag-cc-pipeline/rag-cc-pipeline-20231019003516/index_weaviate/manifest.json
+            weaviate_url:
+              runtimeValue:
+                constant: http://10.10.10.6
+        taskInfo:
+          name: index-weaviate
+      load-from-hub:
+        cachingOptions: {}
+        componentRef:
+          name: comp-load-from-hub
+        inputs:
+          parameters:
+            cache:
+              runtimeValue:
+                constant: true
+            cluster_type:
+              runtimeValue:
+                constant: default
+            column_name_mapping:
+              runtimeValue:
+                constant:
+                  document_text: text_data
+            component_spec:
+              runtimeValue:
+                constant:
+                  args:
+                    column_name_mapping:
+                      default: {}
+                      description: Mapping of the consumed hub dataset to fondant
+                        column names
+                      type: dict
+                    dataset_name:
+                      description: Name of dataset on the hub
+                      type: str
+                    image_column_names:
+                      default: []
+                      description: Optional argument, a list containing the original
+                        image column names in case the dataset on the hub contains
+                        them. Used to format the image from HF hub format to a byte
+                        string.
+                      type: list
+                    index_column:
+                      default: None
+                      description: Column to set index to in the load component, if
+                        not specified a default globally unique index will be set
+                      type: str
+                    n_rows_to_load:
+                      description: Optional argument that defines the number of rows
+                        to load. Useful for testing pipeline runs on a small scale
+                      type: int
+                  description: Component that loads a dataset from the hub
+                  image: fndnt/load_from_hf_hub:dev
+                  name: Load from hub
+                  produces:
+                    text:
+                      fields:
+                        data:
+                          type: string
+            dataset_name:
+              runtimeValue:
+                constant: lukesjordan/worldbank-project-documents@~parquet
+            index_column:
+              runtimeValue:
+                constant: project_id
+            metadata:
+              runtimeValue:
+                constant: '{"base_path": "gs://deductive-wares-402408_fondant-data",
+                  "pipeline_name": "rag-cc-pipeline", "run_id": "rag-cc-pipeline-20231019003516",
+                  "component_id": "load_from_hub", "cache_key": "6d14fb8df871e15c4ef089c863f9ab3b"}'
+            n_rows_to_load:
+              runtimeValue:
+                constant: 20.0
+            output_manifest_path:
+              runtimeValue:
+                constant: gs://deductive-wares-402408_fondant-data/rag-cc-pipeline/rag-cc-pipeline-20231019003516/load_from_hub/manifest.json
+        taskInfo:
+          name: load-from-hub
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.3.0

@@ -1,6 +1,6 @@
 name: Index Weaviate
 description: Component that takes embeddings of text snippets and indexes them into a weaviate vector database.
-image: index_weaviate:dev
+image: fndnt/index_weaviate:dev
 
 consumes:
   text:
