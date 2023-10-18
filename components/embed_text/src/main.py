@@ -1,5 +1,7 @@
 import logging
+import os
 
+import google.cloud.aiplatform as aip
 import pandas as pd
 from fondant.component import PandasTransformComponent
 from langchain.embeddings import (
@@ -7,12 +9,17 @@ from langchain.embeddings import (
     CohereEmbeddings,
     HuggingFaceEmbeddings,
     OpenAIEmbeddings,
+    VertexAIEmbeddings,
 )
 from langchain.schema.embeddings import Embeddings
 from retry import retry
-from utils import to_env_vars
 
 logger = logging.getLogger(__name__)
+
+
+def to_env_vars(api_keys: dict):
+    for key, value in api_keys.items():
+        os.environ[key] = value
 
 
 class EmbedTextComponent(PandasTransformComponent):
@@ -22,12 +29,16 @@ class EmbedTextComponent(PandasTransformComponent):
         model_provider: str,
         model: str,
         api_keys: dict,
+        auth_kwargs: dict,
     ):
         self.embedding_model = self.get_embedding_model(model_provider, model)
+        self.auth_kwargs = auth_kwargs
         to_env_vars(api_keys)
 
-    @staticmethod
-    def get_embedding_model(model_provider, model: str) -> Embeddings:
+    def get_embedding_model(self, model_provider, model: str) -> Embeddings:
+        if model_provider == "vertexai":
+            aip.init(**self.auth_kwargs)
+            return VertexAIEmbeddings(model=model)
         # contains a first selection of embedding models
         if model_provider == "aleph_alpha":
             return AlephAlphaAsymmetricSemanticEmbedding(model=model)
