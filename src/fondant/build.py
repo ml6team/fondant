@@ -100,6 +100,9 @@ def build_component(  # ruff: noqa: PLR0912, PLR0915
     logs = docker_client.api.push(repository, tag=tag, stream=True, decode=True)
 
     for chunk in logs:
+        if "error" in chunk:
+            logger.error("Push failed:")
+            raise SystemExit(chunk["error"])
         message = chunk.get("status", "")
         if "progress" in chunk:
             message += " | " + chunk["progress"]
