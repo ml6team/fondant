@@ -46,7 +46,7 @@ class EmbedTextComponent(PandasTransformComponent):
         auth_kwargs: dict,
     ) -> Embeddings:
         if model_provider == "vertexai":
-            aip.init(auth_kwargs)
+            aip.init(**auth_kwargs)
             return VertexAIEmbeddings(model=model)
         # contains a first selection of embedding models
         if model_provider == "aleph_alpha":
