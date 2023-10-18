@@ -18,6 +18,7 @@ consists of the id of the original document followed by the chunk index.
 
 - text
     - data: string
+    - original_document_id: string
 
 ### Arguments
 
@@ -47,3 +48,9 @@ chunk_text_op = ComponentOp.from_registry(
 pipeline.add_op(chunk_text_op, dependencies=[...])  #Add previous component as dependency
 ```
 
+### Testing
+
+You can run the tests using docker with BuildKit. From this directory, run:
+```
+docker build . --target test
+```
