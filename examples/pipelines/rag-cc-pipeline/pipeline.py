@@ -9,10 +9,11 @@ from pipeline_configs import PipelineConfigs
 from fondant.pipeline import ComponentOp, Pipeline
 
 logger = logging.getLogger(__name__)
-# General configs
-pipeline_name = "rag-cc-pipeline"
-pipeline_description = (
-    "Pipeline to prepare and process data for building a RAG solution"
+
+pipeline = Pipeline(
+    pipeline_name="rag-cc-pipeline",
+    pipeline_description="Pipeline to prepare and process data for building a RAG solution",
+    base_path=PipelineConfigs.BASE_PATH,
 )
 
 load_component_column_mapping = {"document_text": "text_data"}
@@ -35,11 +36,6 @@ chunk_text_op = ComponentOp(
         "chunk_size": 512,
         "chunk_overlap": 10,
     },
-)
-
-pipeline = Pipeline(
-    pipeline_name=pipeline_name,
-    base_path=PipelineConfigs.BASE_PATH,
 )
 
 pipeline.add_op(load_from_hub_op)
