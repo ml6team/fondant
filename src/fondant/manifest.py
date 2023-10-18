@@ -179,7 +179,7 @@ class Manifest:
     @classmethod
     def from_file(cls, path: t.Union[str, Path]) -> "Manifest":
         """Load the manifest from the file specified by the provided path."""
-        with fs_open(path, encoding="utf-8", auto_mkdir=True) as file_:
+        with fs_open(path, encoding="utf-8") as file_:
             specification = json.load(file_)
             return cls(specification)
 

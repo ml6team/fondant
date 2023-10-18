@@ -77,12 +77,11 @@ class Executor(t.Generic[Component]):
         self.input_partition_rows = input_partition_rows
 
         if cluster_type == "local":
-            if client_kwargs is None:
-                client_kwargs = {
-                    "processes": True,
-                    "n_workers": os.cpu_count(),
-                    "threads_per_worker": 1,
-                }
+            client_kwargs = client_kwargs or {
+                "processes": True,
+                "n_workers": os.cpu_count(),
+                "threads_per_worker": 1,
+            }
 
             logger.info(f"Initialize local dask cluster with arguments {client_kwargs}")
 
@@ -190,7 +189,7 @@ class Executor(t.Generic[Component]):
             elif arg.default is not None and arg.optional is False:
                 input_required = False
                 default = arg.default
-            elif arg.default is not None and arg.optional is True:
+            elif arg.default is None and arg.optional is True:
                 input_required = False
                 default = None
             else:
@@ -281,7 +280,6 @@ class Executor(t.Generic[Component]):
                 manifest_reference_path,
                 mode="rt",
                 encoding="utf-8",
-                auto_mkdir=True,
             ) as file_:
                 cached_manifest_path = file_.read()
                 manifest = Manifest.from_file(cached_manifest_path)
