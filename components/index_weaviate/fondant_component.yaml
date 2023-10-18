@@ -1,0 +1,55 @@
+name: Index Weaviate
+description: Component that takes embeddings of text snippets and indexes them into a weaviate vector database.
+image: fndnt/index_weaviate:dev
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+      embedding:
+        type: array
+        items:
+          type: float32
+
+args:
+  weaviate_url:
+    description: The URL of the weaviate instance.
+    type: str
+    default: http://localhost:8080
+  batch_size:
+    description: |
+      The batch size to be used.
+      Parameter of weaviate.batch.Batch().configure().
+    type: int
+    default: 100
+  dynamic:
+    description: |
+      Whether to use dynamic batching or not.
+      Parameter of weaviate.batch.Batch().configure().
+    type: bool
+    default: True
+  num_workers:
+    description: |
+      The maximal number of concurrent threads to run batch import.
+      Parameter of weaviate.batch.Batch().configure().
+    type: int
+    default: 2
+  overwrite:
+    description: Whether to overwrite/ re-create the existing weaviate class and its embeddings.
+    type: bool
+    default: False
+  class_name:
+    description: |
+      The name of the weaviate class that will be created and used to store the embeddings.
+      Should follow the weaviate naming conventions.
+    type: str
+  vectorizer:
+    description: |
+      Which vectorizer to use. 
+      You can find the available vectorizers in the weaviate documentation: https://weaviate
+      .io/developers/weaviate/modules/retriever-vectorizer-modules
+      Set this to None if you want to insert your own embeddings.
+    type: str
+    default: None
+  

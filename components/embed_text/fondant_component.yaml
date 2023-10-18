@@ -1,6 +1,6 @@
 name: Embed text
 description: Component that generates embeddings of text passages.
-image: embed_text:latest
+image: fndnt/embed_text:dev
 
 consumes:
   text:
