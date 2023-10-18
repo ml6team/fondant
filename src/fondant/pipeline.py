@@ -61,6 +61,12 @@ class ComponentOp:
         node_pool_label: The label of the node pool to which the operation will be assigned.
         node_pool_name: The name of the node pool to which the operation will be assigned.
         cache: Set to False to disable caching, True by default.
+        cpu_request: the memory requested by the component. The value
+         should be a string which can be a number or a number followed by “m”, which means
+         1/1000.
+        cpu_limit: the maximum amount of CPU that can be used by the component. The value
+         should be a string which can be a number or a number followed by “m”, which means
+         1/1000.
         memory_request: the memory requested by the component. The value  can be a number or a
           number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
         memory_limit: the maximum memory that can be used by the component. The value  can be a
@@ -98,8 +104,10 @@ class ComponentOp:
         preemptible: t.Optional[bool] = False,
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
-        memory_request: t.Optional[t.Union[str, int]] = None,
-        memory_limit: t.Optional[t.Union[str, int]] = None,
+        cpu_request: t.Optional[str] = None,
+        cpu_limit: t.Optional[str] = None,
+        memory_request: t.Optional[str] = None,
+        memory_limit: t.Optional[str] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -119,6 +127,8 @@ class ComponentOp:
 
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
+        self.cpu_request = cpu_request
+        self.cpu_limit = cpu_limit
         self.memory_request = memory_request
         self.memory_limit = memory_limit
         self.node_pool_label, self.node_pool_name = self._validate_node_pool_spec(
@@ -231,8 +241,10 @@ class ComponentOp:
         preemptible: t.Optional[bool] = False,
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
-        memory_request: t.Optional[t.Union[str, int]] = None,
-        memory_limit: t.Optional[t.Union[str, int]] = None,
+        cpu_request: t.Optional[str] = None,
+        cpu_limit: t.Optional[str] = None,
+        memory_request: t.Optional[str] = None,
+        memory_limit: t.Optional[str] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -254,6 +266,14 @@ class ComponentOp:
              Requires the setup and assignment of a preemptible node pool. Note that preemptibles
              only work when KFP is setup on GCP. More info here:
              https://v1-6-branch.kubeflow.org/docs/distributions/gke/pipelines/preemptible/
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
+            cpu_request: the memory requested by the component. The value
+             should be a string which can be a number or a number followed by “m”, which means
+             1/1000.
+            cpu_limit: the maximum amount of CPU that can be used by the component. The value
+             should be a string which can be a number or a number followed by “m”, which means
+             1/1000.
             memory_request: the memory requested by the component. The value  can be a number or a
              number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
             memory_limit: the maximum memory that can be used by the component. The value  can be a
@@ -279,6 +299,8 @@ class ComponentOp:
             preemptible=preemptible,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
+            cpu_request=cpu_request,
+            cpu_limit=cpu_limit,
             memory_request=memory_request,
             memory_limit=memory_limit,
         )
