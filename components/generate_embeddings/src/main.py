@@ -24,7 +24,6 @@ class GenerateEmbeddingsComponent(PandasTransformComponent):
     ):
         self.model_provider = model_provider
         self.model = model
-
         to_env_vars(api_keys)
 
     def get_embedding_model(self, model_provider, model: str):
