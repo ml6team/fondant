@@ -13,11 +13,20 @@ class WriteToWeaviateComponent(DaskWriteComponent):
         self,
         *_,
         weaviate_url: str,
+        batch_size: int,
+        dynamic: bool,
+        num_workers: int,
+        overwrite: bool,
         class_name: str,
         vectorizer: dict,
-        overwrite: bool,
     ):
         self.client = weaviate.Client(weaviate_url)
+        self.client.batch.configure(
+            batch_size=batch_size,
+            dynamic=dynamic,
+            num_workers=num_workers,
+        )
+
         self.overwrite = overwrite
 
         self.class_name = _capitalize_first_letter(class_name)
@@ -49,7 +58,6 @@ class WriteToWeaviateComponent(DaskWriteComponent):
             # do not index
             return dataframe
 
-        self.client.batch.configure(batch_size=100, dynamic=True, num_workers=2)
         with self.client.batch as batch:
             for part in dataframe.partitions:
                 dataframe = part.compute()

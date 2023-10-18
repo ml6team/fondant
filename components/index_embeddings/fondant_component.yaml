@@ -17,6 +17,28 @@ args:
     description: The URL of the weaviate instance.
     type: str
     default: http://localhost:8080
+  batch_size:
+    description: |
+      The batch size to be used.
+      Parameter of weaviate.batch.Batch().configure().
+    type: int
+    default: 100
+  dynamic:
+    description: |
+      Whether to use dynamic batching or not.
+      Parameter of weaviate.batch.Batch().configure().
+    type: bool
+    default: 1
+  num_workers:
+    description: |
+      The maximal number of concurrent threads to run batch import.
+      Parameter of weaviate.batch.Batch().configure().
+    type: int
+    default: 2
+  overwrite:
+    description: Whether to overwrite/ re-create the existing weaviate class and its embeddings.
+    type: bool
+    default: 0
   class_name:
     description: |
       The name of the weaviate class that will be created and used to store the embeddings.
@@ -32,7 +54,4 @@ args:
       The module used also has to be enabled in your weaviate instance deployment. 
       Can also be {"vectorizer": "none"} if you do not want to make use of this feature.
     type: dict
-  overwrite:
-    description: Whether to overwrite/ re-create the existing weaviate class and its embeddings.
-    type: bool
-    default: 0
+  
