@@ -27,8 +27,8 @@ def chunk_text(row, text_splitter: RecursiveCharacterTextSplitter) -> t.List[t.T
     ]
 
 
-class DownloadImagesComponent(PandasTransformComponent):
-    """Component that downloads images based on URLs."""
+class ChunkTextComponent(PandasTransformComponent):
+    """Component that chunks text into smaller segments.."""
 
     def __init__(
         self,
@@ -40,9 +40,6 @@ class DownloadImagesComponent(PandasTransformComponent):
         Args:
             chunk_size: Maximum size of chunks to return.
             chunk_overlap: Overlap in characters between chunks.
-
-        Returns:
-            Dask dataframe.
         """
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
