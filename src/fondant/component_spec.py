@@ -156,8 +156,12 @@ class ComponentSpec:
         return self._specification["description"]
 
     @property
-    def image(self):
+    def image(self) -> str:
         return self._specification["image"]
+
+    @image.setter
+    def image(self, value: str) -> None:
+        self._specification["image"] = value
 
     @property
     def index(self):
