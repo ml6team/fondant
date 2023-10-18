@@ -97,14 +97,14 @@ class VertexRunner(Runner):
     def __init__(
         self,
         project_id: str,
-        project_region: str,
+        region: str,
         service_account: t.Optional[str] = None,
     ):
         self.__resolve_imports()
 
         self.aip.init(
             project=project_id,
-            location=project_region,
+            location=region,
         )
         self.service_account = service_account
 
