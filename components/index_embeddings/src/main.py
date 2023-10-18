@@ -8,21 +8,19 @@ from weaviate.util import _capitalize_first_letter
 logger = logging.getLogger(__name__)
 
 
-class IndexEmbeddingsComponent(DaskWriteComponent):
+class WriteToWeaviateComponent(DaskWriteComponent):
     def __init__(
         self,
         *_,
         weaviate_url: str,
-        model: str,
-        dataset: str,
+        class_name: str,
         vectorizer: dict,
         overwrite: bool,
     ):
         self.client = weaviate.Client(weaviate_url)
         self.overwrite = overwrite
 
-        # following weaviate convention for upper case class names
-        self.class_name = _capitalize_first_letter(f"{model}_{dataset}")
+        self.class_name = _capitalize_first_letter(class_name)
         self.class_obj = {
             "class": self.class_name,
             "properties": [

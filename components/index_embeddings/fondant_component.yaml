@@ -17,17 +17,12 @@ args:
     description: The URL of the weaviate instance.
     type: str
     default: http://localhost:8080
-  model:
+  class_name:
     description: |
-      A name for the model used to generate the embeddings.
-      It is used to name the weaviate class and thus has to follow the naming conventions of weaviate.
+      The name of the weaviate class that will be created and used to store the embeddings.
+      Should follow the weaviate naming conventions.
     type: str
-    default: MiniLM
-  dataset:
-    description: |
-      The name of the data source from which the text snippets that were used to generate the embeddings stem.
-      It is used to name the weaviate class and thus has to follow the naming conventions of weaviate.
-    type: str
+    default: Article
   vectorizer:
     description: |
       The configuration of the weaviate vectorizer (for vectorization with text2vec-* modules) in the class object 
