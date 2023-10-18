@@ -194,7 +194,8 @@ def register_build(parent_parser):
         type=str,
         help="Tag to add to built container. If the tag contains a `:`, it will be used as the "
         "full name for the image. If it does not contain a `:`, the image base name will be "
-        "read from the `fondant_component.yaml` and combined into `base_name:tag`.",
+        "read from the `fondant_component.yaml` and combined into `base_name:tag`. If no tag is "
+        "provided, the tag from the `fondant_component.yaml` is used directly.",
     )
     parser.add_argument(
         "--build-arg",
@@ -463,6 +464,13 @@ def register_run(parent_parser):
         default=None,
     )
 
+    vertex_parser.add_argument(
+        "--network",
+        help="Network for the job to connect to, useful when peering with Vertex AI. Format "
+        "should be 'projects/${project_number}/global/networks/${network}'",
+        default=None,
+    )
+
     vertex_parser.set_defaults(func=run_vertex)
 
 
@@ -524,6 +532,7 @@ def run_vertex(args):
             project_id=args.project_id,
             region=args.region,
             service_account=args.service_account,
+            network=args.network,
         )
         runner.run(input_spec=spec_ref)
 

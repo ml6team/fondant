@@ -99,6 +99,7 @@ class VertexRunner(Runner):
         project_id: str,
         region: str,
         service_account: t.Optional[str] = None,
+        network: t.Optional[str] = None,
     ):
         self.__resolve_imports()
 
@@ -107,6 +108,7 @@ class VertexRunner(Runner):
             location=region,
         )
         self.service_account = service_account
+        self.network = network
 
     def run(self, input_spec: str, *args, **kwargs):
         job = self.aip.PipelineJob(
@@ -114,7 +116,10 @@ class VertexRunner(Runner):
             template_path=input_spec,
             enable_caching=False,
         )
-        job.submit(service_account=self.service_account)
+        job.submit(
+            service_account=self.service_account,
+            network=self.network,
+        )
 
     def get_name_from_spec(self, input_spec: str):
         """Get the name of the pipeline from the spec."""
