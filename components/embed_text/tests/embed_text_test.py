@@ -4,7 +4,7 @@ from math import isclose
 
 import pandas as pd
 
-from components.embed_text.src.main import EmbedTextComponent
+from src.main import EmbedTextComponent
 
 
 def embeddings_close(a, b):
@@ -13,9 +13,9 @@ def embeddings_close(a, b):
 
 def test_run_component_test():
     """Test generate embeddings component."""
-    with open("lorem_300.txt", encoding="utf-8") as f:
+    with open("tests/lorem_300.txt", encoding="utf-8") as f:
         lorem_300 = f.read()
-    with open("lorem_400.txt", encoding="utf-8") as f:
+    with open("tests/lorem_400.txt", encoding="utf-8") as f:
         lorem_400 = f.read()
 
     # Given: Dataframe with text
@@ -33,11 +33,12 @@ def test_run_component_test():
         model_provider="huggingface",
         model="all-MiniLM-L6-v2",
         api_keys={},
+        auth_kwargs={},
     )
 
     dataframe = component.transform(dataframe=dataframe)
 
-    with open("hello_world_embedding.txt", encoding="utf-8") as f:
+    with open("tests/hello_world_embedding.txt", encoding="utf-8") as f:
         hello_world_embedding = f.read()
         hello_world_embedding = json.loads(hello_world_embedding)
 

@@ -31,13 +31,22 @@ class EmbedTextComponent(PandasTransformComponent):
         api_keys: dict,
         auth_kwargs: dict,
     ):
-        self.embedding_model = self.get_embedding_model(model_provider, model)
-        self.auth_kwargs = auth_kwargs
+        self.embedding_model = self.get_embedding_model(
+            model_provider,
+            model,
+            auth_kwargs,
+        )
+
         to_env_vars(api_keys)
 
-    def get_embedding_model(self, model_provider, model: str) -> Embeddings:
+    @staticmethod
+    def get_embedding_model(
+        model_provider,
+        model: str,
+        auth_kwargs: dict,
+    ) -> Embeddings:
         if model_provider == "vertexai":
-            aip.init(**self.auth_kwargs)
+            aip.init(auth_kwargs)
             return VertexAIEmbeddings(model=model)
         # contains a first selection of embedding models
         if model_provider == "aleph_alpha":
