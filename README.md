@@ -166,9 +166,9 @@ pip install git+https://github.com/ml6team/fondant.git
 There are 3 ways to run fondant pipelines:
 
 - [**Local runner**](https://github.com/ml6team/fondant/blob/main/docs/pipeline.md#local-runner): leverages [docker compose](https://docs.docker.com/compose/). The local runner is mainly aimed 
-at helping you develop fondant pipelines and components faster by making it easier to run things on a smaller scale 
-and iterate quickly on your pipeline. Once you have a pipeline developed, you can use the other runners mentioned below
-to better scale and monitor your pipelines. 
+at helping you develop fondant pipelines and components faster since it allows you to develop on your local machine or a Virtual Machine. 
+- This enables you to quickly iterate on development.Once you have a pipeline developed, you can use the other runners mentioned below
+for better scaling, monitoring and reproducibility.
 - [**Vertex runner**](https://github.com/ml6team/fondant/blob/main/docs/pipeline.md#vertex-runner): Uses Google cloud's [Vertex AI pipelines](https://cloud.google.com/vertex-ai/docs/pipelines/introduction) to help you 
 orchestrate your Fondant pipelines in a serverless manner. This makes it easy to scale up your pipelines without worrying about infrastructure 
 deployment. 
@@ -308,7 +308,7 @@ speed up your data preparation work.
 - Data lineage and experiment tracking
 - Distributed execution, both on and off cluster
 - Support other dataframe libraries such as HF Datasets, Polars, Spark
-
+- Move reusable components into a decentralized component registry
 - Create datasets of copy-right free data for fine-tuning
 - Create reusable components for bias detection and mitigation
 

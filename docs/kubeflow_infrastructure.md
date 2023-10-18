@@ -1,7 +1,7 @@
-# Setting up infrastructure for using fondant
+# Setting up kubeflow 
 
 ## Introduction
-Fondant is built on top of [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/), so to run it we'll need:
+In order to run Fondant on [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/), we'll need:
 
 - A kubernetes cluster
 - Kubeflow pipelines installed on the cluster
@@ -10,7 +10,7 @@ Fondant is built on top of [Kubeflow Pipelines](https://www.kubeflow.org/docs/co
 This can be on any kubernetes cluster, if you don't have access to a setup like this or you feel uncomfortable to setup your own we have provided some basic scripts to get you started on GCP or on a small scale locally.
 
 !!! note "IMPORTANT"
-    - These script serve just a kickstart to help you start using fondant fast, these are not production ready environments.
+    - These script serve just a kickstart to help you setup Kubeflow for running Fondant, these are not production ready environments.
     - Spinning up a cluster on a cloud vendor will incur a cost.
     - You should never run a script without inspecting it so please familiarize yourself with the commands defined in the Makefiles and adapt it to your own needs.
 
@@ -19,7 +19,7 @@ This can be on any kubernetes cluster, if you don't have access to a setup like 
 If you already have setup a kubernetes cluster and you have configured kubectl you can install kubeflow pipelines following this [guide](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/#deploying-kubeflow-pipelines)
 
 
-## Fondant on AWS
+## Kubeflow on AWS
 
 There are multiple guides on how to setup kubeflow pipelines on AWS:
 
@@ -32,7 +32,7 @@ Fondant needs the host url of kubeflow pipelines which you can [fetch](https://d
 The BASE_PATH can be an [S3 bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/creating-bucket.html)
 
 
-## Fondant on Google Cloud
+## Kubeflow on Google Cloud
 
 There are several ways to get up and running with kubeflow pipelines on Google Cloud.
 
@@ -83,12 +83,12 @@ make -f gcp.mk delete
 
 - [Official documentation on cluster creation](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-zonal-cluster)
 - [Provision a GKE cluster with terraform](https://developer.hashicorp.com/terraform/tutorials/kubernetes/gke)
-- [use kubespray to setup a cluster](https://github.com/kubernetes-sigs/kubespray)
+- [Use kubespray to setup a cluster](https://github.com/kubernetes-sigs/kubespray)
 
 ### More Information
-- [standalone deployments](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/)
+- [Standalone deployments](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/)
 - [Other local cluster installations](https://www.kubeflow.org/docs/components/pipelines/v1/installation/localcluster-deployment/)
-- [authenticating google cloud resources like storage and artifact registry](https://minikube.sigs.k8s.io/docs/handbook/addons/gcp-auth/)
+- [Authenticating google cloud resources like storage and artifact registry](https://minikube.sigs.k8s.io/docs/handbook/addons/gcp-auth/)
 
 
 
