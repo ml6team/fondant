@@ -14,6 +14,7 @@ from fondant.pipeline import (
     valid_accelerator_types,
     valid_vertex_accelerator_types,
 )
+from fondant.schema import KubeflowCommandArguments  # noqa: TCH001
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,10 @@ class Compiler(ABC):
     @abstractmethod
     def compile(self, *args, **kwargs) -> None:
         """Abstract method to invoke compilation."""
+
+    @abstractmethod
+    def _set_configuration(self, *args, **kwargs) -> None:
+        """Abstract method to set pipeline configuration."""
 
 
 @dataclass
@@ -277,7 +282,7 @@ class KubeFlowCompiler(Compiler):
     def compile(
         self,
         pipeline: Pipeline,
-        output_path: str = "kubeflow_pipeline.yml",
+        output_path: str,
     ) -> None:
         """Compile a pipeline to Kubeflow pipeline spec and save it to a specified output path.
 
@@ -288,6 +293,30 @@ class KubeFlowCompiler(Compiler):
         run_id = pipeline.get_run_id()
         pipeline.validate(run_id=run_id)
         logger.info(f"Compiling {pipeline.name} to {output_path}")
+
+        def set_component_exec_args(
+            *,
+            component_op,
+            component_args: t.List[str],
+            input_manifest_path: bool,
+        ):
+            """Dump Fondant specification arguments to kfp command executor arguments."""
+            dumped_args: KubeflowCommandArguments = []
+
+            component_args.extend(["output_manifest_path", "metadata"])
+            if input_manifest_path:
+                component_args.append("input_manifest_path")
+
+            for arg in component_args:
+                arg_name = arg.strip().replace(" ", "_")
+                arg_name_cmd = f"--{arg_name}"
+
+                dumped_args.append(arg_name_cmd)
+                dumped_args.append("{{$.inputs.parameters['" + f"{arg_name}" + "']}}")
+
+            component_op.component_spec.implementation.container.args = dumped_args
+
+            return component_op
 
         @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
         def kfp_pipeline():
@@ -331,6 +360,11 @@ class KubeFlowCompiler(Compiler):
                             f"{pipeline.base_path}/{pipeline.name}/"
                             f"{run_id}/{dependency}/manifest.json"
                         )
+                        kubeflow_component_op = set_component_exec_args(
+                            component_op=kubeflow_component_op,
+                            component_args=list(component_args.keys()),
+                            input_manifest_path=True,
+                        )
                         component_task = kubeflow_component_op(
                             input_manifest_path=input_manifest_path,
                             output_manifest_path=output_manifest_path,
@@ -340,13 +374,18 @@ class KubeFlowCompiler(Compiler):
                         component_task.after(previous_component_task)
 
                 else:
+                    kubeflow_component_op = set_component_exec_args(
+                        component_op=kubeflow_component_op,
+                        component_args=list(component_args.keys()),
+                        input_manifest_path=False,
+                    )
                     component_task = kubeflow_component_op(
                         metadata=metadata.to_json(),
                         output_manifest_path=output_manifest_path,
                         **component_args,
                     )
 
-                # Set optional arguments
+                # Set optional configuration
                 component_task = self._set_configuration(
                     component_task,
                     component_op,
@@ -368,10 +407,16 @@ class KubeFlowCompiler(Compiler):
         accelerator_name = fondant_component_operation.accelerator_name
         node_pool_label = fondant_component_operation.node_pool_label
         node_pool_name = fondant_component_operation.node_pool_name
+        cpu_request = fondant_component_operation.cpu_request
+        cpu_limit = fondant_component_operation.cpu_limit
         memory_request = fondant_component_operation.memory_request
         memory_limit = fondant_component_operation.memory_limit
 
         # Assign optional specification
+        if cpu_request is not None:
+            task.set_memory_request(cpu_request)
+        if cpu_limit is not None:
+            task.set_memory_limit(cpu_limit)
         if memory_request is not None:
             task.set_memory_request(memory_request)
         if memory_limit is not None:
@@ -398,8 +443,9 @@ class KubeFlowCompiler(Compiler):
         return task
 
 
-class VertexCompiler(Compiler):
+class VertexCompiler(KubeFlowCompiler):
     def __init__(self):
+        super().__init__()
         self.resolve_imports()
 
     def resolve_imports(self):
@@ -416,98 +462,19 @@ class VertexCompiler(Compiler):
                 msg,
             )
 
-    def compile(
-        self,
-        pipeline: Pipeline,
-        output_path: str = "vertex_pipeline.yml",
-    ) -> None:
-        """Compile a pipeline to vertex pipeline spec and save it to a specified output path.
-
-        Args:
-            pipeline: the pipeline to compile
-            output_path: the path where to save the Kubeflow pipeline spec
-        """
-        run_id = pipeline.get_run_id()
-        pipeline.validate(run_id=run_id)
-        logger.info(f"Compiling {pipeline.name} to {output_path}")
-
-        @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
-        def kfp_pipeline():
-            previous_component_task = None
-            component_cache_key = None
-
-            for component_name, component in pipeline._graph.items():
-                logger.info(f"Compiling service for {component_name}")
-
-                component_op = component["fondant_component_op"]
-                # convert ComponentOp to Kubeflow component
-                kubeflow_component_op = self.kfp.components.load_component_from_text(
-                    text=component_op.component_spec.kubeflow_specification.to_string(),
-                )
-
-                # Remove None values from arguments
-                component_args = {
-                    k: v for k, v in component_op.arguments.items() if v is not None
-                }
-                component_cache_key = component_op.get_component_cache_key(
-                    previous_component_cache=component_cache_key,
-                )
-                metadata = Metadata(
-                    pipeline_name=pipeline.name,
-                    run_id=run_id,
-                    base_path=pipeline.base_path,
-                    component_id=component_name,
-                    cache_key=component_cache_key,
-                )
-
-                output_manifest_path = (
-                    f"{pipeline.base_path}/{pipeline.name}/"
-                    f"{run_id}/{component_name}/manifest.json"
-                )
-                # Set the execution order of the component task to be after the previous
-                # component task.
-                if component["dependencies"]:
-                    for dependency in component["dependencies"]:
-                        input_manifest_path = (
-                            f"{pipeline.base_path}/{pipeline.name}/"
-                            f"{run_id}/{dependency}/manifest.json"
-                        )
-                        component_task = kubeflow_component_op(
-                            input_manifest_path=input_manifest_path,
-                            output_manifest_path=output_manifest_path,
-                            metadata=metadata.to_json(),
-                            **component_args,
-                        )
-                        component_task.after(previous_component_task)
-
-                else:
-                    component_task = kubeflow_component_op(
-                        metadata=metadata.to_json(),
-                        output_manifest_path=output_manifest_path,
-                        **component_args,
-                    )
-
-                # Set optional arguments
-                component_task = self._set_configuration(
-                    component_task,
-                    component_op,
-                )
-
-                # Disable caching
-                component_task.set_caching_options(enable_caching=False)
-
-                previous_component_task = component_task
-
-        self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
-        logger.info("Pipeline compiled successfully")
-
     @staticmethod
     def _set_configuration(task, fondant_component_operation):
         # Unpack optional specifications
+        cpu_limit = fondant_component_operation.cpu_limit
+        memory_limit = fondant_component_operation.memory_limit
         number_of_accelerators = fondant_component_operation.number_of_accelerators
         accelerator_name = fondant_component_operation.accelerator_name
 
         # Assign optional specification
+        if cpu_limit is not None:
+            task.set_cpu_limit(cpu_limit)
+        if memory_limit is not None:
+            task.set_memory_limit(memory_limit)
         if number_of_accelerators is not None:
             task.set_accelerator_limit(number_of_accelerators)
             if accelerator_name not in valid_vertex_accelerator_types:

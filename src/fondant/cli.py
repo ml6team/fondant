@@ -23,16 +23,18 @@ import sys
 import textwrap
 import typing as t
 from collections import defaultdict
+from pathlib import Path
 from types import ModuleType
 
-from fondant.compiler import DockerCompiler, KubeFlowCompiler
+from fondant.build import build_component
+from fondant.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
 from fondant.component import BaseComponent, Component
 from fondant.executor import ExecutorFactory
 from fondant.explorer import (
     run_explorer_app,
 )
 from fondant.pipeline import Pipeline
-from fondant.runner import DockerRunner, KubeflowRunner
+from fondant.runner import DockerRunner, KubeflowRunner, VertexRunner
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +68,7 @@ def entrypoint():
     )
     subparsers = parser.add_subparsers()
     register_explore(subparsers)
+    register_build(subparsers)
     register_execute(subparsers)
     register_compile(subparsers)
     register_run(subparsers)
@@ -164,6 +167,71 @@ def explore(args):
     )
 
 
+def register_build(parent_parser):
+    parser = parent_parser.add_parser(
+        "build",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent(
+            """
+        Build a component and push it to the registry. The image name in the
+        `fondant_component.yaml` will automatically be updated to use the new image.
+
+        Example:
+
+        fondant build components/my-component -tag my-tag
+        """,
+        ),
+    )
+    parser.add_argument(
+        "component_dir",
+        type=Path,
+        help="""Path to the directory containing the component code, including a
+        `fondant_component.yaml` and `Dockerfile`.""",
+    )
+    parser.add_argument(
+        "--tag",
+        "-t",
+        type=str,
+        help="Tag to add to built container. If the tag contains a `:`, it will be used as the "
+        "full name for the image. If it does not contain a `:`, the image base name will be "
+        "read from the `fondant_component.yaml` and combined into `base_name:tag`.",
+    )
+    parser.add_argument(
+        "--build-arg",
+        action="append",
+        help="Build arguments to pass to `docker build`. Format {key}={value}, can be repeated.",
+        default=[],
+    )
+    parser.add_argument(
+        "--nocache",
+        action="store_true",
+        help="Disable cache during building.",
+    )
+    parser.add_argument(
+        "--pull",
+        action="store_true",
+        help="Downloads any updates to the FROM image in Dockerfiles.",
+    )
+    parser.add_argument(
+        "--target",
+        type=str,
+        help="Name of the build-stage to build in a multi-stage Dockerfile.",
+    )
+
+    parser.set_defaults(func=build)
+
+
+def build(args):
+    build_component(
+        args.component_dir,
+        tag=args.tag,
+        build_args=args.build_arg,
+        nocache=args.nocache,
+        pull=args.pull,
+        target=args.target,
+    )
+
+
 def register_compile(parent_parser):
     parser = parent_parser.add_parser(
         "compile",
@@ -192,6 +260,10 @@ def register_compile(parent_parser):
         name="kubeflow",
         help="Kubeflow compiler",
     )
+    vertex_parser = compiler_subparser.add_parser(
+        name="vertex",
+        help="vertex compiler",
+    )
 
     # Local runner parser
     local_parser.add_argument(
@@ -217,7 +289,7 @@ def register_compile(parent_parser):
     local_parser.add_argument(
         "--build-arg",
         action="append",
-        help="Build arguments to pass to `docker build`. Format {key}={value}.",
+        help="Build arguments to pass to `docker build`. Format {key}={value}, can be repeated.",
         default=[],
     )
 
@@ -236,8 +308,24 @@ def register_compile(parent_parser):
         default="pipeline.yaml",
     )
 
+    # vertex parser
+    vertex_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
+    vertex_parser.add_argument(
+        "--output-path",
+        "-o",
+        help="Output path of compiled pipeline",
+        default="vertex_pipeline.yml",
+    )
+
     local_parser.set_defaults(func=compile_local)
     kubeflow_parser.set_defaults(func=compile_kfp)
+    vertex_parser.set_defaults(func=compile_vertex)
 
 
 def compile_local(args):
@@ -254,6 +342,12 @@ def compile_local(args):
 def compile_kfp(args):
     pipeline = pipeline_from_module(args.ref)
     compiler = KubeFlowCompiler()
+    compiler.compile(pipeline=pipeline, output_path=args.output_path)
+
+
+def compile_vertex(args):
+    pipeline = pipeline_from_module(args.ref)
+    compiler = VertexCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
 
@@ -283,6 +377,10 @@ def register_run(parent_parser):
     kubeflow_parser = runner_subparser.add_parser(
         name="kubeflow",
         help="Kubeflow runner",
+    )
+    vertex_parser = runner_subparser.add_parser(
+        name="vertex",
+        help="Vertex runner",
     )
 
     # Local runner parser
@@ -335,6 +433,38 @@ def register_run(parent_parser):
 
     kubeflow_parser.set_defaults(func=run_kfp)
 
+    # Vertex runner parser
+    vertex_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
+    vertex_parser.add_argument(
+        "--project-id",
+        help="""The project id of the GCP project used to submit the pipeline""",
+    )
+    vertex_parser.add_argument(
+        "--region",
+        help="The region where to run the pipeline",
+    )
+
+    vertex_parser.add_argument(
+        "--output-path",
+        "-o",
+        help="Output path of compiled pipeline",
+        default="vertex_pipeline.yaml",
+    )
+
+    vertex_parser.add_argument(
+        "--service-account",
+        help="The service account used to launch jobs",
+        default=None,
+    )
+
+    vertex_parser.set_defaults(func=run_vertex)
+
 
 def run_local(args):
     try:
@@ -374,6 +504,27 @@ def run_kfp(args):
         compiler.compile(pipeline=pipeline, output_path=spec_ref)
     finally:
         runner = KubeflowRunner(host=args.host)
+        runner.run(input_spec=spec_ref)
+
+
+def run_vertex(args):
+    try:
+        pipeline = pipeline_from_module(args.ref)
+    except ModuleNotFoundError:
+        spec_ref = args.ref
+    else:
+        spec_ref = args.output_path
+        logging.info(
+            "Found reference to un-compiled pipeline... compiling to {spec_ref}",
+        )
+        compiler = VertexCompiler()
+        compiler.compile(pipeline=pipeline, output_path=spec_ref)
+    finally:
+        runner = VertexRunner(
+            project_id=args.project_id,
+            region=args.region,
+            service_account=args.service_account,
+        )
         runner.run(input_spec=spec_ref)
 
 

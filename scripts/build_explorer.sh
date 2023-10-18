@@ -23,8 +23,8 @@ if [ -z "${tag}" ]; then
 fi
 
 # Set github repo information
-namespace="ml6team"
-repo="fondant"
+namespace="fndnt"
+repo="ml6team/fondant"
 
 # Get the explorer directory
 scripts_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )

@@ -15,4 +15,4 @@ args:
   n_records_to_download:
     description: Number of records to download
     type: int
-    default: -1
+    default: None
