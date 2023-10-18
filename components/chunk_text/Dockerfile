@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.8-slim
+FROM --platform=linux/amd64 python:3.8-slim as base
 
 # System dependencies
 RUN apt-get update && \
@@ -19,5 +19,12 @@ WORKDIR /component
 COPY src/ src/
 ENV PYTHONPATH "${PYTHONPATH}:./src"
 
+FROM base as test
+COPY test_requirements.txt .
+RUN pip3 install --no-cache-dir -r test_requirements.txt
+COPY tests/ tests/
+RUN python -m pytest tests
+
+FROM base
 WORKDIR /component/src
 ENTRYPOINT ["fondant", "execute", "main"]
