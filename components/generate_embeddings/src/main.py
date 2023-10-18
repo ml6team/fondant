@@ -27,7 +27,7 @@ class GenerateEmbeddingsComponent(PandasTransformComponent):
         to_env_vars(api_keys)
 
     def get_embedding_model(self, model_provider, model: str):
-        # contains a first selection of embedding models
+        # contains a selection of embedding models
         if model_provider == "aleph_alpha":
             return AlephAlphaAsymmetricSemanticEmbedding(model=model)
         if model_provider == "cohere":
