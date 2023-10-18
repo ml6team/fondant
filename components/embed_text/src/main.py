@@ -8,13 +8,14 @@ from langchain.embeddings import (
     HuggingFaceEmbeddings,
     OpenAIEmbeddings,
 )
+from langchain.schema.embeddings import Embeddings
 from retry import retry
 from utils import to_env_vars
 
 logger = logging.getLogger(__name__)
 
 
-class GenerateEmbeddingsComponent(PandasTransformComponent):
+class EmbedTextComponent(PandasTransformComponent):
     def __init__(
         self,
         *_,
@@ -22,12 +23,11 @@ class GenerateEmbeddingsComponent(PandasTransformComponent):
         model: str,
         api_keys: dict,
     ):
-        self.model_provider = model_provider
-        self.model = model
-
+        self.embedding_model = self.get_embedding_model(model_provider, model)
         to_env_vars(api_keys)
 
-    def get_embedding_model(self, model_provider, model: str):
+    @staticmethod
+    def get_embedding_model(model_provider, model: str) -> Embeddings:
         # contains a first selection of embedding models
         if model_provider == "aleph_alpha":
             return AlephAlphaAsymmetricSemanticEmbedding(model=model)
@@ -41,13 +41,11 @@ class GenerateEmbeddingsComponent(PandasTransformComponent):
         raise ValueError(msg)
 
     @retry()  # make sure to keep trying even when api call limit is reached
-    def get_embeddings_vectors(self, embedding_model, texts):
-        return embedding_model.embed_documents(texts.tolist())
+    def get_embeddings_vectors(self, texts):
+        return self.embedding_model.embed_documents(texts.tolist())
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        embedding_model = self.get_embedding_model(self.model_provider, self.model)
         dataframe[("text", "embedding")] = self.get_embeddings_vectors(
-            embedding_model,
             dataframe[("text", "data")],
         )
         return dataframe

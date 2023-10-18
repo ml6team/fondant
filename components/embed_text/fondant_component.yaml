@@ -1,6 +1,6 @@
-name: Generate embeddings
+name: Embed text
 description: Component that generates embeddings of text passages.
-image: generate_embeddings:latest
+image: embed_text:latest
 
 consumes:
   text:

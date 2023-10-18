@@ -4,7 +4,7 @@ from math import isclose
 
 import pandas as pd
 
-from components.generate_embeddings.src.main import GenerateEmbeddingsComponent
+from components.embed_text.src.main import EmbedTextComponent
 
 
 def embeddings_close(a, b):
@@ -29,7 +29,7 @@ def test_run_component_test():
 
     dataframe = pd.concat({"text": pd.DataFrame(data)}, axis=1, names=["text", "data"])
 
-    component = GenerateEmbeddingsComponent(
+    component = EmbedTextComponent(
         model_provider="huggingface",
         model="all-MiniLM-L6-v2",
         api_keys={},

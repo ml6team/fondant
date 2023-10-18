@@ -1,4 +1,4 @@
-# Generate embeddings
+# Embed Text
 
 ### Description
 Component that generates embeddings of text passages.
@@ -34,7 +34,7 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-generate_embeddings_op = ComponentOp.from_registry(
+embed_text_op = ComponentOp.from_registry(
     name="generate_embeddings",
     arguments={
         # Add arguments
@@ -43,6 +43,6 @@ generate_embeddings_op = ComponentOp.from_registry(
         # "api_keys": {},
     }
 )
-pipeline.add_op(generate_embeddings_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(embed_text_op, dependencies=[...])  #Add previous component as dependency
 ```
 
