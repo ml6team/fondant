@@ -10,22 +10,24 @@ from fondant.pipeline import ComponentOp, Pipeline
 
 logger = logging.getLogger(__name__)
 
+# TODO: Change
+DATASET_URI = "gs://soy-audio-379412_datasets/ml6-intranet"
+
 pipeline = Pipeline(
     pipeline_name="rag-cc-pipeline",
     pipeline_description="Pipeline to prepare and process data for building a RAG solution",
     base_path=PipelineConfigs.BASE_PATH,
 )
 
-load_component_column_mapping = {"document_text": "text_data"}
+load_component_column_mapping = {"title": "text_title", "text_data": "text_data"}
 
 # Define component ops
 load_from_hub_op = ComponentOp(
-    component_dir="components/load_from_hf_hub",
+    component_dir="components/load_from_parquet",
     arguments={
-        "dataset_name": "lukesjordan/worldbank-project-documents@~parquet",
+        "dataset_uri": DATASET_URI,
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 20,
-        "index_column": "project_id",
+        "index_column": "doc_id",
     },
 )
 
@@ -40,10 +42,8 @@ chunk_text_op = ComponentOp.from_registry(
 embed_text_op = ComponentOp.from_registry(
     name="embed_text",
     arguments={
-        "model_provider": "vertexai",
-        "auth_kwargs": {
-            "project": "<project-id>",
-        },
+        "model_provider": "huggingface",
+        "model": "all-MiniLM-L6-v2",
     },
 )
 
