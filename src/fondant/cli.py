@@ -464,6 +464,13 @@ def register_run(parent_parser):
         default=None,
     )
 
+    vertex_parser.add_argument(
+        "--network",
+        help="Network for the job to connect to, useful when peering with Vertex AI. Format "
+        "should be 'projects/${project_number}/global/networks/${network}'",
+        default=None,
+    )
+
     vertex_parser.set_defaults(func=run_vertex)
 
 
@@ -525,6 +532,7 @@ def run_vertex(args):
             project_id=args.project_id,
             region=args.region,
             service_account=args.service_account,
+            network=args.network,
         )
         runner.run(input_spec=spec_ref)
 

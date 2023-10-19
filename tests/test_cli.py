@@ -279,6 +279,7 @@ def test_vertex_run(tmp_path_factory):
             region="europe-west-1",
             project_id="project-123",
             service_account=None,
+            network=None,
             ref="some/path",
         )
         run_vertex(args)
@@ -286,6 +287,7 @@ def test_vertex_run(tmp_path_factory):
             project_id="project-123",
             region="europe-west-1",
             service_account=None,
+            network=None,
         )
 
     with patch("fondant.cli.VertexRunner") as mock_runner, patch(
@@ -303,10 +305,12 @@ def test_vertex_run(tmp_path_factory):
             region="europe-west-1",
             project_id="project-123",
             service_account=None,
+            network=None,
         )
         run_vertex(args)
         mock_runner.assert_called_once_with(
             project_id="project-123",
             region="europe-west-1",
             service_account=None,
+            network=None,
         )
