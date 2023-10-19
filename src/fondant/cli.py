@@ -194,7 +194,8 @@ def register_build(parent_parser):
         type=str,
         help="Tag to add to built container. If the tag contains a `:`, it will be used as the "
         "full name for the image. If it does not contain a `:`, the image base name will be "
-        "read from the `fondant_component.yaml` and combined into `base_name:tag`.",
+        "read from the `fondant_component.yaml` and combined into `base_name:tag`. If no tag is "
+        "provided, the tag from the `fondant_component.yaml` is used directly.",
     )
     parser.add_argument(
         "--build-arg",

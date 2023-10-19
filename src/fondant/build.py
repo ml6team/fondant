@@ -15,7 +15,7 @@ logger.setLevel(logging.INFO)
 def build_component(  # ruff: noqa: PLR0912, PLR0915
     component_dir: Path,
     *,
-    tag: str,
+    tag: t.Optional[str],
     build_args: t.List[str],
     nocache: bool = False,
     pull: bool = False,
@@ -42,7 +42,10 @@ def build_component(  # ruff: noqa: PLR0912, PLR0915
         )
         raise SystemExit(msg)
 
-    if ":" in tag:
+    if tag is None:
+        logger.info("No tag provided. Extracting image name from `component_spec.yaml`")
+        full_image_name = component_spec.image
+    elif ":" in tag:
         logger.info("Detected `:` in tag")
         full_image_name = tag
     else:
@@ -97,6 +100,9 @@ def build_component(  # ruff: noqa: PLR0912, PLR0915
     logs = docker_client.api.push(repository, tag=tag, stream=True, decode=True)
 
     for chunk in logs:
+        if "error" in chunk:
+            logger.error("Push failed:")
+            raise SystemExit(chunk["error"])
         message = chunk.get("status", "")
         if "progress" in chunk:
             message += " | " + chunk["progress"]
