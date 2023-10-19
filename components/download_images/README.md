@@ -35,9 +35,9 @@ The component takes the following arguments to alter its behavior:
 | n_connections | int | Number of concurrent connections opened per process. Decrease this number if you are running into timeout errors. A lower number of connections can increase the success rate but lower the throughput. | 100 |
 | image_size | int | Size of the images after resizing. | 256 |
 | resize_mode | str | Resize mode to use. One of "no", "keep_ratio", "center_crop", "border". | border |
-| resize_only_if_bigger | bool | If True, resize only if image is bigger than image_size. | False |
+| resize_only_if_bigger | bool | If True, resize only if image is bigger than image_size. | / |
 | min_image_size | int | Minimum size of the images. | / |
-| max_aspect_ratio | float | Maximum aspect ratio of the images. | inf |
+| max_aspect_ratio | float | Maximum aspect ratio of the images. | 99.9 |
 
 ### Usage
 
@@ -56,9 +56,9 @@ download_images_op = ComponentOp.from_registry(
         # "n_connections": 100,
         # "image_size": 256,
         # "resize_mode": "border",
-        # "resize_only_if_bigger": "False",
+        # "resize_only_if_bigger": False,
         # "min_image_size": 0,
-        # "max_aspect_ratio": "inf",
+        # "max_aspect_ratio": 99.9,
     }
 )
 pipeline.add_op(download_images_op, dependencies=[...])  #Add previous component as dependency

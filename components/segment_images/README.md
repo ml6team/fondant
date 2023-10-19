@@ -22,7 +22,7 @@ The component takes the following arguments to alter its behavior:
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
 | model_id | str | id of the model on the Hugging Face hub | openmmlab/upernet-convnext-small |
-| batch_size | int | batch size to use | / |
+| batch_size | int | batch size to use | 8 |
 
 ### Usage
 
@@ -37,7 +37,7 @@ segment_images_op = ComponentOp.from_registry(
     arguments={
         # Add arguments
         # "model_id": "openmmlab/upernet-convnext-small",
-        # "batch_size": 0,
+        # "batch_size": 8,
     }
 )
 pipeline.add_op(segment_images_op, dependencies=[...])  #Add previous component as dependency
