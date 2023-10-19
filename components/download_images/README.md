@@ -30,14 +30,6 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| input_manifest_path | str | Path to the input manifest | / |
-| component_spec | dict | The component specification as a dictionary | / |
-| input_partition_rows | int | The number of rows to load per partition.                         Set to override the automatic partitioning | / |
-| cache | bool | Set to False to disable caching, True by default. | True |
-| cluster_type | str | The cluster type to use for the execution | default |
-| client_kwargs | dict | Keyword arguments to pass to the Dask client | / |
-| metadata | str | Metadata arguments containing the run id and base path | / |
-| output_manifest_path | str | Path to the output manifest | / |
 | timeout | int | Maximum time (in seconds) to wait when trying to download an image, | 10 |
 | retries | int | Number of times to retry downloading an image if it fails. | / |
 | n_connections | int | Number of concurrent connections opened per process. Decrease this number if you are running into timeout errors. A lower number of connections can increase the success rate but lower the throughput. | 100 |
@@ -59,14 +51,6 @@ download_images_op = ComponentOp.from_registry(
     name="download_images",
     arguments={
         # Add arguments
-        # "input_manifest_path": ,
-        # "component_spec": {},
-        # "input_partition_rows": 0,
-        # "cache": True,
-        # "cluster_type": "default",
-        # "client_kwargs": {},
-        # "metadata": ,
-        # "output_manifest_path": ,
         # "timeout": 10,
         # "retries": 0,
         # "n_connections": 100,

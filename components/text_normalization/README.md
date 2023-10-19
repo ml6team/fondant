@@ -30,14 +30,6 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| input_manifest_path | str | Path to the input manifest | / |
-| component_spec | dict | The component specification as a dictionary | / |
-| input_partition_rows | int | The number of rows to load per partition.                         Set to override the automatic partitioning | / |
-| cache | bool | Set to False to disable caching, True by default. | True |
-| cluster_type | str | The cluster type to use for the execution | default |
-| client_kwargs | dict | Keyword arguments to pass to the Dask client | / |
-| metadata | str | Metadata arguments containing the run id and base path | / |
-| output_manifest_path | str | Path to the output manifest | / |
 | remove_additional_whitespaces | bool | If true remove all additional whitespace, tabs. | / |
 | apply_nfc | bool | If true apply nfc normalization | / |
 | normalize_lines | bool | If true analyze documents line-by-line and apply various rules to discard or edit lines. Used to removed common patterns in webpages, e.g. counter | / |
@@ -56,14 +48,6 @@ text_normalization_op = ComponentOp.from_registry(
     name="text_normalization",
     arguments={
         # Add arguments
-        # "input_manifest_path": ,
-        # "component_spec": {},
-        # "input_partition_rows": 0,
-        # "cache": True,
-        # "cluster_type": "default",
-        # "client_kwargs": {},
-        # "metadata": ,
-        # "output_manifest_path": ,
         # "remove_additional_whitespaces": False,
         # "apply_nfc": False,
         # "normalize_lines": False,
