@@ -8,7 +8,7 @@ def test_transform_custom_componen_test():
     user_arguments = {
         "remove_additional_whitespaces": True,
         "apply_nfc": True,
-        "remove_bad_patterns": True,
+        "normalize_lines": True,
         "do_lowercase": True,
         "remove_punctuation": True,
     }

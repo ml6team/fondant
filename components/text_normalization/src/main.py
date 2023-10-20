@@ -49,13 +49,13 @@ class TextNormalizationComponent(PandasTransformComponent):
         *args,
         remove_additional_whitespaces: bool,
         apply_nfc: bool,
-        remove_bad_patterns: bool,
+        normalize_lines: bool,
         do_lowercase: bool,
         remove_punctuation: bool,
     ):
         self.remove_additional_whitespaces = remove_additional_whitespaces
         self.apply_nfc = apply_nfc
-        self.normalize_lines = remove_bad_patterns
+        self.normalize_lines = normalize_lines
         self.do_lowercase = do_lowercase
         self.remove_punctuation = remove_punctuation
 
