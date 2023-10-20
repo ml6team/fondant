@@ -69,6 +69,7 @@ def build_component(  # ruff: noqa: PLR0912, PLR0915
         for url in [
             "/var/run/docker.sock",
             Path.home() / ".docker/desktop/docker.sock",
+            Path.home() / ".docker/run/docker.sock",
         ]:
             base_url = f"unix://{url}"
             try:
