@@ -2,8 +2,6 @@
 
 This pipeline implements the T-MARS paper: https://arxiv.org/abs/2307.03132.
 """
-import os
-
 import logging
 import sys
 
@@ -16,6 +14,10 @@ from fondant.pipeline import ComponentOp, Pipeline
 logger = logging.getLogger(__name__)
 
 run_id = 1
+
+# Global variable
+IMAGE_SIZE = 256
+
 # Initialize pipeline and client
 pipeline = Pipeline(
     pipeline_name=f"datacomp-filtering-pipeline-{run_id}-v2",
@@ -46,28 +48,28 @@ load_from_parquet = ComponentOp(
         "n_rows_to_load": 10,
     },
     node_pool_label="node_pool",
-    node_pool_name="n2-standard-64-pool",
-)
-download_images_op = ComponentOp.from_registry(
-    name="download_images",
-    arguments={
-        "retries": 2,
-        "min_image_size": 0,
-    },
-    node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
     memory_request="500G",
+)
+
+resize_images = ComponentOp.from_registry(
+    name="resize_images",
+    arguments={
+        "resize_width": IMAGE_SIZE,
+        "resize_height": IMAGE_SIZE,
+    },
 )
 
 detect_text_op = ComponentOp(
     component_dir="components/detect_text",
     arguments={
-        "batch_size": 2,
+        "batch_size": 8,
+        "image_size": IMAGE_SIZE,
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-pool",
-    number_of_accelerators=1,
     accelerator_name="GPU",
+    number_of_accelerators=1,
 )
 mask_images_op = ComponentOp(
     component_dir="components/mask_images",
@@ -82,8 +84,8 @@ embed_images_op = ComponentOp.from_registry(
     },
     node_pool_label="node_pool",
     node_pool_name="model-inference-pool",
-    number_of_accelerators=1,
     accelerator_name="GPU",
+    number_of_accelerators=1,
 )
 add_clip_score_op = ComponentOp(
     component_dir="components/add_clip_score",
@@ -103,7 +105,8 @@ filter_clip_score_op = ComponentOp(
 
 # add ops to pipeline
 pipeline.add_op(load_from_parquet)
-pipeline.add_op(detect_text_op, dependencies=load_from_parquet)
+pipeline.add_op(resize_images, dependencies=load_from_parquet)
+pipeline.add_op(detect_text_op, dependencies=resize_images)
 pipeline.add_op(mask_images_op, dependencies=detect_text_op)
 pipeline.add_op(embed_images_op, dependencies=mask_images_op)
 pipeline.add_op(add_clip_score_op, dependencies=embed_images_op)
