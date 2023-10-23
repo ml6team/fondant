@@ -45,7 +45,7 @@ load_from_parquet = ComponentOp(
         "dataset_uri": f"gs://soy-audio-379412_datacomp/final_dataset_multiple/{run_id}/",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
-        "n_rows_to_load": 10,
+        "n_rows_to_load": 20,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
@@ -58,6 +58,9 @@ resize_images = ComponentOp.from_registry(
         "resize_width": IMAGE_SIZE,
         "resize_height": IMAGE_SIZE,
     },
+    node_pool_label="node_pool",
+    node_pool_name="n2-standard-128-pool",
+    memory_request="500G",
 )
 
 detect_text_op = ComponentOp(
