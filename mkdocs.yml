@@ -51,6 +51,7 @@ nav:
 
 plugins:
   - mkdocstrings
+  - search
 
 markdown_extensions:
   - pymdownx.snippets:
