@@ -492,7 +492,10 @@ def run_local(args):
             build_args=args.build_arg,
         )
     finally:
-        DockerRunner().run(spec_ref)
+        try:
+            DockerRunner().run(spec_ref)
+        except UnboundLocalError as e:
+            raise e
 
 
 def run_kfp(args):
@@ -511,8 +514,11 @@ def run_kfp(args):
         compiler = KubeFlowCompiler()
         compiler.compile(pipeline=pipeline, output_path=spec_ref)
     finally:
-        runner = KubeflowRunner(host=args.host)
-        runner.run(input_spec=spec_ref)
+        try:
+            runner = KubeflowRunner(host=args.host)
+            runner.run(input_spec=spec_ref)
+        except UnboundLocalError as e:
+            raise e
 
 
 def run_vertex(args):
@@ -528,13 +534,16 @@ def run_vertex(args):
         compiler = VertexCompiler()
         compiler.compile(pipeline=pipeline, output_path=spec_ref)
     finally:
-        runner = VertexRunner(
-            project_id=args.project_id,
-            region=args.region,
-            service_account=args.service_account,
-            network=args.network,
-        )
-        runner.run(input_spec=spec_ref)
+        try:
+            runner = VertexRunner(
+                project_id=args.project_id,
+                region=args.region,
+                service_account=args.service_account,
+                network=args.network,
+            )
+            runner.run(input_spec=spec_ref)
+        except UnboundLocalError as e:
+            raise e
 
 
 def register_execute(parent_parser):
