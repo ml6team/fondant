@@ -21,7 +21,8 @@ To implement a custom component, a couple of files need to be defined:
 
 Each Fondant component is defined by a specification which describes its interface. This
 specification is represented by a single `fondant_component.yaml` file. See the [component
-specification page](../components/component_spec.md) for info on how to write the specification for your component.
+specification page](../components/component_spec.md) for info on how to write the specification for
+your component.
 
 ## Main.py script
 
@@ -64,8 +65,8 @@ class ExampleComponent(PandasTransformComponent):
 ```
 
 The `__init__` method is called once for each component class with custom arguments defined in the
-`args` section of the [component specification](../components/component_spec.md).) This is a good 
-place to initialize resources and costly initializations such as network connections, models, 
+`args` section of the [component specification](../components/component_spec.md).) This is a good
+place to initialize resources and costly initializations such as network connections, models,
 parsing a config file, etc. By doing so, you can effectively prevent the redundant re-initialization
 of resources each time the `transform` method is invoked.
 
@@ -87,7 +88,8 @@ which is then imported in the `main.py` script.
 
 ## Dockerfile
 
-The `Dockerfile` defines how to build the component into a Docker image. An example Dockerfile is defined below.
+The `Dockerfile` defines how to build the component into a Docker image. An example Dockerfile is
+defined below.
 
 ```bash
 FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
@@ -112,7 +114,11 @@ ENTRYPOINT ["fondant", "execute", "main"]
 
 ## Requirements.txt
 
-A `requirements.txt` file lists the Python dependencies of the component. Note that any Fondant component will always have `Fondant` as the minimum requirement. It's important to also pin the version of each dependency to make sure the component remains working as expected. Below is an example of a component that relies on several Python libraries such as Pillow, PyTorch and Transformers.
+A `requirements.txt` file lists the Python dependencies of the component. Note that any Fondant
+component will always have `Fondant` as the minimum requirement. It's important to also pin the
+version of each dependency to make sure the component remains working as expected. Below is an
+example of a component that relies on several Python libraries such as Pillow, PyTorch and
+Transformers.
 
 ```
 fondant
@@ -120,3 +126,27 @@ Pillow==10.0.1
 torch==2.0.1
 transformers==4.29.2
 ```
+
+## Build the component
+
+Before you can use your custom component within your pipeline you have to build the component into a
+Docker container. The Fondant CLI offers a specialized `fondant build` command designed
+explicitly for this task.
+To commence the component building process, simply execute:
+
+```
+fondant build <component dir> -t <image tag>
+```
+
+Ensure that you replace `<component dir>` with the accurate path to the directory where your
+component is located. The `-t` flag is used to specify the Docker container tag.
+
+When you use the `-t` flag, the tag in the referenced component specification yaml will also be
+updated, ensuring that the next pipeline run correctly references the image.
+
+It's important to note that the `fondant build` command offers additional arguments. To access a
+complete list of all available arguments, you can execute `fondant build -h`.
+
+
+
+

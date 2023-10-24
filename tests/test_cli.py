@@ -1,11 +1,13 @@
 import argparse
 import subprocess
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from fondant.cli import (
     ComponentImportError,
     PipelineImportError,
+    build,
     compile_kfp,
     compile_local,
     compile_vertex,
@@ -314,3 +316,51 @@ def test_vertex_run(tmp_path_factory):
             service_account=None,
             network=None,
         )
+
+
+@patch("docker.api.client.APIClient.push")
+@patch("docker.api.client.APIClient.build")
+def test_component_build(mock_build, mock_push):
+    """Test that the build command works as expected."""
+    args = argparse.Namespace(
+        component_dir=Path(__file__).parent / "example_component",
+        tag="image:test",
+        build_arg=["key=value"],
+        nocache=True,
+        pull=True,
+        target="base",
+    )
+
+    # Set up the return values for the mocked methods
+    mock_build.return_value = ["Dummy logs build"]
+    mock_push.return_value = [{"status": "dummy log status"}]
+
+    # Run build command
+    build(args)
+
+    # Check that docker build and push were executed correctly
+    mock_build.assert_called_with(
+        path=str(Path(__file__).parent / "example_component"),
+        tag="image:test",
+        buildargs={"key": "value"},
+        nocache=True,
+        pull=True,
+        target="base",
+        decode=True,
+    )
+
+    mock_push.assert_called_with("image", tag="test", stream=True, decode=True)
+
+    # Check that the component specification file was updated correctly
+    with open(
+        Path(__file__).parent / "example_component" / "fondant_component.yaml",
+        "r+",
+    ) as f:
+        content = f.read()
+        assert "image:test" in content
+
+        # Revert image name in component specification
+        content = content.replace("image:test", "image:local")
+        f.seek(0)
+        f.write(content)
+        f.truncate()
