@@ -98,11 +98,12 @@ during component development.
 
 The local runner will try to check if the `base_path` of the pipeline is a local or remote storage. If it's local, the `base_path` will be mounted as a bind volume on every service/component.
 
-If you want to use remote paths (GCS, S3, etc.) you can use the `--extra_volumes` argument to mount extra credentials. This volume will be mounted to every component/service of the docker-compose spec.
+If you want to use remote paths (GCS, S3, etc.) you can use the `--auth-gcp`, `--auth-aws` or `--auth-gcp`.
+This will mount your default local cloud credentials to the pipeline. You can also use the `--extra_volumes` argument to mount extra credentials or additional files.
+This volumes will be mounted to every component/service of the docker-compose spec.
 
 ```bash
-fondant run local <pipeline_ref> \
- --extra-volumes $HOME/.aws/credentials:/root/.aws/credential
+fondant run local <pipeline_ref> --auth-gcp
 ```
 
 ### Vertex Runner
