@@ -32,6 +32,15 @@ class Compiler(ABC):
     def _set_configuration(self, *args, **kwargs) -> None:
         """Abstract method to set pipeline configuration."""
 
+    def log_unused_configurations(self, **kwargs):
+        """Log configurations that are set but will be unused."""
+        for key, value in kwargs.items():
+            if value is not None:
+                logger.warning(
+                    f"Configuration `{key}` is set with `{value}` but has no effect"
+                    f" for runner `{self.__class__.__name__}`.",
+                )
+
 
 @dataclass
 class DockerVolume:
@@ -222,10 +231,27 @@ class DockerCompiler(Compiler):
             "services": services,
         }
 
-    @staticmethod
-    def _set_configuration(services, fondant_component_operation, component_name):
+    def _set_configuration(self, services, fondant_component_operation, component_name):
+        # Used configurations
         accelerator_name = fondant_component_operation.accelerator_name
         accelerator_number = fondant_component_operation.number_of_accelerators
+
+        # Unused configurations
+        node_pool_label = fondant_component_operation.node_pool_label
+        node_pool_name = fondant_component_operation.node_pool_name
+        cpu_request = fondant_component_operation.cpu_request
+        cpu_limit = fondant_component_operation.cpu_limit
+        memory_request = fondant_component_operation.memory_request
+        memory_limit = fondant_component_operation.memory_limit
+
+        self.log_unused_configurations(
+            node_pool_label=node_pool_label,
+            node_pool_name=node_pool_name,
+            cpu_request=cpu_request,
+            cpu_limit=cpu_limit,
+            memory_request=memory_request,
+            memory_limit=memory_limit,
+        )
 
         if accelerator_name is not None:
             if accelerator_name not in valid_accelerator_types:
@@ -402,7 +428,7 @@ class KubeFlowCompiler(Compiler):
         logger.info("Pipeline compiled successfully")
 
     def _set_configuration(self, task, fondant_component_operation):
-        # Unpack optional specifications
+        # Used configurations
         number_of_accelerators = fondant_component_operation.number_of_accelerators
         accelerator_name = fondant_component_operation.accelerator_name
         node_pool_label = fondant_component_operation.node_pool_label
@@ -462,13 +488,25 @@ class VertexCompiler(KubeFlowCompiler):
                 msg,
             )
 
-    @staticmethod
-    def _set_configuration(task, fondant_component_operation):
-        # Unpack optional specifications
+    def _set_configuration(self, task, fondant_component_operation):
+        # Used configurations
         cpu_limit = fondant_component_operation.cpu_limit
         memory_limit = fondant_component_operation.memory_limit
         number_of_accelerators = fondant_component_operation.number_of_accelerators
         accelerator_name = fondant_component_operation.accelerator_name
+
+        # Unused configurations
+        node_pool_label = fondant_component_operation.node_pool_label
+        node_pool_name = fondant_component_operation.node_pool_name
+        cpu_request = fondant_component_operation.cpu_request
+        memory_request = fondant_component_operation.memory_request
+
+        self.log_unused_configurations(
+            node_pool_label=node_pool_label,
+            node_pool_name=node_pool_name,
+            cpu_request=cpu_request,
+            memory_request=memory_request,
+        )
 
         # Assign optional specification
         if cpu_limit is not None:
