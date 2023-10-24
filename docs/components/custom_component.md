@@ -139,7 +139,10 @@ fondant build <component dir> -t <image tag>
 ```
 
 Ensure that you replace `<component dir>` with the accurate path to the directory where your
-component is located. The -t flag is used to specify the Docker container tag.
+component is located. The `-t` flag is used to specify the Docker container tag.
+
+When you use the `-t` flag, the tag in the referenced component specification yaml will also be
+updated, ensuring that the next pipeline run correctly references the image.
 
 It's important to note that the `fondant build` command offers additional arguments. To access a
 complete list of all available arguments, you can execute `fondant build -h`.

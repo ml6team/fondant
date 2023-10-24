@@ -323,7 +323,7 @@ def test_vertex_run(tmp_path_factory):
 def test_component_build(mock_build, mock_push):
     """Test that the build command works as expected."""
     args = argparse.Namespace(
-        component_dir=Path("example_component"),
+        component_dir=Path(__file__).parent / "example_component",
         tag="image:test",
         build_arg=["key=value"],
         nocache=True,
@@ -340,7 +340,7 @@ def test_component_build(mock_build, mock_push):
 
     # Check that docker build and push were executed correctly
     mock_build.assert_called_with(
-        path="example_component",
+        path=str(Path(__file__).parent / "example_component"),
         tag="image:test",
         buildargs={"key": "value"},
         nocache=True,
@@ -352,7 +352,10 @@ def test_component_build(mock_build, mock_push):
     mock_push.assert_called_with("image", tag="test", stream=True, decode=True)
 
     # Check that the component specification file was updated correctly
-    with open("example_component/fondant_component.yaml", "r+") as f:
+    with open(
+        Path(__file__).parent / "example_component" / "fondant_component.yaml",
+        "r+",
+    ) as f:
         content = f.read()
         assert "image:test" in content
 
