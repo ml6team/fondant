@@ -34,10 +34,10 @@ class Compiler(ABC):
 
     def log_unused_configurations(self, **kwargs):
         """Log configurations that are set but will be unused."""
-        for key, value in kwargs.items():
-            if value is not None:
+        for config_name, config_value in kwargs.items():
+            if config_value is not None:
                 logger.warning(
-                    f"Configuration `{key}` is set with `{value}` but has no effect"
+                    f"Configuration `{config_name}` is set with `{config_value}` but has no effect"
                     f" for runner `{self.__class__.__name__}`.",
                 )
 
@@ -237,20 +237,13 @@ class DockerCompiler(Compiler):
         accelerator_number = fondant_component_operation.number_of_accelerators
 
         # Unused configurations
-        node_pool_label = fondant_component_operation.node_pool_label
-        node_pool_name = fondant_component_operation.node_pool_name
-        cpu_request = fondant_component_operation.cpu_request
-        cpu_limit = fondant_component_operation.cpu_limit
-        memory_request = fondant_component_operation.memory_request
-        memory_limit = fondant_component_operation.memory_limit
-
         self.log_unused_configurations(
-            node_pool_label=node_pool_label,
-            node_pool_name=node_pool_name,
-            cpu_request=cpu_request,
-            cpu_limit=cpu_limit,
-            memory_request=memory_request,
-            memory_limit=memory_limit,
+            node_pool_label=fondant_component_operation.node_pool_label,
+            node_pool_name=fondant_component_operation.node_pool_name,
+            cpu_request=fondant_component_operation.cpu_request,
+            cpu_limit=fondant_component_operation.cpu_limit,
+            memory_request=fondant_component_operation.memory_request,
+            memory_limit=fondant_component_operation.memory_limit,
         )
 
         if accelerator_name is not None:
@@ -496,16 +489,11 @@ class VertexCompiler(KubeFlowCompiler):
         accelerator_name = fondant_component_operation.accelerator_name
 
         # Unused configurations
-        node_pool_label = fondant_component_operation.node_pool_label
-        node_pool_name = fondant_component_operation.node_pool_name
-        cpu_request = fondant_component_operation.cpu_request
-        memory_request = fondant_component_operation.memory_request
-
         self.log_unused_configurations(
-            node_pool_label=node_pool_label,
-            node_pool_name=node_pool_name,
-            cpu_request=cpu_request,
-            memory_request=memory_request,
+            node_pool_label=fondant_component_operation.node_pool_label,
+            node_pool_name=fondant_component_operation.node_pool_name,
+            cpu_request=fondant_component_operation.cpu_request,
+            memory_request=fondant_component_operation.memory_request,
         )
 
         # Assign optional specification
