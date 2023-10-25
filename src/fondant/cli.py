@@ -18,11 +18,13 @@ import argparse
 import importlib
 import inspect
 import logging
+import os
 import shutil
 import sys
 import textwrap
 import typing as t
 from collections import defaultdict
+from enum import Enum
 from pathlib import Path
 from types import ModuleType
 
@@ -37,6 +39,26 @@ from fondant.pipeline import Pipeline
 from fondant.runner import DockerRunner, KubeflowRunner, VertexRunner
 
 logger = logging.getLogger(__name__)
+
+
+class CloudCredentialsMount(Enum):
+    home_directory = os.path.expanduser("~")
+    AWS = f"{home_directory}/credentials:/root/.aws/credentials"
+    GCP = f"{home_directory}/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json"
+    AZURE = f"{home_directory}/.azure:/root/.azure"
+
+
+def get_cloud_credentials(args) -> t.Optional[str]:
+    if args.auth_gcp:
+        return CloudCredentialsMount.GCP.value
+    if args.auth_aws:
+        return CloudCredentialsMount.AWS.value
+    if args.auth_azure:
+        return CloudCredentialsMount.AZURE.value
+    if args.credentials:
+        return args.credentials
+
+    return None
 
 
 def entrypoint():
@@ -103,6 +125,8 @@ def register_explore(parent_parser):
         """,
         ),
     )
+    auth_group = parser.add_mutually_exclusive_group()
+
     parser.add_argument(
         "--base_path",
         "-b",
@@ -131,21 +155,39 @@ def register_explore(parent_parser):
         default=8501,
         help="Port to expose the container on.",
     )
-    parser.add_argument(
+
+    auth_group.add_argument(
+        "--auth-gcp",
+        action="store_true",
+        help=f"Flag to authenticate with GCP. Uses the following mount command"
+        f" `{CloudCredentialsMount.GCP.value}`",
+    )
+
+    auth_group.add_argument(
+        "--auth-azure",
+        action="store_true",
+        help="Flag to authenticate with Azure. Uses the following mount command"
+        f" `{CloudCredentialsMount.AZURE.value}`",
+    )
+
+    auth_group.add_argument(
+        "--auth-aws",
+        action="store_true",
+        help="Flag to authenticate with AWS. Uses the following mount command"
+        f" `{CloudCredentialsMount.AWS.value}`",
+    )
+
+    auth_group.add_argument(
         "--credentials",
         "-c",
         type=str,
         default=None,
         help="""Path mapping of the source (local) and target (docker file system)
             credential paths in the format of src:target
-            \nExamples:\n
-            Google Cloud: $HOME/.config/gcloud/application_default_credentials.json:/root/."
-            + "config/gcloud/application_default_credentials.json
-            AWS: HOME/.aws/credentials:/root/.aws/credentials
             More info on
-            Google Cloud:
-            https://cloud.google.com/docs/authentication/application-default-credentials
-            AWS: https: // docs.aws.amazon.com/sdkref/latest/guide/file-location.html
+            Google Cloud: https://cloud.google.com/docs/authentication/application-default-credentials
+            AWS: https://docs.aws.amazon.com/sdkref/latest/guide/file-location.html
+            Azure: https://stackoverflow.com/questions/69010943/how-does-az-login-store-credential-information
         """,
     )
 
@@ -158,12 +200,14 @@ def explore(args):
             "Docker runtime not found. Please install Docker and try again.",
         )
 
+    cloud_cred = get_cloud_credentials(args)
+
     run_explorer_app(
         base_path=args.base_path,
         container=args.container,
         tag=args.tag,
         port=args.port,
-        credentials=args.credentials,
+        credentials=cloud_cred,
     )
 
 
@@ -257,6 +301,8 @@ def register_compile(parent_parser):
     compiler_subparser = parser.add_subparsers()
 
     local_parser = compiler_subparser.add_parser(name="local", help="Local compiler")
+    auth_group_local_parser = local_parser.add_mutually_exclusive_group()
+
     kubeflow_parser = compiler_subparser.add_parser(
         name="kubeflow",
         help="Kubeflow compiler",
@@ -292,6 +338,27 @@ def register_compile(parent_parser):
         action="append",
         help="Build arguments to pass to `docker build`. Format {key}={value}, can be repeated.",
         default=[],
+    )
+
+    auth_group_local_parser.add_argument(
+        "--auth-gcp",
+        action="store_true",
+        help=f"Flag to authenticate with GCP. Uses the following mount command"
+        f" `{CloudCredentialsMount.GCP.value}`",
+    )
+
+    auth_group_local_parser.add_argument(
+        "--auth-azure",
+        action="store_true",
+        help="Flag to authenticate with Azure. Uses the following mount command"
+        f" `{CloudCredentialsMount.AZURE.value}`",
+    )
+
+    auth_group_local_parser.add_argument(
+        "--auth-aws",
+        action="store_true",
+        help="Flag to authenticate with AWS. Uses the following mount command"
+        f" `{CloudCredentialsMount.AWS.value}`",
     )
 
     # Kubeflow parser
@@ -330,11 +397,20 @@ def register_compile(parent_parser):
 
 
 def compile_local(args):
+    extra_volumes = []
+    cloud_cred = get_cloud_credentials(args)
+
+    if args.extra_volumes:
+        extra_volumes.extend(args.extra_volumes)
+
+    if cloud_cred:
+        extra_volumes.append(cloud_cred)
+
     pipeline = pipeline_from_module(args.ref)
     compiler = DockerCompiler()
     compiler.compile(
         pipeline=pipeline,
-        extra_volumes=args.extra_volumes,
+        extra_volumes=extra_volumes,
         output_path=args.output_path,
         build_args=args.build_arg,
     )
@@ -366,7 +442,7 @@ def register_run(parent_parser):
         You can run `fondant <mode> --help` to find out more about the specific arguments for each mode.
 
         Examples of running component:
-        fondant run local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials my_project.my_pipeline.py
+        fondant run local --auth-gcp
         fondant run kubeflow ./my_compiled_kubeflow_pipeline.tgz
         """,
         ),

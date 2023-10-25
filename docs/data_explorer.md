@@ -8,13 +8,13 @@ fondant explore [--base_path BASE_PATH] [--container CONTAINER] [--tag TAG] [--p
 ```
 
 Where the base path can be either a local or remote base path. Make sure to pass the proper mount credentials arguments when using a remote base path or a local base path 
-that references remote datasets. 
+that references remote datasets. You can do that either with `--auth-gcp`, `--auth-aws` or `--auth-azure` to
+mount your default local cloud credentials to the pipeline. Or You can also use the `--credentials` argument to mount custom credentials to the local container pipeline.
 
 Example: 
 
 ```bash
-fondant explore --base_path gs://foo/bar \
- -c $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json
+fondant explore --base_path gs://foo/bar --auth-gcp
 ```
 ## Data explorer UI
 

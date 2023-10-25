@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from fondant.cli import (
+    CloudCredentialsMount,
     ComponentImportError,
     PipelineImportError,
     build,
@@ -134,17 +135,42 @@ def test_execute_logic(monkeypatch):
 
 def test_local_logic(tmp_path_factory):
     """Test that the compile command works with arguments."""
-    with tmp_path_factory.mktemp("temp") as fn:
-        args = argparse.Namespace(
-            ref=__name__,
-            local=True,
-            kubeflow=False,
-            vertex=False,
-            output_path=str(fn / "docker-compose.yml"),
-            extra_volumes=[],
-            build_arg=[],
-        )
-        compile_local(args)
+    namespace_creds_kwargs = [
+        {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
+        {"auth_gcp": False, "auth_azure": True, "auth_aws": False},
+        {"auth_gcp": False, "auth_azure": False, "auth_aws": True},
+    ]
+
+    for namespace_cred_kwargs in namespace_creds_kwargs:
+        with tmp_path_factory.mktemp("temp") as fn, patch(
+            "fondant.compiler.DockerCompiler.compile",
+        ) as mock_compiler:
+            args = argparse.Namespace(
+                ref=__name__,
+                local=True,
+                kubeflow=False,
+                vertex=False,
+                output_path=str(fn / "docker-compose.yml"),
+                extra_volumes=[],
+                build_arg=[],
+                **namespace_cred_kwargs,
+                credentials=None,
+            )
+            compile_local(args)
+
+            if namespace_cred_kwargs["auth_gcp"] is True:
+                extra_volumes = [CloudCredentialsMount.GCP.value]
+            if namespace_cred_kwargs["auth_aws"] is True:
+                extra_volumes = [CloudCredentialsMount.AWS.value]
+            if namespace_cred_kwargs["auth_azure"] is True:
+                extra_volumes = [CloudCredentialsMount.AZURE.value]
+
+            mock_compiler.assert_called_once_with(
+                pipeline=TEST_PIPELINE,
+                extra_volumes=extra_volumes,
+                output_path=str(fn / "docker-compose.yml"),
+                build_args=[],
+            )
 
 
 def test_kfp_compile(tmp_path_factory):

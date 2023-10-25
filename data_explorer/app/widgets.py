@@ -39,7 +39,8 @@ def build_sidebar(base_path: str) -> Tuple[Manifest, str, Dict[str, str]]:
     selected_pipeline_path = os.path.join(base_path, selected_pipeline)
 
     # 2) List available runs in descending order (most recent first)
-    available_runs = [os.path.basename(item) for item in fs.ls(selected_pipeline_path)]
+    available_runs = [os.path.basename(item) for item in fs.ls(selected_pipeline_path) if
+                      item != "cache"]
     available_runs.sort(reverse=True)
     selected_run = st.sidebar.selectbox("Select run", available_runs)
     selected_run_path = os.path.join(*[base_path, selected_pipeline, selected_run])
