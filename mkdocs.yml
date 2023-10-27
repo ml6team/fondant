@@ -1,4 +1,5 @@
 site_name: Fondant
+site_url: https://fondant.ai/en/latest
 repo_url: https://github.com/ml6team/fondant
 repo_name: ml6team/fondant
 theme:
