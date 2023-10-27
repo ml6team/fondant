@@ -8,7 +8,7 @@ The user can specify a pipeline and a specific pipeline run and component to exp
 
 The chosen subset (and the columns within the subset) can be explored in 3 tabs.
 
-![data explorer](https://github.com/ml6team/fondant/blob/main/docs/art/data_explorer/data_explorer.png?raw=true)
+![data explorer](../art/data_explorer/data_explorer.png)
 
 ## How to use?
 You can setup the data explorer container with the `fondant explore` CLI command, which is installed together with the Fondant python package.
@@ -36,9 +36,9 @@ The data explorer shows an interactive table of the loaded subset DataFrame with
 ### Numeric analysis Tab
 The numerical analysis tab shows statistics of the numerical columns of the loaded subset (mean, std, percentiles, ...) in a table. In the second part of the tab, the user can choose one of the numerical columns for in depth exploration of the data by visualizing it in a variety of interactive plots.
 
-![data explorer](https://github.com/ml6team/fondant/blob/main/docs/art/data_explorer/data_explorer_numeric_analysis.png?raw=true)
+![data explorer](../art/data_explorer/data_explorer_numeric_analysis.png)
 
 ### Image explorer Tab
 The image explorer tab enables the user to choose one of the image columns and analyse these images.
 
-![data explorer](https://github.com/ml6team/fondant/blob/main/docs/art/data_explorer/image_explorer.png?raw=true)
+![data explorer](../art/data_explorer/image_explorer.png)
