@@ -112,11 +112,6 @@ Eg. generating logos:
 | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_stable_diffusion.jpg?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_finetuned.jpeg?raw=true) |
 
-### Training Starcoder
-
-Using our [example pipeline to train StarCoder](https://github.com/ml6team/fondant/tree/main/examples/pipelines/starcoder) provides a starting
-point to create datasets for training code assistants.
-
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 🧩 Reusable components
