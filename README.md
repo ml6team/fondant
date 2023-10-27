@@ -28,7 +28,6 @@ It offers:
     <ul>
         <li>AI image generation model fine-tuning (Stable Diffusion, ControlNet)</li>
         <li>Large language model fine-tuning (LLaMA, Falcon)</li>
-        <li>Code generation model fine-tuning (StarCoder)</li>
     </ul>
 </li>
 <li>
@@ -133,10 +132,6 @@ Fondant comes with a library of reusable components, which can jumpstart your pi
 | [caption images](https://github.com/ml6team/fondant/tree/main/components/caption_images)                                   | Generate captions for images using a model from the HF Hub          |
 | [segment_images](https://github.com/ml6team/fondant/tree/main/components/segment_images)                                   | Generate segmentation maps for images using a model from the HF Hub |
 | [image_cropping](https://github.com/ml6team/fondant/tree/main/components/image_cropping)                                   | Intelligently crop out image borders                                |
-| **Code processing**                                                                                                        |                                                                     |
-| [pii_redaction](https://github.com/ml6team/fondant/tree/main/components/pii_redaction)                                     | Redact Personal Identifiable Information (PII)                      |
-| [filter_comments](https://github.com/ml6team/fondant/tree/main/components/filter_comments)                                 | Filter code based on code to comment ratio                          |
-| [filter_line_length](https://github.com/ml6team/fondant/tree/main/components/filter_line_length)                           | Filter code based on line length                                    |
 | **Language processing**                                                                                                    | Coming soon                                                         |
 | **Clustering**                                                                                                             | Coming soon                                                         |
 
