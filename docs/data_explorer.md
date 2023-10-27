@@ -1,5 +1,15 @@
 # Data explorer
 
+## Data explorer UI
+
+The data explorer UI enables Fondant users to explore the inputs and outputs of their Fondant pipeline.
+
+The user can specify a pipeline and a specific pipeline run and component to explore. The user will then be able to explore the different subsets produced by by Fondant components.
+
+The chosen subset (and the columns within the subset) can be explored in 3 tabs.
+
+![data explorer](https://github.com/ml6team/fondant/blob/main/docs/art/data_explorer/data_explorer.png?raw=true)
+
 ## How to use?
 You can setup the data explorer container with the `fondant explore` CLI command, which is installed together with the Fondant python package.
 
@@ -16,15 +26,6 @@ Example:
 ```bash
 fondant explore --base_path gs://foo/bar --auth-gcp
 ```
-## Data explorer UI
-
-The data explorer UI enables Fondant users to explore the inputs and outputs of their Fondant pipeline.
-
-The user can specify a pipeline and a specific pipeline run and component to explore. The user will then be able to explore the different subsets produced by by Fondant components.
-
-The chosen subset (and the columns within the subset) can be explored in 3 tabs.
-
-![data explorer](https://github.com/ml6team/fondant/blob/main/docs/art/data_explorer/data_explorer.png?raw=true)
 
 ### Sidebar
 In the sidebar, the user can specify the path to a manifest file. This will load the available subsets into a dropdown, from which the user can select one of the subsets. Finally, the columns within the subset are shown in a multiselect box, and can be used to remove / select the columns that are loaded into the exploration tabs.
