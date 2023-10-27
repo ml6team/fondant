@@ -24,7 +24,7 @@ The user can specify a pipeline and a specific pipeline run and component to exp
 
 The chosen subset (and the columns within the subset) can be explored in 3 tabs.
 
-![data explorer](https://github.com/ml6team/fondant/blob/main/docs/art/data_explorer/data_explorers.png?raw=true)
+![data explorer](https://github.com/ml6team/fondant/blob/main/docs/art/data_explorer/data_explorer.png?raw=true)
 
 ### Sidebar
 In the sidebar, the user can specify the path to a manifest file. This will load the available subsets into a dropdown, from which the user can select one of the subsets. Finally, the columns within the subset are shown in a multiselect box, and can be used to remove / select the columns that are loaded into the exploration tabs.
