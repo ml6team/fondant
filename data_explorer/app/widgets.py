@@ -4,7 +4,8 @@ import logging
 import os
 from typing import Dict, List, Optional, Tuple, Union
 
-from fondant.filesystem import get_filesystem
+import fsspec.core
+
 from fondant.manifest import Manifest
 
 import dask.dataframe as dd
@@ -27,7 +28,7 @@ def build_sidebar(base_path: str) -> Tuple[Manifest, str, Dict[str, str]]:
         Tuple[Optional[str], Optional[str], Optional[Dict]: Tuple with manifest path,
         subset name and fields
     """
-    fs = get_filesystem(base_path)
+    fs, _ = fsspec.core.url_to_fs(base_path)
 
     st.sidebar.title("Subset loader")
     st.sidebar.markdown(f"## Base path: \n {base_path}")

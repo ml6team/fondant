@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
-from fondant.runner import DockerRunner, KubeflowRunner, VertexRunner
+from fondant.pipeline.runner import DockerRunner, KubeflowRunner, VertexRunner
 
 VALID_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
 

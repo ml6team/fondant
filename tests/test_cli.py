@@ -21,7 +21,7 @@ from fondant.cli import (
     run_vertex,
 )
 from fondant.component import DaskLoadComponent
-from fondant.executor import Executor, ExecutorFactory
+from fondant.component.executor import Executor, ExecutorFactory
 from fondant.pipeline import Pipeline
 
 commands = [
@@ -143,7 +143,7 @@ def test_local_logic(tmp_path_factory):
 
     for namespace_cred_kwargs in namespace_creds_kwargs:
         with tmp_path_factory.mktemp("temp") as fn, patch(
-            "fondant.compiler.DockerCompiler.compile",
+            "fondant.pipeline.compiler.DockerCompiler.compile",
         ) as mock_compiler:
             args = argparse.Namespace(
                 ref=__name__,
@@ -175,7 +175,7 @@ def test_local_logic(tmp_path_factory):
 
 def test_kfp_compile(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.compiler.KubeFlowCompiler.compile",
+        "fondant.pipeline.compiler.KubeFlowCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -193,7 +193,7 @@ def test_kfp_compile(tmp_path_factory):
 
 def test_vertex_compile(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.compiler.VertexCompiler.compile",
+        "fondant.pipeline.compiler.VertexCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -269,7 +269,7 @@ def test_kfp_run(tmp_path_factory):
         match="--host argument is required for running on Kubeflow",
     ):  # no host
         run_kfp(args)
-    with patch("fondant.cli.KubeflowRunner") as mock_runner:
+    with patch("fondant.pipeline.runner.KubeflowRunner") as mock_runner:
         args = argparse.Namespace(
             kubeflow=True,
             local=False,
@@ -279,8 +279,8 @@ def test_kfp_run(tmp_path_factory):
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost")
-    with patch("fondant.cli.KubeflowRunner") as mock_runner, patch(
-        "fondant.cli.KubeFlowCompiler",
+    with patch("fondant.pipeline.runner.KubeflowRunner") as mock_runner, patch(
+        "fondant.pipeline.compiler.KubeFlowCompiler",
     ) as mock_compiler, tmp_path_factory.mktemp(
         "temp",
     ) as fn:
@@ -298,7 +298,7 @@ def test_kfp_run(tmp_path_factory):
 
 def test_vertex_run(tmp_path_factory):
     """Test that the run command works in different scenarios."""
-    with patch("fondant.cli.VertexRunner") as mock_runner:
+    with patch("fondant.pipeline.runner.VertexRunner") as mock_runner:
         args = argparse.Namespace(
             kubeflow=False,
             local=False,
@@ -318,8 +318,8 @@ def test_vertex_run(tmp_path_factory):
             network=None,
         )
 
-    with patch("fondant.cli.VertexRunner") as mock_runner, patch(
-        "fondant.cli.VertexCompiler",
+    with patch("fondant.pipeline.runner.VertexRunner") as mock_runner, patch(
+        "fondant.pipeline.compiler.VertexCompiler",
     ) as mock_compiler, tmp_path_factory.mktemp(
         "temp",
     ) as fn:

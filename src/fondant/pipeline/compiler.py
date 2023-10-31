@@ -7,18 +7,18 @@ from pathlib import Path
 
 import yaml
 
-from fondant.exceptions import InvalidPipelineDefinition
-from fondant.manifest import Metadata
+from fondant.core.exceptions import InvalidPipelineDefinition
+from fondant.core.manifest import Metadata
 from fondant.pipeline import (
+    VALID_ACCELERATOR_TYPES,
+    VALID_VERTEX_ACCELERATOR_TYPES,
     Pipeline,
-    valid_accelerator_types,
-    valid_vertex_accelerator_types,
 )
-from fondant.schema import KubeflowCommandArguments  # noqa: TCH001
 
 logger = logging.getLogger(__name__)
 
 DASK_DIAGNOSTIC_DASHBOARD_PORT = 8787
+KubeflowCommandArguments = t.List[t.Union[str, t.Dict[str, str]]]
 
 
 class Compiler(ABC):
@@ -228,11 +228,11 @@ class DockerCompiler(Compiler):
         accelerator_number = fondant_component_operation.number_of_accelerators
 
         if accelerator_name is not None:
-            if accelerator_name not in valid_accelerator_types:
+            if accelerator_name not in VALID_ACCELERATOR_TYPES:
                 msg = (
                     f"Configured accelerator `{accelerator_name}`"
                     f" is not a valid accelerator type for Docker Compose compiler."
-                    f" Available options: {valid_vertex_accelerator_types}"
+                    f" Available options: {VALID_VERTEX_ACCELERATOR_TYPES}"
                 )
                 raise InvalidPipelineDefinition(msg)
 
@@ -422,10 +422,10 @@ class KubeFlowCompiler(Compiler):
         if memory_limit is not None:
             task.set_memory_limit(memory_limit)
         if accelerator_name is not None:
-            if accelerator_name not in valid_accelerator_types:
+            if accelerator_name not in VALID_ACCELERATOR_TYPES:
                 msg = (
                     f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
-                    f"for Kubeflow compiler. Available options: {valid_accelerator_types}"
+                    f"for Kubeflow compiler. Available options: {VALID_ACCELERATOR_TYPES}"
                 )
                 raise InvalidPipelineDefinition(msg)
 
@@ -477,10 +477,10 @@ class VertexCompiler(KubeFlowCompiler):
             task.set_memory_limit(memory_limit)
         if number_of_accelerators is not None:
             task.set_accelerator_limit(number_of_accelerators)
-            if accelerator_name not in valid_vertex_accelerator_types:
+            if accelerator_name not in VALID_VERTEX_ACCELERATOR_TYPES:
                 msg = (
                     f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
-                    f"for Vertex compiler. Available options: {valid_vertex_accelerator_types}"
+                    f"for Vertex compiler. Available options: {VALID_VERTEX_ACCELERATOR_TYPES}"
                 )
                 raise InvalidPipelineDefinition(msg)
 

@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from fondant.explorer import run_explorer_app
+from fondant.explore import run_explorer_app
 
 DEFAULT_CONTAINER = "fndnt/data_explorer"
 DEFAULT_TAG = "latest"

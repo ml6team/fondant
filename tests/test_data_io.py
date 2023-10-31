@@ -4,9 +4,9 @@ from pathlib import Path
 import dask.dataframe as dd
 import pytest
 from dask.distributed import Client
-from fondant.component_spec import ComponentSpec
-from fondant.data_io import DaskDataLoader, DaskDataWriter
-from fondant.manifest import Manifest
+from fondant.component.data_io import DaskDataLoader, DaskDataWriter
+from fondant.core.component_spec import ComponentSpec
+from fondant.core.manifest import Manifest
 
 manifest_path = Path(__file__).parent / "example_data/manifest.json"
 component_spec_path = Path(__file__).parent / "example_data/components/1.yaml"

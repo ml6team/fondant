@@ -6,9 +6,13 @@ from unittest.mock import patch
 
 import pytest
 import yaml
-from fondant.component_spec import ComponentSpec, ComponentSubset, KubeflowComponentSpec
-from fondant.exceptions import InvalidComponentSpec
-from fondant.schema import Type
+from fondant.core.component_spec import (
+    ComponentSpec,
+    ComponentSubset,
+    KubeflowComponentSpec,
+)
+from fondant.core.exceptions import InvalidComponentSpec
+from fondant.core.schema import Type
 
 component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 

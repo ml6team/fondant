@@ -3,8 +3,8 @@ import pkgutil
 from pathlib import Path
 
 import pytest
-from fondant.exceptions import InvalidManifest
-from fondant.manifest import Field, Index, Manifest, Subset, Type
+from fondant.core.exceptions import InvalidManifest
+from fondant.core.manifest import Field, Index, Manifest, Subset, Type
 
 manifest_path = Path(__file__).parent / "example_specs/manifests"
 
