@@ -13,20 +13,20 @@ try:
 except ImportError:
     from importlib_resources import files  # type: ignore
 
-from fondant.component_spec import ComponentSpec
-from fondant.exceptions import InvalidPipelineDefinition
-from fondant.manifest import Manifest
+from fondant.core.component_spec import ComponentSpec
+from fondant.core.exceptions import InvalidPipelineDefinition
+from fondant.core.manifest import Manifest
 
 logger = logging.getLogger(__name__)
 
-valid_accelerator_types = [
+VALID_ACCELERATOR_TYPES = [
     "GPU",
     "TPU",
 ]
 
 # Taken from https://github.com/googleapis/python-aiplatform/blob/main/google/cloud/aiplatform_v1/types
 # /accelerator_type.py
-valid_vertex_accelerator_types = [
+VALID_VERTEX_ACCELERATOR_TYPES = [
     "ACCELERATOR_TYPE_UNSPECIFIED",
     "NVIDIA_TESLA_K80",
     "NVIDIA_TESLA_P100",

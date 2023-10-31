@@ -5,7 +5,7 @@ import typing as t
 import dask.dataframe as dd
 import pandas as pd
 
-from fondant.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec
 
 
 class BaseComponent:

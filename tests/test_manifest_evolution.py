@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 import yaml
-from fondant.component_spec import ComponentSpec
-from fondant.manifest import Manifest
+from fondant.core.component_spec import ComponentSpec
+from fondant.core.manifest import Manifest
 
 examples_path = Path(__file__).parent / "example_specs/evolution_examples"
 

@@ -1,7 +1,7 @@
 import pyarrow as pa
 import pytest
-from fondant.exceptions import InvalidTypeSchema
-from fondant.schema import Type
+from fondant.core.exceptions import InvalidTypeSchema
+from fondant.core.schema import Type
 
 
 def test_valid_type():

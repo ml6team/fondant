@@ -13,9 +13,9 @@ from jsonschema import Draft4Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
-from fondant.component_spec import ComponentSpec
-from fondant.exceptions import InvalidManifest
-from fondant.schema import Field, Type
+from fondant.core.component_spec import ComponentSpec
+from fondant.core.exceptions import InvalidManifest
+from fondant.core.schema import Field, Type
 
 
 class Subset:
@@ -118,7 +118,7 @@ class Manifest:
 
         Raises: InvalidManifest when the manifest is not valid.
         """
-        spec_data = pkgutil.get_data("fondant", "schemas/manifest.json")
+        spec_data = pkgutil.get_data("fondant", "core/schemas/manifest.json")
 
         if spec_data is None:
             msg = "schemas/manifest.json not found"

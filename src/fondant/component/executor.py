@@ -26,9 +26,9 @@ from fondant.component import (
     DaskWriteComponent,
     PandasTransformComponent,
 )
-from fondant.component_spec import Argument, ComponentSpec
-from fondant.data_io import DaskDataLoader, DaskDataWriter
-from fondant.manifest import Manifest, Metadata
+from fondant.component.data_io import DaskDataLoader, DaskDataWriter
+from fondant.core.component_spec import Argument, ComponentSpec
+from fondant.core.manifest import Manifest, Metadata
 
 dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)

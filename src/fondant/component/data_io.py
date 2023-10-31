@@ -6,8 +6,8 @@ import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 from dask.distributed import Client
 
-from fondant.component_spec import ComponentSpec, ComponentSubset
-from fondant.manifest import Manifest
+from fondant.core.component_spec import ComponentSpec, ComponentSubset
+from fondant.core.manifest import Manifest
 
 logger = logging.getLogger(__name__)
 
