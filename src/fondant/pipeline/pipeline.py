@@ -55,8 +55,8 @@ class Resources:
     node_pool_name: t.Optional[str] = None
 
     """
-       Class representing an operation for a Fondant Component in a Fondant Pipeline. An operation
-       is a representation of a function that will be executed as part of a pipeline.
+    Class representing the resources to assign to a Fondant Component operation in a Fondant
+    Pipeline.
 
        Arguments:
            number_of_accelerators: The number of accelerators to assign to the operation (GPU, TPU)
