@@ -11,4 +11,7 @@ consumes:
 args:
   pct_threshold:
     type: float
-    description: "Percentage treshold to filter out captions"
+    description: "Percentage of rows to filter out"
+  threshold_score:
+    type: float
+    description: "The clip threshold score below which images are filtered out"

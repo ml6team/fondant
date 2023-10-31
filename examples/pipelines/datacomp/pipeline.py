@@ -45,7 +45,6 @@ load_from_parquet = ComponentOp(
         "dataset_uri": f"gs://soy-audio-379412_datacomp/final_dataset_multiple/{run_id}/",
         "column_name_mapping": load_component_column_mapping,
         "index_column": "uid",
-        "n_rows_to_load": 20,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
@@ -99,7 +98,7 @@ add_clip_score_op = ComponentOp(
 filter_clip_score_op = ComponentOp(
     component_dir="components/filter_clip_score",
     arguments={
-        "pct_threshold": 0.5,
+        "threshold_score": 0.19,
     },
     node_pool_label="node_pool",
     node_pool_name="n2-standard-128-pool",
