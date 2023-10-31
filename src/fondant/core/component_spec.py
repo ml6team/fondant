@@ -14,8 +14,8 @@ from jsonschema import Draft4Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
-from fondant.exceptions import InvalidComponentSpec
-from fondant.schema import Field, Type
+from fondant.core.exceptions import InvalidComponentSpec
+from fondant.core.schema import Field, Type
 
 
 @dataclass
@@ -111,7 +111,7 @@ class ComponentSpec:
 
         Raises: InvalidComponent when the component specification is not valid.
         """
-        spec_data = pkgutil.get_data("fondant", "schemas/component_spec.json")
+        spec_data = pkgutil.get_data("fondant", "core/schemas/component_spec.json")
 
         if spec_data is None:
             msg = "component_spec.json not found in fondant schema"

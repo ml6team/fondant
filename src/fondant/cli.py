@@ -18,25 +18,41 @@ import argparse
 import importlib
 import inspect
 import logging
+import os
 import shutil
 import sys
 import textwrap
 import typing as t
 from collections import defaultdict
+from enum import Enum
 from pathlib import Path
 from types import ModuleType
 
-from fondant.build import build_component
-from fondant.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
-from fondant.component import BaseComponent, Component
-from fondant.executor import ExecutorFactory
-from fondant.explorer import (
-    run_explorer_app,
-)
-from fondant.pipeline import Pipeline
-from fondant.runner import DockerRunner, KubeflowRunner, VertexRunner
+if t.TYPE_CHECKING:
+    from fondant.component import Component
+    from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
+
+
+class CloudCredentialsMount(Enum):
+    home_directory = os.path.expanduser("~")
+    AWS = f"{home_directory}/credentials:/root/.aws/credentials"
+    GCP = f"{home_directory}/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json"
+    AZURE = f"{home_directory}/.azure:/root/.azure"
+
+
+def get_cloud_credentials(args) -> t.Optional[str]:
+    if args.auth_gcp:
+        return CloudCredentialsMount.GCP.value
+    if args.auth_aws:
+        return CloudCredentialsMount.AWS.value
+    if args.auth_azure:
+        return CloudCredentialsMount.AZURE.value
+    if args.credentials:
+        return args.credentials
+
+    return None
 
 
 def entrypoint():
@@ -103,6 +119,8 @@ def register_explore(parent_parser):
         """,
         ),
     )
+    auth_group = parser.add_mutually_exclusive_group()
+
     parser.add_argument(
         "--base_path",
         "-b",
@@ -131,21 +149,39 @@ def register_explore(parent_parser):
         default=8501,
         help="Port to expose the container on.",
     )
-    parser.add_argument(
+
+    auth_group.add_argument(
+        "--auth-gcp",
+        action="store_true",
+        help=f"Flag to authenticate with GCP. Uses the following mount command"
+        f" `{CloudCredentialsMount.GCP.value}`",
+    )
+
+    auth_group.add_argument(
+        "--auth-azure",
+        action="store_true",
+        help="Flag to authenticate with Azure. Uses the following mount command"
+        f" `{CloudCredentialsMount.AZURE.value}`",
+    )
+
+    auth_group.add_argument(
+        "--auth-aws",
+        action="store_true",
+        help="Flag to authenticate with AWS. Uses the following mount command"
+        f" `{CloudCredentialsMount.AWS.value}`",
+    )
+
+    auth_group.add_argument(
         "--credentials",
         "-c",
         type=str,
         default=None,
         help="""Path mapping of the source (local) and target (docker file system)
             credential paths in the format of src:target
-            \nExamples:\n
-            Google Cloud: $HOME/.config/gcloud/application_default_credentials.json:/root/."
-            + "config/gcloud/application_default_credentials.json
-            AWS: HOME/.aws/credentials:/root/.aws/credentials
             More info on
-            Google Cloud:
-            https://cloud.google.com/docs/authentication/application-default-credentials
-            AWS: https: // docs.aws.amazon.com/sdkref/latest/guide/file-location.html
+            Google Cloud: https://cloud.google.com/docs/authentication/application-default-credentials
+            AWS: https://docs.aws.amazon.com/sdkref/latest/guide/file-location.html
+            Azure: https://stackoverflow.com/questions/69010943/how-does-az-login-store-credential-information
         """,
     )
 
@@ -153,17 +189,21 @@ def register_explore(parent_parser):
 
 
 def explore(args):
+    from fondant.explore import run_explorer_app
+
     if not shutil.which("docker"):
         logging.error(
             "Docker runtime not found. Please install Docker and try again.",
         )
+
+    cloud_cred = get_cloud_credentials(args)
 
     run_explorer_app(
         base_path=args.base_path,
         container=args.container,
         tag=args.tag,
         port=args.port,
-        credentials=args.credentials,
+        credentials=cloud_cred,
     )
 
 
@@ -223,6 +263,8 @@ def register_build(parent_parser):
 
 
 def build(args):
+    from fondant.build import build_component
+
     build_component(
         args.component_dir,
         tag=args.tag,
@@ -257,6 +299,8 @@ def register_compile(parent_parser):
     compiler_subparser = parser.add_subparsers()
 
     local_parser = compiler_subparser.add_parser(name="local", help="Local compiler")
+    auth_group_local_parser = local_parser.add_mutually_exclusive_group()
+
     kubeflow_parser = compiler_subparser.add_parser(
         name="kubeflow",
         help="Kubeflow compiler",
@@ -292,6 +336,27 @@ def register_compile(parent_parser):
         action="append",
         help="Build arguments to pass to `docker build`. Format {key}={value}, can be repeated.",
         default=[],
+    )
+
+    auth_group_local_parser.add_argument(
+        "--auth-gcp",
+        action="store_true",
+        help=f"Flag to authenticate with GCP. Uses the following mount command"
+        f" `{CloudCredentialsMount.GCP.value}`",
+    )
+
+    auth_group_local_parser.add_argument(
+        "--auth-azure",
+        action="store_true",
+        help="Flag to authenticate with Azure. Uses the following mount command"
+        f" `{CloudCredentialsMount.AZURE.value}`",
+    )
+
+    auth_group_local_parser.add_argument(
+        "--auth-aws",
+        action="store_true",
+        help="Flag to authenticate with AWS. Uses the following mount command"
+        f" `{CloudCredentialsMount.AWS.value}`",
     )
 
     # Kubeflow parser
@@ -330,23 +395,38 @@ def register_compile(parent_parser):
 
 
 def compile_local(args):
+    from fondant.pipeline.compiler import DockerCompiler
+
+    extra_volumes = []
+    cloud_cred = get_cloud_credentials(args)
+
+    if args.extra_volumes:
+        extra_volumes.extend(args.extra_volumes)
+
+    if cloud_cred:
+        extra_volumes.append(cloud_cred)
+
     pipeline = pipeline_from_module(args.ref)
     compiler = DockerCompiler()
     compiler.compile(
         pipeline=pipeline,
-        extra_volumes=args.extra_volumes,
+        extra_volumes=extra_volumes,
         output_path=args.output_path,
         build_args=args.build_arg,
     )
 
 
 def compile_kfp(args):
+    from fondant.pipeline.compiler import KubeFlowCompiler
+
     pipeline = pipeline_from_module(args.ref)
     compiler = KubeFlowCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
 
 def compile_vertex(args):
+    from fondant.pipeline.compiler import VertexCompiler
+
     pipeline = pipeline_from_module(args.ref)
     compiler = VertexCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
@@ -366,7 +446,7 @@ def register_run(parent_parser):
         You can run `fondant <mode> --help` to find out more about the specific arguments for each mode.
 
         Examples of running component:
-        fondant run local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials my_project.my_pipeline.py
+        fondant run local --auth-gcp
         fondant run kubeflow ./my_compiled_kubeflow_pipeline.tgz
         """,
         ),
@@ -475,6 +555,9 @@ def register_run(parent_parser):
 
 
 def run_local(args):
+    from fondant.pipeline.compiler import DockerCompiler
+    from fondant.pipeline.runner import DockerRunner
+
     try:
         pipeline = pipeline_from_module(args.ref)
     except ModuleNotFoundError:
@@ -499,6 +582,9 @@ def run_local(args):
 
 
 def run_kfp(args):
+    from fondant.pipeline.compiler import KubeFlowCompiler
+    from fondant.pipeline.runner import KubeflowRunner
+
     if not args.host:
         msg = "--host argument is required for running on Kubeflow"
         raise ValueError(msg)
@@ -522,6 +608,9 @@ def run_kfp(args):
 
 
 def run_vertex(args):
+    from fondant.pipeline.compiler import VertexCompiler
+    from fondant.pipeline.runner import VertexRunner
+
     try:
         pipeline = pipeline_from_module(args.ref)
     except ModuleNotFoundError:
@@ -576,6 +665,8 @@ def register_execute(parent_parser):
 
 
 def execute(args):
+    from fondant.component.executor import ExecutorFactory
+
     component = component_from_module(args.ref)
     executor_factory = ExecutorFactory(component)
     executor = executor_factory.get_executor()
@@ -606,8 +697,10 @@ def get_module(module_str: str) -> ModuleType:
     return module
 
 
-def pipeline_from_module(module_str: str) -> Pipeline:
+def pipeline_from_module(module_str: str) -> "Pipeline":
     """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
+    from fondant.pipeline import Pipeline
+
     module = get_module(module_str)
 
     pipeline_instances = [
@@ -631,8 +724,10 @@ def pipeline_from_module(module_str: str) -> Pipeline:
     return pipeline
 
 
-def component_from_module(module_str: str) -> t.Type[Component]:
+def component_from_module(module_str: str) -> t.Type["Component"]:
     """Try to import a component from a module otherwise raise an ImportFromModuleError."""
+    from fondant.component.component import BaseComponent
+
     module = get_module(module_str)
     class_members = inspect.getmembers(module, inspect.isclass)
 

@@ -10,6 +10,10 @@ Below you can find the reusable components offered by Fondant.
 
     --8<-- "components/caption_images/README.md:1"
 
+??? "chunk_text"
+
+    --8<-- "components/chunk_text/README.md:1"
+
 ??? "download_images"
 
     --8<-- "components/download_images/README.md:1"
@@ -18,21 +22,17 @@ Below you can find the reusable components offered by Fondant.
 
     --8<-- "components/embed_images/README.md:1"
 
+??? "embed_text"
+
+    --8<-- "components/embed_text/README.md:1"
+
 ??? "embedding_based_laion_retrieval"
 
     --8<-- "components/embedding_based_laion_retrieval/README.md:1"
 
-??? "filter_comments"
-
-    --8<-- "components/filter_comments/README.md:1"
-
 ??? "filter_image_resolution"
 
     --8<-- "components/filter_image_resolution/README.md:1"
-
-??? "filter_line_length"
-
-    --8<-- "components/filter_line_length/README.md:1"
 
 ??? "image_cropping"
 
@@ -41,6 +41,10 @@ Below you can find the reusable components offered by Fondant.
 ??? "image_resolution_extraction"
 
     --8<-- "components/image_resolution_extraction/README.md:1"
+
+??? "index_weaviate"
+
+    --8<-- "components/index_weaviate/README.md:1"
 
 ??? "language_filter"
 
@@ -61,10 +65,6 @@ Below you can find the reusable components offered by Fondant.
 ??? "minhash_generator"
 
     --8<-- "components/minhash_generator/README.md:1"
-
-??? "pii_redaction"
-
-    --8<-- "components/pii_redaction/README.md:1"
 
 ??? "prompt_based_laion_retrieval"
 

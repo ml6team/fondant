@@ -5,9 +5,8 @@ import subprocess  # nosec
 import typing as t
 from pathlib import Path
 
+import fsspec.core
 from fsspec.implementations.local import LocalFileSystem
-
-from fondant.filesystem import get_filesystem
 
 
 # type: ignore
@@ -44,7 +43,8 @@ def run_explorer_app(  # type: ignore
             ],
         )
 
-    if isinstance(get_filesystem(base_path), LocalFileSystem):
+    fs, _ = fsspec.core.url_to_fs(base_path)
+    if isinstance(fs, LocalFileSystem):
         logging.info(f"Using local base path: {base_path}")
         logging.info(
             "This directory will be mounted to /artifacts in the container.",

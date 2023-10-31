@@ -7,9 +7,7 @@ import typing as t
 
 import pyarrow as pa
 
-from fondant.exceptions import InvalidTypeSchema
-
-KubeflowCommandArguments = t.List[t.Union[str, t.Dict[str, str]]]
+from fondant.core.exceptions import InvalidTypeSchema
 
 """
 Types based on:

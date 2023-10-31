@@ -6,9 +6,9 @@ from unittest import mock
 
 import pytest
 import yaml
-from fondant.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
-from fondant.exceptions import InvalidPipelineDefinition
+from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
+from fondant.pipeline.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
 
 COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
 

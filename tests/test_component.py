@@ -14,10 +14,14 @@ from fondant.component import (
     DaskWriteComponent,
     PandasTransformComponent,
 )
-from fondant.component_spec import ComponentSpec
-from fondant.data_io import DaskDataLoader, DaskDataWriter
-from fondant.executor import Executor, ExecutorFactory, PandasTransformExecutor
-from fondant.manifest import Manifest, Metadata
+from fondant.component.data_io import DaskDataLoader, DaskDataWriter
+from fondant.component.executor import (
+    Executor,
+    ExecutorFactory,
+    PandasTransformExecutor,
+)
+from fondant.core.component_spec import ComponentSpec
+from fondant.core.manifest import Manifest, Metadata
 
 components_path = Path(__file__).parent / "example_specs/components"
 base_path = Path(__file__).parent / "example_specs/mock_base_path"

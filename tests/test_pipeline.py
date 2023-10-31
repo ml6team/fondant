@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 import yaml
-from fondant.component_spec import ComponentSpec
-from fondant.exceptions import InvalidPipelineDefinition
+from fondant.core.component_spec import ComponentSpec
+from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
