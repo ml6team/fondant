@@ -1,6 +1,6 @@
 name: Add CLIP score
 description: Component that adds the CLIP score
-image: fndnt/add_clip_score:069c0b153fd0867d61fd35c75da08e3a99633cfb
+image: fndnt/add_clip_score:0.6.2
 
 consumes:
   embeddings:

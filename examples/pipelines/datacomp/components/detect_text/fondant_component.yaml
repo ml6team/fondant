@@ -1,6 +1,6 @@
 name: Detect text
 description: Component that detects text in images using an mmocr model
-image: fndnt/detect_text:18b475f69b2d32abe84e326c4b32f3ff7a285e60
+image: fndnt/detect_text:0.6.2
 
 consumes:
   images:
