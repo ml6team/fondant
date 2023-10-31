@@ -1,6 +1,6 @@
 name: Resize images
 description: Component that resizes images based on given width and height
-image: fndnt/resize_images:1586d2e1270c605f8b46dc3d0ce8fbc973c6ce24
+image: fndnt/resize_images:dev
 
 consumes:
   images:
