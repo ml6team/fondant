@@ -69,25 +69,6 @@ Realizing this is the main vision behind Fondant.
 
 Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting_started) to get your first pipeline up and running.
 
-## 🪄 Example pipelines
-
-Curious to see what Fondant can do? Have a look at our example pipelines:
-
-### Fine-tuning Stable Diffusion
-
-Using our
-[example pipeline to fine-tune Stable Diffusion](https://github.com/ml6team/fondant/tree/main/examples/pipelines/finetune_stable_diffusion)
-allows you to create models that generate better images within a specific domain. All you need to
-get started is a small seed dataset of example images.
-
-Eg. generating logos:
-
-| Stable Diffusion 1.5                                                                                     | Fine-tuned Stable Diffusion 1.5                                                                     |
-| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_stable_diffusion.jpg?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_finetuned.jpeg?raw=true) |
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
 ## 🧩 Reusable components
 
 Fondant comes with a library of reusable components, which can jumpstart your pipeline.
