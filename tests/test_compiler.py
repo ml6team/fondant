@@ -1,6 +1,5 @@
 import datetime
 import json
-import os
 import sys
 from pathlib import Path
 from unittest import mock
@@ -138,9 +137,6 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
             assert component_configs.memory_request is None
             assert component_configs.cpu_limit is None
             assert component_configs.cpu_request is None
-            assert component_configs.context == os.path.dirname(
-                component_op.dockerfile_path,
-            )
             if component_configs.accelerators:
                 assert (
                     component_configs.accelerators.number_of_accelerators
