@@ -21,6 +21,56 @@ DASK_DIAGNOSTIC_DASHBOARD_PORT = 8787
 KubeflowCommandArguments = t.List[t.Union[str, t.Dict[str, str]]]
 
 
+@dataclass
+class Accelerator:
+    """Dataclass representing accelerators."""
+
+    type: str
+    number: int
+
+
+@dataclass
+class ComponentConfigs:
+    image: t.Optional[str] = None
+    arguments: t.Optional[t.Dict[str, t.Any]] = None
+    dependencies: t.Optional[t.List[str]] = None
+    accelerators: t.Optional[t.List[Accelerator]] = None
+    cpu_request: t.Optional[str] = None
+    cpu_limit: t.Optional[str] = None
+    memory_request: t.Optional[str] = None
+    memory_limit: t.Optional[str] = None
+
+
+@dataclass
+class KubeflowComponentConfig(ComponentConfigs):
+    node_pool_label: t.Optional[str] = None
+    node_pool_name: t.Optional[str] = None
+
+
+@dataclass
+class DockerComponentConfig(ComponentConfigs):
+    context: t.Optional[str] = None
+    volumes: t.Optional[t.List[t.Union[str, dict]]] = None
+    ports: t.Optional[t.List[t.Union[str, dict]]] = None
+
+
+@dataclass
+class PipelineConfigs:
+    pipeline_name: str
+    pipeline_description: str
+    pipeline_version: str
+
+
+@dataclass
+class DockerPipelineConfigs(PipelineConfigs):
+    component_configs: t.Dict[str, DockerComponentConfig]
+
+
+@dataclass
+class KubeflowPipelineConfigs(PipelineConfigs):
+    component_configs: t.Dict[str, KubeflowComponentConfig]
+
+
 class Compiler(ABC):
     """Abstract base class for a compiler."""
 
@@ -31,6 +81,19 @@ class Compiler(ABC):
     @abstractmethod
     def _set_configuration(self, *args, **kwargs) -> None:
         """Abstract method to set pipeline configuration."""
+
+    @staticmethod
+    @abstractmethod
+    def get_pipeline_configs(path: str) -> PipelineConfigs:
+        """
+        Abstract method to get pipeline configs from a pipeline specification.
+
+        Args:
+            path: path to the pipeline specification
+
+        Returns:
+            PipelineConfigs object containing the pipeline configs
+        """
 
 
 @dataclass
@@ -462,8 +525,7 @@ class VertexCompiler(KubeFlowCompiler):
                 msg,
             )
 
-    @staticmethod
-    def _set_configuration(task, fondant_component_operation):
+    def _set_configuration(self, task, fondant_component_operation):
         # Unpack optional specifications
         cpu_limit = fondant_component_operation.cpu_limit
         memory_limit = fondant_component_operation.memory_limit
