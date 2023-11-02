@@ -283,6 +283,9 @@ class DockerCompiler(Compiler):
             "name": pipeline.name,
             "version": "3.8",
             "services": services,
+            "labels": {
+                "description": pipeline.description,
+            },
         }
 
     @staticmethod
@@ -318,6 +321,57 @@ class DockerCompiler(Compiler):
                 raise NotImplementedError(msg)
 
         return services
+
+    @staticmethod
+    def get_pipeline_configs(path: str) -> DockerPipelineConfigs:
+        """Get pipeline configs from a pipeline specification."""
+        with open(path) as file_:
+            specification = yaml.safe_load(file_)
+
+        components_configs_dict = {}
+
+        # Iterate through each service
+        for component_name, component_configs in specification["services"].items():
+            # Get arguments from command
+            command_list = component_configs.get("command", [])
+            arguments = {}
+            for i in range(0, len(command_list), 2):
+                arguments[command_list[i].lstrip("-")] = command_list[i + 1]
+
+            # Get accelerator name and number of accelerators
+            resources = component_configs.get("deploy", {}).get("resources", {})
+            devices = resources.get("reservations", {}).get("devices", {})
+
+            accelerator_list = []
+            if devices:
+                for device in devices:
+                    accelerator = Accelerator(
+                        type=device["capabilities"][0],
+                        number=device["count"],
+                    )
+                    accelerator_list.append(accelerator)
+
+            component_config = DockerComponentConfig(
+                image=component_configs.get("images", {}),
+                arguments=arguments,
+                dependencies=list(component_configs.get("depends_on", {}).keys()),
+                accelerators=accelerator_list,
+                context=component_configs.get("build", {}).get("context", {}),
+                ports=component_configs.get("ports", []),
+                volumes=component_configs.get("volumes", {}),
+                cpu_request=None,
+                cpu_limit=None,
+                memory_request=None,
+                memory_limit=None,
+            )
+            components_configs_dict[component_name] = component_config
+
+        return DockerPipelineConfigs(
+            pipeline_name=specification["name"],
+            pipeline_version=specification["version"],
+            pipeline_description=specification.get("labels", {}).get("description", {}),
+            component_configs=components_configs_dict,
+        )
 
 
 class KubeFlowCompiler(Compiler):
