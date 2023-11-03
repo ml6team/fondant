@@ -1,0 +1,15 @@
+name: Filter dataset
+description: Generic component for filtering the dataset
+image: fndnt/filter_dataset:dev
+
+consumes:
+  dummy_variable: #TODO: fill in here
+    fields:
+      data:
+        type: binary
+
+
+args:
+  filtering_conditions:
+    description: The filtering conditions to apply to the dataset
+    type: dict
