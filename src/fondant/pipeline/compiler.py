@@ -105,6 +105,11 @@ class PipelineConfigs:
     pipeline_description: str
     pipeline_version: str
 
+    @classmethod
+    @abstractmethod
+    def from_spec(cls, spec_path: str) -> "PipelineConfigs":
+        """Get pipeline configs from a pipeline specification."""
+
 
 @dataclass
 class DockerPipelineConfigs(PipelineConfigs):
@@ -116,6 +121,60 @@ class DockerPipelineConfigs(PipelineConfigs):
     """
 
     component_configs: t.Dict[str, DockerComponentConfig]
+
+    @classmethod
+    def from_spec(cls, spec_path: str) -> "DockerPipelineConfigs":
+        """Get pipeline configs from a pipeline specification."""
+        with open(spec_path) as file_:
+            specification = yaml.safe_load(file_)
+
+        components_configs_dict = {}
+
+        # Iterate through each service
+        for component_name, component_configs in specification["services"].items():
+            # Get arguments from command
+            command_list = component_configs.get("command", [])
+            arguments = {}
+            for i in range(0, len(command_list), 2):
+                arguments[command_list[i].lstrip("-")] = command_list[i + 1]
+
+            # Get accelerator name and number of accelerators
+            resources = component_configs.get("deploy", {}).get("resources", {})
+            devices = resources.get("reservations", {}).get("devices", {})
+
+            accelerator_list = []
+            if devices:
+                for device in devices:
+                    accelerator = Accelerator(
+                        type=device["capabilities"][0],
+                        number=device["count"],
+                    )
+                    accelerator_list.append(accelerator)
+
+            component_config = DockerComponentConfig(
+                image=component_configs.get("image", None),
+                arguments=arguments,
+                dependencies=list(component_configs.get("depends_on", {}).keys()),
+                accelerators=accelerator_list,
+                context=component_configs.get("build", {}).get("context", None),
+                ports=component_configs.get("ports", None),
+                volumes=component_configs.get("volumes", None),
+                cpu_request=None,
+                cpu_limit=None,
+                memory_request=None,
+                memory_limit=None,
+            )
+            components_configs_dict[component_name] = component_config
+
+        return cls(
+            pipeline_name=specification["name"],
+            pipeline_version=specification["version"],
+            pipeline_description=specification.get("labels", {}).get(
+                "description",
+                None,
+            ),
+            component_configs=components_configs_dict,
+        )
 
 
 @dataclass
@@ -129,6 +188,96 @@ class KubeflowPipelineConfigs(PipelineConfigs):
 
     component_configs: t.Dict[str, KubeflowComponentConfig]
 
+    @classmethod
+    def from_spec(cls, spec_path: str) -> "KubeflowPipelineConfigs":
+        """Get pipeline configs from a pipeline specification."""
+        # Two specs are present and loaded in the yaml file (component spec and k8s specs)
+        k8_specification = {}
+        specification = {}
+
+        with open(spec_path) as file_:
+            for spec in yaml.load_all(file_, Loader=yaml.FullLoader):
+                if "deploymentSpec" in spec:
+                    specification = spec
+                elif "platforms" in spec:
+                    k8_specification = spec["platforms"]["kubernetes"][
+                        "deploymentSpec"
+                    ]["executors"]
+
+        if not specification:
+            msg = "No component specification found in the pipeline specification"
+            raise InvalidPipelineDefinition(msg)
+        components_configs_dict = {}
+
+        # Iterate through each service
+        for component_name, component_configs in specification["root"]["dag"][
+            "tasks"
+        ].items():
+            # Get arguments from command
+            arguments = {
+                arg_name: arg_value["runtimeValue"]["constant"]
+                for arg_name, arg_value in component_configs["inputs"][
+                    "parameters"
+                ].items()
+            }
+
+            # Get accelerator name and number of accelerators
+            container_spec = specification["deploymentSpec"]["executors"][
+                f"exec-{component_name}"
+            ]["container"]
+            resources = component_configs.get("resources", {})
+            devices = resources.get("accelerator", {})
+            accelerator_list = []
+
+            if devices:
+                for device in devices:
+                    accelerator = Accelerator(
+                        type=device["accelerator"]["type"],
+                        number=device["accelerator"]["count"],
+                    )
+                    accelerator_list.append(accelerator)
+
+            # Get node pool name and label
+            node_pool_label = None
+            node_pool_name = None
+            if k8_specification:
+                node_pool_dict = (
+                    k8_specification.get(f"exec-{component_name}", {})
+                    .get("nodeSelector", {})
+                    .get("labels", {})
+                )
+                if node_pool_dict:
+                    node_pool_label = list(node_pool_dict.keys())[0]
+                    node_pool_name = list(node_pool_dict.values())[0]
+
+            component_config = KubeflowComponentConfig(
+                image=container_spec.get("image"),
+                arguments=arguments,
+                dependencies=component_configs.get("dependentTasks", []),
+                accelerators=accelerator_list,
+                cpu_request=component_configs.get("cpuRequest", None),
+                cpu_limit=component_configs.get("cpuLimit", None),
+                memory_request=component_configs.get("memoryRequest", None),
+                memory_limit=component_configs.get("memoryLimit", None),
+                node_pool_name=node_pool_name,
+                node_pool_label=node_pool_label,
+            )
+            components_configs_dict[component_name] = component_config
+
+        pipeline_info = specification["pipelineInfo"]
+
+        return cls(
+            pipeline_name=pipeline_info["name"],
+            pipeline_version=specification["sdkVersion"],
+            pipeline_description=pipeline_info.get("description", None),
+            component_configs=components_configs_dict,
+        )
+
+
+@dataclass
+class VertexPipelineConfigs(KubeflowPipelineConfigs):
+    pass
+
 
 class Compiler(ABC):
     """Abstract base class for a compiler."""
@@ -140,19 +289,6 @@ class Compiler(ABC):
     @abstractmethod
     def _set_configuration(self, *args, **kwargs) -> None:
         """Abstract method to set pipeline configuration."""
-
-    @staticmethod
-    @abstractmethod
-    def get_pipeline_configs(path: str) -> PipelineConfigs:
-        """
-        Abstract method to get pipeline configs from a pipeline specification.
-
-        Args:
-            path: path to the pipeline specification
-
-        Returns:
-            PipelineConfigs object containing the pipeline configs
-        """
 
 
 @dataclass
@@ -381,60 +517,6 @@ class DockerCompiler(Compiler):
 
         return services
 
-    @staticmethod
-    def get_pipeline_configs(path: str) -> DockerPipelineConfigs:
-        """Get pipeline configs from a pipeline specification."""
-        with open(path) as file_:
-            specification = yaml.safe_load(file_)
-
-        components_configs_dict = {}
-
-        # Iterate through each service
-        for component_name, component_configs in specification["services"].items():
-            # Get arguments from command
-            command_list = component_configs.get("command", [])
-            arguments = {}
-            for i in range(0, len(command_list), 2):
-                arguments[command_list[i].lstrip("-")] = command_list[i + 1]
-
-            # Get accelerator name and number of accelerators
-            resources = component_configs.get("deploy", {}).get("resources", {})
-            devices = resources.get("reservations", {}).get("devices", {})
-
-            accelerator_list = []
-            if devices:
-                for device in devices:
-                    accelerator = Accelerator(
-                        type=device["capabilities"][0],
-                        number=device["count"],
-                    )
-                    accelerator_list.append(accelerator)
-
-            component_config = DockerComponentConfig(
-                image=component_configs.get("image", None),
-                arguments=arguments,
-                dependencies=list(component_configs.get("depends_on", {}).keys()),
-                accelerators=accelerator_list,
-                context=component_configs.get("build", {}).get("context", None),
-                ports=component_configs.get("ports", None),
-                volumes=component_configs.get("volumes", None),
-                cpu_request=None,
-                cpu_limit=None,
-                memory_request=None,
-                memory_limit=None,
-            )
-            components_configs_dict[component_name] = component_config
-
-        return DockerPipelineConfigs(
-            pipeline_name=specification["name"],
-            pipeline_version=specification["version"],
-            pipeline_description=specification.get("labels", {}).get(
-                "description",
-                None,
-            ),
-            component_configs=components_configs_dict,
-        )
-
 
 class KubeFlowCompiler(Compiler):
     """Compiler that creates a Kubeflow pipeline spec from a pipeline."""
@@ -620,91 +702,6 @@ class KubeFlowCompiler(Compiler):
                 node_pool_name,
             )
         return task
-
-    @staticmethod
-    def get_pipeline_configs(path: str) -> KubeflowPipelineConfigs:
-        """Get pipeline configs from a pipeline specification."""
-        # Two specs are present and loaded in the yaml file (component spec and k8s specs)
-        k8_specification = {}
-        specification = {}
-
-        with open(path) as file_:
-            for spec in yaml.load_all(file_, Loader=yaml.FullLoader):
-                if "deploymentSpec" in spec:
-                    specification = spec
-                elif "platforms" in spec:
-                    k8_specification = spec["platforms"]["kubernetes"][
-                        "deploymentSpec"
-                    ]["executors"]
-
-        if not specification:
-            msg = "No component specification found in the pipeline specification"
-            raise InvalidPipelineDefinition(msg)
-        components_configs_dict = {}
-
-        # Iterate through each service
-        for component_name, component_configs in specification["root"]["dag"][
-            "tasks"
-        ].items():
-            # Get arguments from command
-            arguments = {
-                arg_name: arg_value["runtimeValue"]["constant"]
-                for arg_name, arg_value in component_configs["inputs"][
-                    "parameters"
-                ].items()
-            }
-
-            # Get accelerator name and number of accelerators
-            container_spec = specification["deploymentSpec"]["executors"][
-                f"exec-{component_name}"
-            ]["container"]
-            resources = component_configs.get("resources", {})
-            devices = resources.get("accelerator", {})
-            accelerator_list = []
-
-            if devices:
-                for device in devices:
-                    accelerator = Accelerator(
-                        type=device["accelerator"]["type"],
-                        number=device["accelerator"]["count"],
-                    )
-                    accelerator_list.append(accelerator)
-
-            # Get node pool name and label
-            node_pool_label = None
-            node_pool_name = None
-            if k8_specification:
-                node_pool_dict = (
-                    k8_specification.get(f"exec-{component_name}", {})
-                    .get("nodeSelector", {})
-                    .get("labels", {})
-                )
-                if node_pool_dict:
-                    node_pool_label = list(node_pool_dict.keys())[0]
-                    node_pool_name = list(node_pool_dict.values())[0]
-
-            component_config = KubeflowComponentConfig(
-                image=container_spec.get("image"),
-                arguments=arguments,
-                dependencies=component_configs.get("dependentTasks", []),
-                accelerators=accelerator_list,
-                cpu_request=component_configs.get("cpuRequest", None),
-                cpu_limit=component_configs.get("cpuLimit", None),
-                memory_request=component_configs.get("memoryRequest", None),
-                memory_limit=component_configs.get("memoryLimit", None),
-                node_pool_name=node_pool_name,
-                node_pool_label=node_pool_label,
-            )
-            components_configs_dict[component_name] = component_config
-
-        pipeline_info = specification["pipelineInfo"]
-
-        return KubeflowPipelineConfigs(
-            pipeline_name=pipeline_info["name"],
-            pipeline_version=specification["sdkVersion"],
-            pipeline_description=pipeline_info.get("description", None),
-            component_configs=components_configs_dict,
-        )
 
 
 class VertexCompiler(KubeFlowCompiler):

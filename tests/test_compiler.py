@@ -7,7 +7,14 @@ from unittest import mock
 import pytest
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
-from fondant.pipeline.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
+from fondant.pipeline.compiler import (
+    DockerCompiler,
+    DockerPipelineConfigs,
+    KubeFlowCompiler,
+    KubeflowPipelineConfigs,
+    VertexCompiler,
+    VertexPipelineConfigs,
+)
 
 COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
 
@@ -120,7 +127,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
-        pipeline_configs = compiler.get_pipeline_configs(output_path)
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
         assert pipeline_configs.pipeline_name == pipeline.name
         assert pipeline_configs.pipeline_description == pipeline.description
         for (
@@ -161,8 +168,7 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
         compiler = DockerCompiler()
         output_path = str(fn / "docker-compose.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        pipeline_configs = compiler.get_pipeline_configs(output_path)
-
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
         expected_run_id = "testpipeline-20230101000000"
         for (
             component_name,
@@ -207,8 +213,7 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        pipeline_configs = compiler.get_pipeline_configs(output_path)
-
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
         expected_run_id = "testpipeline-20230101000000"
         for (
             component_name,
@@ -256,8 +261,7 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
             extra_volumes=extra_volumes,
         )
 
-        pipeline_configs = compiler.get_pipeline_configs(output_path)
-
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
         for _, service in pipeline_configs.component_configs.items():
             assert all(
                 extra_volume in service.volumes for extra_volume in extra_volumes
@@ -284,7 +288,7 @@ def test_docker_configuration(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yaml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        pipeline_configs = compiler.get_pipeline_configs(output_path)
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
         component_config = pipeline_configs.component_configs["first-component"]
         assert component_config.accelerators[0].type == "gpu"
         assert component_config.accelerators[0].number == 1
@@ -319,7 +323,7 @@ def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        pipeline_configs = compiler.get_pipeline_configs(output_path)
+        pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
         assert pipeline_configs.pipeline_name == pipeline.name
         assert pipeline_configs.pipeline_description == pipeline.description
         for (
@@ -372,7 +376,7 @@ def test_kubeflow_configuration(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        pipeline_configs = compiler.get_pipeline_configs(output_path)
+        pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
         component_configs = pipeline_configs.component_configs["first-component"]
         for accelerator in component_configs.accelerators:
             assert accelerator.type == "nvidia.com/gpu"
@@ -419,7 +423,7 @@ def test_vertex_compiler(setup_pipeline, tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        pipeline_configs = compiler.get_pipeline_configs(output_path)
+        pipeline_configs = VertexPipelineConfigs.from_spec(output_path)
         assert pipeline_configs.pipeline_name == pipeline.name
         assert pipeline_configs.pipeline_description == pipeline.description
         for (
@@ -467,7 +471,7 @@ def test_vertex_configuration(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        pipeline_configs = compiler.get_pipeline_configs(output_path)
+        pipeline_configs = VertexPipelineConfigs.from_spec(output_path)
         component_configs = pipeline_configs.component_configs["first-component"]
         for accelerator in component_configs.accelerators:
             assert accelerator.type == "NVIDIA_TESLA_K80"
@@ -525,11 +529,11 @@ def test_caching_dependency_docker(tmp_path_factory):
         with tmp_path_factory.mktemp("temp") as fn:
             output_path = str(fn / "docker-compose.yml")
             compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
-            component_configs = compiler.get_pipeline_configs(
-                output_path,
-            ).component_configs
+            pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
             metadata = json.loads(
-                component_configs["second-component"].arguments["metadata"],
+                pipeline_configs.component_configs["second-component"].arguments[
+                    "metadata"
+                ],
             )
             cache_key = metadata["cache_key"]
             second_component_cache_key_dict[arg] = cache_key
@@ -570,12 +574,12 @@ def test_caching_dependency_kfp(tmp_path_factory):
         with tmp_path_factory.mktemp("temp") as fn:
             output_path = str(fn / "kubeflow_pipeline.yml")
             compiler.compile(pipeline=pipeline, output_path=output_path)
-            component_configs = compiler.get_pipeline_configs(
-                output_path,
-            ).component_configs
+            pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
 
             metadata = json.loads(
-                component_configs["second-component"].arguments["metadata"],
+                pipeline_configs.component_configs["second-component"].arguments[
+                    "metadata"
+                ],
             )
             cache_key = metadata["cache_key"]
             second_component_cache_key_dict[arg] = cache_key
