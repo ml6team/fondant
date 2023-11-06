@@ -10,7 +10,7 @@ import datasets
 import huggingface_hub
 from datasets.features.features import generate_from_arrow_type
 from fondant.component import DaskWriteComponent
-from fondant.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec
 from PIL import Image
 
 logger = logging.getLogger(__name__)

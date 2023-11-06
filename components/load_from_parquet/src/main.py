@@ -6,7 +6,7 @@ import dask
 import dask.dataframe as dd
 import pandas as pd
 from fondant.component import DaskLoadComponent
-from fondant.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec
 
 logger = logging.getLogger(__name__)
 
