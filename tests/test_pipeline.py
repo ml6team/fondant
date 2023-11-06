@@ -6,7 +6,7 @@ import pytest
 import yaml
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
-from fondant.pipeline import ComponentOp, Pipeline
+from fondant.pipeline import ComponentOp, Pipeline, Resources
 
 valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
 invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
@@ -50,14 +50,18 @@ def test_component_op(
         ComponentOp(
             Path(components_path / component_names[0]),
             arguments=component_args,
-            node_pool_label="dummy_label",
+            resources=Resources(
+                node_pool_label="dummy_label",
+            ),
         )
 
     with pytest.raises(InvalidPipelineDefinition):
         ComponentOp(
             Path(components_path / component_names[0]),
             arguments=component_args,
-            number_of_accelerators=1,
+            resources=Resources(
+                accelerator_number=1,
+            ),
         )
 
 

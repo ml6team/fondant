@@ -82,12 +82,12 @@ def detect_text_batch(
     """Detext text on a batch of images."""
     imgs = torch.stack(image_batch, dim=0)
     batch_size = imgs.shape[0]
-    # TODO fix this, make this component also take width and height
-    # as input in spec to process arbitrarly sized images
+
+    image_size_tensor = torch.ones((batch_size, 2)).long() * image_size
     img_metas = {
         "filename": [None for i in range(batch_size)],
-        "org_img_size": torch.ones((batch_size, 2)).long() * 256,
-        "img_size": torch.ones((batch_size, 2)).long() * image_size,
+        "org_img_size": image_size_tensor,
+        "img_size": image_size_tensor,
     }
 
     data = dict()

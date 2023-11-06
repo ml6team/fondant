@@ -6,7 +6,7 @@ from unittest import mock
 
 import pytest
 from fondant.core.exceptions import InvalidPipelineDefinition
-from fondant.pipeline import ComponentOp, Pipeline
+from fondant.pipeline import ComponentOp, Pipeline, Resources
 from fondant.pipeline.compiler import (
     DockerCompiler,
     KubeFlowCompiler,
@@ -31,8 +31,10 @@ TEST_PIPELINES = [
                     Path(COMPONENTS_PATH / "example_1" / "first_component"),
                     arguments={"storage_args": "a dummy string arg"},
                     input_partition_rows=10,
-                    memory_limit="512M",
-                    memory_request="256M",
+                    resources=Resources(
+                        memory_limit="512M",
+                        memory_request="256M",
+                    ),
                 ),
                 "cache_key": "1",
             },
@@ -281,8 +283,10 @@ def test_docker_configuration(tmp_path_factory):
     component_1 = ComponentOp(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
-        number_of_accelerators=1,
-        accelerator_name="GPU",
+        resources=Resources(
+            accelerator_number=1,
+            accelerator_name="GPU",
+        ),
     )
 
     pipeline.add_op(component_1)
@@ -307,8 +311,10 @@ def test_invalid_docker_configuration(tmp_path_factory):
     component_1 = ComponentOp(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
-        number_of_accelerators=1,
-        accelerator_name="unknown resource",
+        resources=Resources(
+            accelerator_number=1,
+            accelerator_name="unknown resource",
+        ),
     )
 
     pipeline.add_op(component_1)
@@ -368,10 +374,12 @@ def test_kubeflow_configuration(tmp_path_factory):
     component_1 = ComponentOp(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
-        node_pool_label=node_pool_label,
-        node_pool_name=node_pool_name,
-        number_of_accelerators=1,
-        accelerator_name="GPU",
+        resources=Resources(
+            node_pool_label=node_pool_label,
+            node_pool_name=node_pool_name,
+            accelerator_number=1,
+            accelerator_name="GPU",
+        ),
     )
     pipeline.add_op(component_1)
     compiler = KubeFlowCompiler()
@@ -398,8 +406,10 @@ def test_invalid_kubeflow_configuration(tmp_path_factory):
     component_1 = ComponentOp(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
-        number_of_accelerators=1,
-        accelerator_name="unknown resource",
+        resources=Resources(
+            accelerator_number=1,
+            accelerator_name="unknown resource",
+        ),
     )
 
     pipeline.add_op(component_1)
@@ -465,8 +475,10 @@ def test_vertex_configuration(tmp_path_factory):
     component_1 = ComponentOp(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
-        number_of_accelerators=1,
-        accelerator_name="NVIDIA_TESLA_K80",
+        resources=Resources(
+            accelerator_number=1,
+            accelerator_name="NVIDIA_TESLA_K80",
+        ),
     )
     pipeline.add_op(component_1)
     compiler = VertexCompiler()
@@ -491,8 +503,10 @@ def test_invalid_vertex_configuration(tmp_path_factory):
     component_1 = ComponentOp(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
-        number_of_accelerators=1,
-        accelerator_name="unknown resource",
+        resources=Resources(
+            accelerator_number=1,
+            accelerator_name="unknown resource",
+        ),
     )
 
     pipeline.add_op(component_1)

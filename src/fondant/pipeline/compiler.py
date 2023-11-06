@@ -32,6 +32,15 @@ class Compiler(ABC):
     def _set_configuration(self, *args, **kwargs) -> None:
         """Abstract method to set pipeline configuration."""
 
+    def log_unused_configurations(self, **kwargs):
+        """Log configurations that are set but will be unused."""
+        for config_name, config_value in kwargs.items():
+            if config_value is not None:
+                logger.warning(
+                    f"Configuration `{config_name}` is set with `{config_value}` but has no effect"
+                    f" for runner `{self.__class__.__name__}`.",
+                )
+
 
 @dataclass
 class DockerVolume:
@@ -225,10 +234,14 @@ class DockerCompiler(Compiler):
             },
         }
 
-    @staticmethod
-    def _set_configuration(services, fondant_component_operation, component_name):
-        accelerator_name = fondant_component_operation.accelerator_name
-        accelerator_number = fondant_component_operation.number_of_accelerators
+    def _set_configuration(self, services, fondant_component_operation, component_name):
+        resources_dict = fondant_component_operation.resources.to_dict()
+
+        accelerator_name = resources_dict.pop("accelerator_name")
+        accelerator_number = resources_dict.pop("accelerator_number")
+
+        # Unused configurations
+        self.log_unused_configurations(**resources_dict)
 
         if accelerator_name is not None:
             if accelerator_name not in VALID_ACCELERATOR_TYPES:
@@ -405,15 +418,20 @@ class KubeFlowCompiler(Compiler):
         logger.info("Pipeline compiled successfully")
 
     def _set_configuration(self, task, fondant_component_operation):
-        # Unpack optional specifications
-        number_of_accelerators = fondant_component_operation.number_of_accelerators
-        accelerator_name = fondant_component_operation.accelerator_name
-        node_pool_label = fondant_component_operation.node_pool_label
-        node_pool_name = fondant_component_operation.node_pool_name
-        cpu_request = fondant_component_operation.cpu_request
-        cpu_limit = fondant_component_operation.cpu_limit
-        memory_request = fondant_component_operation.memory_request
-        memory_limit = fondant_component_operation.memory_limit
+        # Used configurations
+        resources_dict = fondant_component_operation.resources.to_dict()
+
+        accelerator_number = resources_dict.pop("accelerator_number")
+        accelerator_name = resources_dict.pop("accelerator_name")
+        node_pool_label = resources_dict.pop("node_pool_label")
+        node_pool_name = resources_dict.pop("node_pool_name")
+        cpu_request = resources_dict.pop("cpu_request")
+        cpu_limit = resources_dict.pop("cpu_limit")
+        memory_request = resources_dict.pop("memory_request")
+        memory_limit = resources_dict.pop("memory_limit")
+
+        # Unused configurations
+        self.log_unused_configurations(**resources_dict)
 
         # Assign optional specification
         if cpu_request is not None:
@@ -432,7 +450,7 @@ class KubeFlowCompiler(Compiler):
                 )
                 raise InvalidPipelineDefinition(msg)
 
-            task.set_accelerator_limit(number_of_accelerators)
+            task.set_accelerator_limit(accelerator_number)
             if accelerator_name == "GPU":
                 task.set_accelerator_type("nvidia.com/gpu")
             elif accelerator_name == "TPU":
@@ -466,19 +484,24 @@ class VertexCompiler(KubeFlowCompiler):
             )
 
     def _set_configuration(self, task, fondant_component_operation):
-        # Unpack optional specifications
-        cpu_limit = fondant_component_operation.cpu_limit
-        memory_limit = fondant_component_operation.memory_limit
-        number_of_accelerators = fondant_component_operation.number_of_accelerators
-        accelerator_name = fondant_component_operation.accelerator_name
+        # Used configurations
+        resources_dict = fondant_component_operation.resources.to_dict()
+
+        cpu_limit = resources_dict.pop("cpu_limit")
+        memory_limit = resources_dict.pop("memory_limit")
+        accelerator_number = resources_dict.pop("accelerator_number")
+        accelerator_name = resources_dict.pop("accelerator_name")
+
+        # Unused configurations
+        self.log_unused_configurations(**resources_dict)
 
         # Assign optional specification
         if cpu_limit is not None:
             task.set_cpu_limit(cpu_limit)
         if memory_limit is not None:
             task.set_memory_limit(memory_limit)
-        if number_of_accelerators is not None:
-            task.set_accelerator_limit(number_of_accelerators)
+        if accelerator_number is not None:
+            task.set_accelerator_limit(accelerator_number)
             if accelerator_name not in VALID_VERTEX_ACCELERATOR_TYPES:
                 msg = (
                     f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
