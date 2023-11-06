@@ -1,6 +1,6 @@
 """Unit test for minhash generation component."""
 import pandas as pd
-from fondant.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec
 
 from components.minhash_generator.src.main import MinHashGeneratorComponent
 
