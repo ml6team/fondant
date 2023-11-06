@@ -71,7 +71,7 @@ Anxious to get started? Here's is a [step by step guide](https://fondant.readthe
 
 ## 🪄 Example pipelines
 
-We have created several ready-made example pipelines for you to use as a starting point in exploring Fondant.
+We have created several ready-made example pipelines for you to use as a starting point for exploring Fondant.
 
 - [ControlNet Interior Design Pipeline](https://github.com/ml6team/fondant-usecase-controlnet): pipeline for data collection and processing for ControlNet model fine-tuning
 - [RAG ingestion pipeline](https://github.com/ml6team/fondant-usecase-RAG): pipeline that embeds and ingests text data into a vector database
