@@ -69,6 +69,15 @@ Realizing this is the main vision behind Fondant.
 
 Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting_started) to get your first pipeline up and running.
 
+## 🪄 Example pipelines
+
+We have created several ready-made example pipelines for you to use as a starting point in exploring Fondant.
+
+- [ControlNet Interior Design Pipeline](https://github.com/ml6team/fondant-usecase-controlnet): pipeline for data collection and processing for ControlNet model fine-tuning
+- [RAG ingestion pipeline](https://github.com/ml6team/fondant-usecase-RAG): pipeline that embeds and ingests text data into a vector database
+- [Datacomp](https://github.com/ml6team/fondant-usecase-datacomp): pipeline to create an image-text dataset for CLIP model training
+- [Filter creative common license images](https://github.com/ml6team/fondant-usecase-filter-creative-commons): pipeline to filter and download creative common license images
+
 ## 🧩 Reusable components
 
 Fondant comes with a library of reusable components, which can jumpstart your pipeline.
