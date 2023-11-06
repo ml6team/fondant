@@ -9,10 +9,12 @@ from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline
 from fondant.pipeline.compiler import (
     DockerCompiler,
-    DockerPipelineConfigs,
     KubeFlowCompiler,
-    KubeflowPipelineConfigs,
     VertexCompiler,
+)
+from fondant.testing import (
+    DockerPipelineConfigs,
+    KubeflowPipelineConfigs,
     VertexPipelineConfigs,
 )
 
