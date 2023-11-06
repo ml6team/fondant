@@ -65,8 +65,8 @@ aws = ["s3fs"]
 azure = ["adlfs"]
 gcp = ["gcsfs"]
 
-kfp = ["kfp"]
-vertex = ["kfp", "google-cloud-aiplatform"]
+kfp = ["docker", "kfp"]
+vertex = ["docker", "kfp", "google-cloud-aiplatform"]
 docker = ["docker"]
 
 [tool.poetry.group.test.dependencies]
