@@ -1,8 +1,8 @@
 # This file contains a sample pipeline. Loading data from a parquet file, using  load_from_parquet
 # component, applies text normalisation and transform the text to upper case (using a custom
 # dummy component).
-
 import glob
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -10,6 +10,8 @@ from pathlib import Path
 from fondant.pipeline import ComponentOp, Pipeline
 from fondant.pipeline.compiler import DockerCompiler
 from fondant.pipeline.runner import DockerRunner
+
+logger = logging.getLogger(__name__)
 
 # TODO: can probably removed after we have solved #344
 os.environ["DOCKER_DEFAULT_PLATFORM"] = "linux/amd64"
@@ -75,4 +77,12 @@ def test_local_runner():
         assert os.path.exists(Path(dir) / "manifest.json")
 
     # Delete dummy-pipeline folder
-    shutil.rmtree(DATA_DIR / "dummy-pipeline")
+    try:
+        shutil.rmtree(DATA_DIR / "dummy-pipeline")
+    except PermissionError:
+        # No cleanup needed for the ci/cd pipeline
+        logger.info("PermissionError: Not able to delete the data folder.")
+
+
+if __name__ == "__main__":
+    test_local_runner()
