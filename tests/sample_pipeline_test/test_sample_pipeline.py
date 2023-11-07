@@ -7,20 +7,23 @@ import os
 import shutil
 from pathlib import Path
 
+import pytest
 from fondant.pipeline import ComponentOp, Pipeline
 from fondant.pipeline.compiler import DockerCompiler
 from fondant.pipeline.runner import DockerRunner
 
 logger = logging.getLogger(__name__)
 
-# TODO: can probably removed after we have solved #344
+# TODO: probably removable after we have solved #344
+# work around to make test executable on M1 Macbooks
 os.environ["DOCKER_DEFAULT_PLATFORM"] = "linux/amd64"
 
-BASE_PATH = Path("./tests/example_pipelines/executable_pipeline")
+BASE_PATH = Path("./tests/sample_pipeline_test")
 DATA_DIR = Path(BASE_PATH / "data")
 
 
-def initialise_pipeline() -> Pipeline:
+@pytest.fixture()
+def sample_pipeline() -> Pipeline:
     # Define pipeline
     pipeline = Pipeline(pipeline_name="dummy-pipeline", base_path=str(DATA_DIR))
 
@@ -55,16 +58,14 @@ def initialise_pipeline() -> Pipeline:
     return pipeline
 
 
-def test_local_runner():
-    pipeline = initialise_pipeline()
+def test_local_runner(sample_pipeline):
     DockerCompiler().compile(
-        pipeline,
+        sample_pipeline,
         output_path="docker-compose.yaml",
         extra_volumes=[str(DATA_DIR.resolve()) + ":/data"],
     )
     DockerRunner().run("docker-compose.yaml")
 
-    # Paths to the folders you want to check
     assert os.path.exists(DATA_DIR / "dummy-pipeline")
     assert os.path.exists(DATA_DIR / "dummy-pipeline" / "cache")
     pipeline_dirs = glob.glob(
@@ -76,13 +77,10 @@ def test_local_runner():
         assert os.path.exists(Path(dir) / "text")
         assert os.path.exists(Path(dir) / "manifest.json")
 
-    # Delete dummy-pipeline folder
     try:
         shutil.rmtree(DATA_DIR / "dummy-pipeline")
     except PermissionError:
-        # No cleanup needed for the ci/cd pipeline
+        # No cleanup needed for the ci/cd pipeline as far as only one local runner test is executed.
+        # A PermissionError will be thrown when this process tries to delete the folders which were
+        # created from the docker environment.
         logger.info("PermissionError: Not able to delete the data folder.")
-
-
-if __name__ == "__main__":
-    test_local_runner()
