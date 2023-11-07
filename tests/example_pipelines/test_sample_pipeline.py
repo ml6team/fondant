@@ -2,7 +2,9 @@
 # component, applies text normalisation and transform the text to upper case (using a custom
 # dummy component).
 
+import glob
 import os
+import shutil
 from pathlib import Path
 
 from fondant.pipeline import ComponentOp, Pipeline
@@ -51,7 +53,7 @@ def initialise_pipeline() -> Pipeline:
     return pipeline
 
 
-def local_runner():
+def test_local_runner():
     pipeline = initialise_pipeline()
     DockerCompiler().compile(
         pipeline,
@@ -60,11 +62,17 @@ def local_runner():
     )
     DockerRunner().run("docker-compose.yaml")
 
-    # check that data dir is not empty
+    # Paths to the folders you want to check
+    assert os.path.exists(DATA_DIR / "dummy-pipeline")
+    assert os.path.exists(DATA_DIR / "dummy-pipeline" / "cache")
+    pipeline_dirs = glob.glob(
+        str(DATA_DIR / "dummy-pipeline" / "dummy-pipeline-*" / "*"),
+    )
 
-    # contains folders for each step
-    # check that the cache dir isn't empty
+    for dir in pipeline_dirs:
+        assert os.path.exists(Path(dir) / "index")
+        assert os.path.exists(Path(dir) / "text")
+        assert os.path.exists(Path(dir) / "manifest.json")
 
-
-if __name__ == "__main__":
-    local_runner()
+    # Delete dummy-pipeline folder
+    shutil.rmtree(DATA_DIR / "dummy-pipeline")
