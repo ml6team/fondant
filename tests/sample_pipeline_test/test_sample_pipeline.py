@@ -20,6 +20,7 @@ os.environ["DOCKER_DEFAULT_PLATFORM"] = "linux/amd64"
 
 BASE_PATH = Path("./tests/sample_pipeline_test")
 DATA_DIR = Path(BASE_PATH / "data")
+NUMBER_OF_COMPONENTS = 3
 
 
 @pytest.fixture()
@@ -41,13 +42,13 @@ def sample_pipeline() -> Pipeline:
         },
     )
 
+    custom_dummy_component = ComponentOp(
+        component_dir=Path(BASE_PATH / "components" / "dummy_component"),
+    )
+
     chunk_text = ComponentOp.from_registry(
         name="chunk_text",
         arguments={"chunk_size": 10, "chunk_overlap": 2},
-    )
-
-    custom_dummy_component = ComponentOp(
-        component_dir=Path(BASE_PATH / "components" / "dummy_component"),
     )
 
     # Add components to the pipeline
@@ -72,6 +73,7 @@ def test_local_runner(sample_pipeline):
         str(DATA_DIR / "dummy-pipeline" / "dummy-pipeline-*" / "*"),
     )
 
+    assert len(pipeline_dirs) == NUMBER_OF_COMPONENTS
     for dir in pipeline_dirs:
         assert os.path.exists(Path(dir) / "index")
         assert os.path.exists(Path(dir) / "text")
