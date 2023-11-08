@@ -515,3 +515,131 @@ class VertexCompiler(KubeFlowCompiler):
             task.set_accelerator_type(accelerator_name)
 
         return task
+
+
+class SagemakerCompiler(Compiler):
+    def __init__(self):
+        self._resolve_imports()
+
+    def _resolve_imports(self):
+        try:
+            import sagemaker
+            import sagemaker.processing
+            import sagemaker.workflow.pipeline
+            import sagemaker.workflow.steps
+
+            # from sagemaker.processing import (
+            #     ProcessingInput,
+            #     ProcessingOutput,
+            #     ScriptProcessor,
+            self.sagemaker = sagemaker
+
+        except ImportError:
+            msg = """You need to install sagemaker to use the Vertex compiler,\n
+                     you can install it with `pip install fondant[sagemaker]`"""
+            raise ImportError(
+                msg,
+            )
+
+    def compile(
+        self,
+        pipeline: Pipeline,
+        output_path: str,
+    ) -> None:
+        """Abstract method to invoke compilation."""
+        run_id = pipeline.get_run_id()
+        path = pipeline.base_path
+        pipeline.validate(run_id=run_id)
+
+        component_cache_key = None
+
+        steps: t.List[t.Any] = []
+        for component_name, component in pipeline._graph.items():
+            component_op = component["fondant_component_op"]
+
+            component_cache_key = component_op.get_component_cache_key(
+                previous_component_cache=component_cache_key,
+            )
+
+            metadata = Metadata(
+                pipeline_name=pipeline.name,
+                run_id=run_id,
+                base_path=path,
+                component_id=component_name,
+                cache_key=component_cache_key,
+            )
+
+            logger.info(f"Compiling service for {component_name}")
+
+            # add metadata argument to command
+            command = ["--metadata", metadata.to_json()]
+
+            # add in and out manifest paths to command
+            command.extend(
+                [
+                    "--output_manifest_path",
+                    f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                    f"{component_name}/manifest.json",
+                ],
+            )
+
+            # add arguments if any to command
+            for key, value in component_op.arguments.items():
+                if isinstance(value, (dict, list)):
+                    command.extend([f"--{key}", json.dumps(value)])
+                else:
+                    command.extend([f"--{key}", f"{value}"])
+
+            # resolve dependencies
+            if component["dependencies"]:
+                for dependency in component["dependencies"]:
+                    # there is only an input manifest if the component has dependencies
+                    command.extend(
+                        [
+                            "--input_manifest_path",
+                            f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                            f"{dependency}/manifest.json",
+                        ],
+                    )
+
+                    depends_on = [steps[-1]]
+            else:
+                depends_on = []
+
+            script = self.generate_component_script(component_name, command)
+
+            processor = self.sagemaker.processing.ScriptProcessor(
+                image_uri=component_op.component_spec.image,
+                command=["bash"],
+                instance_type="ml.t3.medium",
+                instance_count=1,
+                base_job_name=component_name,
+                role=self.sagemaker.get_execution_role(),
+            )
+            step = self.sagemaker.workflow.steps.ProcessingStep(
+                name=component_name,
+                processor=processor,
+                depends_on=depends_on,
+                code=script,
+            )
+            steps.append(step)
+
+        sagemaker_pipeline = self.sagemaker.workflow.pipeline.Pipeline(
+            name=pipeline.name,
+            steps=steps,
+        )
+        with open(output_path, "w") as outfile:
+            json.dump(json.loads(sagemaker_pipeline.definition()), outfile, indent=4)
+
+    def _set_configuration(self, *args, **kwargs) -> None:
+        """Abstract method to set pipeline configuration."""
+
+    def generate_component_script(self, component_name: str, command: t.List[str]):
+        """Generate a bash script for a component to be used as input in a
+        sagemaker pipeline step.
+        """
+        content = " ".join(["fondant", "execute", "main", *command])
+        with open(f"artifacts/{component_name}.sh", "w") as f:
+            f.write(content)
+
+        return f"artifacts/{component_name}.sh"
