@@ -152,6 +152,11 @@ class ComponentSpec:
         return self._specification["name"]
 
     @property
+    def component_folder_name(self):
+        """Cleans and converts a name to a proper folder name."""
+        return self._specification["name"].lower().replace(" ", "_")
+
+    @property
     def sanitized_component_name(self):
         """Cleans and converts a name to be kfp V2 compatible.
 
