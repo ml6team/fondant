@@ -1,0 +1,126 @@
+{
+    "Version": "2020-12-01",
+    "Metadata": {},
+    "Parameters": [],
+    "PipelineExperimentConfig": {
+        "ExperimentName": {
+            "Get": "Execution.PipelineName"
+        },
+        "TrialName": {
+            "Get": "Execution.PipelineExecutionId"
+        }
+    },
+    "Steps": [
+        {
+            "Name": "load_from_hub",
+            "Type": "Processing",
+            "Arguments": {
+                "ProcessingResources": {
+                    "ClusterConfig": {
+                        "InstanceType": "ml.t3.medium",
+                        "InstanceCount": 1,
+                        "VolumeSizeInGB": 30
+                    }
+                },
+                "AppSpecification": {
+                    "ImageUri": "docker.io/fndnt/load_from_hf_hub:e1f9c0389d9cae0936208b40683a38e40bf957b9",
+                    "ContainerEntrypoint": [
+                        "bash",
+                        "/opt/ml/processing/input/code/load_from_hub.sh"
+                    ]
+                },
+                "RoleArn": "arn:aws:iam::281086077386:role/aws-reserved/sso.amazonaws.com/eu-west-3/AWSReservedSSO_AWSAdministratorAccess_f4dceeff1bbd2934",
+                "ProcessingInputs": [
+                    {
+                        "InputName": "code",
+                        "AppManaged": false,
+                        "S3Input": {
+                            "S3Uri": "s3://sagemaker-us-east-1-281086077386/load_from_hub-828a4d50b03ca2b750cfc1087a589b5c/input/code/load_from_hub.sh",
+                            "LocalPath": "/opt/ml/processing/input/code",
+                            "S3DataType": "S3Prefix",
+                            "S3InputMode": "File",
+                            "S3DataDistributionType": "FullyReplicated",
+                            "S3CompressionType": "None"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "download_images",
+            "Type": "Processing",
+            "Arguments": {
+                "ProcessingResources": {
+                    "ClusterConfig": {
+                        "InstanceType": "ml.t3.medium",
+                        "InstanceCount": 1,
+                        "VolumeSizeInGB": 30
+                    }
+                },
+                "AppSpecification": {
+                    "ImageUri": "ghcr.io/ml6team/download_images:e49867b5aa0fce2194b5e1bdc67f441bc26b1df4",
+                    "ContainerEntrypoint": [
+                        "bash",
+                        "/opt/ml/processing/input/code/download_images.sh"
+                    ]
+                },
+                "RoleArn": "arn:aws:iam::281086077386:role/aws-reserved/sso.amazonaws.com/eu-west-3/AWSReservedSSO_AWSAdministratorAccess_f4dceeff1bbd2934",
+                "ProcessingInputs": [
+                    {
+                        "InputName": "code",
+                        "AppManaged": false,
+                        "S3Input": {
+                            "S3Uri": "s3://sagemaker-us-east-1-281086077386/download_images-bb25d559863daf9ca3b9bcb37ad8f114/input/code/download_images.sh",
+                            "LocalPath": "/opt/ml/processing/input/code",
+                            "S3DataType": "S3Prefix",
+                            "S3InputMode": "File",
+                            "S3DataDistributionType": "FullyReplicated",
+                            "S3CompressionType": "None"
+                        }
+                    }
+                ]
+            },
+            "DependsOn": [
+                "load_from_hub"
+            ]
+        },
+        {
+            "Name": "filter_image_resolution",
+            "Type": "Processing",
+            "Arguments": {
+                "ProcessingResources": {
+                    "ClusterConfig": {
+                        "InstanceType": "ml.t3.medium",
+                        "InstanceCount": 1,
+                        "VolumeSizeInGB": 30
+                    }
+                },
+                "AppSpecification": {
+                    "ImageUri": "ghcr.io/ml6team/filter_image_resolution:e49867b5aa0fce2194b5e1bdc67f441bc26b1df4",
+                    "ContainerEntrypoint": [
+                        "bash",
+                        "/opt/ml/processing/input/code/filter_image_resolution.sh"
+                    ]
+                },
+                "RoleArn": "arn:aws:iam::281086077386:role/aws-reserved/sso.amazonaws.com/eu-west-3/AWSReservedSSO_AWSAdministratorAccess_f4dceeff1bbd2934",
+                "ProcessingInputs": [
+                    {
+                        "InputName": "code",
+                        "AppManaged": false,
+                        "S3Input": {
+                            "S3Uri": "s3://sagemaker-us-east-1-281086077386/filter_image_resolution-ac9576f9cdfe38dc6061540ab5b54098/input/code/filter_image_resolution.sh",
+                            "LocalPath": "/opt/ml/processing/input/code",
+                            "S3DataType": "S3Prefix",
+                            "S3InputMode": "File",
+                            "S3DataDistributionType": "FullyReplicated",
+                            "S3CompressionType": "None"
+                        }
+                    }
+                ]
+            },
+            "DependsOn": [
+                "download_images"
+            ]
+        }
+    ]
+}
