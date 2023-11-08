@@ -139,7 +139,7 @@ class SagemakerRunner(Runner):
             response = client.create_pipeline(
                 PipelineName="my-pipeline4",
                 PipelineDefinition=pipeline,
-                RoleArn="arn:aws:iam::281086077386:role/service-role/AmazonSageMaker-ExecutionRole-20231107T160823",
+                RoleArn="TODO",
             )
             print(response)
 
