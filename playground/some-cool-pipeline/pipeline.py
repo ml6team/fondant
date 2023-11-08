@@ -76,7 +76,7 @@ if __name__ == "__main__":
     compiler = SagemakerCompiler()
     compiler.compile(pipeline, output_path="spec.json")
 
-    # from fondant.pipeline.runner import SagemakerRunner
+    from fondant.pipeline.runner import SagemakerRunner
 
-    # runner = SagemakerRunner()
-    # runner.run(input_spec="spec.json")
+    runner = SagemakerRunner()
+    runner.run(input_spec="spec.json")
