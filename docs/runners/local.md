@@ -1,6 +1,5 @@
 ### Local Runner
 
-
 Leverages [docker compose](https://docs.docker.com/compose/). The local runner is mainly aimed
 at helping you develop fondant pipelines and components faster since it allows you to develop on
 your local machine or a Virtual Machine. This enables you to quickly iterate on development. Once

@@ -6,7 +6,8 @@ Learn about the Fondant project and how to get started with it.
 
 → Start with the official guide on how to [install](installation.md) Fondant.  
 → Get started by running your first fondant [pipeline](guides/first_pipeline.md) using the [local
-runner](runners/local.md). There you will learn how to use reusable components and how to build your own custom components.  
+runner](runners/local.md). There you will learn how to use reusable components and how to build your
+own custom components.  
 → Learn how to use the [data explorer](data_explorer.md) to explore the outputs of your pipeline.
 
 ## Fondant fundamentals
@@ -17,8 +18,10 @@ Learn how to use Fondant to build your own data processing pipeline.
 -> Use existing [reusable components](components/hub.md) to build your pipeline.  
 -> Use [generic components](components/generic_component.md) to load/write your custom data format
 to/from Fondant.  
--> Build your own [custom component](components/custom_component.md) using the Fondant component API.
--> Learn how to publish your own [components](components/publishing_components.md) to a container registry so that you can reuse them in your pipelines.
+-> Build your own [custom component](components/custom_component.md) using the Fondant component
+API.
+-> Learn how to publish your own [components](components/publishing_components.md) to a container
+registry so that you can reuse them in your pipelines.
 
 ## Components hub
 
@@ -70,11 +73,12 @@ pipeline.
 
 Learn about some of the more advanced concepts in Fondant.
 
--> Learn more about the [architecture](architecture.md) of Fondant and how it works under the hood.  
+-> Learn more about the [architecture](architecture.md) of Fondant and how it works under the
+hood.  
 -> Understand how Fondant passes data between components with the [manifest](manifest.md).  
 -> Learn how Fondant uses [caching](caching.md) to speed up your pipeline development.  
 -> Find out how Fondant uses [partitions](partitions.md) to parallelize and scale your pipeline and
-how you can use it to your advantage.  
+how you can use it to your advantage.
 
 ## Contributing
 

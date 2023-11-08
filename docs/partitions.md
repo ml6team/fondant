@@ -6,8 +6,7 @@ into smaller chunks called "partitions" that can be processed in parallel. Ensur
 enables parallel processing, where multiple workers process different partitions simultaneously, 
 and smaller partitions ensure they fit into memory.
 
-Check this [link](https://docs.dask.org/en/latest/dataframe-design.html#:~:text=dd.from_delayed.-,Partitions%C2%B6,-Internally%2C%20a%20Dask) for more info on Dask partitions. 
-### How Fondant handles partitions
+Check this [link](https://docs.dask.org/en/latest/dataframe-design.html#:~:text=dd.from_delayed.-,Partitions%C2%B6,-Internally%2C%20a%20Dask) for more info on Dask partitions.
 
 Fondant repartitions the loaded dataframe if the number of partitions is fewer than the available workers on the data processing instance.
 By repartitioning, the maximum number of workers can be efficiently utilized, leading to faster
@@ -24,14 +23,14 @@ Here's an example of disabling the automatic partitioning:
 ```python
 from fondant.pipeline.pipeline import ComponentOp
 
-caption_images_op = ComponentOp(  
-    component_dir="components/captioning_component",  
-    arguments={  
-        "model_id": "Salesforce/blip-image-captioning-base",  
-        "batch_size": 2,  
-        "max_new_tokens": 50,  
-    },  
-    input_partition_rows='disable',  
+caption_images_op = ComponentOp(
+    component_dir="components/captioning_component",
+    arguments={
+        "model_id": "Salesforce/blip-image-captioning-base",
+        "batch_size": 2,
+        "max_new_tokens": 50,
+    },
+    input_partition_rows='disable',
 )
 ```
 
