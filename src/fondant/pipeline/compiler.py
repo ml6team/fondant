@@ -528,10 +528,6 @@ class SagemakerCompiler(Compiler):
             import sagemaker.workflow.pipeline
             import sagemaker.workflow.steps
 
-            # from sagemaker.processing import (
-            #     ProcessingInput,
-            #     ProcessingOutput,
-            #     ScriptProcessor,
             self.sagemaker = sagemaker
 
         except ImportError:
