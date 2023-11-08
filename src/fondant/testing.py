@@ -88,8 +88,8 @@ class PipelineConfigs:
     """
 
     pipeline_name: str
-    pipeline_description: str
     pipeline_version: str
+    pipeline_description: t.Optional[str] = None
 
     @classmethod
     @abstractmethod
@@ -106,7 +106,7 @@ class DockerPipelineConfigs(PipelineConfigs):
        component_configs: Dictionary of Docker component configurations for the pipeline.
     """
 
-    component_configs: t.Dict[str, DockerComponentConfig]
+    component_configs: t.Optional[t.Dict[str, DockerComponentConfig]] = None
 
     @classmethod
     def from_spec(cls, spec_path: str) -> "DockerPipelineConfigs":
@@ -116,6 +116,7 @@ class DockerPipelineConfigs(PipelineConfigs):
 
         components_configs_dict = {}
 
+        pipeline_description = None
         # Iterate through each service
         for component_name, component_configs in specification["services"].items():
             # Get arguments from command
@@ -151,14 +152,15 @@ class DockerPipelineConfigs(PipelineConfigs):
                 memory_limit=None,
             )
             components_configs_dict[component_name] = component_config
+            pipeline_description = component_configs.get("labels", {}).get(
+                "pipeline_description",
+                "No description provided",
+            )
 
         return cls(
             pipeline_name=specification["name"],
             pipeline_version=specification["version"],
-            pipeline_description=specification.get("labels", {}).get(
-                "description",
-                None,
-            ),
+            pipeline_description=pipeline_description,
             component_configs=components_configs_dict,
         )
 
@@ -172,7 +174,7 @@ class KubeflowPipelineConfigs(PipelineConfigs):
         component_configs: Dictionary of Kubeflow component configurations for the pipeline.
     """
 
-    component_configs: t.Dict[str, KubeflowComponentConfig]
+    component_configs: t.Optional[t.Dict[str, KubeflowComponentConfig]] = None
 
     @classmethod
     def from_spec(cls, spec_path: str) -> "KubeflowPipelineConfigs":
