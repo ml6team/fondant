@@ -41,7 +41,7 @@ def normalize_lines(text):
     )
 
 
-class TextNormalizationComponent(PandasTransformComponent):
+class NormalizeTextComponent(PandasTransformComponent):
     """Component that normalizes text."""
 
     def __init__(

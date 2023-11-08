@@ -24,50 +24,66 @@ It offers:
 
 <ul>
 <li>
-    🔧 Plug ‘n’ play composable pipelines for creating datasets for
+    🔧 Plug ‘n’ play composable pipelines for creating datasets for:
     <ul>
         <li>AI image generation model fine-tuning (Stable Diffusion, ControlNet)</li>
         <li>Large language model fine-tuning (LLaMA, Falcon)</li>
     </ul>
 </li>
 <li>
-🧱 Library of off-the-shelf reusable components for
+🧱 Off-the-shelf library of easily adaptable reusable components for:
     <ul>
-    <li>Extracting data from public sources such as Common Crawl, LAION, ...</li>
-    <li>Filtering on 
+    <li>
+    Data Filtering
     <ul>
-        <li>Content, e.g. language, visual style, topic, format, aesthetics, etc.</li>
-        <li>Context, e.g. copyright license, origin</li>
-        <li>Metadata</li>
+        <li>Content: language, visual style, topic, format, aesthetics, NSFW, etc.</li>
+        <li>Context: e.g. copyright license, origin, etc.</li>
+        <li>Deduplication</li>
     </ul>
     </li>
-    <li>Removal of unwanted data such as toxic, NSFW or generated content</li>
-    <li>Removal of unwanted data patterns such as societal bias</li>
-    <li>Transforming data (resizing, cropping, reformatting, …)</li>
-    <li>Tuning the data for model performance (normalization, deduplication, …)</li>
-    <li>Enriching data (captioning, metadata generation, synthetics, …)</li>
-    <li>Transparency, auditability, compliance</li>
+    <li>
+    Data Enrichment
+    <ul>
+        <li>Captions</li>
+        <li>Segmentations</li>
+        <li>Embeddings</li>
+    </ul>
+    </li>
+    <li>
+    Data Transformation
+    <ul>
+        <li>Images: cropping, resizing, etc. </li>
+        <li>Text: chunking, indexing, etc. </li>
+    </ul>
+    </li>
+    <li>
+    Data retrieval
+    <ul>
+        <li>Common Crawl</li>
+        <li>LAION</li>
+    </ul>
+    </li>
     </ul>
 </li>
 <li>📖 🖼️ 🎞️ ♾️ Out of the box multimodal capabilities: text, images, video, etc.</li>
-<li>🐍 Standardized, Python/Pandas-based way of creating custom components</li>
-<li>🏭 Production-ready, scalable deployment</li>
-<li>☁️ Multi-cloud integrations</li>
+<li>🐍 A simple Pandas based interface for creating custom components</li>
+<li>🏭 Scalable deployment for production environments.</li>
+<li>☁️ Integration with runners across different clouds (Vertex, Sagemaker, Kubeflow)</li>
 </ul>
 
 ## 🪤 Why Fondant?
 
-In the age of Foundation Models, control over your data is key and building pipelines
-for large-scale data processing is costly, especially when they require advanced
-machine learning-based operations. This need not be the case, however, if processing
-components would be reusable and exchangeable and pipelines were easily composable.
-Realizing this is the main vision behind Fondant.
+In the era of Foundation Models, preserving data control has become paramount. 
+Yet, the construction of pipelines for extensive data processing remains a costly affair, particularly in the context of 
+complex machine learning-based operations. 
+Fondant's mission is to streamline this process by introducing reusable and interchangeable processing components, 
+thus establishing easily composed pipelines as the new norm.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 💨 Getting Started
 
-Anxious to get started? Here's is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting_started) to get your first pipeline up and running.
+Eager to get started? Here is a [step by step guide](https://fondant.readthedocs.io/en/latest/getting_started) to get your first pipeline up and running.
 
 ## 🪄 Example pipelines
 
@@ -115,28 +131,37 @@ Eg. generating logos:
 
 ## 🧩 Reusable components
 
-Fondant comes with a library of reusable components, which can jumpstart your pipeline.
+Fondant comes with a library of reusable components, which can jumpstart your pipeline, here are a selected few:
 
-| COMPONENT                                                                                                                  | DESCRIPTION                                                         |
-| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **Data loading / writing**                                                                                                 |                                                                     |
-| [load_from_hf_hub](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub)                               | Load a dataset from the Hugging Face Hub                            |
-| [write_to_hf_hub](https://github.com/ml6team/fondant/tree/main/components/write_to_hf_hub)                                 | Write a dataset to the Hugging Face Hub                             |
-| [prompt_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval)       | Retrieve images-text pairs from LAION using prompt similarity       |
-| [embedding_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/embedding_based_laion_retrieval) | Retrieve images-text pairs from LAION using embedding similarity    |
-| [download_images](https://github.com/ml6team/fondant/tree/main/components/download_images)                                 | Download images from urls                                           |
-| **Image processing**                                                                                                       |                                                                     |
-| [embed_images](https://github.com/ml6team/fondant/tree/main/components/embed_images)                                       | Create embeddings for images using a model from the HF Hub          |
-| [image_resolution_extraction](https://github.com/ml6team/fondant/tree/main/components/image_resolution_extraction)         | Extract the resolution from images                                  |
-| [filter_image_resolution](https://github.com/ml6team/fondant/tree/main/components/filter_image_resolution)                 | Filter images based on their resolution                             |
-| [caption images](https://github.com/ml6team/fondant/tree/main/components/caption_images)                                   | Generate captions for images using a model from the HF Hub          |
-| [segment_images](https://github.com/ml6team/fondant/tree/main/components/segment_images)                                   | Generate segmentation maps for images using a model from the HF Hub |
-| [image_cropping](https://github.com/ml6team/fondant/tree/main/components/image_cropping)                                   | Intelligently crop out image borders                                |
-| **Language processing**                                                                                                    | Coming soon                                                         |
-| **Clustering**                                                                                                             | Coming soon                                                         |
+| COMPONENT                                                                                                                  | DESCRIPTION                                                                 |
+|----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| **Data loading**                                                                                                           |                                                                             |
+| [load_from_hf_hub](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub)                               | Load a dataset from the Hugging Face Hub                                    |
+| [load_from_parquet](https://github.com/ml6team/fondant/tree/main/components/load_from_parquet)                             | Load a dataset from a parquet file stored on remotely                       |
+| **Data Retrieval**                                                                                                         |                                                                             |
+| [prompt_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval)       | Retrieve images-text pairs from LAION using prompt similarity               |
+| [embedding_based_laion_retrieval](https://github.com/ml6team/fondant/tree/main/components/embedding_based_laion_retrieval) | Retrieve images-text pairs from LAION using embedding similarity            |
+| [download_images](https://github.com/ml6team/fondant/tree/main/components/download_images)                                 | Download images from urls                                                   |
+| **Data Writing**                                                                                                           |                                                                             |  
+| [write_to_hf_hub](https://github.com/ml6team/fondant/tree/main/components/write_to_hf_hub)                                 | Write a dataset to the Hugging Face Hub                                     |
+| [index_weaviate](https://github.com/ml6team/fondant/tree/main/components/index_weaviate)                                   | Index text and writes it to a [Weaviate](https://weaviate.io/) database     |
+| **Image processing**                                                                                                       |                                                                             |
+| [embed_images](https://github.com/ml6team/fondant/tree/main/components/embed_images)                                       | Create embeddings for images using a model from the HF Hub                  |
+| [image_resolution_extraction](https://github.com/ml6team/fondant/tree/main/components/image_resolution_extraction)         | Extract the resolution from images                                          |
+| [filter_image_resolution](https://github.com/ml6team/fondant/tree/main/components/filter_image_resolution)                 | Filter images based on their resolution                                     |
+| [caption images](https://github.com/ml6team/fondant/tree/main/components/caption_images)                                   | Generate captions for images using a model from the HF Hub                  |
+| [segment_images](https://github.com/ml6team/fondant/tree/main/components/segment_images)                                   | Generate segmentation maps for images using a model from the HF Hub         |
+| [image_cropping](https://github.com/ml6team/fondant/tree/main/components/image_cropping)                                   | Intelligently crop out image borders                                        |
+| **Text processing**                                                                                                        |                                                                             |
+| [embed_text](https://github.com/ml6team/fondant/tree/main/components/embed_text)                                           | Create embeddings for images using a model from the HF Hub                  |
+| [chunk_text](https://github.com/ml6team/fondant/tree/main/components/chunk_text)                                           | Extract chunks from long text paragraphs                                    |
+| [normalize_text](https://github.com/ml6team/fondant/tree/main/components/normalize_text)                                   | Implements several normalization techniques to clean and preprocess textual |
+| [filter_text_length](https://github.com/ml6team/fondant/tree/main/components/filter_text_length)                           | Filters text based on character length                                      |
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+Check out the [components](https://github.com/ml6team/fondant/tree/main/components) section for a full list of available components.
 ## ⚒️ Installation
 
 Fondant can be installed using pip:
@@ -153,22 +178,39 @@ pip install git+https://github.com/ml6team/fondant.git
 
 ### 🧱 Running Fondant pipelines
 
-There are 3 ways to run fondant pipelines:
+Fondant pipelines can be run on different platforms.
 
-- [**Local runner**](https://github.com/ml6team/fondant/blob/main/docs/pipeline.md#local-runner): leverages [docker compose](https://docs.docker.com/compose/). The local runner is mainly aimed 
-at helping you develop fondant pipelines and components faster since it allows you to develop on your local machine or a Virtual Machine. 
-- This enables you to quickly iterate on development.Once you have a pipeline developed, you can use the other runners mentioned below
-for better scaling, monitoring and reproducibility.
-- [**Vertex runner**](https://github.com/ml6team/fondant/blob/main/docs/pipeline.md#vertex-runner): Uses Google cloud's [Vertex AI pipelines](https://cloud.google.com/vertex-ai/docs/pipelines/introduction) to help you 
-orchestrate your Fondant pipelines in a serverless manner. This makes it easy to scale up your pipelines without worrying about infrastructure 
-deployment. 
-- [**Kubeflow runner**](https://github.com/ml6team/fondant/blob/main/docs/pipeline.md#kubeflow): Leverages [Kubeflow pipelines](https://www.kubeflow.org/docs/components/pipelines/v1/introduction/) on any Kubernetes cluster. 
-All Fondant needs is a url pointing to the Kubeflow pipeline host and an Object Storage provider (S3, GCS, etc) to store data produced in the pipeline between steps.
-We have compiled some references and created some scripts to [get you started](https://fondant.readthedocs.io/en/latest/infrastructure) with setting up the required infrastructure.
+<style>
+    .caption {
+        text-align: center;
+    }
+    .caption strong {
+        font-weight: bold;
+    }
+</style>
 
-
-It is worth noting that the same pipeline can be used across all runners allowing you to quickly develop and iterate using the local 
-runner and then using the Vertex or Kubeflow runner to run a large scale pipeline.
+<table class="images" width="100%" style="border: 0px solid white; width: 100%;">
+    <tr style="border: 0px;">
+        <td width="33.33%" style="border: 0px; width: 33.33%">
+            <figure>
+                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true" />
+                <figcaption class="caption"><strong>LocalRunner</strong>: Uses Docker Compose to run locally on your machine – great for developing, testing, and debugging.</figcaption>
+            </figure>
+        </td>
+        <td width="33.33%" style="border: 0px; width: 33.33%">
+            <figure>
+                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/vertex_ai.png?raw=true" />
+                <figcaption class="caption"><strong>VertexRunner</strong>: Runs on VertexAI Pipelines.</figcaption>
+            </figure>
+        </td>
+        <td width="33.33%" style="border: 0px; width: 33.33%">
+            <figure>
+                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/kubeflow_pipelines.png?raw=true" />
+                <figcaption class="caption"><strong>KubeflowRunner</strong>: Runs on Kubeflow Pipelines</figcaption>
+            </figure>
+        </td>
+    </tr>
+</table>
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

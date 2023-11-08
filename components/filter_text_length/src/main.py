@@ -8,7 +8,7 @@ from fondant.component import PandasTransformComponent
 logger = logging.getLogger(__name__)
 
 
-class TextLengthFilterComponent(PandasTransformComponent):
+class FilterTextLengthComponent(PandasTransformComponent):
     """A component that filters out text based on their length."""
 
     def __init__(self, *_, min_characters_length: int, min_words_length: int):

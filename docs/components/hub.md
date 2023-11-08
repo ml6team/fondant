@@ -76,11 +76,11 @@ Below you can find the reusable components offered by Fondant.
 
 ??? "text_length_filter"
 
-    --8<-- "components/text_length_filter/README.md:1"
+    --8<-- "components/filter_text_length/README.md:1"
 
 ??? "text_normalization"
 
-    --8<-- "components/text_normalization/README.md:1"
+    --8<-- "components/normalize_text/README.md:1"
 
 ??? "write_to_hf_hub"
 

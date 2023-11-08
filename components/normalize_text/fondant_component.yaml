@@ -1,5 +1,5 @@
 name: Normalize text
-image: fndnt/text_normalization:latest
+image: fndnt/normalize_text:latest
 description: |
   This component implements several text normalization techniques to clean and preprocess textual 
   data:

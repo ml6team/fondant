@@ -29,15 +29,15 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-text_length_filter_op = ComponentOp.from_registry(
-    name="text_length_filter",
+filter_text_length_op = ComponentOp.from_registry(
+    name="filter_text_length",
     arguments={
         # Add arguments
         # "min_characters_length": 0,
         # "min_words_length": 0,
     }
 )
-pipeline.add_op(text_length_filter_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(filter_text_length_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing
