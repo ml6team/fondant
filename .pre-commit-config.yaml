@@ -6,12 +6,12 @@ repos:
     rev: 'v0.0.264'
     hooks:
       - id: ruff
-        files: |
-          (?x)^(
-              components/.*|
-              src/.*|
-              tests/.*|
-          )$
+        files:  |
+            (?x)^(
+                components/.*|
+                src/.*|
+                tests/.*|
+            )$
         args: [
           "--target-version=py38",
           "--fix",
@@ -23,35 +23,35 @@ repos:
     hooks:
       - id: bandit
         name: bandit
-        types: [ python ]
+        types: [python]
         files: |
-          (?x)^(
-              components/.*|
-              src/.*|
-              examples/.*|
-              tests/.*|
-          )$
-        args: [ "-f", "custom", "-q", "-c", "pyproject.toml", "-r" ]
-        additional_dependencies: [ ".[toml]" ]
+            (?x)^(
+                components/.*|
+                src/.*|
+                examples/.*|
+                tests/.*|
+            )$
+        args: ["-f", "custom", "-q", "-c", "pyproject.toml", "-r"]
+        additional_dependencies: [".[toml]"]
 
   - repo: https://github.com/psf/black
     rev: 23.1.0
     hooks:
       - id: black
         name: black
-        files: |
-          (?x)^(
-              components/.*|
-              src/.*|
-              examples/.*|
-              tests/.*|
-          )$
+        files:  |
+            (?x)^(
+                components/.*|
+                src/.*|
+                examples/.*|
+                tests/.*|
+            )$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.2.0
     hooks:
       - id: mypy
-        args: [ "--ignore-missing-imports", "src" ]
+        args: ["--ignore-missing-imports", "src"]
         additional_dependencies:
           - types-jsonschema
           - types-PyYAML
@@ -66,4 +66,4 @@ repos:
         language: python
         entry: python scripts/component_readme/generate_readme.py
         files: ^components/.*/fondant_component.yaml
-        additional_dependencies: [ "fondant@git+https://github.com/ml6team/fondant@main", "Jinja2==3.1.2", "PyYAML==6.0.1" ]
+        additional_dependencies: ["fondant@git+https://github.com/ml6team/fondant@main", "Jinja2==3.1.2", "PyYAML==6.0.1"]
