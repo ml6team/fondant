@@ -144,7 +144,7 @@ class ComponentOp:
         self.component_spec = ComponentSpec.from_file(
             self.component_dir / self.COMPONENT_SPEC_NAME,
         )
-        self.name = self.component_spec.name.replace(" ", "_").lower()
+        self.name = self.component_spec.sanitized_component_name
         self.cache = self._configure_caching_from_image_tag(cache)
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
