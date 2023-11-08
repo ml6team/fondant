@@ -1,4 +1,4 @@
-# This file contains a sample pipeline. Loading data from a parquet file, using  load_from_parquet
+# This file contains a sample pipeline. Loading data from a parquet file, using the load_from_parquet
 # component, applies text normalisation and transform the text to upper case (using a custom
 # dummy component).
 import glob
