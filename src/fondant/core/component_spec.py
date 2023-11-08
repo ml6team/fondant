@@ -152,6 +152,23 @@ class ComponentSpec:
         return self._specification["name"]
 
     @property
+    def sanitized_component_name(self):
+        """Cleans and converts a name to be kfp V2 compatible.
+
+        Taken from https://github.com/kubeflow/pipelines/blob/
+        cfe671c485d4ee8514290ee81ca2785e8bda5c9b/sdk/python/kfp/dsl/utils.py#L52
+        """
+        return (
+            re.sub(
+                "-+",
+                "-",
+                re.sub("[^-0-9a-z]+", "-", self._specification["name"].lower()),
+            )
+            .lstrip("-")
+            .rstrip("-")
+        )
+
+    @property
     def description(self):
         return self._specification["description"]
 
@@ -314,19 +331,6 @@ class KubeflowComponentSpec:
 
         return args
 
-    @staticmethod
-    def sanitize_component_name(name: str) -> str:
-        """Cleans and converts a name to be kfp V2 compatible.
-
-        Taken from https://github.com/kubeflow/pipelines/blob/
-        cfe671c485d4ee8514290ee81ca2785e8bda5c9b/sdk/python/kfp/dsl/utils.py#L52
-        """
-        return (
-            re.sub("-+", "-", re.sub("[^-0-9a-z]+", "-", name.lower()))
-            .lstrip("-")
-            .rstrip("-")
-        )
-
     @classmethod
     def from_fondant_component_spec(cls, fondant_component: ComponentSpec):
         """Generate a Kubeflow component spec from a Fondant component spec."""
@@ -336,7 +340,7 @@ class KubeflowComponentSpec:
             },
         }
 
-        cleaned_component_name = cls.sanitize_component_name(fondant_component.name)
+        cleaned_component_name = fondant_component.sanitized_component_name
 
         specification = {
             "components": {

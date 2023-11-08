@@ -229,6 +229,9 @@ class DockerCompiler(Compiler):
             "name": pipeline.name,
             "version": "3.8",
             "services": services,
+            "labels": {
+                "description": pipeline.description,
+            },
         }
 
     def _set_configuration(self, services, fondant_component_operation, component_name):

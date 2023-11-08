@@ -175,13 +175,13 @@ def test_valid_pipeline(
 
     pipeline.sort_graph()
     assert list(pipeline._graph.keys()) == [
-        "first_component",
-        "second_component",
-        "third_component",
+        "first-component",
+        "second-component",
+        "third-component",
     ]
-    assert pipeline._graph["first_component"]["dependencies"] == []
-    assert pipeline._graph["second_component"]["dependencies"] == ["first_component"]
-    assert pipeline._graph["third_component"]["dependencies"] == ["second_component"]
+    assert pipeline._graph["first-component"]["dependencies"] == []
+    assert pipeline._graph["second-component"]["dependencies"] == ["first-component"]
+    assert pipeline._graph["third-component"]["dependencies"] == ["second-component"]
 
     pipeline._validate_pipeline_definition("test_pipeline")
 

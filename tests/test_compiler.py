@@ -5,10 +5,18 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-import yaml
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline, Resources
-from fondant.pipeline.compiler import DockerCompiler, KubeFlowCompiler, VertexCompiler
+from fondant.pipeline.compiler import (
+    DockerCompiler,
+    KubeFlowCompiler,
+    VertexCompiler,
+)
+from fondant.testing import (
+    DockerPipelineConfigs,
+    KubeflowPipelineConfigs,
+    VertexPipelineConfigs,
+)
 
 COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
 
@@ -123,10 +131,33 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
-        with open(output_path) as src, open(
-            VALID_PIPELINE / example_dir / "docker-compose.yml",
-        ) as truth:
-            assert yaml.safe_load(src) == yaml.safe_load(truth)
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
+        assert pipeline_configs.pipeline_name == pipeline.name
+        assert pipeline_configs.pipeline_description == pipeline.description
+        for (
+            component_name,
+            component_configs,
+        ) in pipeline_configs.component_configs.items():
+            # Get exepcted component configs
+            component = pipeline._graph[component_name]
+            component_op = component["fondant_component_op"]
+
+            # Check that the component configs are correct
+            assert component_configs.dependencies == component["dependencies"]
+            assert component_configs.memory_limit is None
+            assert component_configs.memory_request is None
+            assert component_configs.cpu_limit is None
+            assert component_configs.cpu_request is None
+            if component_configs.accelerators:
+                assert (
+                    component_configs.accelerators.number_of_accelerators
+                    == component_op.accelerators.number_of_accelerators
+                )
+            if component_op.input_partition_rows is not None:
+                assert (
+                    int(component_configs.arguments["input_partition_rows"])
+                    == component_op.input_partition_rows
+                )
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -139,18 +170,18 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
         work_dir = f"/{fn.stem}"
         pipeline.base_path = str(fn)
         compiler = DockerCompiler()
-        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
-
-        # read the generated docker-compose file
-        with open(fn / "docker-compose.yml") as f_spec:
-            spec = yaml.safe_load(f_spec)
-
+        output_path = str(fn / "docker-compose.yml")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
         expected_run_id = "testpipeline-20230101000000"
-        for name, service in spec["services"].items():
+        for (
+            component_name,
+            component_configs,
+        ) in pipeline_configs.component_configs.items():
             # check if volumes are defined correctly
 
-            cache_key = cache_dict[name]
-            assert service["volumes"] == [
+            cache_key = cache_dict[component_name]
+            assert component_configs.volumes == [
                 {
                     "source": str(fn),
                     "target": work_dir,
@@ -159,14 +190,21 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
             ]
             cleaned_pipeline_name = pipeline.name.replace("_", "")
             # check if commands are patched to use the working dir
-            commands_with_dir = [
-                f"{work_dir}/{cleaned_pipeline_name}/{expected_run_id}/{name}/manifest.json",
-                f'{{"base_path": "{work_dir}", "pipeline_name": "{cleaned_pipeline_name}",'
-                f' "run_id": "{expected_run_id}", "component_id": "{name}",'
-                f' "cache_key": "{cache_key}"}}',
-            ]
-            for command in commands_with_dir:
-                assert command in service["command"]
+            expected_output_manifest_path = (
+                f"{work_dir}/{cleaned_pipeline_name}/{expected_run_id}"
+                f"/{component_name}/manifest.json"
+            )
+            expected_metadata = (
+                f'{{"base_path": "{work_dir}", "pipeline_name": '
+                f'"{cleaned_pipeline_name}", "run_id": "{expected_run_id}", '
+                f'"component_id": "{component_name}", "cache_key": "{cache_key}"}}'
+            )
+
+            assert (
+                component_configs.arguments["output_manifest_path"]
+                == expected_output_manifest_path
+            )
+            assert component_configs.arguments["metadata"] == expected_metadata
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -177,27 +215,36 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
     pipeline.base_path = remote_dir
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
-        compiler.compile(pipeline=pipeline, output_path=fn / "docker-compose.yml")
-
-        # read the generated docker-compose file
-        with open(fn / "docker-compose.yml") as f_spec:
-            spec = yaml.safe_load(f_spec)
-
+        output_path = str(fn / "docker-compose.yml")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
         expected_run_id = "testpipeline-20230101000000"
-        for name, service in spec["services"].items():
-            cache_key = cache_dict[name]
+        for (
+            component_name,
+            component_configs,
+        ) in pipeline_configs.component_configs.items():
+            cache_key = cache_dict[component_name]
             # check that no volumes are created
-            assert service["volumes"] == []
+            assert component_configs.volumes == []
             # check if commands are patched to use the remote dir
             cleaned_pipeline_name = pipeline.name.replace("_", "")
-            commands_with_dir = [
-                f"{remote_dir}/{cleaned_pipeline_name}/{expected_run_id}/{name}/manifest.json",
-                f'{{"base_path": "{remote_dir}", "pipeline_name": "{cleaned_pipeline_name}",'
-                f' "run_id": "{expected_run_id}", "component_id": "{name}",'
-                f' "cache_key": "{cache_key}"}}',
-            ]
-            for command in commands_with_dir:
-                assert command in service["command"]
+
+            expected_output_manifest_path = (
+                f"{remote_dir}/{cleaned_pipeline_name}/{expected_run_id}"
+                f"/{component_name}/manifest.json"
+            )
+
+            expected_metadata = (
+                f'{{"base_path": "{remote_dir}", "pipeline_name": '
+                f'"{cleaned_pipeline_name}", "run_id": "{expected_run_id}", '
+                f'"component_id": "{component_name}", "cache_key": "{cache_key}"}}'
+            )
+
+            assert (
+                component_configs.arguments["output_manifest_path"]
+                == expected_output_manifest_path
+            )
+            assert component_configs.arguments["metadata"] == expected_metadata
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -210,18 +257,18 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
         compiler = DockerCompiler()
         # define some extra volumes to be mounted
         extra_volumes = ["hello:there", "general:kenobi"]
+        output_path = str(fn / "docker-compose.yml")
+
         compiler.compile(
             pipeline=pipeline,
-            output_path=fn / "docker-compose.yml",
+            output_path=output_path,
             extra_volumes=extra_volumes,
         )
 
-        # read the generated docker-compose file
-        with open(fn / "docker-compose.yml") as f_spec:
-            spec = yaml.safe_load(f_spec)
-        for _name, service in spec["services"].items():
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
+        for _, service in pipeline_configs.component_configs.items():
             assert all(
-                extra_volume in service["volumes"] for extra_volume in extra_volumes
+                extra_volume in service.volumes for extra_volume in extra_volumes
             )
 
 
@@ -242,35 +289,20 @@ def test_docker_configuration(tmp_path_factory):
         ),
     )
 
-    expected_resources = {
-        "reservations": {
-            "devices": [
-                {
-                    "capabilities": ["gpu"],
-                    "count": 1,
-                    "driver": "nvidia",
-                },
-            ],
-        },
-    }
-
     pipeline.add_op(component_1)
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yaml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        # read the generated docker-compose file
-        with open(output_path) as f_spec:
-            spec = yaml.safe_load(f_spec)
-        assert (
-            spec["services"]["first_component"]["deploy"]["resources"]
-            == expected_resources
-        )
+        pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
+        component_config = pipeline_configs.component_configs["first-component"]
+        assert component_config.accelerators[0].type == "gpu"
+        assert component_config.accelerators[0].number == 1
 
 
 @pytest.mark.usefixtures("_freeze_time")
 def test_invalid_docker_configuration(tmp_path_factory):
-    """Test that extra volumes are applied correctly."""
+    """Test that a valid error is returned when an unknown accelerator is set."""
     pipeline = Pipeline(
         pipeline_name="test_pipeline",
         pipeline_description="description of the test pipeline",
@@ -299,10 +331,33 @@ def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        with open(output_path) as src, open(
-            VALID_PIPELINE / example_dir / "kubeflow_pipeline.yml",
-        ) as truth:
-            assert yaml.safe_load(src) == yaml.safe_load(truth)
+        pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
+        assert pipeline_configs.pipeline_name == pipeline.name
+        assert pipeline_configs.pipeline_description == pipeline.description
+        for (
+            component_name,
+            component_configs,
+        ) in pipeline_configs.component_configs.items():
+            # Get exepcted component configs
+            component = pipeline._graph[component_name]
+            component_op = component["fondant_component_op"]
+
+            # Check that the component configs are correct
+            assert component_configs.dependencies == component["dependencies"]
+            assert component_configs.memory_limit is None
+            assert component_configs.memory_request is None
+            assert component_configs.cpu_limit is None
+            assert component_configs.cpu_request is None
+            if component_configs.accelerators:
+                assert (
+                    component_configs.accelerators.number_of_accelerators
+                    == component_op.accelerators.number_of_accelerators
+                )
+            if component_op.input_partition_rows is not None:
+                assert (
+                    int(component_configs.arguments["input_partition_rows"])
+                    == component_op.input_partition_rows
+                )
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -331,26 +386,13 @@ def test_kubeflow_configuration(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        with open(output_path) as src:
-            # Two specs are present and loaded in the yaml file (component spec and k8s specs)
-            compiled_specs = yaml.load_all(src, Loader=yaml.FullLoader)
-            for spec in compiled_specs:
-                if "platforms" in spec:
-                    component_kubernetes_spec = spec["platforms"]["kubernetes"][
-                        "deploymentSpec"
-                    ]["executors"]["exec-first-component"]
-                    assert component_kubernetes_spec["nodeSelector"]["labels"] == {
-                        node_pool_label: node_pool_name,
-                    }
-
-                elif "deploymentSpec" in spec:
-                    component_resources = spec["deploymentSpec"]["executors"][
-                        "exec-first-component"
-                    ]["container"]["resources"]
-                    assert component_resources["accelerator"]["count"] == "1"
-                    assert (
-                        component_resources["accelerator"]["type"] == "nvidia.com/gpu"
-                    )
+        pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
+        component_configs = pipeline_configs.component_configs["first-component"]
+        for accelerator in component_configs.accelerators:
+            assert accelerator.type == "nvidia.com/gpu"
+            assert accelerator.number == 1
+        assert component_configs.node_pool_label == node_pool_label
+        assert component_configs.node_pool_name == node_pool_name
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -391,12 +433,35 @@ def test_vertex_compiler(setup_pipeline, tmp_path_factory):
     example_dir, pipeline, _ = setup_pipeline
     compiler = VertexCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
-        output_path = str(fn / "vertex_pipeline.json")
+        output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        with open(output_path) as src, open(
-            VALID_PIPELINE / example_dir / "vertex_pipeline.yml",
-        ) as truth:
-            assert yaml.safe_load(src) == yaml.safe_load(truth)
+        pipeline_configs = VertexPipelineConfigs.from_spec(output_path)
+        assert pipeline_configs.pipeline_name == pipeline.name
+        assert pipeline_configs.pipeline_description == pipeline.description
+        for (
+            component_name,
+            component_configs,
+        ) in pipeline_configs.component_configs.items():
+            # Get exepcted component configs
+            component = pipeline._graph[component_name]
+            component_op = component["fondant_component_op"]
+
+            # Check that the component configs are correct
+            assert component_configs.dependencies == component["dependencies"]
+            assert component_configs.memory_limit is None
+            assert component_configs.memory_request is None
+            assert component_configs.cpu_limit is None
+            assert component_configs.cpu_request is None
+            if component_configs.accelerators:
+                assert (
+                    component_configs.accelerators.number_of_accelerators
+                    == component_op.accelerators.number_of_accelerators
+                )
+            if component_op.input_partition_rows is not None:
+                assert (
+                    int(component_configs.arguments["input_partition_rows"])
+                    == component_op.input_partition_rows
+                )
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -418,17 +483,13 @@ def test_vertex_configuration(tmp_path_factory):
     pipeline.add_op(component_1)
     compiler = VertexCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
-        output_path = str(fn / "vertex_pipeline.yml")
+        output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
-        with open(output_path) as src:
-            # Two specs are present and loaded in the yaml file (component spec and k8s specs)
-            compiled_specs = yaml.safe_load(src)
-
-        component_resources = compiled_specs["deploymentSpec"]["executors"][
-            "exec-first-component"
-        ]["container"]["resources"]
-        assert component_resources["accelerator"]["count"] == "1"
-        assert component_resources["accelerator"]["type"] == "NVIDIA_TESLA_K80"
+        pipeline_configs = VertexPipelineConfigs.from_spec(output_path)
+        component_configs = pipeline_configs.component_configs["first-component"]
+        for accelerator in component_configs.accelerators:
+            assert accelerator.type == "NVIDIA_TESLA_K80"
+            assert accelerator.number == "1"
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -484,13 +545,13 @@ def test_caching_dependency_docker(tmp_path_factory):
         with tmp_path_factory.mktemp("temp") as fn:
             output_path = str(fn / "docker-compose.yml")
             compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
-            with open(output_path) as src:
-                spec = yaml.safe_load(src)
-                command = spec["services"]["second_component"]["command"]
-                cache_key = json.loads(command[command.index("--metadata") + 1])[
-                    "cache_key"
-                ]
-
+            pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
+            metadata = json.loads(
+                pipeline_configs.component_configs["second-component"].arguments[
+                    "metadata"
+                ],
+            )
+            cache_key = metadata["cache_key"]
             second_component_cache_key_dict[arg] = cache_key
 
     assert (
@@ -529,14 +590,16 @@ def test_caching_dependency_kfp(tmp_path_factory):
         with tmp_path_factory.mktemp("temp") as fn:
             output_path = str(fn / "kubeflow_pipeline.yml")
             compiler.compile(pipeline=pipeline, output_path=output_path)
-            with open(output_path) as src:
-                spec = yaml.safe_load(src)
-                params = spec["root"]["dag"]["tasks"]["second-component"]["inputs"][
-                    "parameters"
-                ]
-                metadata = params["metadata"]["runtimeValue"]["constant"]
-                cache_key = json.loads(metadata)["cache_key"]
+            pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
+
+            metadata = json.loads(
+                pipeline_configs.component_configs["second-component"].arguments[
+                    "metadata"
+                ],
+            )
+            cache_key = metadata["cache_key"]
             second_component_cache_key_dict[arg] = cache_key
+        second_component_cache_key_dict[arg] = cache_key
 
     assert (
         second_component_cache_key_dict[arg_list[0]]
