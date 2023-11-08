@@ -528,7 +528,7 @@ class SagemakerCompiler(Compiler):
             self.sagemaker = sagemaker
 
         except ImportError:
-            msg = """You need to install sagemaker to use the Vertex compiler,\n
+            msg = """You need to install the sagemaker extras to use the sagemaker compiler,\n
                      you can install it with `pip install fondant[sagemaker]`"""
             raise ImportError(
                 msg,
@@ -539,7 +539,13 @@ class SagemakerCompiler(Compiler):
         pipeline: Pipeline,
         output_path: str,
     ) -> None:
-        """Abstract method to invoke compilation."""
+        """Compile a fondant pipeline to sagemaker pipeline spec and save it
+        to a specified output path.
+
+        Args:
+            pipeline: the pipeline to compile
+            output_path: the path where to save the Kubeflow pipeline spec.
+        """
         run_id = pipeline.get_run_id()
         path = pipeline.base_path
         pipeline.validate(run_id=run_id)
