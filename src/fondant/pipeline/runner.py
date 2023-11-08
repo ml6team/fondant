@@ -129,10 +129,17 @@ class VertexRunner(Runner):
 
 
 class SagemakerRunner(Runner):
-    def run(self, input_spec: str, *args, **kwargs):
+    def __init__(self):
+        self.__resolve_imports()
+
+    def __resolve_imports(self):
         import boto3
 
-        client = boto3.client("sagemaker")
+        self.boto3 = boto3
+
+    def run(self, input_spec: str, *args, **kwargs):
+        """Run a sagemaker pipeline."""
+        client = self.boto3.client("sagemaker")
 
         with open(input_spec) as f:
             pipeline = f.read()
