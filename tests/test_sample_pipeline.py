@@ -4,7 +4,6 @@
 import glob
 import logging
 import os
-import shutil
 from pathlib import Path
 
 import pytest
@@ -19,14 +18,13 @@ logger = logging.getLogger(__name__)
 os.environ["DOCKER_DEFAULT_PLATFORM"] = "linux/amd64"
 
 BASE_PATH = Path("./tests/sample_pipeline_test")
-DATA_DIR = Path(BASE_PATH / "data")
 NUMBER_OF_COMPONENTS = 3
 
 
 @pytest.fixture()
-def sample_pipeline() -> Pipeline:
+def sample_pipeline(data_dir="./data") -> Pipeline:
     # Define pipeline
-    pipeline = Pipeline(pipeline_name="dummy-pipeline", base_path=str(DATA_DIR))
+    pipeline = Pipeline(pipeline_name="dummy-pipeline", base_path=data_dir)
 
     # Load from hub component
     load_component_column_mapping = {
@@ -59,30 +57,26 @@ def sample_pipeline() -> Pipeline:
     return pipeline
 
 
-def test_local_runner(sample_pipeline):
-    DockerCompiler().compile(
-        sample_pipeline,
-        output_path="docker-compose.yaml",
-        extra_volumes=[str(DATA_DIR.resolve()) + ":/data"],
-    )
-    DockerRunner().run("docker-compose.yaml")
+def test_local_runner(sample_pipeline, tmp_path_factory):
+    with tmp_path_factory.mktemp("temp") as data_dir:
+        sample_pipeline.base_path = str(data_dir)
+        DockerCompiler().compile(
+            sample_pipeline,
+            output_path="docker-compose.yaml",
+            extra_volumes=[
+                str(Path("tests/sample_pipeline_test/data").resolve()) + ":/data",
+            ],
+        )
+        DockerRunner().run("docker-compose.yaml")
 
-    assert os.path.exists(DATA_DIR / "dummy-pipeline")
-    assert os.path.exists(DATA_DIR / "dummy-pipeline" / "cache")
-    pipeline_dirs = glob.glob(
-        str(DATA_DIR / "dummy-pipeline" / "dummy-pipeline-*" / "*"),
-    )
+        assert os.path.exists(data_dir / "dummy-pipeline")
+        assert os.path.exists(data_dir / "dummy-pipeline" / "cache")
+        pipeline_dirs = glob.glob(
+            str(data_dir / "dummy-pipeline" / "dummy-pipeline-*" / "*"),
+        )
 
-    assert len(pipeline_dirs) == NUMBER_OF_COMPONENTS
-    for dir in pipeline_dirs:
-        assert os.path.exists(Path(dir) / "index")
-        assert os.path.exists(Path(dir) / "text")
-        assert os.path.exists(Path(dir) / "manifest.json")
-
-    try:
-        shutil.rmtree(DATA_DIR / "dummy-pipeline")
-    except PermissionError:
-        # No cleanup needed for the ci/cd pipeline as far as only one local runner test is executed.
-        # A PermissionError will be thrown when this process tries to delete the folders which were
-        # created from the docker environment.
-        logger.info("PermissionError: Not able to delete the data folder.")
+        assert len(pipeline_dirs) == NUMBER_OF_COMPONENTS
+        for dir in pipeline_dirs:
+            assert os.path.exists(Path(dir) / "index")
+            assert os.path.exists(Path(dir) / "text")
+            assert os.path.exists(Path(dir) / "manifest.json")
