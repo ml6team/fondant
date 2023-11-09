@@ -71,47 +71,12 @@ Anxious to get started? Here's is a [step by step guide](https://fondant.readthe
 
 ## 🪄 Example pipelines
 
-Curious to see what Fondant can do? Have a look at our example pipelines:
+We have created several ready-made example pipelines for you to use as a starting point for exploring Fondant.
 
-### Filtering creative commons image dataset
-
-We have published an [image dataset containing 25 million images](https://huggingface.co/datasets/fondant-ai/fondant-cc-25m).
-As a result, we have provided a [sample pipeline](https://github.com/ml6team/fondant/tree/main/examples/pipelines/filter-cc-25m) that
-demonstrates the download and filtering of these images. In the pipeline folder,
-you will find detailed instructions on how to execute the pipeline and explore the images.
-
-### Fine-tuning ControlNet
-
-Our
-[example pipeline to generate data for ControlNet fine-tuning](https://github.com/ml6team/fondant/tree/main/examples/pipelines/controlnet-interior-design)
-allows you to create models that you can control using inpainting, segmentation, and
-regeneration. All you need to get started is a set of prompts describing the type of images to
-generate.
-
-For instance, using our ControlNet model fine-tuned on interior design images, allows you to
-generate the room of your dreams:
-
-| Input image                                                                                                          | Output image                                                                                                           |
-| -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/interior_design_controlnet_input1.png?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/interior_design_controlnet_output1.jpg?raw=true) |
-
-Want to try out the resulting model yourself, head over to our
-[Hugging Face space](https://huggingface.co/spaces/ml6team/controlnet-interior-design)!
-
-### Fine-tuning Stable Diffusion
-
-Using our
-[example pipeline to fine-tune Stable Diffusion](https://github.com/ml6team/fondant/tree/main/examples/pipelines/finetune_stable_diffusion)
-allows you to create models that generate better images within a specific domain. All you need to
-get started is a small seed dataset of example images.
-
-Eg. generating logos:
-
-| Stable Diffusion 1.5                                                                                     | Fine-tuned Stable Diffusion 1.5                                                                     |
-| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| ![input image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_stable_diffusion.jpg?raw=true) | ![output image](https://github.com/ml6team/fondant/blob/main/docs/art/logo_finetuned.jpeg?raw=true) |
-
-<p align="right">(<a href="#top">back to top</a>)</p>
+- [ControlNet Interior Design Pipeline](https://github.com/ml6team/fondant-usecase-controlnet): pipeline for data collection and processing for ControlNet model fine-tuning
+- [RAG ingestion pipeline](https://github.com/ml6team/fondant-usecase-RAG): pipeline that embeds and ingests text data into a vector database
+- [Datacomp](https://github.com/ml6team/fondant-usecase-datacomp): pipeline to create an image-text dataset for CLIP model training
+- [Filter creative common license images](https://github.com/ml6team/fondant-usecase-filter-creative-commons): pipeline to filter and download creative common license images
 
 ## 🧩 Reusable components
 
