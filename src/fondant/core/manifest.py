@@ -272,7 +272,7 @@ class Manifest:
         evolved_manifest = self.copy()
 
         # Update `component_id` of the metadata
-        component_id = component_spec.name.lower().replace(" ", "_")
+        component_id = component_spec.component_folder_name
         evolved_manifest.update_metadata(key="component_id", value=component_id)
         if run_id is not None:
             evolved_manifest.update_metadata(key="run_id", value=run_id)

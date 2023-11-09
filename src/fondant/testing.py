@@ -1,3 +1,4 @@
+import json
 import typing as t
 from abc import abstractmethod
 from dataclasses import dataclass
@@ -198,7 +199,7 @@ class KubeflowPipelineConfigs(PipelineConfigs):
         components_configs_dict = {}
 
         # Iterate through each service
-        for component_name, component_configs in specification["root"]["dag"][
+        for sanitized_component_name, component_configs in specification["root"]["dag"][
             "tasks"
         ].items():
             # Get arguments from command
@@ -209,9 +210,10 @@ class KubeflowPipelineConfigs(PipelineConfigs):
                 ].items()
             }
 
+            component_name = json.loads(arguments["metadata"])["component_id"]
             # Get accelerator name and number of accelerators
             container_spec = specification["deploymentSpec"]["executors"][
-                f"exec-{component_name}"
+                f"exec-{sanitized_component_name}"
             ]["container"]
             resources = component_configs.get("resources", {})
             devices = resources.get("accelerator", {})
@@ -230,7 +232,7 @@ class KubeflowPipelineConfigs(PipelineConfigs):
             node_pool_name = None
             if k8_specification:
                 node_pool_dict = (
-                    k8_specification.get(f"exec-{component_name}", {})
+                    k8_specification.get(f"exec-{sanitized_component_name}", {})
                     .get("nodeSelector", {})
                     .get("labels", {})
                 )
@@ -238,10 +240,17 @@ class KubeflowPipelineConfigs(PipelineConfigs):
                     node_pool_label = list(node_pool_dict.keys())[0]
                     node_pool_name = list(node_pool_dict.values())[0]
 
+            dependencies = component_configs.get("dependentTasks", [])
+
+            if dependencies:
+                dependencies = [
+                    dependency.replace("-", "_") for dependency in dependencies
+                ]
+
             component_config = KubeflowComponentConfig(
                 image=container_spec.get("image"),
                 arguments=arguments,
-                dependencies=component_configs.get("dependentTasks", []),
+                dependencies=dependencies,
                 accelerators=accelerator_list,
                 cpu_request=component_configs.get("cpuRequest", None),
                 cpu_limit=component_configs.get("cpuLimit", None),

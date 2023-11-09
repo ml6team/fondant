@@ -295,7 +295,7 @@ def test_docker_configuration(tmp_path_factory):
         output_path = str(fn / "docker-compose.yaml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
         pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
-        component_config = pipeline_configs.component_configs["first-component"]
+        component_config = pipeline_configs.component_configs["first_component"]
         assert component_config.accelerators[0].type == "gpu"
         assert component_config.accelerators[0].number == 1
 
@@ -387,7 +387,7 @@ def test_kubeflow_configuration(tmp_path_factory):
         output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
         pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
-        component_configs = pipeline_configs.component_configs["first-component"]
+        component_configs = pipeline_configs.component_configs["first_component"]
         for accelerator in component_configs.accelerators:
             assert accelerator.type == "nvidia.com/gpu"
             assert accelerator.number == 1
@@ -486,7 +486,7 @@ def test_vertex_configuration(tmp_path_factory):
         output_path = str(fn / "kubeflow_pipeline.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
         pipeline_configs = VertexPipelineConfigs.from_spec(output_path)
-        component_configs = pipeline_configs.component_configs["first-component"]
+        component_configs = pipeline_configs.component_configs["first_component"]
         for accelerator in component_configs.accelerators:
             assert accelerator.type == "NVIDIA_TESLA_K80"
             assert accelerator.number == "1"
@@ -547,7 +547,7 @@ def test_caching_dependency_docker(tmp_path_factory):
             compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
             pipeline_configs = DockerPipelineConfigs.from_spec(output_path)
             metadata = json.loads(
-                pipeline_configs.component_configs["second-component"].arguments[
+                pipeline_configs.component_configs["second_component"].arguments[
                     "metadata"
                 ],
             )
@@ -593,7 +593,7 @@ def test_caching_dependency_kfp(tmp_path_factory):
             pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
 
             metadata = json.loads(
-                pipeline_configs.component_configs["second-component"].arguments[
+                pipeline_configs.component_configs["second_component"].arguments[
                     "metadata"
                 ],
             )
