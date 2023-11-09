@@ -1,6 +1,6 @@
 """Unit test for language filter component."""
 import pandas as pd
-from fondant.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec
 
 from components.language_filter.src.main import LanguageFilterComponent
 

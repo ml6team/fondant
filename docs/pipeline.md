@@ -13,7 +13,7 @@ For example, if a component requires GPU for model inference, you can specify th
 
 Here is an example of how to build a pipeline using Fondant:
 ```python
-from fondant.pipeline import ComponentOp, Pipeline
+from fondant.pipeline import ComponentOp, Pipeline, Resources
 
 pipeline = Pipeline(pipeline_name="example pipeline", base_path="fs://bucket")
 
@@ -28,9 +28,11 @@ caption_images_op = ComponentOp(
         "model_id": "Salesforce/blip-image-captioning-base",  
         "batch_size": 2,  
         "max_new_tokens": 50,  
-    },  
-    number_of_accelerators=1,
-    accelerator_name="GPU",
+    },
+    resources=Resources(
+        accelerator_number=1,
+        accelerator_name="GPU",  
+    )
 )
 
 pipeline.add_op(load_from_hub_op)
@@ -154,8 +156,29 @@ component = ComponentOp(
     arguments={  
      ...,  
     },  
-    number_of_accelerators=1,
-    accelerator_name="GPU",
+    resources=Resources(
+        accelerator_number=1,
+        accelerator_name="GPU",
+    )
+)
+
+```
+
+</td>
+<td>
+
+```python
+component = ComponentOp(  
+    component_dir="...",  
+    arguments={  
+     ...,  
+    },  
+    resources=Resources(
+        accelerator_number=1,
+        accelerator_name="NVIDIA_TESLA_K80",
+        memory_limit="512M",
+        cpu_limit="4",
+    )
 )
 ```
 
@@ -168,27 +191,11 @@ component = ComponentOp(
     arguments={  
      ...,  
     },  
-    number_of_accelerators=1,
-    accelerator_name="NVIDIA_TESLA_K80",
-    memory_limit="512M",
-    cpu_limit="4",
-)
-```
-
-</td>
-<td>
-
-```python
-component = ComponentOp(  
-    component_dir="...",  
-    arguments={  
-     ...,  
-    },  
-    number_of_accelerators=1,
-    accelerator_name="GPU",
-    node_pool_label="node_pool",
-    node_pool_name="n2-standard-128-pool",
-    preemptible = True
+    resources=Resources(
+        accelerator_number=1,
+        accelerator_name="GPU",
+        node_pool_label="node_pool",
+        node_pool_name="n2-standard-128-pool",
 )
 ```
 

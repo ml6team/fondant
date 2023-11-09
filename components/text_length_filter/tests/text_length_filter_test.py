@@ -1,6 +1,6 @@
 """Unit test for text length filter component."""
 import pandas as pd
-from fondant.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec
 
 from components.text_length_filter.src.main import TextLengthFilterComponent
 
