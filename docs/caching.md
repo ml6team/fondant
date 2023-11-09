@@ -1,5 +1,3 @@
-## Caching
-
 When Fondant runs a pipeline, it checks to see whether an execution exists in the base path based on
 the cache key of each component.
 
@@ -25,6 +23,7 @@ image updates. Moreover, if one component in the pipeline is not cached then cac
 disabled for all
 subsequent components.
 
+### Disabling caching
 You can turn off execution caching at component level by setting the following:
 
 ```python
