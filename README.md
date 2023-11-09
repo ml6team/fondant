@@ -28,17 +28,16 @@ It offers:
     <ul>
         <li>AI image generation model fine-tuning (Stable Diffusion, ControlNet)</li>
         <li>Large language model fine-tuning (LLaMA, Falcon)</li>
+        <li>Processing and indexing documents for efficient information retrieval with RAG</li>
     </ul>
 </li>
 <li>
-🧱 Off-the-shelf library of easily adaptable reusable components for:
+🧱 Library containing off-the-shelf reusable components for:
     <ul>
     <li>
     Data Filtering
     <ul>
-        <li>Content: language, visual style, topic, format, aesthetics, NSFW, etc.</li>
-        <li>Context: e.g. copyright license, origin, etc.</li>
-        <li>Deduplication</li>
+        <li>Duplicates, language, visual style, topic, format, aesthetics, NSFW, license, etc.</li>
     </ul>
     </li>
     <li>
@@ -67,17 +66,16 @@ It offers:
 </li>
 <li>📖 🖼️ 🎞️ ♾️ Out of the box multimodal capabilities: text, images, video, etc.</li>
 <li>🐍 A simple Pandas based interface for creating custom components</li>
-<li>🏭 Scalable deployment for production environments.</li>
+<li>🏭 Production-ready, scalable deployment</li>
 <li>☁️ Integration with runners across different clouds (Vertex, Sagemaker, Kubeflow)</li>
 </ul>
 
 ## 🪤 Why Fondant?
 
-In the era of Foundation Models, preserving data control has become paramount. 
-Yet, the construction of pipelines for extensive data processing remains a costly affair, particularly in the context of 
-complex machine learning-based operations. 
-Fondant's mission is to streamline this process by introducing reusable and interchangeable processing components, 
-thus establishing easily composed pipelines as the new norm.
+In the age of Foundation Models, control over your data is key and building pipelines for 
+large-scale data processing is costly, especially when they require advanced machine learning-based operations.
+This need not be the case, however, if processing components would be reusable and exchangeable and pipelines were 
+easily composable. Realizing this is the main vision behind Fondant.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -191,22 +189,28 @@ Fondant pipelines can be run on different platforms.
 
 <table class="images" width="100%" style="border: 0px solid white; width: 100%;">
     <tr style="border: 0px;">
-        <td width="33.33%" style="border: 0px; width: 33.33%">
+        <td width="25%" style="border: 0px; width: 33.33%">
             <figure>
                 <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true" />
                 <figcaption class="caption"><strong>LocalRunner</strong>: Uses Docker Compose to run locally on your machine – great for developing, testing, and debugging.</figcaption>
             </figure>
         </td>
-        <td width="33.33%" style="border: 0px; width: 33.33%">
+        <td width="25%" style="border: 0px; width: 33.33%">
             <figure>
                 <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/vertex_ai.png?raw=true" />
                 <figcaption class="caption"><strong>VertexRunner</strong>: Runs on VertexAI Pipelines.</figcaption>
             </figure>
         </td>
-        <td width="33.33%" style="border: 0px; width: 33.33%">
+        <td width="25%" style="border: 0px; width: 33.33%">
             <figure>
                 <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/kubeflow_pipelines.png?raw=true" />
-                <figcaption class="caption"><strong>KubeflowRunner</strong>: Runs on Kubeflow Pipelines</figcaption>
+                <figcaption class="caption"><strong>KubeflowRunner</strong>: Runs on Kubeflow Pipelines.</figcaption>
+            </figure>
+        </td>
+        <td width="25%" style="border: 0px; width: 33.33%">
+            <figure>
+                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/sagemaker.png?raw=true" />
+                <figcaption class="caption"><strong>🚧SageMakerRunner🚧 </strong>: Runs on Sagemaker Pipelines.</figcaption>
             </figure>
         </td>
     </tr>

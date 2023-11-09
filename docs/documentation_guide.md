@@ -4,10 +4,11 @@
 
 Learn about the Fondant project and how to get started with it.
 
-→ Start with the official guide on how to [install](installation.md) Fondant.  
+→ Start with the official guide on how to [install](guides/installation.md) Fondant.  
 → Get started by running your first fondant [pipeline](guides/first_pipeline.md) using the [local
-runner](runners/local.md). There you will learn how to use reusable components and how to build your
-own custom components.  
+runner](runners/local.md). 
+→ Learn how to build your own [Fondant Pipeline](guides/build_a_simple_pipeline.md) and implement your 
+own [custom components](guides/implement_custom_components.md).  
 → Learn how to use the [data explorer](data_explorer.md) to explore the outputs of your pipeline.
 
 ## Fondant fundamentals
@@ -19,7 +20,7 @@ Learn how to use Fondant to build your own data processing pipeline.
 -> Use [generic components](components/generic_component.md) to load/write your custom data format
 to/from Fondant.  
 -> Build your own [custom component](components/custom_component.md) using the Fondant component
-API.
+API.  
 -> Learn how to publish your own [components](components/publishing_components.md) to a container
 registry so that you can reuse them in your pipelines.
 
@@ -33,22 +34,27 @@ Learn how to run your Fondant pipeline on different platforms.
 
 <table class="images" width="100%" style="border: 0px solid white; width: 100%;">
     <tr style="border: 0px;">
-        <td width="33%" style="border: 0px; width: 28.33%">
+        <td width="25%" style="border: 0px; width: 28.33%">
             <figure>
                 <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true" />
                 <figcaption class="caption"><strong>LocalRunner</strong></figcaption>
             </figure>
         </td>
-        <td width="33%" style="border: 0px; width: 30.33%">
+        <td width="25%" style="border: 0px; width: 30.33%">
             <figure>
                 <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/vertex_ai.png?raw=true" />
                 <figcaption class="caption"><strong>VertexRunner</strong></figcaption>
             </figure>
         </td>
-        <td width="33%" style="border: 0px; width: 30.33%">
+        <td width="25%" style="border: 0px; width: 30.33%">
             <figure>
                 <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/kubeflow_pipelines.png?raw=true" />
                 <figcaption class="caption"><strong>KubeflowRunner</strong></figcaption>
+            </figure>
+        <td width="25%" style="border: 0px; width: 33.33%">
+            <figure>
+                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/sagemaker.png?raw=true" />
+                <figcaption class="caption"><strong>🚧SageMakerRunner🚧</strong></figcaption>
             </figure>
         </td>
     </tr>
@@ -62,12 +68,14 @@ Learn how to run your Fondant pipeline on different platforms.
 
 -> [LocalRunner](runners/local.md): ideal for developing fondant pipelines and components faster.   
 -> [VertexRunner](runners/vertex.md): used for running a fondant pipeline on Vertex AI.  
--> [KubeflowRunner](runners/kfp.md): used for running a fondant pipeline on a Kubeflow cluster.
+-> [KubeflowRunner](runners/kfp.md): used for running a fondant pipeline on a Kubeflow cluster.  
+-> [SageMakerRunner](runners/kfp.md): used for running a fondant pipeline on a SageMaker pipelines (
+🚧 Coming Soon 🚧).
 
 ## Fondant Explorer
 
-Learn how to use the Fondant [data explorer](data_explorer.md) to explore the outputs of your
-pipeline.
+Discover how to utilize the Fondant [data explorer](data_explorer.md) to navigate your pipeline
+outputs, including visualizing intermediary steps between components.
 
 ## Advanced Concepts
 
@@ -91,5 +99,7 @@ Browse through the [frequently asked questions](faq.md) about Fondant.
 
 ## Announcements
 
-Check out our latest [announcements](announcements.md) about Fondant.
+Check out our latest [announcements] about Fondant.
+
+-> 25 million Creative Commons image dataset released. Read more about it [here](announcements/CC_25M_press_release.md).
 
