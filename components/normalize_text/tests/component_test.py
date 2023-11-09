@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.main import TextNormalizationComponent
+from src.main import NormalizeTextComponent
 
 
 def test_transform_custom_componen_test():
@@ -12,7 +12,7 @@ def test_transform_custom_componen_test():
         "do_lowercase": True,
         "remove_punctuation": True,
     }
-    component = TextNormalizationComponent(**user_arguments)
+    component = NormalizeTextComponent(**user_arguments)
 
     input_dataframe = pd.DataFrame(
         [

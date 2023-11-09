@@ -1,8 +1,7 @@
 """Unit test for text length filter component."""
 import pandas as pd
-from fondant.core.component_spec import ComponentSpec
 
-from components.text_length_filter.src.main import TextLengthFilterComponent
+from components.filter_text_length.src.main import FilterTextLengthComponent
 
 
 def test_run_component_test():
@@ -16,17 +15,10 @@ def test_run_component_test():
 
     dataframe = pd.concat({"text": pd.DataFrame(data)}, axis=1, names=["text", "data"])
 
-    # When: The text filter component proceed the dataframe
-    spec = ComponentSpec.from_file("../fondant_component.yaml")
-
-    component = TextLengthFilterComponent(
-        spec,
-        input_manifest_path="./dummy_input_manifest.json",
-        output_manifest_path="./dummy_input_manifest.json",
-        metadata={},
-        user_arguments={"min_characters_length": 20, "min_words_length": 4},
+    component = FilterTextLengthComponent(
+        min_characters_length=20,
+        min_words_length=4,
     )
-    component.setup(min_characters_length=20, min_words_length=4)
     dataframe = component.transform(dataframe=dataframe)
 
     # Then: dataframe only contains one row

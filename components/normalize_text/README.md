@@ -44,8 +44,8 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-text_normalization_op = ComponentOp.from_registry(
-    name="text_normalization",
+normalize_text_op = ComponentOp.from_registry(
+    name="normalize_text",
     arguments={
         # Add arguments
         # "remove_additional_whitespaces": False,
@@ -55,7 +55,7 @@ text_normalization_op = ComponentOp.from_registry(
         # "remove_punctuation": ,
     }
 )
-pipeline.add_op(text_normalization_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(normalize_text_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing
