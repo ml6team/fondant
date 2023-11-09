@@ -37,4 +37,6 @@ fondant explore --base_path ./data
 
 ### Custom pipelines
 
-Fondant enables you to leverage existing reusable components and integrate them with custom components. To delve deeper into creating your own pipelines, please explore our [guide](guides/build_a_simple_pipeline.md). There, you will gain insights into components, various component types, and how to effectively utilise them.
+Fondant enables you to leverage existing reusable components and integrate them with custom components. 
+To delve deeper into creating your own pipelines, please explore our [guide](build_a_simple_pipeline.md).
+There, you will gain insights into components, various component types, and how to effectively utilise them.

@@ -15,15 +15,13 @@ uncomfortable to setup your own we have provided some basic scripts to get you s
 a small scale locally.
 
 !!! note "IMPORTANT"
-- These script serve just a kickstart to help you setup Kubeflow for running Fondant, these are not
-production ready environments.
-- Spinning up a cluster on a cloud vendor will incur a cost.
-- You should never run a script without inspecting it so please familiarize yourself with the
-commands defined in the Makefiles and adapt it to your own needs.
+    - These script serve just a kickstart to help you setup Kubeflow for running Fondant, these are not production ready environments.
+    - Spinning up a cluster on a cloud vendor will incur a cost.
+    - You should never run a script without inspecting it so please familiarize yourself with the commands defined in the Makefiles and adapt it to your own needs.
 
 ## If you already have a kubernetes cluster
 
-If you already have setup a kubernetes cluster and you have configured kubectl you can install
+If you already have a kubernetes cluster set up, and you have configured kubectl you can install
 kubeflow pipelines following
 this [guide](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/#deploying-kubeflow-pipelines)
 
@@ -107,9 +105,6 @@ make -f gcp.mk delete
 - [Official documentation on cluster creation](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-zonal-cluster)
 - [Provision a GKE cluster with terraform](https://developer.hashicorp.com/terraform/tutorials/kubernetes/gke)
 - [Use kubespray to setup a cluster](https://github.com/kubernetes-sigs/kubespray)
-
-### More Information
-
 - [Standalone deployments](https://www.kubeflow.org/docs/components/pipelines/v1/installation/standalone-deployment/)
 - [Other local cluster installations](https://www.kubeflow.org/docs/components/pipelines/v1/installation/localcluster-deployment/)
 - [Authenticating google cloud resources like storage and artifact registry](https://minikube.sigs.k8s.io/docs/handbook/addons/gcp-auth/)
