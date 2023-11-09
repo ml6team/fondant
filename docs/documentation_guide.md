@@ -6,9 +6,9 @@ Learn about the Fondant project and how to get started with it.
 
 → Start with the official guide on how to [install](guides/installation.md) Fondant.  
 → Get started by running your first fondant [pipeline](guides/first_pipeline.md) using the [local
-runner](runners/local.md). 
+runner](runners/local.md).  
 → Learn how to build your own [Fondant Pipeline](guides/build_a_simple_pipeline.md) and implement your 
-own [custom components](guides/implement_custom_components.md).  
+own [custom components](guides/implement_custom_components.md).    
 → Learn how to use the [data explorer](data_explorer.md) to explore the outputs of your pipeline.
 
 ## Fondant fundamentals
