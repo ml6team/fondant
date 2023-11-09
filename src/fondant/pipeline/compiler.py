@@ -66,7 +66,7 @@ class DockerCompiler(Compiler):
         pipeline: Pipeline,
         *,
         output_path: str = "docker-compose.yml",
-        extra_volumes: t.Optional[list] = None,
+        extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
     ) -> None:
         """Compile a pipeline to docker-compose spec and save it to a specified output path.
@@ -81,6 +81,9 @@ class DockerCompiler(Compiler):
         """
         if extra_volumes is None:
             extra_volumes = []
+
+        if isinstance(extra_volumes, str):
+            extra_volumes = [extra_volumes]
 
         logger.info(f"Compiling {pipeline.name} to {output_path}")
         spec = self._generate_spec(

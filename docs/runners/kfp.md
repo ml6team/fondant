@@ -8,9 +8,9 @@ We have compiled some references and created some scripts
 to [get you started](https://fondant.readthedocs.io/en/latest/infrastructure) with setting up the
 required infrastructure.
 
-### Installing the Vertex runner
+### Installing the Kubeflow runner
 
-Make sure to install Fondant with the Vertex runner extra.
+Make sure to install Fondant with the Kubeflow runner extra.
 
 ```bash
 pip install fondant[kfp]
@@ -22,10 +22,29 @@ You will need a Kubeflow cluster to run your pipeline on and specify the host of
 info on setting up a Kubeflow pipelines deployment and the host path can be found in
 the [kubeflow infrastructure documentation](kfp_infrastructure.md).
 
-```bash
-fondant run kubeflow <pipeline_ref> \
- --host <kubeflow_host>
-```
+=== "Console"
+    
+    ```bash 
+    fondant run kubeflow <pipeline_ref> \
+     --host $KUBEFLOW_HOST
+    ```
+    
+    The pipeline ref is reference to a fondant pipeline (e.g. `pipeline.py`) where a pipeline instance
+    exists.
+
+
+=== "Python"
+    
+    ```python
+    from fondant.pipeline.compiler import KubeFlowCompiler
+    from fondant.pipeline.runner import KubeFlowRunner
+    
+    compiler= KubeFlowCompiler()
+    compiler.compile(pipeline=<pipeline_object>)
+
+    runner = KubeFlowRunner(host=<kubeflow_host>)
+    runner.run(input_spec=<path_to_compiled_spec>)
+    ```
 
 Once your pipeline is running you can monitor it using the Kubeflow UI.
 

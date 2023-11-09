@@ -70,7 +70,7 @@ dependencies between components to build the DAG.
 Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs will be
 available in future releases.
 
-## Compiling and Running a pipeline
+## Compiling a pipeline
 
 Once all your components are added to your pipeline you can use different compilers to run your
 pipeline:
@@ -78,25 +78,123 @@ pipeline:
 !!! note "IMPORTANT"
 When using other runners you will need to make sure that your new environment has access to:
 
-- The base path of your pipeline (as mentioned above)
-- The images used in your pipeline (make sure you have access to the registries where the images are
-  stored)
+    - The base path of your pipeline (as mentioned above)
+    - The images used in your pipeline (make sure you have access to the registries where the images are
+    stored)
 
-```bash
-fondant compile <runner_mode> <pipeline_ref>
-```
+=== "Console"
+    
+    === "Local Compiler"
+    
+        ```bash
+        fondant compile local <pipeline_ref>
+        ```
+    === "Vertex Compiler"
+    
+        ```bash
+        fondant compile vertex <pipeline_ref>
+        ```
 
-The pipeline ref is reference to a fondant pipeline (e.g. `pipeline.py`) where a pipeline instance
-exists (see above).
-This will produce a pipeline spec file associated with a given runner.
+    === "Kubeflow Compiler"
+    
+        ```bash
+        fondant compile kfp <pipeline_ref>
+        ```
 
-To run the pipeline you can use the following command:
+    The pipeline ref is reference to a fondant pipeline (e.g. `pipeline.py`) where a pipeline instance
+    exists (see above).
+    This will produce a pipeline spec file associated with a given runner.
+   
+=== "Python"
 
-```bash
-fondant run <runner_mode> <pipeline_ref>
-```
+    === "Local Compiler"
+    
+        ```python
+        from fondant.pipeline.compiler import DockerCompiler
+        from fondant.pipeline.runner import DockerRunner
+        
+        EXTRA_VOLUMES = <str_or_list_of_optional_extra_volumes_to_mount>
+        compiler = DockerCompiler(extra_volumnes=EXTRA_VOLUMES)
+        compiler.compile(pipeline=<pipeline_object>)
+    
+        runner = DockerRunner()
+        runner.run(input_spec=<path_to_compiled_spec>)
+        ```  
 
-Here, the pipeline ref can be either be a path to a compiled pipeline spec or a reference to fondant
-pipeline (e.g. `pipeline.py`) in which case
-the pipeline will first be compiled to the corresponding runner specification before running the
-pipeline.
+    === "Vertex Compiler"
+    
+        ```python
+        from fondant.pipeline.compiler import VertexCompiler
+
+        compiler = VertexCompiler()
+        compiler.compile(pipeline=<pipeline_object>)
+        ```
+
+    === "KubeFlow Compiler"
+    
+        ```python
+        from fondant.pipeline.compiler import KubeFlowCompiler
+
+        compiler = KubeFlowCompiler()
+        compiler.compile(pipeline=<pipeline_object>)
+        ```
+
+## Running a pipeline
+
+=== "Console"
+
+    === "Local Runner"
+    
+        ```bash
+        fondant run local <pipeline_ref>
+        ```
+    === "Vertex Runner"
+    
+        ```bash 
+        fondant run vertex <pipeline_ref> \
+         --project-id $PROJECT_ID \
+         --project-region $PROJECT_REGION \
+         --service-account $SERVICE_ACCOUNT
+        ```
+
+    === "Kubeflow Runner"
+    
+        ```bash
+        fondant run kubeflow <pipeline_ref>
+        ```
+    Here, the pipeline ref can be either be a path to a compiled pipeline spec or a reference to fondant
+    pipeline (e.g. `pipeline.py`) in which case
+    the pipeline will first be compiled to the corresponding runner specification before running the
+    pipeline.
+
+=== "Python"
+
+    === "Local Runner"
+    
+        ```python
+        from fondant.pipeline.runner import DockerRunner
+
+        runner = DockerRunner()
+        runner.run(input_spec=<path_to_compiled_spec>)
+        ```
+    === "Vertex Runner"
+    
+        ```python
+        from fondant.pipeline.runner import VertexRunner
+
+        runner = VertexRunner()
+        runner.run(input_spec=<path_to_compiled_spec>)
+        ```
+
+    === "KubeFlow Runner"
+    
+        ```python
+        from fondant.pipeline.runner import KubeFlowRunner
+
+        runner = KubeFlowRunner(host=<kubeflow_host>)
+        runner.run(input_spec=<path_to_compiled_spec>)        
+        ```
+    
+    Where the path to the compiled spec is the path to the compiled pipeline spec file produced
+    by the compiler.
+

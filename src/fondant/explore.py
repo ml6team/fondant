@@ -12,9 +12,9 @@ from fsspec.implementations.local import LocalFileSystem
 # type: ignore
 def run_explorer_app(  # type: ignore
     base_path: str,
-    port: int,
-    container: str,
-    tag: str,
+    port: int = 8501,
+    container: str = "fndnt/data_explorer",
+    tag: str = "latest",
     credentials: t.Optional[str] = None,
 ):  # type: ignore
     """Run the data explorer container."""

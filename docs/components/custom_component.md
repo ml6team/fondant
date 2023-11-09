@@ -127,26 +127,6 @@ torch==2.0.1
 transformers==4.29.2
 ```
 
-## Build the component
-
-Before you can use your custom component within your pipeline you have to build the component into a
-Docker container. The Fondant CLI offers a specialized `fondant build` command designed
-explicitly for this task.
-To commence the component building process, simply execute:
-
-```
-fondant build <component dir> -t <image tag>
-```
-
-Ensure that you replace `<component dir>` with the accurate path to the directory where your
-component is located. The `-t` flag is used to specify the Docker container tag.
-
-When you use the `-t` flag, the tag in the referenced component specification yaml will also be
-updated, ensuring that the next pipeline run correctly references the image.
-
-It's important to note that the `fondant build` command offers additional arguments. To access a
-complete list of all available arguments, you can execute `fondant build -h`.
-
-
+Refer to this [section](publishing_components.md) to find out how to build and publish your components to use them in your own pipelines.
 
 

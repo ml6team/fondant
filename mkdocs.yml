@@ -28,6 +28,7 @@ theme:
   features:
     - content.code.copy
     - navigation.tracking
+    - content.tabs.link
 extra_css:
   - stylesheets/extra.css
 nav:
@@ -73,6 +74,8 @@ markdown_extensions:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - pymdownx.details
