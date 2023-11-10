@@ -10,7 +10,7 @@ Clone the Fondant GitHub repository
 git clone https://github.com/ml6team/fondant.git
 ```
 
-Make sure that Docker Compose is [installed](installation.md), navigate to `fondant/examples/pipelines/filter-cc-25m`, and initiate the pipeline by executing:
+Make sure that Docker Compose is [installed](installation.md#docker-installation), navigate to `fondant/examples/pipelines/filter-cc-25m`, and initiate the pipeline by executing:
 
 ```
 fondant run local pipeline.py
