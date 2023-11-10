@@ -6,7 +6,7 @@ disable_toc: True
 
 Below you can find the reusable components offered by Fondant.
 
-**Data Loading**
+**Data loading**
 
 ??? "load_from_files"
 
@@ -20,7 +20,8 @@ Below you can find the reusable components offered by Fondant.
 
     --8<-- "components/load_from_parquet/README.md:1"
 
-**Data Retrieval**
+**Data retrieval**
+
 ??? "embedding_based_laion_retrieval"
 
     --8<-- "components/embedding_based_laion_retrieval/README.md:1"
@@ -29,11 +30,7 @@ Below you can find the reusable components offered by Fondant.
 
     --8<-- "components/prompt_based_laion_retrieval/README.md:1"
 
-??? "write_to_hf_hub"
-
-    --8<-- "components/write_to_hf_hub/README.md:1"
-
-**Data Writing**
+**Data writing**
 
 ??? "index_weaviate"
 
@@ -87,13 +84,9 @@ Below you can find the reusable components offered by Fondant.
 
     --8<-- "components/embed_text/README.md:1"
 
-??? "text_length_filter"
+??? "filter_text_length"
 
     --8<-- "components/filter_text_length/README.md:1"
-
-??? "text_normalization"
-
-    --8<-- "components/normalize_text/README.md:1"
 
 ??? "language_filter"
 
@@ -103,14 +96,7 @@ Below you can find the reusable components offered by Fondant.
 
     --8<-- "components/minhash_generator/README.md:1"
 
+??? "normalize_text"
 
-
-
-
-
-
-
-
-
-
+    --8<-- "components/normalize_text/README.md:1"
 

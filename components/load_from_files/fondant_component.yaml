@@ -3,6 +3,7 @@ description: |
   This component loads data from files in a local or remote (AWS S3, Azure Blob storage, GCS) 
   location. It supports the following formats: .zip, gzip, tar and tar.gz.
 image: fndnt/load_from_files:dev
+component_type: Data loading
 
 produces:
   file:

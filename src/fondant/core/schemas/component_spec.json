@@ -20,6 +20,16 @@
       "type": "string",
       "description": "Docker image for the component"
     },
+    "component_type": {
+      "type": "string",
+      "enum": [
+        "Data loading",
+        "Data writing",
+        "Image processing",
+        "Data retrieval",
+        "Text processing"
+      ]
+    },
     "consumes": {
       "$ref": "#/definitions/subsets"
     },

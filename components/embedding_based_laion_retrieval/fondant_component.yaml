@@ -3,6 +3,7 @@ description: |
   This component retrieves image URLs from LAION-5B based on a set of CLIP embeddings. It can be 
   used to find images similar to the embedded images / captions.
 image: fndnt/embedding_based_laion_retrieval:dev
+component_type: Data retrieval
 
 consumes:
   embeddings:

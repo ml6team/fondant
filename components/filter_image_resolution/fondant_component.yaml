@@ -1,6 +1,7 @@
 name: Filter image resolution
 description: Component that filters images based on minimum size and max aspect ratio
 image: fndnt/filter_image_resolution:dev
+component_type: Image processing
 
 consumes:
   images:

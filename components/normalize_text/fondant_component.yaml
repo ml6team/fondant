@@ -13,6 +13,7 @@ description: |
   
   These text normalization techniques are valuable for preparing text data before using it for
   the training of large language models.
+component_type: Text processing
 
 consumes:
   text:

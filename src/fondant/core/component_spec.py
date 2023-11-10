@@ -186,6 +186,10 @@ class ComponentSpec:
         self._specification["image"] = value
 
     @property
+    def component_type(self) -> str:
+        return self._specification.get("component_type", None)
+
+    @property
     def index(self):
         return ComponentSubset({"fields": {}})
 

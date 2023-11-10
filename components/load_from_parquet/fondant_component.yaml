@@ -1,6 +1,7 @@
 name: Load from parquet
 description: Component that loads a dataset from a parquet uri
 image: fndnt/load_from_parquet:dev
+component_type: Data loading
 
 produces:
   dummy_variable:  #TODO: fill in here

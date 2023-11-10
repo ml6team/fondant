@@ -6,9 +6,13 @@ disable_toc: True
 
 Below you can find the reusable components offered by Fondant.
 
-{% for component in components %}
-??? "{{ component }}"
+{% for tag, tag_components in components.items() %}
+**{{ tag }}**
 
-    --8<-- "components/{{ component }}/README.md:1"
+{% for component in tag_components %}
+??? "{{ component['name'] }}"
 
+    --8<-- "components/{{ component['name'] }}/README.md:1"
+
+{% endfor %}
 {% endfor %}
