@@ -1,3 +1,23 @@
+## What is caching?
+
+Fondant supports caching of pipeline executions. If a certain component is exactly the same and the arguments
+are exactly the same as in some previous execution, then its execution can be skipped and the outputs
+dataset the a previous component can be used. 
+
+Caching offers the following benefits:
+1) **Reduced costs.** Skipping the execution of certain components can help avoid unnecessary costly computations.
+2) **Faster pipeline runs.** Skipping the execution of certain components results in faster pipeline runs.
+3) **Faster pipeline development.** Caching allows you develop and test your pipeline faster.
+4) **Reproducibility.** Caching allows you to reproduce the results of a pipeline run by reusing
+   the outputs of a previous pipeline run.
+
+
+The caching feature is **enabled** by default. 
+
+**Note:** The cached runs are tied to the base path which stores the caching key of previous component runs. 
+Changing the base path will invalidate the cache of previous executed pipelines.
+
+## How caching works?
 When Fondant runs a pipeline, it checks to see whether an execution exists in the base path based on
 the cache key of each component.
 
@@ -13,17 +33,16 @@ The cache key is defined as the combination of the following:
 
 If there is a matching execution in the base path (checked based on the output manifests),
 the outputs of that execution are used and the step computation is skipped.
-This helps to reduce costs by skipping computations that were completed in a previous pipeline run.
 
 Additionally, only the pipelines with the same pipeline name will share the cache. Caching for
 components
-with the `latest` image tag is disabled by default. This is because using "latest" image tags can
+with the `latest` image tag is disabled by default. This is because using `latest` image tags can
 lead to unpredictable behavior due to
 image updates. Moreover, if one component in the pipeline is not cached then caching will be
 disabled for all
 subsequent components.
 
-### Disabling caching
+## Disabling caching
 You can turn off execution caching at component level by setting the following:
 
 ```python
