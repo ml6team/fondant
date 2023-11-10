@@ -1,8 +1,8 @@
 ## What is caching?
 
-Fondant supports caching of pipeline executions. If a certain component is exactly the same and the arguments
-are exactly the same as in some previous execution, then its execution can be skipped and the outputs
-dataset the a previous component can be used. 
+Fondant supports caching of pipeline executions. If a certain component and its arguments
+are exactly the same as in some previous execution, then its execution can be skipped and the output
+dataset of the previous execution can be used instead.
 
 Caching offers the following benefits:
 1) **Reduced costs.** Skipping the execution of certain components can help avoid unnecessary costly computations.
