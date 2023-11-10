@@ -11,11 +11,26 @@ Caching offers the following benefits:
 4) **Reproducibility.** Caching allows you to reproduce the results of a pipeline run by reusing
    the outputs of a previous pipeline run.
 
+**Note:** The cached runs are tied to the base path which stores the caching key of previous component runs. 
+Changing the base path will invalidate the cache of previous executed pipelines.
 
 The caching feature is **enabled** by default. 
 
-**Note:** The cached runs are tied to the base path which stores the caching key of previous component runs. 
-Changing the base path will invalidate the cache of previous executed pipelines.
+
+## Disabling caching
+You can turn off execution caching at component level by setting the following:
+
+```python
+from fondant.pipeline.pipeline import ComponentOp
+
+caption_images_op = ComponentOp(
+    component_dir="...",
+    arguments={
+        ...
+    },
+    cache=False,
+)
+```
 
 ## How caching works
 When Fondant runs a pipeline, it checks to see whether an execution exists in the base path based on
@@ -42,17 +57,3 @@ image updates. Moreover, if one component in the pipeline is not cached then cac
 disabled for all
 subsequent components.
 
-## Disabling caching
-You can turn off execution caching at component level by setting the following:
-
-```python
-from fondant.pipeline.pipeline import ComponentOp
-
-caption_images_op = ComponentOp(
-    component_dir="...",
-    arguments={
-        ...
-    },
-    cache=False,
-)
-```
