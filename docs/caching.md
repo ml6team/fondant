@@ -17,7 +17,7 @@ The caching feature is **enabled** by default.
 **Note:** The cached runs are tied to the base path which stores the caching key of previous component runs. 
 Changing the base path will invalidate the cache of previous executed pipelines.
 
-## How caching works?
+## How caching works
 When Fondant runs a pipeline, it checks to see whether an execution exists in the base path based on
 the cache key of each component.
 
