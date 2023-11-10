@@ -148,7 +148,7 @@ Fondant pipelines can be run on different platforms.
         <td width="25%" style="border: 0px; width: 25.00%">
             <figure>
                 <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true" width="200" height="200" />
-                <figcaption class="caption"><strong>LocalRunner</strong><br> Uses Docker Compose to run locally on your machine – great for developing, testing, and debugging.</figcaption>
+                <figcaption class="caption"><strong>LocalRunner</strong><br> Runs locally using Docker Compose.</figcaption>
             </figure>
         </td>
         <td width="25%" style="border: 0px; width: 25.00%">
