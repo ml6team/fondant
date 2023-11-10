@@ -52,8 +52,8 @@ about this in the [installation](../guides/installation.md) guide.
         from fondant.pipeline.runner import DockerRunner
         from fondant.core.schema import CloudCredentialsMount
         
-        gcp_mounr_dir = CloudCredentialsMount.GCP.value
-        compiler = DockerCompiler(extra_volumnes=gcp_mounr_dir)
+        gcp_mount_dir = CloudCredentialsMount.GCP.value
+        compiler = DockerCompiler(extra_volumnes=gcp_mount_dir)
         compiler.compile(pipeline=<pipeline_object>)
 
         runner = DockerRunner()
@@ -67,8 +67,8 @@ about this in the [installation](../guides/installation.md) guide.
         from fondant.pipeline.runner import DockerRunner
         from fondant.core.schema import CloudCredentialsMount
         
-        aws_mounr_dir = CloudCredentialsMount.AWS.value
-        compiler = DockerCompiler(extra_volumnes=aws_mounr_dir)
+        aws_mount_dir = CloudCredentialsMount.AWS.value
+        compiler = DockerCompiler(extra_volumnes=aws_mount_dir)
         compiler.compile(pipeline=<pipeline_object>)
 
         runner = DockerRunner()
@@ -82,8 +82,8 @@ about this in the [installation](../guides/installation.md) guide.
         from fondant.pipeline.runner import DockerRunner
         from fondant.core.schema import CloudCredentialsMount
         
-        azure_mounr_dir = CloudCredentialsMount.AZURE.value
-        compiler = DockerCompiler(extra_volumnes=azure_mounr_dir)
+        azure_mount_dir = CloudCredentialsMount.AZURE.value
+        compiler = DockerCompiler(extra_volumnes=azure_mount_dir)
         compiler.compile(pipeline=<pipeline_object>)
 
         runner = DockerRunner()
