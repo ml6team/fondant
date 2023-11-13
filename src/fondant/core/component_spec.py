@@ -186,8 +186,8 @@ class ComponentSpec:
         self._specification["image"] = value
 
     @property
-    def component_type(self) -> str:
-        return self._specification.get("component_type", None)
+    def tags(self) -> t.List[str]:
+        return self._specification.get("tags", None)
 
     @property
     def index(self):

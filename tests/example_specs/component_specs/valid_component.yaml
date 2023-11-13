@@ -1,7 +1,8 @@
 name: Example component
 description: This is an example component
 image: example_component:latest
-component_type: Data loading
+tags:
+  - Data loading
 
 consumes:
   images:

@@ -1,7 +1,8 @@
 name: Image resolution extraction
 description: Component that extracts image resolution data from the images
 image: fndnt/image_resolution_extraction:dev
-component_type: Image processing
+tags:
+  - Image processing
 
 consumes:
   images:

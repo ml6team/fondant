@@ -6,7 +6,8 @@ description: |
   
   This component doesn’t return the actual images, only URLs.
 image: fndnt/prompt_based_laion_retrieval:dev
-component_type: Data retrieval
+tags:
+  - Data retrieval
 
 consumes:
   prompts:

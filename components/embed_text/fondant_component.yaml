@@ -1,7 +1,8 @@
 name: Embed text
 description: Component that generates embeddings of text passages.
 image: fndnt/embed_text:dev
-component_type: Text processing
+tags:
+  - Text processing
 
 consumes:
   text:
