@@ -79,6 +79,7 @@ coveralls = "^3.3.1"
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.1.8"
 mkdocstrings = { version = "^0.20", extras = ["python"]}
+mkdocs-redirects = "1.2.1"
 
 [tool.poetry.scripts]
 fondant = "fondant.cli:entrypoint"
