@@ -84,18 +84,18 @@ When using other runners you will need to make sure that your new environment ha
 
 === "Console"
     
-    === "Local Compiler"
+    === "Local"
     
         ```bash
         fondant compile local <pipeline_ref>
         ```
-    === "Vertex Compiler"
+    === "Vertex"
     
         ```bash
         fondant compile vertex <pipeline_ref>
         ```
 
-    === "Kubeflow Compiler"
+    === "Kubeflow"
     
         ```bash
         fondant compile kfp <pipeline_ref>
@@ -107,21 +107,21 @@ When using other runners you will need to make sure that your new environment ha
    
 === "Python"
 
-    === "Local Compiler"
+    === "Local"
     
         ```python
         from fondant.pipeline.compiler import DockerCompiler
         from fondant.pipeline.runner import DockerRunner
         
         EXTRA_VOLUMES = <str_or_list_of_optional_extra_volumes_to_mount>
-        compiler = DockerCompiler(extra_volumnes=EXTRA_VOLUMES)
+        compiler = DockerCompiler(extra_volumes=EXTRA_VOLUMES)
         compiler.compile(pipeline=<pipeline_object>)
     
         runner = DockerRunner()
         runner.run(input_spec=<path_to_compiled_spec>)
         ```  
 
-    === "Vertex Compiler"
+    === "Vertex"
     
         ```python
         from fondant.pipeline.compiler import VertexCompiler
@@ -130,7 +130,7 @@ When using other runners you will need to make sure that your new environment ha
         compiler.compile(pipeline=<pipeline_object>)
         ```
 
-    === "KubeFlow Compiler"
+    === "KubeFlow"
     
         ```python
         from fondant.pipeline.compiler import KubeFlowCompiler
@@ -143,7 +143,7 @@ When using other runners you will need to make sure that your new environment ha
 
 === "Console"
 
-    === "Local Runner"
+    === "Local"
     
         ```bash
         fondant run local <pipeline_ref>
@@ -157,7 +157,7 @@ When using other runners you will need to make sure that your new environment ha
          --service-account $SERVICE_ACCOUNT
         ```
 
-    === "Kubeflow Runner"
+    === "Kubeflow"
     
         ```bash
         fondant run kubeflow <pipeline_ref>
@@ -169,7 +169,7 @@ When using other runners you will need to make sure that your new environment ha
 
 === "Python"
 
-    === "Local Runner"
+    === "Local"
     
         ```python
         from fondant.pipeline.runner import DockerRunner
@@ -177,7 +177,7 @@ When using other runners you will need to make sure that your new environment ha
         runner = DockerRunner()
         runner.run(input_spec=<path_to_compiled_spec>)
         ```
-    === "Vertex Runner"
+    === "Vertex"
     
         ```python
         from fondant.pipeline.runner import VertexRunner
@@ -186,7 +186,7 @@ When using other runners you will need to make sure that your new environment ha
         runner.run(input_spec=<path_to_compiled_spec>)
         ```
 
-    === "KubeFlow Runner"
+    === "KubeFlow"
     
         ```python
         from fondant.pipeline.runner import KubeFlowRunner
