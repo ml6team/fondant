@@ -73,8 +73,11 @@ plugins:
       archive_date_format: yyyy/MM
       archive_url_date_format: yyyy/MM
       archive_url_format: "{date}"
-      blog_toc: true
       post_excerpt: required
+  - redirects:
+      redirect_maps:
+        'announcements/CC_25M_community.md': 'blog/posts/2023-09-27|CC_25M_community.md'
+        'announcements/CC_25M_press_release.md': 'blog/CC_25M_press_release.md'
 
 markdown_extensions:
   - pymdownx.snippets:
