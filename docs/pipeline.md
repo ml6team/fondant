@@ -66,9 +66,10 @@ loaded from the Fondant registry, and `caption_images_op`, which is a custom com
 you. We add these components to the pipeline using the `.add_op()` method and specify the
 dependencies between components to build the DAG.
 
-!!! note "IMPORTANT"
-Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs will be
-available in future releases.
+!!! note "IMPORTANT"  
+
+    Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs will be
+    available in future releases.
 
 ## Compiling a pipeline
 

@@ -25,7 +25,7 @@ You can setup the data explorer container with the `fondant explore` CLI command
     from fondant.explore import run_explorer_app
     
     BASE_PATH = "your_base_path"
-    run_explorer_app(base_path=$BASE_PATH)
+    run_explorer_app(base_path=BASE_PATH)
     ```
 
 Where the base path can be either a local or remote base path. Make sure to pass the proper mount credentials arguments when using a remote base path or a local base path 
@@ -47,7 +47,7 @@ Example:
     from fondant.explore import run_explorer_app
     
     BASE_PATH = "gs://foo/bar"
-    run_explorer_app(base_path=$BASE_PATH)
+    run_explorer_app(base_path=BASE_PATH)
     ```
 
 ### Sidebar

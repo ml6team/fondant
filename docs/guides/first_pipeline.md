@@ -16,7 +16,9 @@ Make sure that Docker Compose is [installed](installation.md#docker-installation
 fondant run local pipeline.py
 ```
 
-**Note:** For local testing purposes, the pipeline will only download the first 10,000 images. If you want to download the full dataset, you will need to modify the component arguments in the pipeline.py file, specifically the following part:
+!!! note "IMPORTANT"   
+
+    For local testing purposes, the pipeline will only download the first 10,000 images. If you want to download the full dataset, you will need to modify the component arguments in the pipeline.py file, specifically the following part:
 
 ```python
 load_from_hf_hub = ComponentOp(
