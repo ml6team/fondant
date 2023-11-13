@@ -76,7 +76,8 @@ Eager to get started? Follow our [**step by step guide**](https://fondant.readth
 
 ## 🧩 Reusable components
 
-#### Fondant comes with a library of reusable components that you can leverage to compose your own pipeline:
+**Fondant comes with a library of reusable components that you can leverage to compose your own 
+pipeline:**
 
 - **Data ingestion**: S3, GCS, ABS, Hugging Face, local file system, ... 
 - **Data Filtering**: Duplicates, language, visual style, topic, format, aesthetics, NSFW, license, ...
@@ -84,7 +85,8 @@ Eager to get started? Follow our [**step by step guide**](https://fondant.readth
 - **Data Transformation**: Image cropping, image resizing, text chunking, ....
 - **Data retrieval**: Common Crawl, LAION, ...
 
-### 👉 Check our [**HUB**](https://fondant.ai/en/latest/components/hub/) for an overview of all available components
+👉 **Check our [HUB](https://fondant.ai/en/latest/components/hub/) for an overview of all 
+available components**
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
