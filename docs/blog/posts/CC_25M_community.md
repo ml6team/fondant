@@ -1,3 +1,12 @@
+---
+date:
+  created: 2023-09-27
+  updated: 2023-09-28
+authors:
+  - RobbeSneyders
+  - mrchtr
+---
+
 # 25 million Creative Commons image dataset released
 
 [Fondant](https://fondant.ai) is an open-source project that aims to simplify and speed up
@@ -11,6 +20,8 @@ as a first step, we are releasing
 a [25-million sample dataset](https://huggingface.co/datasets/fondant-ai/fondant-cc-25m) and invite
 the open source
 community to collaborate on further refinement steps.
+
+<!-- more -->
 
 Fondant offers tools to download, explore and process the data. The current example pipeline
 includes a component for downloading the urls and one for downloading the images.
