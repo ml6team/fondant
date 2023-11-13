@@ -24,12 +24,40 @@ pip install fondant[vertex]
 You will first need to make sure that your Google Cloud environment is properly setup. More
 info [here](https://codelabs.developers.google.com/vertex-pipelines-intro#2)
 
-```bash
-fondant run vertex <pipeline_ref> \
---project-id <project_id> \
---project-region <project_region> \
---service-account <service_account>
-```
+=== "Console"
+    
+    ```bash 
+    fondant run vertex <pipeline_ref> \
+     --project-id $PROJECT_ID \
+     --project-region $PROJECT_REGION \
+     --service-account $SERVICE_ACCOUNT
+    ```
+    
+    The pipeline ref is reference to a fondant pipeline (e.g. `pipeline.py`) where a pipeline instance
+    exists.
+
+
+=== "Python"
+    
+    ```python
+    from fondant.pipeline.compiler import VertexCompiler
+    from fondant.pipeline.runner import VertexRunner
+    
+    project_id = <the_gcp_project_id>
+    project_region = <the_region_where_the_pipeline_will_run>
+    service_account = <the_service_account_to_run_the_pipeline_with>
+
+    compiler= VertexCompiler()
+    compiler.compile(pipeline=<pipeline_object>)
+
+    runner = VertexRunner(
+        project_id=project_id,
+        project_region=project_region,
+        service_account=service_account)
+    )
+    runner.run(input_spec=<path_to_compiled_spec>)
+    ```
+
 
 Once your pipeline is running you can monitor it using the Vertex UI.
 

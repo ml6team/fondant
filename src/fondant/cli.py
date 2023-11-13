@@ -18,28 +18,21 @@ import argparse
 import importlib
 import inspect
 import logging
-import os
 import shutil
 import sys
 import textwrap
 import typing as t
 from collections import defaultdict
-from enum import Enum
 from pathlib import Path
 from types import ModuleType
+
+from fondant.core.schema import CloudCredentialsMount
 
 if t.TYPE_CHECKING:
     from fondant.component import Component
     from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
-
-
-class CloudCredentialsMount(Enum):
-    home_directory = os.path.expanduser("~")
-    AWS = f"{home_directory}/credentials:/root/.aws/credentials"
-    GCP = f"{home_directory}/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json"
-    AZURE = f"{home_directory}/.azure:/root/.azure"
 
 
 def get_cloud_credentials(args) -> t.Optional[str]:

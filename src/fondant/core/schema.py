@@ -2,12 +2,25 @@
 and pipelines.
 """
 
+import os
 import re
 import typing as t
+from enum import Enum
 
 import pyarrow as pa
 
 from fondant.core.exceptions import InvalidTypeSchema
+
+
+class CloudCredentialsMount(Enum):
+    home_directory = os.path.expanduser("~")
+    AWS = f"{home_directory}/credentials:/root/.aws/credentials"
+    GCP = (
+        f"{home_directory}/.config/gcloud/application_default_credentials.json:/root/.config/"
+        f"gcloud/application_default_credentials.json"
+    )
+    AZURE = f"{home_directory}/.azure:/root/.azure"
+
 
 """
 Types based on:

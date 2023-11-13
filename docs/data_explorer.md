@@ -13,9 +13,20 @@ The chosen subset (and the columns within the subset) can be explored in 3 tabs.
 ## How to use?
 You can setup the data explorer container with the `fondant explore` CLI command, which is installed together with the Fondant python package.
 
-```
-fondant explore [--base_path BASE_PATH] [--container CONTAINER] [--tag TAG] [--port PORT] [--credentials CREDENTIALS]
-```
+=== "Console"
+
+    ```bash
+    fondant explore --base_path $BASE_PATH
+    ```
+
+=== "Python"
+
+    ```python
+    from fondant.explore import run_explorer_app
+    
+    BASE_PATH = "your_base_path"
+    run_explorer_app(base_path=BASE_PATH)
+    ```
 
 Where the base path can be either a local or remote base path. Make sure to pass the proper mount credentials arguments when using a remote base path or a local base path 
 that references remote datasets. You can do that either with `--auth-gcp`, `--auth-aws` or `--auth-azure` to
@@ -23,9 +34,21 @@ mount your default local cloud credentials to the pipeline. Or You can also use 
 
 Example: 
 
-```bash
-fondant explore --base_path gs://foo/bar --auth-gcp
-```
+=== "Console"
+
+    ```bash
+    export BASE_PATH=gs://foo/bar
+    fondant explore --base_path $BASE_PATH
+    ```
+
+=== "Python"
+
+    ```python
+    from fondant.explore import run_explorer_app
+    
+    BASE_PATH = "gs://foo/bar"
+    run_explorer_app(base_path=BASE_PATH)
+    ```
 
 ### Sidebar
 In the sidebar, the user can specify the path to a manifest file. This will load the available subsets into a dropdown, from which the user can select one of the subsets. Finally, the columns within the subset are shown in a multiselect box, and can be used to remove / select the columns that are loaded into the exploration tabs.
