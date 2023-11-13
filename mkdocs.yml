@@ -28,6 +28,7 @@ theme:
   features:
     - content.code.copy
     - navigation.tracking
+    - navigation.footer
 extra_css:
   - stylesheets/extra.css
 nav:
