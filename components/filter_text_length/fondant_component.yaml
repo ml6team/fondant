@@ -1,6 +1,8 @@
 name: Filter text length
 description: A component that filters out text based on their length
 image: fndnt/filter_text_length:latest
+tags:
+  - Text processing
 
 consumes:
   text:

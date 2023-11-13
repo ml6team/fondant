@@ -1,6 +1,8 @@
 name: Embed images
 description: Component that generates CLIP embeddings from images
 image: fndnt/embed_images:dev
+tags:
+   - Image processing
 
 consumes:
   images:
