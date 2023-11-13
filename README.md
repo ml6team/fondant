@@ -143,33 +143,32 @@ pip install git+https://github.com/ml6team/fondant.git
 
 Fondant pipelines can be run on different platforms.
 
-<table class="images" width="100%" style="border: 0px solid white; width: 100%; text-align: center;">
-    <tr style="border: 0px;">
-        <td width="25%" style="border: 0px; width: 25.00%">
-            <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
-                <figcaption class="caption"><strong>LocalRunner</strong><br> Runs locally using Docker Compose.</figcaption>
-            </figure>
-        </td>
-        <td width="25%" style="border: 0px; width: 25.00%">
-            <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/vertex_ai.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
-                <figcaption class="caption"><strong>VertexRunner</strong><br> Runs on VertexAI Pipelines.</figcaption>
-            </figure>
-        </td>
-        <td width="25%" style="border: 0px; width: 25.00%">
-            <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/kubeflow_pipelines.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
-                <figcaption class="caption"><strong>KubeflowRunner</strong><br> Runs on Kubeflow Pipelines.</figcaption>
-            </figure>
-        </td>
-        <td width="25%" style="border: 0px; width: 25.00%">
-            <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/sagemaker.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
-                <figcaption class="caption"><strong>🚧SageMakerRunner🚧 </strong><br> Runs on Sagemaker Pipelines.</figcaption>
-            </figure>
-        </td>
-    </tr>
+
+<table>
+  <tr>
+    <th>Local Runner</th>
+    <th>Vertex AI</th>
+    <th>Kubeflow Pipelines</th>
+    <th>🚧 SageMakerRunner 🚧</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true" alt="DockerCompose" height="200" width="auto">
+      <p>Runs locally using Docker Compose.</p>
+    </td>
+    <td align="center">
+      <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/vertex_ai.png?raw=true" alt="vertex_ai" height="200" width="auto">
+      <p>Runs on Vertex AI pipelines</p>
+    </td>
+    <td align="center">
+      <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/kubeflow_pipelines.png?raw=true" alt="DockerCompose" height="200" width="auto">
+      <p>Runs on Kubeflow Pipelines.</p>
+    </td>
+    <td align="center">
+      <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/sagemaker.png?raw=true" alt="vertex_ai" height="200" width="auto">
+      <p>Runs on Sagemaker Pipelines.</p>
+    </td>
+  </tr>
 </table>
 
 

@@ -32,35 +32,28 @@ Have a look at the [components hub](components/hub.md) to see what components ar
 
 Learn how to run your Fondant pipeline on different platforms.
 
-<table class="images" width="100%" style="border: 0px solid white; width: 100%; text-align: center;">
-    <tr style="border: 0px;">
-        <td width="25%" style="border: 0px; width: 25%">
-            <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
-                <figcaption class="caption"><strong>LocalRunner</strong></figcaption>
-            </figure>
-        </td>
-        <td width="25%" style="border: 0px; width: 25%">
-            <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/vertex_ai.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
-                <figcaption class="caption"><strong>VertexRunner</strong></figcaption>
-            </figure>
-        </td>
-        <td width="25%" style="border: 0px; width: 25%">
-            <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/kubeflow_pipelines.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
-                <figcaption class="caption"><strong>KubeflowRunner</strong></figcaption>
-            </figure>
-        </td>
-        <td width="25%" style="border: 0px; width: 25%">
-            <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/sagemaker.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
-                <figcaption class="caption"><strong>🚧SageMakerRunner🚧</strong></figcaption>
-            </figure>
-        </td>
-    </tr>
+<table>
+  <tr>
+    <th>Local Runner</th>
+    <th>Vertex AI</th>
+    <th>Kubeflow Pipelines</th>
+    <th>🚧 SageMakerRunner 🚧</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true" alt="DockerCompose" height="200" width="auto">
+    </td>
+    <td align="center">
+      <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/vertex_ai.png?raw=true" alt="vertex_ai" height="200" width="auto">
+    </td>
+    <td align="center">
+      <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/kubeflow_pipelines.png?raw=true" alt="DockerCompose" height="200" width="auto">
+    </td>
+    <td align="center">
+      <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/sagemaker.png?raw=true" alt="vertex_ai" height="200" width="auto">
+    </td>
+  </tr>
 </table>
-
 
 
 
