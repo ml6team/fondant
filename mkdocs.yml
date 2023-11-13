@@ -30,6 +30,7 @@ theme:
     - navigation.tracking
     - navigation.footer
     - navigation.tabs
+    - announce.dismiss
 extra_css:
   - stylesheets/extra.css
 nav:
@@ -62,12 +63,18 @@ nav:
       - FAQ: faq.md
       - Contributing: contributing.md
   - Hub: components/hub.md
-  - Blog: blog/index.md
+  - Blog:
+      - blog/index.md
 
 plugins:
   - mkdocstrings
   - search
-  - blog
+  - blog:
+      archive_date_format: yyyy/MM
+      archive_url_date_format: yyyy/MM
+      archive_url_format: "{date}"
+      blog_toc: true
+      post_excerpt: required
 
 markdown_extensions:
   - pymdownx.snippets:
