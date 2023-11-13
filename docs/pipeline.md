@@ -76,8 +76,9 @@ dependencies between components to build the DAG.
 Once all your components are added to your pipeline you can use different compilers to run your
 pipeline:
 
-!!! note "IMPORTANT"
-When using other runners you will need to make sure that your new environment has access to:
+!!! note "IMPORTANT"  
+
+    When using other runners you will need to make sure that your new environment has access to:
 
     - The base path of your pipeline (as mentioned above)
     - The images used in your pipeline (make sure you have access to the registries where the images are
