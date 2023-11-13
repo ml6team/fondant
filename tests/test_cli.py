@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import pytest
 from fondant.cli import (
-    CloudCredentialsMount,
     ComponentImportError,
     PipelineImportError,
     build,
@@ -22,6 +21,7 @@ from fondant.cli import (
 )
 from fondant.component import DaskLoadComponent
 from fondant.component.executor import Executor, ExecutorFactory
+from fondant.core.schema import CloudCredentialsMount
 from fondant.pipeline import Pipeline
 
 commands = [

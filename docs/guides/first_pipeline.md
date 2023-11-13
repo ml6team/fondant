@@ -10,13 +10,15 @@ Clone the Fondant GitHub repository
 git clone https://github.com/ml6team/fondant.git
 ```
 
-Make sure that Docker Compose is running, navigate to `fondant/examples/pipelines/filter-cc-25m`, and initiate the pipeline by executing:
+Make sure that Docker Compose is [installed](installation.md#docker-installation), navigate to `fondant/examples/pipelines/filter-cc-25m`, and initiate the pipeline by executing:
 
 ```
 fondant run local pipeline.py
 ```
 
-Note: For local testing purposes, the pipeline will only download the first 10,000 images. If you want to download the full dataset, you will need to modify the component arguments in the pipeline.py file, specifically the following part:
+!!! note "IMPORTANT"   
+
+    For local testing purposes, the pipeline will only download the first 10,000 images. If you want to download the full dataset, you will need to modify the component arguments in the pipeline.py file, specifically the following part:
 
 ```python
 load_from_hf_hub = ComponentOp(

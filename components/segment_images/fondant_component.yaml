@@ -1,6 +1,8 @@
 name: Segment images
 description: Component that creates segmentation masks for images using a model from the Hugging Face hub
 image: fndnt/segment_images:dev
+tags:
+  - Image processing
 
 consumes:
   images:

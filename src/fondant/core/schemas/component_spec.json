@@ -20,6 +20,13 @@
       "type": "string",
       "description": "Docker image for the component"
     },
+    "tags": {
+      "type": "array",
+      "description": "Extra tags to add to the component",
+      "items": {
+        "type": "string"
+      }
+    },
     "consumes": {
       "$ref": "#/definitions/subsets"
     },

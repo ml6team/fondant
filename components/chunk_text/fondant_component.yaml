@@ -6,6 +6,8 @@ description: |
   consists of the id of the original document followed by the chunk index.
 
 image: fndnt/chunk_text:dev
+tags:
+  - Text processing
 
 consumes:
   text:

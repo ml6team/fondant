@@ -27,10 +27,12 @@ theme:
   custom_dir: docs/overrides
   features:
     - content.code.copy
+    - content.tabs.link
     - navigation.tracking
     - navigation.footer
     - navigation.tabs
     - announce.dismiss
+
 extra_css:
   - stylesheets/extra.css
 nav:
@@ -86,6 +88,8 @@ markdown_extensions:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - pymdownx.details
