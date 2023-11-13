@@ -76,16 +76,17 @@ Eager to get started? Follow our [**step by step guide**](https://fondant.readth
 
 ## 🧩 Reusable components
 
-**Fondant comes with a library of reusable components that you can leverage to compose your own 
-pipeline:**
+Fondant comes with a library of reusable components that you can leverage to compose your own 
+pipeline:
 
-- **Data ingestion**: S3, GCS, ABS, Hugging Face, local file system, ... 
-- **Data Filtering**: Duplicates, language, visual style, topic, format, aesthetics, NSFW, license, ...
-- **Data Enrichment**: Captions, segmentations, smbeddings, ...
-- **Data Transformation**: Image cropping, image resizing, text chunking, ....
-- **Data retrieval**: Common Crawl, LAION, ...
+- Data ingestion: _S3, GCS, ABS, Hugging Face, local file system, ..._
+- Data Filtering: _Duplicates, language, visual style, topic, format, aesthetics, NSFW, license, 
+  ..._
+- Data Enrichment: _Captions, segmentations, smbeddings, ..._
+- Data Transformation: _Image cropping, image resizing, text chunking, ...._
+- Data retrieval: _Common Crawl, LAION, ..._
 
-👉 **Check our [HUB](https://fondant.ai/en/latest/components/hub/) for an overview of all 
+👉 **Check our [Component Hub](https://fondant.ai/en/latest/components/hub/) for an overview of all 
 available components**
 
 <p align="right">(<a href="#top">back to top</a>)</p>
