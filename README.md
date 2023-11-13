@@ -147,25 +147,25 @@ Fondant pipelines can be run on different platforms.
     <tr style="border: 0px;">
         <td width="25%" style="border: 0px; width: 25.00%">
             <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true" width="200" height="200" style="height: 150px; margin-left: auto; margin-right: auto;" />
+                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/docker_compose.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
                 <figcaption class="caption"><strong>LocalRunner</strong><br> Runs locally using Docker Compose.</figcaption>
             </figure>
         </td>
         <td width="25%" style="border: 0px; width: 25.00%">
             <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/vertex_ai.png?raw=true" width="200" height="200" style="height: 150px; margin-left: auto; margin-right: auto;" />
+                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/vertex_ai.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
                 <figcaption class="caption"><strong>VertexRunner</strong><br> Runs on VertexAI Pipelines.</figcaption>
             </figure>
         </td>
         <td width="25%" style="border: 0px; width: 25.00%">
             <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/kubeflow_pipelines.png?raw=true" width="200" height="200" style="height: 150px; margin-left: auto; margin-right: auto;" />
+                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/kubeflow_pipelines.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
                 <figcaption class="caption"><strong>KubeflowRunner</strong><br> Runs on Kubeflow Pipelines.</figcaption>
             </figure>
         </td>
         <td width="25%" style="border: 0px; width: 25.00%">
             <figure>
-                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/sagemaker.png?raw=true" width="200" height="200" style="height: 150px; margin-left: auto; margin-right: auto;" />
+                <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/sagemaker.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
                 <figcaption class="caption"><strong>🚧SageMakerRunner🚧 </strong><br> Runs on Sagemaker Pipelines.</figcaption>
             </figure>
         </td>
