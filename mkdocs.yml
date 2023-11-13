@@ -63,7 +63,6 @@ nav:
           - Handling partitions: partitions.md
           - Setting up Kubeflow: runners/kfp_infrastructure.md
       - FAQ: faq.md
-      - Contributing: contributing.md
   - Hub: components/hub.md
   - Blog:
       - blog/index.md
