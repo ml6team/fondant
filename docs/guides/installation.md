@@ -61,8 +61,6 @@ have [Docker compose](https://docs.docker.com/compose/install/) and Python >=3.8
 installed on your system. We only support Docker compose V2 and above. If you have an older version of
 Docker compose, please upgrade to the latest version as described in the [Docker compose migration doc](https://docs.docker.com/compose/migrate/).
 
-#### TODO: Modify/extend considerations for Docker-compose/desktop
-
 !!! note "IMPORTANT"
     For **Apple M1/M2 ship users**: <br>
     
