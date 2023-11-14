@@ -355,6 +355,7 @@ def test_component_build(mock_build, mock_push):
         nocache=True,
         pull=True,
         target="base",
+        label=["label_0_key=label_0_value", "label_1_key=label_1_value"],
     )
 
     # Set up the return values for the mocked methods
@@ -373,6 +374,7 @@ def test_component_build(mock_build, mock_push):
         pull=True,
         target="base",
         decode=True,
+        labels={"label_0_key": "label_0_value", "label_1_key": "label_1_value"},
     )
 
     mock_push.assert_called_with("image", tag="test", stream=True, decode=True)

@@ -252,6 +252,13 @@ def register_build(parent_parser):
         help="Name of the build-stage to build in a multi-stage Dockerfile.",
     )
 
+    parser.add_argument(
+        "--label",
+        action="append",
+        help="Label passed to `docker build` and assigned to the container. Format {key}={value}, can be repeated.",
+        default=[],
+    )
+
     parser.set_defaults(func=build)
 
 
@@ -265,6 +272,7 @@ def build(args):
         nocache=args.nocache,
         pull=args.pull,
         target=args.target,
+        labels=args.label,
     )
 
 
