@@ -34,4 +34,10 @@ referenced component specification yaml will also be
 updated, ensuring that the next pipeline run correctly references the image.
 
 
+!!! note "IMPORTANT"   
+
+    When developing custom components using the local runner, building and publishing components is not required.
+    That is because components that are not located in the registry (local custom components) will be built automatically by the local runner. 
+    This allows for quicker iteration during component development.
+
 
