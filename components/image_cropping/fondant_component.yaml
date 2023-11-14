@@ -16,6 +16,8 @@ description: |
   
   ![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)
   ![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)
+tags:
+  - Image processing
 
 consumes:
   images:

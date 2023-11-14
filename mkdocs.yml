@@ -27,44 +27,58 @@ theme:
   custom_dir: docs/overrides
   features:
     - content.code.copy
+    - content.tabs.link
     - navigation.tracking
+    - navigation.footer
+    - navigation.tabs
+    - announce.dismiss
+
 extra_css:
   - stylesheets/extra.css
 nav:
-  - Home: index.md
-  - Using the documentation: documentation_guide.md
-  - Getting Started:
-      - Installation: guides/installation.md
-      - Running your first pipeline: guides/first_pipeline.md
-      - Building your own pipeline: guides/build_a_simple_pipeline.md
-      - Implement custom components: guides/implement_custom_components.md
-  - Pipeline: pipeline.md
-  - Components:
-      - Components: components/components.md
-      - Using generic components: components/generic_component.md
-      - Creating custom components: components/custom_component.md
-      - Component spec: components/component_spec.md
-      - Publishing components: components/publishing_components.md
-  - Components hub: components/hub.md
-  - Runners:
-      - Local: runners/local.md
-      - Vertex: runners/vertex.md
-      - Kubeflow: runners/kfp.md
-  - Explorer: data_explorer.md
-  - Advanced:
-      - Architecture: architecture.md
-      - Manifest: manifest.md
-      - Caching: caching.md
-      - Handling partitions: partitions.md
-      - Setting up Kubeflow: runners/kfp_infrastructure.md
-  - FAQ: faq.md
-  - Contributing: contributing.md
-  - Announcements:
-      - announcements/CC_25M_community.md
+  - Documentation:
+      - Home: index.md
+      - Using the documentation: documentation_guide.md
+      - Getting Started:
+          - Installation: guides/installation.md
+          - Running your first pipeline: guides/first_pipeline.md
+          - Building your own pipeline: guides/build_a_simple_pipeline.md
+          - Implement custom components: guides/implement_custom_components.md
+      - Pipeline: pipeline.md
+      - Components:
+          - Components: components/components.md
+          - Using generic components: components/generic_component.md
+          - Creating custom components: components/custom_component.md
+          - Component spec: components/component_spec.md
+          - Publishing components: components/publishing_components.md
+      - Runners:
+          - Local: runners/local.md
+          - Vertex: runners/vertex.md
+          - Kubeflow: runners/kfp.md
+      - Explorer: data_explorer.md
+      - Advanced:
+          - Architecture: architecture.md
+          - Manifest: manifest.md
+          - Caching: caching.md
+          - Handling partitions: partitions.md
+          - Setting up Kubeflow: runners/kfp_infrastructure.md
+      - FAQ: faq.md
+  - Hub: components/hub.md
+  - Blog:
+      - blog/index.md
 
 plugins:
   - mkdocstrings
   - search
+  - blog:
+      archive_date_format: yyyy/MM
+      archive_url_date_format: yyyy/MM
+      archive_url_format: "{date}"
+      post_excerpt: required
+  - redirects:
+      redirect_maps:
+        'announcements/CC_25M_community.md': 'blog/posts/2023-09-27|CC_25M_community.md'
+        'announcements/CC_25M_press_release.md': 'blog/CC_25M_press_release.md'
 
 markdown_extensions:
   - pymdownx.snippets:
@@ -73,6 +87,8 @@ markdown_extensions:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - pymdownx.details

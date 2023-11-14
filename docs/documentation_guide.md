@@ -98,5 +98,5 @@ Browse through the [frequently asked questions](faq.md) about Fondant.
 
 Check out our latest [announcements] about Fondant.
 
--> 25 million Creative Commons image dataset released. Read more about it [here](announcements/CC_25M_press_release.md).
+-> 25 million Creative Commons image dataset released. Read more about it [here](blog/posts/2023-09-27|CC_25M_community.md).
 

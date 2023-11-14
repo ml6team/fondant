@@ -9,6 +9,8 @@ description: |
   from the img2dataset library.
 
 image: fndnt/download_images:dev
+tags:
+  - Image processing
 
 consumes:
   images:

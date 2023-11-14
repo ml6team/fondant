@@ -1,6 +1,8 @@
 name: MinHash generator
 description: A component that generates minhashes of text.
 image: fndnt/minhash_generator:latest
+tags:
+  - Text processing
 
 consumes:
   text:
