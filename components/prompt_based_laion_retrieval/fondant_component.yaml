@@ -1,4 +1,4 @@
-name: LAION retrieval
+name: Prompt based LAION retrieval
 description: |
   This component retrieves image URLs from the [LAION-5B dataset](https://laion.ai/blog/laion-5b/) 
   based on text prompts. The retrieval itself is done based on CLIP embeddings similarity between 
