@@ -12,7 +12,7 @@ Below you can find the reusable components offered by Fondant.
 {% for component in tag_components %}
 ??? "{{ component['name'] }}"
 
-    --8<-- "components/{{ component['name'] }}/README.md:1"
+    --8<-- "components/{{ component['dir'] }}/README.md:1"
 
 {% endfor %}
 {% endfor %}

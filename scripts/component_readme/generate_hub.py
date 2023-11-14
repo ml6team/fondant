@@ -49,12 +49,14 @@ def get_components_info() -> t.List[t.Dict[str, t.Any]]:
     for component_file in sorted(glob(f"{COMPONENTS_DIR}/*", recursive=True)):
         component_file = Path(component_file)
         component_spec = read_component_spec(component_file)
-        component_name = component_file.name
+        component_dir = component_file.name
+        component_name = component_spec.name
         tags = component_spec.tags
 
         validate_component_type_tags(component_name, tags)
 
         component_info.append({
+            'dir': component_dir,
             'name': component_name,
             'tags': tags
         })
@@ -67,6 +69,7 @@ def group_and_sort_components(components_info: t.List[t.Dict[str, t.Any]]) -> t.
     for component_info in components_info:
         for tag in component_info['tags']:
             grouped_components.setdefault(tag, []).append({
+                'dir': component_info['dir'],
                 'name': component_info['name'],
                 'tag': tag,
             })
