@@ -62,7 +62,6 @@ nav:
           - Caching: caching.md
           - Handling partitions: partitions.md
           - Setting up Kubeflow: runners/kfp_infrastructure.md
-      - FAQ: faq.md
   - Hub: components/hub.md
   - Blog:
       - blog/index.md
