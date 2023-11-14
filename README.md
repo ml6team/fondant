@@ -96,16 +96,16 @@ available components**
 We have created several ready-made example pipelines for you to use as a starting point for exploring Fondant. 
 They are hosted as separate repositories containing a notebook tutorial so you can easily clone them and get started:
 
-#### 📖 [RAG ingestion pipeline](https://github.com/ml6team/fondant-usecase-RAG) 
+📖 [**RAG ingestion pipeline**](https://github.com/ml6team/fondant-usecase-RAG)  
 An end-to-end Fondant pipeline that prepares documents for a RAG (Retrieval Augmented Generation) system by chunking and embedding them, and writing them to a vector store.
 
-#### 🛋️ [ControlNet Interior Design Pipeline](https://github.com/ml6team/fondant-usecase-controlnet)
+🛋️ [**ControlNet Interior Design Pipeline**](https://github.com/ml6team/fondant-usecase-controlnet)  
 An end-to-end Fondant pipeline to collect and process data for the fine-tuning of a ControlNet model, focusing on images related to interior design.
 
-#### 🖼️ [Filter creative common license images](https://github.com/ml6team/fondant-usecase-filter-creative-commons) 
+🖼️ [**Filter creative common license images**](https://github.com/ml6team/fondant-usecase-filter-creative-commons)  
 An end-to-end Fondant pipeline that starts from our Fondant-CC-25M creative commons image dataset and filters and downloads the desired images.
 
-#### 🔢 [Datacomp](https://github.com/ml6team/fondant-usecase-datacomp) 
+🔢 [**Datacomp pipeline**](https://github.com/ml6team/fondant-usecase-datacomp)  
 An end-to-end Fondant pipeline filtering image-text data to train a CLIP model for the DataComp competition.
 
 ## ⚒️ Installation
