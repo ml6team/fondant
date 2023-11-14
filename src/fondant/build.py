@@ -17,6 +17,7 @@ def build_component(  # ruff: noqa: PLR0912, PLR0915
     *,
     tag: t.Optional[str],
     build_args: t.List[str],
+    labels: t.List[str],
     nocache: bool = False,
     pull: bool = False,
     target: t.Optional[str] = None,
@@ -57,11 +58,18 @@ def build_component(  # ruff: noqa: PLR0912, PLR0915
     logger.info(f"Assuming full image name: {full_image_name}")
 
     logger.info("Building image...")
+
     # Convert build args from ["key=value", ...] to {"key": "value", ...}
     build_kwargs = {}
     for arg in build_args:
         k, v = arg.split("=", 1)
         build_kwargs[k] = v
+
+    # Convert label args from ["key=value", ...] to {"key": "value", ...}
+    label_kwargs = {}
+    for arg in labels:
+        k, v = arg.split("=", 1)
+        label_kwargs[k] = v
 
     try:
         docker_client = docker.from_env()
@@ -89,6 +97,7 @@ def build_component(  # ruff: noqa: PLR0912, PLR0915
         pull=pull,
         target=target,
         decode=True,
+        labels=label_kwargs,
     )
 
     for chunk in logs:
