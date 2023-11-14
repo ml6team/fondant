@@ -255,7 +255,7 @@ def register_build(parent_parser):
     parser.add_argument(
         "--label",
         action="append",
-        help="Label pass to `docker build` and assign to the container. Format {key}={value}, can be repeated.",
+        help="Label passed to `docker build` and assigned to the container. Format {key}={value}, can be repeated.",
         default=[],
     )
 
