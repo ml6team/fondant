@@ -1,11 +1,12 @@
 # Pipeline code goes here
+from fondant.pipeline.pipeline import ComponentOp, Pipeline
+
 import logging
 import sys
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 sys.path.append("../")
-from fondant.pipeline.pipeline import ComponentOp, Pipeline
 
 
 def create_directory_if_not_exists(path):
@@ -72,7 +73,7 @@ pipeline.add_op(filter_on_resolution, dependencies=[download_images])
 if __name__ == "__main__":
     from fondant.pipeline.compiler import SagemakerCompiler
 
-    pipeline.base_path = "S3://s3-fondant-artifacts/"
+    pipeline.base_path = "s3://s3-fondant-artifacts"
     compiler = SagemakerCompiler()
     compiler.compile(pipeline, output_path="spec.json")
 

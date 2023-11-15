@@ -44,8 +44,9 @@ repo="${repo:-fondant}"
 
 # Get the component directory
 scripts_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-root_dir=$(dirname "$scripts_dir")
-components_dir=$root_dir/${components_dir}
+# root_dir=$(dirname "$scripts_dir")
+components_dir=$scripts_dir/${components_dir}
+
 
 # Determine the components to build
 if [[ "${component}" == "all" ]]; then
@@ -65,7 +66,7 @@ for dir in "${components_to_build[@]}"; do
   full_image_names=()
   echo "Tagging image with following tags:"
   for tag in "${tags[@]}"; do
-    full_image_name=ghcr.io/${namespace}/${BASENAME}:${tag}
+    full_image_name=${namespace}/${BASENAME}:${tag}
     echo "$full_image_name"
     full_image_names+=("$full_image_name")
   done
@@ -96,7 +97,6 @@ for dir in "${components_to_build[@]}"; do
   echo "Freezing Fondant dependency version to ${tags[0]}"
   docker build --push "${args[@]}" \
    --build-arg="FONDANT_VERSION=${tags[0]}" \
-   --label org.opencontainers.image.source=https://github.com/${namespace}/${repo} \
    .
 
   popd

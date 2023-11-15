@@ -1,0 +1,150 @@
+name: cool-pipeline
+services:
+  download_images:
+    build:
+      args: []
+      context: components/download_images
+    command:
+    - --metadata
+    - '{"base_path": "/data", "pipeline_name": "cool-pipeline", "run_id": "cool-pipeline-20231114115122",
+      "component_id": "download_images", "cache_key": "0be6263ace0b826b30c9e9bab8fabe9a"}'
+    - --output_manifest_path
+    - /data/cool-pipeline/cool-pipeline-20231114115122/download_images/manifest.json
+    - --resize_mode
+    - 'no'
+    - --resize_only_if_bigger
+    - 'False'
+    - --input_partition_rows
+    - '100'
+    - --cache
+    - 'True'
+    - --cluster_type
+    - default
+    - --component_spec
+    - '{"name": "Download images", "description": "Component that downloads images
+      from a list of URLs.\n\nThis component takes in image URLs as input and downloads
+      the images, along with some metadata \n(like their height and width). The images
+      are stored in a new colum as bytes objects. This \ncomponent also resizes the
+      images using the \n[resizer](https://github.com/rom1504/img2dataset/blob/main/img2dataset/resizer.py)
+      function \nfrom the img2dataset library.\n", "image": "281086077386.dkr.ecr.us-east-1.amazonaws.com/download_images:main",
+      "consumes": {"images": {"fields": {"url": {"type": "string"}}}}, "produces":
+      {"images": {"fields": {"data": {"type": "binary"}, "width": {"type": "int32"},
+      "height": {"type": "int32"}}, "additionalFields": false}}, "args": {"timeout":
+      {"description": "Maximum time (in seconds) to wait when trying to download an
+      image,", "type": "int", "default": 10}, "retries": {"description": "Number of
+      times to retry downloading an image if it fails.", "type": "int", "default":
+      0}, "n_connections": {"description": "Number of concurrent connections opened
+      per process. Decrease this number if you are running \ninto timeout errors.
+      A lower number of connections can increase the success rate but lower \nthe
+      throughput.\n", "type": "int", "default": 100}, "image_size": {"description":
+      "Size of the images after resizing.", "type": "int", "default": 256}, "resize_mode":
+      {"description": "Resize mode to use. One of \"no\", \"keep_ratio\", \"center_crop\",
+      \"border\".", "type": "str", "default": "border"}, "resize_only_if_bigger":
+      {"description": "If True, resize only if image is bigger than image_size.",
+      "type": "bool", "default": false}, "min_image_size": {"description": "Minimum
+      size of the images.", "type": "int", "default": 0}, "max_aspect_ratio": {"description":
+      "Maximum aspect ratio of the images.", "type": "float", "default": 99.9}}}'
+    - --input_manifest_path
+    - /data/cool-pipeline/cool-pipeline-20231114115122/load_from_hub/manifest.json
+    depends_on:
+      load_from_hub:
+        condition: service_completed_successfully
+    labels:
+      pipeline_description: null
+    ports:
+    - 8787:8787
+    volumes:
+    - source: /Users/georgeslorre/ML6/internal/express/playground/some-cool-pipeline/data
+      target: /data
+      type: bind
+  filter_image_resolution:
+    build:
+      args: []
+      context: components/filter_image_resolution
+    command:
+    - --metadata
+    - '{"base_path": "/data", "pipeline_name": "cool-pipeline", "run_id": "cool-pipeline-20231114115122",
+      "component_id": "filter_image_resolution", "cache_key": "44b516e0b2191d0e68bf66faaac27a03"}'
+    - --output_manifest_path
+    - /data/cool-pipeline/cool-pipeline-20231114115122/filter_image_resolution/manifest.json
+    - --min_image_dim
+    - '512'
+    - --max_aspect_ratio
+    - '2.5'
+    - --input_partition_rows
+    - '100'
+    - --cache
+    - 'True'
+    - --cluster_type
+    - default
+    - --component_spec
+    - '{"name": "Filter image resolution", "description": "Component that filters
+      images based on minimum size and max aspect ratio", "image": "281086077386.dkr.ecr.us-east-1.amazonaws.com/filter_image_resolution:main",
+      "consumes": {"images": {"fields": {"width": {"type": "int32"}, "height": {"type":
+      "int32"}}}}, "args": {"min_image_dim": {"description": "Minimum image dimension",
+      "type": "int"}, "max_aspect_ratio": {"description": "Maximum aspect ratio",
+      "type": "float"}}}'
+    - --input_manifest_path
+    - /data/cool-pipeline/cool-pipeline-20231114115122/download_images/manifest.json
+    depends_on:
+      download_images:
+        condition: service_completed_successfully
+    labels:
+      pipeline_description: null
+    ports:
+    - 8787:8787
+    volumes:
+    - source: /Users/georgeslorre/ML6/internal/express/playground/some-cool-pipeline/data
+      target: /data
+      type: bind
+  load_from_hub:
+    build:
+      args: []
+      context: components/load_from_hf_hub
+    command:
+    - --metadata
+    - '{"base_path": "/data", "pipeline_name": "cool-pipeline", "run_id": "cool-pipeline-20231114115122",
+      "component_id": "load_from_hub", "cache_key": "9b6b2cf8be0b5acd235d7ca7d0ef9f36"}'
+    - --output_manifest_path
+    - /data/cool-pipeline/cool-pipeline-20231114115122/load_from_hub/manifest.json
+    - --dataset_name
+    - fondant-ai/fondant-cc-25m
+    - --column_name_mapping
+    - '{"alt_text": "images_alt+text", "image_url": "images_url", "license_location":
+      "images_license+location", "license_type": "images_license+type", "webpage_url":
+      "images_webpage+url", "surt_url": "images_surt+url", "top_level_domain": "images_top+level+domain"}'
+    - --n_rows_to_load
+    - '1000'
+    - --input_partition_rows
+    - '100'
+    - --cache
+    - 'True'
+    - --cluster_type
+    - default
+    - --component_spec
+    - '{"name": "Load from hub", "description": "Component that loads a dataset from
+      the hub", "image": "281086077386.dkr.ecr.us-east-1.amazonaws.com/load_from_hf_hub:main",
+      "produces": {"images": {"fields": {"alt+text": {"type": "string"}, "url": {"type":
+      "string"}, "license+location": {"type": "string"}, "license+type": {"type":
+      "string"}, "webpage+url": {"type": "string"}, "surt+url": {"type": "string"},
+      "top+level+domain": {"type": "string"}}}}, "args": {"dataset_name": {"description":
+      "Name of dataset on the hub", "type": "str"}, "column_name_mapping": {"description":
+      "Mapping of the consumed hub dataset to fondant column names", "type": "dict",
+      "default": {}}, "image_column_names": {"description": "Optional argument, a
+      list containing the original image column names in case the dataset on the hub
+      contains them. Used to format the image from HF hub format to a byte string.",
+      "type": "list", "default": []}, "n_rows_to_load": {"description": "Optional
+      argument that defines the number of rows to load. Useful for testing pipeline
+      runs on a small scale", "type": "int", "default": "None"}, "index_column": {"description":
+      "Column to set index to in the load component, if not specified a default globally
+      unique index will be set", "type": "str", "default": "None"}}}'
+    depends_on: {}
+    labels:
+      pipeline_description: null
+    ports:
+    - 8787:8787
+    volumes:
+    - source: /Users/georgeslorre/ML6/internal/express/playground/some-cool-pipeline/data
+      target: /data
+      type: bind
+version: '3.8'

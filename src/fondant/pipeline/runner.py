@@ -65,7 +65,7 @@ class KubeflowRunner(Runner):
             experiment = self.client.get_experiment(experiment_name=experiment_name)
         except ValueError:
             logger.info(
-                f"Defined experiment '{experiment_name}' not found. Creating new experiment"
+                f"defined experiment '{experiment_name}' not found. creating new experiment"
                 f" under this name",
             )
             experiment = self.client.create_experiment(experiment_name)
@@ -144,9 +144,9 @@ class SagemakerRunner(Runner):
         with open(input_spec) as f:
             pipeline = f.read()
             response = client.create_pipeline(
-                PipelineName="my-pipeline4",
+                PipelineName="my-pipeline11",
                 PipelineDefinition=pipeline,
-                RoleArn="TODO",
+                RoleArn="arn:aws:iam::281086077386:role/service-role/AmazonSageMaker-ExecutionRole-20231107T160823",
             )
             print(response)
 
