@@ -1,0 +1,1 @@
+/data/cool-pipeline/cool-pipeline-20231114115122/load_from_hub/manifest.json

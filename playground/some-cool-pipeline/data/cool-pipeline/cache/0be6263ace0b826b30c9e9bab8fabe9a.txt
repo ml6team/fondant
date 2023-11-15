@@ -1,0 +1,1 @@
+/data/cool-pipeline/cool-pipeline-20231114115122/download_images/manifest.json

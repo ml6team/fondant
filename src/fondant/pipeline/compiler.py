@@ -571,7 +571,7 @@ class SagemakerCompiler(Compiler):
             logger.info(f"Compiling service for {component_name}")
 
             # add metadata argument to command
-            command = ["--metadata", metadata.to_json()]
+            command = ["--metadata", f"'{metadata.to_json()}'"]
 
             # add in and out manifest paths to command
             command.extend(
@@ -585,9 +585,9 @@ class SagemakerCompiler(Compiler):
             # add arguments if any to command
             for key, value in component_op.arguments.items():
                 if isinstance(value, (dict, list)):
-                    command.extend([f"--{key}", json.dumps(value)])
+                    command.extend([f"--{key}", f"'{json.dumps(value)}'"])
                 else:
-                    command.extend([f"--{key}", f"{value}"])
+                    command.extend([f"--{key}", f"'{value}'"])
 
             # resolve dependencies
             if component["dependencies"]:
@@ -613,7 +613,7 @@ class SagemakerCompiler(Compiler):
                 instance_type="ml.t3.medium",
                 instance_count=1,
                 base_job_name=component_name,
-                role=self.sagemaker.get_execution_role(),
+                role="arn:aws:iam::281086077386:role/service-role/AmazonSageMaker-ExecutionRole-20231107T160823",
             )
             step = self.sagemaker.workflow.steps.ProcessingStep(
                 name=component_name,
