@@ -4,15 +4,17 @@ Fondant supports caching of pipeline executions. If a certain component and its 
 are exactly the same as in some previous execution, then its execution can be skipped and the output
 dataset of the previous execution can be used instead.
 
-Caching offers the following benefits:
-1) **Reduced costs.** Skipping the execution of certain components can help avoid unnecessary costly computations.
-2) **Faster pipeline runs.** Skipping the execution of certain components results in faster pipeline runs.
-3) **Faster pipeline development.** Caching allows you develop and test your pipeline faster.
+Caching offers the following benefits:  
+1) **Reduced costs.** Skipping the execution of certain components can help avoid unnecessary costly computations.  
+2) **Faster pipeline runs.** Skipping the execution of certain components results in faster pipeline runs.  
+3) **Faster pipeline development.** Caching allows you develop and test your pipeline faster.  
 4) **Reproducibility.** Caching allows you to reproduce the results of a pipeline run by reusing
    the outputs of a previous pipeline run.
 
-**Note:** The cached runs are tied to the base path which stores the caching key of previous component runs. 
-Changing the base path will invalidate the cache of previous executed pipelines.
+!!! note "IMPORTANT"  
+
+      The cached runs are tied to the base path which stores the caching key of previous component runs. 
+      Changing the base path will invalidate the cache of previous executed pipelines.
 
 The caching feature is **enabled** by default. 
 
