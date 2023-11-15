@@ -114,4 +114,6 @@ skips = ["B108", "B307", "B404", "B602"]
 [tool.bandit.assert_used]
 skips = ["**/test_*.py", "**/*_test.py"]
 
-
+[[tool.mypy.overrides]]
+module = "referencing.jsonschema.*"
+follow_imports = "skip"
