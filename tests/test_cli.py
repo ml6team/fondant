@@ -210,7 +210,16 @@ def test_vertex_compile(tmp_path_factory):
 
 def test_local_run(tmp_path_factory):
     """Test that the run command works with different arguments."""
-    args = argparse.Namespace(local=True, ref="some/path", output_path=None)
+    args = argparse.Namespace(
+        local=True,
+        ref="some/path",
+        output_path=None,
+        auth_gcp=False,
+        auth_azure=False,
+        auth_aws=False,
+        credentials=None,
+        extra_volumes=[],
+    )
     with patch("subprocess.call") as mock_call:
         run_local(args)
         mock_call.assert_called_once_with(
@@ -236,6 +245,10 @@ def test_local_run(tmp_path_factory):
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
             build_arg=[],
+            auth_gcp=False,
+            auth_azure=False,
+            auth_aws=False,
+            credentials=None,
         )
         run_local(args1)
         mock_call.assert_called_once_with(
