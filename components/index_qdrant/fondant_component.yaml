@@ -1,0 +1,79 @@
+name: Index Qdrant
+description: A Fondant component to load textual data and embeddings into a Qdrant database.
+image: fndnt/index_qdrant:dev
+tags:
+  - Data writing
+
+consumes:
+  text:
+    fields:
+      data:
+        type: string
+      embedding:
+        type: array
+        items:
+          type: float32
+
+args:
+  collection_name:
+    description: The name of the Qdrant collection to upsert data into.
+    type: str
+  location:
+    description: The location of the Qdrant instance.
+    type: str
+    default: None
+  batch_size:
+    description: The batch size to use when uploading points to Qdrant.
+    type: int
+    default: 64
+  parallelism:
+    description: The number of parallel workers to use when uploading points to Qdrant.
+    type: int
+    default: 1
+  url:
+    description: Either host or str of 'Optional[scheme], host, Optional[port], Optional[prefix]'.
+    type: str
+    default: None
+  port:
+    description: Port of the REST API interface.
+    type: int
+    default: 6333
+  grpc_port:
+    description: Port of the gRPC interface.
+    type: int
+    default: 6334
+  prefer_grpc:
+    description: If `true` - use gRPC interface whenever possible in custom methods.
+    type: bool
+    default: False
+  https:
+    description: If `true` - use HTTPS(SSL) protocol.
+    type: bool
+    default: False
+  api_key:
+    description: API key for authentication in Qdrant Cloud.
+    type: str
+    default: None
+  prefix:
+    description: If set, add `prefix` to the REST URL path.
+    type: str
+    default: None
+  timeout:
+    description: Timeout for API requests.
+    type: int
+    default: None
+  host: 
+    description: Host name of Qdrant service. If url and host are not set, defaults to 'localhost'.
+    type: str
+    default: None
+  path:
+    description: Persistence path for QdrantLocal. Eg. `local_data/qdrant`
+    type: str
+    default: None
+  force_disable_check_same_thread
+    description: Force disable check_same_thread for QdrantLocal sqlite connection.
+    type: bool
+    default: False
+  
+  
+  
