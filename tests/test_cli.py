@@ -9,6 +9,7 @@ from fondant.cli import (
     PipelineImportError,
     build,
     compile_kfp,
+    compile_local,
     compile_vertex,
     component_from_module,
     execute,
@@ -132,8 +133,8 @@ def test_execute_logic(monkeypatch):
     execute(args)
 
 
-def test_cloud_credentials_argument_logic(tmp_path_factory):
-    """Test that the run command works with arguments."""
+def test_local_compile(tmp_path_factory):
+    """Test that the compile command works with arguments."""
     namespace_creds_kwargs = [
         {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
         {"auth_gcp": False, "auth_azure": True, "auth_aws": False},
@@ -155,7 +156,7 @@ def test_cloud_credentials_argument_logic(tmp_path_factory):
                 **namespace_cred_kwargs,
                 credentials=None,
             )
-            run_local(args)
+            compile_local(args)
 
             if namespace_cred_kwargs["auth_gcp"] is True:
                 extra_volumes = [CloudCredentialsMount.GCP.value]
@@ -264,6 +265,61 @@ def test_local_run(tmp_path_factory):
                 "--remove-orphans",
             ],
         )
+
+
+def test_local_run_cloud_credentials(tmp_path_factory):
+    namespace_creds_kwargs = [
+        {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
+        {"auth_gcp": False, "auth_azure": True, "auth_aws": False},
+        {"auth_gcp": False, "auth_azure": False, "auth_aws": True},
+    ]
+
+    for namespace_cred_kwargs in namespace_creds_kwargs:
+        with tmp_path_factory.mktemp("temp") as fn, patch(
+            "fondant.pipeline.compiler.DockerCompiler.compile",
+        ) as mock_compiler, patch(
+            "subprocess.call",
+        ) as mock_runner:
+            args = argparse.Namespace(
+                local=True,
+                vertex=False,
+                kubeflow=False,
+                ref=__name__,
+                output_path=str(fn / "docker-compose.yml"),
+                **namespace_cred_kwargs,
+                credentials=None,
+                extra_volumes=[],
+                build_arg=[],
+            )
+            run_local(args)
+
+            if namespace_cred_kwargs["auth_gcp"] is True:
+                extra_volumes = [CloudCredentialsMount.GCP.value]
+            if namespace_cred_kwargs["auth_aws"] is True:
+                extra_volumes = [CloudCredentialsMount.AWS.value]
+            if namespace_cred_kwargs["auth_azure"] is True:
+                extra_volumes = [CloudCredentialsMount.AZURE.value]
+
+            mock_compiler.assert_called_once_with(
+                pipeline=TEST_PIPELINE,
+                extra_volumes=extra_volumes,
+                output_path=str(fn / "docker-compose.yml"),
+                build_args=[],
+            )
+
+            mock_runner.assert_called_once_with(
+                [
+                    "docker",
+                    "compose",
+                    "-f",
+                    str(fn / "docker-compose.yml"),
+                    "up",
+                    "--build",
+                    "--pull",
+                    "always",
+                    "--remove-orphans",
+                ],
+            )
 
 
 def test_kfp_run(tmp_path_factory):
