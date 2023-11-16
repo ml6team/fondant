@@ -8,7 +8,6 @@ import pytest
 import yaml
 from fondant.core.component_spec import (
     ComponentSpec,
-    ComponentSubset,
     KubeflowComponentSpec,
 )
 from fondant.core.exceptions import InvalidComponentSpec
@@ -65,8 +64,8 @@ def test_attribute_access(valid_fondant_schema):
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
-    assert fondant_component.consumes["images"].fields["data"].type == Type("binary")
-    assert fondant_component.consumes["embeddings"].fields["data"].type == Type.list(
+    assert fondant_component.consumes["images"].type == Type("binary")
+    assert fondant_component.consumes["embeddings"].type == Type.list(
         Type("float32"),
     )
 
@@ -129,15 +128,3 @@ def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
     kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)
     expected_repr = f"KubeflowComponentSpec({valid_kubeflow_schema!r})"
     assert repr(kubeflow_component_spec) == expected_repr
-
-
-def test_component_subset_repr():
-    """Test that the __repr__ method of ComponentSubset returns the expected string."""
-    component_subset_schema = {
-        "name": "Example subset",
-        "description": "This is an example subset",
-    }
-
-    component_subset = ComponentSubset(component_subset_schema)
-    expected_repr = f"ComponentSubset({component_subset_schema!r})"
-    assert repr(component_subset) == expected_repr
