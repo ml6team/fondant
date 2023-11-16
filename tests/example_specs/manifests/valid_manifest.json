@@ -6,30 +6,24 @@
     "component_id": "67890"
   },
   "index": {
-    "location": "/index"
+    "location": "/component1"
   },
-  "subsets": {
+  "fields":{
     "images": {
-      "location": "/images",
-      "fields": {
-        "data": {
-          "type": "binary"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "width": {
-          "type": "int32"
-        }
-      }
+      "location": "/component1",
+      "type": "binary"
     },
-    "captions": {
-      "location": "/captions",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
+    "height": {
+      "location": "/component2",
+      "type": "int32"
+    },
+    "width": {
+      "location": "/component2",
+      "type": "int32"
+    },
+    "caption": {
+      "location": "/component3",
+      "type": "string"
     }
   }
 }

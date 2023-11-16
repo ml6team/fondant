@@ -1,14 +1,14 @@
 {
   "metadata": {
-    "base_path": "gs://bucket"
+    "pipeline_name": "test_pipeline",
+    "base_path": "gs://bucket",
+    "run_id": "test_pipeline_12345",
+    "component_id": "67890"
   },
   "index": {
-    "location": "/index"
+    "location": "/component1"
   },
-  "subsets": {
-    "images": {
-      "location": "/images",
-      "fields": []
-    }
+  "fields": {
+    "images": {}
   }
 }
