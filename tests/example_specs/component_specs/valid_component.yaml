@@ -16,6 +16,7 @@ consumes:
 produces:
   captions:
     type: string
+  additionalFields: true
 
 args:
   storage_args:
