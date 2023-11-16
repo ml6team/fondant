@@ -4,12 +4,13 @@ image: example_component:latest
 
 consumes:
   images:
-    fields:
-      data:
-        type: binary
+    type: binary
+
+  embeddings:
+    type: array
+    items:
+      type: float32
 
 produces:
   captions:
-    fields:
-      data:
-        type: string
+    type: string

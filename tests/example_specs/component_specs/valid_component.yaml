@@ -6,22 +6,16 @@ tags:
 
 consumes:
   images:
-    fields:
-      data:
-        type: binary
+    type: binary
 
   embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
+    type: array
+    items:
+      type: float32
 
 produces:
   captions:
-    fields:
-      data:
-        type: string
+    type: string
 
 args:
   storage_args:

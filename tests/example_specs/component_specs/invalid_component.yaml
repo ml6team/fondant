@@ -4,11 +4,15 @@ image: example_component:latest
 
 consumes:
   images:
-    data: binary
+    fields:
+      data:
+        type: binary
 
 produces:
   captions:
-    data: string
+    fields:
+      data:
+        type: string
 
 Arguments:
   storage_args:

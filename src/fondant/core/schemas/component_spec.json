@@ -28,43 +28,18 @@
       }
     },
     "consumes": {
-      "$ref": "#/definitions/subsets"
+      "$ref": "#/definitions/field"
     },
     "produces": {
-      "$ref": "#/definitions/subsets"
+      "$ref": "#/definitions/field"
     },
     "args": {
       "$ref": "#/definitions/args"
     }
   },
   "definitions": {
-    "subset": {
-      "type": "object",
-      "properties": {
-        "fields": {
-          "$ref": "common.json#/definitions/fields"
-        },
-        "additionalFields": {
-          "type": "boolean",
-          "default": true
-        }
-      },
-      "required": [
-        "fields"
-      ]
-    },
-    "subsets": {
-      "type": "object",
-      "properties": {
-        "additionalSubsets": {
-          "type": "boolean",
-          "default": true
-        }
-      },
-      "minProperties": 1,
-      "additionalProperties": {
-        "$ref": "#/definitions/subset"
-      }
+    "field": {
+      "$ref": "common.json#/definitions/fields"
     },
     "args": {
       "type": "object",
