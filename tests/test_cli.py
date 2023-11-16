@@ -9,7 +9,6 @@ from fondant.cli import (
     PipelineImportError,
     build,
     compile_kfp,
-    compile_local,
     compile_vertex,
     component_from_module,
     execute,
@@ -133,8 +132,8 @@ def test_execute_logic(monkeypatch):
     execute(args)
 
 
-def test_local_logic(tmp_path_factory):
-    """Test that the compile command works with arguments."""
+def test_cloud_credentials_argument_logic(tmp_path_factory):
+    """Test that the run command works with arguments."""
     namespace_creds_kwargs = [
         {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
         {"auth_gcp": False, "auth_azure": True, "auth_aws": False},
@@ -156,7 +155,7 @@ def test_local_logic(tmp_path_factory):
                 **namespace_cred_kwargs,
                 credentials=None,
             )
-            compile_local(args)
+            run_local(args)
 
             if namespace_cred_kwargs["auth_gcp"] is True:
                 extra_volumes = [CloudCredentialsMount.GCP.value]

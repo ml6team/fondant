@@ -448,6 +448,8 @@ def register_run(parent_parser):
     runner_subparser = parser.add_subparsers()
 
     local_parser = runner_subparser.add_parser(name="local", help="Local runner")
+    auth_group_local_parser = local_parser.add_mutually_exclusive_group()
+
     kubeflow_parser = runner_subparser.add_parser(
         name="kubeflow",
         help="Kubeflow runner",
@@ -483,7 +485,6 @@ def register_run(parent_parser):
         action="append",
         help="Build arguments for `docker build`",
     )
-    local_parser.set_defaults(func=run_local)
 
     # kubeflow runner parser
     kubeflow_parser.add_argument(
@@ -504,8 +505,26 @@ def register_run(parent_parser):
         help="KubeFlow pipeline host url",
         required=True,
     )
+    auth_group_local_parser.add_argument(
+        "--auth-gcp",
+        action="store_true",
+        help=f"Flag to authenticate with GCP. Uses the following mount command"
+        f" `{CloudCredentialsMount.GCP.value}`",
+    )
 
-    kubeflow_parser.set_defaults(func=run_kfp)
+    auth_group_local_parser.add_argument(
+        "--auth-azure",
+        action="store_true",
+        help="Flag to authenticate with Azure. Uses the following mount command"
+        f" `{CloudCredentialsMount.AZURE.value}`",
+    )
+
+    auth_group_local_parser.add_argument(
+        "--auth-aws",
+        action="store_true",
+        help="Flag to authenticate with AWS. Uses the following mount command"
+        f" `{CloudCredentialsMount.AWS.value}`",
+    )
 
     # Vertex runner parser
     vertex_parser.add_argument(
@@ -544,12 +563,23 @@ def register_run(parent_parser):
         default=None,
     )
 
+    local_parser.set_defaults(func=run_local)
+    kubeflow_parser.set_defaults(func=run_kfp)
     vertex_parser.set_defaults(func=run_vertex)
 
 
 def run_local(args):
     from fondant.pipeline.compiler import DockerCompiler
     from fondant.pipeline.runner import DockerRunner
+
+    extra_volumes = []
+    cloud_cred = get_cloud_credentials(args)
+
+    if args.extra_volumes:
+        extra_volumes.extend(args.extra_volumes)
+
+    if cloud_cred:
+        extra_volumes.append(cloud_cred)
 
     try:
         pipeline = pipeline_from_module(args.ref)
@@ -563,7 +593,7 @@ def run_local(args):
         compiler = DockerCompiler()
         compiler.compile(
             pipeline=pipeline,
-            extra_volumes=args.extra_volumes,
+            extra_volumes=extra_volumes,
             output_path=spec_ref,
             build_args=args.build_arg,
         )
