@@ -5,6 +5,7 @@ and pipelines.
 import os
 import re
 import typing as t
+from dataclasses import dataclass
 from enum import Enum
 
 import pyarrow as pa
@@ -161,11 +162,32 @@ class Type:
         return False
 
 
-class Field(t.NamedTuple):
-    """Class representing a single field or column in a Fondant subset."""
+@dataclass
+class Field:
+    """Class representing a single field or column in a Fondant dataset."""
 
-    name: str
-    type: Type
+    def __init__(
+        self, name: str, type: Type, base_path: str = None, location: str = None
+    ) -> None:
+        self._name = name
+        self._type = type
+        self._base_path = base_path
+        self._location = location
+
+    @property
+    def name(self) -> str:
+        """The absolute location of the field."""
+        return self._name
+
+    @property
+    def type(self) -> Type:
+        """The absolute location of the field."""
+        return self._type
+
+    @property
+    def location(self) -> str:
+        """The absolute location of the field."""
+        return self._base_path + self._location
 
 
 def validate_partition_size(arg_value):

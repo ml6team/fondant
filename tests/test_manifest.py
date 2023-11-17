@@ -108,9 +108,9 @@ def test_attribute_access(valid_manifest):
     manifest = Manifest(valid_manifest)
 
     assert manifest.metadata == valid_manifest["metadata"]
-    assert manifest.index.location == "gs://bucket/index"
-    assert manifest.subsets["images"].location == "gs://bucket/images"
-    assert manifest.subsets["images"].fields["data"].type == Type("binary")
+    assert manifest.index.location == "gs://bucket/component1"
+    assert manifest.fields["images"].location == "gs://bucket/component1"
+    assert manifest.fields["images"].type == Type("binary")
 
 
 def test_manifest_creation():
@@ -129,8 +129,13 @@ def test_manifest_creation():
         cache_key=cache_key,
     )
 
-    manifest.add_subset("images", [("width", Type("int32")), ("height", Type("int32"))])
-    manifest.subsets["images"].add_field("data", Type("binary"))
+    manifest.add_fields(
+        [
+            Field(name="width", type=Type("int32")),
+            Field(name="height", type=Type("int32")),
+        ]
+    )
+    manifest.add_field(Field(name="data", type=Type("binary")))
 
     assert manifest._specification == {
         "metadata": {
@@ -141,20 +146,18 @@ def test_manifest_creation():
             "cache_key": cache_key,
         },
         "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}/index"},
-        "subsets": {
-            "images": {
-                "location": f"/{pipeline_name}/{run_id}/{component_id}/images",
-                "fields": {
-                    "width": {
-                        "type": "int32",
-                    },
-                    "height": {
-                        "type": "int32",
-                    },
-                    "data": {
-                        "type": "binary",
-                    },
-                },
+        "fields": {
+            "width": {
+                "type": "int32",
+                "location": f"/{component_id}",
+            },
+            "height": {
+                "type": "int32",
+                "location": f"/{component_id}",
+            },
+            "data": {
+                "type": "binary",
+                "location": f"/{component_id}",
             },
         },
     }
@@ -172,7 +175,7 @@ def test_manifest_repr():
         manifest.__repr__()
         == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME', 'run_id': 'A',"
         " 'component_id': '1', 'cache_key': '42'},"
-        " 'index': {'location': '/NAME/A/1/index'}, 'subsets': {}})"
+        " 'index': {'location': '/NAME/A/1/index'}, 'fields': {}})"
     )
 
 
@@ -181,33 +184,38 @@ def test_manifest_alteration(valid_manifest):
     manifest = Manifest(valid_manifest)
 
     # test adding a subset
-    manifest.add_subset(
-        "images2",
-        [("width", Type("int32")), ("height", Type("int32"))],
+    manifest.add_fields(
+        [
+            Field(name="width2", type=Type("int32")),
+            Field(name="height2", type=Type("int32")),
+        ],
     )
-    assert "images2" in manifest.subsets
+
+    assert "width2" in manifest.fields
+    assert "height2" in manifest.fields
 
     # test adding a duplicate subset
-    with pytest.raises(ValueError, match="A subset with name images2 already exists"):
-        manifest.add_subset(
-            "images2",
-            [("width", Type("int32")), ("height", Type("int32"))],
+    with pytest.raises(ValueError, match="A field with name width2 already exists"):
+        manifest.add_fields(
+            [
+                Field(name="width2", type=Type("int32")),
+            ],
         )
 
     # test removing a subset
-    manifest.remove_subset("images2")
-    assert "images2" not in manifest.subsets
+    manifest.remove_field("width2")
+    assert "images2" not in manifest.fields
 
     # test removing a nonexistant subset
-    with pytest.raises(ValueError, match="Subset pictures not found in specification"):
-        manifest.remove_subset("pictures")
+    with pytest.raises(ValueError, match="Field pictures not found in specification"):
+        manifest.remove_field("pictures")
 
 
 def test_manifest_copy_and_adapt(valid_manifest):
     """Test that a manifest can be copied and adapted without changing the original."""
     manifest = Manifest(valid_manifest)
     new_manifest = manifest.copy()
-    new_manifest.remove_subset("images")
+    new_manifest.remove_field("images")
     assert manifest._specification == valid_manifest
     assert new_manifest._specification != valid_manifest
 

@@ -172,7 +172,7 @@ class Manifest:
         specification = {
             "metadata": metadata.to_dict(),
             "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}/index"},
-            "subsets": {},
+            "fields": {},
         }
         return cls(specification)
 
@@ -224,35 +224,46 @@ class Manifest:
         return Index(self._specification["index"], base_path=self.base_path)
 
     @property
-    def subsets(self) -> t.Mapping[str, Subset]:
+    def fields(self) -> t.Mapping[str, Field]:
         """The subsets of the manifest as an immutable mapping."""
+        # e.g. ('images', {'location': '/component1', 'type': 'binary'})
         return types.MappingProxyType(
             {
-                name: Subset(subset, base_path=self.base_path)
-                for name, subset in self._specification["subsets"].items()
+                name: Field(
+                    name=name,
+                    type=Type(field["type"]),
+                    base_path=self.base_path,
+                    location=field["location"],
+                )
+                for name, field in self._specification["fields"].items()
             },
         )
 
-    def add_subset(
+    def add_fields(
         self,
-        name: str,
         fields: t.Iterable[t.Union[Field, t.Tuple[str, Type]]],
     ) -> None:
-        if name in self._specification["subsets"]:
-            msg = f"A subset with name {name} already exists"
-            raise ValueError(msg)
+        """Add fields to manifest."""
+        for field in fields:
+            if field.name in self._specification["fields"]:
+                msg = f"A field with name {field.name} already exists"
+                raise ValueError(msg)
 
-        self._specification["subsets"][name] = {
-            "location": f"/{self.pipeline_name}/{self.run_id}/{self.component_id}/{name}",
-            "fields": {name: type_.to_json() for name, type_ in fields},
+            self.add_field(field)
+
+    def add_field(self, field: Field):
+        """Add field to manifest."""
+        self._specification["fields"][field.name] = {
+            "location": f"/{self.component_id}",
+            "type": field.type.name,
         }
 
-    def remove_subset(self, name: str) -> None:
-        if name not in self._specification["subsets"]:
-            msg = f"Subset {name} not found in specification"
+    def remove_field(self, name: str) -> None:
+        if name not in self._specification["fields"]:
+            msg = f"Field {name} not found in specification"
             raise ValueError(msg)
 
-        del self._specification["subsets"][name]
+        del self._specification["fields"][name]
 
     def evolve(  # noqa : PLR0912 (too many branches)
         self,
