@@ -42,6 +42,9 @@ class IndexQdrantComponent(DaskWriteComponent):
             path=path,
             force_disable_check_same_thread=force_disable_check_same_thread,
         )
+        self.collection_name = collection_name
+        self.batch_size = batch_size
+        self.parallelism = parallelism
 
     def write(self, dataframe: dd.DataFrame) -> None:
         """
