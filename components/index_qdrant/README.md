@@ -37,7 +37,6 @@ The component takes the following arguments to alter its behavior:
 | host | str | Host name of Qdrant service. If url and host are not set, defaults to 'localhost'. | None |
 | path | str | Persistence path for QdrantLocal. Eg. `local_data/qdrant` | None |
 | force_disable_check_same_thread | bool | Force disable check_same_thread for QdrantLocal sqlite connection. | False |
-| client | object | Optional Qdrant client instance to use. | None |
 
 
 ### Usage

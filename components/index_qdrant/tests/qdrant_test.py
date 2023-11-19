@@ -23,7 +23,13 @@ def test_qdrant_write():
             collection_name=collection_name,
             vectors_config=models.VectorParams(distance=models.Distance.COSINE, size=5),
         )
-        component = IndexQdrantComponent(collection_name=collection_name, client=client)
+        # There cannot be multiple clients accessing the same local persistent storage
+        # Qdrant server supports multiple concurrent access
+        del client
+
+        component = IndexQdrantComponent(
+            collection_name=collection_name, path=str(tmpdir)
+        )
 
         dask_dataframe = dd.DataFrame.from_dict(
             {
@@ -37,5 +43,7 @@ def test_qdrant_write():
         )
 
         component.write(dask_dataframe)
+        del component
 
+        client = QdrantClient(path=str(tmpdir))
         assert client.count(collection_name).count == entries

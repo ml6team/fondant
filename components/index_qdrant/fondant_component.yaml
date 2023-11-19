@@ -78,7 +78,3 @@ args:
     description: Force disable check_same_thread for QdrantLocal sqlite connection.
     type: bool
     default: False
-  client:
-    description: Optional Qdrant client instance to use.
-    type: object
-    default: None

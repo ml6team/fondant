@@ -26,29 +26,22 @@ class IndexQdrantComponent(DaskWriteComponent):
         host: Optional[str] = None,
         path: Optional[str] = None,
         force_disable_check_same_thread: bool = False,
-        client: Optional[QdrantClient] = None,
     ):
         """Initialize the IndexQdrantComponent with the component parameters."""
-        if client is None:
-            self.client = QdrantClient(
-                location=location,
-                url=url,
-                port=port,
-                grpc_port=grpc_port,
-                prefer_grpc=prefer_grpc,
-                https=https,
-                api_key=api_key,
-                prefix=prefix,
-                timeout=timeout,
-                host=host,
-                path=path,
-                force_disable_check_same_thread=force_disable_check_same_thread,
-            )
-        else:
-            self.client = client
-        self.collection_name = collection_name
-        self.batch_size = batch_size
-        self.parallelism = parallelism
+        self.client = QdrantClient(
+            location=location,
+            url=url,
+            port=port,
+            grpc_port=grpc_port,
+            prefer_grpc=prefer_grpc,
+            https=https,
+            api_key=api_key,
+            prefix=prefix,
+            timeout=timeout,
+            host=host,
+            path=path,
+            force_disable_check_same_thread=force_disable_check_same_thread,
+        )
 
     def write(self, dataframe: dd.DataFrame) -> None:
         """
