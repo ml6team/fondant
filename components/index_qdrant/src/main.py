@@ -1,3 +1,4 @@
+import ast
 from typing import List, Optional
 
 import dask.dataframe as dd
@@ -7,7 +8,7 @@ from qdrant_client.qdrant_fastembed import uuid
 
 
 class IndexQdrantComponent(DaskWriteComponent):
-    def __init__(
+    def __init__(  # noqa
         self,
         *_,
         collection_name: str,
@@ -25,26 +26,37 @@ class IndexQdrantComponent(DaskWriteComponent):
         host: Optional[str] = None,
         path: Optional[str] = None,
         force_disable_check_same_thread: bool = False,
+        client: Optional[QdrantClient] = None,
     ):
-        self.client = QdrantClient(
-            location=location,
-            url=url,
-            port=port,
-            grpc_port=grpc_port,
-            prefer_grpc=prefer_grpc,
-            https=https,
-            api_key=api_key,
-            prefix=prefix,
-            timeout=timeout,
-            host=host,
-            path=path,
-            force_disable_check_same_thread=force_disable_check_same_thread,
-        )
+        """Initialize the IndexQdrantComponent with the component parameters."""
+        if client is None:
+            self.client = QdrantClient(
+                location=location,
+                url=url,
+                port=port,
+                grpc_port=grpc_port,
+                prefer_grpc=prefer_grpc,
+                https=https,
+                api_key=api_key,
+                prefix=prefix,
+                timeout=timeout,
+                host=host,
+                path=path,
+                force_disable_check_same_thread=force_disable_check_same_thread,
+            )
+        else:
+            self.client = client
         self.collection_name = collection_name
         self.batch_size = batch_size
         self.parallelism = parallelism
 
     def write(self, dataframe: dd.DataFrame) -> None:
+        """
+        Writes the data from the given Dask DataFrame to the Qdrant collection.
+
+        Args:
+            dataframe (dd.DataFrame): The Dask DataFrame containing the data to be written.
+        """
         records: List[models.Record] = []
         for part in dataframe.partitions:
             df = part.compute()
@@ -54,7 +66,14 @@ class IndexQdrantComponent(DaskWriteComponent):
                     "passage": row.text_data,
                 }
                 id = str(uuid.uuid4())
-                embedding = row.text_embedding
+                # Check if 'text_embedding' attribute is a string.
+                # If it is, use ast.literal_eval to safely evaluate the string and convert it into a Python list of floats.
+                # else (i.e., it is already a list), it is directly assigned.
+                embedding = (
+                    ast.literal_eval(row.text_embedding)
+                    if isinstance(row.text_embedding, str)
+                    else row.text_embedding
+                )
                 records.append(models.Record(id=id, payload=payload, vector=embedding))
 
             self.client.upload_records(
@@ -62,4 +81,5 @@ class IndexQdrantComponent(DaskWriteComponent):
                 records=records,
                 batch_size=self.batch_size,
                 parallel=self.parallelism,
+                wait=True,
             )

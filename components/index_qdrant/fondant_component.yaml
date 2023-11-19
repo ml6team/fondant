@@ -47,11 +47,11 @@ args:
   prefer_grpc:
     description: If `true` - use gRPC interface whenever possible in custom methods.
     type: bool
-    default: false
+    default: False
   https:
     description: If `true` - use HTTPS(SSL) protocol.
     type: bool
-    default: false
+    default: False
   api_key:
     description: API key for authentication in Qdrant Cloud.
     type: str
@@ -77,4 +77,8 @@ args:
   force_disable_check_same_thread:
     description: Force disable check_same_thread for QdrantLocal sqlite connection.
     type: bool
-    default: false
+    default: False
+  client:
+    description: Optional Qdrant client instance to use.
+    type: object
+    default: None
