@@ -33,6 +33,50 @@ def test_docker_runner():
         )
 
 
+def test_docker_runner_from_pipeline(sample_pipeline):
+    with mock.patch("subprocess.call") as mock_call:
+        DockerRunner().run(sample_pipeline)
+        mock_call.assert_called_once_with(
+            [
+                "docker",
+                "compose",
+                "-f",
+                "docker-compose.yml",
+                "up",
+                "--build",
+                "--pull",
+                "always",
+                "--remove-orphans",
+            ],
+        )
+
+
+def test_docker_runner_from_pipeline_with_output_path(
+    sample_pipeline,
+    tmp_path_factory,
+):
+    with mock.patch("subprocess.call") as mock_call, tmp_path_factory.mktemp(
+        "tmp",
+    ) as mock_temp:
+        DockerRunner().run(
+            sample_pipeline,
+            output_path=f"{mock_temp}/docker-compose.yml",
+        )
+        mock_call.assert_called_once_with(
+            [
+                "docker",
+                "compose",
+                "-f",
+                f"{mock_temp}/docker-compose.yml",
+                "up",
+                "--build",
+                "--pull",
+                "always",
+                "--remove-orphans",
+            ],
+        )
+
+
 class MockKfpClient:
     def __init__(self, host):
         self.host = host

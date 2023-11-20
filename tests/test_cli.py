@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from fondant.cli import (
     ComponentImportError,
     PipelineImportError,
@@ -219,11 +220,9 @@ def test_local_run(tmp_path_factory):
         local=True,
         ref="some/path",
         output_path=None,
-        auth_gcp=False,
-        auth_azure=False,
-        auth_aws=False,
-        credentials=None,
-        extra_volumes=[],
+        auth_gcp=None,
+        auth_azure=None,
+        auth_aws=None,
     )
     with patch("subprocess.call") as mock_call:
         run_local(args)
