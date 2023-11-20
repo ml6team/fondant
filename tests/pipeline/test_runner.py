@@ -4,6 +4,8 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
+
+from fondant.pipeline import Pipeline
 from fondant.pipeline.runner import (
     DockerRunner,
     KubeflowRunner,
@@ -12,6 +14,12 @@ from fondant.pipeline.runner import (
 )
 
 VALID_PIPELINE = Path("./tests/pipeline/examples/pipelines/compiled_pipeline/")
+
+PIPELINE = Pipeline(
+    pipeline_name="testpipeline",
+    pipeline_description="description of the test pipeline",
+    base_path="/foo/bar",
+)
 
 
 def test_docker_runner():
@@ -33,9 +41,9 @@ def test_docker_runner():
         )
 
 
-def test_docker_runner_from_pipeline(sample_pipeline):
+def test_docker_runner_from_pipeline():
     with mock.patch("subprocess.call") as mock_call:
-        DockerRunner().run(sample_pipeline)
+        DockerRunner().run(PIPELINE)
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -52,14 +60,13 @@ def test_docker_runner_from_pipeline(sample_pipeline):
 
 
 def test_docker_runner_from_pipeline_with_output_path(
-    sample_pipeline,
     tmp_path_factory,
 ):
     with mock.patch("subprocess.call") as mock_call, tmp_path_factory.mktemp(
         "tmp",
     ) as mock_temp:
         DockerRunner().run(
-            sample_pipeline,
+            PIPELINE,
             output_path=f"{mock_temp}/docker-compose.yml",
         )
         mock_call.assert_called_once_with(
