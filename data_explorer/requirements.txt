@@ -3,6 +3,3 @@ streamlit==1.23.1
 streamlit-aggrid==0.3.4
 matplotlib==3.7.1
 plotly==5.15.0
-fsspec==2023.4.0
-s3fs==2023.4.0
-adlfs==2023.4.0
