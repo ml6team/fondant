@@ -4,7 +4,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from fondant.cli import (
     ComponentImportError,
     PipelineImportError,
