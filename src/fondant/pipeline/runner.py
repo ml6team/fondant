@@ -38,7 +38,7 @@ class DockerRunner(Runner):
 
     def run(
         self,
-        input: Pipeline | str,
+        input: t.Union[Pipeline, str],
         *,
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
