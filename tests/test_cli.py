@@ -220,9 +220,12 @@ def test_local_run(tmp_path_factory):
         local=True,
         ref="some/path",
         output_path=None,
-        auth_gcp=None,
-        auth_azure=None,
-        auth_aws=None,
+        auth_gcp=False,
+        auth_azure=False,
+        auth_aws=False,
+        credentials=None,
+        extra_volumes=[],
+        build_arg=[],
     )
     with patch("subprocess.call") as mock_call:
         run_local(args)
@@ -304,7 +307,7 @@ def test_local_run_cloud_credentials(tmp_path_factory):
                 extra_volumes = [CloudCredentialsMount.AZURE.value]
 
             mock_compiler.assert_called_once_with(
-                pipeline=TEST_PIPELINE,
+                TEST_PIPELINE,
                 extra_volumes=extra_volumes,
                 output_path=str(fn / "docker-compose.yml"),
                 build_args=[],
