@@ -82,7 +82,7 @@ pipeline:
 - Data ingestion: _S3, GCS, ABS, Hugging Face, local file system, ..._
 - Data Filtering: _Duplicates, language, visual style, topic, format, aesthetics, NSFW, license, 
   ..._
-- Data Enrichment: _Captions, segmentations, smbeddings, ..._
+- Data Enrichment: _Captions, segmentations, embeddings, ..._
 - Data Transformation: _Image cropping, image resizing, text chunking, ...._
 - Data retrieval: _Common Crawl, LAION, ..._
 

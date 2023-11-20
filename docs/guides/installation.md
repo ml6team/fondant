@@ -10,41 +10,49 @@ Fondant also includes extra dependencies for specific runners, storage integrati
 
 ### Runner specific dependencies
 
-For Kubeflow runner:
-```bash
-pip install fondant[kfp]
-```
+=== "Kubeflow"
 
-For SageMaker runner:
-```bash
-pip install fondant[SageMaker]
-```
+    ```bash
+    pip install fondant[kfp]
+    ```
 
-For Vertex runner:
-```bash
-pip install fondant[Vertex]
-```
+=== "Vertex"
+
+    ```python
+    pip install fondant[Vertex]
+    ```
+
+=== "SageMaker"
+
+    ```python
+    pip install fondant[SageMaker]
+    ```
 
 ### Storage integration dependencies
 
-For google cloud storage (GCS):
-```bash
-pip install fondant[gcp]
-```
+=== "Google Cloud Storage (GCS)"
 
-For s3 storage:
-```bash
-pip install fondant[aws]
-```
+    ```bash
+    pip install fondant[gcp]
+    ```
 
-For Azure storage:
-```bash
-pip install fondant[azure]
-```
+=== "Amazon S3"
+
+    ```python
+    pip install fondant[aws]
+    ```
+
+=== "Azure Blob Storage"
+
+    ```python
+    pip install fondant[azure]
+    ```
+
 
 ### Publishing components dependencies
 
-For publishing components to registries:
+For publishing components to registries: 
+
 ```bash
 pip install fondant[docker]
 ```
