@@ -286,7 +286,7 @@ class Manifest:
 
         # TODO handle additionalFields
 
-        # For each output subset defined in the component, add or update it
+        # Add or update all produced fields defined in the component spec
         for name, field in component_spec.produces.items():
             # If field was part not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
