@@ -7,8 +7,8 @@ from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidManifest
 from fondant.core.manifest import Field, Manifest, Type
 
-manifest_path = Path(__file__).parent / "example_specs/manifests"
-component_specs_path = Path(__file__).parent / "example_specs/component_specs"
+manifest_path = Path(__file__).parent.parent / "examples" / "example_specs/manifests"
+component_specs_path = Path(__file__).parent.parent / "examples" / "example_specs/component_specs"
 
 
 @pytest.fixture()
@@ -258,10 +258,11 @@ def test_accessing_the_index():
 
 def test_field_mapping(valid_manifest):
     """Test field mapping generation."""
+    manifest_path = Path(__file__).parent   / "example_specs/manifests"
     manifest = Manifest(valid_manifest)
     field_mapping = manifest.field_mapping
     assert field_mapping == {
         "gs://bucket/test_pipeline/test_pipeline_12345/component1": ["images"],
-        "gs://bucket/test_pipeline/test_pipeline_12345/component2": ["width"],
+        "gs://bucket/test_pipeline/test_pipeline_12345/component2": ["height", "width"],
         "gs://bucket/test_pipeline/test_pipeline_12345/component3": ["caption"],
     }

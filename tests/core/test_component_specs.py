@@ -13,7 +13,7 @@ from fondant.core.component_spec import (
 from fondant.core.exceptions import InvalidComponentSpec
 from fondant.core.schema import Type
 
-component_specs_path = Path(__file__).parent / "example_specs/component_specs"
+component_specs_path = Path(__file__).parent.parent / "examples/example_specs/component_specs"
 
 
 @pytest.fixture()

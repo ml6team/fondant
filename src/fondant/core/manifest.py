@@ -172,7 +172,7 @@ class Manifest:
             location = (
                 f"{self.base_path}/{self.pipeline_name}/{self.run_id}{field.location}"
             )
-            if field.location in field_mapping:
+            if location in field_mapping:
                 field_mapping[location].append(field_name)
             else:
                 field_mapping[location] = [field_name]

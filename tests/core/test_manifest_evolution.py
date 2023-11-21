@@ -6,7 +6,7 @@ import yaml
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.manifest import Manifest
 
-examples_path = Path(__file__).parent / "example_specs/evolution_examples"
+examples_path = Path(__file__).parent / "examples/example_specs/evolution_examples"
 
 
 @pytest.fixture()
