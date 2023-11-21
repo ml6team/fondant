@@ -6,7 +6,7 @@ import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 from dask.distributed import Client
 
-from fondant.core.component_spec import ComponentSpec, ComponentSubset
+from fondant.core.component_spec import ComponentSpec
 from fondant.core.manifest import Manifest
 
 logger = logging.getLogger(__name__)
@@ -82,35 +82,7 @@ class DaskDataLoader(DataIO):
 
         return dataframe
 
-    def _load_subset(self, subset_name: str, fields: t.List[str]) -> dd.DataFrame:
-        """
-        Function that loads a subset from the manifest as a Dask dataframe.
-
-        Args:
-            subset_name: the name of the subset to load
-            fields: the fields to load from the subset
-
-        Returns:
-            The subset as a dask dataframe
-        """
-        subset = self.manifest.subsets[subset_name]
-        remote_path = subset.location
-
-        logger.info(f"Loading subset {subset_name} with fields {fields}...")
-
-        subset_df = dd.read_parquet(
-            remote_path,
-            columns=fields,
-            calculate_divisions=True,
-        )
-
-        # add subset prefix to columns
-        subset_df = subset_df.rename(
-            columns={col: subset_name + "_" + col for col in subset_df.columns},
-        )
-
-        return subset_df
-
+    # TODO: probably not needed anymore!
     def _load_index(self) -> dd.DataFrame:
         """
         Function that loads the index from the manifest as a Dask dataframe.
@@ -121,9 +93,10 @@ class DaskDataLoader(DataIO):
         # get index subset from the manifest
         index = self.manifest.index
         # get remote path
-        remote_path = index.location
+        remote_path = index["location"]
 
         # load index from parquet, expecting id and source columns
+        # TODO: reduce dataframe to index loading? .loc[:, []]?
         return dd.read_parquet(remote_path, calculate_divisions=True)
 
     def load_dataframe(self) -> dd.DataFrame:
@@ -135,19 +108,33 @@ class DaskDataLoader(DataIO):
             The Dask dataframe with the field columns in the format (<subset>_<column_name>)
                 as well as the index columns.
         """
-        # load index into dataframe
-        dataframe = self._load_index()
-        for name, subset in self.component_spec.consumes.items():
-            fields = list(subset.fields.keys())
-            subset_df = self._load_subset(name, fields)
-            # left joins -> filter on index
-            dataframe = dd.merge(
-                dataframe,
-                subset_df,
-                left_index=True,
-                right_index=True,
-                how="left",
+        dataframe = None
+        field_mapping = self.manifest.field_mapping
+        for location, fields in field_mapping.items():
+            partial_df = dd.read_parquet(
+                location,
+                columns=fields,
+                index="id",
+                calculate_divisions=True,
             )
+
+            if dataframe is None:
+                # ensure that the index is set correctly and divisions are known.
+                dataframe = partial_df
+            else:
+                dask_divisions = partial_df.set_index("id").divisions
+                unique_divisions = list(dict.fromkeys(list(dask_divisions)))
+
+                # apply set index to both dataframes
+                partial_df = partial_df.set_index("id", divisions=unique_divisions)
+                dataframe = dataframe.set_index("id", divisions=unique_divisions)
+
+                dataframe = dataframe.merge(
+                    partial_df,
+                    how="left",
+                    left_index=True,
+                    right_index=True,
+                )
 
         dataframe = self.partition_loaded_dataframe(dataframe)
 
@@ -170,79 +157,46 @@ class DaskDataWriter(DataIO):
         dataframe: dd.DataFrame,
         dask_client: t.Optional[Client] = None,
     ) -> None:
-        write_tasks = []
+        columns_to_produce = [
+            column_name for column_name, field in self.component_spec.produces.items()
+        ]
 
-        dataframe.index = dataframe.index.rename("id")
+        # validation that all columns are in the dataframe
+        self.validate_dataframe_columns(dataframe, columns_to_produce)
 
-        # Turn index into an empty dataframe so we can write it
-        index_df = dataframe.index.to_frame().drop(columns=["id"])
-        write_index_task = self._write_subset(
-            index_df,
-            subset_name="index",
-            subset_spec=self.component_spec.index,
-        )
-        write_tasks.append(write_index_task)
-
-        for subset_name, subset_spec in self.component_spec.produces.items():
-            subset_df = self._extract_subset_dataframe(
-                dataframe,
-                subset_name=subset_name,
-                subset_spec=subset_spec,
-            )
-            write_subset_task = self._write_subset(
-                subset_df,
-                subset_name=subset_name,
-                subset_spec=subset_spec,
-            )
-            write_tasks.append(write_subset_task)
+        dataframe = dataframe[columns_to_produce]
+        write_task = self._write_dataframe(dataframe)
 
         with ProgressBar():
             logging.info("Writing data...")
-            # alternative implementation possible: futures = client.compute(...)
-            dd.compute(*write_tasks, scheduler=dask_client)
+            dd.compute(write_task, scheduler=dask_client)
 
     @staticmethod
-    def _extract_subset_dataframe(
-        dataframe: dd.DataFrame,
-        *,
-        subset_name: str,
-        subset_spec: ComponentSubset,
-    ) -> dd.DataFrame:
-        """Create subset dataframe to save with the original field name as the column name."""
-        # Create a new dataframe with only the columns needed for the output subset
-        subset_columns = [f"{subset_name}_{field}" for field in subset_spec.fields]
-        try:
-            subset_df = dataframe[subset_columns]
-        except KeyError as e:
+    def validate_dataframe_columns(dataframe: dd.DataFrame, columns: t.List[str]):
+        """Validates that all columns are available in the dataset."""
+        missing_fields = []
+        for col in columns:
+            if col not in dataframe.columns:
+                missing_fields.append(col)
+
+        if missing_fields:
             msg = (
-                f"Field {e.args[0]} defined in output subset {subset_name} "
+                f"Fields {missing_fields} defined in output dataset "
                 f"but not found in dataframe"
             )
             raise ValueError(
                 msg,
             )
 
-        # Remove the subset prefix from the column names
-        subset_df = subset_df.rename(
-            columns={col: col[(len(f"{subset_name}_")) :] for col in subset_columns},
+    def _write_dataframe(self, dataframe: dd.DataFrame) -> dd.core.Scalar:
+        """Create dataframe writing task."""
+        location = (
+            self.manifest.base_path + "/" + self.component_spec.component_folder_name
         )
-
-        return subset_df
-
-    def _write_subset(
-        self,
-        dataframe: dd.DataFrame,
-        *,
-        subset_name: str,
-        subset_spec: ComponentSubset,
-    ) -> dd.core.Scalar:
-        if subset_name == "index":
-            location = self.manifest.index.location
-        else:
-            location = self.manifest.subsets[subset_name].location
-
-        schema = {field.name: field.type.value for field in subset_spec.fields.values()}
-
+        schema = {
+            field.name: field.type.value
+            for field in self.component_spec.produces.values()
+        }
         return self._create_write_task(dataframe, location=location, schema=schema)
 
     @staticmethod

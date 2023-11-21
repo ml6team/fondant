@@ -1,35 +1,29 @@
 {
-    "metadata": {
-      "pipeline_name": "test_pipeline",
-      "base_path": "tests/example_data/subsets_input",
-      "run_id": "test_pipeline_12345",
-      "component_id": "67890"
+  "metadata": {
+    "pipeline_name": "test_pipeline",
+    "base_path": "tests/examples/example_data",
+    "run_id": "test_pipeline_12345",
+    "component_id": "67890"
+  },
+  "index": {
+    "location": "/component_1"
+  },
+  "fields": {
+    "Name": {
+      "type": "string",
+      "location": "/component_1"
     },
-    "index": {
-      "location": "/index"
+    "HP": {
+      "type": "int32",
+      "location": "/component_1"
     },
-    "subsets": {
-      "properties": {
-        "location": "/properties",
-        "fields": {
-            "Name": {
-                "type": "string"
-            },
-            "HP": {
-                "type": "int32"
-            }
-        }
-      },
-      "types": {
-        "location": "/types",
-        "fields": {
-            "Type 1": {
-                "type": "string"
-            },
-            "Type 2": {
-                "type": "string"
-            }
-        }
-      }
+    "Type 1": {
+      "type": "string",
+      "location": "/component_2"
+    },
+    "Type 2": {
+      "type": "string",
+      "location": "/component_2"
     }
   }
+}

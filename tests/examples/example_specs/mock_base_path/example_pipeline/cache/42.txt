@@ -1,1 +1,1 @@
-tests/example_specs/mock_base_path/example_pipeline/example_pipeline_2023/component_1/manifest.json
+tests/examples/example_specs/mock_base_path/example_pipeline/example_pipeline_2023/component_1/manifest.json

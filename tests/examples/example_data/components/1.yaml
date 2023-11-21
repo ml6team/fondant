@@ -3,32 +3,26 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-  properties:
-    fields:
-      Name:
-        type: "string"
-      HP:
-        type: "int32"
-  types:
-    fields:
-      Type 1:
-        type: "string"
-      Type 2:
-        type: "string"
+  Name:
+    type: "string"
+  HP:
+    type: "int32"
+
+  Type 1:
+    type: "string"
+  Type 2:
+    type: "string"
 
 produces:
-  properties:
-    fields:
-      Name:
-        type: "string"
-      HP:
-        type: "int32"
-  types:
-    fields:
-      Type 1:
-        type: "string"
-      Type 2:
-        type: "string"
+  Name:
+    type: "string"
+  HP:
+    type: "int32"
+  Type 1:
+    type: "string"
+  Type 2:
+    type: "string"
+
 args:
   storage_args:
     description: Storage arguments
