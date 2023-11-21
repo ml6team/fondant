@@ -3,19 +3,15 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 
 produces:
-  embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
-    additionalFields: false
+  images_data:
+    type: array
+    items:
+      type: float32
+additionalFields: false
 
 
 args:

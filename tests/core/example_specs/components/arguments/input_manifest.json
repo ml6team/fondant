@@ -7,16 +7,12 @@
     "cache_key": "00"
   },
   "index": {
-    "location": "/index"
+    "location": "/component_1"
   },
-  "subsets": {
-    "images": {
-      "location": "/images",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
+  "fields": {
+    "data": {
+      "type": "binary",
+      "location": "/component_1"
     }
   }
 }
