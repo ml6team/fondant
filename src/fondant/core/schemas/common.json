@@ -57,11 +57,6 @@
     "fields": {
       "type": "object",
       "minProperties": 1,
-      "properties": {
-        "additionalFields": {
-          "type": "boolean"
-        }
-      },
       "additionalProperties": {
         "$ref": "#/definitions/field"
       }
