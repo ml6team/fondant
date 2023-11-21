@@ -242,7 +242,7 @@ class Manifest:
             raise ValueError(msg)
 
         self._specification["index"] = {
-            "location": f"/{self.component_id}",
+            "location": f"/{field.location}",
         }
 
     def remove_field(self, name: str) -> None:
@@ -277,7 +277,10 @@ class Manifest:
             evolved_manifest.update_metadata(key="run_id", value=run_id)
 
         # Update index location as this is always rewritten
-        evolved_manifest.add_or_update_field(Field(name="index"))
+        evolved_manifest.add_or_update_field(
+            Field(name="index", location=component_spec.component_folder_name)
+        )
+
         # evolved_manifest._specification["index"][
         #    "location"
         # ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}"
