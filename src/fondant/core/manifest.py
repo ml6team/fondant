@@ -18,59 +18,6 @@ from fondant.core.exceptions import InvalidManifest
 from fondant.core.schema import Field, Type
 
 
-class Subset:
-    """
-    Class representing a Fondant subset.
-
-    Args:
-        specification: The part of the manifest json representing the subset
-        base_path: The base path which the subset location is defined relative to
-    """
-
-    def __init__(self, specification: dict, *, base_path: str) -> None:
-        self._specification = specification
-        self._base_path = base_path
-
-    @property
-    def location(self) -> str:
-        """The absolute location of the subset."""
-        return self._base_path + self._specification["location"]
-
-    @property
-    def fields(self) -> t.Mapping[str, Field]:
-        """The fields of the subset returned as an immutable mapping."""
-        return types.MappingProxyType(
-            {
-                name: Field(name=name, type=Type.from_json(field))
-                for name, field in self._specification["fields"].items()
-            },
-        )
-
-    def add_field(self, name: str, type_: Type, *, overwrite: bool = False) -> None:
-        if not overwrite and name in self._specification["fields"]:
-            msg = f"A field with name {name} already exists"
-            raise ValueError(msg)
-
-        self._specification["fields"][name] = type_.to_json()
-
-    def remove_field(self, name: str) -> None:
-        del self._specification["fields"][name]
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r})"
-
-
-class Index(Subset):
-    """Special case of a subset for the index, which has fixed fields."""
-
-    @property
-    def fields(self) -> t.Dict[str, Field]:
-        return {
-            "id": Field(name="id", type=Type("string")),
-            "source": Field(name="source", type=Type("string")),
-        }
-
-
 @dataclass
 class Metadata:
     """
@@ -171,7 +118,7 @@ class Manifest:
 
         specification = {
             "metadata": metadata.to_dict(),
-            "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}/index"},
+            "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}"},
             "fields": {},
         }
         return cls(specification)
@@ -196,12 +143,40 @@ class Manifest:
     def metadata(self) -> t.Dict[str, t.Any]:
         return self._specification["metadata"]
 
+    @property
+    def index(self) -> t.Dict[str, t.Any]:
+        return self._specification["index"]
+
     def update_metadata(self, key: str, value: t.Any) -> None:
         self.metadata[key] = value
 
     @property
     def base_path(self) -> str:
         return self.metadata["base_path"]
+
+    def get_dataset_location(self, spec: ComponentSpec) -> str:
+        """Determines dataset location using the base_path and component spec."""
+        return self.base_path + "/" + spec.component_folder_name
+
+    def retrieve_field_mapping(self):
+        """
+        Retrieve a mapping of field locations to corresponding field names.
+        A dictionary where keys are field locations and values are lists
+        of column names.
+
+        Example:
+           {
+               "/base_path/component_1": ["Name", "HP"],
+               "/base_path/component_2": ["Type 1", "Type 2"],
+           }
+        """
+        field_mapping = {}
+        for field_name, field in self.fields.items():
+            if field.location in field_mapping:
+                field_mapping[field.location].append(field_name)
+            else:
+                field_mapping[field.location] = [field_name]
+        return field_mapping
 
     @property
     def run_id(self) -> str:
@@ -220,10 +195,6 @@ class Manifest:
         return self.metadata["cache_key"]
 
     @property
-    def index(self) -> Index:
-        return Index(self._specification["index"], base_path=self.base_path)
-
-    @property
     def fields(self) -> t.Mapping[str, Field]:
         """The subsets of the manifest as an immutable mapping."""
         # e.g. ('images', {'location': '/component1', 'type': 'binary'})
@@ -232,7 +203,6 @@ class Manifest:
                 name: Field(
                     name=name,
                     type=Type(field["type"]),
-                    base_path=self.base_path,
                     location=field["location"],
                 )
                 for name, field in self._specification["fields"].items()
@@ -241,7 +211,7 @@ class Manifest:
 
     def add_fields(
         self,
-        fields: t.Iterable[t.Union[Field, t.Tuple[str, Type]]],
+        fields: t.Iterable[Field],
     ) -> None:
         """Add fields to manifest."""
         for field in fields:
@@ -249,10 +219,17 @@ class Manifest:
                 msg = f"A field with name {field.name} already exists"
                 raise ValueError(msg)
 
-            self.add_field(field)
+            self.add_or_update_field(field, overwrite=False)
 
-    def add_field(self, field: Field):
-        """Add field to manifest."""
+    def add_or_update_field(self, field: Field, overwrite: bool = False):
+        """Add or update field to manifest."""
+        if overwrite is False and field.name in self._specification["fields"]:
+            msg = (
+                f"A field with name {field.name} already exists. Set overwrite to true, "
+                f"if you want to update the field."
+            )
+            raise ValueError(msg)
+
         self._specification["fields"][field.name] = {
             "location": f"/{self.component_id}",
             "type": field.type.name,
@@ -265,7 +242,7 @@ class Manifest:
 
         del self._specification["fields"][name]
 
-    def evolve(  # noqa : PLR0912 (too many branches)
+    def evolve(  # : PLR0912 (too many branches)
         self,
         component_spec: ComponentSpec,
         *,
@@ -285,68 +262,23 @@ class Manifest:
         # Update `component_id` of the metadata
         component_id = component_spec.component_folder_name
         evolved_manifest.update_metadata(key="component_id", value=component_id)
+
         if run_id is not None:
             evolved_manifest.update_metadata(key="run_id", value=run_id)
 
         # Update index location as this is currently always rewritten
-        evolved_manifest.index._specification[
+        evolved_manifest._specification["index"][
             "location"
-        ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}/index"
+        ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}"
 
-        # If additionalSubsets is False in consumes,
-        # Remove all subsets from the manifest that are not listed
-        if not component_spec.accepts_additional_subsets:
-            for subset_name in evolved_manifest.subsets:
-                if subset_name not in component_spec.consumes:
-                    evolved_manifest.remove_subset(subset_name)
-
-        # If additionalSubsets is False in produces,
-        # Remove all subsets from the manifest that are not listed
-        if not component_spec.outputs_additional_subsets:
-            for subset_name in evolved_manifest.subsets:
-                if subset_name not in component_spec.produces:
-                    evolved_manifest.remove_subset(subset_name)
-
-        # If additionalFields is False for a consumed subset,
-        # Remove all fields from that subset that are not listed
-        for subset_name, subset in component_spec.consumes.items():
-            if subset_name in evolved_manifest.subsets and not subset.additional_fields:
-                for field_name in evolved_manifest.subsets[subset_name].fields:
-                    if field_name not in subset.fields:
-                        evolved_manifest.subsets[subset_name].remove_field(
-                            field_name,
-                        )
+        # TODO handle additionalFields
 
         # For each output subset defined in the component, add or update it
-        for subset_name, subset in component_spec.produces.items():
-            # Subset is already in manifest, update it
-            if subset_name in evolved_manifest.subsets:
-                # If additional fields are not allowed, remove the fields not defined in the
-                # component spec produces section
-                if not subset.additional_fields:
-                    for field_name in evolved_manifest.subsets[subset_name].fields:
-                        if field_name not in subset.fields:
-                            evolved_manifest.subsets[subset_name].remove_field(
-                                field_name,
-                            )
-
-                # Add fields defined in the component spec produces section
-                # Overwrite to persist changes to the field (eg. type of column)
-                for field in subset.fields.values():
-                    evolved_manifest.subsets[subset_name].add_field(
-                        field.name,
-                        field.type,
-                        overwrite=True,
-                    )
-
-                # Update subset location as this is currently always rewritten
-                evolved_manifest.subsets[subset_name]._specification[
-                    "location"
-                ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}/{subset_name}"
-
-            # Subset is not yet in manifest, add it
-            else:
-                evolved_manifest.add_subset(subset_name, subset.fields.values())
+        for name, field in component_spec.produces.items():
+            # If field was part not part of the input manifest, add field to output manifest.
+            # If field was part of the input manifest and got produced by the component, update
+            # the manifest field.
+            evolved_manifest.add_or_update_field(field, overwrite=True)
 
         return evolved_manifest
 

@@ -167,11 +167,13 @@ class Field:
     """Class representing a single field or column in a Fondant dataset."""
 
     def __init__(
-        self, name: str, type: Type, base_path: str = None, location: str = None
+        self,
+        name: str,
+        type: Type,
+        location: str = "",
     ) -> None:
         self._name = name
         self._type = type
-        self._base_path = base_path
         self._location = location
 
     @property
@@ -187,7 +189,7 @@ class Field:
     @property
     def location(self) -> str:
         """The absolute location of the field."""
-        return self._base_path + self._location
+        return self._location
 
 
 def validate_partition_size(arg_value):

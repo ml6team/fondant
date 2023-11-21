@@ -48,10 +48,17 @@ def test_component_spec_pkgutil_error(mock_get_data):
 
 
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
-    """Test that the manifest is validated correctly on instantiation."""
+    """Test that the comp is validated correctly on instantiation."""
     ComponentSpec(valid_fondant_schema)
     with pytest.raises(InvalidComponentSpec):
         ComponentSpec(invalid_fondant_schema)
+
+
+def test_component_spec_load_from_file(valid_fondant_schema, invalid_fondant_schema):
+    """Test that the component spec is validated correctly on instantiation."""
+    ComponentSpec.from_file(component_specs_path / "valid_component.yaml")
+    with pytest.raises(InvalidComponentSpec):
+        ComponentSpec.from_file(component_specs_path / "invalid_component.yaml")
 
 
 def test_attribute_access(valid_fondant_schema):

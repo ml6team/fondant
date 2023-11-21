@@ -173,7 +173,7 @@ class ComponentSpec:
             {
                 name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification["consumes"].items()
-                if name != "additionalSubsets"
+                if name != "additionalFields"
             },
         )
 
@@ -184,7 +184,7 @@ class ComponentSpec:
             {
                 name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification["produces"].items()
-                if name != "additionalSubsets"
+                if name != "additionalFields"
             },
         )
 

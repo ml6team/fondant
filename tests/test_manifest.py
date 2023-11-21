@@ -3,10 +3,12 @@ import pkgutil
 from pathlib import Path
 
 import pytest
+from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidManifest
-from fondant.core.manifest import Field, Index, Manifest, Subset, Type
+from fondant.core.manifest import Field, Manifest, Type
 
 manifest_path = Path(__file__).parent / "example_specs/manifests"
+component_specs_path = Path(__file__).parent / "example_specs/component_specs"
 
 
 @pytest.fixture()
@@ -26,53 +28,6 @@ def test_manifest_validation(valid_manifest, invalid_manifest):
     Manifest(valid_manifest)
     with pytest.raises(InvalidManifest):
         Manifest(invalid_manifest)
-
-
-def test_subset_init():
-    """Test initializing a subset."""
-    subset_spec = {
-        "location": "/images/ABC/123",
-        "fields": {
-            "data": {
-                "type": "binary",
-            },
-        },
-    }
-    subset = Subset(specification=subset_spec, base_path="/tmp")
-    assert subset.location == "/tmp/images/ABC/123"
-    assert (
-        subset.__repr__()
-        == "Subset({'location': '/images/ABC/123', 'fields': {'data': {'type': 'binary'}}})"
-    )
-
-
-def test_subset_fields():
-    """Test manipulating subset fields."""
-    subset_spec = {
-        "location": "/images/ABC/123",
-        "fields": {
-            "data": {
-                "type": "binary",
-            },
-        },
-    }
-    subset = Subset(specification=subset_spec, base_path="/tmp")
-
-    # add a field
-    subset.add_field(name="data2", type_=Type("binary"))
-    assert "data2" in subset.fields
-
-    # add a duplicate field
-    with pytest.raises(ValueError, match="A field with name data2 already exists"):
-        subset.add_field(name="data2", type_=Type("binary"))
-
-    # add a duplicate field but overwrite
-    subset.add_field(name="data2", type_=Type("string"), overwrite=True)
-    assert subset.fields["data2"].type == Type("string")
-
-    # remove a field
-    subset.remove_field(name="data2")
-    assert "data2" not in subset.fields
 
 
 def test_set_base_path(valid_manifest):
@@ -108,8 +63,8 @@ def test_attribute_access(valid_manifest):
     manifest = Manifest(valid_manifest)
 
     assert manifest.metadata == valid_manifest["metadata"]
-    assert manifest.index.location == "gs://bucket/component1"
-    assert manifest.fields["images"].location == "gs://bucket/component1"
+    assert manifest.index["location"] == "/component1"
+    assert manifest.fields["images"].location == "/component1"
     assert manifest.fields["images"].type == Type("binary")
 
 
@@ -133,9 +88,9 @@ def test_manifest_creation():
         [
             Field(name="width", type=Type("int32")),
             Field(name="height", type=Type("int32")),
-        ]
+        ],
     )
-    manifest.add_field(Field(name="data", type=Type("binary")))
+    manifest.add_or_update_field(Field(name="data", type=Type("binary")))
 
     assert manifest._specification == {
         "metadata": {
@@ -145,7 +100,7 @@ def test_manifest_creation():
             "component_id": component_id,
             "cache_key": cache_key,
         },
-        "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}/index"},
+        "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}"},
         "fields": {
             "width": {
                 "type": "int32",
@@ -175,7 +130,7 @@ def test_manifest_repr():
         manifest.__repr__()
         == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME', 'run_id': 'A',"
         " 'component_id': '1', 'cache_key': '42'},"
-        " 'index': {'location': '/NAME/A/1/index'}, 'fields': {}})"
+        " 'index': {'location': '/NAME/A/1'}, 'fields': {}})"
     )
 
 
@@ -226,22 +181,59 @@ def test_no_validate_schema(monkeypatch, valid_manifest):
         Manifest(valid_manifest)
 
 
-def test_index_fields():
-    """Test that the fields property of Index returns the expected fields."""
-    subset_spec = {
-        "location": "/images/ABC/123",
-        "fields": {
-            "data": {
-                "type": "binary",
-            },
-        },
-    }
+def test_evolve_manifest():
+    """Test that the fields are evolved as expected."""
+    run_id = "A"
+    spec = ComponentSpec.from_file(component_specs_path / "valid_component.yaml")
+    input_manifest = Manifest.create(
+        pipeline_name="NAME",
+        base_path="/base_path",
+        run_id=run_id,
+        component_id="component_1",
+        cache_key="42",
+    )
 
-    index = Index(specification=subset_spec, base_path="/tmp")
+    output_manifest = input_manifest.evolve(component_spec=spec, run_id=run_id)
 
-    expected_fields = {
-        "id": Field(name="id", type=Type("string")),
-        "source": Field(name="source", type=Type("string")),
-    }
+    assert output_manifest.base_path == input_manifest.base_path
+    assert output_manifest.run_id == run_id
+    assert output_manifest.index["location"] == "/NAME/A/" + spec.component_folder_name
+    assert output_manifest.fields["captions"].type.name == "string"
 
-    assert index.fields == expected_fields
+
+def test_fields():
+    """Test that the fields can added and updated as expected."""
+    run_id = "A"
+    manifest = Manifest.create(
+        pipeline_name="NAME",
+        base_path="/base_path",
+        run_id=run_id,
+        component_id="component_1",
+        cache_key="42",
+    )
+
+    # add a field
+    manifest.add_or_update_field(Field(name="field_1", type=Type("int32")))
+    assert "field_1" in manifest.fields
+
+    # add a duplicate field, but overwrite (update)
+    manifest.add_or_update_field(
+        Field(name="field_1", type=Type("string")),
+        overwrite=True,
+    )
+    assert manifest.fields["field_1"].type.name == "string"
+
+    # add duplicate field
+    with pytest.raises(
+        ValueError,
+        match="A field with name field_1 already exists. Set overwrite to true, "
+        "if you want to update the field.",
+    ):
+        manifest.add_or_update_field(
+            Field(name="field_1", type=Type("string")),
+            overwrite=False,
+        )
+
+    # delete a field
+    manifest.remove_field(name="field_1")
+    assert "field_1" not in manifest.fields
