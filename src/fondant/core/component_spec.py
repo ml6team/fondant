@@ -177,7 +177,7 @@ class ComponentSpec:
 
     @property
     def produces(self) -> t.Mapping[str, Field]:
-        """The subsets produced by the component as an immutable mapping."""
+        """The fields produced by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: Field(name=name, type=Type.from_json(field))
