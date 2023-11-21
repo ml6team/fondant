@@ -163,8 +163,7 @@ class ComponentSpec:
 
     @property
     def index(self):
-        # TODO: check usage
-        return {"fields": {}}
+        return Field(name="index", location=self._specification["index"].location)
 
     @property
     def consumes(self) -> t.Mapping[str, Field]:
@@ -173,7 +172,6 @@ class ComponentSpec:
             {
                 name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification["consumes"].items()
-                if name != "additionalFields"
             },
         )
 
@@ -184,17 +182,8 @@ class ComponentSpec:
             {
                 name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification["produces"].items()
-                if name != "additionalFields"
             },
         )
-
-    @property
-    def accepts_additional_subsets(self) -> bool:
-        return self._specification.get("consumes", {}).get("additionalSubsets", True)
-
-    @property
-    def outputs_additional_subsets(self) -> bool:
-        return self._specification.get("produces", {}).get("additionalSubsets", True)
 
     @property
     def args(self) -> t.Mapping[str, Argument]:

@@ -169,7 +169,7 @@ class Field:
     def __init__(
         self,
         name: str,
-        type: Type,
+        type: Type = None,
         location: str = "",
     ) -> None:
         self._name = name
@@ -178,7 +178,7 @@ class Field:
 
     @property
     def name(self) -> str:
-        """The absolute location of the field."""
+        """The name of the field."""
         return self._name
 
     @property

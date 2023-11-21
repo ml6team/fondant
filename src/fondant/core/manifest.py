@@ -118,7 +118,7 @@ class Manifest:
 
         specification = {
             "metadata": metadata.to_dict(),
-            "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}"},
+            "index": {"location": f"/{component_id}"},
             "fields": {},
         }
         return cls(specification)
@@ -154,11 +154,8 @@ class Manifest:
     def base_path(self) -> str:
         return self.metadata["base_path"]
 
-    def get_dataset_location(self, spec: ComponentSpec) -> str:
-        """Determines dataset location using the base_path and component spec."""
-        return self.base_path + "/" + spec.component_folder_name
-
-    def retrieve_field_mapping(self):
+    @property
+    def field_mapping(self):
         """
         Retrieve a mapping of field locations to corresponding field names.
         A dictionary where keys are field locations and values are lists
@@ -172,10 +169,13 @@ class Manifest:
         """
         field_mapping = {}
         for field_name, field in self.fields.items():
+            location = (
+                f"{self.base_path}/{self.pipeline_name}/{self.run_id}{field.location}"
+            )
             if field.location in field_mapping:
-                field_mapping[field.location].append(field_name)
+                field_mapping[location].append(field_name)
             else:
-                field_mapping[field.location] = [field_name]
+                field_mapping[location] = [field_name]
         return field_mapping
 
     @property
@@ -223,16 +223,38 @@ class Manifest:
 
     def add_or_update_field(self, field: Field, overwrite: bool = False):
         """Add or update field to manifest."""
-        if overwrite is False and field.name in self._specification["fields"]:
+        if field.name == "index":
+            self._add_or_update_index(field, overwrite=True)
+        elif overwrite is False and field.name in self._specification["fields"]:
             msg = (
                 f"A field with name {field.name} already exists. Set overwrite to true, "
                 f"if you want to update the field."
             )
             raise ValueError(msg)
+        else:
+            self._specification["fields"][field.name] = {
+                "location": f"/{self.component_id}",
+                "type": field.type.name,
+            }
 
-        self._specification["fields"][field.name] = {
+    def _add_or_update_index(self, field: Field, overwrite: bool = True):
+        """Add or update the manifest index."""
+        if overwrite is False:
+            msg = (
+                "The index already exists. Set overwrite to true, "
+                "if you want to update the index."
+            )
+            raise ValueError(msg)
+
+        if field.name != "index":
+            msg = (
+                f"The field name is {field.name}. If you try to update the index, set the field"
+                f"name to `index`."
+            )
+            raise ValueError(msg)
+
+        self._specification["index"] = {
             "location": f"/{self.component_id}",
-            "type": field.type.name,
         }
 
     def remove_field(self, name: str) -> None:
@@ -267,9 +289,10 @@ class Manifest:
             evolved_manifest.update_metadata(key="run_id", value=run_id)
 
         # Update index location as this is currently always rewritten
-        evolved_manifest._specification["index"][
-            "location"
-        ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}"
+        evolved_manifest.add_or_update_field(Field(name="index"))
+        # evolved_manifest._specification["index"][
+        #    "location"
+        # ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}"
 
         # TODO handle additionalFields
 

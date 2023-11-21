@@ -100,7 +100,7 @@ def test_manifest_creation():
             "component_id": component_id,
             "cache_key": cache_key,
         },
-        "index": {"location": f"/{pipeline_name}/{run_id}/{component_id}"},
+        "index": {"location": f"/{component_id}"},
         "fields": {
             "width": {
                 "type": "int32",
@@ -130,7 +130,7 @@ def test_manifest_repr():
         manifest.__repr__()
         == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME', 'run_id': 'A',"
         " 'component_id': '1', 'cache_key': '42'},"
-        " 'index': {'location': '/NAME/A/1'}, 'fields': {}})"
+        " 'index': {'location': '/1'}, 'fields': {}})"
     )
 
 
@@ -197,7 +197,7 @@ def test_evolve_manifest():
 
     assert output_manifest.base_path == input_manifest.base_path
     assert output_manifest.run_id == run_id
-    assert output_manifest.index["location"] == "/NAME/A/" + spec.component_folder_name
+    assert output_manifest.index["location"] == "/" + spec.component_folder_name
     assert output_manifest.fields["captions"].type.name == "string"
 
 
@@ -237,3 +237,31 @@ def test_fields():
     # delete a field
     manifest.remove_field(name="field_1")
     assert "field_1" not in manifest.fields
+
+
+def test_accessing_the_index():
+    """Test that test the index access."""
+    run_id = "A"
+    manifest = Manifest.create(
+        pipeline_name="NAME",
+        base_path="/base_path",
+        run_id=run_id,
+        component_id="component_1",
+        cache_key="42",
+    )
+
+    # Add index field
+    manifest.metadata["component_id"] = "component_2"
+    manifest.add_or_update_field(Field(name="index", type=Type("int32")))
+    assert manifest.index["location"] == "/component_2"
+
+
+def test_field_mapping(valid_manifest):
+    """Test field mapping generation."""
+    manifest = Manifest(valid_manifest)
+    field_mapping = manifest.field_mapping
+    assert field_mapping == {
+        "gs://bucket/test_pipeline/test_pipeline_12345/component1": ["images"],
+        "gs://bucket/test_pipeline/test_pipeline_12345/component2": ["width"],
+        "gs://bucket/test_pipeline/test_pipeline_12345/component3": ["caption"],
+    }

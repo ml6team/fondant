@@ -53,9 +53,6 @@
         "location": {
           "type": "string",
           "pattern": "/.*"
-        },
-        "fields": {
-          "$ref": "common.json#/definitions/fields"
         }
       },
       "required": [
