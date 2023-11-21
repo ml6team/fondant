@@ -8,7 +8,7 @@ from qdrant_client.qdrant_fastembed import uuid
 
 
 class IndexQdrantComponent(DaskWriteComponent):
-    def __init__(  # noqa
+    def __init__(
         self,
         *_,
         collection_name: str,
@@ -63,7 +63,7 @@ class IndexQdrantComponent(DaskWriteComponent):
                 }
                 id = str(uuid.uuid4())
                 # Check if 'text_embedding' attribute is a string.
-                # If it is, use ast.literal_eval to safely evaluate the string and convert it into a Python list of floats.
+                # If it is, safely evaluate and convert it into a list of floats.
                 # else (i.e., it is already a list), it is directly assigned.
                 embedding = (
                     ast.literal_eval(row.text_embedding)

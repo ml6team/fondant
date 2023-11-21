@@ -28,7 +28,8 @@ def test_qdrant_write():
         del client
 
         component = IndexQdrantComponent(
-            collection_name=collection_name, path=str(tmpdir)
+            collection_name=collection_name,
+            path=str(tmpdir),
         )
 
         dask_dataframe = dd.DataFrame.from_dict(

@@ -1,7 +1,8 @@
 name: Index Qdrant
 description: >-
-  A Fondant component to load textual data and embeddings into a Qdrant
-  database.
+  A Fondant component to load textual data and embeddings into a Qdrant database.
+  NOTE: A Qdrant collection has to be created in advance with the appropriate configurations. https://qdrant.tech/documentation/concepts/collections/
+
 image: 'fndnt/index_qdrant:dev'
 tags:
   - Data writing
