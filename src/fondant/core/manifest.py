@@ -196,7 +196,7 @@ class Manifest:
 
     @property
     def fields(self) -> t.Mapping[str, Field]:
-        """The subsets of the manifest as an immutable mapping."""
+        """The fields of the manifest as an immutable mapping."""
         # e.g. ('images', {'location': '/component1', 'type': 'binary'})
         return types.MappingProxyType(
             {
