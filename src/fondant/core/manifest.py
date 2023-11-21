@@ -288,7 +288,7 @@ class Manifest:
         if run_id is not None:
             evolved_manifest.update_metadata(key="run_id", value=run_id)
 
-        # Update index location as this is currently always rewritten
+        # Update index location as this is always rewritten
         evolved_manifest.add_or_update_field(Field(name="index"))
         # evolved_manifest._specification["index"][
         #    "location"
