@@ -209,18 +209,6 @@ class Manifest:
             },
         )
 
-    def add_fields(
-        self,
-        fields: t.Iterable[Field],
-    ) -> None:
-        """Add fields to manifest."""
-        for field in fields:
-            if field.name in self._specification["fields"]:
-                msg = f"A field with name {field.name} already exists"
-                raise ValueError(msg)
-
-            self.add_or_update_field(field, overwrite=False)
-
     def add_or_update_field(self, field: Field, overwrite: bool = False):
         """Add or update field to manifest."""
         if field.name == "index":

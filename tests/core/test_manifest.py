@@ -84,12 +84,8 @@ def test_manifest_creation():
         cache_key=cache_key,
     )
 
-    manifest.add_fields(
-        [
-            Field(name="width", type=Type("int32")),
-            Field(name="height", type=Type("int32")),
-        ],
-    )
+    manifest.add_or_update_field(Field(name="width", type=Type("int32")))
+    manifest.add_or_update_field(Field(name="height", type=Type("int32")))
     manifest.add_or_update_field(Field(name="data", type=Type("binary")))
 
     assert manifest._specification == {
@@ -139,23 +135,15 @@ def test_manifest_alteration(valid_manifest):
     manifest = Manifest(valid_manifest)
 
     # test adding a subset
-    manifest.add_fields(
-        [
-            Field(name="width2", type=Type("int32")),
-            Field(name="height2", type=Type("int32")),
-        ],
-    )
+    manifest.add_or_update_field(Field(name="width2", type=Type("int32")))
+    manifest.add_or_update_field(Field(name="height2", type=Type("int32")))
 
     assert "width2" in manifest.fields
     assert "height2" in manifest.fields
 
     # test adding a duplicate subset
     with pytest.raises(ValueError, match="A field with name width2 already exists"):
-        manifest.add_fields(
-            [
-                Field(name="width2", type=Type("int32")),
-            ],
-        )
+        manifest.add_or_update_field(Field(name="width2", type=Type("int32")))
 
     # test removing a subset
     manifest.remove_field("width2")
