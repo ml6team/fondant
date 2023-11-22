@@ -7,10 +7,8 @@ from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidManifest
 from fondant.core.manifest import Field, Manifest, Type
 
-manifest_path = Path(__file__).parent.parent / "examples" / "example_specs/manifests"
-component_specs_path = (
-    Path(__file__).parent.parent / "examples" / "example_specs/component_specs"
-)
+manifest_path = Path(__file__).parent / "examples" / "manifests"
+component_specs_path = Path(__file__).parent / "examples" / "component_specs"
 
 
 @pytest.fixture()

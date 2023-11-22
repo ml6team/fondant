@@ -28,19 +28,16 @@
       }
     },
     "consumes": {
-      "$ref": "#/definitions/field"
+      "$ref": "common.json#/definitions/fields"
     },
     "produces": {
-      "$ref": "#/definitions/field"
+      "$ref": "common.json#/definitions/fields"
     },
     "args": {
       "$ref": "#/definitions/args"
     }
   },
   "definitions": {
-    "field": {
-      "$ref": "common.json#/definitions/fields"
-    },
     "args": {
       "type": "object",
       "minProperties": 1,

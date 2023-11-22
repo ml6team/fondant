@@ -6,7 +6,7 @@ import yaml
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.manifest import Manifest
 
-examples_path = Path(__file__).parent / "examples/example_specs/evolution_examples"
+examples_path = Path(__file__).parent / "examples/evolution_examples"
 
 
 @pytest.fixture()
@@ -35,22 +35,3 @@ def test_evolution(input_manifest, component_spec, output_manifest):
     )
 
     assert evolved_manifest._specification == output_manifest
-
-
-def test_component_spec_location_update():
-    with open(examples_path / "input_manifest.json") as f:
-        input_manifest = json.load(f)
-
-    with open(examples_path / "7/component.yaml") as f:
-        specification = yaml.safe_load(f)
-
-    manifest = Manifest(input_manifest)
-    component_spec = ComponentSpec(specification)
-    evolved_manifest = manifest.evolve(
-        component_spec=component_spec,
-    )
-
-    assert (
-        evolved_manifest._specification["subsets"]["images"]["location"]
-        == "/test_pipeline/12345/example_component/images"
-    )

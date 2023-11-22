@@ -171,7 +171,7 @@ class ComponentSpec:
         return types.MappingProxyType(
             {
                 name: Field(name=name, type=Type.from_json(field))
-                for name, field in self._specification["consumes"].items()
+                for name, field in self._specification.get("produces", {}).items()
             },
         )
 
@@ -181,7 +181,7 @@ class ComponentSpec:
         return types.MappingProxyType(
             {
                 name: Field(name=name, type=Type.from_json(field))
-                for name, field in self._specification["produces"].items()
+                for name, field in self._specification.get("produces", {}).items()
             },
         )
 

@@ -251,7 +251,7 @@ class Manifest:
 
         del self._specification["fields"][name]
 
-    def evolve(  # : PLR0912 (too many branches)
+    def evolve(  # noqa : PLR0912 (too many branches)
         self,
         component_spec: ComponentSpec,
         *,
@@ -277,12 +277,8 @@ class Manifest:
 
         # Update index location as this is always rewritten
         evolved_manifest.add_or_update_field(
-            Field(name="index", location=component_spec.component_folder_name)
+            Field(name="index", location=component_spec.component_folder_name),
         )
-
-        # evolved_manifest._specification["index"][
-        #    "location"
-        # ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}"
 
         # TODO handle additionalFields
 
