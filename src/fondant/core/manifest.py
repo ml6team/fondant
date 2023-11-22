@@ -7,7 +7,6 @@ import typing as t
 from collections import OrderedDict
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from types import MappingProxyType
 
 import jsonschema.exceptions
 from fsspec import open as fs_open
@@ -173,7 +172,7 @@ class Manifest:
            }
         """
         field_mapping = {}
-        for field_name, field in self.fields.items():
+        for field_name, field in {"Index": self.index, **self.fields}.items():
             location = (
                 f"{self.base_path}/{self.pipeline_name}/{self.run_id}{field.location}"
             )
@@ -182,18 +181,14 @@ class Manifest:
             else:
                 field_mapping[location] = [field_name]
 
+
         # Sort field mapping that the first dataset contains the index
-        index_location = (
-            f"{self.base_path}/{self.pipeline_name}/{self.run_id}{self.index.location}"
-        )
-        sorted_keys = sorted(
-            field_mapping.keys(), key=lambda key: index_location == key, reverse=True
-        )
+        sorted_keys = sorted(field_mapping.keys(), key=lambda key: "Index" in field_mapping[key], reverse=True)
         sorted_field_mapping = OrderedDict(
             (key, field_mapping[key]) for key in sorted_keys
         )
 
-        return MappingProxyType(sorted_field_mapping)
+        return types.MappingProxyType(sorted_field_mapping)
 
     @property
     def run_id(self) -> str:
@@ -238,7 +233,7 @@ class Manifest:
         else:
             self._specification["fields"][field.name] = {
                 "location": f"/{self.component_id}",
-                "type": field.type.name,
+                "type": field.type.to_json(),
             }
 
     def _add_or_update_index(self, field: Field, overwrite: bool = True):
@@ -301,7 +296,7 @@ class Manifest:
 
         # Add or update all produced fields defined in the component spec
         for name, field in component_spec.produces.items():
-            # If field was part not part of the input manifest, add field to output manifest.
+            # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.
             evolved_manifest.add_or_update_field(field, overwrite=True)

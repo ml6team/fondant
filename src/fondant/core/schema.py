@@ -162,7 +162,6 @@ class Type:
         return False
 
 
-@dataclass
 class Field:
     """Class representing a single field or column in a Fondant dataset."""
 

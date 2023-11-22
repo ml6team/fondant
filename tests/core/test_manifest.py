@@ -236,6 +236,7 @@ def test_field_mapping(valid_manifest):
     assert field_mapping == OrderedDict(
         {
             "gs://bucket/test_pipeline/test_pipeline_12345/component2": [
+                "Index",
                 "height",
                 "width",
             ],
