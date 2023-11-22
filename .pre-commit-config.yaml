@@ -10,6 +10,7 @@ repos:
             (?x)^(
                 components/.*|
                 src/.*|
+                data_explorer/.*|
                 tests/.*|
             )$
         args: [
@@ -29,6 +30,7 @@ repos:
                 components/.*|
                 src/.*|
                 examples/.*|
+                data_explorer/.*|
                 tests/.*|
             )$
         args: ["-f", "custom", "-q", "-c", "pyproject.toml", "-r"]
@@ -44,6 +46,7 @@ repos:
                 components/.*|
                 src/.*|
                 examples/.*|
+                data_explorer/.*|
                 tests/.*|
             )$
 

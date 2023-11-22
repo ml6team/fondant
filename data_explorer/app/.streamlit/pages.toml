@@ -1,0 +1,29 @@
+[[pages]]
+path = "main.py"
+name = "General Overview"
+icon = "🏠"
+
+[[pages]]
+path = "pages/dataset_explorer.py"
+name = "Dataset Explorer"
+icon = "📊"
+
+[[pages]]
+path = "pages/global_value_search.py"
+name = "Global Value Search"
+icon = "🔎"
+
+[[pages]]
+path = "pages/compare_runs.py"
+name = "Compare Runs"
+icon = "🔁"
+
+[[pages]]
+path = "pages/image_gallery.py"
+name = "Image Gallery"
+icon = "🖼️"
+
+[[pages]]
+path = "pages/numeric_analysis.py"
+name = "Numerical Analysis"
+icon = "📈"

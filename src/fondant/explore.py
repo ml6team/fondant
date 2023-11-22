@@ -100,5 +100,5 @@ def run_explorer_app(  # type: ignore
         f"Running image from registry: {container} with tag: {tag} on port: {port}",
     )
     logging.info(f"Access the explorer at http://localhost:{port}")
-
+    print(cmd)
     subprocess.call(cmd, stdout=subprocess.PIPE)  # nosec

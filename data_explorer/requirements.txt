@@ -1,8 +1,6 @@
-fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@main
-streamlit==1.23.1
+fondant[aws,azure,gcp,component]@git+https://github.com/ml6team/fondant@main
+streamlit==1.28.2
 streamlit-aggrid==0.3.4
+st-pages==0.4.5
 matplotlib==3.7.1
 plotly==5.15.0
-fsspec==2023.4.0
-s3fs==2023.4.0
-adlfs==2023.4.0
