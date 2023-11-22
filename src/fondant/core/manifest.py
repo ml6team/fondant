@@ -284,7 +284,7 @@ class Manifest:
 
         # Add or update all produced fields defined in the component spec
         for name, field in component_spec.produces.items():
-            # If field was part not part of the input manifest, add field to output manifest.
+            # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.
             evolved_manifest.add_or_update_field(field, overwrite=True)
