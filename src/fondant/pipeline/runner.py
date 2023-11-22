@@ -126,3 +126,49 @@ class VertexRunner(Runner):
         with open(input_spec) as f:
             spec = yaml.safe_load(f)
             return spec["pipelineInfo"]["name"]
+
+
+class SagemakerRunner(Runner):
+    def __init__(self):
+        self.__resolve_imports()
+        self.client = self.boto3.client("sagemaker")
+
+    def __resolve_imports(self):
+        import boto3
+
+        self.boto3 = boto3
+
+    def run(self, input_spec: str, pipeline_name: str, role_arn: str, *args, **kwargs):
+        """Creates/updates a sagemaker pipeline and execute it."""
+        with open(input_spec) as f:
+            pipeline = f.read()
+            pipelines = self.client.list_pipelines(
+                PipelineNamePrefix=pipeline_name,
+            )
+            if pipelines["PipelineSummaries"]:
+                logging.info(
+                    f"Pipeline with name {pipeline_name} already exists, updating it",
+                )
+                _ = self.client.update_pipeline(
+                    PipelineName=pipeline_name,
+                    PipelineDefinition=pipeline,
+                    RoleArn=role_arn,
+                )
+            else:
+                logging.info(
+                    f"Pipeline with name {pipeline_name} does not exist, creating it",
+                )
+                _ = self.client.create_pipeline(
+                    PipelineName=pipeline_name,
+                    PipelineDefinition=pipeline,
+                    RoleArn=role_arn,
+                )
+
+        logging.info(f"Starting pipeline execution for pipeline {pipeline_name}")
+        _ = self.client.start_pipeline_execution(
+            PipelineName=pipeline_name,
+            ParallelismConfiguration={"MaxParallelExecutionSteps": 1},
+        )
+        logging.info(
+            "Pipeline execution started for pipeline, visit Sagemaker studio to follow up",
+        )
