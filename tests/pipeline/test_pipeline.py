@@ -73,7 +73,7 @@ def test_new_pipeline_interface():
     )
 
     dataset = pipeline.read(
-        name="load_images",
+        name="load_from_hf_hub",
         schema={
             "image": "binary"  # or pa.binary()
         }
@@ -90,7 +90,7 @@ def test_new_pipeline_interface():
     )
 
     dataset = dataset.apply(
-        component_dir="embed_text",
+        name="embed_text",
         consumes={
             "text_data": "text"
         }

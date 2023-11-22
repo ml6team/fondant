@@ -5,10 +5,8 @@ tags:
   - Data loading
 
 produces:
-  dummy_variable:  #TODO: fill in here
-    fields:
-      data:
-        type: binary
+  dummy_variable:
+    type: binary
 
 args:
   dataset_name:
@@ -17,12 +15,12 @@ args:
   column_name_mapping:
     description: Mapping of the consumed hub dataset to fondant column names
     type: dict
-    default: {}
+    default: { }
   image_column_names:
-    description: Optional argument, a list containing the original image column names in case the 
+    description: Optional argument, a list containing the original image column names in case the
       dataset on the hub contains them. Used to format the image from HF hub format to a byte string.
     type: list
-    default: []
+    default: [ ]
   n_rows_to_load:
     description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
     type: int

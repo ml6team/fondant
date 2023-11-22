@@ -67,6 +67,7 @@ class Executor(t.Generic[Component]):
         input_partition_rows: int,
         cluster_type: t.Optional[str] = None,
         client_kwargs: t.Optional[dict] = None,
+        schema: t.Optional[t.Dict[str, str]] = None,
         consumes: t.Optional[t.Dict[str, str]] = None,
         produces: t.Optional[t.Dict[str, str]] = None
     ) -> None:
@@ -77,6 +78,7 @@ class Executor(t.Generic[Component]):
         self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
+        self.schema = schema
         self.consumes = consumes
         self.produces = produces
 
@@ -116,6 +118,7 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--input_partition_rows", type=int)
         parser.add_argument("--cluster_type", type=str)
         parser.add_argument("--client_kwargs", type=json.loads)
+        parser.add_argument("--schema", type=json.loads)
         parser.add_argument("--consumes", type=json.loads)
         parser.add_argument("--produces", type=json.loads)
 
@@ -136,7 +139,7 @@ class Executor(t.Generic[Component]):
             cache=cache,
             input_partition_rows=input_partition_rows,
             cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
+            client_kwargs=client_kwargs
         )
 
     @classmethod
@@ -147,7 +150,7 @@ class Executor(t.Generic[Component]):
         cache: bool,
         input_partition_rows: int,
         cluster_type: t.Optional[str],
-        client_kwargs: t.Optional[dict],
+        client_kwargs: t.Optional[dict]
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
@@ -181,7 +184,7 @@ class Executor(t.Generic[Component]):
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
             cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
+            client_kwargs=client_kwargs
         )
 
     @classmethod
@@ -339,7 +342,7 @@ class Executor(t.Generic[Component]):
         input_manifest: Manifest,
     ) -> Manifest:
         logging.info("Executing component")
-        component = component_cls(self.spec, **self.user_arguments)
+        component = component_cls(self.spec, self.schema, **self.user_arguments)
         output_df = self._execute_component(
             component,
             manifest=input_manifest,
