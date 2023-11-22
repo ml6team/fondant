@@ -7,8 +7,8 @@ from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidManifest
 from fondant.core.manifest import Field, Manifest, Type
 
-manifest_path = Path(__file__).parent.parent / "examples" / "example_specs/manifests"
-component_specs_path = Path(__file__).parent.parent / "examples" / "example_specs/component_specs"
+manifest_path = Path(__file__).parent / "examples" / "manifests"
+component_specs_path = Path(__file__).parent / "examples" / "component_specs"
 
 
 @pytest.fixture()
@@ -84,12 +84,8 @@ def test_manifest_creation():
         cache_key=cache_key,
     )
 
-    manifest.add_fields(
-        [
-            Field(name="width", type=Type("int32")),
-            Field(name="height", type=Type("int32")),
-        ],
-    )
+    manifest.add_or_update_field(Field(name="width", type=Type("int32")))
+    manifest.add_or_update_field(Field(name="height", type=Type("int32")))
     manifest.add_or_update_field(Field(name="data", type=Type("binary")))
 
     assert manifest._specification == {
@@ -139,23 +135,15 @@ def test_manifest_alteration(valid_manifest):
     manifest = Manifest(valid_manifest)
 
     # test adding a subset
-    manifest.add_fields(
-        [
-            Field(name="width2", type=Type("int32")),
-            Field(name="height2", type=Type("int32")),
-        ],
-    )
+    manifest.add_or_update_field(Field(name="width2", type=Type("int32")))
+    manifest.add_or_update_field(Field(name="height2", type=Type("int32")))
 
     assert "width2" in manifest.fields
     assert "height2" in manifest.fields
 
     # test adding a duplicate subset
     with pytest.raises(ValueError, match="A field with name width2 already exists"):
-        manifest.add_fields(
-            [
-                Field(name="width2", type=Type("int32")),
-            ],
-        )
+        manifest.add_or_update_field(Field(name="width2", type=Type("int32")))
 
     # test removing a subset
     manifest.remove_field("width2")
@@ -239,26 +227,9 @@ def test_fields():
     assert "field_1" not in manifest.fields
 
 
-def test_accessing_the_index():
-    """Test that test the index access."""
-    run_id = "A"
-    manifest = Manifest.create(
-        pipeline_name="NAME",
-        base_path="/base_path",
-        run_id=run_id,
-        component_id="component_1",
-        cache_key="42",
-    )
-
-    # Add index field
-    manifest.metadata["component_id"] = "component_2"
-    manifest.add_or_update_field(Field(name="index", type=Type("int32")))
-    assert manifest.index["location"] == "/component_2"
-
-
 def test_field_mapping(valid_manifest):
     """Test field mapping generation."""
-    manifest_path = Path(__file__).parent   / "example_specs/manifests"
+    Path(__file__).parent / "example_specs/manifests"
     manifest = Manifest(valid_manifest)
     field_mapping = manifest.field_mapping
     assert field_mapping == {

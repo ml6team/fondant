@@ -167,21 +167,21 @@ class ComponentSpec:
 
     @property
     def consumes(self) -> t.Mapping[str, Field]:
-        """The subsets consumed by the component as an immutable mapping."""
+        """The fields consumed by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: Field(name=name, type=Type.from_json(field))
-                for name, field in self._specification["consumes"].items()
+                for name, field in self._specification.get("produces", {}).items()
             },
         )
 
     @property
     def produces(self) -> t.Mapping[str, Field]:
-        """The subsets produced by the component as an immutable mapping."""
+        """The fields produced by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: Field(name=name, type=Type.from_json(field))
-                for name, field in self._specification["produces"].items()
+                for name, field in self._specification.get("produces", {}).items()
             },
         )
 

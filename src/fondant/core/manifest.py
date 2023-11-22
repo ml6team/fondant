@@ -196,8 +196,7 @@ class Manifest:
 
     @property
     def fields(self) -> t.Mapping[str, Field]:
-        """The subsets of the manifest as an immutable mapping."""
-        # e.g. ('images', {'location': '/component1', 'type': 'binary'})
+        """The fields of the manifest as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: Field(
@@ -208,18 +207,6 @@ class Manifest:
                 for name, field in self._specification["fields"].items()
             },
         )
-
-    def add_fields(
-        self,
-        fields: t.Iterable[Field],
-    ) -> None:
-        """Add fields to manifest."""
-        for field in fields:
-            if field.name in self._specification["fields"]:
-                msg = f"A field with name {field.name} already exists"
-                raise ValueError(msg)
-
-            self.add_or_update_field(field, overwrite=False)
 
     def add_or_update_field(self, field: Field, overwrite: bool = False):
         """Add or update field to manifest."""
@@ -254,7 +241,7 @@ class Manifest:
             raise ValueError(msg)
 
         self._specification["index"] = {
-            "location": f"/{self.component_id}",
+            "location": f"/{field.location}",
         }
 
     def remove_field(self, name: str) -> None:
@@ -264,7 +251,7 @@ class Manifest:
 
         del self._specification["fields"][name]
 
-    def evolve(  # : PLR0912 (too many branches)
+    def evolve(  # noqa : PLR0912 (too many branches)
         self,
         component_spec: ComponentSpec,
         *,
@@ -288,15 +275,14 @@ class Manifest:
         if run_id is not None:
             evolved_manifest.update_metadata(key="run_id", value=run_id)
 
-        # Update index location as this is currently always rewritten
-        evolved_manifest.add_or_update_field(Field(name="index"))
-        # evolved_manifest._specification["index"][
-        #    "location"
-        # ] = f"/{self.pipeline_name}/{evolved_manifest.run_id}/{component_id}"
+        # Update index location as this is always rewritten
+        evolved_manifest.add_or_update_field(
+            Field(name="index", location=component_spec.component_folder_name),
+        )
 
         # TODO handle additionalFields
 
-        # For each output subset defined in the component, add or update it
+        # Add or update all produced fields defined in the component spec
         for name, field in component_spec.produces.items():
             # If field was part not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update

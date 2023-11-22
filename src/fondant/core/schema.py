@@ -188,7 +188,7 @@ class Field:
 
     @property
     def location(self) -> str:
-        """The absolute location of the field."""
+        """The relative location of the field."""
         return self._location
 
 

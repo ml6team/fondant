@@ -3,18 +3,12 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
-  
+  images_data:
+    type: binary
+
 produces:
-  images:
-    fields:
-      encoding:
-        type: string
-    additionalFields: false
-  additionalSubsets: false
+  images_encoding:
+    type: string
 
 args:
   storage_args:
