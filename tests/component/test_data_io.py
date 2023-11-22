@@ -8,9 +8,9 @@ from fondant.component.data_io import DaskDataLoader, DaskDataWriter
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.manifest import Manifest
 
-manifest_path = Path(__file__).parent.parent / "examples/example_data/manifest.json"
+manifest_path = Path(__file__).parent / "examples/data/manifest.json"
 component_spec_path = (
-    Path(__file__).parent.parent / "examples/example_data/components/1.yaml"
+    Path(__file__).parent / "examples/data/components/1.yaml"
 )
 
 NUMBER_OF_TEST_ROWS = 151

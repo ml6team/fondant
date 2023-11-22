@@ -1,7 +1,7 @@
 {
   "metadata": {
     "pipeline_name": "test_pipeline",
-    "base_path": "tests/examples/example_data",
+    "base_path": "tests/component/examples/data",
     "run_id": "test_pipeline_12345",
     "component_id": "67890"
   },

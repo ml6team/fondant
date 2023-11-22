@@ -549,8 +549,6 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
 
         # Clear divisions if component spec indicates that the index is changed
         if self._infer_index_change():
-            # TODO: might causing issues for merging components
-            # to guarantee fast merging of large dataframes we need to keep the division information
             dataframe.clear_divisions()
 
         return dataframe
