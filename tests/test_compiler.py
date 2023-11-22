@@ -619,7 +619,7 @@ def test_sagemaker_build_command():
         cache_key="42",
     )
     args = {"foo": "bar", "baz": "qux"}
-    command = compiler.build_command(metadata, args)
+    command = compiler._get_build_command(metadata, args)
 
     assert command == [
         "--metadata",
@@ -635,14 +635,14 @@ def test_sagemaker_build_command():
     ]
 
     # with dependencies
-    dependencies = ["component_2"]
+    dependencies = ["component_1"]
 
-    command2 = compiler.build_command(metadata, args, dependencies=dependencies)
+    command2 = compiler._get_build_command(metadata, args, dependencies=dependencies)
 
     assert command2 == [
         *command,
         "--input_manifest_path",
-        "/foo/bar/example_pipeline/example_pipeline_2024/component_2/manifest.json",
+        "/foo/bar/example_pipeline/example_pipeline_2024/component_1/manifest.json",
     ]
 
 
@@ -650,9 +650,9 @@ def test_sagemaker_generate_script(tmp_path_factory):
     compiler = SagemakerCompiler()
     command = ["echo", "hello world"]
     with tmp_path_factory.mktemp("temp") as fn:
-        script = compiler.generate_component_script("component_1", command, fn)
+        script_path = compiler.generate_component_script("component_1", command, fn)
 
-        assert script == f"{fn}/component_1.sh"
+        assert script_path == f"{fn}/component_1.sh"
 
-        with open(script) as f:
+        with open(script_path) as f:
             assert f.read() == "fondant execute main echo hello world"

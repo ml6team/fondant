@@ -65,7 +65,7 @@ class KubeflowRunner(Runner):
             experiment = self.client.get_experiment(experiment_name=experiment_name)
         except ValueError:
             logger.info(
-                f"defined experiment '{experiment_name}' not found. creating new experiment"
+                f"Defined experiment '{experiment_name}' not found. Creating new experiment"
                 f" under this name",
             )
             experiment = self.client.create_experiment(experiment_name)

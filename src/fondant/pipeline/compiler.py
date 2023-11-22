@@ -539,7 +539,7 @@ class SagemakerCompiler(Compiler):
                 msg,
             )
 
-    def build_command(
+    def _get_build_command(
         self,
         metadata: Metadata,
         arguments: t.Dict[str, t.Any],
@@ -582,6 +582,7 @@ class SagemakerCompiler(Compiler):
         self,
         pipeline: Pipeline,
         output_path: str,
+        *,
         instance_type: str = "ml.t3.medium",
         role_arn: t.Optional[str] = None,
     ) -> None:
@@ -593,7 +594,7 @@ class SagemakerCompiler(Compiler):
             output_path: the path where to save the Kubeflow pipeline spec.
             instance_type: the instance type to use for the processing steps
             (see: https://aws.amazon.com/ec2/instance-types/ for options).
-            role_arn: the role arn to use for the processing steps,
+            role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
         """
         run_id = pipeline.get_run_id()
@@ -621,20 +622,22 @@ class SagemakerCompiler(Compiler):
 
                 logger.info(f"Compiling service for {component_name}")
 
-                command = self.build_command(
+                command = self._get_build_command(
                     metadata,
                     component_op.arguments,
                     component["dependencies"],
                 )
                 depends_on = [steps[-1]] if component["dependencies"] else []
 
-                script = self.generate_component_script(
+                script_path = self.generate_component_script(
                     component_name,
                     command,
                     tmpdirname,
                 )
 
                 if not role_arn:
+                    # if no role is provided use the default sagemaker execution role
+                    # https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-ex-role.html
                     role_arn = self.sagemaker.get_execution_role()
 
                 processor = self.sagemaker.processing.ScriptProcessor(
@@ -649,7 +652,7 @@ class SagemakerCompiler(Compiler):
                     name=component_name,
                     processor=processor,
                     depends_on=depends_on,
-                    code=script,
+                    code=script_path,
                 )
                 steps.append(step)
 
@@ -672,9 +675,9 @@ class SagemakerCompiler(Compiler):
         component_name: str,
         command: t.List[str],
         directory: str,
-    ):
+    ) -> str:
         """Generate a bash script for a component to be used as input in a
-        sagemaker pipeline step.
+        sagemaker pipeline step. Returns the path to the script.
         """
         content = " ".join(["fondant", "execute", "main", *command])
 
