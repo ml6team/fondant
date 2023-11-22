@@ -7,7 +7,7 @@ import dask.dataframe as dd
 import streamlit as st
 from fondant.core.manifest import Manifest
 from interfaces.common_interface import MainSideBar
-from utils import get_default_index
+from interfaces.utils import get_default_index
 
 
 class DatasetLoaderApp(MainSideBar):

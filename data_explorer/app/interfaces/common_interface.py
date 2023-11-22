@@ -7,7 +7,7 @@ import os
 import fsspec
 import streamlit as st
 from config import SESSION_STATE_VARIABLES
-from utils import get_default_index
+from interfaces.utils import get_default_index
 
 LOGGER = logging.getLogger(__name__)
 
