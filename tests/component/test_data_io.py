@@ -14,7 +14,6 @@ component_spec_path = (
 )
 
 NUMBER_OF_TEST_ROWS = 151
-NUMBER_OF_TEST_ROWS = 151
 
 
 @pytest.fixture()
@@ -99,7 +98,6 @@ def test_write_dataset(
 
 
 # TODO: check if this is still needed?
-# Change this to a validation instead?
 def test_write_reset_index(
     tmp_path_factory,
     dataframe,

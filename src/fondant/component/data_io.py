@@ -11,6 +11,8 @@ from fondant.core.manifest import Manifest
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_INDEX_NAME = "id"
+
 
 class DataIO:
     def __init__(self, *, manifest: Manifest, component_spec: ComponentSpec) -> None:
@@ -82,31 +84,13 @@ class DaskDataLoader(DataIO):
 
         return dataframe
 
-    # TODO: probably not needed anymore!
-    def _load_index(self) -> dd.DataFrame:
-        """
-        Function that loads the index from the manifest as a Dask dataframe.
-
-        Returns:
-            The index as a dask dataframe
-        """
-        # get index subset from the manifest
-        index = self.manifest.index
-        # get remote path
-        remote_path = index["location"]
-
-        # load index from parquet, expecting id and source columns
-        # TODO: reduce dataframe to index loading? .loc[:, []]?
-        return dd.read_parquet(remote_path, calculate_divisions=True)
-
     def load_dataframe(self) -> dd.DataFrame:
         """
         Function that loads the subsets defined in the component spec as a single Dask dataframe for
           the user.
 
         Returns:
-            The Dask dataframe with the field columns in the format (<subset>_<column_name>)
-                as well as the index columns.
+            The Dask dataframe with all columns defined in the manifest field mapping
         """
         dataframe = None
         field_mapping = self.manifest.field_mapping
@@ -114,7 +98,7 @@ class DaskDataLoader(DataIO):
             partial_df = dd.read_parquet(
                 location,
                 columns=fields,
-                index="id",
+                index=DEFAULT_INDEX_NAME,
                 calculate_divisions=True,
             )
 
@@ -122,12 +106,16 @@ class DaskDataLoader(DataIO):
                 # ensure that the index is set correctly and divisions are known.
                 dataframe = partial_df
             else:
-                dask_divisions = partial_df.set_index("id").divisions
-                unique_divisions = list(dict.fromkeys(list(dask_divisions)))
+                dask_divisions = dataframe.divisions
+                unique_divisions = list(set(dask_divisions))
 
                 # apply set index to both dataframes
-                partial_df = partial_df.set_index("id", divisions=unique_divisions)
-                dataframe = dataframe.set_index("id", divisions=unique_divisions)
+                partial_df = partial_df.set_index(
+                    DEFAULT_INDEX_NAME, divisions=unique_divisions
+                )
+                dataframe = dataframe.set_index(
+                    DEFAULT_INDEX_NAME, divisions=unique_divisions
+                )
 
                 dataframe = dataframe.merge(
                     partial_df,
@@ -160,6 +148,8 @@ class DaskDataWriter(DataIO):
         columns_to_produce = [
             column_name for column_name, field in self.component_spec.produces.items()
         ]
+
+        dataframe.index = dataframe.index.rename(DEFAULT_INDEX_NAME)
 
         # validation that all columns are in the dataframe
         self.validate_dataframe_columns(dataframe, columns_to_produce)
