@@ -3,15 +3,11 @@ description: This is an example component
 image: example_component:latest
 
 produces:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 
-  captions:
-    fields:
-      data:
-        type: string
+  captions_data:
+    type: string
 
 args:
   storage_args:

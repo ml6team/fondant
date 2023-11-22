@@ -27,9 +27,11 @@ class DaskDataLoader(DataIO):
         manifest: Manifest,
         component_spec: ComponentSpec,
         input_partition_rows: t.Optional[int] = None,
+        consumes: t.Optional[t.Dict[str, str]] = None
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows
+        self.consumes = consumes
 
     def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
@@ -126,8 +128,15 @@ class DaskDataLoader(DataIO):
 
         dataframe = self.partition_loaded_dataframe(dataframe)
 
+
         logging.info(f"Columns of dataframe: {list(dataframe.columns)}")
 
+        # rename columns accordingly to the consumes
+        if self.consumes:
+            reverted_consumes = {v: k for k, v in self.consumes.items()}
+            dataframe = dataframe.rename(columns=reverted_consumes)
+
+        logging.info(f"Columns of components dataframe: {list(dataframe.columns)}")
         return dataframe
 
 
@@ -137,8 +146,10 @@ class DaskDataWriter(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
+        produces: t.Optional[t.Dict[str, str]] = None
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
+        self.producer = produces
 
     def write_dataframe(
         self,
@@ -155,6 +166,12 @@ class DaskDataWriter(DataIO):
         self.validate_dataframe_columns(dataframe, columns_to_produce)
 
         dataframe = dataframe[columns_to_produce]
+
+        # Rename produces accordingly
+        if self.produces:
+            reverted_produces = {v: k for k, v in self.produces.items()}
+            dataframe = dataframe.rename(columns=reverted_produces)
+
         write_task = self._write_dataframe(dataframe)
 
         with ProgressBar():

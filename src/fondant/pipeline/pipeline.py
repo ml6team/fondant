@@ -138,6 +138,8 @@ class ComponentOp:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
         resources: t.Optional[Resources] = None,
+        consumes: t.Optional[t.Dict[str, t.Any]] = None,
+        produces: t.Optional[t.Dict[str, t.Any]] = None
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -154,6 +156,8 @@ class ComponentOp:
         self._add_component_argument("cache", self.cache)
         self._add_component_argument("cluster_type", cluster_type)
         self._add_component_argument("client_kwargs", client_kwargs)
+        self._add_component_argument("consumes", consumes)
+        self._add_component_argument("produces", produces)
 
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
@@ -221,6 +225,8 @@ class ComponentOp:
         cache: t.Optional[bool] = True,
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
+        consumes: t.Optional[t.Dict[str, t.Any]] = None,
+        produces: t.Optional[t.Dict[str, t.Any]] = None
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -248,6 +254,8 @@ class ComponentOp:
             cache=cache,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
+            consumes=consumes,
+            produces=produces
         )
 
     def get_component_cache_key(
@@ -319,11 +327,54 @@ class Pipeline:
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
 
+
+    def apply(self, name, consumes, produces) -> "Pipeline":
+        """
+        Args:
+            name: Either component name from registry or local path
+            consumes:
+            produces:
+
+        Returns:
+
+        """
+        for field in consumes:
+            setattr(self, field, field)
+
+        for field in produces:
+            setattr(self, field, field)
+
+        component_op = self._get_component_op(name, consumes, produces)
+        previous_component = list(self._graph.items())[-1]
+
+        if previous_component is None:
+            msg = f"No previous component found."
+            raise ValueError(msg)
+
+
+        self.add_op(component_op, dependencies=previous_component)
+        return self
+
+
+
+    @staticmethod
+    def _get_component_op(path_or_name, consumes, produces):
+        """Return either a custom component when name is a path, or a component from registry."""
+        components_dir: Path = Path(path_or_name)
+        if (components_dir.exists() and components_dir.is_dir()):
+            return ComponentOp(component_dir=path_or_name, consumes=consumes, produces=produces)
+        else:
+            components_dir: Path = t.cast(Path, files("fondant") / f"components/{path_or_name}")
+            if not (components_dir.exists() and components_dir.is_dir()):
+                msg = f"No reusable component with name {path_or_name} found."
+                raise ValueError(msg)
+            return ComponentOp.from_registry(path_or_name, consumes=consumes, produces=produces)
+
     def add_op(
         self,
         task: ComponentOp,
         dependencies: t.Optional[t.Union[ComponentOp, t.List[ComponentOp]]] = None,
-    ):
+    ) -> "Pipeline":
         """
         Add a task to the pipeline with an optional dependency.
 
@@ -332,6 +383,8 @@ class Pipeline:
             dependencies: Optional task dependencies that needs to be completed before the task
              can run.
         """
+
+
         if dependencies is None:
             if self.task_without_dependencies_added:
                 msg = "At most one task can be defined without dependencies."
@@ -360,6 +413,8 @@ class Pipeline:
             "fondant_component_op": task,
             "dependencies": dependencies_names,
         }
+
+        return self
 
     def sort_graph(self):
         """Sort the graph topologically based on task dependencies."""

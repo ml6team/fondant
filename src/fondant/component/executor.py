@@ -67,6 +67,8 @@ class Executor(t.Generic[Component]):
         input_partition_rows: int,
         cluster_type: t.Optional[str] = None,
         client_kwargs: t.Optional[dict] = None,
+        consumes: t.Optional[t.Dict[str, str]] = None,
+        produces: t.Optional[t.Dict[str, str]] = None
     ) -> None:
         self.spec = spec
         self.cache = cache
@@ -75,6 +77,8 @@ class Executor(t.Generic[Component]):
         self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
+        self.consumes = consumes
+        self.produces = produces
 
         if cluster_type == "local":
             client_kwargs = client_kwargs or {
@@ -112,6 +116,9 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--input_partition_rows", type=int)
         parser.add_argument("--cluster_type", type=str)
         parser.add_argument("--client_kwargs", type=json.loads)
+        parser.add_argument("--consumes", type=json.loads)
+        parser.add_argument("--produces", type=json.loads)
+
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -251,11 +258,12 @@ class Executor(t.Generic[Component]):
             A Dask DataFrame containing the output data
         """
 
-    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
+    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest, produces: t.Optional[t.Dict[str, str]]):
         """Create a data writer given a manifest and writes out the index and subsets."""
         data_writer = DaskDataWriter(
             manifest=manifest,
             component_spec=self.spec,
+            produces=produces
         )
 
         data_writer.write_dataframe(dataframe, self.client)
@@ -340,7 +348,7 @@ class Executor(t.Generic[Component]):
             component_spec=self.spec,
             run_id=self.metadata.run_id,
         )
-        self._write_data(dataframe=output_df, manifest=output_manifest)
+        self._write_data(dataframe=output_df, manifest=output_manifest, produces=self.produces)
 
         return output_manifest
 
@@ -478,6 +486,7 @@ class DaskTransformExecutor(TransformExecutor[DaskTransformComponent]):
             manifest=manifest,
             component_spec=self.spec,
             input_partition_rows=self.input_partition_rows,
+            consumes=self.consumes
         )
         dataframe = data_loader.load_dataframe()
         return component.transform(dataframe)
@@ -530,6 +539,7 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
             manifest=manifest,
             component_spec=self.spec,
             input_partition_rows=self.input_partition_rows,
+            consumes=self.consumes
         )
         dataframe = data_loader.load_dataframe()
 
@@ -591,6 +601,7 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
             manifest=manifest,
             component_spec=self.spec,
             input_partition_rows=self.input_partition_rows,
+            consumes=self.consumes
         )
         dataframe = data_loader.load_dataframe()
         component.write(dataframe)

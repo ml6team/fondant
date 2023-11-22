@@ -8,8 +8,8 @@ from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.pipeline import ComponentOp, Pipeline, Resources
 
-valid_pipeline_path = Path(__file__).parent / "example_pipelines/valid_pipeline"
-invalid_pipeline_path = Path(__file__).parent / "example_pipelines/invalid_pipeline"
+valid_pipeline_path = Path(__file__).parent / "examples/pipelines/valid_pipeline"
+invalid_pipeline_path = Path(__file__).parent / "examples/pipelines/invalid_pipeline"
 
 
 def yaml_file_to_dict(file_path):
@@ -29,13 +29,13 @@ def default_pipeline_args():
     "valid_pipeline_example",
     [
         (
-            "example_1",
-            ["first_component", "second_component", "third_component"],
+                "example_1",
+                ["first_component", "second_component", "third_component"],
         ),
     ],
 )
 def test_component_op(
-    valid_pipeline_example,
+        valid_pipeline_example,
 ):
     component_args = {"storage_args": "a dummy string arg"}
     example_dir, component_names = valid_pipeline_example
@@ -65,18 +65,60 @@ def test_component_op(
         )
 
 
+def test_new_pipeline_interface():
+    pipeline = Pipeline(
+        pipeline_name="my_pipeline",
+        pipeline_description="description of my pipeline",
+        base_path="/foo/bar",
+    )
+
+    dataset = pipeline.read(
+        name="load_images",
+        schema={
+            "image": "binary"  # or pa.binary()
+        }
+    )
+
+    dataset = dataset.apply(
+        name="caption_images",
+        consumes={
+            "images_data": "image"
+        },
+        produces={
+            "captions": "text"
+        }
+    )
+
+    dataset = dataset.apply(
+        component_dir="embed_text",
+        consumes={
+            "text_data": "text"
+        }
+    )
+
+    dataset.write(
+        name="write_data",
+        schema={
+            "image": "image",
+            "caption": "text"
+        }
+    )
+
+    assert True
+
+
 @pytest.mark.parametrize(
     "valid_pipeline_example",
     [
         (
-            "example_1",
-            ["first_component", "second_component", "third_component"],
+                "example_1",
+                ["first_component", "second_component", "third_component"],
         ),
     ],
 )
 def test_component_op_hash(
-    valid_pipeline_example,
-    monkeypatch,
+        valid_pipeline_example,
+        monkeypatch,
 ):
     example_dir, component_names = valid_pipeline_example
     components_path = Path(valid_pipeline_path / example_dir)
@@ -99,16 +141,16 @@ def test_component_op_hash(
     comp_0_op_spec_0_copy = copy.deepcopy(comp_0_op_spec_0)
 
     assert (
-        comp_0_op_spec_0.get_component_cache_key()
-        != comp_0_op_spec_1.get_component_cache_key()
+            comp_0_op_spec_0.get_component_cache_key()
+            != comp_0_op_spec_1.get_component_cache_key()
     )
     assert (
-        comp_0_op_spec_0.get_component_cache_key()
-        == comp_0_op_spec_0_copy.get_component_cache_key()
+            comp_0_op_spec_0.get_component_cache_key()
+            == comp_0_op_spec_0_copy.get_component_cache_key()
     )
     assert (
-        comp_0_op_spec_0.get_component_cache_key()
-        != comp_1_op_spec_0.get_component_cache_key()
+            comp_0_op_spec_0.get_component_cache_key()
+            != comp_1_op_spec_0.get_component_cache_key()
     )
 
 
@@ -135,16 +177,16 @@ def test_component_op_caching_strategy(monkeypatch):
     "valid_pipeline_example",
     [
         (
-            "example_1",
-            ["first_component", "second_component", "third_component"],
+                "example_1",
+                ["first_component", "second_component", "third_component"],
         ),
     ],
 )
 def test_valid_pipeline(
-    default_pipeline_args,
-    valid_pipeline_example,
-    tmp_path,
-    monkeypatch,
+        default_pipeline_args,
+        valid_pipeline_example,
+        tmp_path,
+        monkeypatch,
 ):
     """Test that a valid pipeline definition can be compiled without errors."""
     example_dir, component_names = valid_pipeline_example
@@ -190,8 +232,8 @@ def test_valid_pipeline(
     "valid_pipeline_example",
     [
         (
-            "example_1",
-            ["first_component", "second_component", "third_component"],
+                "example_1",
+                ["first_component", "second_component", "third_component"],
         ),
     ],
 )
@@ -234,8 +276,8 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
     ],
 )
 def test_invalid_pipeline_declaration(
-    default_pipeline_args,
-    invalid_pipeline_example,
+        default_pipeline_args,
+        invalid_pipeline_example,
 ):
     """Test that an InvalidPipelineDefinition exception is raised when attempting
     to register invalid components combinations.
@@ -304,8 +346,8 @@ def test_reusable_component_op():
 
     component_name = "this_component_does_not_exist"
     with pytest.raises(
-        ValueError,
-        match=f"No reusable component with name {component_name} " "found.",
+            ValueError,
+            match=f"No reusable component with name {component_name} " "found.",
     ):
         ComponentOp.from_registry(
             name=component_name,
@@ -332,8 +374,8 @@ def test_defining_reusable_component_op_with_custom_spec():
     )
 
     assert (
-        load_from_hub_custom_op.component_spec
-        == load_from_hub_default_op.component_spec
+            load_from_hub_custom_op.component_spec
+            == load_from_hub_default_op.component_spec
     )
 
 

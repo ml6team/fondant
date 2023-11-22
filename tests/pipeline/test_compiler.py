@@ -18,9 +18,9 @@ from fondant.testing import (
     VertexPipelineConfigs,
 )
 
-COMPONENTS_PATH = Path("./tests/example_pipelines/valid_pipeline")
+COMPONENTS_PATH = Path("./tests/pipeline/examples/pipelines/valid_pipeline")
 
-VALID_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
+VALID_PIPELINE = Path("./tests/pipeline/examples/pipelines/compiled_pipeline/")
 
 TEST_PIPELINES = [
     (
