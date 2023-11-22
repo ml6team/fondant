@@ -126,32 +126,3 @@ class VertexRunner(Runner):
         with open(input_spec) as f:
             spec = yaml.safe_load(f)
             return spec["pipelineInfo"]["name"]
-
-
-class SagemakerRunner(Runner):
-    def __init__(self):
-        self.__resolve_imports()
-
-    def __resolve_imports(self):
-        import boto3
-
-        self.boto3 = boto3
-
-    def run(self, input_spec: str, *args, **kwargs):
-        """Run a sagemaker pipeline."""
-        client = self.boto3.client("sagemaker")
-
-        with open(input_spec) as f:
-            pipeline = f.read()
-            response = client.create_pipeline(
-                PipelineName="my-pipeline11",
-                PipelineDefinition=pipeline,
-                RoleArn="arn:aws:iam::281086077386:role/service-role/AmazonSageMaker-ExecutionRole-20231107T160823",
-            )
-            print(response)
-
-    def get_name_from_spec(self, input_spec: str):
-        """Get the name of the pipeline from the spec."""
-        with open(input_spec) as f:
-            spec = yaml.safe_load(f)
-            return spec["pipelineInfo"]["name"]

@@ -6,10 +6,12 @@ from unittest import mock
 
 import pytest
 from fondant.core.exceptions import InvalidPipelineDefinition
+from fondant.core.manifest import Metadata
 from fondant.pipeline import ComponentOp, Pipeline, Resources
 from fondant.pipeline.compiler import (
     DockerCompiler,
     KubeFlowCompiler,
+    SagemakerCompiler,
     VertexCompiler,
 )
 from fondant.testing import (
@@ -605,3 +607,52 @@ def test_caching_dependency_kfp(tmp_path_factory):
         second_component_cache_key_dict[arg_list[0]]
         != second_component_cache_key_dict[arg_list[1]]
     )
+
+
+def test_sagemaker_build_command():
+    compiler = SagemakerCompiler()
+    metadata = Metadata(
+        pipeline_name="example_pipeline",
+        base_path="/foo/bar",
+        component_id="component_2",
+        run_id="example_pipeline_2024",
+        cache_key="42",
+    )
+    args = {"foo": "bar", "baz": "qux"}
+    command = compiler.build_command(metadata, args)
+
+    assert command == [
+        "--metadata",
+        '\'{"base_path": "/foo/bar", "pipeline_name": "example_pipeline", '
+        '"run_id": "example_pipeline_2024", "component_id": "component_2", '
+        '"cache_key": "42"}\'',
+        "--output_manifest_path",
+        "/foo/bar/example_pipeline/example_pipeline_2024/component_2/manifest.json",
+        "--foo",
+        "'bar'",
+        "--baz",
+        "'qux'",
+    ]
+
+    # with dependencies
+    dependencies = ["component_2"]
+
+    command2 = compiler.build_command(metadata, args, dependencies=dependencies)
+
+    assert command2 == [
+        *command,
+        "--input_manifest_path",
+        "/foo/bar/example_pipeline/example_pipeline_2024/component_2/manifest.json",
+    ]
+
+
+def test_sagemaker_generate_script(tmp_path_factory):
+    compiler = SagemakerCompiler()
+    command = ["echo", "hello world"]
+    with tmp_path_factory.mktemp("temp") as fn:
+        script = compiler.generate_component_script("component_1", command, fn)
+
+        assert script == f"{fn}/component_1.sh"
+
+        with open(script) as f:
+            assert f.read() == "fondant execute main echo hello world"
