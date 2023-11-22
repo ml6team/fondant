@@ -90,10 +90,6 @@ how you can use it to your advantage.
 Learn how to contribute to the Fondant project through
 our [contribution guidelines](contributing.md).
 
-## FAQ
-
-Browse through the [frequently asked questions](faq.md) about Fondant.
-
 ## Announcements
 
 Check out our latest [announcements] about Fondant.
