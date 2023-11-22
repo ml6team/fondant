@@ -4,6 +4,7 @@ import json
 import pkgutil
 import types
 import typing as t
+from collections import OrderedDict
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -144,8 +145,8 @@ class Manifest:
         return self._specification["metadata"]
 
     @property
-    def index(self) -> t.Dict[str, t.Any]:
-        return self._specification["index"]
+    def index(self) -> Field:
+        return Field(name="Index", location=self._specification["index"]["location"])
 
     def update_metadata(self, key: str, value: t.Any) -> None:
         self.metadata[key] = value
@@ -155,11 +156,14 @@ class Manifest:
         return self.metadata["base_path"]
 
     @property
-    def field_mapping(self):
+    def field_mapping(self) -> t.Mapping[str, t.List[str]]:
         """
         Retrieve a mapping of field locations to corresponding field names.
         A dictionary where keys are field locations and values are lists
         of column names.
+
+        The method returns an immutable OrderedDict where the first dict element contains the
+        location of the dataframe with the index. This allows an efficient left join operation.
 
         Example:
            {
@@ -168,7 +172,7 @@ class Manifest:
            }
         """
         field_mapping = {}
-        for field_name, field in self.fields.items():
+        for field_name, field in {"Index": self.index, **self.fields}.items():
             location = (
                 f"{self.base_path}/{self.pipeline_name}/{self.run_id}{field.location}"
             )
@@ -176,7 +180,15 @@ class Manifest:
                 field_mapping[location].append(field_name)
             else:
                 field_mapping[location] = [field_name]
-        return field_mapping
+
+
+        # Sort field mapping that the first dataset contains the index
+        sorted_keys = sorted(field_mapping.keys(), key=lambda key: "Index" in field_mapping[key], reverse=True)
+        sorted_field_mapping = OrderedDict(
+            (key, field_mapping[key]) for key in sorted_keys
+        )
+
+        return types.MappingProxyType(sorted_field_mapping)
 
     @property
     def run_id(self) -> str:
@@ -221,7 +233,7 @@ class Manifest:
         else:
             self._specification["fields"][field.name] = {
                 "location": f"/{self.component_id}",
-                "type": field.type.name,
+                "type": field.type.to_json(),
             }
 
     def _add_or_update_index(self, field: Field, overwrite: bool = True):

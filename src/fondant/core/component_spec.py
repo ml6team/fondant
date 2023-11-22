@@ -162,16 +162,12 @@ class ComponentSpec:
         return self._specification.get("tags", None)
 
     @property
-    def index(self):
-        return Field(name="index", location=self._specification["index"].location)
-
-    @property
     def consumes(self) -> t.Mapping[str, Field]:
         """The fields consumed by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
                 name: Field(name=name, type=Type.from_json(field))
-                for name, field in self._specification.get("produces", {}).items()
+                for name, field in self._specification.get("consumes", {}).items()
             },
         )
 

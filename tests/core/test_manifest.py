@@ -1,5 +1,6 @@
 import json
 import pkgutil
+from collections import OrderedDict
 from pathlib import Path
 
 import pytest
@@ -229,11 +230,17 @@ def test_fields():
 
 def test_field_mapping(valid_manifest):
     """Test field mapping generation."""
-    Path(__file__).parent / "example_specs/manifests"
     manifest = Manifest(valid_manifest)
+    manifest.add_or_update_field(Field(name="index", location="component2"))
     field_mapping = manifest.field_mapping
-    assert field_mapping == {
-        "gs://bucket/test_pipeline/test_pipeline_12345/component1": ["images"],
-        "gs://bucket/test_pipeline/test_pipeline_12345/component2": ["height", "width"],
-        "gs://bucket/test_pipeline/test_pipeline_12345/component3": ["caption"],
-    }
+    assert field_mapping == OrderedDict(
+        {
+            "gs://bucket/test_pipeline/test_pipeline_12345/component2": [
+                "Index",
+                "height",
+                "width",
+            ],
+            "gs://bucket/test_pipeline/test_pipeline_12345/component1": ["images"],
+            "gs://bucket/test_pipeline/test_pipeline_12345/component3": ["caption"],
+        }
+    )
