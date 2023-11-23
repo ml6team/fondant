@@ -172,7 +172,7 @@ class Manifest:
            }
         """
         field_mapping = {}
-        for field_name, field in {"Index": self.index, **self.fields}.items():
+        for field_name, field in {"id": self.index, **self.fields}.items():
             location = (
                 f"{self.base_path}/{self.pipeline_name}/{self.run_id}{field.location}"
             )
@@ -181,9 +181,12 @@ class Manifest:
             else:
                 field_mapping[location] = [field_name]
 
-
         # Sort field mapping that the first dataset contains the index
-        sorted_keys = sorted(field_mapping.keys(), key=lambda key: "Index" in field_mapping[key], reverse=True)
+        sorted_keys = sorted(
+            field_mapping.keys(),
+            key=lambda key: "id" in field_mapping[key],
+            reverse=True,
+        )
         sorted_field_mapping = OrderedDict(
             (key, field_mapping[key]) for key in sorted_keys
         )
@@ -233,7 +236,7 @@ class Manifest:
         else:
             self._specification["fields"][field.name] = {
                 "location": f"/{self.component_id}",
-                "type": field.type.to_json(),
+                **field.type.to_json(),
             }
 
     def _add_or_update_index(self, field: Field, overwrite: bool = True):

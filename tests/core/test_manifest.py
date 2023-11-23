@@ -64,7 +64,7 @@ def test_attribute_access(valid_manifest):
     manifest = Manifest(valid_manifest)
 
     assert manifest.metadata == valid_manifest["metadata"]
-    assert manifest.index["location"] == "/component1"
+    assert manifest.index.location == "/component1"
     assert manifest.fields["images"].location == "/component1"
     assert manifest.fields["images"].type == Type("binary")
 
@@ -186,7 +186,7 @@ def test_evolve_manifest():
 
     assert output_manifest.base_path == input_manifest.base_path
     assert output_manifest.run_id == run_id
-    assert output_manifest.index["location"] == "/" + spec.component_folder_name
+    assert output_manifest.index.location == "/" + spec.component_folder_name
     assert output_manifest.fields["captions"].type.name == "string"
 
 
@@ -236,11 +236,11 @@ def test_field_mapping(valid_manifest):
     assert field_mapping == OrderedDict(
         {
             "gs://bucket/test_pipeline/test_pipeline_12345/component2": [
-                "Index",
+                "id",
                 "height",
                 "width",
             ],
             "gs://bucket/test_pipeline/test_pipeline_12345/component1": ["images"],
             "gs://bucket/test_pipeline/test_pipeline_12345/component3": ["caption"],
-        }
+        },
     )
