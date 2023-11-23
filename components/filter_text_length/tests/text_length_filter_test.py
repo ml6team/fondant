@@ -24,6 +24,6 @@ def test_run_component_test():
     # Then: dataframe only contains one row
     assert len(dataframe) == 1
     assert (
-        dataframe.loc[2]["text"]["data"]
+        dataframe.loc[2]["text_data"]
         == "This a valid sentence which should be still there"
     )

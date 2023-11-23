@@ -119,7 +119,7 @@ class DownloadImagesComponent(PandasTransformComponent):
             images = await asyncio.gather(
                 *[
                     self.download_and_resize_image(id_, url, semaphore=semaphore)
-                    for id_, url in zip(dataframe.index, dataframe["images"]["url"])
+                    for id_, url in zip(dataframe.index, dataframe["images_url"])
                 ],
             )
             results.extend(images)
@@ -134,8 +134,5 @@ class DownloadImagesComponent(PandasTransformComponent):
 
         results_df = results_df.dropna()
         results_df = results_df.set_index("id", drop=True)
-        results_df.columns = pd.MultiIndex.from_product(
-            [["images"], results_df.columns],
-        )
 
         return results_df

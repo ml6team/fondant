@@ -3,11 +3,11 @@ import pandas as pd
 from src.main import ChunkTextComponent
 
 
-def test_transform():
+def test_transform__():
     """Test chunk component method."""
     input_dataframe = pd.DataFrame(
         {
-            ("text", "data"): [
+            ("text_data"): [
                 "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo",
                 "ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis",
                 "parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec,",
@@ -25,8 +25,8 @@ def test_transform():
 
     expected_output_dataframe = pd.DataFrame(
         {
-            ("text", "original_document_id"): ["a", "a", "a", "b", "b", "c", "c"],
-            ("text", "data"): [
+            ("text_original_document_id"): ["a", "a", "a", "b", "b", "c", "c"],
+            ("text_data"): [
                 "Lorem ipsum dolor sit amet, consectetuer",
                 "amet, consectetuer adipiscing elit. Aenean",
                 "elit. Aenean commodo",
