@@ -1,7 +1,7 @@
 {
   "metadata": {
     "pipeline_name": "example_pipeline",
-    "base_path": "tests/component/examples/mock_base_path",
+    "base_path": "tests/example_data/subsets_input/mock_base_path",
     "run_id": "example_pipeline_123",
     "component_id": "component_1",
     "cache_key": "00"
