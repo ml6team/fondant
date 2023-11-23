@@ -6,7 +6,7 @@ tags:
 
 consumes:
   dummy_variable:
-        type: binary
+    type: binary
 
 args:
   hf_token:
@@ -21,7 +21,7 @@ args:
   image_column_names:
     description: A list containing the image column names. Used to format to image to HF hub format
     type: list
-    default: []
+    default: [ ]
   column_name_mapping:
     description: Mapping of the consumed fondant column names to the written hub column names
     type: dict

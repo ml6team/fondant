@@ -3,7 +3,7 @@ import pandas as pd
 from src.main import ChunkTextComponent
 
 
-def test_transform__():
+def test_transform():
     """Test chunk component method."""
     input_dataframe = pd.DataFrame(
         {

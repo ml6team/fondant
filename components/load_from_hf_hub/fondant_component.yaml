@@ -15,7 +15,7 @@ args:
   column_name_mapping:
     description: Mapping of the consumed hub dataset to fondant column names
     type: dict
-    default: { }
+    default: {}
   image_column_names:
     description: Optional argument, a list containing the original image column names in case the
       dataset on the hub contains them. Used to format the image from HF hub format to a byte string.
