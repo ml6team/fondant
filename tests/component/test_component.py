@@ -23,8 +23,8 @@ from fondant.component.executor import (
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.manifest import Manifest, Metadata
 
-components_path = Path(__file__).parent / "example_specs/components"
-base_path = Path(__file__).parent / "example_specs/mock_base_path"
+components_path = Path(__file__).parent / "examples/component_specs"
+base_path = Path(__file__).parent / "examples/mock_base_path"
 
 N_PARTITIONS = 2
 
