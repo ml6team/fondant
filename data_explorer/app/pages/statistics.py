@@ -83,8 +83,6 @@ class NumericAnalysisApp(DatasetLoaderApp):
         # check if there are numeric fields
         if len(numeric_fields) == 0:
             st.warning("There are no numeric fields in this subset")
-        else:
-            st.write("## Numerical statistics")
 
             # make numeric statistics table
             aggregation_dataframe = self.make_numeric_statistics_table(
@@ -113,20 +111,18 @@ class NumericAnalysisApp(DatasetLoaderApp):
         # check if there are numeric fields
         if len(numeric_fields) == 0:
             st.warning("There are no numeric fields in this subset")
-        else:
-            st.write("## Show numeric distributions")
 
-            # choose a numeric field in dropdown
-            cols = st.columns(2)
-            with cols[0]:
-                numeric_field = st.selectbox("Field", numeric_fields)
-            with cols[1]:
-                plot_type = st.selectbox(
-                    "Plot type",
-                    ["histogram", "violin", "density", "categorical"],
-                )
+        # choose a numeric field in dropdown
+        cols = st.columns(2)
+        with cols[0]:
+            numeric_field = st.selectbox("Field", numeric_fields)
+        with cols[1]:
+            plot_type = st.selectbox(
+                "Plot type",
+                ["histogram", "violin", "density", "categorical"],
+            )
 
-            self.make_numeric_plot(dataframe, numeric_field, plot_type)
+        self.make_numeric_plot(dataframe, numeric_field, plot_type)
 
     def setup_app_page(self, dataframe, fields):
         numeric_fields = get_numeric_fields(fields)
@@ -135,6 +131,6 @@ class NumericAnalysisApp(DatasetLoaderApp):
 
 
 app = NumericAnalysisApp()
-app.create_common_sidebar()
+app.create_common_interface()
 df, df_fields = app.create_loader_widget()
 app.setup_app_page(df, df_fields)
