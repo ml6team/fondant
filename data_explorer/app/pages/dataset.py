@@ -45,9 +45,6 @@ class DatasetExplorerApp(DatasetLoaderApp):
     @staticmethod
     def setup_app_page(dataframe, fields) -> AgGridReturn:
         """Build the dataframe explorer table."""
-        st.write("## Dataframe explorer")
-        st.write("In this table, you can explore the dataframe")
-
         image_fields = get_image_fields(fields)
 
         # get the first rows of the dataframe
@@ -150,7 +147,7 @@ class DatasetExplorerApp(DatasetLoaderApp):
 
 
 app = DatasetExplorerApp()
-app.create_common_sidebar()
+app.create_common_interface()
 df, df_fields = app.create_loader_widget()
 grid_data_dict = app.setup_app_page(df, df_fields)
 app.setup_viewer_widget(grid_data_dict, df_fields)

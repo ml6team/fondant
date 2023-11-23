@@ -8,6 +8,7 @@ import fsspec
 import streamlit as st
 from config import SESSION_STATE_VARIABLES
 from interfaces.utils import get_default_index
+from streamlit_extras.app_logo import add_logo
 
 LOGGER = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ class AppStateInterface:
         self._get_base_path()
 
 
-class MainSideBar:
+class MainInterface:
     """Abstract app class for the data explorer. The app class is responsible for
     initializing the state variables, setting up the sidebar and main page of the app,
     and providing a method to setup the main page content.
@@ -110,11 +111,26 @@ class MainSideBar:
         st.session_state["run"] = selected_run
         st.session_state["run_path"] = selected_run_path
 
-    def create_common_sidebar(self):
-        """Sets up the Streamlit app's sidebar with common elements."""
+    def create_common_interface(self):
+        """Sets up the Streamlit app's main interface with common elements."""
+        add_logo("content/fondant_logo.png")
+
         with st.sidebar:
+            # Increase the width of the sidebar to accomodate logo
+            st.markdown(
+                """
+                <style>
+                    section[data-testid="stSidebar"] {
+                        width: 350px !important;
+                    }
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
             self._display_base_info()
+
+        cols = st.columns(2)
+        with cols[0]:
             self._select_pipeline()
+        with cols[1]:
             self._select_run()
-            st.markdown("""---""")
-            st.image("content/fondant_banner.svg", width=250)

@@ -6,11 +6,11 @@ import typing as t
 import dask.dataframe as dd
 import streamlit as st
 from fondant.core.manifest import Manifest
-from interfaces.common_interface import MainSideBar
+from interfaces.common_interface import MainInterface
 from interfaces.utils import get_default_index
 
 
-class DatasetLoaderApp(MainSideBar):
+class DatasetLoaderApp(MainInterface):
     def __init__(self):
         super().__init__()
 
@@ -35,17 +35,25 @@ class DatasetLoaderApp(MainSideBar):
 
         return selected_component_path
 
-    @staticmethod
-    def _get_manifest_fields_and_subset(component_path: str):
+    def _get_manifest_fields_and_subset(self):
         """Get fields and subset from manifest and store them in session state."""
-        manifest_path = os.path.join(component_path, "manifest.json")
-        manifest = Manifest.from_file(manifest_path)
+        cols = st.columns(3)
 
+        with cols[0]:
+            selected_component_path = self._select_component()
+
+        manifest_path = os.path.join(selected_component_path, "manifest.json")
+        manifest = Manifest.from_file(manifest_path)
         subsets = manifest.subsets.keys()
-        subset = st.selectbox("Subset", subsets)
+
+        with cols[1]:
+            subset = st.selectbox("Select subset", subsets)
 
         fields = manifest.subsets[subset].fields
-        fields = st.multiselect("Fields", fields, default=fields)
+
+        with cols[2]:
+            fields = st.multiselect("Fields", fields, default=fields)
+
         field_types = {
             f"{field}": manifest.subsets[subset].fields[field].type.name
             for field in fields
@@ -117,8 +125,7 @@ class DatasetLoaderApp(MainSideBar):
         Returns:
             Dataframe and fields
         """
-        component_path = self._select_component()
-        manifest, subset, fields = self._get_manifest_fields_and_subset(component_path)
+        manifest, subset, fields = self._get_manifest_fields_and_subset()
         subset_path = self._get_subset_path(manifest, subset)
         df = self._load_dask_dataframe(subset_path, fields)
         partition = self._get_partition_to_load(df)

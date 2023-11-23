@@ -4,7 +4,7 @@ import logging
 
 import dask
 import streamlit as st
-from interfaces.common_interface import MainSideBar
+from interfaces.common_interface import MainInterface
 from st_pages import show_pages_from_config
 
 LOGGER = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ st.set_page_config(layout="wide")
 dask.config.set({"dataframe.convert-string": False})
 
 
-class PipelineOverviewApp(MainSideBar):
+class PipelineOverviewApp(MainInterface):
     def __init__(self):
         super().__init__()
 
@@ -22,7 +22,7 @@ class PipelineOverviewApp(MainSideBar):
 if __name__ == "__main__":
     app = PipelineOverviewApp()
 
-    app.create_common_sidebar()
+    app.create_common_interface()
 
     # Show streamlit page from pages.toml config file
     show_pages_from_config()
