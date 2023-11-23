@@ -5,7 +5,6 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Metadata
 from fondant.pipeline import ComponentOp, Pipeline, Resources
