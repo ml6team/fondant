@@ -25,7 +25,6 @@ class ImageGalleryApp(DatasetLoaderApp):
         # show images in a gallery
         cols = st.columns(5)
         for i, image in enumerate(images[image_slider[0] : image_slider[1]]):
-            print(image)
             cols[i % 5].image(image, use_column_width=True)
 
 
