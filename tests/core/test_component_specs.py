@@ -48,7 +48,7 @@ def test_component_spec_pkgutil_error(mock_get_data):
 
 
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
-    """Test that the comp is validated correctly on instantiation."""
+    """Test that the component spec is validated correctly on instantiation."""
     ComponentSpec(valid_fondant_schema)
     with pytest.raises(InvalidComponentSpec):
         ComponentSpec(invalid_fondant_schema)

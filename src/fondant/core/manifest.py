@@ -208,7 +208,7 @@ class Manifest:
         else:
             self._specification["fields"][field.name] = {
                 "location": f"/{self.component_id}",
-                "type": field.type.to_json(),
+                **field.type.to_json(),
             }
 
     def _add_or_update_index(self, field: Field, overwrite: bool = True):
@@ -238,7 +238,7 @@ class Manifest:
 
         del self._specification["fields"][name]
 
-    def evolve(  # : PLR0912 (too many branches)
+    def evolve(  # noqa : PLR0912 (too many branches)
         self,
         component_spec: ComponentSpec,
         *,
