@@ -120,19 +120,6 @@ class DaskDataLoader(DataIO):
                 # ensure that the index is set correctly and divisions are known.
                 dataframe = partial_df
             else:
-                dask_divisions = dataframe.divisions
-                unique_divisions = list(set(dask_divisions))
-
-                # apply set index to both dataframes
-                partial_df = partial_df.set_index(
-                    DEFAULT_INDEX_NAME,
-                    divisions=unique_divisions,
-                )
-                dataframe = dataframe.set_index(
-                    DEFAULT_INDEX_NAME,
-                    divisions=unique_divisions,
-                )
-
                 dataframe = dataframe.merge(
                     partial_df,
                     how="left",
