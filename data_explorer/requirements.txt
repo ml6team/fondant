@@ -1,7 +1,8 @@
 fondant[aws,azure,gcp,component]@git+https://github.com/ml6team/fondant@main
+matplotlib==3.7.1
+plotly==5.15.0
+graphviz==0.20.1
 streamlit==1.28.2
 streamlit-aggrid==0.3.4
 streamlit-extras==0.3.5
 st-pages==0.4.5
-matplotlib==3.7.1
-plotly==5.15.0

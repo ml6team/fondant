@@ -6,7 +6,7 @@ ENV PYTHONIOENCODING=UTF-8
 ## System dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install git -y
+    apt-get install git graphviz -y
 
 COPY ./requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
