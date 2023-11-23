@@ -89,8 +89,10 @@ def test_component_from_module(module_str):
 @pytest.mark.parametrize(
     "module_str",
     [
-        "examples.example_modules.invalid_component",  # module contains more than one component class
-        "examples.example_modules.invalid_double_components",  # module does not contain a component class
+        # module contains more than one component class
+        "examples.example_modules.invalid_component",
+        # module does not contain a component class
+        "examples.example_modules.invalid_double_components",
     ],
 )
 def test_component_from_module_error(module_str):
@@ -115,8 +117,10 @@ def test_pipeline_from_module(module_str):
 @pytest.mark.parametrize(
     "module_str",
     [
-        "examples.example_modules.component",  # module does not contain a pipeline instance
-        "examples.example_modules.invalid_double_pipeline",  # module contains many pipeline instances
+        # module does not contain a pipeline instance
+        "examples.example_modules.component",
+        # module contains many pipeline instances
+        "examples.example_modules.invalid_double_pipeline",
     ],
 )
 def test_pipeline_from_module_error(module_str):

@@ -222,8 +222,8 @@ class Manifest:
 
         if field.name != "index":
             msg = (
-                f"The field name is {field.name}. If you try to update the index, set the field"
-                f"name to `index`."
+                f"The field name is {field.name}. If you try to update the index, "  # nosec B608
+                f"set the field name to `index`."
             )
             raise ValueError(msg)
 
@@ -238,7 +238,7 @@ class Manifest:
 
         del self._specification["fields"][name]
 
-    def evolve(  # noqa : PLR0912 (too many branches)
+    def evolve(  # : PLR0912 (too many branches)
         self,
         component_spec: ComponentSpec,
         *,
