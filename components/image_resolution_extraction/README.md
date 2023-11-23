@@ -7,15 +7,13 @@ Component that extracts image resolution data from the images
 
 **This component consumes:**
 
-- images
-    - data: binary
+- images_data: binary
 
 **This component produces:**
 
-- images
-    - data: binary
-    - width: int32
-    - height: int32
+- images_data: binary
+- images_width: int32
+- images_height: int32
 
 ### Arguments
 

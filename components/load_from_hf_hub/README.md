@@ -9,8 +9,7 @@ Component that loads a dataset from the hub
 
 **This component produces:**
 
-- dummy_variable
-    - data: binary
+- dummy_variable: binary
 
 ### Arguments
 
