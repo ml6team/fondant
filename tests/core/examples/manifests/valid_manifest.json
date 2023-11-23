@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "pipeline_name": "test_pipeline",
+    "base_path": "gs://bucket",
+    "run_id": "test_pipeline_12345",
+    "component_id": "67890"
+  },
+  "index": {
+    "location": "/component1"
+  },
+  "fields":{
+    "images": {
+      "location": "/component1",
+      "type": "binary"
+    },
+    "height": {
+      "location": "/component2",
+      "type": "int32"
+    },
+    "width": {
+      "location": "/component2",
+      "type": "int32"
+    },
+    "caption": {
+      "location": "/component3",
+      "type": "string"
+    }
+  }
+}
