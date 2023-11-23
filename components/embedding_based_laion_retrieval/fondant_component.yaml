@@ -15,7 +15,7 @@ consumes:
 produces:
   images_url:
     type: string
-  additionalSubsets: false
+# additionalFields: false
 
 args:
   num_images:
