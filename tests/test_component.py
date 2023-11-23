@@ -377,38 +377,22 @@ def test_wrap_transform():
             "description": "Component for testing",
             "image": "component:test",
             "consumes": {
-                "image": {
-                    "fields": {
-                        "height": {
-                            "type": "int16",
-                        },
-                        "width": {
-                            "type": "int16",
-                        },
-                    },
+                "image_height": {
+                    "type": "int16",
                 },
-                "caption": {
-                    "fields": {
-                        "text": {
-                            "type": "string",
-                        },
-                    },
+                "image_width": {
+                    "type": "int16",
+                },
+                "caption_text": {
+                    "type": "string",
                 },
             },
             "produces": {
-                "caption": {
-                    "fields": {
-                        "text": {
-                            "type": "string",
-                        },
-                    },
+                "caption_text": {
+                    "type": "string",
                 },
-                "image": {
-                    "fields": {
-                        "height": {
-                            "type": "int16",
-                        },
-                    },
+                "image_height": {
+                    "type": "int16",
                 },
             },
         },
@@ -425,9 +409,9 @@ def test_wrap_transform():
     def transform(dataframe: pd.DataFrame) -> pd.DataFrame:
         # Check hierarchical columns
         assert dataframe.columns.tolist() == [
-            ("image", "height"),
-            ("image", "width"),
-            ("caption", "text"),
+            "image_height",
+            "image_width",
+            "caption_text",
         ]
         return dataframe
 

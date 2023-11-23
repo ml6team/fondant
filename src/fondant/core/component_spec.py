@@ -66,34 +66,6 @@ class Argument:
         return lookup[self.type]
 
 
-class ComponentSubset:
-    """
-    Class representing a Fondant Component subset.
-
-    Args:
-        specification: the part of the component json representing the subset
-    """
-
-    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
-        self._specification = specification
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r})"
-
-    @property
-    def fields(self) -> t.Mapping[str, Field]:
-        return types.MappingProxyType(
-            {
-                name: Field(name=name, type=Type.from_json(field))
-                for name, field in self._specification["fields"].items()
-            },
-        )
-
-    @property
-    def additional_fields(self) -> bool:
-        return self._specification.get("additionalFields", True)
-
-
 class ComponentSpec:
     """
     Class representing a Fondant component specification.
@@ -190,38 +162,24 @@ class ComponentSpec:
         return self._specification.get("tags", None)
 
     @property
-    def index(self):
-        return ComponentSubset({"fields": {}})
-
-    @property
-    def consumes(self) -> t.Mapping[str, ComponentSubset]:
-        """The subsets consumed by the component as an immutable mapping."""
+    def consumes(self) -> t.Mapping[str, Field]:
+        """The fields consumed by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
-                name: ComponentSubset(subset)
-                for name, subset in self._specification.get("consumes", {}).items()
-                if name != "additionalSubsets"
+                name: Field(name=name, type=Type.from_json(field))
+                for name, field in self._specification.get("consumes", {}).items()
             },
         )
 
     @property
-    def produces(self) -> t.Mapping[str, ComponentSubset]:
-        """The subsets produced by the component as an immutable mapping."""
+    def produces(self) -> t.Mapping[str, Field]:
+        """The fields produced by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
-                name: ComponentSubset(subset)
-                for name, subset in self._specification.get("produces", {}).items()
-                if name != "additionalSubsets"
+                name: Field(name=name, type=Type.from_json(field))
+                for name, field in self._specification.get("produces", {}).items()
             },
         )
-
-    @property
-    def accepts_additional_subsets(self) -> bool:
-        return self._specification.get("consumes", {}).get("additionalSubsets", True)
-
-    @property
-    def outputs_additional_subsets(self) -> bool:
-        return self._specification.get("produces", {}).get("additionalSubsets", True)
 
     @property
     def args(self) -> t.Mapping[str, Argument]:
