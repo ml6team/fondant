@@ -4,7 +4,6 @@ import json
 import pkgutil
 import types
 import typing as t
-from collections import OrderedDict
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -146,7 +145,7 @@ class Manifest:
 
     @property
     def index(self) -> Field:
-        return Field(name="Index", location=self._specification["index"]["location"])
+        return Field(name="id", location=self._specification["index"]["location"])
 
     def update_metadata(self, key: str, value: t.Any) -> None:
         self.metadata[key] = value
@@ -155,40 +154,16 @@ class Manifest:
     def base_path(self) -> str:
         return self.metadata["base_path"]
 
-    @property
-    def field_mapping(self) -> t.Mapping[str, t.List[str]]:
-        """
-        Retrieve a mapping of field locations to corresponding field names.
-        A dictionary where keys are field locations and values are lists
-        of column names.
+    def get_field_location(self, field_name: str):
+        """Return absolute path to the field location."""
+        if field_name == "id":
+            return f"{self.base_path}/{self.pipeline_name}/{self.run_id}{self.index.location}"
+        if field_name not in self.fields:
+            msg = f"Field {field_name} is not available in the manifest."
+            raise ValueError(msg)
 
-        The method returns an immutable OrderedDict where the first dict element contains the
-        location of the dataframe with the index. This allows an efficient left join operation.
-
-        Example:
-           {
-               "/base_path/component_1": ["Name", "HP"],
-               "/base_path/component_2": ["Type 1", "Type 2"],
-           }
-        """
-        field_mapping = {}
-        for field_name, field in {"Index": self.index, **self.fields}.items():
-            location = (
-                f"{self.base_path}/{self.pipeline_name}/{self.run_id}{field.location}"
-            )
-            if location in field_mapping:
-                field_mapping[location].append(field_name)
-            else:
-                field_mapping[location] = [field_name]
-
-
-        # Sort field mapping that the first dataset contains the index
-        sorted_keys = sorted(field_mapping.keys(), key=lambda key: "Index" in field_mapping[key], reverse=True)
-        sorted_field_mapping = OrderedDict(
-            (key, field_mapping[key]) for key in sorted_keys
-        )
-
-        return types.MappingProxyType(sorted_field_mapping)
+        field = self.fields[field_name]
+        return f"{self.base_path}/{self.pipeline_name}/{self.run_id}{field.location}"
 
     @property
     def run_id(self) -> str:
@@ -263,7 +238,7 @@ class Manifest:
 
         del self._specification["fields"][name]
 
-    def evolve(  # noqa : PLR0912 (too many branches)
+    def evolve(  # : PLR0912 (too many branches)
         self,
         component_spec: ComponentSpec,
         *,

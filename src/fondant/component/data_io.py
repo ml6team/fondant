@@ -1,6 +1,7 @@
 import logging
 import os
 import typing as t
+from collections import defaultdict
 
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
@@ -93,8 +94,21 @@ class DaskDataLoader(DataIO):
             The Dask dataframe with all columns defined in the manifest field mapping
         """
         dataframe = None
-        field_mapping = self.manifest.field_mapping
+        field_mapping = defaultdict(list)
+
+        # Add index field to field mapping to guarantee start reading with the index dataframe
+        field_mapping[self.manifest.get_field_location(DEFAULT_INDEX_NAME)].append(
+            DEFAULT_INDEX_NAME,
+        )
+
+        for field_name in self.component_spec.consumes:
+            location = self.manifest.get_field_location(field_name)
+            field_mapping[location].append(field_name)
+
         for location, fields in field_mapping.items():
+            if DEFAULT_INDEX_NAME in fields:
+                fields.remove(DEFAULT_INDEX_NAME)
+
             partial_df = dd.read_parquet(
                 location,
                 columns=fields,
@@ -111,10 +125,12 @@ class DaskDataLoader(DataIO):
 
                 # apply set index to both dataframes
                 partial_df = partial_df.set_index(
-                    DEFAULT_INDEX_NAME, divisions=unique_divisions
+                    DEFAULT_INDEX_NAME,
+                    divisions=unique_divisions,
                 )
                 dataframe = dataframe.set_index(
-                    DEFAULT_INDEX_NAME, divisions=unique_divisions
+                    DEFAULT_INDEX_NAME,
+                    divisions=unique_divisions,
                 )
 
                 dataframe = dataframe.merge(
