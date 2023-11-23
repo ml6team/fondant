@@ -5,9 +5,7 @@ tags:
   - Data writing
 
 consumes:
-  dummy_variable:  #TODO: fill in here
-    fields:
-      data:
+  dummy_variable:
         type: binary
 
 args:
