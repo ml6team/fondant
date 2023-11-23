@@ -456,7 +456,7 @@ class Pipeline:
                             msg,
                         )
 
-                        # Get the corresponding manifest fields
+                    # Get the corresponding manifest fields
                     manifest_field = manifest.fields[component_field_name]
 
                     # Check if the invoked field schema matches the current schema
