@@ -37,36 +37,33 @@
         "location"
       ]
     },
-    "subsets": {
-      "$ref": "#/definitions/subsets"
+    "fields": {
+      "$ref": "#/definitions/fields"
     }
   },
   "required": [
     "metadata",
     "index",
-    "subsets"
+    "fields"
   ],
   "definitions": {
-    "subset": {
+    "field": {
       "type": "object",
       "properties": {
         "location": {
           "type": "string",
           "pattern": "/.*"
-        },
-        "fields": {
-          "$ref": "common.json#/definitions/fields"
         }
       },
       "required": [
         "location",
-        "fields"
+        "type"
       ]
     },
-    "subsets": {
+    "fields": {
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/subset"
+        "$ref": "#/definitions/field"
       }
     }
   }
