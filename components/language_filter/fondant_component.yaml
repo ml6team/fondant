@@ -5,10 +5,9 @@ tags:
   - Text processing
 
 consumes:
-  text:
-    fields:
-      data:
-        type: string
+  text_fields:
+    data:
+      type: string
 
 args:
   language:

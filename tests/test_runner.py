@@ -6,7 +6,7 @@ from unittest import mock
 import pytest
 from fondant.pipeline.runner import DockerRunner, KubeflowRunner, VertexRunner
 
-VALID_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
+VALID_PIPELINE = Path("./tests/examples/example_pipelines/compiled_pipeline/")
 
 
 def test_docker_runner():

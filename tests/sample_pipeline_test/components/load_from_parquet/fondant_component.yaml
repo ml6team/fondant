@@ -3,9 +3,7 @@ description: Component that loads a dataset from a parquet uri
 image: fndnt/load_from_parquet:dev
 
 produces:
-  text:
-    fields:
-      data:
+  text_data:
         type: string
 
 args:

@@ -10,17 +10,13 @@ tags:
   - Data retrieval
 
 consumes:
-  prompts:
-    fields:
-      text:
-        type: string
+  prompts_text:
+    type: string
 
 produces:
-  images:
-    fields:
-      url:
-        type: string
-  additionalSubsets: false
+  images_url:
+    type: string
+#  additionalFields: false
 
 args:
   num_images:

@@ -55,16 +55,16 @@ TEST_PIPELINE = Pipeline(pipeline_name="test_pipeline", base_path="some/path")
 @pytest.mark.parametrize(
     "module_str",
     [
-        "example_modules.component",
-        "example_modules/component",
-        "example_modules.component.py",
-        "example_modules/component.py",
+        "examples.example_modules.component",
+        "examples.example_modules/component",
+        "examples.example_modules.component.py",
+        "examples.example_modules/component.py",
     ],
 )
 def test_get_module(module_str):
     """Test get module method."""
     module = get_module(module_str)
-    assert module.__name__ == "example_modules.component"
+    assert module.__name__ == "examples.example_modules.component"
 
 
 def test_get_module_error():
@@ -77,7 +77,7 @@ def test_get_module_error():
     "module_str",
     [
         __name__,  # cannot be split
-        "example_modules.component",  # module does not exist
+        "examples.example_modules.component",  # module does not exist
     ],
 )
 def test_component_from_module(module_str):
@@ -89,8 +89,8 @@ def test_component_from_module(module_str):
 @pytest.mark.parametrize(
     "module_str",
     [
-        "example_modules.invalid_component",  # module contains more than one component class
-        "example_modules.invalid_double_components",  # module does not contain a component class
+        "examples.example_modules.invalid_component",  # module contains more than one component class
+        "examples.example_modules.invalid_double_components",  # module does not contain a component class
     ],
 )
 def test_component_from_module_error(module_str):
@@ -103,7 +103,7 @@ def test_component_from_module_error(module_str):
     "module_str",
     [
         __name__,
-        "example_modules.pipeline",
+        "examples.example_modules.pipeline",
     ],
 )
 def test_pipeline_from_module(module_str):
@@ -115,8 +115,8 @@ def test_pipeline_from_module(module_str):
 @pytest.mark.parametrize(
     "module_str",
     [
-        "example_modules.component",  # module does not contain a pipeline instance
-        "example_modules.invalid_double_pipeline",  # module contains many pipeline instances
+        "examples.example_modules.component",  # module does not contain a pipeline instance
+        "examples.example_modules.invalid_double_pipeline",  # module contains many pipeline instances
     ],
 )
 def test_pipeline_from_module_error(module_str):
@@ -349,7 +349,7 @@ def test_vertex_run(tmp_path_factory):
 def test_component_build(mock_build, mock_push):
     """Test that the build command works as expected."""
     args = argparse.Namespace(
-        component_dir=Path(__file__).parent / "example_component",
+        component_dir=Path(__file__).parent / "examples/example_component",
         tag="image:test",
         build_arg=["key=value"],
         nocache=True,
@@ -367,7 +367,7 @@ def test_component_build(mock_build, mock_push):
 
     # Check that docker build and push were executed correctly
     mock_build.assert_called_with(
-        path=str(Path(__file__).parent / "example_component"),
+        path=str(Path(__file__).parent / "examples/example_component"),
         tag="image:test",
         buildargs={"key": "value"},
         nocache=True,
@@ -381,7 +381,7 @@ def test_component_build(mock_build, mock_push):
 
     # Check that the component specification file was updated correctly
     with open(
-        Path(__file__).parent / "example_component" / "fondant_component.yaml",
+        Path(__file__).parent / "examples/example_component" / "fondant_component.yaml",
         "r+",
     ) as f:
         content = f.read()

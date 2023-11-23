@@ -5,16 +5,12 @@ tags:
   - Image processing
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 
 produces:
-  captions:
-    fields:
-      text:
-        type: utf8
+  captions_text:
+    type: utf8
 
 args:
   model_id:

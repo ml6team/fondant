@@ -5,21 +5,17 @@ tags:
   - Text processing
 
 consumes:
-  text:
-    fields:
-      data:
-        type: string
+  text_data:
+    type: string
 
 produces:
-  text:
-    fields:
-      data:
-        type: string
-      embedding:
-        type: array
-        items:
-          type: float32
-          
+  text_data:
+    type: string
+  text_embedding:
+    type: array
+    items:
+      type: float32
+
 args:
   model_provider:
     description: |
@@ -40,12 +36,12 @@ args:
       Pass only the keys required by the model provider or conveniently pass all keys you will ever need. 
       Pay attention how to name the dictionary keys so that they can be used by the model provider.
     type: dict
-    default: {}
+    default: { }
   auth_kwargs:
     description: |
       Additional keyword arguments required for api initialization/authentication.
     type: dict
-    default: {}
+    default: { }
 
   
   

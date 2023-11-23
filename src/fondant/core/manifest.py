@@ -188,7 +188,7 @@ class Manifest:
             {
                 name: Field(
                     name=name,
-                    type=Type(field["type"]),
+                    type=Type.from_json(field),
                     location=field["location"],
                 )
                 for name, field in self._specification["fields"].items()
