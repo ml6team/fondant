@@ -51,7 +51,7 @@ class ImageCroppingComponent(PandasTransformComponent):
         )
 
         # extract width and height
-        dataframe["images_width", "images_width"] = dataframe["images_data"].apply(
+        dataframe["images_width", "images_height"] = dataframe["images_data"].apply(
             extract_dimensions,
             axis=1,
             result_type="expand",
