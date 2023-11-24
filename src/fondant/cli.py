@@ -42,8 +42,6 @@ def get_cloud_credentials(args) -> t.Optional[str]:
         return CloudCredentialsMount.AWS.value
     if args.auth_azure:
         return CloudCredentialsMount.AZURE.value
-    if args.credentials:
-        return args.credentials
 
     return None
 
@@ -103,7 +101,7 @@ def register_explore(parent_parser):
         This will spin up a docker container that hosts a web application that allows you to explore the data produced by a fondant pipeline.
 
         The default address is http://localhost:8501. You can choose both a local and remote base path to explore. If the data that you want to explore is stored remotely, you
-         should use the --credentials flag to specify the path to a file that contains the credentials to access remote data (for S3, GCS, etc).
+         should use the --extra-volumes flag to specify credentials or local files you  need to mount.
 
         Example:
 
@@ -165,17 +163,11 @@ def register_explore(parent_parser):
     )
 
     auth_group.add_argument(
-        "--credentials",
-        "-c",
-        type=str,
-        default=None,
-        help="""Path mapping of the source (local) and target (docker file system)
-            credential paths in the format of src:target
-            More info on
-            Google Cloud: https://cloud.google.com/docs/authentication/application-default-credentials
-            AWS: https://docs.aws.amazon.com/sdkref/latest/guide/file-location.html
-            Azure: https://stackoverflow.com/questions/69010943/how-does-az-login-store-credential-information
-        """,
+        "--extra-volumes",
+        help="""Extra volumes to mount in containers. You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
+        - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
+        - to mount cloud credentials""",
+        nargs="+",
     )
 
     parser.set_defaults(func=explore)
@@ -189,7 +181,15 @@ def explore(args):
             "Docker runtime not found. Please install Docker and try again.",
         )
 
+    extra_volumes = []
+
     cloud_cred = get_cloud_credentials(args)
+
+    if get_cloud_credentials(args):
+        extra_volumes.append(cloud_cred)
+
+    if args.extra_volumes:
+        extra_volumes.extend(args.extra_volumes)
 
     run_explorer_app(
         base_path=args.base_path,
