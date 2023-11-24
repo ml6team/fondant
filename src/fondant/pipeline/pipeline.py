@@ -138,6 +138,9 @@ class ComponentOp:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
         resources: t.Optional[Resources] = None,
+        schema: t.Optional[t.Dict[str, t.Any]] = None,
+        consumes: t.Optional[t.Dict[str, t.Any]] = None,
+        produces: t.Optional[t.Dict[str, t.Any]] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -154,7 +157,9 @@ class ComponentOp:
         self._add_component_argument("cache", self.cache)
         self._add_component_argument("cluster_type", cluster_type)
         self._add_component_argument("client_kwargs", client_kwargs)
-
+        self._add_component_argument("schema", schema)
+        self._add_component_argument("consumes", consumes)
+        self._add_component_argument("produces", produces)
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.resources = resources or Resources()
@@ -221,6 +226,8 @@ class ComponentOp:
         cache: t.Optional[bool] = True,
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
+        consumes: t.Optional[t.Dict[str, t.Any]] = None,
+        produces: t.Optional[t.Dict[str, t.Any]] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -248,6 +255,8 @@ class ComponentOp:
             cache=cache,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
+            consumes=consumes,
+            produces=produces,
         )
 
     def get_component_cache_key(
@@ -319,11 +328,193 @@ class Pipeline:
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
 
+    def _build_component_op(
+        self,
+        name,
+        *,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        cache: t.Optional[bool] = True,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
+        resources: t.Optional[Resources] = None,
+        schema: t.Optional[t.Dict[str, t.Any]] = None,
+        consumes: t.Optional[t.Dict[str, t.Any]] = None,
+        produces: t.Optional[t.Dict[str, t.Any]] = None,
+    ) -> ComponentOp:
+        """Building ComponentOp."""
+        if not self._is_custom_component(path_or_name=name):
+            name = self._get_registry_path(name)
+        return ComponentOp(
+            name,
+            arguments=arguments,
+            input_partition_rows=input_partition_rows,
+            cache=cache,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
+            resources=resources,
+            schema=schema,
+            consumes=consumes,
+            produces=produces,
+        )
+
+    def read(
+        self,
+        name,
+        *,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        cache: t.Optional[bool] = True,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
+        resources: t.Optional[Resources] = None,
+        schema: t.Dict[str, str],
+    ) -> "Pipeline":
+        """
+        Add a reading component to the pipeline.
+
+        Args:
+            name: Name of the resuable component or a path to the component directory.
+            arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning.
+            cache: If true the cached results of previous components will be used, if available.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
+            resources: The resources to assign to the operation.
+            schema: Schema which will be used to initialise the dataset.
+        """
+        component_op = self._build_component_op(
+            name,
+            arguments=arguments,
+            input_partition_rows=input_partition_rows,
+            cache=cache,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
+            resources=resources,
+            schema=schema,
+        )
+
+        self.add_op(component_op)
+        return self
+
+    def apply(
+        self,
+        name,
+        *,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        cache: t.Optional[bool] = True,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
+        resources: t.Optional[Resources] = None,
+        consumes: t.Optional[t.Dict[str, str]] = None,
+        produces: t.Optional[t.Dict[str, str]] = None,
+    ) -> "Pipeline":
+        """
+        Add a reading component to the pipeline.
+
+        Args:
+            name: Name of the resuable component or a path to the component directory.
+            arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning.
+            cache: If true the cached results of previous components will be used, if available.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
+            resources: The resources to assign to the operation.
+            consumes: Dataframe columns that will be consumed by the component.
+            produces: Dataframe columns that will be produced by the component.
+        """
+        component_op = self._build_component_op(
+            name,
+            arguments=arguments,
+            input_partition_rows=input_partition_rows,
+            cache=cache,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
+            resources=resources,
+            consumes=consumes,
+            produces=produces,
+        )
+
+        previous_component = self._get_previous_component()
+        self.add_op(component_op, dependencies=previous_component)
+        return self
+
+    def write(
+        self,
+        name,
+        *,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        cache: t.Optional[bool] = True,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
+        resources: t.Optional[Resources] = None,
+        consumes: t.Optional[t.Dict[str, str]] = None,
+        schema: t.Optional[t.Dict[str, str]] = None,
+    ):
+        """
+        Add a reading component to the pipeline.
+
+        Args:
+            name: Name of the resuable component or a path to the component directory.
+            arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning.
+            cache: If true the cached results of previous components will be used, if available.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
+            resources: The resources to assign to the operation.
+            consumes: Dataframe columns that will be consumed by the component.
+            schema: Schema which will be used to write the dataset.
+        """
+        component_op = self._build_component_op(
+            name,
+            arguments=arguments,
+            input_partition_rows=input_partition_rows,
+            cache=cache,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
+            resources=resources,
+            consumes=consumes,
+            schema=schema,
+        )
+
+        # Get previous component
+        previous_component = self._get_previous_component()
+        self.add_op(component_op, dependencies=previous_component)
+
+    @staticmethod
+    def _is_custom_component(path_or_name):
+        """Checks if name is a local path and a custom component."""
+        components_dir: Path = Path(path_or_name)
+        return components_dir.exists() and components_dir.is_dir()
+
+    @staticmethod
+    def _get_registry_path(name):
+        """Checks if name is a local path and a custom component."""
+        components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
+        if not (components_dir.exists() and components_dir.is_dir()):
+            msg = f"No reusable component with name {name} found."
+            raise ValueError(msg)
+        return components_dir
+
+    def _get_previous_component(self) -> ComponentOp:
+        """Return previous component that was added to the task graph."""
+        previous_component = list(self._graph.items())[-1][0]
+        if previous_component is None:
+            msg = "No previous component found."
+            raise ValueError(msg)
+
+        return previous_component
+
     def add_op(
         self,
         task: ComponentOp,
         dependencies: t.Optional[t.Union[ComponentOp, t.List[ComponentOp]]] = None,
-    ):
+    ) -> "Pipeline":
         """
         Add a task to the pipeline with an optional dependency.
 
