@@ -135,3 +135,38 @@ def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
     kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)
     expected_repr = f"KubeflowComponentSpec({valid_kubeflow_schema!r})"
     assert repr(kubeflow_component_spec) == expected_repr
+
+
+def test_overwriting_field_mapping(valid_fondant_schema):
+    """Test overwriting the field mapping."""
+    fondant_component = ComponentSpec(valid_fondant_schema)
+    fondant_component.overwrite_field_mapping(
+        {"images": "pictures"},
+        section_to_overwrite="consumes",
+    )
+    fondant_component.overwrite_field_mapping(
+        {"captions": "text"},
+        section_to_overwrite="produces",
+    )
+
+    assert "pictures" in fondant_component.consumes
+    assert "text" in fondant_component.produces
+
+    with pytest.raises(
+        ValueError,
+        match="Can not map captions to text, because captions is not part of the component "
+        "specification.",
+    ):
+        fondant_component.overwrite_field_mapping(
+            {"captions": "text"},
+            section_to_overwrite="produces",
+        )
+
+    with pytest.raises(
+        ValueError,
+        match="Can not overwrite subsets because it is not part of the component specification.",
+    ):
+        fondant_component.overwrite_field_mapping(
+            {"captions": "text"},
+            section_to_overwrite="subsets",
+        )

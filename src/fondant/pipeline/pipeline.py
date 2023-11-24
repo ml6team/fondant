@@ -151,6 +151,9 @@ class ComponentOp:
         self.cache = self._configure_caching_from_image_tag(cache)
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
+        self.schema = schema
+        self.consumes = consumes
+        self.produces = produces
 
         self.arguments = arguments or {}
         self._add_component_argument("input_partition_rows", input_partition_rows)
@@ -240,6 +243,8 @@ class ComponentOp:
             cache: Set to False to disable caching, True by default.
             cluster_type: The type of cluster to use for distributed execution (default is "local").
             client_kwargs: Keyword arguments used to initialise the dask client.
+            consumes: Dataframe columns that will be consumed by the component.
+            produces: Dataframe columns that will be produced by the component.
         """
         components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
 
@@ -453,7 +458,7 @@ class Pipeline:
         client_kwargs: t.Optional[dict] = None,
         resources: t.Optional[Resources] = None,
         consumes: t.Optional[t.Dict[str, str]] = None,
-        schema: t.Optional[t.Dict[str, str]] = None,
+        schema: t.Optional[t.Dict[str, str]],
     ):
         """
         Add a reading component to the pipeline.
@@ -503,7 +508,7 @@ class Pipeline:
 
     def _get_previous_component(self) -> ComponentOp:
         """Return previous component that was added to the task graph."""
-        previous_component = list(self._graph.items())[-1][0]
+        previous_component = list(self._graph.items())[-1][-1]["fondant_component_op"]
         if previous_component is None:
             msg = "No previous component found."
             raise ValueError(msg)

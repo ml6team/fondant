@@ -457,3 +457,49 @@ def test_write_component(metadata):
     with mock.patch.object(MyWriteComponent, "write", write):
         executor.execute(MyWriteComponent)
         write.mock.assert_called_once()
+
+
+def test_component_overwriting_consumes_produces(metadata):
+    # Mock CLI arguments
+    sys.argv = [
+        "",
+        "--input_manifest_path",
+        str(components_path / "arguments/input_manifest.json"),
+        "--metadata",
+        metadata.to_json(),
+        "--output_manifest_path",
+        str(components_path / "arguments/output_manifest.json"),
+        "--component_spec",
+        yaml_file_to_json_string(components_path / "component.yaml"),
+        "--cache",
+        "True",
+        "--flag",
+        "success",
+        "--value",
+        "1",
+        "--input_partition_rows",
+        "100",
+        "--override_default_arg",
+        "bar",
+        "--override_default_none_arg",
+        "3.14",
+        "--override_default_arg_with_none",
+        "None",
+        "--consumes",
+        '{"images_data": "images"}',
+        "--produces",
+        '{"images_data": "images"}',
+    ]
+
+    class MyExecutor(Executor):
+        """Base component with dummy methods so it can be instantiated."""
+
+        def _load_or_create_manifest(self) -> Manifest:
+            pass
+
+        def _process_dataset(self, manifest: Manifest) -> t.Union[None, dd.DataFrame]:
+            pass
+
+    executor = MyExecutor.from_args()
+    assert "images" in executor.spec.consumes
+    assert "images" in executor.spec.produces

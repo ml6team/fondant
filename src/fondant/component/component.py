@@ -16,7 +16,12 @@ class BaseComponent:
         **kwargs: The provided user arguments are passed in as keyword arguments
     """
 
-    def __init__(self, spec: ComponentSpec, schema: t.Optional[t.Dict[str, str]] = None, **kwargs):
+    def __init__(
+        self,
+        spec: ComponentSpec,
+        schema: t.Optional[t.Dict[str, str]] = None,
+        **kwargs,
+    ):
         pass
 
 
