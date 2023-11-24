@@ -16,7 +16,10 @@ consumes:
 produces:
   images_url:
     type: string
-#  additionalFields: false
+  prompt_id:
+    type: string
+
+previous_index: prompt_id
 
 args:
   num_images:
