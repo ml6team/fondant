@@ -7,8 +7,10 @@ consumes:
     type: binary
 
 produces:
-  images_encoding:
-    type: string
+  images_data:
+    type: binary
+
+previous_index: "true"  # Only used to remove old fields for now
 
 args:
   storage_args:
