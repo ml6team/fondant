@@ -50,16 +50,12 @@ class LoadFromParquet(DaskLoadComponent):
         else:
             invert_column_name_mapping = {}
 
-        for subset_name, subset in self.spec.produces.items():
-            for field_name, field in subset.fields.items():
-                column_name = f"{subset_name}_{field_name}"
-                if (
-                    invert_column_name_mapping
-                    and column_name in invert_column_name_mapping
-                ):
-                    columns.append(invert_column_name_mapping[column_name])
-                else:
-                    columns.append(column_name)
+        for field_name, field in self.spec.produces.items():
+            column_name = field_name
+            if invert_column_name_mapping and column_name in invert_column_name_mapping:
+                columns.append(invert_column_name_mapping[column_name])
+            else:
+                columns.append(column_name)
 
         if self.index_column is not None:
             columns.append(self.index_column)
@@ -85,11 +81,10 @@ class LoadFromParquet(DaskLoadComponent):
 
             def _get_meta_df() -> pd.DataFrame:
                 meta_dict = {"id": pd.Series(dtype="object")}
-                for subset_name, subset in self.spec.produces.items():
-                    for field_name, field in subset.fields.items():
-                        meta_dict[f"{subset_name}_{field_name}"] = pd.Series(
-                            dtype=pd.ArrowDtype(field.type.value),
-                        )
+                for field_name, field in self.spec.produces.items():
+                    meta_dict[field_name] = pd.Series(
+                        dtype=pd.ArrowDtype(field.type.value),
+                    )
                 return pd.DataFrame(meta_dict).set_index("id")
 
             meta = _get_meta_df()

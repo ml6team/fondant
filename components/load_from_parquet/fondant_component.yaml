@@ -5,10 +5,8 @@ tags:
   - Data loading
 
 produces:
-  dummy_variable:  #TODO: fill in here
-    fields:
-      data:
-        type: binary
+  dummy_variable:
+    type: binary
 
 args:
   dataset_uri:

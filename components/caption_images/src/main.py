@@ -90,7 +90,7 @@ class CaptionImagesComponent(PandasTransformComponent):
         self.max_new_tokens = max_new_tokens
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        images = dataframe["images"]["data"]
+        images = dataframe["images_data"]
 
         results: t.List[pd.Series] = []
         for batch in np.split(
@@ -112,4 +112,4 @@ class CaptionImagesComponent(PandasTransformComponent):
                 ).T
                 results.append(captions)
 
-        return pd.concat(results).to_frame(name=("captions", "text"))
+        return pd.concat(results).to_frame(name=("captions_text"))

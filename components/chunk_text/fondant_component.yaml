@@ -10,18 +10,14 @@ tags:
   - Text processing
 
 consumes:
-  text:
-    fields:
-      data:
-        type: string
+  text_data:
+    type: string
 
 produces:
-  text:
-    fields:
-      data:
-        type: string
-      original_document_id:
-        type: string
+  text_data:
+    type: string
+  text_original_document_id:
+    type: string
 
 args:
   chunk_size:

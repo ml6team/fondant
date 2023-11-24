@@ -8,11 +8,8 @@
 {% if consumes %}
 **This component consumes:**
 
-{% for subset_name, subset in consumes.items() %}
-- {{ subset_name }}
-{% for field in subset.fields.values() %}
-    - {{ field.name }}: {{ field.type.value }}
-{% endfor %}
+{% for field_name, field in consumes.items() %}
+- {{ field.name }}: {{ field.type.value }}
 {% endfor %}
 {% else %}
 **This component consumes no data.**
@@ -21,11 +18,8 @@
 {% if produces %}
 **This component produces:**
 
-{% for subset_name, subset in produces.items() %}
-- {{ subset_name }}
-{% for field in subset.fields.values() %}
-    - {{ field.name }}: {{ field.type.value }}
-{% endfor %}
+{% for field_name, field in produces.items() %}
+- {{ field.name }}: {{ field.type.value }}
 {% endfor %}
 {% else %}
 **This component produces no data.**

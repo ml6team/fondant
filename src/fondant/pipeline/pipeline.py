@@ -443,13 +443,13 @@ class Pipeline:
             if not load_component:
                 # Check subset exists
                 for (
-                    component_subset_name,
-                    component_subset,
+                    component_field_name,
+                    component_field,
                 ) in component_spec.consumes.items():
-                    if component_subset_name not in manifest.subsets:
+                    if component_field_name not in manifest.fields:
                         msg = (
-                            f"Component '{component_spec.name}' is trying to invoke the subset "
-                            f"'{component_subset_name}', which has not been defined or created "
+                            f"Component '{component_spec.name}' is trying to invoke the field "
+                            f"'{component_field_name}', which has not been defined or created "
                             f"in the previous components."
                         )
                         raise InvalidPipelineDefinition(
@@ -457,36 +457,22 @@ class Pipeline:
                         )
 
                     # Get the corresponding manifest fields
-                    manifest_fields = manifest.subsets[component_subset_name].fields
+                    manifest_field = manifest.fields[component_field_name]
 
-                    # Check fields
-                    for field_name, subset_field in component_subset.fields.items():
-                        # Check if invoked field exists
-                        if field_name not in manifest_fields:
-                            msg = (
-                                f"The invoked subset '{component_subset_name}' of the "
-                                f"'{component_spec.name}' component does not match the "
-                                f"previously created subset definition.\n The component is "
-                                f"trying to invoke the field '{field_name}' which has not been "
-                                f"previously defined. Current available fields are "
-                                f"{manifest_fields}\n"
-                            )
-                            raise InvalidPipelineDefinition(
-                                msg,
-                            )
-                        # Check if the invoked field schema matches the current schema
-                        if subset_field != manifest_fields[field_name]:
-                            msg = (
-                                f"The invoked subset '{component_subset_name}' of the "
-                                f"'{component_spec.name}' component does not match  the "
-                                f"previously created subset definition.\n The '{field_name}' "
-                                f"field is currently defined with the following schema:\n"
-                                f"{manifest_fields[field_name]}\nThe current component to "
-                                f"trying to invoke it with this schema:\n{subset_field}"
-                            )
-                            raise InvalidPipelineDefinition(
-                                msg,
-                            )
+                    # Check if the invoked field schema matches the current schema
+                    if component_field.type != manifest_field.type:
+                        msg = (
+                            f"The invoked field '{component_field_name}' of the "
+                            f"'{component_spec.name}' component does not match  the "
+                            f"previously created field type.\n The '{manifest_field.name}' "
+                            f"field is currently defined with the following type:\n"
+                            f"{manifest_field.type}\nThe current component to "
+                            f"trying to invoke it with this type:\n{component_field.type}"
+                        )
+                        raise InvalidPipelineDefinition(
+                            msg,
+                        )
+
             manifest = manifest.evolve(component_spec, run_id=run_id)
             load_component = False
 

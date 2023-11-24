@@ -58,18 +58,18 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                             embedding_input=embedding.tolist(),
                         ),
                     )
-                    for embedding in dataframe["embeddings"]["data"]
+                    for embedding in dataframe["embeddings_data"]
                 ]
                 for response in await asyncio.gather(*futures):
                     results.extend(response)
 
         loop.run_until_complete(async_query())
 
-        results_df = pd.DataFrame(results)[["id", "url"]]
+        results_df = pd.DataFrame(results)["id", "url"]
         results_df = results_df.set_index("id")
 
         # Cast the index to string
         results_df.index = results_df.index.astype(str)
-        results_df.columns = [["images"], ["url"]]
+        results_df.columns = ["images_url"]
 
         return results_df
