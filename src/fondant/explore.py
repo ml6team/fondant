@@ -25,9 +25,11 @@ def run_explorer_app(  # type: ignore
       port: The port number to expose the Explorer App. Default is 8501.
       container: The Docker container name or image to use. Default is "fndnt/data_explorer".
       tag: The tag/version of the Docker container. Default is "latest".
-      extra_volumes: a list of extra volumes (using the Short syntax:
-       https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
-       to mount in the docker-compose spec.
+      extra_volumes: Extra volumes to mount in containers. You can use the --extra-volumes flag
+      to specify extra volumes to mount in the containers this can be used:
+        - to mount data directories to be used by the pipeline (note that if your pipeline's
+            base_path is local it will already be mounted for you).
+        - to mount cloud credentials
     """
     if extra_volumes is None:
         extra_volumes = []

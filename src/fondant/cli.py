@@ -185,7 +185,7 @@ def explore(args):
 
     cloud_cred = get_cloud_credentials(args)
 
-    if get_cloud_credentials(args):
+    if cloud_cred:
         extra_volumes.append(cloud_cred)
 
     if args.extra_volumes:
