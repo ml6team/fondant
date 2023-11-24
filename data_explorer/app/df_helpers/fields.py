@@ -3,35 +3,24 @@
 import typing as t
 
 
+def get_fields_by_types(
+    fields: t.Dict[str, str],
+    field_types: t.List[str],
+) -> t.List[str]:
+    return [
+        field
+        for field, f_type in fields.items()
+        if any(ftype in f_type for ftype in field_types)
+    ]
+
+
+def get_string_fields(fields: t.Dict[str, str]) -> t.List[str]:
+    return get_fields_by_types(fields, ["string", "utf8"])
+
+
 def get_image_fields(fields: t.Dict[str, str]) -> t.List[str]:
-    """Get the image fields of the dataframe.
-
-    Args:
-        fields: dictionary with fields and field types
-
-    Returns:
-        List of image fields
-    """
-    # check which of the columns contain byte data
-    image_fields = []
-    for k, v in fields.items():
-        if v == "binary":
-            image_fields.append(k)
-    return image_fields
+    return get_fields_by_types(fields, ["binary"])
 
 
 def get_numeric_fields(fields: t.Dict[str, str]) -> t.List[str]:
-    """Get the numeric fields of the dataframe.
-
-    Args:
-        fields: dictionary with fields and field types
-
-    Returns:
-         List of numeric fields
-    """
-    # check which of the columns contain byte data
-    numeric_fields = []
-    for k, v in fields.items():
-        if "int" in v or "float" in v:
-            numeric_fields.append(k)
-    return numeric_fields
+    return get_fields_by_types(fields, ["int", "float"])
