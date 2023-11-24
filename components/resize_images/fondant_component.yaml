@@ -5,16 +5,12 @@ tags:
   - Image processing
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 
 produces:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 
 args:
   resize_width:

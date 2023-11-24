@@ -14,15 +14,13 @@ from the img2dataset library.
 
 **This component consumes:**
 
-- images
-    - url: string
+- images_url: string
 
 **This component produces:**
 
-- images
-    - data: binary
-    - width: int32
-    - height: int32
+- images_data: binary
+- images_width: int32
+- images_height: int32
 
 ### Arguments
 

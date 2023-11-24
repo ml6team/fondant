@@ -7,13 +7,11 @@ tags:
   - Data loading
 
 produces:
-  file:
-    fields:
-      filename:
-        type: string
-      content:
-        type: binary
-      
+  file_filename:
+    type: string
+  file_content:
+    type: binary
+
 args:
   directory_uri:
     description: Local or remote path to the directory containing the files

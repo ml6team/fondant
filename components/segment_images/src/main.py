@@ -150,4 +150,4 @@ class SegmentImagesComponent(PandasTransformComponent):
 
                 results.append(segmentations)
 
-        return pd.concat(results).to_frame(name=("segmentations", "data"))
+        return pd.concat(results).to_frame(name=("segmentations_data"))

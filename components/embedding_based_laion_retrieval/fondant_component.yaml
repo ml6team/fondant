@@ -7,19 +7,15 @@ tags:
   - Data retrieval
 
 consumes:
-  embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
+  embeddings_data:
+    type: array
+    items:
+      type: float32
 
 produces:
-  images:
-    fields:
-      url:
-        type: string
-  additionalSubsets: false
+  images_url:
+    type: string
+# additionalFields: false
 
 args:
   num_images:

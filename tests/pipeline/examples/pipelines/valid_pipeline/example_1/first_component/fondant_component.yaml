@@ -1,0 +1,15 @@
+name: First component
+description: This is an example component
+image: example_component:latest
+
+produces:
+  images_data:
+    type: binary
+
+  captions_data:
+    type: string
+
+args:
+  storage_args:
+    description: Storage arguments
+    type: str

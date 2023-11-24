@@ -5,7 +5,6 @@ and pipelines.
 import os
 import re
 import typing as t
-from dataclasses import dataclass
 from enum import Enum
 
 import pyarrow as pa
@@ -168,7 +167,7 @@ class Field:
     def __init__(
         self,
         name: str,
-        type: Type = None,
+        type: Type = Type("null"),
         location: str = "",
     ) -> None:
         self._name = name

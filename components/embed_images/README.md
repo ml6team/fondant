@@ -7,13 +7,11 @@ Component that generates CLIP embeddings from images
 
 **This component consumes:**
 
-- images
-    - data: binary
+- images_data: binary
 
 **This component produces:**
 
-- embeddings
-    - data: list<item: float>
+- embeddings_data: list<item: float>
 
 ### Arguments
 

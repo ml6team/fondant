@@ -38,7 +38,7 @@ class ChunkTextComponent(PandasTransformComponent):
     def chunk_text(self, row) -> t.List[t.Tuple]:
         # Multi-index df has id under the name attribute
         doc_id = row.name
-        text_data = row[("text", "data")]
+        text_data = row[("text_data")]
         docs = self.text_splitter.create_documents([text_data])
         return [
             (doc_id, f"{doc_id}_{chunk_id}", chunk.page_content)
@@ -62,10 +62,5 @@ class ChunkTextComponent(PandasTransformComponent):
             columns=["original_document_id", "id", "data"],
         )
         results_df = results_df.set_index("id")
-
-        # Set multi-index column for the expected subset and field
-        results_df.columns = pd.MultiIndex.from_product(
-            [["text"], results_df.columns],
-        )
 
         return results_df

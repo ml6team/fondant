@@ -74,16 +74,15 @@ class WriteToHubComponent(DaskWriteComponent):
         # Get columns to write and schema
         write_columns = []
         schema_dict = {}
-        for subset_name, subset in self.spec.consumes.items():
-            for field in subset.fields.values():
-                column_name = f"{subset_name}_{field.name}"
-                write_columns.append(column_name)
-                if self.image_column_names and column_name in self.image_column_names:
-                    schema_dict[column_name] = datasets.Image()
-                else:
-                    schema_dict[column_name] = generate_from_arrow_type(
-                        field.type.value,
-                    )
+        for field_name, field in self.spec.consumes.items():
+            column_name = field.name
+            write_columns.append(column_name)
+            if self.image_column_names and column_name in self.image_column_names:
+                schema_dict[column_name] = datasets.Image()
+            else:
+                schema_dict[column_name] = generate_from_arrow_type(
+                    field.type.value,
+                )
 
         schema = datasets.Features(schema_dict).arrow_schema
         dataframe = dataframe[write_columns]
