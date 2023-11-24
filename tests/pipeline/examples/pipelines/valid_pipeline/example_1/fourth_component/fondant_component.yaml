@@ -14,8 +14,9 @@ consumes:
     items:
       type: float32
 
-produces_data:
-  type: binary
+produces:
+  images_data:
+    type: binary
 
 args:
   storage_args:

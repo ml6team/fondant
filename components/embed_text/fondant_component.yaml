@@ -11,7 +11,7 @@ consumes:
 produces:
   text_data:
     type: string
-  embedding:
+  text_embedding:
     type: array
     items:
       type: float32
@@ -36,12 +36,12 @@ args:
       Pass only the keys required by the model provider or conveniently pass all keys you will ever need. 
       Pay attention how to name the dictionary keys so that they can be used by the model provider.
     type: dict
-    default: { }
+    default: {}
   auth_kwargs:
     description: |
       Additional keyword arguments required for api initialization/authentication.
     type: dict
-    default: { }
+    default: {}
 
   
   

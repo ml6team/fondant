@@ -5,16 +5,12 @@ tags:
   - Image processing
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 
 produces:
-  segmentations:
-    fields:
-      data:
-        type: binary
+  segmentations_data:
+    type: binary
 
 args:
   model_id:

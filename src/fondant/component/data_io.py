@@ -1,6 +1,7 @@
 import logging
 import os
 import typing as t
+from collections import defaultdict
 
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
@@ -27,11 +28,9 @@ class DaskDataLoader(DataIO):
         manifest: Manifest,
         component_spec: ComponentSpec,
         input_partition_rows: t.Optional[int] = None,
-        consumes: t.Optional[t.Dict[str, str]] = None
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows
-        self.consumes = consumes
 
     def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
@@ -95,8 +94,21 @@ class DaskDataLoader(DataIO):
             The Dask dataframe with all columns defined in the manifest field mapping
         """
         dataframe = None
-        field_mapping = self.manifest.field_mapping
+        field_mapping = defaultdict(list)
+
+        # Add index field to field mapping to guarantee start reading with the index dataframe
+        field_mapping[self.manifest.get_field_location(DEFAULT_INDEX_NAME)].append(
+            DEFAULT_INDEX_NAME,
+        )
+
+        for field_name in self.component_spec.consumes:
+            location = self.manifest.get_field_location(field_name)
+            field_mapping[location].append(field_name)
+
         for location, fields in field_mapping.items():
+            if DEFAULT_INDEX_NAME in fields:
+                fields.remove(DEFAULT_INDEX_NAME)
+
             partial_df = dd.read_parquet(
                 location,
                 columns=fields,
@@ -108,17 +120,6 @@ class DaskDataLoader(DataIO):
                 # ensure that the index is set correctly and divisions are known.
                 dataframe = partial_df
             else:
-                dask_divisions = dataframe.divisions
-                unique_divisions = list(set(dask_divisions))
-
-                # apply set index to both dataframes
-                partial_df = partial_df.set_index(
-                    DEFAULT_INDEX_NAME, divisions=unique_divisions
-                )
-                dataframe = dataframe.set_index(
-                    DEFAULT_INDEX_NAME, divisions=unique_divisions
-                )
-
                 dataframe = dataframe.merge(
                     partial_df,
                     how="left",
@@ -128,15 +129,8 @@ class DaskDataLoader(DataIO):
 
         dataframe = self.partition_loaded_dataframe(dataframe)
 
-
         logging.info(f"Columns of dataframe: {list(dataframe.columns)}")
 
-        # rename columns accordingly to the consumes
-        if self.consumes:
-            reverted_consumes = {v: k for k, v in self.consumes.items()}
-            dataframe = dataframe.rename(columns=reverted_consumes)
-
-        logging.info(f"Columns of components dataframe: {list(dataframe.columns)}")
         return dataframe
 
 
@@ -146,10 +140,8 @@ class DaskDataWriter(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        produces: t.Optional[t.Dict[str, str]] = None
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
-        self.producer = produces
 
     def write_dataframe(
         self,
@@ -166,12 +158,6 @@ class DaskDataWriter(DataIO):
         self.validate_dataframe_columns(dataframe, columns_to_produce)
 
         dataframe = dataframe[columns_to_produce]
-
-        # Rename produces accordingly
-        if self.produces:
-            reverted_produces = {v: k for k, v in self.produces.items()}
-            dataframe = dataframe.rename(columns=reverted_produces)
-
         write_task = self._write_dataframe(dataframe)
 
         with ProgressBar():

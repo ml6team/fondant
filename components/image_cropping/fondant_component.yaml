@@ -20,20 +20,16 @@ tags:
   - Image processing
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 
 produces:
-  images:
-    fields:
-      data:
-        type: binary
-      width:
-        type: int32
-      height:
-        type: int32
+  images_data:
+    type: binary
+  images_width:
+    type: int32
+  images_height:
+    type: int32
 
 args:
   cropping_threshold:

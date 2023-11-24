@@ -5,10 +5,8 @@ tags:
   - Text processing
 
 consumes:
-  text:
-    fields:
-      data:
-        type: string
+  text_data:
+    type: string
 
 args:
   min_characters_length:

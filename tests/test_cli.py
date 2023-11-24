@@ -55,16 +55,16 @@ TEST_PIPELINE = Pipeline(pipeline_name="test_pipeline", base_path="some/path")
 @pytest.mark.parametrize(
     "module_str",
     [
-        "example_modules.component",
-        "example_modules/component",
-        "example_modules.component.py",
-        "example_modules/component.py",
+        "examples.example_modules.component",
+        "examples.example_modules/component",
+        "examples.example_modules.component.py",
+        "examples.example_modules/component.py",
     ],
 )
 def test_get_module(module_str):
     """Test get module method."""
     module = get_module(module_str)
-    assert module.__name__ == "example_modules.component"
+    assert module.__name__ == "examples.example_modules.component"
 
 
 def test_get_module_error():
@@ -77,7 +77,7 @@ def test_get_module_error():
     "module_str",
     [
         __name__,  # cannot be split
-        "example_modules.component",  # module does not exist
+        "examples.example_modules.component",  # module does not exist
     ],
 )
 def test_component_from_module(module_str):
@@ -89,8 +89,10 @@ def test_component_from_module(module_str):
 @pytest.mark.parametrize(
     "module_str",
     [
-        "example_modules.invalid_component",  # module contains more than one component class
-        "example_modules.invalid_double_components",  # module does not contain a component class
+        # module contains more than one component class
+        "examples.example_modules.invalid_component",
+        # module does not contain a component class
+        "examples.example_modules.invalid_double_components",
     ],
 )
 def test_component_from_module_error(module_str):
@@ -103,7 +105,7 @@ def test_component_from_module_error(module_str):
     "module_str",
     [
         __name__,
-        "example_modules.pipeline",
+        "examples.example_modules.pipeline",
     ],
 )
 def test_pipeline_from_module(module_str):
@@ -115,8 +117,10 @@ def test_pipeline_from_module(module_str):
 @pytest.mark.parametrize(
     "module_str",
     [
-        "example_modules.component",  # module does not contain a pipeline instance
-        "example_modules.invalid_double_pipeline",  # module contains many pipeline instances
+        # module does not contain a pipeline instance
+        "examples.example_modules.component",
+        # module contains many pipeline instances
+        "examples.example_modules.invalid_double_pipeline",
     ],
 )
 def test_pipeline_from_module_error(module_str):
@@ -133,7 +137,7 @@ def test_execute_logic(monkeypatch):
     execute(args)
 
 
-def test_local_logic(tmp_path_factory):
+def test_local_compile(tmp_path_factory):
     """Test that the compile command works with arguments."""
     namespace_creds_kwargs = [
         {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
@@ -211,7 +215,16 @@ def test_vertex_compile(tmp_path_factory):
 
 def test_local_run(tmp_path_factory):
     """Test that the run command works with different arguments."""
-    args = argparse.Namespace(local=True, ref="some/path", output_path=None)
+    args = argparse.Namespace(
+        local=True,
+        ref="some/path",
+        output_path=None,
+        auth_gcp=False,
+        auth_azure=False,
+        auth_aws=False,
+        credentials=None,
+        extra_volumes=[],
+    )
     with patch("subprocess.call") as mock_call:
         run_local(args)
         mock_call.assert_called_once_with(
@@ -237,6 +250,10 @@ def test_local_run(tmp_path_factory):
             output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
             build_arg=[],
+            auth_gcp=False,
+            auth_azure=False,
+            auth_aws=False,
+            credentials=None,
         )
         run_local(args1)
         mock_call.assert_called_once_with(
@@ -252,6 +269,61 @@ def test_local_run(tmp_path_factory):
                 "--remove-orphans",
             ],
         )
+
+
+def test_local_run_cloud_credentials(tmp_path_factory):
+    namespace_creds_kwargs = [
+        {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
+        {"auth_gcp": False, "auth_azure": True, "auth_aws": False},
+        {"auth_gcp": False, "auth_azure": False, "auth_aws": True},
+    ]
+
+    for namespace_cred_kwargs in namespace_creds_kwargs:
+        with tmp_path_factory.mktemp("temp") as fn, patch(
+            "fondant.pipeline.compiler.DockerCompiler.compile",
+        ) as mock_compiler, patch(
+            "subprocess.call",
+        ) as mock_runner:
+            args = argparse.Namespace(
+                local=True,
+                vertex=False,
+                kubeflow=False,
+                ref=__name__,
+                output_path=str(fn / "docker-compose.yml"),
+                **namespace_cred_kwargs,
+                credentials=None,
+                extra_volumes=[],
+                build_arg=[],
+            )
+            run_local(args)
+
+            if namespace_cred_kwargs["auth_gcp"] is True:
+                extra_volumes = [CloudCredentialsMount.GCP.value]
+            if namespace_cred_kwargs["auth_aws"] is True:
+                extra_volumes = [CloudCredentialsMount.AWS.value]
+            if namespace_cred_kwargs["auth_azure"] is True:
+                extra_volumes = [CloudCredentialsMount.AZURE.value]
+
+            mock_compiler.assert_called_once_with(
+                pipeline=TEST_PIPELINE,
+                extra_volumes=extra_volumes,
+                output_path=str(fn / "docker-compose.yml"),
+                build_args=[],
+            )
+
+            mock_runner.assert_called_once_with(
+                [
+                    "docker",
+                    "compose",
+                    "-f",
+                    str(fn / "docker-compose.yml"),
+                    "up",
+                    "--build",
+                    "--pull",
+                    "always",
+                    "--remove-orphans",
+                ],
+            )
 
 
 def test_kfp_run(tmp_path_factory):
@@ -349,7 +421,7 @@ def test_vertex_run(tmp_path_factory):
 def test_component_build(mock_build, mock_push):
     """Test that the build command works as expected."""
     args = argparse.Namespace(
-        component_dir=Path(__file__).parent / "example_component",
+        component_dir=Path(__file__).parent / "examples/example_component",
         tag="image:test",
         build_arg=["key=value"],
         nocache=True,
@@ -367,7 +439,7 @@ def test_component_build(mock_build, mock_push):
 
     # Check that docker build and push were executed correctly
     mock_build.assert_called_with(
-        path=str(Path(__file__).parent / "example_component"),
+        path=str(Path(__file__).parent / "examples/example_component"),
         tag="image:test",
         buildargs={"key": "value"},
         nocache=True,
@@ -381,7 +453,7 @@ def test_component_build(mock_build, mock_push):
 
     # Check that the component specification file was updated correctly
     with open(
-        Path(__file__).parent / "example_component" / "fondant_component.yaml",
+        Path(__file__).parent / "examples/example_component" / "fondant_component.yaml",
         "r+",
     ) as f:
         content = f.read()

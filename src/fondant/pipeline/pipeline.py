@@ -129,18 +129,15 @@ class ComponentOp:
     COMPONENT_SPEC_NAME = "fondant_component.yaml"
 
     def __init__(
-            self,
-            component_dir: t.Union[str, Path],
-            *,
-            arguments: t.Optional[t.Dict[str, t.Any]] = None,
-            input_partition_rows: t.Optional[t.Union[str, int]] = None,
-            cache: t.Optional[bool] = True,
-            cluster_type: t.Optional[str] = "default",
-            client_kwargs: t.Optional[dict] = None,
-            resources: t.Optional[Resources] = None,
-            schema: t.Optional[t.Dict[str, t.Any]] = None,
-            consumes: t.Optional[t.Dict[str, t.Any]] = None,
-            produces: t.Optional[t.Dict[str, t.Any]] = None
+        self,
+        component_dir: t.Union[str, Path],
+        *,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        input_partition_rows: t.Optional[t.Union[str, int]] = None,
+        cache: t.Optional[bool] = True,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
+        resources: t.Optional[Resources] = None,
     ) -> None:
         self.component_dir = Path(component_dir)
         self.input_partition_rows = input_partition_rows
@@ -157,16 +154,14 @@ class ComponentOp:
         self._add_component_argument("cache", self.cache)
         self._add_component_argument("cluster_type", cluster_type)
         self._add_component_argument("client_kwargs", client_kwargs)
-        self._add_component_argument("schema", schema)
-        self._add_component_argument("consumes", consumes)
-        self._add_component_argument("produces", produces)
+
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.resources = resources or Resources()
 
     def _configure_caching_from_image_tag(
-            self,
-            cache: t.Optional[bool],
+        self,
+        cache: t.Optional[bool],
     ) -> t.Optional[bool]:
         """
         Adjusts the caching setting based on the image tag of the component.
@@ -197,10 +192,10 @@ class ComponentOp:
         return cache
 
     def _add_component_argument(
-            self,
-            argument_name: str,
-            argument_value: t.Any,
-            validator: t.Optional[t.Callable] = None,
+        self,
+        argument_name: str,
+        argument_value: t.Any,
+        validator: t.Optional[t.Callable] = None,
     ):
         """Register component argument to arguments dict as well as component attributes."""
         if hasattr(self, "arguments") is False:
@@ -217,17 +212,15 @@ class ComponentOp:
 
     @classmethod
     def from_registry(
-            cls,
-            name: str,
-            *,
-            arguments: t.Optional[t.Dict[str, t.Any]] = None,
-            input_partition_rows: t.Optional[t.Union[int, str]] = None,
-            resources: t.Optional[Resources] = None,
-            cache: t.Optional[bool] = True,
-            cluster_type: t.Optional[str] = "default",
-            client_kwargs: t.Optional[dict] = None,
-            consumes: t.Optional[t.Dict[str, t.Any]] = None,
-            produces: t.Optional[t.Dict[str, t.Any]] = None
+        cls,
+        name: str,
+        *,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        input_partition_rows: t.Optional[t.Union[int, str]] = None,
+        resources: t.Optional[Resources] = None,
+        cache: t.Optional[bool] = True,
+        cluster_type: t.Optional[str] = "default",
+        client_kwargs: t.Optional[dict] = None,
     ) -> "ComponentOp":
         """Load a reusable component by its name.
 
@@ -255,13 +248,11 @@ class ComponentOp:
             cache=cache,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
-            consumes=consumes,
-            produces=produces
         )
 
     def get_component_cache_key(
-            self,
-            previous_component_cache: t.Optional[str] = None,
+        self,
+        previous_component_cache: t.Optional[str] = None,
     ) -> str:
         """Calculate a cache key representing the unique identity of this ComponentOp.
 
@@ -310,10 +301,10 @@ class Pipeline:
     """Class representing a Fondant Pipeline."""
 
     def __init__(
-            self,
-            base_path: str,
-            pipeline_name: str,
-            pipeline_description: t.Optional[str] = None,
+        self,
+        base_path: str,
+        pipeline_name: str,
+        pipeline_description: t.Optional[str] = None,
     ):
         """
         Args:
@@ -328,136 +319,11 @@ class Pipeline:
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
 
-    def read(self,
-             name,
-             *,
-             arguments: t.Optional[t.Dict[str, t.Any]] = None,
-             input_partition_rows: t.Optional[t.Union[str, int]] = None,
-             cache: t.Optional[bool] = True,
-             cluster_type: t.Optional[str] = "default",
-             client_kwargs: t.Optional[dict] = None,
-             resources: t.Optional[Resources] = None,
-             schema: t.Optional[t.Dict[str, str]] = None) -> "Pipeline":
-
-        component_op = self._build_component_op(name,
-                                                arguments=arguments,
-                                                input_partition_rows=input_partition_rows,
-                                                cache=cache,
-                                                cluster_type=cluster_type,
-                                                client_kwargs=client_kwargs,
-                                                resources=resources,
-                                                schema=schema)
-
-        self.add_op(component_op)
-        return self
-
-
-    def apply(self,
-              name,
-              *,
-              arguments: t.Optional[t.Dict[str, t.Any]] = None,
-              input_partition_rows: t.Optional[t.Union[str, int]] = None,
-              cache: t.Optional[bool] = True,
-              cluster_type: t.Optional[str] = "default",
-              client_kwargs: t.Optional[dict] = None,
-              resources: t.Optional[Resources] = None,
-              consumes: t.Optional[t.Dict[str, str]] = None,
-              produces: t.Optional[t.Dict[str, str]] = None) -> "Pipeline":
-
-        component_op = self._build_component_op(name,
-                                                arguments=arguments,
-                                                input_partition_rows=input_partition_rows,
-                                                cache=cache,
-                                                cluster_type=cluster_type,
-                                                client_kwargs=client_kwargs,
-                                                resources=resources,
-                                                consumes=consumes,
-                                                produces=produces)
-
-        # Get previous component
-        previous_component = list(self._graph.items())[-1][1]["fondant_component_op"]
-        if previous_component is None:
-            msg = f"No previous component found."
-            raise ValueError(msg)
-
-        self.add_op(component_op, dependencies=previous_component)
-        return self
-
-    def write(self,
-              name,
-              *,
-              arguments: t.Optional[t.Dict[str, t.Any]] = None,
-              input_partition_rows: t.Optional[t.Union[str, int]] = None,
-              cache: t.Optional[bool] = True,
-              cluster_type: t.Optional[str] = "default",
-              client_kwargs: t.Optional[dict] = None,
-              resources: t.Optional[Resources] = None,
-              consumes: t.Optional[t.Dict[str, str]] = None,
-              schema: t.Optional[t.Dict[str, str]] = None) -> "Pipeline":
-
-        component_op = self._build_component_op(name,
-                                                arguments=arguments,
-                                                input_partition_rows=input_partition_rows,
-                                                cache=cache,
-                                                cluster_type=cluster_type,
-                                                client_kwargs=client_kwargs,
-                                                resources=resources,
-                                                consumes=consumes,
-                                                schema=schema)
-
-        # Get previous component
-        previous_component = list(self._graph.items())[-1]
-        if previous_component is None:
-            msg = f"No previous component found."
-            raise ValueError(msg)
-
-        self.add_op(component_op, dependencies=previous_component)
-        return self
-
-    def _build_component_op(self, name, *, arguments: t.Optional[t.Dict[str, t.Any]] = None,
-                            input_partition_rows: t.Optional[t.Union[str, int]] = None,
-                            cache: t.Optional[bool] = True,
-                            cluster_type: t.Optional[str] = "default",
-                            client_kwargs: t.Optional[dict] = None,
-                            resources: t.Optional[Resources] = None,
-                            schema: t.Optional[t.Dict[str, t.Any]] = None,
-                            consumes: t.Optional[t.Dict[str, t.Any]] = None,
-                            produces: t.Optional[t.Dict[str, t.Any]] = None):
-
-        if not self._is_custom_component(path_or_name=name):
-            name = self._get_registry_path(name)
-        component_op = ComponentOp(name,
-                                   arguments=arguments,
-                                   input_partition_rows=input_partition_rows,
-                                   cache=cache,
-                                   cluster_type=cluster_type,
-                                   client_kwargs=client_kwargs,
-                                   resources=resources,
-                                   schema=schema,
-                                   consumes=consumes,
-                                   produces=produces)
-        return component_op
-
-    @staticmethod
-    def _is_custom_component(path_or_name):
-        """Checks if name is a local path and a custom component."""
-        components_dir: Path = Path(path_or_name)
-        return components_dir.exists() and components_dir.is_dir()
-
-    @ staticmethod
-    def _get_registry_path(name):
-        """Checks if name is a local path and a custom component."""
-        components_dir: Path = t.cast(Path, files("fondant") / f"components/{name}")
-        if not (components_dir.exists() and components_dir.is_dir()):
-            msg = f"No reusable component with name {name} found."
-            raise ValueError(msg)
-        return components_dir
-
     def add_op(
-            self,
-            task: ComponentOp,
-            dependencies: t.Optional[t.Union[ComponentOp, t.List[ComponentOp]]] = None,
-    ) -> "Pipeline":
+        self,
+        task: ComponentOp,
+        dependencies: t.Optional[t.Union[ComponentOp, t.List[ComponentOp]]] = None,
+    ):
         """
         Add a task to the pipeline with an optional dependency.
 
@@ -466,7 +332,6 @@ class Pipeline:
             dependencies: Optional task dependencies that needs to be completed before the task
              can run.
         """
-
         if dependencies is None:
             if self.task_without_dependencies_added:
                 msg = "At most one task can be defined without dependencies."
@@ -495,8 +360,6 @@ class Pipeline:
             "fondant_component_op": task,
             "dependencies": dependencies_names,
         }
-
-        return self
 
     def sort_graph(self):
         """Sort the graph topologically based on task dependencies."""
@@ -580,13 +443,13 @@ class Pipeline:
             if not load_component:
                 # Check subset exists
                 for (
-                        component_subset_name,
-                        component_subset,
+                    component_field_name,
+                    component_field,
                 ) in component_spec.consumes.items():
-                    if component_subset_name not in manifest.subsets:
+                    if component_field_name not in manifest.fields:
                         msg = (
-                            f"Component '{component_spec.name}' is trying to invoke the subset "
-                            f"'{component_subset_name}', which has not been defined or created "
+                            f"Component '{component_spec.name}' is trying to invoke the field "
+                            f"'{component_field_name}', which has not been defined or created "
                             f"in the previous components."
                         )
                         raise InvalidPipelineDefinition(
@@ -594,36 +457,22 @@ class Pipeline:
                         )
 
                     # Get the corresponding manifest fields
-                    manifest_fields = manifest.subsets[component_subset_name].fields
+                    manifest_field = manifest.fields[component_field_name]
 
-                    # Check fields
-                    for field_name, subset_field in component_subset.fields.items():
-                        # Check if invoked field exists
-                        if field_name not in manifest_fields:
-                            msg = (
-                                f"The invoked subset '{component_subset_name}' of the "
-                                f"'{component_spec.name}' component does not match the "
-                                f"previously created subset definition.\n The component is "
-                                f"trying to invoke the field '{field_name}' which has not been "
-                                f"previously defined. Current available fields are "
-                                f"{manifest_fields}\n"
-                            )
-                            raise InvalidPipelineDefinition(
-                                msg,
-                            )
-                        # Check if the invoked field schema matches the current schema
-                        if subset_field != manifest_fields[field_name]:
-                            msg = (
-                                f"The invoked subset '{component_subset_name}' of the "
-                                f"'{component_spec.name}' component does not match  the "
-                                f"previously created subset definition.\n The '{field_name}' "
-                                f"field is currently defined with the following schema:\n"
-                                f"{manifest_fields[field_name]}\nThe current component to "
-                                f"trying to invoke it with this schema:\n{subset_field}"
-                            )
-                            raise InvalidPipelineDefinition(
-                                msg,
-                            )
+                    # Check if the invoked field schema matches the current schema
+                    if component_field.type != manifest_field.type:
+                        msg = (
+                            f"The invoked field '{component_field_name}' of the "
+                            f"'{component_spec.name}' component does not match  the "
+                            f"previously created field type.\n The '{manifest_field.name}' "
+                            f"field is currently defined with the following type:\n"
+                            f"{manifest_field.type}\nThe current component to "
+                            f"trying to invoke it with this type:\n{component_field.type}"
+                        )
+                        raise InvalidPipelineDefinition(
+                            msg,
+                        )
+
             manifest = manifest.evolve(component_spec, run_id=run_id)
             load_component = False
 

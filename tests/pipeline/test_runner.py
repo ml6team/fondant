@@ -4,9 +4,14 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
-from fondant.pipeline.runner import DockerRunner, KubeflowRunner, VertexRunner
+from fondant.pipeline.runner import (
+    DockerRunner,
+    KubeflowRunner,
+    SagemakerRunner,
+    VertexRunner,
+)
 
-VALID_PIPELINE = Path("./tests/example_pipelines/compiled_pipeline/")
+VALID_PIPELINE = Path("./tests/pipeline/examples/pipelines/compiled_pipeline/")
 
 
 def test_docker_runner():
@@ -96,3 +101,58 @@ def test_vertex_runner():
             service_account="some_account",
         )
         runner2.run(input_spec=input_spec_path)
+
+
+def test_sagemaker_runner(tmp_path_factory):
+    with mock.patch("boto3.client", spec=True), tmp_path_factory.mktemp(
+        "temp",
+    ) as tmpdir:
+        # create a small temporary spec file
+        with open(tmpdir / "spec.json", "w") as f:
+            f.write('{"pipelineInfo": {"name": "pipeline_1"}}')
+        runner = SagemakerRunner()
+
+        runner.run(
+            input_spec=tmpdir / "spec.json",
+            pipeline_name="pipeline_1",
+            role_arn="arn:something",
+        )
+
+        # check which methods were called on the client
+        assert runner.client.method_calls == [
+            mock.call.list_pipelines(PipelineNamePrefix="pipeline_1"),
+            mock.call.update_pipeline(
+                PipelineName="pipeline_1",
+                PipelineDefinition='{"pipelineInfo": {"name": "pipeline_1"}}',
+                RoleArn="arn:something",
+            ),
+            mock.call.start_pipeline_execution(
+                PipelineName="pipeline_1",
+                ParallelismConfiguration={"MaxParallelExecutionSteps": 1},
+            ),
+        ]
+
+        # reset the mock and test the creation of a new pipeline
+        runner.client.reset_mock()
+        runner.client.configure_mock(
+            **{"list_pipelines.return_value": {"PipelineSummaries": []}},
+        )
+
+        runner.run(
+            input_spec=tmpdir / "spec.json",
+            pipeline_name="pipeline_1",
+            role_arn="arn:something",
+        )
+        # here we expect the create_pipeline method to be called
+        assert runner.client.method_calls == [
+            mock.call.list_pipelines(PipelineNamePrefix="pipeline_1"),
+            mock.call.create_pipeline(
+                PipelineName="pipeline_1",
+                PipelineDefinition='{"pipelineInfo": {"name": "pipeline_1"}}',
+                RoleArn="arn:something",
+            ),
+            mock.call.start_pipeline_execution(
+                PipelineName="pipeline_1",
+                ParallelismConfiguration={"MaxParallelExecutionSteps": 1},
+            ),
+        ]

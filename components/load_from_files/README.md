@@ -11,9 +11,8 @@ location. It supports the following formats: .zip, gzip, tar and tar.gz.
 
 **This component produces:**
 
-- file
-    - filename: string
-    - content: binary
+- file_filename: string
+- file_content: binary
 
 ### Arguments
 

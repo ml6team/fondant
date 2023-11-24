@@ -3,23 +3,20 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
+<<<<<<<< HEAD:tests/pipeline/examples/pipelines/valid_pipeline/example_1/second_component/fondant_component.yaml
+========
 
-  caption:
-    fields:
-      data:
-        type: string
+  caption_data:
+    type: string
+>>>>>>>> feature/redesign-dataset-format-and-interface:tests/pipeline/examples/pipelines/invalid_pipeline/example_1/second_component/fondant_component.yaml
 
 produces:
-  embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
+  embeddings_data:
+    type: array
+    items:
+      type: float32
 
 args:
   storage_args:

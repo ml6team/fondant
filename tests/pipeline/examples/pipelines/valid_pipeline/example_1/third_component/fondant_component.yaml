@@ -18,7 +18,6 @@ produces:
   images_data:
     type: binary
 
-
 args:
   storage_args:
     description: Storage arguments

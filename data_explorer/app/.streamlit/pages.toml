@@ -1,0 +1,20 @@
+[[pages]]
+path = "main.py"
+name = "General Overview"
+icon = "🏠"
+
+[[pages]]
+path = "pages/dataset.py"
+name = "Dataset Explorer"
+icon = "📊"
+
+
+[[pages]]
+path = "pages/images.py"
+name = "Image Gallery"
+icon = "🖼️"
+
+[[pages]]
+path = "pages/statistics.py"
+name = "Numerical Analysis"
+icon = "📈"

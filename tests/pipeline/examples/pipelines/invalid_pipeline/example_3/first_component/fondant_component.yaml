@@ -3,21 +3,15 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 
 produces:
-  captions:
-    fields:
-      data:
-        type: string
+  captions_data:
+    type: string
 
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 args:
   storage_args:
     description: Storage arguments

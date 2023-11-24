@@ -29,6 +29,6 @@ class ResizeImagesComponent(PandasTransformComponent):
             axis=1,
         )
 
-        dataframe[("images", "data")] = result
+        dataframe["images_data"] = result
 
         return dataframe

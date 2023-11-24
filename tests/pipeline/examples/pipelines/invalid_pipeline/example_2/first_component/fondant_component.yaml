@@ -3,21 +3,21 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
+  images_data:
+    type: binary
 
 produces:
-  captions:
-    fields:
-      data:
-        type: string
+<<<<<<<< HEAD:tests/pipeline/examples/pipelines/valid_pipeline/example_1/first_component/fondant_component.yaml
+  images_data:
+    type: binary
 
-  images:
-    fields:
-      data:
-        type: binary
+========
+>>>>>>>> feature/redesign-dataset-format-and-interface:tests/pipeline/examples/pipelines/invalid_pipeline/example_2/first_component/fondant_component.yaml
+  captions_data:
+    type: string
+
+  images_data:
+    type: binary
 args:
   storage_args:
     description: Storage arguments
