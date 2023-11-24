@@ -15,9 +15,28 @@ def run_explorer_app(  # type: ignore
     port: int = 8501,
     container: str = "fndnt/data_explorer",
     tag: str = "latest",
-    credentials: t.Optional[str] = None,
+    extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
 ):  # type: ignore
-    """Run the data explorer container."""
+    """
+    Run an Explorer App in a Docker container.
+
+    Args:
+      base_path: the base path where the Explorer App will be mounted.
+      port: The port number to expose the Explorer App. Default is 8501.
+      container: The Docker container name or image to use. Default is "fndnt/data_explorer".
+      tag: The tag/version of the Docker container. Default is "latest".
+      extra_volumes: Extra volumes to mount in containers. You can use the --extra-volumes flag
+      to specify extra volumes to mount in the containers this can be used:
+        - to mount data directories to be used by the pipeline (note that if your pipeline's
+            base_path is local it will already be mounted for you).
+        - to mount cloud credentials
+    """
+    if extra_volumes is None:
+        extra_volumes = []
+
+    if isinstance(extra_volumes, str):
+        extra_volumes = [extra_volumes]
+
     cmd = [
         "docker",
         "run",
@@ -30,33 +49,22 @@ def run_explorer_app(  # type: ignore
         f"{port}:8501",
     ]
 
-    # mount the credentials file to the container
-    if credentials:
-        # check if path is read only
-        if not credentials.endswith(":ro"):
-            credentials += ":ro"
-
-        cmd.extend(
-            [
-                "-v",
-                credentials,
-            ],
-        )
-
     fs, _ = fsspec.core.url_to_fs(base_path)
     if isinstance(fs, LocalFileSystem):
         logging.info(f"Using local base path: {base_path}")
         logging.info(
             "This directory will be mounted to /artifacts in the container.",
         )
-        if not credentials:
-            logging.warning(
-                "You have not provided a credentials file. If you wish to access data "
-                "from a cloud provider, mount the credentials file with the --credentials flag.",
-            )
         data_directory_path = Path(base_path).resolve()
         host_machine_path = data_directory_path.as_posix()
         container_path = os.path.join("/", data_directory_path.name)
+
+        # Mount extra volumes to the container
+        if extra_volumes:
+            for volume in extra_volumes:
+                cmd.extend(
+                    ["-v", volume],
+                )
 
         # Mount the local base path to the container
         cmd.extend(
@@ -75,7 +83,7 @@ def run_explorer_app(  # type: ignore
         )
 
     else:
-        if credentials is None:
+        if not extra_volumes:
             raise RuntimeError(
                 None,
                 f"Specified base path `{base_path}`, Please provide valid credentials when using"
@@ -83,6 +91,13 @@ def run_explorer_app(  # type: ignore
             )
 
         logging.info(f"Using remote base path: {base_path}")
+
+        # Mount extra volumes to the container
+        if extra_volumes:
+            for volume in extra_volumes:
+                cmd.extend(
+                    ["-v", volume],
+                )
 
         # add the image name
         cmd.extend(
