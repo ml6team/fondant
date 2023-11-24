@@ -181,30 +181,6 @@ class ComponentSpec:
             },
         )
 
-    def overwrite_field_mapping(
-        self,
-        mapping_dict: t.Dict[str, str],
-        section_to_overwrite: str,
-    ):
-        if section_to_overwrite not in ["consumes", "produces"]:
-            msg = (
-                f"Can not overwrite {section_to_overwrite} because it is not part of the component "
-                f"specification."
-            )
-            raise ValueError(msg)
-
-        for name, item in mapping_dict.items():
-            if name in self._specification[section_to_overwrite]:
-                self._specification[section_to_overwrite][item] = self._specification[
-                    section_to_overwrite
-                ].pop(name)
-            else:
-                msg = (
-                    f"Can not map {name} to {item}, because {name} is not part of the "
-                    f"component specification."
-                )
-                raise ValueError(msg)
-
     @property
     def args(self) -> t.Mapping[str, Argument]:
         args = self.default_arguments

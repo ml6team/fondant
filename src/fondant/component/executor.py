@@ -80,11 +80,6 @@ class Executor(t.Generic[Component]):
         self.input_partition_rows = input_partition_rows
         self.schema = schema
 
-        # TODO: either overwrite the component spec
-        self.spec.overwrite_field_mapping(consumes, section_to_overwrite="consumes")
-        self.spec.overwrite_field_mapping(produces, section_to_overwrite="produces")
-
-        # TODO: or accessing attributes in data_io.py
         self.consumes = consumes
         self.produces = produces
 

@@ -51,6 +51,20 @@ def test_load_dataframe(manifest, component_spec):
     assert dataframe.index.name == "id"
 
 
+def test_load_dataframe_custom_consumes(manifest, component_spec):
+    """Test merging of fields in a dataframe based on a component_spec."""
+    dl = DaskDataLoader(manifest=manifest, component_spec=component_spec, consumes={"Name": "custom_name"})
+    dataframe = dl.load_dataframe()
+    assert len(dataframe) == NUMBER_OF_TEST_ROWS
+    assert list(dataframe.columns) == [
+        "custom_name",
+        "HP",
+        "Type 1",
+        "Type 2",
+    ]
+    assert dataframe.index.name == "id"
+
+
 def test_load_dataframe_default(manifest, component_spec):
     """Test merging of subsets in a dataframe based on a component_spec."""
     dl = DaskDataLoader(manifest=manifest, component_spec=component_spec)
@@ -86,6 +100,29 @@ def test_write_dataset(
         # override the base path of the manifest with the temp dir
         manifest.update_metadata("base_path", str(fn))
         data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
+        # write dataframe to temp dir
+        data_writer.write_dataframe(dataframe, dask_client)
+        # read written data and assert
+        dataframe = dd.read_parquet(fn)
+        assert len(dataframe) == NUMBER_OF_TEST_ROWS
+        assert list(dataframe.columns) == columns
+        assert dataframe.index.name == "id"
+
+
+def test_write_dataset_custom_produces(
+    tmp_path_factory,
+    dataframe,
+    manifest,
+    component_spec,
+    dask_client,
+):
+    """Test writing out subsets."""
+    # Dictionary specifying the expected subsets to write and their column names
+    columns = ["custom_name", "HP", "Type 1", "Type 2"]
+    with tmp_path_factory.mktemp("temp") as fn:
+        # override the base path of the manifest with the temp dir
+        manifest.update_metadata("base_path", str(fn))
+        data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec, produces={"Name": "custom_name"})
         # write dataframe to temp dir
         data_writer.write_dataframe(dataframe, dask_client)
         # read written data and assert
