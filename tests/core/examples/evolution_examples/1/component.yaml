@@ -3,18 +3,6 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-<<<<<<<< HEAD:tests/core/examples/component_specs/invalid_component.yaml
-  images:
-    fields:
-      data:
-        type: binary
-
-produces:
-  captions:
-    fields:
-      data:
-        type: string
-========
   images_data:
     type: binary
 
@@ -23,7 +11,6 @@ produces:
     type: array
     items:
       type: float32
->>>>>>>> feature/redesign-dataset-format-and-interface:tests/core/examples/evolution_examples/1/component.yaml
 
 Arguments:
   storage_args:

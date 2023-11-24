@@ -7,17 +7,9 @@ consumes:
     type: binary
 
 produces:
-<<<<<<<< HEAD:tests/pipeline/examples/pipelines/valid_pipeline/example_1/first_component/fondant_component.yaml
   images_data:
     type: binary
 
-========
->>>>>>>> feature/redesign-dataset-format-and-interface:tests/pipeline/examples/pipelines/invalid_pipeline/example_2/first_component/fondant_component.yaml
-  captions_data:
-    type: string
-
-  images_data:
-    type: binary
 args:
   storage_args:
     description: Storage arguments

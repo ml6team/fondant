@@ -5,12 +5,6 @@ image: example_component:latest
 consumes:
   images_data:
     type: binary
-<<<<<<<< HEAD:tests/pipeline/examples/pipelines/valid_pipeline/example_1/second_component/fondant_component.yaml
-========
-
-  caption_data:
-    type: string
->>>>>>>> feature/redesign-dataset-format-and-interface:tests/pipeline/examples/pipelines/invalid_pipeline/example_1/second_component/fondant_component.yaml
 
 produces:
   embeddings_data:

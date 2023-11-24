@@ -7,15 +7,8 @@ consumes:
     type: binary
 
 produces:
-<<<<<<<< HEAD:tests/core/examples/evolution_examples/1/component.yaml
-  embeddings_data:
-    type: array
-    items:
-      type: float32
-========
   captions_data:
     type: string
->>>>>>>> feature/redesign-dataset-format-and-interface:tests/pipeline/examples/pipelines/invalid_pipeline/example_1/first_component/fondant_component.yaml
 
 args:
   storage_args:
