@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess  # nosec
 import typing as t
 from abc import ABC, abstractmethod
@@ -40,7 +41,6 @@ class DockerRunner(Runner):
         self,
         input: t.Union[Pipeline, str],
         *,
-        output_path: str = "docker-compose.yml",
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
     ) -> None:
@@ -55,8 +55,10 @@ class DockerRunner(Runner):
             build_args: List of build arguments to pass to docker
         """
         if isinstance(input, Pipeline):
+            os.makedirs(".fondant", exist_ok=True)
+            output_path = ".fondant/compose.yaml"
             logging.info(
-                "Found reference to un-compiled pipeline... compiling to {output_path}",
+                "Found reference to un-compiled pipeline... compiling",
             )
             compiler = DockerCompiler()
             compiler.compile(
@@ -65,7 +67,7 @@ class DockerRunner(Runner):
                 extra_volumes=extra_volumes,
                 build_args=build_args,
             )
-            self.run(output_path)
+            self._run(output_path)
         else:
             self._run(input)
 

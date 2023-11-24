@@ -213,7 +213,7 @@ def test_vertex_compile(tmp_path_factory):
         )
 
 
-def test_local_run(tmp_path_factory):
+def test_local_run():
     """Test that the run command works with different arguments."""
     args = argparse.Namespace(
         local=True,
@@ -242,13 +242,12 @@ def test_local_run(tmp_path_factory):
             ],
         )
 
-    with patch("subprocess.call") as mock_call, tmp_path_factory.mktemp("temp") as fn:
+    with patch("subprocess.call") as mock_call:
         args1 = argparse.Namespace(
             local=True,
             vertex=False,
             kubeflow=False,
             ref=__name__,
-            output_path=str(fn / "docker-compose.yml"),
             extra_volumes=[],
             build_arg=[],
             auth_gcp=False,
@@ -262,7 +261,7 @@ def test_local_run(tmp_path_factory):
                 "docker",
                 "compose",
                 "-f",
-                str(fn / "docker-compose.yml"),
+                ".fondant/compose.yaml",
                 "up",
                 "--build",
                 "--pull",
@@ -272,7 +271,7 @@ def test_local_run(tmp_path_factory):
         )
 
 
-def test_local_run_cloud_credentials(tmp_path_factory):
+def test_local_run_cloud_credentials():
     namespace_creds_kwargs = [
         {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
         {"auth_gcp": False, "auth_azure": True, "auth_aws": False},
@@ -280,7 +279,7 @@ def test_local_run_cloud_credentials(tmp_path_factory):
     ]
 
     for namespace_cred_kwargs in namespace_creds_kwargs:
-        with tmp_path_factory.mktemp("temp") as fn, patch(
+        with patch(
             "fondant.pipeline.compiler.DockerCompiler.compile",
         ) as mock_compiler, patch(
             "subprocess.call",
@@ -290,7 +289,6 @@ def test_local_run_cloud_credentials(tmp_path_factory):
                 vertex=False,
                 kubeflow=False,
                 ref=__name__,
-                output_path=str(fn / "docker-compose.yml"),
                 **namespace_cred_kwargs,
                 credentials=None,
                 extra_volumes=[],
@@ -308,7 +306,7 @@ def test_local_run_cloud_credentials(tmp_path_factory):
             mock_compiler.assert_called_once_with(
                 TEST_PIPELINE,
                 extra_volumes=extra_volumes,
-                output_path=str(fn / "docker-compose.yml"),
+                output_path=".fondant/compose.yaml",
                 build_args=[],
             )
 
@@ -317,7 +315,7 @@ def test_local_run_cloud_credentials(tmp_path_factory):
                     "docker",
                     "compose",
                     "-f",
-                    str(fn / "docker-compose.yml"),
+                    ".fondant/compose.yaml",
                     "up",
                     "--build",
                     "--pull",

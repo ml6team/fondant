@@ -597,7 +597,6 @@ def run_local(args):
         runner.run(
             input=ref,
             extra_volumes=extra_volumes,
-            output_path=args.output_path,
             build_args=args.build_arg,
         )
 
