@@ -20,7 +20,7 @@ def remote_path() -> str:
 
 
 @pytest.fixture()
-def credentials() -> str:
+def extra_volumes() -> str:
     return (
         "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/"
         "gcloud/application_default_credentials.json"
@@ -32,7 +32,7 @@ def container_path() -> str:
     return "/source"
 
 
-def test_run_data_explorer_local_base_path(host_path, container_path, credentials):
+def test_run_data_explorer_local_base_path(host_path, container_path, extra_volumes):
     """Test that the data explorer can be run with a local base path."""
     with patch("subprocess.call") as mock_call:
         run_explorer_app(
@@ -40,7 +40,7 @@ def test_run_data_explorer_local_base_path(host_path, container_path, credential
             port=DEFAULT_PORT,
             container=DEFAULT_CONTAINER,
             tag=DEFAULT_TAG,
-            credentials=credentials,
+            extra_volumes=extra_volumes,
         )
         mock_call.assert_called_once_with(
             [
@@ -54,7 +54,7 @@ def test_run_data_explorer_local_base_path(host_path, container_path, credential
                 "-p",
                 "8501:8501",
                 "-v",
-                f"{credentials}:ro",
+                f"{extra_volumes}",
                 "-v",
                 f"{Path(host_path).resolve()}:{container_path}",
                 f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
@@ -65,7 +65,7 @@ def test_run_data_explorer_local_base_path(host_path, container_path, credential
         )
 
 
-def test_run_data_explorer_remote_base_path(remote_path, credentials):
+def test_run_data_explorer_remote_base_path(remote_path, extra_volumes):
     """Test that the data explorer can be run with a remote base path."""
     with patch("subprocess.call") as mock_call:
         run_explorer_app(
@@ -73,7 +73,7 @@ def test_run_data_explorer_remote_base_path(remote_path, credentials):
             port=DEFAULT_PORT,
             container=DEFAULT_CONTAINER,
             tag=DEFAULT_TAG,
-            credentials=credentials,
+            extra_volumes=extra_volumes,
         )
 
         mock_call.assert_called_once_with(
@@ -88,7 +88,7 @@ def test_run_data_explorer_remote_base_path(remote_path, credentials):
                 "-p",
                 "8501:8501",
                 "-v",
-                f"{credentials}:ro",
+                f"{extra_volumes}",
                 f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
                 "--base_path",
                 f"{remote_path}",
@@ -111,5 +111,5 @@ def test_invalid_run_data_explorer_remote_base_path(remote_path):
             port=DEFAULT_PORT,
             container=DEFAULT_CONTAINER,
             tag=DEFAULT_TAG,
-            credentials=None,
+            extra_volumes=None,
         )
