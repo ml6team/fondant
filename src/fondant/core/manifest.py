@@ -267,7 +267,10 @@ class Manifest:
             Field(name="index", location=component_spec.component_folder_name),
         )
 
-        # TODO handle additionalFields
+        # Remove all previous fields if the component changes the index
+        if component_spec.previous_index:
+            for field_name in evolved_manifest.fields:
+                evolved_manifest.remove_field(field_name)
 
         # Add or update all produced fields defined in the component spec
         for name, field in component_spec.produces.items():

@@ -23,7 +23,6 @@ produces:
     type: int32
   images_height:
     type: int32
-#    additionalFields: false
 
 args:
   timeout:

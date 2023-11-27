@@ -17,6 +17,7 @@ This component doesn’t return the actual images, only URLs.
 **This component produces:**
 
 - images_url: string
+- prompt_id: string
 
 ### Arguments
 
@@ -50,3 +51,9 @@ prompt_based_laion_retrieval_op = ComponentOp.from_registry(
 pipeline.add_op(prompt_based_laion_retrieval_op, dependencies=[...])  #Add previous component as dependency
 ```
 
+### Testing
+
+You can run the tests using docker with BuildKit. From this directory, run:
+```
+docker build . --target test
+```

@@ -182,6 +182,10 @@ class ComponentSpec:
         )
 
     @property
+    def previous_index(self) -> t.Optional[str]:
+        return self._specification.get("previous_index")
+
+    @property
     def args(self) -> t.Mapping[str, Argument]:
         args = self.default_arguments
         args.update(
