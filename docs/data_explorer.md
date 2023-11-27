@@ -30,7 +30,7 @@ You can setup the data explorer container with the `fondant explore` CLI command
 
 Where the base path can be either a local or remote base path. Make sure to pass the proper mount credentials arguments when using a remote base path or a local base path 
 that references remote datasets. You can do that either with `--auth-gcp`, `--auth-aws` or `--auth-azure` to
-mount your default local cloud credentials to the pipeline. Or You can also use the `--credentials` argument to mount custom credentials to the local container pipeline.
+mount your default local cloud credentials to the pipeline. Or You can also use the `--extra-volumnes` flag to specify credentials or local files you  need to mount.
 
 Example: 
 

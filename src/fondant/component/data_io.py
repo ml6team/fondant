@@ -20,14 +20,15 @@ class DataIO:
         self.manifest = manifest
         self.component_spec = component_spec
 
+
 class DaskDataLoader(DataIO):
     def __init__(
-            self,
-            *,
-            manifest: Manifest,
-            component_spec: ComponentSpec,
-            input_partition_rows: t.Optional[int] = None,
-            consumes: t.Optional[t.Dict[str, str]] = None
+        self,
+        *,
+        manifest: Manifest,
+        component_spec: ComponentSpec,
+        input_partition_rows: t.Optional[int] = None,
+        consumes: t.Optional[t.Dict[str, str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows
@@ -102,7 +103,6 @@ class DaskDataLoader(DataIO):
             DEFAULT_INDEX_NAME,
         )
 
-
         for field_name in self.component_spec.consumes:
             location = self.manifest.get_field_location(field_name)
             field_mapping[location].append(field_name)
@@ -142,19 +142,19 @@ class DaskDataLoader(DataIO):
 
 class DaskDataWriter(DataIO):
     def __init__(
-            self,
-            *,
-            manifest: Manifest,
-            component_spec: ComponentSpec,
-            produces: t.Optional[t.Dict[str, str]] = None
+        self,
+        *,
+        manifest: Manifest,
+        component_spec: ComponentSpec,
+        produces: t.Optional[t.Dict[str, str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.produces = produces
 
     def write_dataframe(
-            self,
-            dataframe: dd.DataFrame,
-            dask_client: t.Optional[Client] = None,
+        self,
+        dataframe: dd.DataFrame,
+        dask_client: t.Optional[Client] = None,
     ) -> None:
         columns_to_produce = [
             column_name for column_name, field in self.component_spec.produces.items()
@@ -197,7 +197,7 @@ class DaskDataWriter(DataIO):
     def _write_dataframe(self, dataframe: dd.DataFrame) -> dd.core.Scalar:
         """Create dataframe writing task."""
         location = (
-                self.manifest.base_path + "/" + self.component_spec.component_folder_name
+            self.manifest.base_path + "/" + self.component_spec.component_folder_name
         )
         schema = {
             field.name: field.type.value
@@ -207,10 +207,10 @@ class DaskDataWriter(DataIO):
 
     @staticmethod
     def _create_write_task(
-            dataframe: dd.DataFrame,
-            *,
-            location: str,
-            schema: t.Dict[str, str],
+        dataframe: dd.DataFrame,
+        *,
+        location: str,
+        schema: t.Dict[str, str],
     ) -> dd.core.Scalar:
         """
         Creates a delayed Dask task to upload the given DataFrame to the remote storage location

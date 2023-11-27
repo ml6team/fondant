@@ -593,27 +593,10 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         )
 
         # Clear divisions if component spec indicates that the index is changed
-        if self._infer_index_change():
+        if self.spec.previous_index is not None:
             dataframe.clear_divisions()
 
         return dataframe
-
-    # TODO: fix in #244
-    def _infer_index_change(self) -> bool:
-        """Infer if this component changes the index based on its component spec."""
-        """
-        if not self.spec.accepts_additional_subsets:
-            return True
-        if not self.spec.outputs_additional_subsets:
-            return True
-        for subset in self.spec.consumes.values():
-            if not subset.additional_fields:
-                return True
-        return any(
-            not subset.additional_fields for subset in self.spec.produces.values()
-        )
-        """
-        return False
 
 
 class DaskWriteExecutor(Executor[DaskWriteComponent]):

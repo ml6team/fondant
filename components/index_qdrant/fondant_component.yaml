@@ -7,14 +7,12 @@ image: 'fndnt/index_qdrant:dev'
 tags:
   - Data writing
 consumes:
-  text:
-    fields:
-      data:
-        type: string
-      embedding:
-        type: array
-        items:
-          type: float32
+  text_data:
+    type: string
+  embeddings_data:
+    type: array
+    items:
+      type: float32
 args:
   collection_name:
     description: The name of the Qdrant collection to upsert data into.

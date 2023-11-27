@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.8-slim
+FROM --platform=linux/amd64 python:3.8-slim as base
 
 # System dependencies
 RUN apt-get update && \
@@ -16,8 +16,15 @@ RUN pip3 install fondant[component,aws,azure,gcp]@git+https://github.com/ml6team
 
 # Set the working directory to the component folder
 WORKDIR /component/src
+COPY src/ src/
+ENV PYTHONPATH "${PYTHONPATH}:./src"
 
-# Copy over src-files
-COPY src/ .
+FROM base as test
+COPY test_requirements.txt .
+RUN pip3 install --no-cache-dir -r test_requirements.txt
+COPY tests/ tests/
+RUN python -m pytest tests
 
+FROM base
+WORKDIR /component/src
 ENTRYPOINT ["fondant", "execute", "main"]

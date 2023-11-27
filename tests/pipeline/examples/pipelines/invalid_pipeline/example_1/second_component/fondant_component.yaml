@@ -6,6 +6,9 @@ consumes:
   images_data:
     type: binary
 
+  caption_data:
+    type: string
+
 produces:
   embeddings_data:
     type: array

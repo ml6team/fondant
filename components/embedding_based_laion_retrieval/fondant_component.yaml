@@ -15,7 +15,10 @@ consumes:
 produces:
   images_url:
     type: string
-# additionalFields: false
+  embedding_id:
+    type: string
+
+previous_index: embedding_id
 
 args:
   num_images:

@@ -7,12 +7,17 @@ consumes:
     type: binary
 
 produces:
+<<<<<<<< HEAD:tests/core/examples/evolution_examples/2/component.yaml
+  images_encoding:
+    type: string
+========
   embeddings_data:
     type: array
     items:
       type: float32
+>>>>>>>> main:tests/core/examples/evolution_examples/1/component.yaml
 
-Arguments:
+args:
   storage_args:
     description: Storage arguments
     type: str

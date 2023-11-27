@@ -11,8 +11,6 @@ produces:
     type: array
     items:
       type: float32
-additionalFields: false
-
 
 args:
   flag:

@@ -33,6 +33,9 @@
     "produces": {
       "$ref": "common.json#/definitions/fields"
     },
+    "previous_index": {
+      "type": "string"
+    },
     "args": {
       "$ref": "#/definitions/args"
     }
