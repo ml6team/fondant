@@ -196,7 +196,7 @@ def explore(args):
         container=args.container,
         tag=args.tag,
         port=args.port,
-        credentials=cloud_cred,
+        extra_volumes=extra_volumes,
     )
 
 
