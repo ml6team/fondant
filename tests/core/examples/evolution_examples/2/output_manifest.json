@@ -9,24 +9,8 @@
       "location":"/example_component"
    },
    "fields": {
-      "images_width": {
-         "type": "int32",
-         "location":"/example_component"
-      },
-      "images_height": {
-         "type": "int32",
-         "location":"/example_component"
-      },
       "images_data": {
          "type": "binary",
-         "location":"/example_component"
-      },
-      "captions_data": {
-         "type": "binary",
-         "location":"/example_component"
-      },
-      "images_encoding": {
-         "type": "string",
          "location":"/example_component"
       }
    }
