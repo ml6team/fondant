@@ -1,9 +1,13 @@
 import logging
+import os
 import subprocess  # nosec
 import typing as t
 from abc import ABC, abstractmethod
 
 import yaml
+
+from fondant.pipeline import Pipeline
+from fondant.pipeline.compiler import DockerCompiler
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +21,7 @@ class Runner(ABC):
 
 
 class DockerRunner(Runner):
-    def run(self, input_spec: str, *args, **kwargs):
+    def _run(self, input_spec: str, *args, **kwargs):
         """Run a docker-compose spec."""
         cmd = [
             "docker",
@@ -32,6 +36,40 @@ class DockerRunner(Runner):
         ]
 
         subprocess.call(cmd)  # nosec
+
+    def run(
+        self,
+        input: t.Union[Pipeline, str],
+        *,
+        extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
+        build_args: t.Optional[t.List[str]] = None,
+    ) -> None:
+        """Compile a pipeline to docker-compose spec and save it to a specified output path.
+
+        Args:
+            input: the pipeline to compile or a path to a already compiled docker-compose spec
+            output_path: the path where to save the docker-compose spec
+            extra_volumes: a list of extra volumes (using the Short syntax:
+            https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
+            to mount in the docker-compose spec.
+            build_args: List of build arguments to pass to docker
+        """
+        if isinstance(input, Pipeline):
+            os.makedirs(".fondant", exist_ok=True)
+            output_path = ".fondant/compose.yaml"
+            logging.info(
+                "Found reference to un-compiled pipeline... compiling",
+            )
+            compiler = DockerCompiler()
+            compiler.compile(
+                input,
+                output_path=output_path,
+                extra_volumes=extra_volumes,
+                build_args=build_args,
+            )
+            self._run(output_path)
+        else:
+            self._run(input)
 
 
 class KubeflowRunner(Runner):
