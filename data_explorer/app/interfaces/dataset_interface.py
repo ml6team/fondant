@@ -208,7 +208,7 @@ class DatasetLoaderApp(MainInterface):
 
         st.info(
             f"Showing {len(pandas_df)} rows. Click on the 'next' and 'previous' "
-            f"buttons to navigate through different dataset.",
+            f"buttons to navigate through the dataset.",
         )
         previous_col, _, next_col = st.columns([0.2, 0.6, 0.2])
 

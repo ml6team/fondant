@@ -7,7 +7,6 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from bs4 import BeautifulSoup
-from config import ROWS_PER_PAGE
 from df_helpers.fields import get_image_fields, get_string_fields
 from df_helpers.image_render import configure_image_builder, convert_image_column
 from fpdf import FPDF
@@ -79,12 +78,6 @@ class DatasetExplorerApp(DatasetLoaderApp):
         for field in image_fields:
             configure_image_builder(options_builder, field)
 
-        # configure pagination and sidebar
-        options_builder.configure_pagination(
-            enabled=True,
-            paginationPageSize=ROWS_PER_PAGE,
-            paginationAutoPageSize=False,
-        )
         options_builder.configure_default_column(
             editable=False,
             groupable=True,
