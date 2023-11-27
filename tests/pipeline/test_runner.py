@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
+
 from fondant.pipeline import Pipeline
 from fondant.pipeline.runner import (
     DockerRunner,
