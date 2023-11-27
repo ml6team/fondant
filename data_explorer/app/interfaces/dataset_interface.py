@@ -2,10 +2,13 @@
 
 import os
 import typing as t
+from collections import defaultdict
 
 import dask.dataframe as dd
 import streamlit as st
+from config import DEFAULT_INDEX_NAME
 from fondant.core.manifest import Manifest
+from fondant.core.schema import Field
 from interfaces.common_interface import MainInterface
 from interfaces.utils import get_default_index
 
@@ -35,59 +38,95 @@ class DatasetLoaderApp(MainInterface):
 
         return selected_component_path
 
-    def _get_manifest_fields_and_subset(self):
-        """Get fields and subset from manifest and store them in session state."""
-        cols = st.columns(3)
+    def _get_manifest_fields(self) -> t.Tuple[Manifest, t.Dict[str, Field]]:
+        """Get fields from manifest and store them in session state."""
+        cols = st.columns(2)
 
         with cols[0]:
             selected_component_path = self._select_component()
 
         manifest_path = os.path.join(selected_component_path, "manifest.json")
         manifest = Manifest.from_file(manifest_path)
-        subsets = manifest.subsets.keys()
+        fields = manifest.fields
+        field_list = list(fields.keys())
 
         with cols[1]:
-            subset = st.selectbox("Select subset", subsets)
+            selected_field_names = st.multiselect(
+                "Fields",
+                field_list,
+                default=field_list,
+            )
 
-        fields = manifest.subsets[subset].fields
-
-        with cols[2]:
-            fields = st.multiselect("Fields", fields, default=fields)
-
-        field_types = {
-            f"{field}": manifest.subsets[subset].fields[field].type.name
-            for field in fields
+        selected_fields = {
+            field_name: fields[field_name] for field_name in selected_field_names
         }
-        return manifest, subset, field_types
 
-    def _get_subset_path(self, manifest, subset):
+        return manifest, selected_fields
+
+    def _get_field_location(self, manifest: Manifest, field_name: str) -> str:
         """
-        Get path to subset from manifest. If the base path is not mounted, the subset path is
-        assumed to be relative to the base path. If the base path is mounted, the subset path is
+        Get path to the fields from manifest. If the base path is not mounted, the fields path are
+        assumed to be relative to the base path. If the base path is mounted, the fields path are
         assumed to be absolute.
         """
         base_path = st.session_state["base_path"]
-        subset = manifest.subsets[subset]
+        field_location = manifest.get_field_location(field_name)
 
         if (
             os.path.ismount(base_path) is False
             and self.fs.__class__.__name__ == "LocalFileSystem"
         ):
             # Used for local development when running the app locally
-            subset_path = os.path.join(
+            field_location = os.path.join(
                 os.path.dirname(base_path),
-                subset.location.lstrip("/"),
+                field_location.lstrip("/"),
             )
-        else:
-            # Used for mounted data (production)
-            subset_path = subset.location
 
-        return subset_path
+        return field_location
+
+    def get_fields_mapping(
+        self,
+        manifest: Manifest,
+        selected_fields: t.Dict[str, Field],
+    ) -> defaultdict[t.Any, list]:
+        field_mapping = defaultdict(list)
+
+        # Add index field to field mapping to guarantee start reading with the index dataframe
+        index_location = self._get_field_location(manifest, DEFAULT_INDEX_NAME)
+        field_mapping[index_location].append(DEFAULT_INDEX_NAME)
+
+        for field_name, field in selected_fields.items():
+            field_location = self._get_field_location(manifest, field_name)
+            field_mapping[field_location].append(field_name)
+
+        return field_mapping
 
     @staticmethod
     @st.cache_data
-    def _load_dask_dataframe(subset_path, fields):
-        return dd.read_parquet(subset_path, columns=list(fields.keys()))
+    def _load_dask_dataframe(field_mapping):
+        dataframe = None
+        for location, fields in field_mapping.items():
+            if DEFAULT_INDEX_NAME in fields:
+                fields.remove(DEFAULT_INDEX_NAME)
+
+            partial_df = dd.read_parquet(
+                location,
+                columns=fields,
+                index=DEFAULT_INDEX_NAME,
+                calculate_divisions=True,
+            )
+
+            if dataframe is None:
+                # ensure that the index is set correctly and divisions are known.
+                dataframe = partial_df
+            else:
+                dataframe = dataframe.merge(
+                    partial_df,
+                    how="left",
+                    left_index=True,
+                    right_index=True,
+                )
+        return dataframe
 
     # TODO: change later to accept range of partitions
     @staticmethod
@@ -125,10 +164,12 @@ class DatasetLoaderApp(MainInterface):
         Returns:
             Dataframe and fields
         """
-        manifest, subset, fields = self._get_manifest_fields_and_subset()
-        subset_path = self._get_subset_path(manifest, subset)
-        df = self._load_dask_dataframe(subset_path, fields)
-        partition = self._get_partition_to_load(df)
-        dataframe = self._get_dataframe_partition(df, partition)
+        manifest, selected_fields = self._get_manifest_fields()
+        # Get field mapping from manifest and selected fields
+        field_mapping = self.get_fields_mapping(manifest, selected_fields)
 
-        return dataframe, fields
+        dataframe = self._load_dask_dataframe(field_mapping)
+        partition = self._get_partition_to_load(dataframe)
+        dataframe = self._get_dataframe_partition(dataframe, partition)
+
+        return dataframe, selected_fields

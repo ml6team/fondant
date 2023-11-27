@@ -10,3 +10,5 @@ SESSION_STATE_VARIABLES = [
     "selected_component_path",
     "partition",
 ]
+
+DEFAULT_INDEX_NAME = "id"
