@@ -319,9 +319,8 @@ def register_compile(parent_parser):
     # Local runner parser
     local_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
-            """,
+        help="""Reference to the pipeline to run, a path to a to a module containing
+        the pipeline instance that will be compiled (e.g. my-project/pipeline.py)""",
         action="store",
     )
     local_parser.add_argument(
@@ -368,9 +367,8 @@ def register_compile(parent_parser):
     # Kubeflow parser
     kubeflow_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
-            """,
+        help="""Reference to the pipeline to run, a path to a to a module containing
+        the pipeline instance that will be compiled (e.g. my-project/pipeline.py)""",
         action="store",
     )
     kubeflow_parser.add_argument(
@@ -383,9 +381,8 @@ def register_compile(parent_parser):
     # vertex parser
     vertex_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
-            """,
+        help="""Reference to the pipeline to run, a path to a to a module containing
+        the pipeline instance that will be compiled (e.g. my-project/pipeline.py)""",
         action="store",
     )
     vertex_parser.add_argument(
@@ -398,9 +395,8 @@ def register_compile(parent_parser):
     # sagemaker parser
     sagemaker_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
-            """,
+        help="""Reference to the pipeline to run, a path to a to a module containing
+        the pipeline instance that will be compiled (e.g. my-project/pipeline.py)""",
         action="store",
     )
     sagemaker_parser.add_argument(
