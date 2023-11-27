@@ -7,3 +7,4 @@ matplotlib==3.7.1
 plotly==5.15.0
 beautifulsoup4==4.12.2
 fpdf==1.7.2
+graphviz==0.20.1
