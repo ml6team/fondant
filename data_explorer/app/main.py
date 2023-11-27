@@ -91,16 +91,10 @@ class PipelineOverviewApp(MainInterface):
                 text += f"""<TD ALIGN="CENTER">{field}<BR/><i>({field_type})</i></TD>"""
             return text
 
-        subset_text = ""
-        field_text = ""
-        n_fields_total = 0
+        fields = manifest.fields
+        n_fields_total = len(fields)
 
-        for subset, subset_value in manifest.subsets.items():
-            fields = subset_value.fields
-            n_fields = len(fields)
-            subset_text += add_subset_text(subset, n_fields)
-            field_text += add_field_text(fields)
-            n_fields_total += n_fields
+        field_text = add_field_text(fields)
 
         component_text = add_component_text(manifest.component_id, n_fields_total)
 
@@ -108,9 +102,6 @@ class PipelineOverviewApp(MainInterface):
             <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
                   <TR>
                     {component_text}
-                  </TR>
-                  <TR>
-                    {subset_text}
                   </TR>
                   <TR>
                   {field_text}
