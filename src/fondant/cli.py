@@ -23,6 +23,7 @@ import sys
 import textwrap
 import typing as t
 from collections import defaultdict
+from importlib.metadata import version
 from pathlib import Path
 from types import ModuleType
 
@@ -130,7 +131,7 @@ def register_explore(parent_parser):
         "--tag",
         "-t",
         type=str,
-        default="latest",
+        default=version("fondant") if version("fondant") != "0.1.dev0" else "latest",
         help="Docker image tag to use.",
     )
     parser.add_argument(
