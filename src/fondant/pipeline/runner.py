@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 import yaml
 
 from fondant.pipeline import Pipeline
-from fondant.pipeline.compiler import DockerCompiler
+from fondant.pipeline.compiler import DockerCompiler, SagemakerCompiler
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +176,32 @@ class SagemakerRunner(Runner):
 
         self.boto3 = boto3
 
-    def run(self, input_spec: str, pipeline_name: str, role_arn: str, *args, **kwargs):
+    def run(
+        self,
+        input: t.Union[Pipeline, str],
+        pipeline_name: str,
+        role_arn: str,
+        *,
+        instance_type: str = "ml.m5.xlarge",
+    ):
+        if isinstance(input, Pipeline):
+            os.makedirs(".fondant", exist_ok=True)
+            output_path = ".fondant/sagemaker-pipeline.yaml"
+            logging.info(
+                "Found reference to un-compiled pipeline... compiling",
+            )
+            compiler = SagemakerCompiler()
+            compiler.compile(
+                input,
+                output_path=output_path,
+                instance_type=instance_type,
+                role_arn=role_arn,
+            )
+            self._run(output_path, pipeline_name=pipeline_name, role_arn=role_arn)
+        else:
+            self._run(input, pipeline_name=pipeline_name, role_arn=role_arn)
+
+    def _run(self, input_spec: str, pipeline_name: str, role_arn: str):
         """Creates/updates a sagemaker pipeline and execute it."""
         with open(input_spec) as f:
             pipeline = f.read()
