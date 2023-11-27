@@ -10,6 +10,7 @@ from fondant.cli import (
     build,
     compile_kfp,
     compile_local,
+    compile_sagemaker,
     compile_vertex,
     component_from_module,
     execute,
@@ -210,6 +211,29 @@ def test_vertex_compile(tmp_path_factory):
         mock_compiler.assert_called_once_with(
             pipeline=TEST_PIPELINE,
             output_path=str(fn / "vertex_pipeline.yml"),
+        )
+
+
+def test_sagemaker_compile(tmp_path_factory):
+    with tmp_path_factory.mktemp("temp") as fn, patch(
+        "fondant.pipeline.compiler.SagemakerCompiler.compile",
+    ) as mock_compiler:
+        args = argparse.Namespace(
+            ref=__name__,
+            kubeflow=False,
+            local=False,
+            vertex=False,
+            sagemaker=True,
+            output_path=str(fn / "sagemaker_pipeline.json"),
+            role_arn="some_role",
+            instance_type="some_instance_type",
+        )
+        compile_sagemaker(args)
+        mock_compiler.assert_called_once_with(
+            pipeline=TEST_PIPELINE,
+            output_path=str(fn / "sagemaker_pipeline.json"),
+            instance_type="some_instance_type",
+            role_arn="some_role",
         )
 
 

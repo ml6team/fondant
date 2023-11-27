@@ -311,6 +311,10 @@ def register_compile(parent_parser):
         name="vertex",
         help="vertex compiler",
     )
+    sagemaker_parser = compiler_subparser.add_parser(
+        name="sagemaker",
+        help="Sagemaker compiler",
+    )
 
     # Local runner parser
     local_parser.add_argument(
@@ -391,9 +395,37 @@ def register_compile(parent_parser):
         default="vertex_pipeline.yml",
     )
 
+    # sagemaker parser
+    sagemaker_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
+    sagemaker_parser.add_argument(
+        "--output-path",
+        "-o",
+        help="Output path of compiled pipeline",
+        default="sagemaker_pipeline.json",
+    )
+    sagemaker_parser.add_argument(
+        "--instance-type",
+        help="""the instance type to use for the processing steps
+        (see: https://aws.amazon.com/ec2/instance-types/ for options).""",
+        default="ml.m5.large",
+    )
+
+    sagemaker_parser.add_argument(
+        "--role-arn",
+        help="""the Amazon Resource Name role to use for the processing steps""",
+        default=None,
+    )
+
     local_parser.set_defaults(func=compile_local)
     kubeflow_parser.set_defaults(func=compile_kfp)
     vertex_parser.set_defaults(func=compile_vertex)
+    sagemaker_parser.set_defaults(func=compile_sagemaker)
 
 
 def compile_local(args):
@@ -434,6 +466,19 @@ def compile_vertex(args):
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
 
+def compile_sagemaker(args):
+    from fondant.pipeline.compiler import SagemakerCompiler
+
+    pipeline = pipeline_from_module(args.ref)
+    compiler = SagemakerCompiler()
+    compiler.compile(
+        pipeline=pipeline,
+        output_path=args.output_path,
+        instance_type=args.instance_type,
+        role_arn=args.role_arn,
+    )
+
+
 def register_run(parent_parser):
     parser = parent_parser.add_parser(
         "run",
@@ -467,6 +512,10 @@ def register_run(parent_parser):
         name="vertex",
         help="Vertex runner",
     )
+    sagemaker_parser = runner_subparser.add_parser(
+        name="sagemaker",
+        help="Sagemaker runner",
+    )
 
     # Local runner parser
     local_parser.add_argument(
@@ -475,12 +524,6 @@ def register_run(parent_parser):
             a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
             """,
         action="store",
-    )
-    local_parser.add_argument(
-        "--output-path",
-        "-o",
-        help="Output path of compiled pipeline",
-        default="docker-compose.yml",
     )
     local_parser.add_argument(
         "--extra-volumes",
@@ -572,6 +615,32 @@ def register_run(parent_parser):
         default=None,
     )
 
+    # sagemaker runner parser
+    sagemaker_parser.add_argument(
+        "ref",
+        help="""Reference to the pipeline to run, can be a path to a spec file or
+            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+            """,
+        action="store",
+    )
+    sagemaker_parser.add_argument(
+        "--pipeline-name",
+        help="""the name of the sagemaker pipeline to create""",
+        default="fondant-pipeline",
+    )
+
+    sagemaker_parser.add_argument(
+        "--role-arn",
+        help="""the Amazon Resource Name role to use for the processing steps""",
+        default=None,
+    )
+    sagemaker_parser.add_argument(
+        "--instance-type",
+        help="""the instance type to use for the processing steps
+        (see: https://aws.amazon.com/ec2/instance-types/ for options).""",
+        default="ml.m5.large",
+    )
+
     local_parser.set_defaults(func=run_local)
     kubeflow_parser.set_defaults(func=run_kfp)
     vertex_parser.set_defaults(func=run_vertex)
@@ -654,6 +723,23 @@ def run_vertex(args):
             runner.run(input_spec=spec_ref)
         except UnboundLocalError as e:
             raise e
+
+
+def run_sagemaker(args):
+    from fondant.pipeline.runner import SagemakerRunner
+
+    try:
+        ref = pipeline_from_module(args.ref)
+    except ModuleNotFoundError:
+        ref = args.ref
+    finally:
+        runner = SagemakerRunner()
+        runner.run(
+            input=ref,
+            pipeline_name=args.pipeline_name,
+            role_arn=args.role_arn,
+            instance_type=args.instance_type,
+        )
 
 
 def register_execute(parent_parser):
