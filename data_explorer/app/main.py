@@ -159,7 +159,7 @@ class PipelineOverviewApp(MainInterface):
             last_manifest_path = ordered_manifest_paths[-1]
             last_update_date = datetime.fromtimestamp(
                 os.path.getmtime(last_manifest_path),
-            ).strftime("%Y/%-m/%-d  %H:%M:%S")
+            ).strftime("%-d/%-m/%Y  %H:%M:%S")
             run_name = os.path.basename(run_path)
             data.append([run_name, last_update_date, run_path])
 
