@@ -5,7 +5,7 @@ description: |
   This component takes a body of text and chunks into small chunks. The id of the returned dataset
   consists of the id of the original document followed by the chunk index.
 
-image: fndnt/chunk_text:dev
+image: fndnt/chunk_text:0.8.dev1
 tags:
   - Text processing
 

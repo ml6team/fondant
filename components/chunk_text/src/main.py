@@ -59,7 +59,7 @@ class ChunkTextComponent(PandasTransformComponent):
         # Turn into dataframes
         results_df = pd.DataFrame(
             results,
-            columns=["original_document_id", "id", "data"],
+            columns=["text_original_document_id", "id", "text_data"],
         )
         results_df = results_df.set_index("id")
 
