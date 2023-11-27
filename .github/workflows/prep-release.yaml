@@ -2,7 +2,7 @@ name: Build Python 🐍 distributions 📦 and publish to TestPyPI
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+*'
+      - '[0-9]+.[0-9]+.*[0-9]+*'
 jobs:
   build-n-publish:
     name: Build Python 🐍 distributions 📦 and publish to TestPyPI
