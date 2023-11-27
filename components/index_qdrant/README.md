@@ -7,9 +7,8 @@ A Fondant component to load textual data and embeddings into a Qdrant database. 
 
 **This component consumes:**
 
-- text
-    - data: string
-    - embedding: list<item: float>
+- text_data: string
+- embeddings_data: list<item: float>
 
 **This component produces no data.**
 
