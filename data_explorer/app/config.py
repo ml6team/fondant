@@ -10,3 +10,6 @@ SESSION_STATE_VARIABLES = [
     "selected_component_path",
     "partition",
 ]
+
+ROWS_TO_RETURN = 20
+ROWS_PER_PAGE = 10

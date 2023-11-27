@@ -3,9 +3,11 @@ import base64
 import json
 import typing as t
 
+import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from bs4 import BeautifulSoup
+from config import ROWS_PER_PAGE
 from df_helpers.fields import get_image_fields, get_string_fields
 from df_helpers.image_render import configure_image_builder, convert_image_column
 from fpdf import FPDF
@@ -43,31 +45,17 @@ def create_pdf_from_text(raw_text):
 
 class DatasetExplorerApp(DatasetLoaderApp):
     @staticmethod
-    def setup_app_page(dataframe, fields) -> AgGridReturn:
+    def setup_app_page(dataframe: pd.DataFrame, fields) -> AgGridReturn:
         """Build the dataframe explorer table."""
         image_fields = get_image_fields(fields)
 
-        # get the first rows of the dataframe
-        cols = st.columns(2)
-        with cols[0]:
-            rows = st.slider(
-                "Dataframe rows to load",
-                1,
-                len(dataframe),
-                min(len(dataframe), 20),
-            )
-        with cols[1]:
-            rows_per_page = st.slider("Amount of rows per page", 5, 50, 10)
-
-        dataframe_explorer = dataframe.head(rows).reset_index(drop=False)
-
         for field in image_fields:
-            dataframe_explorer = convert_image_column(dataframe_explorer, field)
+            dataframe = convert_image_column(dataframe, field)
 
         # TODO: add formatting for other datatypes?
 
         # configure builder
-        options_builder = GridOptionsBuilder.from_dataframe(dataframe_explorer)
+        options_builder = GridOptionsBuilder.from_dataframe(dataframe)
 
         # Add tooltip hover for all fields
         for field in fields:
@@ -94,7 +82,7 @@ class DatasetExplorerApp(DatasetLoaderApp):
         # configure pagination and sidebar
         options_builder.configure_pagination(
             enabled=True,
-            paginationPageSize=rows_per_page,
+            paginationPageSize=ROWS_PER_PAGE,
             paginationAutoPageSize=False,
         )
         options_builder.configure_default_column(
@@ -113,7 +101,7 @@ class DatasetExplorerApp(DatasetLoaderApp):
 
         # display the Ag Grid table
         return AgGrid(
-            dataframe_explorer,
+            dataframe,
             gridOptions=options_builder.build(),
             allow_unsafe_jscode=True,
             columns_auto_size_mode=ColumnsAutoSizeMode.FIT_ALL_COLUMNS_TO_VIEW,
@@ -162,6 +150,6 @@ class DatasetExplorerApp(DatasetLoaderApp):
 
 app = DatasetExplorerApp()
 app.create_common_interface()
-df, df_fields = app.create_loader_widget()
+df, df_fields = app.load_pandas_dataframe()
 grid_data_dict = app.setup_app_page(df, df_fields)
 app.setup_viewer_widget(grid_data_dict, df_fields)

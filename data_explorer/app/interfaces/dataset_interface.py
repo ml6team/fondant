@@ -1,10 +1,11 @@
 """Dataset interface for the data explorer app."""
 
 import os
-import typing as t
 
 import dask.dataframe as dd
+import pandas as pd
 import streamlit as st
+from config import ROWS_TO_RETURN
 from fondant.core.manifest import Manifest
 from interfaces.common_interface import MainInterface
 from interfaces.utils import get_default_index
@@ -84,40 +85,93 @@ class DatasetLoaderApp(MainInterface):
 
         return subset_path
 
-    @staticmethod
-    @st.cache_data
-    def _load_dask_dataframe(subset_path, fields):
-        return dd.read_parquet(subset_path, columns=list(fields.keys()))
+    def load_dask_dataframe(self):
+        """Loads a Dask DataFrame from a subset of the dataset."""
+        manifest, subset, fields = self._get_manifest_fields_and_subset()
+        subset_path = self._get_subset_path(manifest, subset)
+        dask_df = dd.read_parquet(subset_path, columns=list(fields.keys())).reset_index(
+            drop=False,
+        )
 
-    # TODO: change later to accept range of partitions
-    @staticmethod
-    def _get_partition_to_load(dask_df: dd.DataFrame) -> t.Union[int, None]:
-        """Get the partition of the dataframe to load from a slider."""
-        partition = None
-
-        if dask_df.npartitions > 1:
-            if st.session_state["partition"] is None:
-                starting_value = 0
-            else:
-                starting_value = st.session_state["partition"]
-
-            partition = st.slider("partition", 1, dask_df.npartitions, starting_value)
-            st.session_state["partition"] = partition
-
-        return partition
+        return dask_df, fields
 
     @staticmethod
-    def _get_dataframe_partition(
+    def get_pandas_from_dask(
         dask_df: dd.DataFrame,
-        partition: t.Union[int, None],
-    ) -> dd.DataFrame:
-        """Get the partition of the dataframe to load."""
-        if partition is not None:
-            return dask_df.get_partition(partition)
+        rows_to_return: int,
+        partition_index: int,
+        rows_from_last_partition: int,
+    ):
+        """
+        Converts a Dask DataFrame into a Pandas DataFrame with specified number of rows.
 
-        return dask_df
+        Args:
+         dask_df: Input Dask DataFrame.
+         rows_to_return: Number of rows needed in the resulting Pandas DataFrame.
+         partition_index: Index of the partition to start from.
+         rows_from_last_partition: Number of rows to take from the last partition.
 
-    def create_loader_widget(self):
+        Returns:
+         result_df: Pandas DataFrame with the specified number of rows.
+         last_partition_index: Index of the last used partition.
+         rows_from_last_partition: Number of rows taken from the last partition.
+        """
+        rows_returned = 0
+        data_to_return = []
+
+        dask_df = dask_df.partitions[partition_index:]
+
+        for partition_index, partition in enumerate(
+            dask_df.partitions,
+            start=partition_index,
+        ):
+            # Materialize partition as a pandas DataFrame
+            partition_df = partition.compute()
+            partition_df = partition_df[rows_from_last_partition:]
+
+            # Check if adding this partition exceeds the required rows
+            if rows_returned + len(partition_df) <= rows_to_return:
+                data_to_return.append(partition_df)
+                rows_returned += len(partition_df)
+            else:
+                # Calculate how many rows to take from this partition
+                rows_from_last_partition = rows_to_return - rows_returned
+                partition_df = partition_df.head(rows_from_last_partition)
+                data_to_return.append(partition_df)
+                break
+
+        # Concatenate the selected partitions into a single pandas DataFrame
+        df = pd.concat(data_to_return)
+
+        return df, partition_index, rows_from_last_partition
+
+    @staticmethod
+    def _initialize_page_view_dict():
+        return st.session_state.get(
+            "page_view_dict",
+            {
+                0: {
+                    "start_index": 0,
+                    "start_partition": 0,
+                },
+            },
+        )
+
+    @staticmethod
+    def _update_page_view_dict(
+        page_view_dict,
+        page_index,
+        start_index,
+        start_partition,
+    ):
+        page_view_dict[page_index] = {
+            "start_index": start_index,
+            "start_partition": start_partition,
+        }
+        st.session_state["page_view_dict"] = page_view_dict
+        return page_view_dict
+
+    def load_pandas_dataframe(self):
         """
         Provides common widgets for loading a dataframe and selecting a partition to load. Uses
         Cached dataframes to avoid reloading the dataframe when changing the partition.
@@ -125,10 +179,61 @@ class DatasetLoaderApp(MainInterface):
         Returns:
             Dataframe and fields
         """
-        manifest, subset, fields = self._get_manifest_fields_and_subset()
-        subset_path = self._get_subset_path(manifest, subset)
-        df = self._load_dask_dataframe(subset_path, fields)
-        partition = self._get_partition_to_load(df)
-        dataframe = self._get_dataframe_partition(df, partition)
+        previous_button_disabled = True
+        next_button_disabled = False
 
-        return dataframe, fields
+        # Get the manifest, subset, and fields
+        dask_df, fields = self.load_dask_dataframe()
+
+        # Initialize page view dict if it doesn't exist
+        page_index = st.session_state.get("page_index", 0)
+        page_view_dict = self._initialize_page_view_dict()
+
+        # Get the starting index and partition for the current page
+        start_index = page_view_dict[page_index]["start_index"]
+        start_partition = page_view_dict[page_index]["start_partition"]
+
+        pandas_df, next_partition, next_index = self.get_pandas_from_dask(
+            dask_df,
+            ROWS_TO_RETURN,
+            start_index,
+            start_partition,
+        )
+        self._update_page_view_dict(
+            page_view_dict,
+            page_index + 1,
+            next_index,
+            next_partition,
+        )
+
+        st.info(
+            f"Showing {len(pandas_df)} rows. Click on the 'next' and 'previous' "
+            f"buttons to navigate through different dataset.",
+        )
+        previous_col, _, next_col = st.columns([0.2, 0.6, 0.2])
+
+        if page_index != 0:
+            previous_button_disabled = False
+
+        if len(pandas_df) < ROWS_TO_RETURN:
+            next_button_disabled = True
+
+        if previous_col.button(
+            "⏮️ Previous",
+            use_container_width=True,
+            disabled=previous_button_disabled,
+        ):
+            st.session_state["page_index"] = page_index - 1
+            st.rerun()
+
+        if next_col.button(
+            "Next ⏭️",
+            use_container_width=True,
+            disabled=next_button_disabled,
+        ):
+            st.session_state["page_index"] = page_index + 1
+            st.rerun()
+
+        st.markdown(f"Page {page_index}")
+
+        return pandas_df, fields
