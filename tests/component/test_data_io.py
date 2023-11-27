@@ -82,14 +82,19 @@ def test_write_dataset(
     """Test writing out subsets."""
     # Dictionary specifying the expected subsets to write and their column names
     columns = ["Name", "HP", "Type 1", "Type 2"]
-    with tmp_path_factory.mktemp("temp") as fn:
+    with tmp_path_factory.mktemp("temp") as temp_dir:
         # override the base path of the manifest with the temp dir
-        manifest.update_metadata("base_path", str(fn))
+        manifest.update_metadata("base_path", str(temp_dir))
         data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
         # write dataframe to temp dir
         data_writer.write_dataframe(dataframe, dask_client)
         # read written data and assert
-        dataframe = dd.read_parquet(fn)
+        dataframe = dd.read_parquet(
+            temp_dir
+            / manifest.pipeline_name
+            / manifest.run_id
+            / component_spec.component_folder_name,
+        )
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert list(dataframe.columns) == columns
         assert dataframe.index.name == "id"

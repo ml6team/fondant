@@ -184,8 +184,10 @@ class DaskDataWriter(DataIO):
     def _write_dataframe(self, dataframe: dd.DataFrame) -> dd.core.Scalar:
         """Create dataframe writing task."""
         location = (
-            self.manifest.base_path + "/" + self.component_spec.component_folder_name
+            f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
+            f"{self.manifest.run_id}/{self.component_spec.component_folder_name}"
         )
+
         schema = {
             field.name: field.type.value
             for field in self.component_spec.produces.values()
