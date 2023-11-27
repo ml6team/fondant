@@ -46,12 +46,12 @@ class ImageCroppingComponent(PandasTransformComponent):
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         # crop images
-        dataframe["images_data"] = dataframe["images_data"].apply(
+        dataframe["image"] = dataframe["image"].apply(
             lambda image: remove_borders(image, self.cropping_threshold, self.padding),
         )
 
         # extract width and height
-        dataframe["images_width", "images_height"] = dataframe["images_data"].apply(
+        dataframe["image_width", "image_height"] = dataframe["image"].apply(
             extract_dimensions,
             axis=1,
             result_type="expand",

@@ -7,13 +7,13 @@ tags:
   - Data retrieval
 
 consumes:
-  embeddings_data:
+  embedding:
     type: array
     items:
       type: float32
 
 produces:
-  images_url:
+  image_url:
     type: string
   embedding_id:
     type: string

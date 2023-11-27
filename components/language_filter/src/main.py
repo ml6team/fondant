@@ -1,5 +1,6 @@
 """A component that filters text based on the language."""
 import logging
+from pathlib import Path
 
 import fasttext
 import pandas as pd
@@ -7,7 +8,7 @@ from fondant.component import PandasTransformComponent
 
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = "lid.176.ftz"
+MODEL_PATH = f"{Path(__file__).parent}/lid.176.ftz"
 
 
 class LanguageIdentification:
@@ -38,7 +39,7 @@ class LanguageIdentification:
 
     def is_language(self, row):
         """Predict if text of a row is written in the defined language."""
-        return self.language in self.predict_lang(row["text_data"])
+        return self.language in self.predict_lang(row["text"])
 
 
 class LanguageFilterComponent(PandasTransformComponent):

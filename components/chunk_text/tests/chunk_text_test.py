@@ -7,7 +7,7 @@ def test_transform():
     """Test chunk component method."""
     input_dataframe = pd.DataFrame(
         {
-            ("text_data"): [
+            "text": [
                 "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo",
                 "ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis",
                 "parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec,",
@@ -25,8 +25,8 @@ def test_transform():
 
     expected_output_dataframe = pd.DataFrame(
         {
-            ("text_original_document_id"): ["a", "a", "a", "b", "b", "c", "c"],
-            ("text_data"): [
+            "original_document_id": ["a", "a", "a", "b", "b", "c", "c"],
+            "text": [
                 "Lorem ipsum dolor sit amet, consectetuer",
                 "amet, consectetuer adipiscing elit. Aenean",
                 "elit. Aenean commodo",

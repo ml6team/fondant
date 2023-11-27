@@ -9,11 +9,11 @@ used to find images similar to the embedded images / captions.
 
 **This component consumes:**
 
-- embeddings_data: list<item: float>
+- embedding: list<item: float>
 
 **This component produces:**
 
-- images_url: string
+- image_url: string
 - embedding_id: string
 
 ### Arguments

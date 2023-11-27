@@ -51,10 +51,10 @@ class MinHashGeneratorComponent(PandasTransformComponent):
         Returns:
             Pandas dataframe
         """
-        dataframe["text_shingles"] = dataframe["text_data"].apply(
+        dataframe["shingles"] = dataframe["text"].apply(
             create_shingles,
         )
-        dataframe["text_minhash"] = dataframe["text_shingles"].apply(
+        dataframe["minhash"] = dataframe["shingles"].apply(
             compute_minhash,
         )
 

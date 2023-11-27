@@ -5,13 +5,13 @@ tags:
   - Image processing
 
 consumes:
-  images_data:
+  image:
     type: binary
 
 produces:
-  images_data:
+  image:
     type: binary
-  images_width:
+  image_width:
     type: int32
-  images_height:
+  image_height:
     type: int32

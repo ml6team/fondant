@@ -1,8 +1,7 @@
 """Unit test for language filter component."""
 import pandas as pd
-from fondant.core.component_spec import ComponentSpec
 
-from components.language_filter.src.main import LanguageFilterComponent
+from src.main import LanguageFilterComponent
 
 
 def test_run_component_test():
@@ -15,18 +14,9 @@ def test_run_component_test():
     ]
     dataframe = pd.DataFrame(data)
 
-    # When: The language filter component proceed the dataframe
-    # and filter out all entries which are not written in german
-    spec = ComponentSpec.from_file("../fondant_component.yaml")
-
     component = LanguageFilterComponent(
-        spec,
-        input_manifest_path="./dummy_input_manifest.json",
-        output_manifest_path="./dummy_input_manifest.json",
-        metadata={},
-        user_arguments={"language": "de"},
+        language="de",
     )
-    component.setup(language="de")
     dataframe = component.transform(dataframe=dataframe)
 
     # Then: dataframe only contains one german row
@@ -44,18 +34,9 @@ def test_run_component_test_filter_out_all():
     ]
     dataframe = pd.DataFrame(data)
 
-    # When: The language filter component proceed the dataframe
-    # and filter out all entries which are not written in french
-    spec = ComponentSpec.from_file("../fondant_component.yaml")
-
     component = LanguageFilterComponent(
-        spec,
-        input_manifest_path="./dummy_input_manifest.json",
-        output_manifest_path="./dummy_input_manifest.json",
-        metadata={},
-        user_arguments={"language": "fr"},
+        language="fr",
     )
-    component.setup()
     dataframe = component.transform(dataframe=dataframe)
 
     # Then: dataframe should contain no rows anymore

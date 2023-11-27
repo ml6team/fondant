@@ -127,7 +127,7 @@ class SegmentImagesComponent(PandasTransformComponent):
         self.batch_size = batch_size
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        images = dataframe["images"]["data"]
+        images = dataframe["image"]
 
         results: t.List[pd.Series] = []
         for batch in np.split(
@@ -150,4 +150,4 @@ class SegmentImagesComponent(PandasTransformComponent):
 
                 results.append(segmentations)
 
-        return pd.concat(results).to_frame(name=("segmentations_data"))
+        return pd.concat(results).to_frame(name="segmentation_map")

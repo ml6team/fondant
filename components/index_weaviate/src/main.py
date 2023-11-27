@@ -58,10 +58,10 @@ class IndexWeaviateComponent(DaskWriteComponent):
                 for row in df.itertuples():
                     properties = {
                         "id_": str(row.Index),
-                        "passage": row.text_data,
+                        "passage": row.text,
                     }
                     batch.add_data_object(
                         data_object=properties,
                         class_name=self.class_name,
-                        vector=row.text_embedding,
+                        vector=row.embedding,
                     )

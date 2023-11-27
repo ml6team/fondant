@@ -65,7 +65,7 @@ class EmbedTextComponent(PandasTransformComponent):
         return self.embedding_model.embed_documents(texts.tolist())
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        dataframe["text_embedding"] = self.get_embeddings_vectors(
-            dataframe["text_data"],
+        dataframe["embedding"] = self.get_embeddings_vectors(
+            dataframe["text"],
         )
         return dataframe

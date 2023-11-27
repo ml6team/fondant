@@ -35,14 +35,14 @@ def test_component(monkeypatch):
     input_dataframe = pd.DataFrame.from_dict(
         {
             "id": ["1", "2"],
-            "prompts_text": ["first prompt", "second prompt"],
+            "prompt": ["first prompt", "second prompt"],
         },
     )
 
     expected_output_dataframe = pd.DataFrame.from_dict(
         {
             "id": ["a", "b", "c", "d"],
-            "url": ["http://a", "http://b", "http://c", "http://d"],
+            "image_url": ["http://a", "http://b", "http://c", "http://d"],
             "prompt_id": ["1", "1", "2", "2"],
         },
     )

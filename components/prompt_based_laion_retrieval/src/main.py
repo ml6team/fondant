@@ -59,7 +59,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                         executor,
                         self.query,
                         row.id,
-                        row.prompts_text,
+                        row.prompt,
                     )
                     for row in dataframe.itertuples()
                 ]
@@ -71,6 +71,6 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         results_df = pd.DataFrame(results)[["id", "url", "prompt_id"]]
         results_df = results_df.set_index("id")
 
-        results_df.rename(columns={"url": "images_url"})
+        results_df = results_df.rename(columns={"url": "image_url"})
 
         return results_df

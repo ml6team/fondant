@@ -5,14 +5,15 @@ tags:
   - Text processing
 
 consumes:
-  text_data:
+  text:
     type: string
 
 produces:
-  text_minhash:
+  minhash:
     type: array
     items:
       type: uint64
+
 args:
   shingle_ngram_size:
     description: Define size of ngram used for the shingle generation

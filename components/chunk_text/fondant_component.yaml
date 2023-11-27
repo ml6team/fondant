@@ -10,13 +10,13 @@ tags:
   - Text processing
 
 consumes:
-  text_data:
+  text:
     type: string
 
 produces:
-  text_data:
+  text:
     type: string
-  text_original_document_id:
+  original_document_id:
     type: string
 
 args:

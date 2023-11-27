@@ -26,9 +26,9 @@ right side is border-cropped image.
 
 **This component produces:**
 
-- images_data: binary
-- images_width: int32
-- images_height: int32
+- image: binary
+- image_width: int32
+- image_height: int32
 
 ### Arguments
 

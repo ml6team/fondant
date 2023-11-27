@@ -7,7 +7,7 @@ A component that filters text based on the provided language.
 
 **This component consumes:**
 
-- text_data: string
+- text: string
 
 **This component produces no data.**
 

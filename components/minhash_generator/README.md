@@ -7,11 +7,11 @@ A component that generates minhashes of text.
 
 **This component consumes:**
 
-- text_data: string
+- text: string
 
 **This component produces:**
 
-- text_minhash: list<item: uint64>
+- minhash: list<item: uint64>
 
 ### Arguments
 

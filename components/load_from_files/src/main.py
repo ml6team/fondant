@@ -210,7 +210,7 @@ class FilesToDaskConverter:
         if type(file_content) is tuple:
             file_content = file_content[0]
         return pd.DataFrame(
-            data={"file_filename": [file_name], "file_content": [file_content]},
+            data={"filename": [file_name], "content": [file_content]},
         )
 
     def to_dask_dataframe(self, chunksize: int = 1000) -> dd.DataFrame:
@@ -245,8 +245,8 @@ class FilesToDaskConverter:
         # Create an empty pandas dataframe with correct column names and types as meta
         metadata = pd.DataFrame(
             data={
-                "file_filename": pd.Series([], dtype="object"),
-                "file_content": pd.Series([], dtype="bytes"),
+                "filename": pd.Series([], dtype="object"),
+                "content": pd.Series([], dtype="bytes"),
             },
         )
 

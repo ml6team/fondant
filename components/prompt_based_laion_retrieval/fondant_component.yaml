@@ -10,11 +10,11 @@ tags:
   - Data retrieval
 
 consumes:
-  prompts_text:
+  prompt:
     type: string
 
 produces:
-  images_url:
+  image_url:
     type: string
   prompt_id:
     type: string
