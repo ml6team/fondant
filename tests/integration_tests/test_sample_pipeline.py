@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 import pytest
-from fondant.pipeline import ComponentOp, Pipeline
+from fondant.pipeline import Pipeline
 from fondant.pipeline.compiler import DockerCompiler
 from fondant.pipeline.runner import DockerRunner
 
@@ -24,15 +24,15 @@ NUMBER_OF_COMPONENTS = 3
 @pytest.fixture()
 def sample_pipeline(data_dir="./data") -> Pipeline:
     # Define pipeline
-    pipeline = Pipeline(pipeline_name="dummy-pipeline", base_path=data_dir)
+    pipeline = Pipeline(name="dummy-pipeline", base_path=data_dir)
 
     # Load from hub component
     load_component_column_mapping = {
         "text": "text_data",
     }
 
-    load_from_file = ComponentOp(
-        component_dir=Path(BASE_PATH / "components" / "load_from_parquet"),
+    dataset = pipeline.read(
+        name_or_path=Path(BASE_PATH / "components" / "load_from_parquet"),
         arguments={
             "dataset_uri": "/data/sample.parquet",
             "column_name_mapping": load_component_column_mapping,
@@ -40,19 +40,14 @@ def sample_pipeline(data_dir="./data") -> Pipeline:
         },
     )
 
-    custom_dummy_component = ComponentOp(
-        component_dir=Path(BASE_PATH / "components" / "dummy_component"),
+    dataset = dataset.apply(
+        name_or_path=Path(BASE_PATH / "components" / "dummy_component"),
     )
 
-    chunk_text = ComponentOp.from_registry(
-        name="chunk_text",
+    dataset.apply(
+        name_or_path="chunk_text",
         arguments={"chunk_size": 10, "chunk_overlap": 2},
     )
-
-    # Add components to the pipeline
-    pipeline.add_op(load_from_file)
-    pipeline.add_op(custom_dummy_component, dependencies=load_from_file)
-    pipeline.add_op(chunk_text, dependencies=[custom_dummy_component])
 
     return pipeline
 
