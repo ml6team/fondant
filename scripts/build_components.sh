@@ -64,6 +64,7 @@ for dir in "${components_to_build[@]}"; do
   BASENAME=${dir%/}
   BASENAME=${BASENAME##*/}
 
+
   full_image_names=()
   echo "Tagging image with following tags:"
   for tag in "${tags[@]}"; do
@@ -73,11 +74,16 @@ for dir in "${components_to_build[@]}"; do
     fi
     echo "$full_image_name"
     full_image_names+=("$full_image_name")
+    aws_full_image_names+=("$aws_full_image_name")
   done
 
   echo "Updating the image version in the fondant_component.yaml with:"
   echo "${full_image_names[0]}"
   sed -i -e "s|^image: .*|image: ${full_image_names[0]}|" fondant_component.yaml
+
+  # create repo if not exists
+  aws ecr-public describe-repositories --region us-east-1 --repository-names ${BASENAME} || aws ecr-public create-repository --region us-east-1 --repository-name ${BASENAME}
+  full_image_names+=("public.ecr.aws/m4f5a0g0/${BASENAME}:${tag}")
 
   args=()
 
@@ -97,6 +103,7 @@ for dir in "${components_to_build[@]}"; do
     args+=(--cache-to "type=registry,ref=${cache_name}")
     args+=(--cache-from "type=registry,ref=${cache_name}")
   fi
+
 
   echo "Freezing Fondant dependency version to ${tags[0]}"
   docker build --push "${args[@]}" \
