@@ -38,8 +38,8 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-prompt_based_laion_retrieval_op = ComponentOp.from_registry(
-    name="prompt_based_laion_retrieval",
+retrieve_laion_by_prompt_op = ComponentOp.from_registry(
+    name="retrieve_laion_by_prompt",
     arguments={
         # Add arguments
         # "num_images": 0,
@@ -48,7 +48,7 @@ prompt_based_laion_retrieval_op = ComponentOp.from_registry(
         # "url": "https://knn.laion.ai/knn-service",
     }
 )
-pipeline.add_op(prompt_based_laion_retrieval_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(retrieve_laion_by_prompt_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

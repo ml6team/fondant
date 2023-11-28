@@ -34,8 +34,8 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-embedding_based_laion_retrieval_op = ComponentOp.from_registry(
-    name="embedding_based_laion_retrieval",
+retrieve_laion_by_embedding_op = ComponentOp.from_registry(
+    name="retrieve_laion_by_embedding",
     arguments={
         # Add arguments
         # "num_images": 0,
@@ -43,7 +43,7 @@ embedding_based_laion_retrieval_op = ComponentOp.from_registry(
         # "aesthetic_weight": 0.5,
     }
 )
-pipeline.add_op(embedding_based_laion_retrieval_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(retrieve_laion_by_embedding_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

@@ -27,14 +27,14 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-language_filter_op = ComponentOp.from_registry(
-    name="language_filter",
+filter_language_op = ComponentOp.from_registry(
+    name="filter_language",
     arguments={
         # Add arguments
         # "language": "en",
     }
 )
-pipeline.add_op(language_filter_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(filter_language_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

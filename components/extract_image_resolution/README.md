@@ -27,12 +27,12 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-image_resolution_extraction_op = ComponentOp.from_registry(
-    name="image_resolution_extraction",
+extract_image_resolution_op = ComponentOp.from_registry(
+    name="extract_image_resolution",
     arguments={
         # Add arguments
     }
 )
-pipeline.add_op(image_resolution_extraction_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(extract_image_resolution_op, dependencies=[...])  #Add previous component as dependency
 ```
 

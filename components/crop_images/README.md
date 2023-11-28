@@ -47,14 +47,14 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-image_cropping_op = ComponentOp.from_registry(
-    name="image_cropping",
+crop_images_op = ComponentOp.from_registry(
+    name="crop_images",
     arguments={
         # Add arguments
         # "cropping_threshold": -30,
         # "padding": 10,
     }
 )
-pipeline.add_op(image_cropping_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(crop_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 

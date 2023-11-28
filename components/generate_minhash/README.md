@@ -29,14 +29,14 @@ You can add this component to your pipeline using the following code:
 from fondant.pipeline import ComponentOp
 
 
-minhash_generator_op = ComponentOp.from_registry(
-    name="minhash_generator",
+generate_minhash_op = ComponentOp.from_registry(
+    name="generate_minhash",
     arguments={
         # Add arguments
         # "shingle_ngram_size": 3,
     }
 )
-pipeline.add_op(minhash_generator_op, dependencies=[...])  #Add previous component as dependency
+pipeline.add_op(generate_minhash_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing
