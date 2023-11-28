@@ -85,13 +85,10 @@ class DatasetLoaderApp(MainInterface):
 
         return field_location
 
-    def get_fields_mapping(
-        self,
-        manifest: Manifest,
-        selected_fields: t.Dict[str, Field],
-    ) -> defaultdict[t.Any, list]:
+    def get_fields_mapping(self):
         field_mapping = defaultdict(list)
 
+        manifest, selected_fields = self._get_manifest_fields()
         # Add index field to field mapping to guarantee start reading with the index dataframe
         index_location = self._get_field_location(manifest, DEFAULT_INDEX_NAME)
         field_mapping[index_location].append(DEFAULT_INDEX_NAME)
@@ -100,11 +97,11 @@ class DatasetLoaderApp(MainInterface):
             field_location = self._get_field_location(manifest, field_name)
             field_mapping[field_location].append(field_name)
 
-        return field_mapping
+        return field_mapping, selected_fields
 
     @staticmethod
     @st.cache_data
-    def _load_dask_dataframe(field_mapping):
+    def load_dask_dataframe(field_mapping):
         dataframe = None
         for location, fields in field_mapping.items():
             if DEFAULT_INDEX_NAME in fields:
@@ -236,12 +233,11 @@ class DatasetLoaderApp(MainInterface):
         previous_button_disabled = True
         next_button_disabled = False
 
-        manifest, selected_fields = self._get_manifest_fields()
         # Get field mapping from manifest and selected fields
-        field_mapping = self.get_fields_mapping(manifest, selected_fields)
+        field_mapping, selected_fields = self.get_fields_mapping()
 
         # Get the manifest, subset, and fields
-        dask_df = self._load_dask_dataframe(field_mapping)
+        dask_df = self.load_dask_dataframe(field_mapping)
 
         # Initialize page view dict if it doesn't exist
         component = st.session_state["component"]

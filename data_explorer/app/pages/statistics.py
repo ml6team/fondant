@@ -56,7 +56,7 @@ class NumericAnalysisApp(DatasetLoaderApp):
         """Build the numeric analysis table."""
         # check if there are numeric fields
         if len(numeric_fields) == 0:
-            st.warning("There are no numeric fields in this subset")
+            st.warning("There are no numeric fields in this component")
         else:
             # make numeric statistics table
             aggregation_dataframe = self.make_numeric_statistics_table(
@@ -87,5 +87,6 @@ class NumericAnalysisApp(DatasetLoaderApp):
 
 app = NumericAnalysisApp()
 app.create_common_interface()
-df, df_fields = app.load_dask_dataframe()
-app.setup_app_page(df, df_fields)
+field_mapping, selected_fields = app.get_fields_mapping()
+dask_df = app.load_dask_dataframe(field_mapping)
+app.setup_app_page(dask_df, selected_fields)
