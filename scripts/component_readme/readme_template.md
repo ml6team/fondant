@@ -44,11 +44,25 @@ This component takes no arguments.
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-{{ id }}_op = ComponentOp.from_registry(
-    name="{{ id }}",
+pipeline = Pipeline(...)
+
+{% if "Data loading" in tags %}
+dataset = pipeline.read(
+{% else %}
+dataset = pipeline.read(...)
+
+{% if "Data writing" not in tags %}
+dataset = dataset.apply(
+{% else %}
+dataset = dataset.apply(...)
+
+dataset.write(
+{% endif %}
+{% endif %}
+    "{{ id }}",
     arguments={
         # Add arguments
 {% for argument in arguments %}
@@ -60,7 +74,6 @@ from fondant.pipeline import ComponentOp
 {% endfor %}
     }
 )
-pipeline.add_op({{ id }}_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 {% if tests %}

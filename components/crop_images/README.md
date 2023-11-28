@@ -44,17 +44,20 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-crop_images_op = ComponentOp.from_registry(
-    name="crop_images",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "crop_images",
     arguments={
         # Add arguments
         # "cropping_threshold": -30,
         # "padding": 10,
     }
 )
-pipeline.add_op(crop_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 

@@ -39,11 +39,17 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-index_qdrant_op = ComponentOp.from_registry(
-    name="index_qdrant",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(...)
+
+dataset.write(
+    "index_qdrant",
     arguments={
         # Add arguments
         # "collection_name": ,
@@ -63,7 +69,6 @@ index_qdrant_op = ComponentOp.from_registry(
         # "force_disable_check_same_thread": False,
     }
 )
-pipeline.add_op(index_qdrant_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

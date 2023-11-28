@@ -27,17 +27,20 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-resize_images_op = ComponentOp.from_registry(
-    name="resize_images",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "resize_images",
     arguments={
         # Add arguments
         # "resize_width": 0,
         # "resize_height": 0,
     }
 )
-pipeline.add_op(resize_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 
