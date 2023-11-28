@@ -138,7 +138,7 @@ def test_sagemaker_runner(tmp_path_factory):
         runner = SagemakerRunner()
 
         runner.run(
-            input_spec=tmpdir / "spec.json",
+            input=tmpdir / "spec.json",
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -164,7 +164,7 @@ def test_sagemaker_runner(tmp_path_factory):
         )
 
         runner.run(
-            input_spec=tmpdir / "spec.json",
+            input=tmpdir / "spec.json",
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -179,5 +179,33 @@ def test_sagemaker_runner(tmp_path_factory):
             mock.call.start_pipeline_execution(
                 PipelineName="pipeline_1",
                 ParallelismConfiguration={"MaxParallelExecutionSteps": 1},
+            ),
+        ]
+
+
+def test_sagemaker_runner_from_pipeline():
+    with mock.patch(
+        "fondant.pipeline.runner.SagemakerCompiler",
+    ) as mock_compiler, mock.patch("boto3.client", spec=True):
+        mock_compiler.configure_mock(
+            **{
+                "compile.side_effect": open(  # noqa: SIM115
+                    ".fondant/sagemaker-pipeline.yaml",
+                    "w",
+                ).write("foo: bar"),
+            },
+        )
+        runner = SagemakerRunner()
+        runner.run(
+            input=PIPELINE,
+            pipeline_name=PIPELINE.name,
+            role_arn="arn:something",
+        )
+        assert runner.compiler.method_calls == [
+            mock.call.compile(
+                PIPELINE,
+                output_path=".fondant/sagemaker-pipeline.yaml",
+                instance_type="ml.m5.xlarge",
+                role_arn="arn:something",
             ),
         ]
