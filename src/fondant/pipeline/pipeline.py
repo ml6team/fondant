@@ -321,18 +321,11 @@ class Pipeline:
                 msg,
             )
 
-        # TODO: make dataset names unique so the same operation can be applied multiple times in
-        #  a single pipeline
-        # input_name = "-".join([dataset.name for dataset in datasets])  noqa: ERA001
-        # input_hash = abs(hash(input_name))  noqa: ERA001
-        # output_name = f"{input_hash}_{operation.name}"  noqa: ERA001
-        output_name = operation.name
-
-        self._graph[output_name] = {
+        self._graph[operation.name] = {
             "operation": operation,
-            "dependencies": [dataset.name for dataset in datasets],
+            "dependencies": [dataset.operation.name for dataset in datasets],
         }
-        return Dataset(output_name, pipeline=self)
+        return Dataset(pipeline=self, operation=operation)
 
     def read(
         self,
@@ -486,9 +479,15 @@ class Pipeline:
 
 
 class Dataset:
-    def __init__(self, name: str, *, pipeline: Pipeline) -> None:
-        self.name = name
+    def __init__(self, *, pipeline: Pipeline, operation: ComponentOp) -> None:
+        """A class representing an intermediate dataset.
+
+        Args:
+            pipeline: The pipeline this dataset is a part of.
+            operation: The operation that created this dataset.
+        """
         self.pipeline = pipeline
+        self.operation = operation
 
     def apply(
         self,
