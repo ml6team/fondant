@@ -403,7 +403,7 @@ def register_compile(parent_parser):
         "--output-path",
         "-o",
         help="Output path of compiled pipeline",
-        default="sagemaker_pipeline.json",
+        default=".fondant/sagemaker_pipeline.json",
     )
     sagemaker_parser.add_argument(
         "--instance-type",
