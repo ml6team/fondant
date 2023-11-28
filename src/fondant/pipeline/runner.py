@@ -170,7 +170,6 @@ class SagemakerRunner(Runner):
     def __init__(self):
         self.__resolve_imports()
         self.client = self.boto3.client("sagemaker")
-        self.compiler = SagemakerCompiler()
 
     def __resolve_imports(self):
         try:
@@ -208,7 +207,8 @@ class SagemakerRunner(Runner):
             logging.info(
                 "Found reference to un-compiled pipeline... compiling",
             )
-            self.compiler.compile(
+            compiler = SagemakerCompiler()
+            compiler.compile(
                 input,
                 output_path=output_path,
                 instance_type=instance_type,
