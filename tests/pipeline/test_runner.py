@@ -15,8 +15,8 @@ from fondant.pipeline.runner import (
 VALID_PIPELINE = Path("./tests/pipeline/examples/pipelines/compiled_pipeline/")
 
 PIPELINE = Pipeline(
-    pipeline_name="testpipeline",
-    pipeline_description="description of the test pipeline",
+    name="testpipeline",
+    description="description of the test pipeline",
     base_path="/foo/bar",
 )
 

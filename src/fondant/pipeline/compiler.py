@@ -148,7 +148,7 @@ class DockerCompiler(Compiler):
         component_cache_key = None
 
         for component_name, component in pipeline._graph.items():
-            component_op = component["fondant_component_op"]
+            component_op = component["operation"]
 
             component_cache_key = component_op.get_component_cache_key(
                 previous_component_cache=component_cache_key,
@@ -347,7 +347,7 @@ class KubeFlowCompiler(Compiler):
             for component_name, component in pipeline._graph.items():
                 logger.info(f"Compiling service for {component_name}")
 
-                component_op = component["fondant_component_op"]
+                component_op = component["operation"]
                 # convert ComponentOp to Kubeflow component
                 kubeflow_component_op = self.kfp.components.load_component_from_text(
                     text=component_op.component_spec.kubeflow_specification.to_string(),
@@ -607,7 +607,7 @@ class SagemakerCompiler(Compiler):
 
         with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdirname:
             for component_name, component in pipeline._graph.items():
-                component_op = component["fondant_component_op"]
+                component_op = component["operation"]
                 component_cache_key = component_op.get_component_cache_key(
                     previous_component_cache=component_cache_key,
                 )

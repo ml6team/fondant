@@ -70,8 +70,8 @@ TEST_PIPELINES = [
                 "cache_key": "1",
             },
             {
-                "component_op": ComponentOp.from_registry(
-                    name="image_cropping",
+                "component_op": ComponentOp(
+                    "image_cropping",
                     arguments={"cropping_threshold": 0, "padding": 0},
                 ),
                 "cache_key": "2",
@@ -98,12 +98,12 @@ def _freeze_time(monkeypatch):
 @pytest.fixture(params=TEST_PIPELINES)
 def setup_pipeline(request, tmp_path, monkeypatch):
     pipeline = Pipeline(
-        pipeline_name="testpipeline",
-        pipeline_description="description of the test pipeline",
+        name="testpipeline",
+        description="description of the test pipeline",
         base_path="/foo/bar",
     )
     example_dir, components = request.param
-    prev_comp = None
+    dataset = None
     cache_dict = {}
     for component_dict in components:
         component = component_dict["component_op"]
@@ -115,8 +115,7 @@ def setup_pipeline(request, tmp_path, monkeypatch):
             "get_component_cache_key",
             lambda cache_key=cache_key, previous_component_cache=None: cache_key,
         )
-        pipeline.add_op(component, dependencies=prev_comp)
-        prev_comp = component
+        dataset = pipeline._apply(component, datasets=dataset)
         cache_dict[component.name] = cache_key
 
     # override the default package_path with temporary path to avoid the creation of artifacts
@@ -142,7 +141,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
         ) in pipeline_configs.component_configs.items():
             # Get exepcted component configs
             component = pipeline._graph[component_name]
-            component_op = component["fondant_component_op"]
+            component_op = component["operation"]
 
             # Check that the component configs are correct
             assert component_configs.dependencies == component["dependencies"]
@@ -278,11 +277,11 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
 def test_docker_configuration(tmp_path_factory):
     """Test that extra volumes are applied correctly."""
     pipeline = Pipeline(
-        pipeline_name="test_pipeline",
-        pipeline_description="description of the test pipeline",
+        name="test_pipeline",
+        description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    component_1 = ComponentOp(
+    pipeline.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -291,7 +290,6 @@ def test_docker_configuration(tmp_path_factory):
         ),
     )
 
-    pipeline.add_op(component_1)
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yaml")
@@ -306,11 +304,11 @@ def test_docker_configuration(tmp_path_factory):
 def test_invalid_docker_configuration(tmp_path_factory):
     """Test that a valid error is returned when an unknown accelerator is set."""
     pipeline = Pipeline(
-        pipeline_name="test_pipeline",
-        pipeline_description="description of the test pipeline",
+        name="test_pipeline",
+        description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    component_1 = ComponentOp(
+    pipeline.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -319,7 +317,6 @@ def test_invalid_docker_configuration(tmp_path_factory):
         ),
     )
 
-    pipeline.add_op(component_1)
     compiler = DockerCompiler()
     with pytest.raises(InvalidPipelineDefinition):
         compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
@@ -342,7 +339,7 @@ def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
         ) in pipeline_configs.component_configs.items():
             # Get exepcted component configs
             component = pipeline._graph[component_name]
-            component_op = component["fondant_component_op"]
+            component_op = component["operation"]
 
             # Check that the component configs are correct
             assert component_configs.dependencies == component["dependencies"]
@@ -369,11 +366,11 @@ def test_kubeflow_configuration(tmp_path_factory):
     node_pool_name = "dummy_label"
 
     pipeline = Pipeline(
-        pipeline_name="test_pipeline",
-        pipeline_description="description of the test pipeline",
+        name="test_pipeline",
+        description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    component_1 = ComponentOp(
+    pipeline.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -383,7 +380,6 @@ def test_kubeflow_configuration(tmp_path_factory):
             accelerator_name="GPU",
         ),
     )
-    pipeline.add_op(component_1)
     compiler = KubeFlowCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
@@ -401,11 +397,11 @@ def test_kubeflow_configuration(tmp_path_factory):
 def test_invalid_kubeflow_configuration(tmp_path_factory):
     """Test that an error is returned when an invalid resource is provided."""
     pipeline = Pipeline(
-        pipeline_name="test_pipeline",
-        pipeline_description="description of the test pipeline",
+        name="test_pipeline",
+        description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    component_1 = ComponentOp(
+    pipeline.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -414,7 +410,6 @@ def test_invalid_kubeflow_configuration(tmp_path_factory):
         ),
     )
 
-    pipeline.add_op(component_1)
     compiler = KubeFlowCompiler()
     with pytest.raises(InvalidPipelineDefinition):
         compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
@@ -446,7 +441,7 @@ def test_vertex_compiler(setup_pipeline, tmp_path_factory):
         ) in pipeline_configs.component_configs.items():
             # Get exepcted component configs
             component = pipeline._graph[component_name]
-            component_op = component["fondant_component_op"]
+            component_op = component["operation"]
 
             # Check that the component configs are correct
             assert component_configs.dependencies == component["dependencies"]
@@ -470,11 +465,11 @@ def test_vertex_compiler(setup_pipeline, tmp_path_factory):
 def test_vertex_configuration(tmp_path_factory):
     """Test that the kubeflow pipeline can be configured."""
     pipeline = Pipeline(
-        pipeline_name="test_pipeline",
-        pipeline_description="description of the test pipeline",
+        name="test_pipeline",
+        description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    component_1 = ComponentOp(
+    pipeline.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -482,7 +477,6 @@ def test_vertex_configuration(tmp_path_factory):
             accelerator_name="NVIDIA_TESLA_K80",
         ),
     )
-    pipeline.add_op(component_1)
     compiler = VertexCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
@@ -498,11 +492,11 @@ def test_vertex_configuration(tmp_path_factory):
 def test_invalid_vertex_configuration(tmp_path_factory):
     """Test that extra volumes are applied correctly."""
     pipeline = Pipeline(
-        pipeline_name="test_pipeline",
-        pipeline_description="description of the test pipeline",
+        name="test_pipeline",
+        description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    component_1 = ComponentOp(
+    pipeline.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -511,7 +505,6 @@ def test_invalid_vertex_configuration(tmp_path_factory):
         ),
     )
 
-    pipeline.add_op(component_1)
     compiler = VertexCompiler()
     with pytest.raises(InvalidPipelineDefinition):
         compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
@@ -526,23 +519,20 @@ def test_caching_dependency_docker(tmp_path_factory):
 
     for arg in arg_list:
         pipeline = Pipeline(
-            pipeline_name="test_pipeline",
-            pipeline_description="description of the test pipeline",
+            name="test_pipeline",
+            description="description of the test pipeline",
             base_path="/foo/bar",
         )
         compiler = DockerCompiler()
 
-        component_1 = ComponentOp(
+        dataset = pipeline.read(
             Path(COMPONENTS_PATH / "example_1" / "first_component"),
             arguments={"storage_args": f"{arg}"},
         )
-        component_2 = ComponentOp(
+        dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
             arguments={"storage_args": "a dummy string arg"},
         )
-
-        pipeline.add_op(component_1)
-        pipeline.add_op(component_2, dependencies=component_1)
 
         with tmp_path_factory.mktemp("temp") as fn:
             output_path = str(fn / "docker-compose.yml")
@@ -571,23 +561,20 @@ def test_caching_dependency_kfp(tmp_path_factory):
 
     for arg in arg_list:
         pipeline = Pipeline(
-            pipeline_name="test_pipeline",
-            pipeline_description="description of the test pipeline",
+            name="test_pipeline",
+            description="description of the test pipeline",
             base_path="/foo/bar",
         )
         compiler = KubeFlowCompiler()
 
-        component_1 = ComponentOp(
+        dataset = pipeline.read(
             Path(COMPONENTS_PATH / "example_1" / "first_component"),
             arguments={"storage_args": f"{arg}"},
         )
-        component_2 = ComponentOp(
+        dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
             arguments={"storage_args": "a dummy string arg"},
         )
-
-        pipeline.add_op(component_1)
-        pipeline.add_op(component_2, dependencies=component_1)
 
         with tmp_path_factory.mktemp("temp") as fn:
             output_path = str(fn / "kubeflow_pipeline.yml")

@@ -20,7 +20,7 @@ def yaml_file_to_dict(file_path):
 @pytest.fixture()
 def default_pipeline_args():
     return {
-        "pipeline_name": "pipeline",
+        "name": "pipeline",
         "base_path": "gcs://bucket/blob",
     }
 
@@ -156,22 +156,18 @@ def test_valid_pipeline(
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
-    first_component_op = ComponentOp(
+    dataset = pipeline.read(
         Path(components_path / component_names[0]),
         arguments=component_args,
     )
-    second_component_op = ComponentOp(
+    dataset = dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
     )
-    third_component_op = ComponentOp(
+    dataset.apply(
         Path(components_path / component_names[2]),
         arguments=component_args,
     )
-
-    pipeline.add_op(third_component_op, dependencies=second_component_op)
-    pipeline.add_op(first_component_op)
-    pipeline.add_op(second_component_op, dependencies=first_component_op)
 
     pipeline.sort_graph()
     assert list(pipeline._graph.keys()) == [
@@ -206,23 +202,19 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
 
     pipeline = Pipeline(**default_pipeline_args)
 
-    first_component_op = ComponentOp(
+    dataset = pipeline.read(
         Path(components_path / component_names[0]),
         arguments=component_args,
     )
-    second_component_op = ComponentOp(
+    dataset = dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
     )
-    third_component_op = ComponentOp(
-        Path(components_path / component_names[2]),
-        arguments=component_args,
-    )
-
-    pipeline.add_op(third_component_op, dependencies=second_component_op)
-    pipeline.add_op(second_component_op)
     with pytest.raises(InvalidPipelineDefinition):
-        pipeline.add_op(first_component_op)
+        pipeline.read(
+            Path(components_path / component_names[2]),
+            arguments=component_args,
+        )
 
 
 @pytest.mark.parametrize(
@@ -246,17 +238,14 @@ def test_invalid_pipeline_declaration(
 
     pipeline = Pipeline(**default_pipeline_args)
 
-    first_component_op = ComponentOp(
+    dataset = pipeline.read(
         Path(components_path / component_names[0]),
         arguments=component_args,
     )
-    second_component_op = ComponentOp(
+    dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
     )
-
-    pipeline.add_op(first_component_op)
-    pipeline.add_op(second_component_op, dependencies=first_component_op)
 
     with pytest.raises(InvalidPipelineDefinition):
         pipeline._validate_pipeline_definition("test_pipeline")
@@ -281,23 +270,17 @@ def test_invalid_pipeline_validation(default_pipeline_args):
 
     # double dependency
     pipeline1 = Pipeline(**default_pipeline_args)
-    pipeline1.add_op(first_component_op)
+    dataset = pipeline1._apply(first_component_op)
     with pytest.raises(InvalidPipelineDefinition):
-        pipeline1.add_op(
+        pipeline1._apply(
             second_component_op,
-            dependencies=[first_component_op, first_component_op],
+            datasets=[dataset, dataset],
         )
-
-    # 2 components with no dependencies
-    pipeline2 = Pipeline(**default_pipeline_args)
-    pipeline2.add_op(first_component_op)
-    with pytest.raises(InvalidPipelineDefinition):
-        pipeline2.add_op(second_component_op)
 
 
 def test_reusable_component_op():
-    laion_retrieval_op = ComponentOp.from_registry(
-        name="prompt_based_laion_retrieval",
+    laion_retrieval_op = ComponentOp(
+        name_or_path="prompt_based_laion_retrieval",
         arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
     )
     assert laion_retrieval_op.component_spec, "component_spec_path could not be loaded"
@@ -307,14 +290,12 @@ def test_reusable_component_op():
         ValueError,
         match=f"No reusable component with name {component_name} " "found.",
     ):
-        ComponentOp.from_registry(
-            name=component_name,
-        )
+        ComponentOp(component_name)
 
 
 def test_defining_reusable_component_op_with_custom_spec():
-    load_from_hub_default_op = ComponentOp.from_registry(
-        name="load_from_hf_hub",
+    load_from_hub_default_op = ComponentOp(
+        name_or_path="load_from_hf_hub",
         arguments={
             "dataset_name": "test_dataset",
             "column_name_mapping": {"foo": "bar"},
@@ -323,7 +304,7 @@ def test_defining_reusable_component_op_with_custom_spec():
     )
 
     load_from_hub_custom_op = ComponentOp(
-        component_dir=load_from_hub_default_op.component_dir,
+        name_or_path=load_from_hub_default_op.component_dir,
         arguments={
             "dataset_name": "test_dataset",
             "column_name_mapping": {"foo": "bar"},
@@ -338,6 +319,6 @@ def test_defining_reusable_component_op_with_custom_spec():
 
 
 def test_pipeline_name():
-    Pipeline(pipeline_name="valid-name", base_path="base_path")
+    Pipeline(name="valid-name", base_path="base_path")
     with pytest.raises(InvalidPipelineDefinition, match="The pipeline name violates"):
-        Pipeline(pipeline_name="invalid name", base_path="base_path")
+        Pipeline(name="invalid name", base_path="base_path")
