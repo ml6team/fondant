@@ -25,7 +25,6 @@ class DatasetLoaderApp(MainInterface):
         available_components = [
             os.path.basename(item) for item in os.listdir(selected_run_path)
         ]
-        available_components = ["load_from_huggingface_hub"]
 
         default_index = get_default_index("component", available_components)
         selected_component = st.selectbox(
