@@ -13,17 +13,17 @@ class ImageGalleryApp(DatasetLoaderApp):
         image_fields = get_image_fields(fields)
 
         if len(image_fields) == 0:
-            st.warning("There are no image fields in this subset")
+            st.warning("There are no image fields in this component")
+        else:
+            image_field = st.selectbox("Image field", image_fields)
 
-        image_field = st.selectbox("Image field", image_fields)
+            images = dataframe[image_field]
+            images = [Image.open(io.BytesIO(x)).resize((256, 256)) for x in images]
 
-        images = dataframe[image_field]
-        images = [Image.open(io.BytesIO(x)).resize((256, 256)) for x in images]
-
-        # show images in a gallery
-        cols = st.columns(5)
-        for i, image in enumerate(images):
-            cols[i % 5].image(image, use_column_width=True)
+            # show images in a gallery
+            cols = st.columns(5)
+            for i, image in enumerate(images):
+                cols[i % 5].image(image, use_column_width=True)
 
 
 app = ImageGalleryApp()

@@ -64,6 +64,7 @@ class MainInterface:
     def __init__(self):
         app_interface = AppStateInterface()
         app_interface.initialize()
+        st.set_page_config(layout="wide")
         self.fs, _ = fsspec.core.url_to_fs(st.session_state["base_path"])
 
     def _display_base_info(self):
@@ -116,7 +117,7 @@ class MainInterface:
         add_logo("content/fondant_logo.png")
 
         with st.sidebar:
-            # Increase the width of the sidebar to accomodate logo
+            # Increase the width of the sidebar to accommodate logo
             st.markdown(
                 """
                 <style>
