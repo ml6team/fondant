@@ -157,11 +157,10 @@ class PipelineOverviewApp(MainInterface):
     def setup_app_page(self, max_runs_to_display=5):
         """Setup the main page of the app."""
         pipeline_df = self.get_pipeline_info_df()
-
         selected_run = st.session_state["run"]
         selected_run_info = pipeline_df[pipeline_df["Run Name"] == selected_run]
-        selected_run_update_date = selected_run_info["Last Updated"].to_dict()[0]
-        selected_run_path = selected_run_info["Run Path"].to_dict()[0]
+        selected_run_update_date = selected_run_info["Last Updated"].iloc[0]
+        selected_run_path = selected_run_info["Run Path"].iloc[0]
 
         st.markdown(f" **Last Updated**: {selected_run_update_date}")
 
