@@ -172,19 +172,25 @@ class DatasetLoaderApp(MainInterface):
                 # Calculate how many rows to take from this partition
                 rows_to_take = rows_to_return - rows_returned
                 sliced_partition_df = partition_df.head(rows_to_take)
+
+                # Check if the partition is empty
+                if len(sliced_partition_df) == 0:
+                    last_partition_index = 0
+                    continue
+
                 data_to_return.append(sliced_partition_df)
                 rows_returned += len(sliced_partition_df)
 
                 # Check if we have reached the required number of rows
-                if rows_returned >= rows_to_return:
+                if rows_returned >= rows_to_return or len(sliced_partition_df) == 0:
                     last_partition_index = last_partition_index + len(
                         sliced_partition_df,
                     )
                     break
 
-                # Check if the last row of the partition is the same as the last row of the
-                # previous partition. If so, we have reached the end of the dataframe.
-                if partition_df.iloc[-1].equals(partition_df.iloc[-1]):
+                # Check if the last row of the sliced partition is the same as the last row of
+                # the original partition. If so, we have reached the end of the dataframe.
+                if partition_df.tail(1).equals(sliced_partition_df.tail(1)):
                     last_partition_index = 0
 
         # Concatenate the selected partitions into a single pandas DataFrame
@@ -203,6 +209,7 @@ class DatasetLoaderApp(MainInterface):
                     "start_partition": 0,
                 },
             }
+            st.session_state["page_index"] = 0
 
         return page_view_dict
 
@@ -241,11 +248,10 @@ class DatasetLoaderApp(MainInterface):
 
         # Initialize page view dict if it doesn't exist
         component = st.session_state["component"]
-        page_index = st.session_state.get("page_index", 0)
         page_view_dict = self._initialize_page_view_dict(component)
+        page_index = st.session_state.get("page_index", 0)
 
         # Get the starting index and partition for the current page
-
         start_index = page_view_dict[component][page_index]["start_index"]
         start_partition = page_view_dict[component][page_index]["start_partition"]
 
@@ -274,8 +280,13 @@ class DatasetLoaderApp(MainInterface):
         if page_index != 0:
             previous_button_disabled = False
 
-        if len(pandas_df) < ROWS_TO_RETURN:
-            next_button_disabled = True
+        if next_partition == dask_df.npartitions - 1:
+            # Check if the last row of the last partition is the same as the last row of the
+            # dataframe. If so, we have reached the end of the dataframe.
+            partition_index = dask_df.tail(1).index[0]
+            dask_df_index = pandas_df.tail(1)[DEFAULT_INDEX_NAME].iloc[0]
+            if partition_index == dask_df_index:
+                next_button_disabled = True
 
         if previous_col.button(
             "⏮️ Previous",

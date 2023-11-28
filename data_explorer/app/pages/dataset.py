@@ -131,12 +131,12 @@ class DatasetExplorerApp(DatasetLoaderApp):
         dataframe.
         """
         text_fields = get_string_fields(fields)
-        with st.expander("Document Viewer"):
-            if text_fields:
-                selected_column = st.selectbox("View column", text_fields)
-                if grid_dict["selected_rows"]:
-                    data = str(grid_dict["selected_rows"][0][selected_column])
-                    self.render_text(data)
+        if text_fields:
+            st.markdown("### Document Viewer")
+            selected_column = st.selectbox("View column", text_fields)
+            if grid_dict["selected_rows"]:
+                data = str(grid_dict["selected_rows"][0][selected_column])
+                self.render_text(data)
             else:
                 st.info("No text fields found in dataframe")
 
