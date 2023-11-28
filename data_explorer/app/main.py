@@ -15,8 +15,6 @@ from st_pages import show_pages_from_config
 
 LOGGER = logging.getLogger(__name__)
 
-# streamlit wide
-st.set_page_config(layout="wide")
 dask.config.set({"dataframe.convert-string": False})
 
 
