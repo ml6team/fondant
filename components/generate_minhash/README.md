@@ -26,17 +26,20 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-generate_minhash_op = ComponentOp.from_registry(
-    name="generate_minhash",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "generate_minhash",
     arguments={
         # Add arguments
         # "shingle_ngram_size": 3,
     }
 )
-pipeline.add_op(generate_minhash_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

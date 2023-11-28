@@ -31,11 +31,15 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-retrieve_laion_by_embedding_op = ComponentOp.from_registry(
-    name="retrieve_laion_by_embedding",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "retrieve_laion_by_embedding",
     arguments={
         # Add arguments
         # "num_images": 0,
@@ -43,7 +47,6 @@ retrieve_laion_by_embedding_op = ComponentOp.from_registry(
         # "aesthetic_weight": 0.5,
     }
 )
-pipeline.add_op(retrieve_laion_by_embedding_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

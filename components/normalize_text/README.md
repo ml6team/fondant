@@ -42,11 +42,15 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-normalize_text_op = ComponentOp.from_registry(
-    name="normalize_text",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "normalize_text",
     arguments={
         # Add arguments
         # "remove_additional_whitespaces": False,
@@ -56,7 +60,6 @@ normalize_text_op = ComponentOp.from_registry(
         # "remove_punctuation": ,
     }
 )
-pipeline.add_op(normalize_text_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

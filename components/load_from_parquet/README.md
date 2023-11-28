@@ -27,11 +27,13 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-load_from_parquet_op = ComponentOp.from_registry(
-    name="load_from_parquet",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(
+    "load_from_parquet",
     arguments={
         # Add arguments
         # "dataset_uri": ,
@@ -40,6 +42,5 @@ load_from_parquet_op = ComponentOp.from_registry(
         # "index_column": ,
     }
 )
-pipeline.add_op(load_from_parquet_op, dependencies=[...])  #Add previous component as dependency
 ```
 
