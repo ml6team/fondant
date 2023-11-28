@@ -24,17 +24,20 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-filter_language_op = ComponentOp.from_registry(
-    name="filter_language",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "filter_language",
     arguments={
         # Add arguments
         # "language": "en",
     }
 )
-pipeline.add_op(filter_language_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

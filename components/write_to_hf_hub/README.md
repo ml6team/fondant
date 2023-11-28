@@ -28,11 +28,17 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-write_to_hf_hub_op = ComponentOp.from_registry(
-    name="write_to_hf_hub",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(...)
+
+dataset.write(
+    "write_to_hf_hub",
     arguments={
         # Add arguments
         # "hf_token": ,
@@ -42,6 +48,5 @@ write_to_hf_hub_op = ComponentOp.from_registry(
         # "column_name_mapping": {},
     }
 )
-pipeline.add_op(write_to_hf_hub_op, dependencies=[...])  #Add previous component as dependency
 ```
 

@@ -26,17 +26,20 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-filter_image_resolution_op = ComponentOp.from_registry(
-    name="filter_image_resolution",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "filter_image_resolution",
     arguments={
         # Add arguments
         # "min_image_dim": 0,
         # "max_aspect_ratio": 0.0,
     }
 )
-pipeline.add_op(filter_image_resolution_op, dependencies=[...])  #Add previous component as dependency
 ```
 
