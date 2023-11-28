@@ -90,7 +90,7 @@ class EmbedImagesComponent(PandasTransformComponent):
         self.batch_size = batch_size
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        images = dataframe["images_data"]
+        images = dataframe["image"]
 
         results: t.List[pd.Series] = []
         for batch in np.split(
@@ -110,4 +110,4 @@ class EmbedImagesComponent(PandasTransformComponent):
                 ).T
                 results.append(embeddings)
 
-        return pd.concat(results).to_frame(name=("embeddings_data"))
+        return pd.concat(results).to_frame(name="embedding")

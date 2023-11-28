@@ -34,11 +34,11 @@ def test_qdrant_write():
 
         dask_dataframe = dd.DataFrame.from_dict(
             {
-                "text_data": [
+                "text": [
                     "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo",
                 ]
                 * entries,
-                "text_embedding": [[0.1, 0.2, 0.3, 0.4, 0.5]] * entries,
+                "embedding": [[0.1, 0.2, 0.3, 0.4, 0.5]] * entries,
             },
             npartitions=1,
         )

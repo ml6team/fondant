@@ -119,14 +119,14 @@ class DownloadImagesComponent(PandasTransformComponent):
             images = await asyncio.gather(
                 *[
                     self.download_and_resize_image(id_, url, semaphore=semaphore)
-                    for id_, url in zip(dataframe.index, dataframe["images_url"])
+                    for id_, url in zip(dataframe.index, dataframe["image_url"])
                 ],
             )
             results.extend(images)
 
         asyncio.run(download_dataframe())
 
-        columns = ["id", "data", "width", "height"]
+        columns = ["id", "image", "image_width", "image_height"]
         if results:
             results_df = pd.DataFrame(results, columns=columns)
         else:

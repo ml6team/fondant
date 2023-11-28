@@ -7,9 +7,9 @@ tags:
   - Data writing
 
 consumes:
-  text_data:
+  text:
     type: string
-  embeddings_data:
+  embedding:
     type: array
     items:
       type: float32

@@ -1,0 +1,21 @@
+name: MinHash generator
+description: A component that generates minhashes of text.
+image: fndnt/minhash_generator:latest
+tags:
+  - Text processing
+
+consumes:
+  text:
+    type: string
+
+produces:
+  minhash:
+    type: array
+    items:
+      type: uint64
+
+args:
+  shingle_ngram_size:
+    description: Define size of ngram used for the shingle generation
+    type: int
+    default: 3
