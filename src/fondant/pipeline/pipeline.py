@@ -338,7 +338,23 @@ class Pipeline:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
-        """Read data using the provided operation."""
+        """
+        Read data using the provided component.
+
+        Args:
+            name_or_path: The name of a reusable component, or the path to the directory containing
+                a custom component.
+            arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning
+            resources: The resources to assign to the operation.
+            cache: Set to False to disable caching, True by default.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the Dask client.
+
+        Returns:
+            An intermediate dataset.
+        """
         if self._graph:
             msg = "For now, at most one read component can be applied per pipeline."
             raise InvalidPipelineDefinition(
@@ -500,6 +516,23 @@ class Dataset:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
+        """
+        Apply the provided component on the dataset.
+
+        Args:
+            name_or_path: The name of a reusable component, or the path to the directory containing
+                a custom component.
+            arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning
+            resources: The resources to assign to the operation.
+            cache: Set to False to disable caching, True by default.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the Dask client.
+
+        Returns:
+            An intermediate dataset.
+        """
         operation = ComponentOp(
             name_or_path,
             arguments=arguments,
@@ -522,6 +555,23 @@ class Dataset:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
     ) -> None:
+        """
+        Write the dataset using the provided component.
+
+        Args:
+            name_or_path: The name of a reusable component, or the path to the directory containing
+                a custom component.
+            arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning
+            resources: The resources to assign to the operation.
+            cache: Set to False to disable caching, True by default.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the Dask client.
+
+        Returns:
+            An intermediate dataset.
+        """
         operation = ComponentOp(
             name_or_path,
             arguments=arguments,
