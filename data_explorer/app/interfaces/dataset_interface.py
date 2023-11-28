@@ -161,7 +161,7 @@ class DatasetLoaderApp(MainInterface):
             start=partition_index,
         ):
             # Materialize partition as a pandas DataFrame
-            partition_df = partition.compute()
+            partition_df = partition.compute().reset_index(drop=False)
             partition_length = len(partition_df)
             partition_df = partition_df[last_partition_index:]
 
