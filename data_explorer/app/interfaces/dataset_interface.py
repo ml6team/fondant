@@ -228,7 +228,11 @@ class DatasetLoaderApp(MainInterface):
 
         return page_view_dict
 
-    def load_pandas_dataframe(self):
+    def load_pandas_dataframe(
+        self,
+        dask_df: dd.DataFrame,
+        field_mapping: t.Dict[str, str],
+    ):
         """
         Provides common widgets for loading a dataframe and selecting a partition to load. Uses
         Cached dataframes to avoid reloading the dataframe when changing the partition.
@@ -238,12 +242,6 @@ class DatasetLoaderApp(MainInterface):
         """
         previous_button_disabled = True
         next_button_disabled = False
-
-        # Get field mapping from manifest and selected fields
-        field_mapping, selected_fields = self.get_fields_mapping()
-
-        # Get the manifest, subset, and fields
-        dask_df = self.load_dask_dataframe(field_mapping)
 
         # Initialize page view dict if it doesn't exist
         component = st.session_state["component"]
@@ -305,4 +303,4 @@ class DatasetLoaderApp(MainInterface):
 
         st.markdown(f"Page {page_index}")
 
-        return pandas_df, selected_fields
+        return pandas_df

@@ -28,5 +28,7 @@ class ImageGalleryApp(DatasetLoaderApp):
 
 app = ImageGalleryApp()
 app.create_common_interface()
-df, df_fields = app.load_pandas_dataframe()
-app.setup_app_page(df, df_fields)
+field_mapping, selected_fields = app.get_fields_mapping()
+dask_df = app.load_dask_dataframe(field_mapping)
+df = app.load_pandas_dataframe(dask_df, field_mapping)
+app.setup_app_page(df, selected_fields)
