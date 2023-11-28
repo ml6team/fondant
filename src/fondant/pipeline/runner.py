@@ -44,7 +44,7 @@ class DockerRunner(Runner):
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
     ) -> None:
-        """Compile a pipeline to docker-compose spec and save it to a specified output path.
+        """Run a pipeline, either from a compiled docker-compose spec or from a fondant pipeline.
 
         Args:
             input: the pipeline to compile or a path to a already compiled docker-compose spec
@@ -170,11 +170,19 @@ class SagemakerRunner(Runner):
     def __init__(self):
         self.__resolve_imports()
         self.client = self.boto3.client("sagemaker")
+        self.compiler = SagemakerCompiler()
 
     def __resolve_imports(self):
-        import boto3
+        try:
+            import boto3
 
-        self.boto3 = boto3
+            self.boto3 = boto3
+        except ImportError:
+            msg = (
+                """You need to install boto3 to use the Sagemaker compiler,\n
+                     you can install it with `pip install fondant[sagemaker]`""",
+            )
+            raise ImportError(msg)
 
     def run(
         self,
@@ -184,14 +192,23 @@ class SagemakerRunner(Runner):
         *,
         instance_type: str = "ml.m5.xlarge",
     ):
+        """Run a pipeline, either from a compiled sagemaker spec or from a fondant pipeline.
+
+        Args:
+            input: the pipeline to compile or a path to a already compiled sagemaker spec
+            pipeline_name: the name of the pipeline to create
+            role_arn: the Amazon Resource Name role to use for the processing steps,
+            if none provided the `sagemaker.get_execution_role()` role will be used.
+            instance_type: the instance type to use for the processing steps
+            (see: https://aws.amazon.com/ec2/instance-types/ for options).
+        """
         if isinstance(input, Pipeline):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/sagemaker-pipeline.yaml"
             logging.info(
                 "Found reference to un-compiled pipeline... compiling",
             )
-            compiler = SagemakerCompiler()
-            compiler.compile(
+            self.compiler.compile(
                 input,
                 output_path=output_path,
                 instance_type=instance_type,

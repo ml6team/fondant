@@ -183,27 +183,29 @@ def test_sagemaker_runner(tmp_path_factory):
         ]
 
 
-class MockSagemakerCompiler:
-    def compile(
-        self,
-        pipeline,
-        output_path,
-        *,
-        instance_type,
-        role_arn,
-    ) -> None:
-        with open(output_path, "w") as f:
-            f.write("foo: bar")
-
-
 def test_sagemaker_runner_from_pipeline():
     with mock.patch(
         "fondant.pipeline.runner.SagemakerCompiler",
-        new=MockSagemakerCompiler,
-    ), mock.patch("boto3.client", spec=True):
+    ) as mock_compiler, mock.patch("boto3.client", spec=True):
+        mock_compiler.configure_mock(
+            **{
+                "compile.side_effect": open(  # noqa: SIM115
+                    ".fondant/sagemaker-pipeline.yaml",
+                    "w",
+                ).write("foo: bar"),
+            },
+        )
         runner = SagemakerRunner()
         runner.run(
             input=PIPELINE,
             pipeline_name=PIPELINE.name,
             role_arn="arn:something",
         )
+        assert runner.compiler.method_calls == [
+            mock.call.compile(
+                PIPELINE,
+                output_path=".fondant/sagemaker-pipeline.yaml",
+                instance_type="ml.m5.xlarge",
+                role_arn="arn:something",
+            ),
+        ]
