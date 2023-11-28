@@ -130,8 +130,10 @@ class DatasetLoaderApp(MainInterface):
         return dataframe
 
     @staticmethod
+    @st.cache_data
     def get_pandas_from_dask(
-        dask_df: dd.DataFrame,
+        field_mapping,
+        _dask_df: dd.DataFrame,
         rows_to_return: int,
         partition_index: int,
         last_partition_index: int,
@@ -140,7 +142,8 @@ class DatasetLoaderApp(MainInterface):
         Converts a Dask DataFrame into a Pandas DataFrame with specified number of rows.
 
         Args:
-         dask_df: Input Dask DataFrame.
+         field_mapping: Mapping of fields to their location. Used as a unique cache key.
+         _dask_df: Input Dask DataFrame.
          rows_to_return: Number of rows needed in the resulting Pandas DataFrame.
          partition_index: Index of the partition to start from.
          last_partition_index: Index from the last partition.
@@ -153,7 +156,7 @@ class DatasetLoaderApp(MainInterface):
         rows_returned = 0
         data_to_return = []
 
-        dask_df = dask_df.partitions[partition_index:]
+        dask_df = _dask_df.partitions[partition_index:]
 
         for partition_index, partition in enumerate(
             dask_df.partitions,
@@ -251,11 +254,13 @@ class DatasetLoaderApp(MainInterface):
         start_partition = page_view_dict[component][page_index]["start_partition"]
 
         pandas_df, next_partition, next_index = self.get_pandas_from_dask(
-            dask_df,
-            ROWS_TO_RETURN,
-            start_partition,
-            start_index,
+            field_mapping=field_mapping,
+            _dask_df=dask_df,
+            rows_to_return=ROWS_TO_RETURN,
+            partition_index=start_partition,
+            last_partition_index=start_index,
         )
+
         self._update_page_view_dict(
             page_view_dict=page_view_dict,
             page_index=page_index + 1,
