@@ -29,11 +29,15 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-embed_text_op = ComponentOp.from_registry(
-    name="embed_text",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "embed_text",
     arguments={
         # Add arguments
         # "model_provider": "huggingface",
@@ -42,7 +46,6 @@ embed_text_op = ComponentOp.from_registry(
         # "auth_kwargs": {},
     }
 )
-pipeline.add_op(embed_text_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

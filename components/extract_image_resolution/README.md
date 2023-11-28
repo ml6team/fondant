@@ -24,15 +24,18 @@ This component takes no arguments.
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-extract_image_resolution_op = ComponentOp.from_registry(
-    name="extract_image_resolution",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "extract_image_resolution",
     arguments={
         # Add arguments
     }
 )
-pipeline.add_op(extract_image_resolution_op, dependencies=[...])  #Add previous component as dependency
 ```
 
