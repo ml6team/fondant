@@ -17,18 +17,16 @@ class ImageGalleryApp(DatasetLoaderApp):
 
         image_field = st.selectbox("Image field", image_fields)
 
-        images = dataframe[image_field].compute()
+        images = dataframe[image_field]
         images = [Image.open(io.BytesIO(x)).resize((256, 256)) for x in images]
-
-        image_slider = st.slider("image range", 0, len(images), (0, 10))
 
         # show images in a gallery
         cols = st.columns(5)
-        for i, image in enumerate(images[image_slider[0] : image_slider[1]]):
+        for i, image in enumerate(images):
             cols[i % 5].image(image, use_column_width=True)
 
 
 app = ImageGalleryApp()
 app.create_common_interface()
-df, df_fields = app.create_loader_widget()
+df, df_fields = app.load_pandas_dataframe()
 app.setup_app_page(df, df_fields)
