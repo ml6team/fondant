@@ -161,11 +161,33 @@ class Type:
         return False
 
 
-class Field(t.NamedTuple):
-    """Class representing a single field or column in a Fondant subset."""
+class Field:
+    """Class representing a single field or column in a Fondant dataset."""
 
-    name: str
-    type: Type
+    def __init__(
+        self,
+        name: str,
+        type: Type = Type("null"),
+        location: str = "",
+    ) -> None:
+        self._name = name
+        self._type = type
+        self._location = location
+
+    @property
+    def name(self) -> str:
+        """The name of the field."""
+        return self._name
+
+    @property
+    def type(self) -> Type:
+        """The absolute location of the field."""
+        return self._type
+
+    @property
+    def location(self) -> str:
+        """The relative location of the field."""
+        return self._location
 
 
 def validate_partition_size(arg_value):

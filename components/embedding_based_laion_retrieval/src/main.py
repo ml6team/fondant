@@ -1,7 +1,6 @@
 """This component retrieves image URLs from LAION-5B based on a set of CLIP embeddings."""
 import asyncio
 import concurrent.futures
-import functools
 import logging
 import typing as t
 
@@ -40,6 +39,10 @@ class LAIONRetrievalComponent(PandasTransformComponent):
             modality=Modality.IMAGE,
         )
 
+    def query(self, id_: t.Any, embedding: t.List[float]) -> t.List[t.Dict]:
+        results = self.client.query(embedding_input=embedding)
+        return [dict(d, embedding_id=id_) for d in results]
+
     def transform(
         self,
         dataframe: pd.DataFrame,
@@ -53,23 +56,20 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                 futures = [
                     loop.run_in_executor(
                         executor,
-                        functools.partial(
-                            self.client.query,
-                            embedding_input=embedding.tolist(),
-                        ),
+                        self.query,
+                        row.id,
+                        row.embeddings_data.tolist(),
                     )
-                    for embedding in dataframe["embeddings"]["data"]
+                    for row in dataframe.itertuples()
                 ]
                 for response in await asyncio.gather(*futures):
                     results.extend(response)
 
         loop.run_until_complete(async_query())
 
-        results_df = pd.DataFrame(results)[["id", "url"]]
+        results_df = pd.DataFrame(results)[["id", "url", "embedding_id"]]
         results_df = results_df.set_index("id")
 
-        # Cast the index to string
-        results_df.index = results_df.index.astype(str)
-        results_df.columns = [["images"], ["url"]]
+        results_df.rename(columns={"url": "images_url"})
 
         return results_df

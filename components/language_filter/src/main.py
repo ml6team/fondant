@@ -38,7 +38,7 @@ class LanguageIdentification:
 
     def is_language(self, row):
         """Predict if text of a row is written in the defined language."""
-        return self.language in self.predict_lang(row["text"])
+        return self.language in self.predict_lang(row["text_data"])
 
 
 class LanguageFilterComponent(PandasTransformComponent):

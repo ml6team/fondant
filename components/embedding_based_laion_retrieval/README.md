@@ -9,13 +9,12 @@ used to find images similar to the embedded images / captions.
 
 **This component consumes:**
 
-- embeddings
-    - data: list<item: float>
+- embeddings_data: list<item: float>
 
 **This component produces:**
 
-- images
-    - url: string
+- images_url: string
+- embedding_id: string
 
 ### Arguments
 
@@ -47,3 +46,9 @@ embedding_based_laion_retrieval_op = ComponentOp.from_registry(
 pipeline.add_op(embedding_based_laion_retrieval_op, dependencies=[...])  #Add previous component as dependency
 ```
 
+### Testing
+
+You can run the tests using docker with BuildKit. From this directory, run:
+```
+docker build . --target test
+```

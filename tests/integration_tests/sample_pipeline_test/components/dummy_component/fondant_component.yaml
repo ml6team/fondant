@@ -1,0 +1,12 @@
+name: Dummy component
+description: Dummy component for testing custom components
+
+image: fndnt/dummy_component:dev
+
+consumes:
+  text_data:
+        type: string
+
+produces:
+  text_data:
+        type: string

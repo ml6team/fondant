@@ -2,21 +2,17 @@ name: Embed images
 description: Component that generates CLIP embeddings from images
 image: fndnt/embed_images:dev
 tags:
-   - Image processing
+  - Image processing
 
 consumes:
-  images:
-      fields:
-        data:
-          type: binary
+  images_data:
+    type: binary
 
 produces:
-  embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
+  embeddings_data:
+    type: array
+    items:
+      type: float32
 
 args:
   model_id:

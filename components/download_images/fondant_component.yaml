@@ -13,21 +13,16 @@ tags:
   - Image processing
 
 consumes:
-  images:
-    fields:
-      url:
-        type: string
+  images_url:
+    type: string
 
 produces:
-  images:
-    fields:
-      data:
-        type: binary
-      width:
-        type: int32
-      height:
-        type: int32
-    additionalFields: false
+  images_data:
+    type: binary
+  images_width:
+    type: int32
+  images_height:
+    type: int32
 
 args:
   timeout:
@@ -53,7 +48,7 @@ args:
     description: Resize mode to use. One of "no", "keep_ratio", "center_crop", "border".
     type: str
     default: 'border'
-  resize_only_if_bigger: 
+  resize_only_if_bigger:
     description: If True, resize only if image is bigger than image_size.
     type: bool
     default: False

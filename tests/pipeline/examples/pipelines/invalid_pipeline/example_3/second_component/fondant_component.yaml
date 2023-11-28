@@ -1,0 +1,21 @@
+name: Second component
+description: This is an example component
+image: example_component:latest
+
+consumes:
+  images_data:
+    type: string
+
+  captions_data:
+    type: string
+
+produces:
+  embeddings_data:
+    type: array
+    items:
+      type: float32
+
+args:
+  storage_args:
+    description: Storage arguments
+    type: str

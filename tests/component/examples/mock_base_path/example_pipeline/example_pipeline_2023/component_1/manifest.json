@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "pipeline_name": "example_pipeline",
+    "base_path": "tests/example_data/subsets_input/mock_base_path",
+    "run_id": "example_pipeline_2023",
+    "component_id": "component_1",
+    "cache_key": "42"
+  },
+  "index": {
+    "location": "/component_1"
+  },
+  "fields":
+  {
+    "data": {
+      "type": "binary",
+      "location": "/component_1"
+    },
+    "height": {
+      "type": "int32",
+      "location": "/component_1"
+    },
+    "width": {
+      "type": "int32",
+      "location": "/component_1"
+    },
+    "captions": {
+      "type": "string",
+      "location": "/component_1"
+    }
+  }
+}

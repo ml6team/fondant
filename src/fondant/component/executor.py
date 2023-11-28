@@ -491,14 +491,11 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
     @staticmethod
     def wrap_transform(transform: t.Callable, *, spec: ComponentSpec) -> t.Callable:
         """Factory that creates a function to wrap the component transform function. The wrapper:
-        - Converts the columns to hierarchical format before passing the dataframe to the
-          transform function
         - Removes extra columns from the returned dataframe which are not defined in the component
           spec `produces` section
         - Sorts the columns from the returned dataframe according to the order in the component
           spec `produces` section to match the order in the `meta` argument passed to Dask's
           `map_partitions`.
-        - Flattens the returned dataframe columns.
 
         Args:
             transform: Transform method to wrap
@@ -506,27 +503,13 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         """
 
         def wrapped_transform(dataframe: pd.DataFrame) -> pd.DataFrame:
-            # Switch to hierarchical columns
-            dataframe.columns = pd.MultiIndex.from_tuples(
-                tuple(column.split("_")) for column in dataframe.columns
-            )
-
             # Call transform method
             dataframe = transform(dataframe)
 
             # Drop columns not in specification
-            columns = [
-                (subset_name, field)
-                for subset_name, subset in spec.produces.items()
-                for field in subset.fields
-            ]
-            dataframe = dataframe[columns]
+            columns = [name for name, field in spec.produces.items()]
 
-            # Switch to flattened columns
-            dataframe.columns = [
-                "_".join(column) for column in dataframe.columns.to_flat_index()
-            ]
-            return dataframe
+            return dataframe[columns]
 
         return wrapped_transform
 
@@ -552,11 +535,8 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
 
         # Create meta dataframe with expected format
         meta_dict = {"id": pd.Series(dtype="object")}
-        for subset_name, subset in self.spec.produces.items():
-            for field_name, field in subset.fields.items():
-                meta_dict[f"{subset_name}_{field_name}"] = pd.Series(
-                    dtype=pd.ArrowDtype(field.type.value),
-                )
+        for field_name, field in self.spec.produces.items():
+            meta_dict[field_name] = pd.Series(dtype=pd.ArrowDtype(field.type.value))
         meta_df = pd.DataFrame(meta_dict).set_index("id")
 
         wrapped_transform = self.wrap_transform(component.transform, spec=self.spec)
@@ -568,23 +548,10 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         )
 
         # Clear divisions if component spec indicates that the index is changed
-        if self._infer_index_change():
+        if self.spec.previous_index is not None:
             dataframe.clear_divisions()
 
         return dataframe
-
-    def _infer_index_change(self) -> bool:
-        """Infer if this component changes the index based on its component spec."""
-        if not self.spec.accepts_additional_subsets:
-            return True
-        if not self.spec.outputs_additional_subsets:
-            return True
-        for subset in self.spec.consumes.values():
-            if not subset.additional_fields:
-                return True
-        return any(
-            not subset.additional_fields for subset in self.spec.produces.values()
-        )
 
 
 class DaskWriteExecutor(Executor[DaskWriteComponent]):

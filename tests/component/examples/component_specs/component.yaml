@@ -1,0 +1,21 @@
+name: Example component
+description: This is an example component
+image: example_component:latest
+
+consumes:
+  images_data:
+    type: binary
+
+produces:
+  images_data:
+    type: array
+    items:
+      type: float32
+
+args:
+  flag:
+    description: user argument
+    type: str
+  value:
+    description: integer value
+    type: int

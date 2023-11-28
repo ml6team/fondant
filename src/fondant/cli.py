@@ -196,7 +196,7 @@ def explore(args):
         container=args.container,
         tag=args.tag,
         port=args.port,
-        credentials=cloud_cred,
+        extra_volumes=extra_volumes,
     )
 
 
@@ -577,7 +577,6 @@ def register_run(parent_parser):
 
 
 def run_local(args):
-    from fondant.pipeline.compiler import DockerCompiler
     from fondant.pipeline.runner import DockerRunner
 
     extra_volumes = []
@@ -590,26 +589,16 @@ def run_local(args):
         extra_volumes.append(cloud_cred)
 
     try:
-        pipeline = pipeline_from_module(args.ref)
+        ref = pipeline_from_module(args.ref)
     except ModuleNotFoundError:
-        spec_ref = args.ref
-    else:
-        spec_ref = args.output_path
-        logging.info(
-            "Found reference to un-compiled pipeline... compiling to {spec_ref}",
-        )
-        compiler = DockerCompiler()
-        compiler.compile(
-            pipeline=pipeline,
+        ref = args.ref
+    finally:
+        runner = DockerRunner()
+        runner.run(
+            input=ref,
             extra_volumes=extra_volumes,
-            output_path=spec_ref,
             build_args=args.build_arg,
         )
-    finally:
-        try:
-            DockerRunner().run(spec_ref)
-        except UnboundLocalError as e:
-            raise e
 
 
 def run_kfp(args):

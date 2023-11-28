@@ -41,6 +41,10 @@ class LAIONRetrievalComponent(PandasTransformComponent):
             modality=Modality.IMAGE,
         )
 
+    def query(self, id_: t.Any, prompt: str) -> t.List[t.Dict]:
+        results = self.client.query(text=prompt)
+        return [dict(d, prompt_id=id_) for d in results]
+
     def transform(
         self,
         dataframe: pd.DataFrame,
@@ -53,21 +57,20 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                 futures = [
                     loop.run_in_executor(
                         executor,
-                        self.client.query,
-                        prompt,
+                        self.query,
+                        row.id,
+                        row.prompts_text,
                     )
-                    for prompt in dataframe["prompts"]["text"]
+                    for row in dataframe.itertuples()
                 ]
                 for response in await asyncio.gather(*futures):
                     results.extend(response)
 
         loop.run_until_complete(async_query())
 
-        results_df = pd.DataFrame(results)[["id", "url"]]
+        results_df = pd.DataFrame(results)[["id", "url", "prompt_id"]]
         results_df = results_df.set_index("id")
 
-        # Cast the index to string
-        results_df.index = results_df.index.astype(str)
-        results_df.columns = [["images"], ["url"]]
+        results_df.rename(columns={"url": "images_url"})
 
         return results_df
