@@ -1,3 +1,3 @@
 from fondant.pipeline import Pipeline
 
-pipeline = Pipeline(pipeline_name="test_pipeline", base_path="some/path")
+pipeline = Pipeline(name="test_pipeline", base_path="some/path")
