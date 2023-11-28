@@ -34,18 +34,20 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-chunk_text_op = ComponentOp.from_registry(
-    name="chunk_text",
+pipeline = Pipeline(...)
+dataset = pipeline.read(...)
+
+dataset.apply(
+    name_or_path="chunk_text",
     arguments={
         # Add arguments
         # "chunk_size": 0,
         # "chunk_overlap": 0,
     }
 )
-pipeline.add_op(chunk_text_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing
