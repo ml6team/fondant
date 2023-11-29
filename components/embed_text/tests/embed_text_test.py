@@ -20,14 +20,14 @@ def test_run_component_test():
 
     # Given: Dataframe with text
     data = [
-        {"data": "Hello World!!"},
-        {"data": lorem_300},
-        {"data": lorem_400},
+        {"text": "Hello World!!"},
+        {"text": lorem_300},
+        {"text": lorem_400},
     ]
 
     DATA_LENTGH = 3
 
-    dataframe = pd.concat({"text": pd.DataFrame(data)}, axis=1, names=["text", "data"])
+    dataframe = pd.DataFrame(data)
 
     component = EmbedTextComponent(
         model_provider="huggingface",
@@ -45,10 +45,8 @@ def test_run_component_test():
     # Then: right embeddings are generated
     assert len(dataframe) == DATA_LENTGH
     assert embeddings_close(
-        dataframe.iloc[0]["text"]["embedding"],
+        dataframe.iloc[0]["embedding"],
         hello_world_embedding,
     )
     # Then: too long text is truncated and thus embeddings are the same
-    assert (
-        dataframe.iloc[1]["text"]["embedding"] == dataframe.iloc[2]["text"]["embedding"]
-    )
+    assert dataframe.iloc[1]["embedding"] == dataframe.iloc[2]["embedding"]

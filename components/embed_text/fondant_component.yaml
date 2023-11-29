@@ -5,13 +5,11 @@ tags:
   - Text processing
 
 consumes:
-  text_data:
+  text:
     type: string
 
 produces:
-  text_data:
-    type: string
-  text_embedding:
+  embedding:
     type: array
     items:
       type: float32

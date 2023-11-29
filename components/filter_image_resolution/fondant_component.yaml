@@ -5,9 +5,9 @@ tags:
   - Image processing
 
 consumes:
-  images_width:
+  image_width:
     type: int32
-  images_height:
+  image_height:
     type: int32
 
 args:

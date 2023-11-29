@@ -7,12 +7,11 @@ Component that generates embeddings of text passages.
 
 **This component consumes:**
 
-- text_data: string
+- text: string
 
 **This component produces:**
 
-- text_data: string
-- text_embedding: list<item: float>
+- embedding: list<item: float>
 
 ### Arguments
 

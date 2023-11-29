@@ -89,31 +89,31 @@ class NormalizeTextComponent(PandasTransformComponent):
             Pandas dataframe
         """
         if self.normalize_lines:
-            dataframe["text_data"] = dataframe["text_data"].apply(
+            dataframe["text"] = dataframe["text"].apply(
                 normalize_lines,
             )
 
         if self.do_lowercase:
-            dataframe["text_data"] = dataframe["text_data"].apply(
+            dataframe["text"] = dataframe["text"].apply(
                 lambda x: x.lower(),
             )
 
         if self.apply_nfc:
-            dataframe["text_data"] = dataframe["text_data"].apply(
+            dataframe["text"] = dataframe["text"].apply(
                 self._do_nfc_normalization,
             )
 
         if self.remove_punctuation:
-            dataframe["text_data"] = dataframe["text_data"].apply(
+            dataframe["text"] = dataframe["text"].apply(
                 _remove_punctuation,
             )
 
         if self.remove_additional_whitespaces:
-            dataframe["text_data"] = dataframe["text_data"].apply(
+            dataframe["text"] = dataframe["text"].apply(
                 _remove_additional_whitespaces,
             )
 
         # remove all empty rows
-        dataframe = dataframe[dataframe["text_data"].astype(bool)]
+        dataframe = dataframe[dataframe["text"].astype(bool)]
 
         return dataframe

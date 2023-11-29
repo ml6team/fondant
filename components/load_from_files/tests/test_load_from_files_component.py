@@ -8,7 +8,8 @@ import dask
 import fsspec
 import pytest
 from fsspec.spec import AbstractFileSystem
-from load_from_files.src.main import (
+
+from src.main import (
     AbstractFileHandler,
     DirectoryHandler,
     FileHandler,
@@ -253,11 +254,11 @@ def test_files_to_dask_converter():
     result = dask.compute(ddf)[0]
 
     assert len(result) == num_records, "The dataframe should have content of two files."
-    assert list(result.index) == [
+    assert list(result.filename) == [
         "file1",
         "file2",
     ], "The dataframe index should include the filenames."
-    assert list(result.Content) == [
+    assert list(result.content) == [
         b"content1",
         b"content2",
     ], "The dataframe Content column should include the file contents."

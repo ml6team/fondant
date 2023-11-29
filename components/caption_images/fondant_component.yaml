@@ -5,11 +5,11 @@ tags:
   - Image processing
 
 consumes:
-  images_data:
+  image:
     type: binary
 
 produces:
-  captions_text:
+  caption:
     type: utf8
 
 args:

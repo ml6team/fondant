@@ -7,11 +7,11 @@ Component that resizes images based on given width and height
 
 **This component consumes:**
 
-- images_data: binary
+- image: binary
 
 **This component produces:**
 
-- images_data: binary
+- image: binary
 
 ### Arguments
 

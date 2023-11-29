@@ -45,7 +45,7 @@ def test_transform(respx_mock):
 
     input_dataframe = pd.DataFrame(
         {
-            "images_url": urls,
+            "image_url": urls,
         },
         index=pd.Index(ids, name="id"),
     )
@@ -55,9 +55,9 @@ def test_transform(respx_mock):
     resized_images = [component.resizer(io.BytesIO(image))[0] for image in images]
     expected_dataframe = pd.DataFrame(
         {
-            "images_data": resized_images,
-            "images_width": [image_size] * len(ids),
-            "images_height": [image_size] * len(ids),
+            "image": resized_images,
+            "image_width": [image_size] * len(ids),
+            "image_height": [image_size] * len(ids),
         },
         index=pd.Index(ids, name="id"),
     )

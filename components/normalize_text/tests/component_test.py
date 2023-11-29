@@ -20,7 +20,7 @@ def test_transform_custom_componen_test():
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "Nulla facilisi. Sed eu nulla sit amet enim scelerisque dapibus.",
         ],
-        columns=[("text", "data")],
+        columns=["text"],
     )
 
     expected_output = pd.DataFrame(
@@ -29,7 +29,7 @@ def test_transform_custom_componen_test():
             "lorem ipsum dolor sit amet consectetur adipiscing elit",
             "nulla facilisi sed eu nulla sit amet enim scelerisque dapibus",
         ],
-        columns=[("text", "data")],
+        columns=["text"],
     )
 
     output_dataframe = component.transform(input_dataframe)

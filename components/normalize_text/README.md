@@ -19,9 +19,11 @@ the training of large language models.
 
 **This component consumes:**
 
-- text_data: string
+- text: string
 
-**This component produces no data.**
+**This component produces:**
+
+- text: string
 
 ### Arguments
 

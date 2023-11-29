@@ -10,11 +10,11 @@ def test_image_caption_component():
         "https://cdn.pixabay.com/photo/2023/07/19/18/56/japanese-beetle-8137606_1280.png",
     ]
     input_dataframe = pd.DataFrame(
-        {"images": {"data": [requests.get(url).content for url in image_urls]}},
+        {"image": [requests.get(url).content for url in image_urls]},
     )
 
     expected_output_dataframe = pd.DataFrame(
-        data={("captions", "text"): {0: "a motorcycle", 1: "a beetle"}},
+        data={"caption": {0: "a motorcycle", 1: "a beetle"}},
     )
 
     component = CaptionImagesComponent(
