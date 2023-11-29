@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from bs4 import BeautifulSoup
-from df_helpers.fields import get_image_fields, get_string_fields
+from df_helpers.fields import get_image_fields, get_numeric_fields, get_string_fields
 from df_helpers.image_render import configure_image_builder, convert_image_column
 from fondant.core.schema import Field
 from fpdf import FPDF
@@ -145,13 +145,20 @@ class DatasetExplorerApp(DatasetLoaderApp):
 
     @staticmethod
     def search_df(
+        *,
         df: dd.DataFrame,
         search_field: str,
         search_value: str,
         exact_search: bool,
+        selected_fields: t.Dict[str, Field],
     ) -> dd.DataFrame:
         """Search the dataframe for the given search field and search value."""
         if exact_search:
+            field_type = selected_fields[search_field].type.name
+            if "int" in field_type:
+                search_value = int(search_value)
+            elif "float" in field_type:
+                search_value = float(search_value)
             return df[df[search_field] == search_value]
 
         return df[df[search_field].str.contains(search_value)]
@@ -180,6 +187,8 @@ class DatasetExplorerApp(DatasetLoaderApp):
         if "result_found" not in st.session_state:
             st.session_state.result_found = True
 
+        # Get numerical columns
+        get_numeric_fields(selected_fields)
         filter_cache_key = ""
 
         # Creating columns for layout
@@ -226,7 +235,14 @@ class DatasetExplorerApp(DatasetLoaderApp):
                 filter_cache_key = hashlib.md5(  # nosec
                     f"{search_field}_{search_value}_{exact_search}".encode(),
                 ).hexdigest()
-                df = self.search_df(df, search_field, search_value, exact_search)
+
+                df = self.search_df(
+                    df=df,
+                    search_field=search_field,
+                    search_value=search_value,
+                    exact_search=exact_search,
+                    selected_fields=selected_fields,
+                )
 
                 # Display warning if no results found
                 if len(df) == 0:
