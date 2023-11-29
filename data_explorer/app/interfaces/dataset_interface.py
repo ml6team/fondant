@@ -132,16 +132,18 @@ class DatasetLoaderApp(MainInterface):
         rows_to_return: int,
         partition_index: int,
         partition_row_index: int,
+        cache_key: str,
     ):
         """
         Converts a Dask DataFrame into a Pandas DataFrame with specified number of rows.
 
         Args:
-         field_mapping: Mapping of fields to their location. Used as a unique cache key.
+         field_mapping: Mapping of fields to their location. Used as an additional cache key.
          _dask_df: Input Dask DataFrame.
          rows_to_return: Number of rows needed in the resulting Pandas DataFrame.
          partition_index: Index of the partition to start from.
          partition_row_index: Index from the last partition.
+         cache_key: Unique key for caching the dataframe.
 
         Returns:
          result_df: Pandas DataFrame with the specified number of rows.
@@ -197,12 +199,17 @@ class DatasetLoaderApp(MainInterface):
         return df, partition_index, partition_row_index
 
     @staticmethod
-    def _initialize_page_view_dict(component):
+    def _initialize_page_view_dict(component, cache_key):
         page_view_dict = st.session_state.get("page_view_dict", {})
 
+        # Check if the component exists, if not, initialize it
         if component not in page_view_dict:
-            page_view_dict[component] = {
-                0: {
+            page_view_dict[component] = {}
+
+        # Check if the cache key exists within the component, if not, initialize it
+        if cache_key not in page_view_dict[component]:
+            page_view_dict[component][cache_key] = {
+                0: {  # Adding the page number
                     "start_index": 0,
                     "start_partition": 0,
                 },
@@ -217,10 +224,11 @@ class DatasetLoaderApp(MainInterface):
         page_view_dict,
         page_index,
         start_index,
+        cache_key,
         start_partition,
         component,
     ):
-        page_view_dict[component][page_index] = {
+        page_view_dict[component][cache_key][page_index] = {
             "start_index": start_index,
             "start_partition": start_partition,
         }
@@ -232,6 +240,7 @@ class DatasetLoaderApp(MainInterface):
         self,
         dask_df: dd.DataFrame,
         field_mapping: t.Dict[str, str],
+        cache_key: t.Optional[str] = "",
     ):
         """
         Provides common widgets for loading a dataframe and selecting a partition to load. Uses
@@ -245,12 +254,18 @@ class DatasetLoaderApp(MainInterface):
 
         # Initialize page view dict if it doesn't exist
         component = st.session_state["component"]
-        page_view_dict = self._initialize_page_view_dict(component)
+        page_view_dict = self._initialize_page_view_dict(component, cache_key)
         page_index = st.session_state.get("page_index", 0)
 
         # Get the starting index and partition for the current page
-        start_partition = page_view_dict[component][page_index]["start_partition"]
-        start_index = page_view_dict[component][page_index]["start_index"]
+        if page_index not in page_view_dict[component][cache_key]:
+            # Get latest page index
+            page_index = max(page_view_dict[component][cache_key].keys())
+
+        start_partition = page_view_dict[component][cache_key][page_index][
+            "start_partition"
+        ]
+        start_index = page_view_dict[component][cache_key][page_index]["start_index"]
 
         pandas_df, partition_index, partition_row_index = self.get_pandas_from_dask(
             field_mapping=field_mapping,
@@ -258,11 +273,13 @@ class DatasetLoaderApp(MainInterface):
             rows_to_return=ROWS_TO_RETURN,
             partition_index=start_partition,
             partition_row_index=start_index,
+            cache_key=cache_key,
         )
 
         self._update_page_view_dict(
             page_view_dict=page_view_dict,
             page_index=page_index + 1,
+            cache_key=cache_key,
             start_partition=partition_index,
             start_index=partition_row_index,
             component=component,
@@ -280,9 +297,9 @@ class DatasetLoaderApp(MainInterface):
         if partition_index == dask_df.npartitions - 1:
             # Check if the last row of the last partition is the same as the last row of the
             # dataframe. If so, we have reached the end of the dataframe.
-            partition_index = dask_df.tail(1).index[0]
-            dask_df_index = pandas_df.tail(1)[DEFAULT_INDEX_NAME].iloc[0]
-            if partition_index == dask_df_index:
+            partition_index = dask_df.compute().tail(1).index[0]
+            pandas_df_index = pandas_df.tail(1)[DEFAULT_INDEX_NAME].iloc[0]
+            if partition_index == pandas_df_index:
                 next_button_disabled = True
 
         if previous_col.button(
