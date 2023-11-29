@@ -26,7 +26,7 @@ class DatasetLoaderApp(MainInterface):
         available_components = ["chunk_text"]
         default_index = get_default_index("component", available_components)
         selected_component = st.selectbox(
-            "Select component",
+            "Component",
             available_components,
             default_index,
         )

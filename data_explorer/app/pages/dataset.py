@@ -148,13 +148,13 @@ class DatasetExplorerApp(DatasetLoaderApp):
         df: dd.DataFrame,
         search_field: str,
         search_value: str,
-        partial_search: bool,
+        exact_search: bool,
     ) -> dd.DataFrame:
         """Search the dataframe for the given search field and search value."""
-        if partial_search:
-            return df[df[search_field].str.contains(search_value)]
+        if exact_search:
+            return df[df[search_field] == search_value]
 
-        return df[df[search_field] == search_value]
+        return df[df[search_field].str.contains(search_value)]
 
     def setup_search_widget(
         self,
@@ -189,18 +189,18 @@ class DatasetExplorerApp(DatasetLoaderApp):
         with col_1:
             search_value = st.text_input(
                 ":mag: Search Value",
-                "Select your search value",
+                "",
             )
         with col_2:
             search_field = st.selectbox(
-                "Pick a field to search through",
+                "Search Field",
                 list(selected_fields.keys()),
             )
         with col_3:
-            partial_search = st.checkbox(
-                "Partial Search",
+            exact_search = st.checkbox(
+                "Exact match",
                 list(selected_fields.keys()),
-                help="Toggle to search for partial matches, otherwise search for exact matches."
+                help="Toggle to search for exact matches, otherwise search for partial matches."
                 "Note that searching for partial matches may take longer.",
             )
 
@@ -224,9 +224,9 @@ class DatasetExplorerApp(DatasetLoaderApp):
             else:
                 # Generate cache key for filtering
                 filter_cache_key = hashlib.md5(  # nosec
-                    f"{search_field}_{search_value}_{partial_search}".encode(),
+                    f"{search_field}_{search_value}_{exact_search}".encode(),
                 ).hexdigest()
-                df = self.search_df(df, search_field, search_value, partial_search)
+                df = self.search_df(df, search_field, search_value, exact_search)
 
                 # Display warning if no results found
                 if len(df) == 0:
