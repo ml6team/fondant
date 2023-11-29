@@ -189,7 +189,7 @@ class DatasetExplorerApp(DatasetLoaderApp):
         with col_1:
             search_value = st.text_input(
                 ":mag: Search Value",
-                "Television",
+                "Select your search value",
             )
         with col_2:
             search_field = st.selectbox(

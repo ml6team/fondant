@@ -48,7 +48,6 @@ class DatasetLoaderApp(MainInterface):
         manifest = Manifest.from_file(manifest_path)
         fields = manifest.fields
         field_list = list(fields.keys())
-
         with cols[1]:
             selected_field_names = st.multiselect(
                 "Fields",
@@ -59,6 +58,7 @@ class DatasetLoaderApp(MainInterface):
         selected_fields = {
             field_name: fields[field_name] for field_name in selected_field_names
         }
+        selected_fields[DEFAULT_INDEX_NAME] = manifest.index
 
         return manifest, selected_fields
 
@@ -102,12 +102,11 @@ class DatasetLoaderApp(MainInterface):
     def load_dask_dataframe(field_mapping):
         dataframe = None
         for location, fields in field_mapping.items():
-            if DEFAULT_INDEX_NAME in fields:
-                fields.remove(DEFAULT_INDEX_NAME)
+            columns = [field for field in fields if field != DEFAULT_INDEX_NAME]
 
             partial_df = dd.read_parquet(
                 location,
-                columns=fields,
+                columns=columns,
                 index=DEFAULT_INDEX_NAME,
                 calculate_divisions=True,
             )
@@ -122,7 +121,7 @@ class DatasetLoaderApp(MainInterface):
                     left_index=True,
                     right_index=True,
                 )
-        return dataframe
+        return dataframe.reset_index(drop=False)
 
     @staticmethod
     @st.cache_data
@@ -159,7 +158,7 @@ class DatasetLoaderApp(MainInterface):
             start=partition_index,
         ):
             # Materialize partition as a pandas DataFrame
-            partition_df = partition.compute().reset_index(drop=False)
+            partition_df = partition.compute()
             partition_df = partition_df[partition_row_index:]
             partition_length = len(partition_df)
 
