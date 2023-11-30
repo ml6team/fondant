@@ -40,6 +40,18 @@ def invalid_fondant_schema() -> dict:
         return yaml.safe_load(f)
 
 
+@pytest.fixture()
+def valid_fondant_schema_generic_consumes() -> dict:
+    with open(component_specs_path / "generic_consumes.yaml") as f:
+        return yaml.safe_load(f)
+
+
+@pytest.fixture()
+def valid_fondant_schema_generic_produces() -> dict:
+    with open(component_specs_path / "generic_produces.yaml") as f:
+        return yaml.safe_load(f)
+
+
 @patch("pkgutil.get_data", return_value=None)
 def test_component_spec_pkgutil_error(mock_get_data):
     """Test that FileNotFoundError is raised when pkgutil.get_data returns None."""
@@ -135,3 +147,17 @@ def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
     kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)
     expected_repr = f"KubeflowComponentSpec({valid_kubeflow_schema!r})"
     assert repr(kubeflow_component_spec) == expected_repr
+
+
+def test_component_spec_generic_consumes(valid_fondant_schema_generic_consumes):
+    """Test that a component spec with generic consumes is detected."""
+    component_spec = ComponentSpec(valid_fondant_schema_generic_consumes)
+    assert component_spec.is_consumes_generic is True
+    assert component_spec.is_produces_generic is False
+
+
+def test_component_spec_generic_produces(valid_fondant_schema_generic_produces):
+    """Test that a component spec with generic produces is detected."""
+    component_spec = ComponentSpec(valid_fondant_schema_generic_produces)
+    assert component_spec.is_consumes_generic is False
+    assert component_spec.is_produces_generic is True

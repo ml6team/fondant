@@ -182,6 +182,24 @@ class ComponentSpec:
         )
 
     @property
+    def is_consumes_generic(self) -> bool:
+        """Returns a boolean indicating whether the component consumes generic data."""
+        additional_fields = self._specification.get("consumes", {}).get(
+            "additionalFields",
+        )
+
+        return bool(additional_fields) if additional_fields is not None else False
+
+    @property
+    def is_produces_generic(self) -> bool:
+        """Returns a boolean indicating whether the component produces generic data."""
+        additional_fields = self._specification.get("produces", {}).get(
+            "additionalFields",
+        )
+
+        return bool(additional_fields) if additional_fields is not None else False
+
+    @property
     def previous_index(self) -> t.Optional[str]:
         return self._specification.get("previous_index")
 

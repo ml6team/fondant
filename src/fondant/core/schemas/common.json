@@ -51,15 +51,30 @@
           ]
         }
       },
-      "required": ["type"],
+      "required": [
+        "type"
+      ],
       "additionalProperties": false
+    },
+    "additionalFields": {
+      "type": "boolean",
+      "default": false,
+      "description": "Specifies whether additional fields are allowed in 'produces'"
     },
     "fields": {
       "type": "object",
       "minProperties": 1,
       "additionalProperties": {
-        "$ref": "#/definitions/field"
+        "oneOf": [
+          {
+            "$ref": "#/definitions/field"
+          },
+          {
+            "$ref": "#/definitions/additionalFields"
+          }
+        ]
       }
     }
   }
 }
+
