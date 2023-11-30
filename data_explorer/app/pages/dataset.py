@@ -207,6 +207,8 @@ class DatasetExplorerApp(DatasetLoaderApp):
                 list(selected_fields.keys()),
             )
         with col_3:
+            st.text("")
+            st.text("")
             exact_search = st.checkbox(
                 "Exact match",
                 list(selected_fields.keys()),
@@ -216,9 +218,11 @@ class DatasetExplorerApp(DatasetLoaderApp):
 
         # Buttons for initiating and clearing search
         with col_4:
+            st.text("")
             st.button("Search", on_click=search_button, use_container_width=True)
 
         with col_5:
+            st.text("")
             st.button(
                 "Clear",
                 on_click=result_found,
