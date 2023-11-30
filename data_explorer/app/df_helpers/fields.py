@@ -27,4 +27,17 @@ def get_image_fields(fields: t.Dict[str, Field]) -> t.List[str]:
 
 
 def get_numeric_fields(fields: t.Dict[str, Field]) -> t.List[str]:
-    return get_fields_by_types(fields, ["int", "float"])
+    numeric_types = [
+        "int8",
+        "int16",
+        "int32",
+        "int64",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+        "float16",
+        "float32",
+        "float64",
+    ]
+    return get_fields_by_types(fields, numeric_types)

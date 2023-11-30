@@ -22,13 +22,11 @@ class DatasetLoaderApp(MainInterface):
     def _select_component():
         """Select component from available components."""
         selected_run_path = st.session_state["run_path"]
-        available_components = [
-            os.path.basename(item) for item in os.listdir(selected_run_path)
-        ]
 
+        available_components = ["chunk_text"]
         default_index = get_default_index("component", available_components)
         selected_component = st.selectbox(
-            "Select component",
+            "Component",
             available_components,
             default_index,
         )
@@ -50,7 +48,6 @@ class DatasetLoaderApp(MainInterface):
         manifest = Manifest.from_file(manifest_path)
         fields = manifest.fields
         field_list = list(fields.keys())
-
         with cols[1]:
             selected_field_names = st.multiselect(
                 "Fields",
@@ -61,6 +58,7 @@ class DatasetLoaderApp(MainInterface):
         selected_fields = {
             field_name: fields[field_name] for field_name in selected_field_names
         }
+        selected_fields[DEFAULT_INDEX_NAME] = manifest.index
 
         return manifest, selected_fields
 
@@ -104,12 +102,11 @@ class DatasetLoaderApp(MainInterface):
     def load_dask_dataframe(field_mapping):
         dataframe = None
         for location, fields in field_mapping.items():
-            if DEFAULT_INDEX_NAME in fields:
-                fields.remove(DEFAULT_INDEX_NAME)
+            columns = [field for field in fields if field != DEFAULT_INDEX_NAME]
 
             partial_df = dd.read_parquet(
                 location,
-                columns=fields,
+                columns=columns,
                 index=DEFAULT_INDEX_NAME,
                 calculate_divisions=True,
             )
@@ -124,7 +121,7 @@ class DatasetLoaderApp(MainInterface):
                     left_index=True,
                     right_index=True,
                 )
-        return dataframe
+        return dataframe.reset_index(drop=False)
 
     @staticmethod
     @st.cache_data
@@ -133,22 +130,23 @@ class DatasetLoaderApp(MainInterface):
         _dask_df: dd.DataFrame,
         rows_to_return: int,
         partition_index: int,
-        last_partition_index: int,
+        partition_row_index: int,
+        cache_key: str,
     ):
         """
         Converts a Dask DataFrame into a Pandas DataFrame with specified number of rows.
 
         Args:
-         field_mapping: Mapping of fields to their location. Used as a unique cache key.
+         field_mapping: Mapping of fields to their location. Used as an additional cache key.
          _dask_df: Input Dask DataFrame.
          rows_to_return: Number of rows needed in the resulting Pandas DataFrame.
          partition_index: Index of the partition to start from.
-         last_partition_index: Index from the last partition.
+         partition_row_index: Index from the last partition.
+         cache_key: Unique key for caching the dataframe.
 
         Returns:
          result_df: Pandas DataFrame with the specified number of rows.
-         last_partition_index: Index of the last used partition.
-         rows_from_last_partition: Number of rows taken from the last partition.
+         partition_row_index: Index of the last used partition.
         """
         rows_returned = 0
         data_to_return = []
@@ -160,14 +158,15 @@ class DatasetLoaderApp(MainInterface):
             start=partition_index,
         ):
             # Materialize partition as a pandas DataFrame
-            partition_df = partition.compute().reset_index(drop=False)
+            partition_df = partition.compute()
+            partition_df = partition_df[partition_row_index:]
             partition_length = len(partition_df)
-            partition_df = partition_df[last_partition_index:]
 
             # Check if adding this partition exceeds the required rows
             if rows_returned + partition_length <= rows_to_return:
                 data_to_return.append(partition_df)
                 rows_returned += partition_length
+                partition_row_index = 0
             else:
                 # Calculate how many rows to take from this partition
                 rows_to_take = rows_to_return - rows_returned
@@ -175,7 +174,7 @@ class DatasetLoaderApp(MainInterface):
 
                 # Check if the partition is empty
                 if len(sliced_partition_df) == 0:
-                    last_partition_index = 0
+                    partition_row_index = 0
                     continue
 
                 data_to_return.append(sliced_partition_df)
@@ -183,7 +182,7 @@ class DatasetLoaderApp(MainInterface):
 
                 # Check if we have reached the required number of rows
                 if rows_returned >= rows_to_return or len(sliced_partition_df) == 0:
-                    last_partition_index = last_partition_index + len(
+                    partition_row_index = partition_row_index + len(
                         sliced_partition_df,
                     )
                     break
@@ -191,20 +190,25 @@ class DatasetLoaderApp(MainInterface):
                 # Check if the last row of the sliced partition is the same as the last row of
                 # the original partition. If so, we have reached the end of the dataframe.
                 if partition_df.tail(1).equals(sliced_partition_df.tail(1)):
-                    last_partition_index = 0
+                    partition_row_index = 0
 
         # Concatenate the selected partitions into a single pandas DataFrame
         df = pd.concat(data_to_return)
 
-        return df, partition_index, last_partition_index
+        return df, partition_index, partition_row_index
 
     @staticmethod
-    def _initialize_page_view_dict(component):
+    def _initialize_page_view_dict(component, cache_key):
         page_view_dict = st.session_state.get("page_view_dict", {})
 
+        # Check if the component exists, if not, initialize it
         if component not in page_view_dict:
-            page_view_dict[component] = {
-                0: {
+            page_view_dict[component] = {}
+
+        # Check if the cache key exists within the component, if not, initialize it
+        if cache_key not in page_view_dict[component]:
+            page_view_dict[component][cache_key] = {
+                0: {  # Adding the page number
                     "start_index": 0,
                     "start_partition": 0,
                 },
@@ -215,13 +219,15 @@ class DatasetLoaderApp(MainInterface):
 
     @staticmethod
     def _update_page_view_dict(
+        *,
         page_view_dict,
         page_index,
         start_index,
+        cache_key,
         start_partition,
         component,
     ):
-        page_view_dict[component][page_index] = {
+        page_view_dict[component][cache_key][page_index] = {
             "start_index": start_index,
             "start_partition": start_partition,
         }
@@ -229,7 +235,12 @@ class DatasetLoaderApp(MainInterface):
 
         return page_view_dict
 
-    def load_pandas_dataframe(self):
+    def load_pandas_dataframe(
+        self,
+        dask_df: dd.DataFrame,
+        field_mapping: t.Dict[str, str],
+        cache_key: t.Optional[str] = "",
+    ):
         """
         Provides common widgets for loading a dataframe and selecting a partition to load. Uses
         Cached dataframes to avoid reloading the dataframe when changing the partition.
@@ -240,34 +251,36 @@ class DatasetLoaderApp(MainInterface):
         previous_button_disabled = True
         next_button_disabled = False
 
-        # Get field mapping from manifest and selected fields
-        field_mapping, selected_fields = self.get_fields_mapping()
-
-        # Get the manifest, subset, and fields
-        dask_df = self.load_dask_dataframe(field_mapping)
-
         # Initialize page view dict if it doesn't exist
         component = st.session_state["component"]
-        page_view_dict = self._initialize_page_view_dict(component)
+        page_view_dict = self._initialize_page_view_dict(component, cache_key)
         page_index = st.session_state.get("page_index", 0)
 
         # Get the starting index and partition for the current page
-        start_index = page_view_dict[component][page_index]["start_index"]
-        start_partition = page_view_dict[component][page_index]["start_partition"]
+        if page_index not in page_view_dict[component][cache_key]:
+            # Get latest page index
+            page_index = max(page_view_dict[component][cache_key].keys())
 
-        pandas_df, next_partition, next_index = self.get_pandas_from_dask(
+        start_partition = page_view_dict[component][cache_key][page_index][
+            "start_partition"
+        ]
+        start_index = page_view_dict[component][cache_key][page_index]["start_index"]
+
+        pandas_df, partition_index, partition_row_index = self.get_pandas_from_dask(
             field_mapping=field_mapping,
             _dask_df=dask_df,
             rows_to_return=ROWS_TO_RETURN,
             partition_index=start_partition,
-            last_partition_index=start_index,
+            partition_row_index=start_index,
+            cache_key=cache_key,
         )
 
         self._update_page_view_dict(
             page_view_dict=page_view_dict,
             page_index=page_index + 1,
-            start_index=next_index,
-            start_partition=next_partition,
+            cache_key=cache_key,
+            start_partition=partition_index,
+            start_index=partition_row_index,
             component=component,
         )
 
@@ -280,12 +293,12 @@ class DatasetLoaderApp(MainInterface):
         if page_index != 0:
             previous_button_disabled = False
 
-        if next_partition == dask_df.npartitions - 1:
+        if partition_index == dask_df.npartitions - 1:
             # Check if the last row of the last partition is the same as the last row of the
             # dataframe. If so, we have reached the end of the dataframe.
-            partition_index = dask_df.tail(1).index[0]
-            dask_df_index = pandas_df.tail(1)[DEFAULT_INDEX_NAME].iloc[0]
-            if partition_index == dask_df_index:
+            partition_index = dask_df.compute().tail(1).index[0]
+            pandas_df_index = pandas_df.tail(1)[DEFAULT_INDEX_NAME].iloc[0]
+            if partition_index == pandas_df_index:
                 next_button_disabled = True
 
         if previous_col.button(
@@ -306,4 +319,4 @@ class DatasetLoaderApp(MainInterface):
 
         st.markdown(f"Page {page_index}")
 
-        return pandas_df, selected_fields
+        return pandas_df

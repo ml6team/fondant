@@ -1,17 +1,49 @@
 # Data explorer
 
-## Data explorer UI
+The data explorer enables you to explore your pipelines as well as inspecting inputs and outputs
+of the pipeline's components. The explorer can be a helpful tool to debug your pipeline and to get a
+better
+understanding of the data that is being processed. It can also be used to compare different pipeline
+runs
+which can be useful to understand the impact of changes in your pipeline.
 
-The data explorer UI enables Fondant users to explore the inputs and outputs of their Fondant pipeline.
+The explorer consists of 4 main tabs:
 
-The user can specify a pipeline and a specific pipeline run and component to explore. The user will then be able to explore the different subsets produced by by Fondant components.
+### General Overview
 
-The chosen subset (and the columns within the subset) can be explored in 3 tabs.
+In the general overview, you can select the pipeline and pipeline run you want to explore. You will
+be able to see the different components that were run in the pipeline run and get an overview of
+your latest runs.
 
-![data explorer](../art/data_explorer/data_explorer.png)
+![data explorer](art/data_explorer/general_overview.png)
+
+### Dataset Explorer
+
+The data explorer shows an interactive table of the loaded fields from a given component.
+In this you can:
+
+- Browse through different parts of the data
+- Visualize images
+- Search for specific rows using a search query
+- Visualize long documents using a document viewer
+- Compare different pipeline runs (coming soon!)
+
+![data explorer](art/data_explorer/dataset_explorer.png)
+
+### Image Gallery
+
+The image explorer tab enables the user to choose one of the image columns and analyse these images.
+
+### Numerical Analysis
+
+The numerical analysis tab shows global statistics of the numerical columns of the loaded subset (
+mean,
+std, percentiles, ...).
 
 ## How to use?
-You can setup the data explorer container with the `fondant explore` CLI command, which is installed together with the Fondant python package.
+
+You can setup the data explorer container with the `fondant explore` CLI command, which is installed
+together with the Fondant python package.
 
 === "Console"
 
@@ -28,11 +60,14 @@ You can setup the data explorer container with the `fondant explore` CLI command
     run_explorer_app(base_path=BASE_PATH)
     ```
 
-Where the base path can be either a local or remote base path. Make sure to pass the proper mount credentials arguments when using a remote base path or a local base path 
-that references remote datasets. You can do that either with `--auth-gcp`, `--auth-aws` or `--auth-azure` to
-mount your default local cloud credentials to the pipeline. Or You can also use the `--extra-volumnes` flag to specify credentials or local files you  need to mount.
+Where the base path can be either a local or remote base path. Make sure to pass the proper mount
+credentials arguments when using a remote base path or a local base path
+that references remote datasets. You can do that either with `--auth-gcp`, `--auth-aws`
+or `--auth-azure` to
+mount your default local cloud credentials to the pipeline. Or You can also use
+the `--extra-volumnes` flag to specify credentials or local files you need to mount.
 
-Example: 
+Example:
 
 === "Console"
 
@@ -50,18 +85,5 @@ Example:
     run_explorer_app(base_path=BASE_PATH)
     ```
 
-### Sidebar
-In the sidebar, the user can specify the path to a manifest file. This will load the available subsets into a dropdown, from which the user can select one of the subsets. Finally, the columns within the subset are shown in a multiselect box, and can be used to remove / select the columns that are loaded into the exploration tabs.
 
-### Data explorer Tab
-The data explorer shows an interactive table of the loaded subset DataFrame with on each row a sample. The table can be used to browse through a partition of the data, to visualize images inside image columns and more.
 
-### Numeric analysis Tab
-The numerical analysis tab shows statistics of the numerical columns of the loaded subset (mean, std, percentiles, ...) in a table. In the second part of the tab, the user can choose one of the numerical columns for in depth exploration of the data by visualizing it in a variety of interactive plots.
-
-![data explorer](../art/data_explorer/data_explorer_numeric_analysis.png)
-
-### Image explorer Tab
-The image explorer tab enables the user to choose one of the image columns and analyse these images.
-
-![data explorer](../art/data_explorer/image_explorer.png)

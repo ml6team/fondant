@@ -70,9 +70,9 @@ class MainInterface:
     def _display_base_info(self):
         """Displays basic information about the base path and its type."""
         base_path = st.session_state["base_path"]
-        st.markdown("## General Configuration")
-        st.markdown(f"### Base path: \n {base_path}")
-        st.markdown(f"### Base path type: \n {self.fs.__class__.__name__}")
+        with st.expander("## General Configuration"):
+            st.markdown(f"### Base path: \n {base_path}")
+            st.markdown(f"### Base path type: \n {self.fs.__class__.__name__}")
 
     def _select_pipeline(self):
         """Selects a pipeline from available pipelines."""
@@ -83,7 +83,7 @@ class MainInterface:
 
         default_index = get_default_index("pipeline", available_pipelines)
         selected_pipeline = st.selectbox(
-            "Select pipeline",
+            "Pipeline",
             available_pipelines,
             default_index,
         )
@@ -106,7 +106,7 @@ class MainInterface:
         available_runs.sort(reverse=True)
 
         default_index = get_default_index("run", available_runs)
-        selected_run = st.selectbox("Select run", available_runs, default_index)
+        selected_run = st.selectbox("Run", available_runs, default_index)
         selected_run_path = os.path.join(selected_pipeline_path, selected_run)
 
         st.session_state["run"] = selected_run

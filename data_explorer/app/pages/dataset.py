@@ -1,14 +1,17 @@
 """Data exploration page of the app."""
 import base64
+import hashlib
 import json
 import typing as t
 
+import dask.dataframe as dd
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from bs4 import BeautifulSoup
-from df_helpers.fields import get_image_fields, get_string_fields
+from df_helpers.fields import get_image_fields, get_numeric_fields, get_string_fields
 from df_helpers.image_render import configure_image_builder, convert_image_column
+from fondant.core.schema import Field
 from fpdf import FPDF
 from interfaces.dataset_interface import DatasetLoaderApp
 from st_aggrid import AgGrid, AgGridReturn, ColumnsAutoSizeMode, GridOptionsBuilder
@@ -140,9 +143,142 @@ class DatasetExplorerApp(DatasetLoaderApp):
             else:
                 st.info("No text fields found in dataframe")
 
+    @staticmethod
+    def search_df(
+        *,
+        df: dd.DataFrame,
+        search_field: str,
+        search_value: str,
+        exact_search: bool,
+        selected_fields: t.Dict[str, Field],
+    ) -> dd.DataFrame:
+        """Search the dataframe for the given search field and search value."""
+        if st.session_state.search:
+            if exact_search:
+                field_type = selected_fields[search_field].type.name
+                if "int" in field_type:
+                    search_value = int(search_value)
+                elif "float" in field_type:
+                    search_value = float(search_value)
+                return df[df[search_field] == search_value]
+
+            return df[df[search_field].str.contains(search_value)]
+        return None
+
+    def setup_search_widget(
+        self,
+        df: dd.DataFrame,
+        selected_fields: t.Dict[str, Field],
+        field_mapping: t.Dict[str, str],
+    ) -> t.Tuple[dd.DataFrame, str]:
+        """Setup the viewer widget. This widget allows the user to view the selected row in the
+        dataframe.
+        """
+
+        # Functions for handling button clicks
+        def search_button():
+            st.session_state.search = True
+
+        def result_found():
+            st.session_state.result_found = True
+
+        # Initializing session states if not present
+        if "search" not in st.session_state or st.session_state.get("clear"):
+            st.session_state.search = False
+
+        if "search_value" not in st.session_state:
+            st.session_state.search_value = ""
+
+        if "result_found" not in st.session_state:
+            st.session_state.result_found = True
+
+        # Get numerical columns
+        get_numeric_fields(selected_fields)
+        filter_cache_key = ""
+
+        # Creating columns for layout
+        col_1, col_2, col_3, col_4, col_5 = st.columns([0.2, 0.2, 0.1, 0.1, 0.1])
+
+        # Widgets for user input
+        with col_1:
+            search_value = st.text_input(
+                ":mag: Search Value",
+                placeholder="Enter search value",
+                disabled=st.session_state.search,
+                value=st.session_state.search_value,
+            )
+
+        with col_2:
+            search_field = st.selectbox(
+                "Search Field",
+                list(selected_fields.keys()),
+            )
+        with col_3:
+            st.text("")
+            st.text("")
+            exact_search = st.checkbox(
+                "Exact match",
+                list(selected_fields.keys()),
+                help="Toggle to search for exact matches, otherwise search for partial matches."
+                "Note that searching for partial matches may take longer.",
+            )
+
+        # Buttons for initiating and clearing search
+        with col_4:
+            st.text("")
+            st.button(
+                "Search",
+                on_click=search_button,
+                use_container_width=True,
+                disabled=st.session_state.search,
+            )
+
+        with col_5:
+            st.text("")
+            st.button(
+                "Clear",
+                on_click=result_found,
+                key="clear",
+                disabled=not st.session_state.search,
+                use_container_width=True,
+            )
+
+        # Perform search if activated
+        if st.session_state.search and st.session_state.result_found is not False:
+            if not search_value:
+                st.warning("Please enter a search value")
+            else:
+                st.session_state.search_value = search_value
+                # Generate cache key for filtering
+                filter_cache_key = hashlib.md5(  # nosec
+                    f"{search_field}_{search_value}_{exact_search}".encode(),
+                ).hexdigest()
+                df = self.search_df(
+                    df=df,
+                    search_field=search_field,
+                    search_value=search_value,
+                    exact_search=exact_search,
+                    selected_fields=selected_fields,
+                )
+
+                # Display warning if no results found
+                if len(df) == 0:
+                    st.session_state.result_found = False
+                else:
+                    st.session_state.result_found = True
+
+        if st.session_state.result_found is False:
+            st.warning("No results found, click clear to search again")
+
+        return df, filter_cache_key
+
 
 app = DatasetExplorerApp()
 app.create_common_interface()
-df, df_fields = app.load_pandas_dataframe()
-grid_data_dict = app.setup_app_page(df, df_fields)
-app.setup_viewer_widget(grid_data_dict, df_fields)
+field_mapping, selected_fields = app.get_fields_mapping()
+dask_df = app.load_dask_dataframe(field_mapping)
+dask_df, cache_key = app.setup_search_widget(dask_df, selected_fields, field_mapping)
+if st.session_state.result_found is True:
+    loaded_df = app.load_pandas_dataframe(dask_df, field_mapping, cache_key)
+    grid_data_dict = app.setup_app_page(loaded_df, selected_fields)
+    app.setup_viewer_widget(grid_data_dict, selected_fields)
