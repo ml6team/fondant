@@ -69,61 +69,43 @@ class PipelineOverviewApp(MainInterface):
             manifest: Manifest of the component.
 
         Returns:
-            graphviz table of the component as an html string.
+            graphviz table of the component a graphviz string.
         """
-
-        def add_component_text(_component_name: str, num_fields_total: int):
-            return (
-                f'<TD COLSPAN="{num_fields_total}" ALIGN="CENTER"><b>{_component_name}'
-                f"</b></TD>"
-            )
-
-        def add_subset_text(_subset: str, num_fields_subset: int):
-            # TODO: remove after framework update
-            return f"""<TD COLSPAN="{num_fields_subset}" ALIGN="CENTER"><b>{_subset} </b></TD>"""
-
-        def add_field_text(_fields):
-            text = ""
-            for field, field_value in _fields.items():
-                field_type = field_value.type.to_json()["type"]
-                text += f"""<TD ALIGN="CENTER">{field}<BR/><i>({field_type})</i></TD>"""
-            return text
-
         fields = manifest.fields
-        n_fields_total = len(fields)
+        component_name = manifest.component_id
 
-        field_text = add_field_text(fields)
+        fields_with_schema = [
+            (field_name, field_schema.type.to_json()["type"])
+            for field_name, field_schema in fields.items()
+        ]
 
-        component_text = add_component_text(manifest.component_id, n_fields_total)
+        fields_list = [
+            f"{field_name} \\n({field_schema})"
+            for field_name, field_schema in fields_with_schema
+        ]
+        fields_str = "|\n".join(fields_list)
 
-        return f"""<
-            <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
-                  <TR>
-                    {component_text}
-                  </TR>
-                  <TR>
-                  {field_text}
-                  </TR>
-            </TABLE>>"""
+        return f"{{ {component_name} |{{\n{fields_str}\n}}}}"
 
     def get_pipeline_graph(self, selected_run_path: str) -> graphviz.Digraph:
         """Get the pipeline graph."""
         ordered_manifest_paths = self.get_ordered_manifests_paths(selected_run_path)
         ordered_manifest_list = self.get_ordered_manifests(ordered_manifest_paths)
 
-        graph = graphviz.Digraph("structs", node_attr={"shape": "plaintext"})
-
+        graph = graphviz.Digraph("structs", node_attr={"shape": "record"})
+        graph.attr("node", fontsize="12")
         previous_component_id = None
 
         for manifest in ordered_manifest_list:
             component_id = manifest.component_id
 
-            table_html_text = self.create_component_table(manifest)
+            table_text = self.create_component_table(manifest)
+
             graph.node(
                 name=component_id,
-                label=table_html_text,
-                href="http://localhost:8501/Dataset%20Explorer",
+                label=rf"{table_text}",
             )
+
             if previous_component_id is not None:
                 graph.edge(tail_name=previous_component_id, head_name=component_id)
             previous_component_id = component_id
