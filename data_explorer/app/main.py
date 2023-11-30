@@ -39,9 +39,6 @@ class PipelineOverviewApp(MainInterface):
             for component in run_components
         ]
 
-        # Filter for non existing manifests (e.g. if the component failed)
-        manifest_paths = [path for path in manifest_paths if os.path.exists(path)]
-
         # Sort paths based on the modified time
         manifest_paths = sorted(manifest_paths, key=os.path.getmtime)
 
@@ -134,13 +131,10 @@ class PipelineOverviewApp(MainInterface):
         """Get the pipeline info dataframe."""
         selected_pipeline_path = st.session_state["pipeline_path"]
 
+        available_runs = st.session_state["available_runs"]
         available_runs_path = [
-            os.path.join(selected_pipeline_path, item)
-            for item in os.listdir(selected_pipeline_path)
-            if os.path.isdir(os.path.join(selected_pipeline_path, item))
-            and item != "cache"
+            os.path.join(selected_pipeline_path, run) for run in available_runs
         ]
-        available_runs_path.sort(reverse=True)
 
         data = []
         for run_path in available_runs_path:

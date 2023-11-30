@@ -6,6 +6,7 @@ SESSION_STATE_VARIABLES = [
     "selected_pipeline_path",
     "run",
     "selected_run_path",
+    "available_runs",
     "component",
     "selected_component_path",
     "partition",
