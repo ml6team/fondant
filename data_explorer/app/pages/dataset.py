@@ -199,6 +199,7 @@ class DatasetExplorerApp(DatasetLoaderApp):
             search_value = st.text_input(
                 ":mag: Search Value",
                 "",
+                on_change=search_button,
             )
         with col_2:
             search_field = st.selectbox(
@@ -235,7 +236,7 @@ class DatasetExplorerApp(DatasetLoaderApp):
                 filter_cache_key = hashlib.md5(  # nosec
                     f"{search_field}_{search_value}_{exact_search}".encode(),
                 ).hexdigest()
-
+                print(search_value)
                 df = self.search_df(
                     df=df,
                     search_field=search_field,
@@ -243,10 +244,11 @@ class DatasetExplorerApp(DatasetLoaderApp):
                     exact_search=exact_search,
                     selected_fields=selected_fields,
                 )
-
+                print(df.compute())
                 # Display warning if no results found
                 if len(df) == 0:
                     st.session_state.result_found = False
+                    st.session_state.search = False
                     st.warning("No results found, click clear to search again")
                 else:
                     st.session_state.result_found = True
