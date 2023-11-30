@@ -3,6 +3,7 @@ import os
 import shlex
 import subprocess  # nosec
 import typing as t
+from importlib.metadata import version
 from pathlib import Path
 
 import fsspec.core
@@ -14,7 +15,7 @@ def run_explorer_app(  # type: ignore
     base_path: str,
     port: int = 8501,
     container: str = "fndnt/data_explorer",
-    tag: str = "latest",
+    tag: t.Optional[str] = None,
     extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
 ):  # type: ignore
     """
@@ -31,6 +32,9 @@ def run_explorer_app(  # type: ignore
             base_path is local it will already be mounted for you).
         - to mount cloud credentials
     """
+    if tag is None:
+        tag = version("fondant") if version("fondant") != "0.1.dev0" else "latest"
+
     if extra_volumes is None:
         extra_volumes = []
 
