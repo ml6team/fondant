@@ -153,15 +153,17 @@ class DatasetExplorerApp(DatasetLoaderApp):
         selected_fields: t.Dict[str, Field],
     ) -> dd.DataFrame:
         """Search the dataframe for the given search field and search value."""
-        if exact_search:
-            field_type = selected_fields[search_field].type.name
-            if "int" in field_type:
-                search_value = int(search_value)
-            elif "float" in field_type:
-                search_value = float(search_value)
-            return df[df[search_field] == search_value]
+        if st.session_state.search:
+            if exact_search:
+                field_type = selected_fields[search_field].type.name
+                if "int" in field_type:
+                    search_value = int(search_value)
+                elif "float" in field_type:
+                    search_value = float(search_value)
+                return df[df[search_field] == search_value]
 
-        return df[df[search_field].str.contains(search_value)]
+            return df[df[search_field].str.contains(search_value)]
+        return None
 
     def setup_search_widget(
         self,
@@ -184,6 +186,9 @@ class DatasetExplorerApp(DatasetLoaderApp):
         if "search" not in st.session_state or st.session_state.get("clear"):
             st.session_state.search = False
 
+        if "search_value" not in st.session_state:
+            st.session_state.search_value = ""
+
         if "result_found" not in st.session_state:
             st.session_state.result_found = True
 
@@ -198,9 +203,11 @@ class DatasetExplorerApp(DatasetLoaderApp):
         with col_1:
             search_value = st.text_input(
                 ":mag: Search Value",
-                "",
-                on_change=search_button,
+                placeholder="Enter search value",
+                disabled=st.session_state.search,
+                value=st.session_state.search_value,
             )
+
         with col_2:
             search_field = st.selectbox(
                 "Search Field",
@@ -219,7 +226,12 @@ class DatasetExplorerApp(DatasetLoaderApp):
         # Buttons for initiating and clearing search
         with col_4:
             st.text("")
-            st.button("Search", on_click=search_button, use_container_width=True)
+            st.button(
+                "Search",
+                on_click=search_button,
+                use_container_width=True,
+                disabled=st.session_state.search,
+            )
 
         with col_5:
             st.text("")
@@ -232,15 +244,15 @@ class DatasetExplorerApp(DatasetLoaderApp):
             )
 
         # Perform search if activated
-        if st.session_state.search:
+        if st.session_state.search and st.session_state.result_found is not False:
             if not search_value:
                 st.warning("Please enter a search value")
             else:
+                st.session_state.search_value = search_value
                 # Generate cache key for filtering
                 filter_cache_key = hashlib.md5(  # nosec
                     f"{search_field}_{search_value}_{exact_search}".encode(),
                 ).hexdigest()
-                print(search_value)
                 df = self.search_df(
                     df=df,
                     search_field=search_field,
@@ -248,14 +260,15 @@ class DatasetExplorerApp(DatasetLoaderApp):
                     exact_search=exact_search,
                     selected_fields=selected_fields,
                 )
-                print(df.compute())
+
                 # Display warning if no results found
                 if len(df) == 0:
                     st.session_state.result_found = False
-                    st.session_state.search = False
-                    st.warning("No results found, click clear to search again")
                 else:
                     st.session_state.result_found = True
+
+        if st.session_state.result_found is False:
+            st.warning("No results found, click clear to search again")
 
         return df, filter_cache_key
 
