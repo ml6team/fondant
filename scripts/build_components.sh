@@ -74,7 +74,6 @@ for dir in "${components_to_build[@]}"; do
     fi
     echo "$full_image_name"
     full_image_names+=("$full_image_name")
-    aws_full_image_names+=("$aws_full_image_name")
   done
 
   echo "Updating the image version in the fondant_component.yaml with:"
@@ -83,7 +82,7 @@ for dir in "${components_to_build[@]}"; do
 
   # create repo if not exists
   aws ecr-public describe-repositories --region us-east-1 --repository-names ${BASENAME} || aws ecr-public create-repository --region us-east-1 --repository-name ${BASENAME}
-  full_image_names+=("public.ecr.aws/m4f5a0g0/${BASENAME}:${tag}")
+  full_image_names+=("public.ecr.aws/fndnt/${BASENAME}:${tag}")
 
   args=()
 
