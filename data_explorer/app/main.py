@@ -39,6 +39,9 @@ class PipelineOverviewApp(MainInterface):
             for component in run_components
         ]
 
+        # Filter for non existing manifests (e.g. if the component failed)
+        manifest_paths = [path for path in manifest_paths if os.path.exists(path)]
+
         # Sort paths based on the modified time
         manifest_paths = sorted(manifest_paths, key=os.path.getmtime)
 
