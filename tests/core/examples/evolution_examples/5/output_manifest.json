@@ -1,0 +1,36 @@
+{
+  "metadata": {
+    "pipeline_name": "test_pipeline",
+    "base_path": "gs://bucket",
+    "run_id": "custom_run_id",
+    "component_id": "example_component_1"
+  },
+  "index": {
+    "location": "/example_component_1"
+  },
+  "fields": {
+    "images_width": {
+      "type": "int32",
+      "location": "/example_component"
+    },
+    "images_height": {
+      "type": "int32",
+      "location": "/example_component"
+    },
+    "images_data": {
+      "type": "binary",
+      "location": "/example_component"
+    },
+    "captions_data": {
+      "type": "binary",
+      "location": "/example_component"
+    },
+    "embedding_data": {
+      "type": "array",
+      "items": {
+        "type": "float32"
+      },
+      "location": "/example_component_1"
+    }
+  }
+}
