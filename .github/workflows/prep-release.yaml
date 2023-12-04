@@ -3,6 +3,14 @@ on:
   push:
     tags:
       - '[0-9]+.[0-9]+.*[0-9]+*'
+
+env:
+  AWS_REGION : us-east-1
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build-n-publish:
     name: Build Python 🐍 distributions 📦 and publish to TestPyPI
@@ -29,11 +37,24 @@ jobs:
           sudo wget https://github.com/christian-korneck/docker-pushrm/releases/download/v1.9.0/docker-pushrm_linux_amd64 -O /usr/libexec/docker/cli-plugins/docker-pushrm
           sudo chmod +x /usr/libexec/docker/cli-plugins/docker-pushrm
 
-      - name: Login to GitHub Container Registry
+      - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::904708148714:role/fondant-github-actions
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{env.AWS_REGION}}
+
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
 
       - name: Build components
         run: ./scripts/build_components.sh -t $GITHUB_REF_NAME
