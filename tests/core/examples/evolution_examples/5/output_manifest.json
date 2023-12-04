@@ -25,6 +25,14 @@
       "type": "binary",
       "location": "/example_component"
     },
+    "images_caption": {
+      "type": "string",
+      "location": "/example_component_1"
+    },
+    "audio_array": {
+      "type": "binary",
+      "location": "/example_component_1"
+    },
     "embedding_data": {
       "type": "array",
       "items": {

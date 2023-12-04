@@ -164,28 +164,24 @@ class ComponentSpec:
     @property
     def consumes(self) -> t.Mapping[str, Field]:
         """The fields consumed by the component as an immutable mapping."""
-        if not self.is_consumes_generic:
-            return types.MappingProxyType(
-                {
-                    name: Field(name=name, type=Type.from_json(field))
-                    for name, field in self._specification.get("consumes", {}).items()
-                },
-            )
-
-        return types.MappingProxyType({})
+        return types.MappingProxyType(
+            {
+                name: Field(name=name, type=Type.from_json(field))
+                for name, field in self._specification.get("consumes", {}).items()
+                if name != "additionalProperties"
+            },
+        )
 
     @property
     def produces(self) -> t.Mapping[str, Field]:
         """The fields produced by the component as an immutable mapping."""
-        if not self.is_produces_generic:
-            return types.MappingProxyType(
-                {
-                    name: Field(name=name, type=Type.from_json(field))
-                    for name, field in self._specification.get("produces", {}).items()
-                },
-            )
-
-        return types.MappingProxyType({})
+        return types.MappingProxyType(
+            {
+                name: Field(name=name, type=Type.from_json(field))
+                for name, field in self._specification.get("produces", {}).items()
+                if name != "additionalProperties"
+            },
+        )
 
     @property
     def is_consumes_generic(self) -> bool:

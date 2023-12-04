@@ -15,7 +15,7 @@ from referencing.jsonschema import DRAFT4
 
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidManifest, InvalidPipelineDefinition
-from fondant.core.schema import Field, ProducesType, Type
+from fondant.core.schema import Field, Type
 
 
 @dataclass
@@ -241,54 +241,61 @@ class Manifest:
     @staticmethod
     def _handle_custom_produces(
         evolved_manifest: "Manifest",
-        produces: ProducesType,
+        produces: t.Optional[t.Union[t.Dict[str, str], t.Dict[str, Field]]],
         component_spec: ComponentSpec,
     ) -> t.Mapping[str, Field]:
-        handled_produces = {}
+        handled_produces: t.Dict[str, Field] = {}
         is_produces_generic = component_spec.is_produces_generic
 
-        for column_name, mapping_name_or_field in produces.items():
-            # String mapping name
-            if isinstance(mapping_name_or_field, str):
-                if is_produces_generic:
+        # Add component spec produces
+        if component_spec.produces:
+            for column_name, field in component_spec.produces.items():
+                handled_produces[column_name] = field
+
+        # Add custom produces defined in the component operation
+        if produces:
+            for column_name, mapping_name_or_field in produces.items():
+                # String mapping name
+                if isinstance(mapping_name_or_field, str):
+                    try:
+                        field = handled_produces[column_name]
+                    except KeyError:
+                        msg = (
+                            f"Field {column_name} not found in component spec produces: "
+                            f"{component_spec.produces}"
+                        )
+                        raise InvalidPipelineDefinition(msg)
+
+                    field.name = mapping_name_or_field
+                    handled_produces[mapping_name_or_field] = field
+                    # Remove the original field if it was already in the manifest
+                    if column_name in evolved_manifest.fields:
+                        evolved_manifest.remove_field(column_name)
+
+                # Pyarrow data type
+                elif isinstance(mapping_name_or_field, Field):
+                    if not is_produces_generic:
+                        msg = (
+                            "For non-generic components, 'produces' must be a dictionary with "
+                            "column names as keys and mapping names as values."
+                        )
+                        raise InvalidPipelineDefinition(msg)
+
+                    if column_name in handled_produces:
+                        msg = (
+                            f"Trying to add non-generic field {column_name} with custom mapping"
+                            f" {mapping_name_or_field}. Field already exists in the "
+                            f"component spec: {component_spec.produces[column_name]}"
+                        )
+                        raise InvalidPipelineDefinition(msg)
+                    handled_produces[column_name] = mapping_name_or_field
+                    continue
+                else:
                     msg = (
-                        "For generic components, 'produces' must be a dictionary with"
-                        " column names as keys and pyarrow data types as values."
+                        f"Unexpected type for 'produces' value: {type(mapping_name_or_field)}, "
+                        f"expected a column name (string) or pyarrow data type."
                     )
                     raise InvalidPipelineDefinition(msg)
-
-                try:
-                    field = component_spec.produces[column_name]
-                except KeyError:
-                    msg = (
-                        f"Field {column_name} not found in component spec produces: "
-                        f"{component_spec.produces}"
-                    )
-                    raise InvalidPipelineDefinition(msg)
-
-                field.name = mapping_name_or_field
-                handled_produces[mapping_name_or_field] = field
-                # Remove the original field if it was already in the manifest
-                if column_name in evolved_manifest.fields:
-                    evolved_manifest.remove_field(column_name)
-
-            # Pyarrow data type
-            elif isinstance(mapping_name_or_field, Field):
-                if not is_produces_generic:
-                    msg = (
-                        "For non-generic components, 'produces' must be a dictionary with "
-                        "column names as keys and mapping names as values."
-                    )
-                    raise InvalidPipelineDefinition(msg)
-
-                handled_produces[column_name] = mapping_name_or_field
-                continue
-            else:
-                msg = (
-                    f"Unexpected type for 'produces' value: {type(mapping_name_or_field)}, "
-                    f"expected a column name (string) or pyarrow data type."
-                )
-                raise InvalidPipelineDefinition(msg)
 
         return types.MappingProxyType(handled_produces)
 
@@ -331,17 +338,14 @@ class Manifest:
 
         # Produces is None when the component is non-generic, read the produces
         # from the component spec
-        if not produces:
-            produced_fields = component_spec.produces
-        else:
-            produced_fields = self._handle_custom_produces(
-                evolved_manifest,
-                produces,
-                component_spec,
-            )
+        produces_fields = self._handle_custom_produces(
+            evolved_manifest,
+            produces,
+            component_spec,
+        )
 
         # Add or update all produced fields defined in the component spec
-        for name, field in produced_fields.items():
+        for name, field in produces_fields.items():
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.

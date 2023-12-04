@@ -8,6 +8,11 @@ consumes:
 
 produces:
   additionalProperties: true
+  images_caption:
+    type: string
+  audio_data:
+    type: binary
+
 
 args:
   storage_args:
