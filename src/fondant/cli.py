@@ -659,13 +659,13 @@ def run_local(args):
         ref = pipeline_from_module(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
-    finally:
-        runner = DockerRunner()
-        runner.run(
-            input=ref,
-            extra_volumes=extra_volumes,
-            build_args=args.build_arg,
-        )
+
+    runner = DockerRunner()
+    runner.run(
+        input=ref,
+        extra_volumes=extra_volumes,
+        build_args=args.build_arg,
+    )
 
 
 def run_kfp(args):
@@ -686,12 +686,9 @@ def run_kfp(args):
         )
         compiler = KubeFlowCompiler()
         compiler.compile(pipeline=pipeline, output_path=spec_ref)
-    finally:
-        try:
-            runner = KubeflowRunner(host=args.host)
-            runner.run(input_spec=spec_ref)
-        except UnboundLocalError as e:
-            raise e
+
+    runner = KubeflowRunner(host=args.host)
+    runner.run(input_spec=spec_ref)
 
 
 def run_vertex(args):
@@ -709,17 +706,14 @@ def run_vertex(args):
         )
         compiler = VertexCompiler()
         compiler.compile(pipeline=pipeline, output_path=spec_ref)
-    finally:
-        try:
-            runner = VertexRunner(
-                project_id=args.project_id,
-                region=args.region,
-                service_account=args.service_account,
-                network=args.network,
-            )
-            runner.run(input_spec=spec_ref)
-        except UnboundLocalError as e:
-            raise e
+
+    runner = VertexRunner(
+        project_id=args.project_id,
+        region=args.region,
+        service_account=args.service_account,
+        network=args.network,
+    )
+    runner.run(input_spec=spec_ref)
 
 
 def run_sagemaker(args):
@@ -729,14 +723,14 @@ def run_sagemaker(args):
         ref = pipeline_from_module(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
-    finally:
-        runner = SagemakerRunner()
-        runner.run(
-            input=ref,
-            pipeline_name=args.pipeline_name,
-            role_arn=args.role_arn,
-            instance_type=args.instance_type,
-        )
+
+    runner = SagemakerRunner()
+    runner.run(
+        input=ref,
+        pipeline_name=args.pipeline_name,
+        role_arn=args.role_arn,
+        instance_type=args.instance_type,
+    )
 
 
 def register_execute(parent_parser):
