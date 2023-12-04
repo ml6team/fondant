@@ -246,6 +246,8 @@ def test_load_component(metadata):
         yaml_file_to_json_string(components_path / "component.yaml"),
         "--cache",
         "False",
+        "--produces",
+        "{}",
     ]
 
     class MyLoadComponent(DaskLoadComponent):
