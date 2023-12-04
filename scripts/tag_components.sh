@@ -24,7 +24,7 @@ if [ -z "${old_tag}" ] || [ -z "${new_tag}" ]; then
   exit 1
 fi
 
-# Set github repo information
+# Set DockerHub namespace information
 namespace="fndnt"
 
 # Get the component directory
