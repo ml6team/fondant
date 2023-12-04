@@ -18,6 +18,12 @@ components:
         component_spec:
           description: The component specification as a dictionary
           parameterType: STRUCT
+        consumes:
+          defaultValue: {}
+          description: "a dictionary of the fields to be written by the component.\n\
+            \                The keys are\" the names of the dataset fields and the\
+            \ values are the name of the \"\n                \"columns to map to."
+          parameterType: STRUCT
         input_manifest_path:
           description: Path to the input manifest
           isOptional: true
@@ -33,6 +39,16 @@ components:
         output_manifest_path:
           description: Path to the output manifest
           parameterType: STRING
+        produces:
+          defaultValue: {}
+          description: "a dictionary of the fields to be produced by the component.\
+            \ \"\n                \"The keys are the names of the dataset fields.\
+            \ The values can be either:\"\n                \"  - A string representing\
+            \ the name of the column to map to for non-generic\n                components\
+            \ \"\n                \"- The data type of the field for custom components\
+            \ to define the schema of generic\n                components\n      \
+            \          "
+          parameterType: STRUCT
         storage_args:
           description: Storage arguments
           parameterType: STRING
@@ -65,6 +81,8 @@ root:
               componentInputParameter: cluster_type
             component_spec:
               componentInputParameter: component_spec
+            consumes:
+              componentInputParameter: consumes
             input_manifest_path:
               componentInputParameter: input_manifest_path
             input_partition_rows:
@@ -73,6 +91,8 @@ root:
               componentInputParameter: metadata
             output_manifest_path:
               componentInputParameter: output_manifest_path
+            produces:
+              componentInputParameter: produces
             storage_args:
               componentInputParameter: storage_args
         taskInfo:
