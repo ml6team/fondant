@@ -132,12 +132,28 @@ def test_pipeline_from_module(module_str):
         "examples.example_modules.pipeline:create_pipeline('test_pipeline')",
         # Factory does not expect an argument
         "examples.example_modules.pipeline:create_pipeline(name='test_pipeline')",
+        # Invalid argument
+        "examples.example_modules.pipeline:create_pipeline(name)",
+        # Not a variable or function
+        "examples.example_modules.pipeline:[]",
+        # Attribute doesn't exist
+        "examples.example_modules.pipeline:no_pipeline",
+        # Attribute is not a valid python name
+        "examples.example_modules.pipeline:pipe;line",
+        # Not a Pipeline
+        "examples.example_modules.pipeline:number",
     ],
 )
 def test_pipeline_from_module_error(module_str):
     """Test different error cases for pipeline_from_string."""
     with pytest.raises(PipelineImportError):
         pipeline_from_string(module_str)
+
+
+def test_factory_error_propagated():
+    """Test that an error in the factory method is correctly propagated."""
+    with pytest.raises(NotImplementedError):
+        pipeline_from_string("examples.example_modules.pipeline:not_implemented")
 
 
 def test_execute_logic(monkeypatch):
