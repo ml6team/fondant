@@ -227,7 +227,7 @@ class DockerCompiler(Compiler):
                     f"Found Dockerfile for {component_name}, adding build step.",
                 )
                 services[component_name]["build"] = {
-                    "context": str(component_op.component_dir),
+                    "context": str(component_op.component_dir.absolute()),
                     "args": build_args,
                 }
             else:
