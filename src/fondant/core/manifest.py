@@ -248,6 +248,7 @@ class Manifest:
         is_produces_generic = component_spec.is_produces_generic
 
         for column_name, mapping_name_or_field in produces.items():
+            # String mapping name
             if isinstance(mapping_name_or_field, str):
                 if is_produces_generic:
                     msg = (
@@ -256,13 +257,22 @@ class Manifest:
                     )
                     raise InvalidPipelineDefinition(msg)
 
-                field = component_spec.produces[column_name]
+                try:
+                    field = component_spec.produces[column_name]
+                except KeyError:
+                    msg = (
+                        f"Field {column_name} not found in component spec produces: "
+                        f"{component_spec.produces}"
+                    )
+                    raise InvalidPipelineDefinition(msg)
+
                 field.name = mapping_name_or_field
                 handled_produces[mapping_name_or_field] = field
                 # Remove the original field if it was already in the manifest
                 if column_name in evolved_manifest.fields:
                     evolved_manifest.remove_field(column_name)
 
+            # Pyarrow data type
             elif isinstance(mapping_name_or_field, Field):
                 if not is_produces_generic:
                     msg = (
@@ -322,16 +332,16 @@ class Manifest:
         # Produces is None when the component is non-generic, read the produces
         # from the component spec
         if not produces:
-            custom_produces = component_spec.produces
+            produced_fields = component_spec.produces
         else:
-            custom_produces = self._handle_custom_produces(
+            produced_fields = self._handle_custom_produces(
                 evolved_manifest,
                 produces,
                 component_spec,
             )
 
         # Add or update all produced fields defined in the component spec
-        for name, field in custom_produces.items():
+        for name, field in produced_fields.items():
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.

@@ -604,7 +604,7 @@ class Dataset:
             produces: a dictionary of the fields to be produced by the component. The keys are the
                 names of the dataset fields. The values can be either:
                 - A string representing the name of the column to map to for non-generic components
-                - The data type of the field for custom components to define the schema of generic
+                - The data type of the field produces that will be produced  for generic
                 components
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
@@ -645,7 +645,7 @@ class Dataset:
         Arguments:
             name_or_path: The name of a hub component or a path to a custom component directory.
             consumes: a dictionary of the fields to be written by the component. The keys are the
-             names of the dataset fields and the values are the name of the columns to map to..
+             names of the dataset fields and the values are the name of the columns to map to.
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
