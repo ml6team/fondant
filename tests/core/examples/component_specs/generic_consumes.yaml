@@ -3,7 +3,7 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-  additionalFields: true
+  additionalProperties: true
 
 produces:
   images_data:

@@ -7,7 +7,7 @@ consumes:
     type: binary
 
 produces:
-  additionalFields: true
+  additionalProperties: true
 
 args:
   storage_args:

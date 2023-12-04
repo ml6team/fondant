@@ -3,7 +3,7 @@ description: This is an example component
 image: example_component:latest
 
 produces:
-  additionalFields: true
+  additionalProperties: true
 
 args:
   storage_args:

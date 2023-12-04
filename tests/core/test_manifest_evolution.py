@@ -32,7 +32,12 @@ VALID_EXAMPLE = {
 }
 
 INVALID_EXAMPLES = {
-    # Non-generic component that has a field name not present in the component spec
+    # Invalid data type in the produces mapping
+    "1": {
+        "produces": {
+            "embedding_data": True,
+        },
+    },
     "3": {
         "produces": {
             "images_array": "numpy_array",

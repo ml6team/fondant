@@ -9,7 +9,7 @@ consumes:
       type: float32
 
 produces:
-  additionalFields: true
+  additionalProperties: true
 
 args:
   flag:

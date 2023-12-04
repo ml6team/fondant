@@ -56,7 +56,7 @@
       ],
       "additionalProperties": false
     },
-    "additionalFields": {
+    "additionalProperties": {
       "type": "boolean",
       "default": false,
       "description": "Specifies whether additional fields are allowed"
@@ -65,12 +65,12 @@
       "type": "object",
       "minProperties": 1,
       "additionalProperties": {
-        "oneOf": [
+        "anyOf": [
           {
             "$ref": "#/definitions/field"
           },
           {
-            "$ref": "#/definitions/additionalFields"
+            "$ref": "#/definitions/additionalProperties"
           }
         ]
       }
