@@ -164,22 +164,28 @@ class ComponentSpec:
     @property
     def consumes(self) -> t.Mapping[str, Field]:
         """The fields consumed by the component as an immutable mapping."""
-        return types.MappingProxyType(
-            {
-                name: Field(name=name, type=Type.from_json(field))
-                for name, field in self._specification.get("consumes", {}).items()
-            },
-        )
+        if not self.is_consumes_generic:
+            return types.MappingProxyType(
+                {
+                    name: Field(name=name, type=Type.from_json(field))
+                    for name, field in self._specification.get("consumes", {}).items()
+                },
+            )
+
+        return types.MappingProxyType({})
 
     @property
     def produces(self) -> t.Mapping[str, Field]:
         """The fields produced by the component as an immutable mapping."""
-        return types.MappingProxyType(
-            {
-                name: Field(name=name, type=Type.from_json(field))
-                for name, field in self._specification.get("produces", {}).items()
-            },
-        )
+        if not self.is_produces_generic:
+            return types.MappingProxyType(
+                {
+                    name: Field(name=name, type=Type.from_json(field))
+                    for name, field in self._specification.get("produces", {}).items()
+                },
+            )
+
+        return types.MappingProxyType({})
 
     @property
     def is_consumes_generic(self) -> bool:
@@ -273,6 +279,26 @@ class ComponentSpec:
                 name="output_manifest_path",
                 description="Path to the output manifest",
                 type="str",
+            ),
+            "consumes": Argument(
+                name="consumes",
+                description="""a dictionary of the fields to be written by the component.
+                The keys are" the names of the dataset fields and the values are the name of the "
+                "columns to map to.""",
+                type="dict",
+                default={},
+            ),
+            "produces": Argument(
+                name="produces",
+                description="""a dictionary of the fields to be produced by the component. "
+                "The keys are the names of the dataset fields. The values can be either:"
+                "  - A string representing the name of the column to map to for non-generic
+                components "
+                "- The data type of the field for custom components to define the schema of generic
+                components
+                """,
+                type="dict",
+                default={},
             ),
         }
 

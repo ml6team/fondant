@@ -59,7 +59,7 @@
     "additionalFields": {
       "type": "boolean",
       "default": false,
-      "description": "Specifies whether additional fields are allowed in 'produces'"
+      "description": "Specifies whether additional fields are allowed"
     },
     "fields": {
       "type": "object",
