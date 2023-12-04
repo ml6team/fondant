@@ -2,6 +2,7 @@
 import copy
 from pathlib import Path
 
+import pyarrow as pa
 import pytest
 import yaml
 from fondant.core.component_spec import ComponentSpec
@@ -159,6 +160,7 @@ def test_valid_pipeline(
     dataset = pipeline.read(
         Path(components_path / component_names[0]),
         arguments=component_args,
+        produces={"images_data": pa.binary()},
     )
     dataset = dataset.apply(
         Path(components_path / component_names[1]),
@@ -205,6 +207,7 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
     dataset = pipeline.read(
         Path(components_path / component_names[0]),
         arguments=component_args,
+        produces={"image_data": pa.binary()},
     )
     dataset = dataset.apply(
         Path(components_path / component_names[1]),
@@ -214,6 +217,7 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
         pipeline.read(
             Path(components_path / component_names[2]),
             arguments=component_args,
+            produces={"image_data": pa.binary()},
         )
 
 
@@ -241,6 +245,7 @@ def test_invalid_pipeline_declaration(
     dataset = pipeline.read(
         Path(components_path / component_names[0]),
         arguments=component_args,
+        produces={"image_data": pa.binary()},
     )
     dataset.apply(
         Path(components_path / component_names[1]),

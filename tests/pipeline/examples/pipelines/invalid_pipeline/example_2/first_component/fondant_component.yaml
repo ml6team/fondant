@@ -2,16 +2,9 @@ name: First component
 description: This is an example component
 image: example_component:latest
 
-consumes:
-  images_data:
-    type: binary
-
 produces:
-  captions_data:
-    type: string
+  additionalFields: true
 
-  images_data:
-    type: binary
 args:
   storage_args:
     description: Storage arguments

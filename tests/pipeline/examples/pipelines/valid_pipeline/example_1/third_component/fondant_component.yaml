@@ -6,9 +6,6 @@ consumes:
   images_data:
     type: binary
 
-  captions_data:
-    type: string
-
   embeddings_data:
     type: array
     items:

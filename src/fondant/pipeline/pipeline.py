@@ -1,9 +1,11 @@
 """This module defines classes to represent a Fondant Pipeline."""
+import copy
 import datetime
 import hashlib
 import json
 import logging
 import re
+import types
 import typing as t
 from collections import OrderedDict
 from dataclasses import asdict, dataclass
@@ -14,9 +16,12 @@ try:
 except ImportError:
     from importlib_resources import files  # type: ignore
 
+import pyarrow as pa
+
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
+from fondant.core.schema import Field, ProducesType, Type
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +133,10 @@ class ComponentOp:
         self,
         name_or_path: t.Union[str, Path],
         *,
+        consumes: t.Optional[t.Dict[str, str]] = None,
+        produces: t.Optional[
+            t.Union[t.Dict[str, pa.DataType], t.Dict[str, str]]
+        ] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         cache: t.Optional[bool] = True,
@@ -150,14 +159,48 @@ class ComponentOp:
         self.client_kwargs = client_kwargs
 
         self.arguments = arguments or {}
-        self._add_component_argument("input_partition_rows", input_partition_rows)
+        self._add_component_argument("input_partition_rows", self.input_partition_rows)
         self._add_component_argument("cache", self.cache)
-        self._add_component_argument("cluster_type", cluster_type)
-        self._add_component_argument("client_kwargs", client_kwargs)
-
+        self._add_component_argument("cluster_type", self.cluster_type)
+        self._add_component_argument("client_kwargs", self.client_kwargs)
+        self._add_component_argument("consumes", consumes)
+        self._add_component_argument("produces", produces, self._produces_parser)
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.resources = resources or Resources()
+
+    def _produces_parser(
+        self,
+        produces: t.Optional[ProducesType] = None,
+    ) -> t.Union[None, t.Dict[str, t.Any]]:
+        """
+        Parse the produces argument to a valid string representation.
+
+        Args:
+            produces: The produces argument to parse.
+
+        Returns:
+            The parsed produces argument as a string representation.
+        """
+        if produces is None:
+            return None
+
+        parsed_produces: t.Dict[str, t.Any] = {}
+
+        for column_name, mapping_name_or_type in produces.items():
+            if isinstance(mapping_name_or_type, pa.DataType):
+                parsed_produces[column_name] = Type(mapping_name_or_type).to_json()
+            elif isinstance(mapping_name_or_type, str):
+                parsed_produces[column_name] = mapping_name_or_type
+            else:
+                msg = (
+                    "The produces argument must be a dictionary with column names as keys and"
+                    " mapping names or pyarrow data types as values."
+                )
+                raise InvalidPipelineDefinition(
+                    msg,
+                )
+        return parsed_produces
 
     def _configure_caching_from_image_tag(
         self,
@@ -195,14 +238,16 @@ class ComponentOp:
         self,
         argument_name: str,
         argument_value: t.Any,
-        validator: t.Optional[t.Callable] = None,
+        parser: t.Optional[t.Callable] = None,
     ):
         """Register component argument to arguments dict as well as component attributes."""
         if hasattr(self, "arguments") is False:
             self.arguments = {}
 
-        if argument_value is not None and (not validator or validator(argument_value)):
-            self.argument_name = argument_value
+        if argument_value is not None:
+            if parser:
+                argument_value = parser(argument_value)
+
             self.arguments[argument_name] = argument_value
 
     @property
@@ -271,6 +316,32 @@ class ComponentOp:
 
         return get_nested_dict_hash(component_op_uid_dict)
 
+    @property
+    def consumes(self) -> t.Mapping[str, Field]:
+        """The custom fields consumed by the component as an immutable mapping."""
+        if self.component_spec.is_consumes_generic:
+            return types.MappingProxyType(
+                {
+                    name: Field(name=name, type=Type.from_json(field))
+                    for name, field in self.arguments.get("consumes", {}).items()
+                },
+            )
+
+        return types.MappingProxyType({})
+
+    @property
+    def produces(self) -> t.Mapping[str, Field]:
+        """The custom fields produced by the component as an immutable mapping."""
+        if self.component_spec.is_produces_generic:
+            return types.MappingProxyType(
+                {
+                    name: Field(name=name, type=Type.from_json(field))
+                    for name, field in self.arguments.get("produces", {}).items()
+                },
+            )
+
+        return types.MappingProxyType({})
+
 
 class Pipeline:
     """Class representing a Fondant Pipeline."""
@@ -322,7 +393,7 @@ class Pipeline:
             )
 
         self._graph[operation.name] = {
-            "operation": operation,
+            "operation": copy.deepcopy(operation),
             "dependencies": [dataset.operation.name for dataset in datasets],
         }
         return Dataset(pipeline=self, operation=operation)
@@ -331,6 +402,7 @@ class Pipeline:
         self,
         name_or_path: t.Union[str, Path],
         *,
+        produces: t.Dict[str, pa.DataType],
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
@@ -338,7 +410,22 @@ class Pipeline:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
-        """Read data using the provided operation."""
+        """Read data using the provided operation.
+
+
+        Arguments:
+            name_or_path: The name of a hub component or a path to a custom component directory.
+            produces: a dictionary of the fields to be produced by the component. The keys are the
+             names of the dataset fields. The values are the data type of the field to define the
+             schema of generic components
+            arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning
+            resources: The resources to assign to the operation.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
+            cache: Set to False in order to disable caching, True by default.
+        """
         if self._graph:
             msg = "For now, at most one read component can be applied per pipeline."
             raise InvalidPipelineDefinition(
@@ -353,6 +440,7 @@ class Pipeline:
             cache=cache,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
+            produces=produces,
         )
         return self._apply(operation)
 
@@ -468,7 +556,11 @@ class Pipeline:
                             msg,
                         )
 
-            manifest = manifest.evolve(component_spec, run_id=run_id)
+            manifest = manifest.evolve(
+                component_spec,
+                run_id=run_id,
+                produces=fondant_component_op.produces,
+            )
             load_component = False
 
         logger.info("All pipeline component specifications match.")
@@ -493,6 +585,8 @@ class Dataset:
         self,
         name_or_path: t.Union[str, Path],
         *,
+        consumes: t.Optional[t.Dict[str, str]] = None,
+        produces: t.Optional[ProducesType] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
@@ -500,6 +594,26 @@ class Dataset:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
+        """
+        Dataset operation to write the final output of the pipeline.
+
+        Arguments:
+            name_or_path: The name of a hub component or a path to a custom component directory.
+            consumes: a dictionary of the fields to be written by the component. The keys are the
+             names of the dataset fields and the values are the name of the columns to map to.
+            produces: a dictionary of the fields to be produced by the component. The keys are the
+                names of the dataset fields. The values can be either:
+                - A string representing the name of the column to map to for non-generic components
+                - The data type of the field for custom components to define the schema of generic
+                components
+            arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning
+            resources: The resources to assign to the operation.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
+            cache: Set to False in order to disable caching, True by default.
+        """
         operation = ComponentOp(
             name_or_path,
             arguments=arguments,
@@ -508,6 +622,8 @@ class Dataset:
             cache=cache,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
+            consumes=consumes,
+            produces=produces,
         )
         return self.pipeline._apply(operation, self)
 
@@ -515,6 +631,7 @@ class Dataset:
         self,
         name_or_path: t.Union[str, Path],
         *,
+        consumes: t.Optional[t.Dict[str, str]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
@@ -522,6 +639,21 @@ class Dataset:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
     ) -> None:
+        """
+        Dataset operation to write the final output of the pipeline.
+
+        Arguments:
+            name_or_path: The name of a hub component or a path to a custom component directory.
+            consumes: a dictionary of the fields to be written by the component. The keys are the
+             names of the dataset fields and the values are the name of the columns to map to..
+            arguments: A dictionary containing the argument name and value for the operation.
+            input_partition_rows: The number of rows to load per partition. Set to override the
+            automatic partitioning
+            resources: The resources to assign to the operation.
+            cluster_type: The type of cluster to use for distributed execution (default is "local").
+            client_kwargs: Keyword arguments used to initialise the dask client.
+            cache: Set to False in order to disable caching, True by default.
+        """
         operation = ComponentOp(
             name_or_path,
             arguments=arguments,
@@ -530,5 +662,6 @@ class Dataset:
             cache=cache,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
+            consumes=consumes,
         )
         self.pipeline._apply(operation, self)

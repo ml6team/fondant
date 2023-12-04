@@ -14,8 +14,8 @@ from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
 from fondant.core.component_spec import ComponentSpec
-from fondant.core.exceptions import InvalidManifest
-from fondant.core.schema import Field, Type
+from fondant.core.exceptions import InvalidManifest, InvalidPipelineDefinition
+from fondant.core.schema import Field, ProducesType, Type
 
 
 @dataclass
@@ -238,11 +238,56 @@ class Manifest:
 
         del self._specification["fields"][name]
 
+    @staticmethod
+    def _handle_custom_produces(
+        evolved_manifest: "Manifest",
+        produces: ProducesType,
+        component_spec: ComponentSpec,
+    ) -> t.Mapping[str, Field]:
+        handled_produces = {}
+        is_produces_generic = component_spec.is_produces_generic
+
+        for column_name, mapping_name_or_field in produces.items():
+            if isinstance(mapping_name_or_field, str):
+                if is_produces_generic:
+                    msg = (
+                        "For generic components, 'produces' must be a dictionary with"
+                        " column names as keys and pyarrow data types as values."
+                    )
+                    raise InvalidPipelineDefinition(msg)
+
+                field = component_spec.produces[column_name]
+                field.name = mapping_name_or_field
+                handled_produces[mapping_name_or_field] = field
+                # Remove the original field if it was already in the manifest
+                if column_name in evolved_manifest.fields:
+                    evolved_manifest.remove_field(column_name)
+
+            elif isinstance(mapping_name_or_field, Field):
+                if not is_produces_generic:
+                    msg = (
+                        "For non-generic components, 'produces' must be a dictionary with "
+                        "column names as keys and mapping names as values."
+                    )
+                    raise InvalidPipelineDefinition(msg)
+
+                handled_produces[column_name] = mapping_name_or_field
+                continue
+            else:
+                msg = (
+                    f"Unexpected type for 'produces' value: {type(mapping_name_or_field)}, "
+                    f"expected a column name (string) or pyarrow data type."
+                )
+                raise InvalidPipelineDefinition(msg)
+
+        return types.MappingProxyType(handled_produces)
+
     def evolve(  # : PLR0912 (too many branches)
         self,
         component_spec: ComponentSpec,
         *,
         run_id: t.Optional[str] = None,
+        produces: t.Optional[t.Union[t.Dict[str, str], t.Dict[str, Field]]] = None,
     ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
@@ -252,6 +297,8 @@ class Manifest:
             component_spec: the component spec
             run_id: the run id to include in the evolved manifest. If no run id is provided,
             the run id from the original manifest is propagated.
+            produces: the fields produced by the component by a generic component operation.
+             If no produces is provided, the produces from the component spec will be used.
         """
         evolved_manifest = self.copy()
 
@@ -272,8 +319,19 @@ class Manifest:
             for field_name in evolved_manifest.fields:
                 evolved_manifest.remove_field(field_name)
 
+        # Produces is None when the component is non-generic, read the produces
+        # from the component spec
+        if not produces:
+            custom_produces = component_spec.produces
+        else:
+            custom_produces = self._handle_custom_produces(
+                evolved_manifest,
+                produces,
+                component_spec,
+            )
+
         # Add or update all produced fields defined in the component spec
-        for name, field in component_spec.produces.items():
+        for name, field in custom_produces.items():
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.

@@ -1,13 +1,9 @@
 name: First component
-description: This is an example component
+description: This is an example Component
 image: example_component:latest
 
 produces:
-  images_data:
-    type: binary
-
-  captions_data:
-    type: string
+    additionalFields: true
 
 args:
   storage_args:

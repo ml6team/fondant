@@ -11,6 +11,8 @@ import pyarrow as pa
 
 from fondant.core.exceptions import InvalidTypeSchema
 
+ProducesType = t.Union[t.Dict[str, pa.DataType], t.Dict[str, str]]
+
 
 class CloudCredentialsMount(Enum):
     home_directory = os.path.expanduser("~")
@@ -178,6 +180,11 @@ class Field:
     def name(self) -> str:
         """The name of the field."""
         return self._name
+
+    @name.setter
+    def name(self, new_name: str) -> None:
+        """Setter for updating the name of the field."""
+        self._name = new_name
 
     @property
     def type(self) -> Type:
