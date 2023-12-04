@@ -584,7 +584,7 @@ class SagemakerCompiler(Compiler):
         return command
 
     def _check_ecr_pull_through_rule(self, namespace: str) -> None:
-        logging.info("Checking existing pull through cache rules for 'fndnt-mirror'")
+        logging.info(f"Checking existing pull through cache rules for '{namespace}'")
 
         try:
             self.ecr_client.describe_pull_through_cache_rules(
@@ -594,8 +594,8 @@ class SagemakerCompiler(Compiler):
             "PullThroughCacheRuleNotFoundException"
         ]:
             logging.info(
-                """Pull through cache rule for 'fndnt-mirror' not found..
-                creating pull through cache rule for 'fndnt-mirror'""",
+                f"""Pull through cache rule for '{namespace}' not found..
+                creating pull through cache rule for '{namespace}'""",
             )
 
             self.ecr_client.create_pull_through_cache_rule(
@@ -604,7 +604,7 @@ class SagemakerCompiler(Compiler):
             )
 
             logging.info(
-                "Pull through cache rule for 'fndnt-mirror' created successfully",
+                f"Pull through cache rule for '{namespace}' created successfully",
             )
 
     def _patch_uri(self, og_uri: str) -> str:
