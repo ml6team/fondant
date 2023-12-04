@@ -640,6 +640,7 @@ def register_run(parent_parser):
     local_parser.set_defaults(func=run_local)
     kubeflow_parser.set_defaults(func=run_kfp)
     vertex_parser.set_defaults(func=run_vertex)
+    sagemaker_parser.set_defaults(func=run_sagemaker)
 
 
 def run_local(args):
