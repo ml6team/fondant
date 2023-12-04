@@ -541,7 +541,6 @@ def test_caching_dependency_docker(tmp_path_factory):
         dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
             arguments={"storage_args": "a dummy string arg"},
-            consumes={"images_data": "images_data"},
         )
 
         with tmp_path_factory.mktemp("temp") as fn:
@@ -585,7 +584,6 @@ def test_caching_dependency_kfp(tmp_path_factory):
         dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
             arguments={"storage_args": "a dummy string arg"},
-            consumes={"images_data": "images_data"},
         )
 
         with tmp_path_factory.mktemp("temp") as fn:

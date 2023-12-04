@@ -18,7 +18,7 @@ VALID_EXAMPLE = {
     "4": {"produces": None},
     "5": {
         "produces": {
-            "embedding_data": Field("embedding_data", Type(pa.list_(pa.float32()))),
+            "embedding_data": Type(pa.list_(pa.float32())).to_json(),
             "audio_data": "audio_array",
         },
     },

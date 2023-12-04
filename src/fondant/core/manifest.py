@@ -254,9 +254,9 @@ class Manifest:
 
         # Add custom produces defined in the component operation
         if produces:
-            for column_name, mapping_name_or_field in produces.items():
+            for column_name, mapping_name_or_type in produces.items():
                 # String mapping name
-                if isinstance(mapping_name_or_field, str):
+                if isinstance(mapping_name_or_type, str):
                     try:
                         field = handled_produces[column_name]
                     except KeyError:
@@ -266,14 +266,14 @@ class Manifest:
                         )
                         raise InvalidPipelineDefinition(msg)
 
-                    field.name = mapping_name_or_field
-                    handled_produces[mapping_name_or_field] = field
+                    field.name = mapping_name_or_type
+                    handled_produces[mapping_name_or_type] = field
                     # Remove the original field if it was already in the manifest
                     if column_name in evolved_manifest.fields:
                         evolved_manifest.remove_field(column_name)
 
                 # Pyarrow data type
-                elif isinstance(mapping_name_or_field, Field):
+                elif isinstance(mapping_name_or_type, dict):
                     if not is_produces_generic:
                         msg = (
                             "For non-generic components, 'produces' must be a dictionary with "
@@ -284,15 +284,18 @@ class Manifest:
                     if column_name in handled_produces:
                         msg = (
                             f"Trying to add non-generic field {column_name} with custom mapping"
-                            f" {mapping_name_or_field}. Field already exists in the "
+                            f" {mapping_name_or_type}. Field already exists in the "
                             f"component spec: {component_spec.produces[column_name]}"
                         )
                         raise InvalidPipelineDefinition(msg)
-                    handled_produces[column_name] = mapping_name_or_field
+                    handled_produces[column_name] = Field(
+                        column_name,
+                        Type.from_json(mapping_name_or_type),
+                    )
                     continue
                 else:
                     msg = (
-                        f"Unexpected type for 'produces' value: {type(mapping_name_or_field)}, "
+                        f"Unexpected type for 'produces' value: {type(mapping_name_or_type)}, "
                         f"expected a column name (string) or pyarrow data type."
                     )
                     raise InvalidPipelineDefinition(msg)

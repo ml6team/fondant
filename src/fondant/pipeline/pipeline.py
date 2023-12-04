@@ -5,7 +5,6 @@ import hashlib
 import json
 import logging
 import re
-import types
 import typing as t
 from collections import OrderedDict
 from dataclasses import asdict, dataclass
@@ -157,20 +156,22 @@ class ComponentOp:
         self.cache = self._configure_caching_from_image_tag(cache)
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
+        self.consumes = consumes
+        self.produces = self._produces_parser(produces)
 
         self.arguments = arguments or {}
         self._add_component_argument("input_partition_rows", self.input_partition_rows)
         self._add_component_argument("cache", self.cache)
         self._add_component_argument("cluster_type", self.cluster_type)
         self._add_component_argument("client_kwargs", self.client_kwargs)
-        self._add_component_argument("consumes", consumes)
-        self._add_component_argument("produces", produces, self._produces_parser)
+        self._add_component_argument("consumes", self.consumes)
+        self._add_component_argument("produces", self.produces)
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.resources = resources or Resources()
 
+    @staticmethod
     def _produces_parser(
-        self,
         produces: t.Optional[ProducesType] = None,
     ) -> t.Union[None, t.Dict[str, t.Any]]:
         """
@@ -238,16 +239,12 @@ class ComponentOp:
         self,
         argument_name: str,
         argument_value: t.Any,
-        parser: t.Optional[t.Callable] = None,
     ):
         """Register component argument to arguments dict as well as component attributes."""
         if hasattr(self, "arguments") is False:
             self.arguments = {}
 
         if argument_value is not None:
-            if parser:
-                argument_value = parser(argument_value)
-
             self.arguments[argument_name] = argument_value
 
     @property
@@ -315,32 +312,6 @@ class ComponentOp:
             component_op_uid_dict["previous_component_cache"] = previous_component_cache
 
         return get_nested_dict_hash(component_op_uid_dict)
-
-    @property
-    def consumes(self) -> t.Mapping[str, Field]:
-        """The custom fields consumed by the component as an immutable mapping."""
-        if self.component_spec.is_consumes_generic:
-            return types.MappingProxyType(
-                {
-                    name: Field(name=name, type=Type.from_json(field))
-                    for name, field in self.arguments.get("consumes", {}).items()
-                },
-            )
-
-        return types.MappingProxyType({})
-
-    @property
-    def produces(self) -> t.Mapping[str, Field]:
-        """The custom fields produced by the component as an immutable mapping."""
-        if self.component_spec.is_produces_generic:
-            return types.MappingProxyType(
-                {
-                    name: Field(name=name, type=Type.from_json(field))
-                    for name, field in self.arguments.get("produces", {}).items()
-                },
-            )
-
-        return types.MappingProxyType({})
 
 
 class Pipeline:
@@ -491,7 +462,10 @@ class Pipeline:
         self.sort_graph()
         self._validate_pipeline_definition(run_id)
 
-    def _validate_pipeline_definition(self, run_id: str):
+    def _validate_pipeline_definition(  # ruff: noqa: PLR0912
+        self,
+        run_id: str,
+    ):
         """
         Validates the pipeline definition by ensuring that the consumed and produced subsets and
         their associated fields match and are invoked in the correct order.
@@ -503,6 +477,22 @@ class Pipeline:
             base_path: the base path where to store the pipelines artifacts
             run_id: the run id of the component
         """
+
+        def _validate_field_schema(manifest_field: Field, component_field: Field):
+            """Validate that the field schema matches."""
+            if component_field.type != manifest_field.type:
+                error_msg = (
+                    f"The invoked field '{component_field.name}' of the "
+                    f"'{component_spec.name}' component does not match the "
+                    f"previously created field type.\n The '{manifest_field.name}' "
+                    f"field is currently defined with the following type:\n"
+                    f"{manifest_field.type}\nThe current component to "
+                    f"trying to invoke it with this type:\n{component_field.type}"
+                )
+                raise InvalidPipelineDefinition(
+                    error_msg,
+                )
+
         if len(self._graph.keys()) == 0:
             logger.info("No components defined in the pipeline. Nothing to validate.")
             return
@@ -522,39 +512,74 @@ class Pipeline:
         for operation_specs in self._graph.values():
             fondant_component_op = operation_specs["operation"]
             component_spec = fondant_component_op.component_spec
+            component_op_consumes = fondant_component_op.consumes
+
+            if component_op_consumes:
+                # Get reverse mapping of component_op_consumes (component column-> dataset column)
+                component_op_consumes = {
+                    value: key for key, value in component_op_consumes.items()
+                }
 
             if not load_component:
-                # Check subset exists
                 for (
                     component_field_name,
                     component_field,
                 ) in component_spec.consumes.items():
-                    if component_field_name not in manifest.fields:
-                        msg = (
-                            f"Component '{component_spec.name}' is trying to invoke the field "
-                            f"'{component_field_name}', which has not been defined or created "
-                            f"in the previous components."
-                        )
-                        raise InvalidPipelineDefinition(
-                            msg,
-                        )
+                    dataset_field_name = component_field_name
+                    # Check if the invoked field is defined in the manifest
+                    if dataset_field_name not in manifest.fields:
+                        # Check if there exist a custom consumes mapping for the field
+                        if component_op_consumes:
+                            if (
+                                component_field_name in component_op_consumes
+                                and component_op_consumes[component_field_name]
+                                in manifest.fields
+                            ):
+                                dataset_field_name = component_op_consumes.pop(
+                                    component_field_name,
+                                )
+                            else:
+                                msg = (
+                                    f"Component '{component_spec.name}' is trying to invoke the"
+                                    f" field "
+                                    f"'{component_field_name}', which has not been defined "
+                                    f"or created "
+                                    f"in the previous components."
+                                )
+                                raise InvalidPipelineDefinition(msg)
+                        else:
+                            msg = (
+                                f"Component '{component_spec.name}' is trying to invoke the field "
+                                f"'{component_field_name}', which has not been defined or created "
+                                f"in the previous components."
+                            )
+                            raise InvalidPipelineDefinition(msg)
+                    _validate_field_schema(
+                        manifest.fields[dataset_field_name],
+                        component_spec.consumes[component_field_name],
+                    )
 
-                    # Get the corresponding manifest fields
-                    manifest_field = manifest.fields[component_field_name]
-
-                    # Check if the invoked field schema matches the current schema
-                    if component_field.type != manifest_field.type:
+                # Check for remaining custom consumes mappings
+                if component_op_consumes:
+                    if not component_spec.is_consumes_generic:
                         msg = (
-                            f"The invoked field '{component_field_name}' of the "
-                            f"'{component_spec.name}' component does not match  the "
-                            f"previously created field type.\n The '{manifest_field.name}' "
-                            f"field is currently defined with the following type:\n"
-                            f"{manifest_field.type}\nThe current component to "
-                            f"trying to invoke it with this type:\n{component_field.type}"
+                            f"Found fields {component_op_consumes} in custom consumes "
+                            f"mapping for"
+                            f" component '{component_spec.name}'"
+                            f" which is not a generic component that does not have a "
+                            f"corresponding field in the component spec."
                         )
-                        raise InvalidPipelineDefinition(
-                            msg,
-                        )
+                        raise InvalidPipelineDefinition(msg)
+
+                    for _, dataset_column in component_op_consumes.items():
+                        if dataset_column not in manifest.fields:
+                            msg = (
+                                f"Generic Component '{component_spec.name}' is trying to invoke"
+                                f" the field '{dataset_column}', which has not been defined or "
+                                f"created "
+                                f"in the previous components."
+                            )
+                            raise InvalidPipelineDefinition(msg)
 
             manifest = manifest.evolve(
                 component_spec,
