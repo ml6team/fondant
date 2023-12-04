@@ -524,7 +524,6 @@ class SagemakerCompiler(Compiler):
         self.ecr_namespace = "fndnt-mirror"
         self._resolve_imports()
         self.ecr_client = self.boto3.client("ecr")
-        self._check_ecr_pull_through_rule(namespace=self.ecr_namespace)
 
     def _resolve_imports(self):
         try:
@@ -583,28 +582,30 @@ class SagemakerCompiler(Compiler):
 
         return command
 
-    def _check_ecr_pull_through_rule(self, namespace: str) -> None:
-        logging.info(f"Checking existing pull through cache rules for '{namespace}'")
+    def _check_ecr_pull_through_rule(self) -> None:
+        logging.info(
+            f"Checking existing pull through cache rules for '{self.ecr_namespace}'",
+        )
 
         try:
             self.ecr_client.describe_pull_through_cache_rules(
-                ecrRepositoryPrefixes=[namespace],
+                ecrRepositoryPrefixes=[self.ecr_namespace],
             )
         except self.ecr_client.exceptions._code_to_exception[
             "PullThroughCacheRuleNotFoundException"
         ]:
             logging.info(
-                f"""Pull through cache rule for '{namespace}' not found..
-                creating pull through cache rule for '{namespace}'""",
+                f"""Pull through cache rule for '{self.ecr_namespace}' not found..
+                creating pull through cache rule for '{self.ecr_namespace}'""",
             )
 
             self.ecr_client.create_pull_through_cache_rule(
-                ecrRepositoryPrefix=namespace,
+                ecrRepositoryPrefix=self.ecr_namespace,
                 upstreamRegistryUrl="public.ecr.aws",
             )
 
             logging.info(
-                f"Pull through cache rule for '{namespace}' created successfully",
+                f"Pull through cache rule for '{self.ecr_namespace}' created successfully",
             )
 
     def _patch_uri(self, og_uri: str) -> str:
@@ -619,6 +620,17 @@ class SagemakerCompiler(Compiler):
             repositoryNames=[f"{self.ecr_namespace}/{uri}"],
         )
         return repo_response["repositories"][0]["repositoryUri"] + ":" + tag
+
+    def validate_base_path(self, base_path: str) -> None:
+        file_prefix, storage_path = base_path.split("://")
+
+        if file_prefix != "s3":
+            msg = "base_path must be a valid s3 path, starting with s3://"
+            raise ValueError(msg)
+
+        if storage_path.endswith("/"):
+            msg = "base_path must not end with a '/'"
+            raise ValueError(msg)
 
     def compile(
         self,
@@ -639,6 +651,9 @@ class SagemakerCompiler(Compiler):
             role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
         """
+        self.validate_base_path(pipeline.base_path)
+        self._check_ecr_pull_through_rule()
+
         run_id = pipeline.get_run_id()
         path = pipeline.base_path
         pipeline.validate(run_id=run_id)
