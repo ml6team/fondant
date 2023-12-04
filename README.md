@@ -70,7 +70,7 @@ Towards that end, Fondant offers:
 
 ## 💨 Getting Started
 
-Eager to get started? Follow our [**step by step guide**](https://fondant.readthedocs.io/en/latest/getting_started) to get your first pipeline up and running.
+Eager to get started? Follow our [**step by step guide**](https://fondant.ai/en/latest/guides/first_pipeline/) to get your first pipeline up and running.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
