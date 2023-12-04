@@ -521,15 +521,20 @@ class VertexCompiler(KubeFlowCompiler):
 
 class SagemakerCompiler(Compiler):
     def __init__(self):
+        self.ecr_namespace = "fndnt-mirror"
         self._resolve_imports()
+        self.ecr_client = self.boto3.client("ecr")
+        self._check_ecr_pull_through_rule(namespace=self.ecr_namespace)
 
     def _resolve_imports(self):
         try:
+            import boto3
             import sagemaker
             import sagemaker.processing
             import sagemaker.workflow.pipeline
             import sagemaker.workflow.steps
 
+            self.boto3 = boto3
             self.sagemaker = sagemaker
 
         except ImportError:
@@ -577,6 +582,43 @@ class SagemakerCompiler(Compiler):
                 )
 
         return command
+
+    def _check_ecr_pull_through_rule(self, namespace: str) -> None:
+        logging.info("Checking existing pull through cache rules for 'fndnt-mirror'")
+
+        try:
+            self.ecr_client.describe_pull_through_cache_rules(
+                ecrRepositoryPrefixes=[namespace],
+            )
+        except self.ecr_client.exceptions._code_to_exception[
+            "PullThroughCacheRuleNotFoundException"
+        ]:
+            logging.info(
+                """Pull through cache rule for 'fndnt-mirror' not found..
+                creating pull through cache rule for 'fndnt-mirror'""",
+            )
+
+            self.ecr_client.create_pull_through_cache_rule(
+                ecrRepositoryPrefix=namespace,
+                upstreamRegistryUrl="public.ecr.aws",
+            )
+
+            logging.info(
+                "Pull through cache rule for 'fndnt-mirror' created successfully",
+            )
+
+    def _patch_uri(self, og_uri: str) -> str:
+        uri, tag = og_uri.split(":")
+
+        # force pullthrough cache to be used
+        _ = self.ecr_client.batch_get_image(
+            repositoryName=f"{self.ecr_namespace}/{uri}",
+            imageIds=[{"imageTag": tag}],
+        )
+        repo_response = self.ecr_client.describe_repositories(
+            repositoryNames=[f"{self.ecr_namespace}/{uri}"],
+        )
+        return repo_response["repositories"][0]["repositoryUri"] + ":" + tag
 
     def compile(
         self,
@@ -641,19 +683,21 @@ class SagemakerCompiler(Compiler):
                     role_arn = self.sagemaker.get_execution_role()
 
                 processor = self.sagemaker.processing.ScriptProcessor(
-                    image_uri=component_op.component_spec.image,
+                    image_uri=self._patch_uri(component_op.component_spec.image),
                     command=["bash"],
                     instance_type=instance_type,
                     instance_count=1,
                     base_job_name=component_name,
                     role=role_arn,
                 )
+
                 step = self.sagemaker.workflow.steps.ProcessingStep(
                     name=component_name,
                     processor=processor,
                     depends_on=depends_on,
                     code=script_path,
                 )
+
                 steps.append(step)
 
             sagemaker_pipeline = self.sagemaker.workflow.pipeline.Pipeline(
