@@ -519,7 +519,7 @@ class VertexCompiler(KubeFlowCompiler):
         return task
 
 
-class SagemakerCompiler(Compiler):
+class SagemakerCompiler(Compiler):  # pragma: no cover
     def __init__(self):
         self.ecr_namespace = "fndnt-mirror"
         self._resolve_imports()
