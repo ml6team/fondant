@@ -97,12 +97,19 @@ class MainInterface:
         """Selects a run from available runs within the chosen pipeline."""
         selected_pipeline_path = st.session_state["pipeline_path"]
 
-        available_runs = [
-            os.path.basename(item)
-            for item in os.listdir(selected_pipeline_path)
-            if os.path.isdir(os.path.join(selected_pipeline_path, item))
-            and item != "cache"
-        ]
+        def has_manifest_file(path):
+            return any("manifest.json" in files for _, _, files in os.walk(path))
+
+        available_runs = []
+        for run in os.listdir(selected_pipeline_path):
+            run_path = os.path.join(selected_pipeline_path, run)
+            if (
+                os.path.isdir(run_path)
+                and run != "cache"
+                and has_manifest_file(run_path)
+            ):
+                available_runs.append(os.path.basename(run))
+
         available_runs.sort(reverse=True)
 
         default_index = get_default_index("run", available_runs)
@@ -111,6 +118,7 @@ class MainInterface:
 
         st.session_state["run"] = selected_run
         st.session_state["run_path"] = selected_run_path
+        st.session_state["available_runs"] = available_runs
 
     def create_common_interface(self):
         """Sets up the Streamlit app's main interface with common elements."""
