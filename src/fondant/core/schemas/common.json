@@ -58,7 +58,7 @@
     },
     "additionalProperties": {
       "type": "boolean",
-      "default": false,
+      "default": {},
       "description": "Specifies whether additional fields are allowed"
     },
     "fields": {
