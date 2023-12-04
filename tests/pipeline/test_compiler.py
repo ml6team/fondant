@@ -656,3 +656,20 @@ def test_sagemaker_generate_script(tmp_path_factory):
 
         with open(script_path) as f:
             assert f.read() == "fondant execute main echo hello world"
+
+
+def test_sagemaker_base_path_validator():
+    compiler = SagemakerCompiler()
+
+    # no lowercase 's3'
+    with pytest.raises(
+        ValueError,
+        match="base_path must be a valid s3 path, starting with s3://",
+    ):
+        compiler.validate_base_path("S3://foo/bar")
+    # ends with '/'
+    with pytest.raises(ValueError, match="base_path must not end with a '/'"):
+        compiler.validate_base_path("s3://foo/bar/")
+
+    # valid
+    compiler.validate_base_path("s3://foo/bar")

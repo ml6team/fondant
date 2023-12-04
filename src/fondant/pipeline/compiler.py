@@ -523,7 +523,6 @@ class SagemakerCompiler(Compiler):
     def __init__(self):
         self.ecr_namespace = "fndnt-mirror"
         self._resolve_imports()
-        self.ecr_client = self.boto3.client("ecr")
 
     def _resolve_imports(self):
         try:
@@ -651,6 +650,7 @@ class SagemakerCompiler(Compiler):
             role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
         """
+        self.ecr_client = self.boto3.client("ecr")
         self.validate_base_path(pipeline.base_path)
         self._check_ecr_pull_through_rule()
 
