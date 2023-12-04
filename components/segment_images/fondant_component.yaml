@@ -5,11 +5,11 @@ tags:
   - Image processing
 
 consumes:
-  images_data:
+  image:
     type: binary
 
 produces:
-  segmentations_data:
+  segmentation_map:
     type: binary
 
 args:

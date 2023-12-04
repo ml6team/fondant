@@ -591,7 +591,7 @@ class SagemakerCompiler(Compiler):
 
         Args:
             pipeline: the pipeline to compile
-            output_path: the path where to save the Kubeflow pipeline spec.
+            output_path: the path where to save the sagemaker pipeline spec.
             instance_type: the instance type to use for the processing steps
             (see: https://aws.amazon.com/ec2/instance-types/ for options).
             role_arn: the Amazon Resource Name role to use for the processing steps,

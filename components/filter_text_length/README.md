@@ -7,7 +7,7 @@ A component that filters out text based on their length
 
 **This component consumes:**
 
-- text_data: string
+- text: string
 
 **This component produces no data.**
 
@@ -25,18 +25,21 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-filter_text_length_op = ComponentOp.from_registry(
-    name="filter_text_length",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "filter_text_length",
     arguments={
         # Add arguments
         # "min_characters_length": 0,
         # "min_words_length": 0,
     }
 )
-pipeline.add_op(filter_text_length_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

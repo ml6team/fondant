@@ -7,11 +7,11 @@ This component captions images using a BLIP model from the Hugging Face hub
 
 **This component consumes:**
 
-- images_data: binary
+- image: binary
 
 **This component produces:**
 
-- captions_text: string
+- caption: string
 
 ### Arguments
 
@@ -28,11 +28,15 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-caption_images_op = ComponentOp.from_registry(
-    name="caption_images",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "caption_images",
     arguments={
         # Add arguments
         # "model_id": "Salesforce/blip-image-captioning-base",
@@ -40,7 +44,6 @@ caption_images_op = ComponentOp.from_registry(
         # "max_new_tokens": 50,
     }
 )
-pipeline.add_op(caption_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

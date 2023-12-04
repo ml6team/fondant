@@ -5,11 +5,11 @@ tags:
   - Image processing
 
 consumes:
-  images_data:
+  image:
     type: binary
 
 produces:
-  embeddings_data:
+  embedding:
     type: array
     items:
       type: float32

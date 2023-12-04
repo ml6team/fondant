@@ -138,7 +138,7 @@ def test_sagemaker_runner(tmp_path_factory):
         runner = SagemakerRunner()
 
         runner.run(
-            input_spec=tmpdir / "spec.json",
+            input=tmpdir / "spec.json",
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -164,7 +164,7 @@ def test_sagemaker_runner(tmp_path_factory):
         )
 
         runner.run(
-            input_spec=tmpdir / "spec.json",
+            input=tmpdir / "spec.json",
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -181,3 +181,29 @@ def test_sagemaker_runner(tmp_path_factory):
                 ParallelismConfiguration={"MaxParallelExecutionSteps": 1},
             ),
         ]
+
+
+class MockSagemakerCompiler:
+    def compile(
+        self,
+        pipeline,
+        output_path,
+        *,
+        instance_type,
+        role_arn,
+    ) -> None:
+        with open(output_path, "w") as f:
+            f.write("foo: bar")
+
+
+def test_sagemaker_runner_from_pipeline():
+    with mock.patch(
+        "fondant.pipeline.runner.SagemakerCompiler",
+        new=MockSagemakerCompiler,
+    ), mock.patch("boto3.client", spec=True):
+        runner = SagemakerRunner()
+        runner.run(
+            input=PIPELINE,
+            pipeline_name=PIPELINE.name,
+            role_arn="arn:something",
+        )

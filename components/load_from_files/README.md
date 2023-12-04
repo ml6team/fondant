@@ -11,8 +11,8 @@ location. It supports the following formats: .zip, gzip, tar and tar.gz.
 
 **This component produces:**
 
-- file_filename: string
-- file_content: binary
+- filename: string
+- content: binary
 
 ### Arguments
 
@@ -27,17 +27,18 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-load_from_files_op = ComponentOp.from_registry(
-    name="load_from_files",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(
+    "load_from_files",
     arguments={
         # Add arguments
         # "directory_uri": ,
     }
 )
-pipeline.add_op(load_from_files_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

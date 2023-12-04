@@ -14,13 +14,13 @@ from the img2dataset library.
 
 **This component consumes:**
 
-- images_url: string
+- image_url: string
 
 **This component produces:**
 
-- images_data: binary
-- images_width: int32
-- images_height: int32
+- image: binary
+- image_width: int32
+- image_height: int32
 
 ### Arguments
 
@@ -42,11 +42,15 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-download_images_op = ComponentOp.from_registry(
-    name="download_images",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "download_images",
     arguments={
         # Add arguments
         # "timeout": 10,
@@ -59,7 +63,6 @@ download_images_op = ComponentOp.from_registry(
         # "max_aspect_ratio": 99.9,
     }
 )
-pipeline.add_op(download_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 
 ### Testing

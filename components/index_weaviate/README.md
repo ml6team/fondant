@@ -7,8 +7,8 @@ Component that takes embeddings of text snippets and indexes them into a weaviat
 
 **This component consumes:**
 
-- text_data: string
-- text_embedding: list<item: float>
+- text: string
+- embedding: list<item: float>
 
 **This component produces no data.**
 
@@ -31,11 +31,17 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-index_weaviate_op = ComponentOp.from_registry(
-    name="index_weaviate",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(...)
+
+dataset.write(
+    "index_weaviate",
     arguments={
         # Add arguments
         # "weaviate_url": "http://localhost:8080",
@@ -47,6 +53,5 @@ index_weaviate_op = ComponentOp.from_registry(
         # "vectorizer": ,
     }
 )
-pipeline.add_op(index_weaviate_op, dependencies=[...])  #Add previous component as dependency
 ```
 

@@ -59,16 +59,16 @@ class IndexQdrantComponent(DaskWriteComponent):
             for row in df.itertuples():
                 payload = {
                     "id_": str(row.Index),
-                    "passage": row.text_data,
+                    "passage": row.text,
                 }
                 id = str(uuid.uuid4())
                 # Check if 'text_embedding' attribute is a string.
                 # If it is, safely evaluate and convert it into a list of floats.
                 # else (i.e., it is already a list), it is directly assigned.
                 embedding = (
-                    ast.literal_eval(row.text_embedding)
-                    if isinstance(row.text_embedding, str)
-                    else row.text_embedding
+                    ast.literal_eval(row.embedding)
+                    if isinstance(row.embedding, str)
+                    else row.embedding
                 )
                 records.append(models.Record(id=id, payload=payload, vector=embedding))
 

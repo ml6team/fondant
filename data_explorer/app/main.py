@@ -15,8 +15,6 @@ from st_pages import show_pages_from_config
 
 LOGGER = logging.getLogger(__name__)
 
-# streamlit wide
-st.set_page_config(layout="wide")
 dask.config.set({"dataframe.convert-string": False})
 
 
@@ -91,16 +89,10 @@ class PipelineOverviewApp(MainInterface):
                 text += f"""<TD ALIGN="CENTER">{field}<BR/><i>({field_type})</i></TD>"""
             return text
 
-        subset_text = ""
-        field_text = ""
-        n_fields_total = 0
+        fields = manifest.fields
+        n_fields_total = len(fields)
 
-        for subset, subset_value in manifest.subsets.items():
-            fields = subset_value.fields
-            n_fields = len(fields)
-            subset_text += add_subset_text(subset, n_fields)
-            field_text += add_field_text(fields)
-            n_fields_total += n_fields
+        field_text = add_field_text(fields)
 
         component_text = add_component_text(manifest.component_id, n_fields_total)
 
@@ -108,9 +100,6 @@ class PipelineOverviewApp(MainInterface):
             <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
                   <TR>
                     {component_text}
-                  </TR>
-                  <TR>
-                    {subset_text}
                   </TR>
                   <TR>
                   {field_text}
@@ -168,11 +157,10 @@ class PipelineOverviewApp(MainInterface):
     def setup_app_page(self, max_runs_to_display=5):
         """Setup the main page of the app."""
         pipeline_df = self.get_pipeline_info_df()
-
         selected_run = st.session_state["run"]
         selected_run_info = pipeline_df[pipeline_df["Run Name"] == selected_run]
-        selected_run_update_date = selected_run_info["Last Updated"].to_dict()[0]
-        selected_run_path = selected_run_info["Run Path"].to_dict()[0]
+        selected_run_update_date = selected_run_info["Last Updated"].iloc[0]
+        selected_run_path = selected_run_info["Run Path"].iloc[0]
 
         st.markdown(f" **Last Updated**: {selected_run_update_date}")
 

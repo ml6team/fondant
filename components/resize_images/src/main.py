@@ -24,11 +24,11 @@ class ResizeImagesComponent(PandasTransformComponent):
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         logger.info("Resizing images...")
-        result = dataframe["images"].apply(
-            lambda x: self.resize_image(x.data),
+        result = dataframe["image"].apply(
+            self.resize_image,
             axis=1,
         )
 
-        dataframe["images_data"] = result
+        dataframe["image"] = result
 
         return dataframe

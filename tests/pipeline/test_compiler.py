@@ -74,7 +74,7 @@ TEST_PIPELINES = [
             },
             {
                 "component_op": ComponentOp(
-                    "image_cropping",
+                    "crop_images",
                     arguments={"cropping_threshold": 0, "padding": 0},
                 ),
                 "cache_key": "2",

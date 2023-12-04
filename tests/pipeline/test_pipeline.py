@@ -285,7 +285,7 @@ def test_invalid_pipeline_validation(default_pipeline_args):
 
 def test_reusable_component_op():
     laion_retrieval_op = ComponentOp(
-        name_or_path="prompt_based_laion_retrieval",
+        name_or_path="retrieve_laion_by_prompt",
         arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
     )
     assert laion_retrieval_op.component_spec, "component_spec_path could not be loaded"

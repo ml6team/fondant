@@ -1,0 +1,34 @@
+name: Embedding based LAION retrieval
+description: |
+  This component retrieves image URLs from LAION-5B based on a set of CLIP embeddings. It can be 
+  used to find images similar to the embedded images / captions.
+image: fndnt/embedding_based_laion_retrieval:dev
+tags:
+  - Data retrieval
+
+consumes:
+  embedding:
+    type: array
+    items:
+      type: float32
+
+produces:
+  image_url:
+    type: string
+  embedding_id:
+    type: string
+
+previous_index: embedding_id
+
+args:
+  num_images:
+    description: Number of images to retrieve for each prompt
+    type: int
+  aesthetic_score:
+    description: Aesthetic embedding to add to the query embedding, between 0 and 9 (higher is prettier).
+    type: int
+    default: 9
+  aesthetic_weight:
+    description: Weight of the aesthetic embedding when added to the query, between 0 and 1
+    type: float
+    default: 0.5

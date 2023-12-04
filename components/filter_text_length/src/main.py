@@ -23,10 +23,10 @@ class FilterTextLengthComponent(PandasTransformComponent):
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Filter out text based on their length."""
-        caption_num_words = dataframe["text_data"].apply(
+        caption_num_words = dataframe["text"].apply(
             lambda x: len(fasttext.tokenize(x)),
         )
-        caption_num_chars = dataframe["text_data"].apply(len)
+        caption_num_chars = dataframe["text"].apply(len)
 
         mask = (caption_num_words >= self.min_words_length) & (
             caption_num_chars >= self.min_characters_length

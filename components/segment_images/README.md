@@ -7,11 +7,11 @@ Component that creates segmentation masks for images using a model from the Hugg
 
 **This component consumes:**
 
-- images_data: binary
+- image: binary
 
 **This component produces:**
 
-- segmentations_data: binary
+- segmentation_map: binary
 
 ### Arguments
 
@@ -27,17 +27,20 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-segment_images_op = ComponentOp.from_registry(
-    name="segment_images",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "segment_images",
     arguments={
         # Add arguments
         # "model_id": "openmmlab/upernet-convnext-small",
         # "batch_size": 8,
     }
 )
-pipeline.add_op(segment_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 

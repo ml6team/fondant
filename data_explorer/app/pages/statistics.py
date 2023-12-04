@@ -28,6 +28,7 @@ class NumericAnalysisApp(DatasetLoaderApp):
         """
         # make a new dataframe with statistics
         # for each numeric field
+        dataframe[numeric_fields] = dataframe[numeric_fields].fillna(0)
         statistics = dataframe[numeric_fields].describe().compute()
         statistics = statistics.transpose()
         # add a column with the field name
@@ -47,43 +48,16 @@ class NumericAnalysisApp(DatasetLoaderApp):
         statistics = statistics[column_order]
         return statistics
 
-    @staticmethod
-    def make_numeric_plot(
+    def build_numeric_analysis_table(
+        self,
         dataframe: dd.DataFrame,
-        numeric_field: t.List[str],
-        plot_type: str,
-    ):
-        """Plots a numeric dataframe column with streamlit."""
-        if plot_type == "histogram":
-            data = dataframe[numeric_field].compute()  # .hist(bins=30)
-            st.plotly_chart(data.hist(), use_container_width=True)
-
-        elif plot_type == "violin":
-            data = dataframe[numeric_field].compute()
-            st.plotly_chart(data.plot(kind="violin"), use_container_width=True)
-
-        elif plot_type == "density":
-            data = dataframe[numeric_field].compute()
-            st.plotly_chart(data.plot(kind="density_heatmap"), use_container_width=True)
-
-        elif plot_type == "strip":
-            data = dataframe[numeric_field].compute()
-            st.plotly_chart(data.plot(kind="strip"), use_container_width=True)
-
-        elif plot_type == "categorical":
-            data = dataframe[numeric_field].value_counts()
-            st.bar_chart(data.compute())
-
-        else:
-            msg = "Aggregation type not supported"
-            raise ValueError(msg)
-
-    def build_numeric_analysis_table(self, dataframe, numeric_fields) -> None:
+        numeric_fields: t.List[str],
+    ) -> None:
         """Build the numeric analysis table."""
         # check if there are numeric fields
         if len(numeric_fields) == 0:
-            st.warning("There are no numeric fields in this subset")
-
+            st.warning("There are no numeric fields in this component")
+        else:
             # make numeric statistics table
             aggregation_dataframe = self.make_numeric_statistics_table(
                 dataframe,
@@ -106,31 +80,13 @@ class NumericAnalysisApp(DatasetLoaderApp):
                 columns_auto_size_mode=ColumnsAutoSizeMode.FIT_ALL_COLUMNS_TO_VIEW,
             )
 
-    def build_numeric_analysis_plots(self, dataframe, numeric_fields):
-        """Build the numeric analysis plots."""
-        # check if there are numeric fields
-        if len(numeric_fields) == 0:
-            st.warning("There are no numeric fields in this subset")
-
-        # choose a numeric field in dropdown
-        cols = st.columns(2)
-        with cols[0]:
-            numeric_field = st.selectbox("Field", numeric_fields)
-        with cols[1]:
-            plot_type = st.selectbox(
-                "Plot type",
-                ["histogram", "violin", "density", "categorical"],
-            )
-
-        self.make_numeric_plot(dataframe, numeric_field, plot_type)
-
-    def setup_app_page(self, dataframe, fields):
+    def setup_app_page(self, dataframe: dd.DataFrame, fields):
         numeric_fields = get_numeric_fields(fields)
         self.build_numeric_analysis_table(dataframe, numeric_fields)
-        self.build_numeric_analysis_plots(dataframe, numeric_fields)
 
 
 app = NumericAnalysisApp()
 app.create_common_interface()
-df, df_fields = app.create_loader_widget()
-app.setup_app_page(df, df_fields)
+field_mapping, selected_fields = app.get_fields_mapping()
+dask_df = app.load_dask_dataframe(field_mapping)
+app.setup_app_page(dask_df, selected_fields)

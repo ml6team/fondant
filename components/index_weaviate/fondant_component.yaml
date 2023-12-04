@@ -5,12 +5,12 @@ tags:
   - Data writing
 
 consumes:
-  text_data:
+  text:
     type: string
-  text_embedding:
-      type: array
-      items:
-        type: float32
+  embedding:
+    type: array
+    items:
+      type: float32
 
 args:
   weaviate_url:

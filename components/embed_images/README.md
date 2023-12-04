@@ -7,11 +7,11 @@ Component that generates CLIP embeddings from images
 
 **This component consumes:**
 
-- images_data: binary
+- image: binary
 
 **This component produces:**
 
-- embeddings_data: list<item: float>
+- embedding: list<item: float>
 
 ### Arguments
 
@@ -27,17 +27,20 @@ The component takes the following arguments to alter its behavior:
 You can add this component to your pipeline using the following code:
 
 ```python
-from fondant.pipeline import ComponentOp
+from fondant.pipeline import Pipeline
 
 
-embed_images_op = ComponentOp.from_registry(
-    name="embed_images",
+pipeline = Pipeline(...)
+
+dataset = pipeline.read(...)
+
+dataset = dataset.apply(
+    "embed_images",
     arguments={
         # Add arguments
         # "model_id": "openai/clip-vit-large-patch14",
         # "batch_size": 8,
     }
 )
-pipeline.add_op(embed_images_op, dependencies=[...])  #Add previous component as dependency
 ```
 

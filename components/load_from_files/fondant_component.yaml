@@ -7,9 +7,9 @@ tags:
   - Data loading
 
 produces:
-  file_filename:
+  filename:
     type: string
-  file_content:
+  content:
     type: binary
 
 args:
