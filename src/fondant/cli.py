@@ -15,6 +15,7 @@ eg `fondant --help`
 If you want to extend the cli you can add a new subcommand by registering a new function in this file and adding it to the `entrypoint` function.
 """
 import argparse
+import ast
 import importlib
 import inspect
 import logging
@@ -28,10 +29,10 @@ from pathlib import Path
 from types import ModuleType
 
 from fondant.core.schema import CloudCredentialsMount
+from fondant.pipeline import Pipeline
 
 if t.TYPE_CHECKING:
     from fondant.component import Component
-    from fondant.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -436,7 +437,7 @@ def compile_local(args):
     if cloud_cred:
         extra_volumes.append(cloud_cred)
 
-    pipeline = pipeline_from_module(args.ref)
+    pipeline = pipeline_from_string(args.ref)
     compiler = DockerCompiler()
     compiler.compile(
         pipeline=pipeline,
@@ -449,7 +450,7 @@ def compile_local(args):
 def compile_kfp(args):
     from fondant.pipeline.compiler import KubeFlowCompiler
 
-    pipeline = pipeline_from_module(args.ref)
+    pipeline = pipeline_from_string(args.ref)
     compiler = KubeFlowCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
@@ -457,7 +458,7 @@ def compile_kfp(args):
 def compile_vertex(args):
     from fondant.pipeline.compiler import VertexCompiler
 
-    pipeline = pipeline_from_module(args.ref)
+    pipeline = pipeline_from_string(args.ref)
     compiler = VertexCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
@@ -465,7 +466,7 @@ def compile_vertex(args):
 def compile_sagemaker(args):
     from fondant.pipeline.compiler import SagemakerCompiler
 
-    pipeline = pipeline_from_module(args.ref)
+    pipeline = pipeline_from_string(args.ref)
     compiler = SagemakerCompiler()
     compiler.compile(
         pipeline=pipeline,
@@ -656,7 +657,7 @@ def run_local(args):
         extra_volumes.append(cloud_cred)
 
     try:
-        ref = pipeline_from_module(args.ref)
+        ref = pipeline_from_string(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
 
@@ -676,7 +677,7 @@ def run_kfp(args):
         msg = "--host argument is required for running on Kubeflow"
         raise ValueError(msg)
     try:
-        pipeline = pipeline_from_module(args.ref)
+        pipeline = pipeline_from_string(args.ref)
     except ModuleNotFoundError:
         spec_ref = args.ref
     else:
@@ -696,7 +697,7 @@ def run_vertex(args):
     from fondant.pipeline.runner import VertexRunner
 
     try:
-        pipeline = pipeline_from_module(args.ref)
+        pipeline = pipeline_from_string(args.ref)
     except ModuleNotFoundError:
         spec_ref = args.ref
     else:
@@ -720,7 +721,7 @@ def run_sagemaker(args):
     from fondant.pipeline.runner import SagemakerRunner
 
     try:
-        ref = pipeline_from_module(args.ref)
+        ref = pipeline_from_string(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
 
@@ -795,7 +796,128 @@ def get_module(module_str: str) -> ModuleType:
     return module
 
 
-def pipeline_from_module(module_str: str) -> "Pipeline":
+def _called_with_wrong_args(f):
+    """Check whether calling a function raised a ``TypeError`` because
+    the call failed or because something in the factory raised the
+    error.
+
+    :param f: The function that was called.
+    :return: ``True`` if the call failed.
+    """
+    tb = sys.exc_info()[2]
+
+    try:
+        while tb is not None:
+            if tb.tb_frame.f_code is f.__code__:
+                # In the function, it was called successfully.
+                return False
+
+            tb = tb.tb_next
+
+        # Didn't reach the function.
+        return True
+    finally:
+        # Delete tb to break a circular reference.
+        # https://docs.python.org/2/library/sys.html#sys.exc_info
+        del tb
+
+
+def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
+    """Get the pipeline from the provided string reference.
+
+    Inspired by Flask:
+        https://github.com/pallets/flask/blob/d611989/src/flask/cli.py#L112
+
+    Args:
+        string_ref: String reference describing the pipeline in the format {module}:{attribute}.
+            The attribute can also be a function call, optionally including arguments:
+            {module}:{function} or {module}:{function(args)}.
+
+    Returns:
+        The pipeline obtained from the provided string
+    """
+    if ":" not in string_ref:
+        return pipeline_from_module(string_ref)
+
+    module_str, pipeline_str = string_ref.split(":")
+
+    module = get_module(module_str)
+
+    # Parse `pipeline_str` as a single expression to determine if it's a valid
+    # attribute name or function call.
+    try:
+        expr = ast.parse(pipeline_str.strip(), mode="eval").body
+    except SyntaxError:
+        msg = f"Failed to parse {pipeline_str} as an attribute name or function call."
+        raise PipelineImportError(
+            msg,
+        ) from None
+
+    if isinstance(expr, ast.Name):
+        name = expr.id
+        args = []
+        kwargs = {}
+    elif isinstance(expr, ast.Call):
+        # Ensure the function name is an attribute name only.
+        if not isinstance(expr.func, ast.Name):
+            msg = f"Function reference must be a simple name: {pipeline_str}."
+            raise PipelineImportError(
+                msg,
+            )
+
+        name = expr.func.id
+
+        # Parse the positional and keyword arguments as literals.
+        try:
+            args = [ast.literal_eval(arg) for arg in expr.args]
+            kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in expr.keywords}
+        except ValueError:
+            # literal_eval gives cryptic error messages, show a generic
+            # message with the full expression instead.
+            msg = f"Failed to parse arguments as literal values: {pipeline_str}."
+            raise PipelineImportError(
+                msg,
+            ) from None
+    else:
+        msg = f"Failed to parse {pipeline_str} as an attribute name or function call."
+        raise PipelineImportError(
+            msg,
+        )
+
+    try:
+        attr = getattr(module, name)
+    except AttributeError as e:
+        msg = f"Failed to find attribute {name} in {module.__name__}."
+        raise PipelineImportError(
+            msg,
+        ) from e
+
+    # If the attribute is a function, call it with any args and kwargs
+    # to get the real pipeline.
+    if inspect.isfunction(attr):
+        try:
+            app = attr(*args, **kwargs)  # type: ignore
+        except TypeError as e:
+            if not _called_with_wrong_args(attr):
+                raise
+
+            msg = f"The factory {pipeline_str} in module {module.__name__} could not be called with the specified arguments."
+            raise PipelineImportError(
+                msg,
+            ) from e
+    else:
+        app = attr
+
+    if isinstance(app, Pipeline):
+        return app
+
+    msg = f"A valid Fondant pipeline was not obtained from '{module.__name__}:{pipeline_str}'."
+    raise PipelineImportError(
+        msg,
+    )
+
+
+def pipeline_from_module(module_str: str) -> Pipeline:
     """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
     from fondant.pipeline import Pipeline
 
