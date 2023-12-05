@@ -280,12 +280,3 @@ def validate_partition_size(arg_value):
         )
         raise InvalidTypeSchema(msg)
     return arg_value
-
-
-a = produces_to_dict(
-    produces={
-        "text": pa.string(),
-        "embedding": pa.list_(pa.int32()),
-    },
-)
-print(a)

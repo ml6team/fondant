@@ -1,0 +1,28 @@
+name: Test component 1
+description: This is an example component
+image: example_component:latest
+
+consumes:
+  Name:
+    type: "string"
+  HP:
+    type: "int32"
+  Type 1:
+    type: "string"
+  Type 2:
+    type: "string"
+
+produces:
+  Name:
+    type: "string"
+  HP:
+    type: "int32"
+  Type 1:
+    type: "string"
+  additionalProperties: true
+
+
+args:
+  storage_args:
+    description: Storage arguments
+    type: str
