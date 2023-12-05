@@ -20,7 +20,7 @@ import pyarrow as pa
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
-from fondant.core.schema import Field, ProducesType, Type
+from fondant.core.schema import Field, ProducesType, produces_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +157,7 @@ class ComponentOp:
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
         self.consumes = consumes
-        self.produces = self._produces_parser(produces)
+        self.produces = produces_to_dict(produces)
 
         self.arguments = arguments or {}
         self._add_component_argument("input_partition_rows", self.input_partition_rows)
@@ -169,39 +169,6 @@ class ComponentOp:
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.resources = resources or Resources()
-
-    @staticmethod
-    def _produces_parser(
-        produces: t.Optional[ProducesType] = None,
-    ) -> t.Union[None, t.Dict[str, t.Any]]:
-        """
-        Parse the produces argument to a valid string representation.
-
-        Args:
-            produces: The produces argument to parse.
-
-        Returns:
-            The parsed produces argument as a string representation.
-        """
-        if produces is None:
-            return None
-
-        parsed_produces: t.Dict[str, t.Any] = {}
-
-        for column_name, mapping_name_or_type in produces.items():
-            if isinstance(mapping_name_or_type, pa.DataType):
-                parsed_produces[column_name] = Type(mapping_name_or_type).to_json()
-            elif isinstance(mapping_name_or_type, str):
-                parsed_produces[column_name] = mapping_name_or_type
-            else:
-                msg = (
-                    "The produces argument must be a dictionary with column names as keys and"
-                    " mapping names or pyarrow data types as values."
-                )
-                raise InvalidPipelineDefinition(
-                    msg,
-                )
-        return parsed_produces
 
     def _configure_caching_from_image_tag(
         self,

@@ -29,6 +29,7 @@ from fondant.component import (
 from fondant.component.data_io import DaskDataLoader, DaskDataWriter
 from fondant.core.component_spec import Argument, ComponentSpec
 from fondant.core.manifest import Manifest, Metadata
+from fondant.core.schema import ProducesType, dict_to_produces
 
 dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)
@@ -67,8 +68,8 @@ class Executor(t.Generic[Component]):
         input_partition_rows: int,
         cluster_type: t.Optional[str] = None,
         client_kwargs: t.Optional[dict] = None,
-        consumes: t.Optional[t.Dict[str, t.Any]] = None,
-        produces: t.Optional[t.Dict[str, t.Any]] = None,
+        consumes: t.Optional[t.Dict[str, str]] = None,
+        produces: t.Optional[ProducesType] = None,
     ) -> None:
         self.spec = spec
         self.cache = cache
@@ -130,7 +131,7 @@ class Executor(t.Generic[Component]):
         cluster_type = args.cluster_type
         client_kwargs = args.client_kwargs
         consumes = args.consumes
-        produces = args.produces
+        produces = dict_to_produces(args.produces)
 
         return cls.from_spec(
             component_spec,

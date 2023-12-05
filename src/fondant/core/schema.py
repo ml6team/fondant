@@ -14,6 +14,76 @@ from fondant.core.exceptions import InvalidTypeSchema
 ProducesType = t.Union[t.Dict[str, pa.DataType], t.Dict[str, str]]
 
 
+def produces_to_dict(
+    produces: t.Optional[ProducesType] = None,
+) -> t.Union[None, t.Dict[str, t.Any]]:
+    """
+    Parse the produces argument to a valid dict representation.
+
+    Args:
+        produces: The produces argument to parse, can be a dictionary representation or a
+            dictionary of pyarrow data types.
+
+    Returns:
+        The parsed produces argument as a dict representation.
+    """
+    if not produces:
+        return None
+
+    parsed_produces: t.Dict[str, t.Any] = {}
+
+    for column_name, mapping_name_or_type in produces.items():
+        if isinstance(mapping_name_or_type, pa.DataType):
+            parsed_produces[column_name] = Type(mapping_name_or_type).to_json()
+        elif isinstance(mapping_name_or_type, str):
+            parsed_produces[column_name] = mapping_name_or_type
+        else:
+            msg = (
+                "The produces argument must be a dictionary with column names as keys and"
+                " mapping names or pyarrow data types as values."
+            )
+            raise InvalidTypeSchema(
+                msg,
+            )
+    return parsed_produces
+
+
+def dict_to_produces(
+    produces_dict: t.Optional[t.Dict[str, t.Any]] = None,
+) -> t.Union[None, ProducesType]:
+    """
+    Parse the produces argument to a valid dict representation.
+
+    Args:
+        produces_dict: The produces argument as a dictionary representation
+
+    Returns:
+        The produces argument to parse, can be a dictionary representation or a
+            dictionary of pyarrow data types.
+    """
+    if produces_dict is None:
+        return None
+
+    parsed_produces = {}
+
+    for column_name, mapping_name_or_type_dict in produces_dict.items():
+        if isinstance(mapping_name_or_type_dict, str):
+            parsed_produces[column_name] = mapping_name_or_type_dict
+        elif isinstance(mapping_name_or_type_dict, dict):
+            parsed_produces[column_name] = Type.from_json(
+                mapping_name_or_type_dict,
+            ).value
+        else:
+            msg = (
+                "The produces argument must be a dictionary with column names as keys and"
+                " mapping names or pyarrow data json representation types as values."
+            )
+            raise InvalidTypeSchema(
+                msg,
+            )
+    return parsed_produces
+
+
 class CloudCredentialsMount(Enum):
     home_directory = os.path.expanduser("~")
     AWS = f"{home_directory}/credentials:/root/.aws/credentials"
@@ -210,3 +280,12 @@ def validate_partition_size(arg_value):
         )
         raise InvalidTypeSchema(msg)
     return arg_value
+
+
+a = produces_to_dict(
+    produces={
+        "text": pa.string(),
+        "embedding": pa.list_(pa.int32()),
+    },
+)
+print(a)

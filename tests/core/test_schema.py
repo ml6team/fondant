@@ -1,7 +1,22 @@
 import pyarrow as pa
 import pytest
 from fondant.core.exceptions import InvalidTypeSchema
-from fondant.core.schema import Type
+from fondant.core.schema import Type, dict_to_produces, produces_to_dict
+
+
+def test_produces_parsing():
+    """Test that the produces argument can be properly serialized and deserialized."""
+    produces = {
+        "text": pa.string(),
+        "embedding": pa.list_(pa.int32()),
+    }
+    expected_produces_to_dict = {
+        "text": {"type": "string"},
+        "embedding": {"type": "array", "items": {"type": "int32"}},
+    }
+    actual_produces_to_dict = produces_to_dict(produces)
+    assert actual_produces_to_dict == expected_produces_to_dict
+    assert dict_to_produces(actual_produces_to_dict) == produces
 
 
 def test_valid_type():

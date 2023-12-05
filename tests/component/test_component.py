@@ -6,6 +6,7 @@ from unittest import mock
 
 import dask.dataframe as dd
 import pandas as pd
+import pyarrow as pa
 import pytest
 import yaml
 from fondant.component import (
@@ -22,6 +23,7 @@ from fondant.component.executor import (
 )
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.manifest import Manifest, Metadata
+from fondant.core.schema import produces_to_dict
 
 components_path = Path(__file__).parent / "examples/component_specs"
 base_path = Path(__file__).parent / "examples/mock_base_path"
@@ -87,6 +89,13 @@ def patch_method_class(method):
 
 def test_component_arguments(metadata):
     # Mock CLI arguments
+    user_produces = {
+        "text": pa.string(),
+        "embedding": pa.list_(pa.int32()),
+        "data": "array",
+    }
+    serialized_produces = json.dumps(produces_to_dict(user_produces))
+
     sys.argv = [
         "",
         "--input_manifest_path",
@@ -107,6 +116,10 @@ def test_component_arguments(metadata):
         "3.14",
         "--override_default_arg_with_none",
         "None",
+        "--produces",
+        serialized_produces,
+        "--consumes",
+        "{}",
     ]
 
     class MyExecutor(Executor):
@@ -122,6 +135,7 @@ def test_component_arguments(metadata):
     expected_partition_row_arg = 100
     assert executor.input_partition_rows == expected_partition_row_arg
     assert executor.cache is True
+    assert executor.produces == user_produces
     assert executor.user_arguments == {
         "integer_default_arg": 0,
         "float_default_arg": 3.14,
