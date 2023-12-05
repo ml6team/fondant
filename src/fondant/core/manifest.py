@@ -239,11 +239,22 @@ class Manifest:
         del self._specification["fields"][name]
 
     @staticmethod
-    def _handle_custom_produces(
-        evolved_manifest: "Manifest",
+    def _get_produces(
         produces: t.Optional[t.Union[t.Dict[str, str], t.Dict[str, Field]]],
         component_spec: ComponentSpec,
     ) -> t.Mapping[str, Field]:
+        """
+         Resolve the fields that will be produces by the component based on the produces argument
+         defined in the component operation and the produces defined in the component spec.
+
+        Args:
+            produces: the produces defined in the component operation, this is a dictionary
+            of column names and mapping names (renaming based on fields in the components spec for
+            generic fields) or pyarrow data types for non-generic fields.
+            component_spec: the component spec of the component that will be executed
+        Returns:
+            A mapping of column names to fields that will be produced by the component.
+        """
         handled_produces: t.Dict[str, Field] = {}
         is_produces_generic = component_spec.is_produces_generic
 
@@ -268,9 +279,6 @@ class Manifest:
 
                     field.name = mapping_name_or_type
                     handled_produces[mapping_name_or_type] = field
-                    # Remove the original field if it was already in the manifest
-                    if column_name in evolved_manifest.fields:
-                        evolved_manifest.remove_field(column_name)
 
                 # Pyarrow data type
                 elif isinstance(mapping_name_or_type, dict):
@@ -288,11 +296,13 @@ class Manifest:
                             f"component spec: {component_spec.produces[column_name]}"
                         )
                         raise InvalidPipelineDefinition(msg)
+
                     handled_produces[column_name] = Field(
                         column_name,
                         Type.from_json(mapping_name_or_type),
                     )
                     continue
+
                 else:
                     msg = (
                         f"Unexpected type for 'produces' value: {type(mapping_name_or_type)}, "
@@ -339,13 +349,16 @@ class Manifest:
             for field_name in evolved_manifest.fields:
                 evolved_manifest.remove_field(field_name)
 
-        # Produces is None when the component is non-generic, read the produces
-        # from the component spec
-        produces_fields = self._handle_custom_produces(
-            evolved_manifest,
+        # Get the fields that will be produced by the component
+        produces_fields = self._get_produces(
             produces,
             component_spec,
         )
+        # Remove fields that were already in the manifest and are mapped under a new name
+        if produces:
+            for name, field in produces_fields.items():
+                if name in produces and name in evolved_manifest.fields:
+                    evolved_manifest.remove_field(name)
 
         # Add or update all produced fields defined in the component spec
         for name, field in produces_fields.items():
