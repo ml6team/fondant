@@ -608,17 +608,26 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
             )
 
     def _patch_uri(self, og_uri: str) -> str:
-        uri, tag = og_uri.split(":")
+        full_ref, tag = og_uri.split(":")
 
-        # force pullthrough cache to be used
-        _ = self.ecr_client.batch_get_image(
-            repositoryName=f"{self.ecr_namespace}/{uri}",
-            imageIds=[{"imageTag": tag}],
-        )
-        repo_response = self.ecr_client.describe_repositories(
-            repositoryNames=[f"{self.ecr_namespace}/{uri}"],
-        )
-        return repo_response["repositories"][0]["repositoryUri"] + ":" + tag
+        ref, *_ = full_ref.split("/")
+
+        if ref == "fndnt":
+            logging.info("Reusable component detected, patching URI")
+            # force pullthrough cache to be used
+            _ = self.ecr_client.batch_get_image(
+                repositoryName=f"{self.ecr_namespace}/{full_ref}",
+                imageIds=[{"imageTag": tag}],
+            )
+            repo_response = self.ecr_client.describe_repositories(
+                repositoryNames=[f"{self.ecr_namespace}/{full_ref}"],
+            )
+            uri = repo_response["repositories"][0]["repositoryUri"] + ":" + tag
+        else:
+            logging.info("Custom component detected")
+            # the uri does not need patching
+            uri = og_uri
+        return uri
 
     def validate_base_path(self, base_path: str) -> None:
         file_prefix, storage_path = base_path.split("://")
