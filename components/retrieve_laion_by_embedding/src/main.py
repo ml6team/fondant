@@ -20,6 +20,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         num_images: int,
         aesthetic_score: int,
         aesthetic_weight: float,
+        **kwargs,
     ) -> None:
         """
 
@@ -29,6 +30,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                 between 0 and 9.
             aesthetic_weight: weight of the aesthetic embedding to add to the query,
                 between 0 and 1.
+            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.client = ClipClient(
             url="https://knn.laion.ai/knn-service",

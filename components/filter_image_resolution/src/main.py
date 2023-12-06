@@ -13,11 +13,18 @@ logger = logging.getLogger(__name__)
 class FilterImageResolutionComponent(PandasTransformComponent):
     """Component that filters images based on height and width."""
 
-    def __init__(self, *_, min_image_dim: int, max_aspect_ratio: float) -> None:
+    def __init__(
+        self,
+        *,
+        min_image_dim: int,
+        max_aspect_ratio: float,
+        **kwargs,
+    ) -> None:
         """
         Args:
             min_image_dim: minimum image dimension.
             max_aspect_ratio: maximum aspect ratio.
+            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.min_image_dim = min_image_dim
         self.max_aspect_ratio = max_aspect_ratio

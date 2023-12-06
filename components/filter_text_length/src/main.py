@@ -11,12 +11,13 @@ logger = logging.getLogger(__name__)
 class FilterTextLengthComponent(PandasTransformComponent):
     """A component that filters out text based on their length."""
 
-    def __init__(self, *_, min_characters_length: int, min_words_length: int):
+    def __init__(self, *, min_characters_length: int, min_words_length: int, **kwargs):
         """Setup component.
 
         Args:
             min_characters_length: minimum number of characters
             min_words_length: minimum number of words.
+            kwargs: Unhandled keyword arguments passed in by Fondant
         """
         self.min_characters_length = min_characters_length
         self.min_words_length = min_words_length

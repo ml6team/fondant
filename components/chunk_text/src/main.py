@@ -21,14 +21,16 @@ class ChunkTextComponent(PandasTransformComponent):
 
     def __init__(
         self,
-        *_,
+        *,
         chunk_size: int,
         chunk_overlap: int,
+        **kwargs,
     ):
         """
         Args:
             chunk_size: Maximum size of chunks to return.
             chunk_overlap: Overlap in characters between chunks.
+            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
