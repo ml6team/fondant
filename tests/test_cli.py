@@ -15,7 +15,7 @@ from fondant.cli import (
     component_from_module,
     execute,
     get_module,
-    pipeline_from_module,
+    pipeline_from_string,
     run_kfp,
     run_local,
     run_vertex,
@@ -107,11 +107,15 @@ def test_component_from_module_error(module_str):
     [
         __name__,
         "examples.example_modules.pipeline",
+        "examples.example_modules.pipeline:pipeline",
+        "examples.example_modules.pipeline:create_pipeline",
+        "examples.example_modules.pipeline:create_pipeline_with_args('test_pipeline')",
+        "examples.example_modules.pipeline:create_pipeline_with_args(name='test_pipeline')",
     ],
 )
 def test_pipeline_from_module(module_str):
     """Test that pipeline_from_string works."""
-    pipeline = pipeline_from_module(module_str)
+    pipeline = pipeline_from_string(module_str)
     assert pipeline.name == "test_pipeline"
 
 
@@ -122,12 +126,34 @@ def test_pipeline_from_module(module_str):
         "examples.example_modules.component",
         # module contains many pipeline instances
         "examples.example_modules.invalid_double_pipeline",
+        # Factory expects an argument
+        "examples.example_modules.pipeline:create_pipeline_with_args",
+        # Factory does not expect an argument
+        "examples.example_modules.pipeline:create_pipeline('test_pipeline')",
+        # Factory does not expect an argument
+        "examples.example_modules.pipeline:create_pipeline(name='test_pipeline')",
+        # Invalid argument
+        "examples.example_modules.pipeline:create_pipeline(name)",
+        # Not a variable or function
+        "examples.example_modules.pipeline:[]",
+        # Attribute doesn't exist
+        "examples.example_modules.pipeline:no_pipeline",
+        # Attribute is not a valid python name
+        "examples.example_modules.pipeline:pipe;line",
+        # Not a Pipeline
+        "examples.example_modules.pipeline:number",
     ],
 )
 def test_pipeline_from_module_error(module_str):
     """Test different error cases for pipeline_from_string."""
     with pytest.raises(PipelineImportError):
-        pipeline_from_module(module_str)
+        pipeline_from_string(module_str)
+
+
+def test_factory_error_propagated():
+    """Test that an error in the factory method is correctly propagated."""
+    with pytest.raises(NotImplementedError):
+        pipeline_from_string("examples.example_modules.pipeline:not_implemented")
 
 
 def test_execute_logic(monkeypatch):
