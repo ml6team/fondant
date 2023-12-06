@@ -10,7 +10,7 @@ from qdrant_client.qdrant_fastembed import uuid
 class IndexQdrantComponent(DaskWriteComponent):
     def __init__(
         self,
-        *_,
+        *,
         collection_name: str,
         location: Optional[str] = None,
         batch_size: int = 64,
@@ -26,6 +26,7 @@ class IndexQdrantComponent(DaskWriteComponent):
         host: Optional[str] = None,
         path: Optional[str] = None,
         force_disable_check_same_thread: bool = False,
+        **kwargs,
     ):
         """Initialize the IndexQdrantComponent with the component parameters."""
         self.client = QdrantClient(

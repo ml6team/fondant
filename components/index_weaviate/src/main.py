@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class IndexWeaviateComponent(DaskWriteComponent):
     def __init__(
         self,
-        *_,
+        *,
         weaviate_url: str,
         batch_size: int,
         dynamic: bool,
@@ -19,6 +19,7 @@ class IndexWeaviateComponent(DaskWriteComponent):
         overwrite: bool,
         class_name: str,
         vectorizer: t.Optional[str],
+        **kwargs,
     ):
         self.client = weaviate.Client(weaviate_url)
 

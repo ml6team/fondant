@@ -5,18 +5,25 @@ import typing as t
 import dask.dataframe as dd
 import pandas as pd
 
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.schema import Field
 
 
 class BaseComponent:
     """Base interface for each component, specifying only the constructor.
 
     Args:
-        spec: The specification of the component
+        consume: The schema the component should consume
+        produces: The schema the component should produce
         **kwargs: The provided user arguments are passed in as keyword arguments
     """
 
-    def __init__(self, spec: ComponentSpec, **kwargs):
+    def __init__(
+        self,
+        *,
+        consumes: t.Mapping[str, Field],
+        produces: t.Mapping[str, Field],
+        **kwargs,
+    ):
         pass
 
 

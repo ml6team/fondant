@@ -10,7 +10,7 @@ import datasets
 import huggingface_hub
 from datasets.features.features import generate_from_arrow_type
 from fondant.component import DaskWriteComponent
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.schema import Field
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -36,17 +36,18 @@ def convert_bytes_to_image(
 class WriteToHubComponent(DaskWriteComponent):
     def __init__(
         self,
-        spec: ComponentSpec,
         *,
+        consumes: t.Dict[str, Field],
         hf_token: str,
         username: str,
         dataset_name: str,
         image_column_names: t.Optional[list],
         column_name_mapping: t.Optional[dict],
+        **kwargs,
     ):
         """
         Args:
-            spec: Dynamic component specification describing the dataset to write
+            consumes: The schema the component should consume
             hf_token: The hugging face token used to write to the hub
             username: The username under which to upload the dataset
             dataset_name: The name of the dataset to upload
@@ -54,6 +55,7 @@ class WriteToHubComponent(DaskWriteComponent):
             image fields to HF hub format
             column_name_mapping: Mapping of the consumed fondant column names to the written hub
              column names.
+            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         huggingface_hub.login(token=hf_token)
 
@@ -63,7 +65,7 @@ class WriteToHubComponent(DaskWriteComponent):
         logger.info(f"Creating HF dataset repository under ID: '{repo_id}'")
         huggingface_hub.create_repo(repo_id=repo_id, repo_type="dataset", exist_ok=True)
 
-        self.spec = spec
+        self.consumes = consumes
         self.image_column_names = image_column_names
         self.column_name_mapping = column_name_mapping
 
@@ -74,7 +76,7 @@ class WriteToHubComponent(DaskWriteComponent):
         # Get columns to write and schema
         write_columns = []
         schema_dict = {}
-        for field_name, field in self.spec.consumes.items():
+        for field_name, field in self.consumes.items():
             column_name = field.name
             write_columns.append(column_name)
             if self.image_column_names and column_name in self.image_column_names:

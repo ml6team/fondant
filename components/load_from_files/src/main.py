@@ -290,7 +290,7 @@ def get_filesystem(path_uri: str) -> fsspec.spec.AbstractFileSystem | None:
 class LoadFromFiles(DaskLoadComponent):
     """Component that loads datasets from files."""
 
-    def __init__(self, *_, directory_uri: str) -> None:
+    def __init__(self, *_, directory_uri: str, **kwargs) -> None:
         self.directory_uri = directory_uri
 
     def load(self) -> dd.DataFrame:

@@ -352,13 +352,17 @@ class Executor(t.Generic[Component]):
         input_manifest: Manifest,
     ) -> Manifest:
         logging.info("Executing component")
-        component = component_cls(self.spec, **self.user_arguments)
+        component = component_cls(
+            consumes=self.operation_spec.inner_consumes,
+            produces=self.operation_spec.inner_produces,
+            **self.user_arguments,
+        )
         output_df = self._execute_component(
             component,
             manifest=input_manifest,
         )
         output_manifest = input_manifest.evolve(
-            operation_spec=OperationSpec(self.spec),
+            operation_spec=self.operation_spec,
             run_id=self.metadata.run_id,
         )
         self._write_data(dataframe=output_df, manifest=output_manifest)
