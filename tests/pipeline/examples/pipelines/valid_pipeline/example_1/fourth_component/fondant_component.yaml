@@ -3,13 +3,9 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-  images_data:
-    type: binary
+  additionalProperties: true
 
-  captions_data:
-    type: string
-
-  embeddings_data:
+  embeddings_array:
     type: array
     items:
       type: float32
