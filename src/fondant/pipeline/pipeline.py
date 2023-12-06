@@ -1,5 +1,4 @@
 """This module defines classes to represent a Fondant Pipeline."""
-import copy
 import datetime
 import hashlib
 import json
@@ -17,10 +16,10 @@ except ImportError:
 
 import pyarrow as pa
 
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
-from fondant.core.schema import Field, ProducesType, produces_to_dict
+from fondant.core.schema import Type
 
 logger = logging.getLogger(__name__)
 
@@ -133,9 +132,7 @@ class ComponentOp:
         name_or_path: t.Union[str, Path],
         *,
         consumes: t.Optional[t.Dict[str, str]] = None,
-        produces: t.Optional[
-            t.Union[t.Dict[str, pa.DataType], t.Dict[str, str]]
-        ] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         cache: t.Optional[bool] = True,
@@ -156,19 +153,41 @@ class ComponentOp:
         self.cache = self._configure_caching_from_image_tag(cache)
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
-        self.consumes = consumes
-        self.produces = produces_to_dict(produces)
+
+        self.operation_spec = OperationSpec(
+            self.component_spec,
+            consumes=consumes,
+            produces=produces,
+        )
 
         self.arguments = arguments or {}
-        self._add_component_argument("input_partition_rows", self.input_partition_rows)
-        self._add_component_argument("cache", self.cache)
-        self._add_component_argument("cluster_type", self.cluster_type)
-        self._add_component_argument("client_kwargs", self.client_kwargs)
-        self._add_component_argument("consumes", self.consumes)
-        self._add_component_argument("produces", self.produces)
+        self.arguments.update(
+            {
+                "input_partition_rows": input_partition_rows,
+                "cache": self.cache,
+                "cluster_type": cluster_type,
+                "client_kwargs": client_kwargs,
+                "consumes": self._dump_mapping(consumes),
+                "produces": self._dump_mapping(produces),
+            },
+        )
+
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
         self.resources = resources or Resources()
+
+    @staticmethod
+    def _dump_mapping(
+        mapping: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
+    ) -> dict:
+        if mapping is None:
+            return {}
+
+        serialized_mapping: t.Dict[str, t.Any] = mapping.copy()
+        for key, value in mapping.items():
+            if isinstance(value, pa.DataType):
+                serialized_mapping[key] = Type(value).to_json()
+        return serialized_mapping
 
     def _configure_caching_from_image_tag(
         self,
@@ -201,18 +220,6 @@ class ComponentOp:
                 return False
 
         return cache
-
-    def _add_component_argument(
-        self,
-        argument_name: str,
-        argument_value: t.Any,
-    ):
-        """Register component argument to arguments dict as well as component attributes."""
-        if hasattr(self, "arguments") is False:
-            self.arguments = {}
-
-        if argument_value is not None:
-            self.arguments[argument_name] = argument_value
 
     @property
     def dockerfile_path(self) -> t.Optional[Path]:
@@ -331,7 +338,7 @@ class Pipeline:
             )
 
         self._graph[operation.name] = {
-            "operation": copy.deepcopy(operation),
+            "operation": operation,
             "dependencies": [dataset.operation.name for dataset in datasets],
         }
         return Dataset(pipeline=self, operation=operation)
@@ -340,7 +347,7 @@ class Pipeline:
         self,
         name_or_path: t.Union[str, Path],
         *,
-        produces: t.Dict[str, pa.DataType],
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
@@ -348,21 +355,26 @@ class Pipeline:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
-        """Read data using the provided operation.
+        """
+        Read data using the provided component.
 
-
-        Arguments:
-            name_or_path: The name of a hub component or a path to a custom component directory.
-            produces: a dictionary of the fields to be produced by the component. The keys are the
-             names of the dataset fields. The values are the data type of the field to define the
-             schema of generic components
+        Args:
+            name_or_path: The name of a reusable component, or the path to the directory containing
+                a custom component.
+            produces: A mapping to update the fields produced by the operation as defined in the
+                component spec. The keys are the names of the fields to be received by the
+                component, while the values are the type of the field, or the name of the field to
+                map from the dataset.
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
             resources: The resources to assign to the operation.
+            cache: Set to False to disable caching, True by default.
             cluster_type: The type of cluster to use for distributed execution (default is "local").
-            client_kwargs: Keyword arguments used to initialise the dask client.
-            cache: Set to False in order to disable caching, True by default.
+            client_kwargs: Keyword arguments used to initialise the Dask client.
+
+        Returns:
+            An intermediate dataset.
         """
         if self._graph:
             msg = "For now, at most one read component can be applied per pipeline."
@@ -372,13 +384,13 @@ class Pipeline:
 
         operation = ComponentOp(
             name_or_path,
+            produces=produces,
             arguments=arguments,
             input_partition_rows=input_partition_rows,
             resources=resources,
             cache=cache,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
-            produces=produces,
         )
         return self._apply(operation)
 
@@ -429,10 +441,7 @@ class Pipeline:
         self.sort_graph()
         self._validate_pipeline_definition(run_id)
 
-    def _validate_pipeline_definition(  # ruff: noqa: PLR0912
-        self,
-        run_id: str,
-    ):
+    def _validate_pipeline_definition(self, run_id: str):
         """
         Validates the pipeline definition by ensuring that the consumed and produced subsets and
         their associated fields match and are invoked in the correct order.
@@ -444,22 +453,6 @@ class Pipeline:
             base_path: the base path where to store the pipelines artifacts
             run_id: the run id of the component
         """
-
-        def _validate_field_schema(manifest_field: Field, component_field: Field):
-            """Validate that the field schema matches."""
-            if component_field.type != manifest_field.type:
-                error_msg = (
-                    f"The invoked field '{component_field.name}' of the "
-                    f"'{component_spec.name}' component does not match the "
-                    f"previously created field type.\n The '{manifest_field.name}' "
-                    f"field is currently defined with the following type:\n"
-                    f"{manifest_field.type}\nThe current component to "
-                    f"trying to invoke it with this type:\n{component_field.type}"
-                )
-                raise InvalidPipelineDefinition(
-                    error_msg,
-                )
-
         if len(self._graph.keys()) == 0:
             logger.info("No components defined in the pipeline. Nothing to validate.")
             return
@@ -477,82 +470,43 @@ class Pipeline:
             cache_key="42",
         )
         for operation_specs in self._graph.values():
-            fondant_component_op = operation_specs["operation"]
-            component_spec = fondant_component_op.component_spec
-            component_op_consumes = fondant_component_op.consumes
-
-            if component_op_consumes:
-                # Get reverse mapping of component_op_consumes (component column-> dataset column)
-                component_op_consumes = {
-                    value: key for key, value in component_op_consumes.items()
-                }
+            component_op = operation_specs["operation"]
+            operation_spec = component_op.operation_spec
 
             if not load_component:
+                # Check subset exists
                 for (
                     component_field_name,
                     component_field,
-                ) in component_spec.consumes.items():
-                    dataset_field_name = component_field_name
-                    # Check if the invoked field is defined in the manifest
-                    if dataset_field_name not in manifest.fields:
-                        # Check if there exist a custom consumes mapping for the field
-                        if component_op_consumes:
-                            if (
-                                component_field_name in component_op_consumes
-                                and component_op_consumes[component_field_name]
-                                in manifest.fields
-                            ):
-                                dataset_field_name = component_op_consumes.pop(
-                                    component_field_name,
-                                )
-                            else:
-                                msg = (
-                                    f"Component '{component_spec.name}' is trying to invoke the"
-                                    f" field "
-                                    f"'{component_field_name}', which has not been defined "
-                                    f"or created "
-                                    f"in the previous components."
-                                )
-                                raise InvalidPipelineDefinition(msg)
-                        else:
-                            msg = (
-                                f"Component '{component_spec.name}' is trying to invoke the field "
-                                f"'{component_field_name}', which has not been defined or created "
-                                f"in the previous components."
-                            )
-                            raise InvalidPipelineDefinition(msg)
-                    _validate_field_schema(
-                        manifest.fields[dataset_field_name],
-                        component_spec.consumes[component_field_name],
-                    )
-
-                # Check for remaining custom consumes mappings
-                if component_op_consumes:
-                    if not component_spec.is_consumes_generic:
+                ) in operation_spec.outer_consumes.items():
+                    if component_field_name not in manifest.fields:
                         msg = (
-                            f"Found fields {component_op_consumes} in custom consumes "
-                            f"mapping for"
-                            f" component '{component_spec.name}'"
-                            f" which is not a generic component that does not have a "
-                            f"corresponding field in the component spec."
+                            f"Component '{component_op.name}' is trying to invoke the field "
+                            f"'{component_field_name}', which has not been defined or created "
+                            f"in the previous components."
                         )
-                        raise InvalidPipelineDefinition(msg)
+                        raise InvalidPipelineDefinition(
+                            msg,
+                        )
 
-                    for _, dataset_column in component_op_consumes.items():
-                        if dataset_column not in manifest.fields:
-                            msg = (
-                                f"Generic Component '{component_spec.name}' is trying to invoke"
-                                f" the field '{dataset_column}', which has not been defined or "
-                                f"created "
-                                f"in the previous components."
-                            )
-                            raise InvalidPipelineDefinition(msg)
+                    # Get the corresponding manifest fields
+                    manifest_field = manifest.fields[component_field_name]
 
-            manifest = manifest.evolve(
-                component_spec,
-                run_id=run_id,
-                produces=fondant_component_op.produces,
-            )
+                    # Check if the invoked field schema matches the current schema
+                    if component_field.type != manifest_field.type:
+                        msg = (
+                            f"The invoked field '{component_field_name}' of the "
+                            f"'{component_op.name}' component does not match  the "
+                            f"previously created field type.\n The '{manifest_field.name}' "
+                            f"field is currently defined with the following type:\n"
+                            f"{manifest_field.type}\nThe current component to "
+                            f"trying to invoke it with this type:\n{component_field.type}"
+                        )
+                        raise InvalidPipelineDefinition(
+                            msg,
+                        )
+
+            manifest = manifest.evolve(operation_spec, run_id=run_id)
             load_component = False
 
         logger.info("All pipeline component specifications match.")
@@ -577,8 +531,8 @@ class Dataset:
         self,
         name_or_path: t.Union[str, Path],
         *,
-        consumes: t.Optional[t.Dict[str, str]] = None,
-        produces: t.Optional[ProducesType] = None,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
@@ -587,35 +541,40 @@ class Dataset:
         client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
         """
-        Dataset operation to write the final output of the pipeline.
+        Apply the provided component on the dataset.
 
-        Arguments:
-            name_or_path: The name of a hub component or a path to a custom component directory.
-            consumes: a dictionary of the fields to be written by the component. The keys are the
-             names of the dataset fields and the values are the name of the columns to map to.
-            produces: a dictionary of the fields to be produced by the component. The keys are the
-                names of the dataset fields. The values can be either:
-                - A string representing the name of the column to map to for non-generic components
-                - The data type of the field produces that will be produced  for generic
-                components
+        Args:
+            name_or_path: The name of a reusable component, or the path to the directory containing
+                a custom component.
+            consumes: A mapping to update the fields consumed by the operation as defined in the
+                component spec. The keys are the names of the fields to be received by the
+                component, while the values are the type of the field, or the name of the field to
+                map from the input dataset.
+            produces: A mapping to update the fields produced by the operation as defined in the
+                component spec. The keys are the names of the fields to be produced by the
+                component, while the values are the type of the field, or the name that should be
+                used to write the field to the output dataset.
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
             resources: The resources to assign to the operation.
+            cache: Set to False to disable caching, True by default.
             cluster_type: The type of cluster to use for distributed execution (default is "local").
-            client_kwargs: Keyword arguments used to initialise the dask client.
-            cache: Set to False in order to disable caching, True by default.
+            client_kwargs: Keyword arguments used to initialise the Dask client.
+
+        Returns:
+            An intermediate dataset.
         """
         operation = ComponentOp(
             name_or_path,
+            consumes=consumes,
+            produces=produces,
             arguments=arguments,
             input_partition_rows=input_partition_rows,
             resources=resources,
             cache=cache,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
-            consumes=consumes,
-            produces=produces,
         )
         return self.pipeline._apply(operation, self)
 
@@ -623,7 +582,7 @@ class Dataset:
         self,
         name_or_path: t.Union[str, Path],
         *,
-        consumes: t.Optional[t.Dict[str, str]] = None,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
@@ -632,28 +591,34 @@ class Dataset:
         client_kwargs: t.Optional[dict] = None,
     ) -> None:
         """
-        Dataset operation to write the final output of the pipeline.
+        Write the dataset using the provided component.
 
-        Arguments:
-            name_or_path: The name of a hub component or a path to a custom component directory.
-            consumes: a dictionary of the fields to be written by the component. The keys are the
-             names of the dataset fields and the values are the name of the columns to map to.
+        Args:
+            name_or_path: The name of a reusable component, or the path to the directory containing
+                a custom component.
+            consumes: A mapping to update the fields consumed by the operation as defined in the
+                component spec. The keys are the names of the fields to be received by the
+                component, while the values are the type of the field, or the name of the field to
+                map from the input dataset.
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
             resources: The resources to assign to the operation.
+            cache: Set to False to disable caching, True by default.
             cluster_type: The type of cluster to use for distributed execution (default is "local").
-            client_kwargs: Keyword arguments used to initialise the dask client.
-            cache: Set to False in order to disable caching, True by default.
+            client_kwargs: Keyword arguments used to initialise the Dask client.
+
+        Returns:
+            An intermediate dataset.
         """
         operation = ComponentOp(
             name_or_path,
+            consumes=consumes,
             arguments=arguments,
             input_partition_rows=input_partition_rows,
             resources=resources,
             cache=cache,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
-            consumes=consumes,
         )
         self.pipeline._apply(operation, self)

@@ -23,7 +23,7 @@ from fondant.component.executor import (
 )
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.manifest import Manifest, Metadata
-from fondant.core.schema import produces_to_dict
+from fondant.pipeline import ComponentOp
 
 components_path = Path(__file__).parent / "examples/component_specs"
 base_path = Path(__file__).parent / "examples/mock_base_path"
@@ -94,7 +94,7 @@ def test_component_arguments(metadata):
         "embedding": pa.list_(pa.int32()),
         "data": "array",
     }
-    serialized_produces = json.dumps(produces_to_dict(user_produces))
+    serialized_produces = json.dumps(ComponentOp._dump_mapping(user_produces))
 
     sys.argv = [
         "",
@@ -135,7 +135,6 @@ def test_component_arguments(metadata):
     expected_partition_row_arg = 100
     assert executor.input_partition_rows == expected_partition_row_arg
     assert executor.cache is True
-    assert executor.produces == user_produces
     assert executor.user_arguments == {
         "integer_default_arg": 0,
         "float_default_arg": 3.14,

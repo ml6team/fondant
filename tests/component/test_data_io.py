@@ -6,7 +6,7 @@ import pyarrow as pa
 import pytest
 from dask.distributed import Client
 from fondant.component.data_io import DaskDataLoader, DaskDataWriter
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.manifest import Manifest
 
 manifest_path = Path(__file__).parent / "examples/data/manifest.json"
@@ -50,13 +50,16 @@ def component_spec_produces():
 
 @pytest.fixture()
 def dataframe(manifest, component_spec):
-    data_loader = DaskDataLoader(manifest=manifest, component_spec=component_spec)
+    data_loader = DaskDataLoader(
+        manifest=manifest,
+        operation_spec=OperationSpec(component_spec),
+    )
     return data_loader.load_dataframe()
 
 
 def test_load_dataframe(manifest, component_spec):
     """Test merging of fields in a dataframe based on a component_spec."""
-    dl = DaskDataLoader(manifest=manifest, component_spec=component_spec)
+    dl = DaskDataLoader(manifest=manifest, operation_spec=OperationSpec(component_spec))
     dataframe = dl.load_dataframe()
     assert len(dataframe) == NUMBER_OF_TEST_ROWS
     assert list(dataframe.columns) == [
@@ -71,40 +74,30 @@ def test_load_dataframe(manifest, component_spec):
 def test_load_dataframe_custom_consumes(manifest, component_spec_consumes):
     """Test loading of columns based on custom defined consumes."""
     consumes = {
-        # Consumes remapping (dataset field -> component field)
-        "Name": "LastName",
-        "HP": "HealthPoints",
+        # Consumes remapping (component field <- input dataset field)
+        "LastName": "Name",
+        "HealthPoints": "HP",
         # Additional columns present in the dataset (defined through generic fields)
-        "Type 2": "CustomFieldName",
+        "Type 2": pa.string(),
     }
     dl = DaskDataLoader(
         manifest=manifest,
-        component_spec=component_spec_consumes,
-        consumes=consumes,
+        operation_spec=OperationSpec(component_spec_consumes, consumes=consumes),
     )
-    non_generic_consumes, generic_consumes = dl._resolve_custom_consumes()
-
     dataframe = dl.load_dataframe()
 
-    assert non_generic_consumes == {
-        "Name": "LastName",
-        "HP": "HealthPoints",
-    }
-    assert generic_consumes == {
-        "Type 2": "CustomFieldName",
-    }
     assert list(dataframe.columns) == [
         "LastName",
         "HealthPoints",
         "Type 1",
-        "CustomFieldName",
+        "Type 2",
     ]
     assert dataframe.index.name == "id"
 
 
 def test_load_dataframe_default(manifest, component_spec):
     """Test merging of subsets in a dataframe based on a component_spec."""
-    dl = DaskDataLoader(manifest=manifest, component_spec=component_spec)
+    dl = DaskDataLoader(manifest=manifest, operation_spec=OperationSpec(component_spec))
     dataframe = dl.load_dataframe()
     number_workers = os.cpu_count()
     # repartitioning  in dask is an approximation
@@ -115,7 +108,7 @@ def test_load_dataframe_rows(manifest, component_spec):
     """Test merging of fields in a dataframe based on a component_spec."""
     dl = DaskDataLoader(
         manifest=manifest,
-        component_spec=component_spec,
+        operation_spec=OperationSpec(component_spec),
         input_partition_rows=100,
     )
     dataframe = dl.load_dataframe()
@@ -136,7 +129,10 @@ def test_write_dataset(
     with tmp_path_factory.mktemp("temp") as temp_dir:
         # override the base path of the manifest with the temp dir
         manifest.update_metadata("base_path", str(temp_dir))
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            operation_spec=OperationSpec(component_spec),
+        )
         # write dataframe to temp dir
         data_writer.write_dataframe(dataframe, dask_client)
         # read written data and assert
@@ -160,12 +156,12 @@ def test_write_dataset_custom_produces(
 ):
     """Test writing out subsets."""
     produces = {
-        # Custom produces (output dataset field -> component field)
-        "LastName": "Name",
-        "HealthPoints": "HP",
-        "CustomFieldName": "Type 1",
+        # Custom produces (component field -> output dataset field)
+        "Name": "LastName",
+        "HP": "HealthPoints",
+        "Type 1": "CustomFieldName",
         # Additional columns produced in the component and not defined in the dataset
-        # (output dataset field -> pyarrow data type)
+        # (component / output dataset field -> pyarrow data type)
         "Type 2": pa.string(),
     }
 
@@ -175,10 +171,8 @@ def test_write_dataset_custom_produces(
         manifest.update_metadata("base_path", str(temp_dir))
         data_writer = DaskDataWriter(
             manifest=manifest,
-            component_spec=component_spec_produces,
-            produces=produces,
+            operation_spec=OperationSpec(component_spec_produces, produces=produces),
         )
-        non_generic_produces, generic_produces = data_writer._resolve_custom_produces()
 
         # write dataframe to temp dir
         data_writer.write_dataframe(dataframe, dask_client)
@@ -189,14 +183,6 @@ def test_write_dataset_custom_produces(
             / manifest.run_id
             / component_spec_produces.component_folder_name,
         )
-        assert non_generic_produces == {
-            "LastName": "Name",
-            "HealthPoints": "HP",
-            "CustomFieldName": "Type 1",
-        }
-        assert generic_produces == {
-            "Type 2": pa.string(),
-        }
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert list(dataframe.columns) == expected_columns
         assert dataframe.index.name == "id"
@@ -217,7 +203,10 @@ def test_write_reset_index(
     with tmp_path_factory.mktemp("temp") as fn:
         manifest.update_metadata("base_path", str(fn))
 
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            operation_spec=OperationSpec(component_spec),
+        )
         data_writer.write_dataframe(dataframe, dask_client)
         dataframe = dd.read_parquet(fn)
         assert dataframe.index.name == "id"
@@ -241,7 +230,7 @@ def test_write_divisions(  # noqa: PLR0913
 
         data_writer = DaskDataWriter(
             manifest=manifest,
-            component_spec=component_spec,
+            operation_spec=OperationSpec(component_spec),
         )
 
         data_writer.write_dataframe(dataframe, dask_client)
@@ -264,7 +253,10 @@ def test_write_fields_invalid(
         manifest.update_metadata("base_path", str(fn))
         # Drop one of the columns required in the output
         dataframe = dataframe.drop(["Type 2"], axis=1)
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            operation_spec=OperationSpec(component_spec),
+        )
         expected_error_msg = (
             r"Fields \['Type 2'\] defined in output dataset "
             r"but not found in dataframe"
@@ -287,7 +279,10 @@ def test_write_fields_invalid_several_fields_missing(
         # Drop one of the columns required in the output
         dataframe = dataframe.drop(["Type 1"], axis=1)
         dataframe = dataframe.drop(["Type 2"], axis=1)
-        data_writer = DaskDataWriter(manifest=manifest, component_spec=component_spec)
+        data_writer = DaskDataWriter(
+            manifest=manifest,
+            operation_spec=OperationSpec(component_spec),
+        )
         expected_error_msg = (
             r"Fields \['Type 1', 'Type 2'\] defined in output dataset "
             r"but not found in dataframe"

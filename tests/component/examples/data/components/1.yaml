@@ -7,7 +7,6 @@ consumes:
     type: "string"
   HP:
     type: "int32"
-
   Type 1:
     type: "string"
   Type 2:

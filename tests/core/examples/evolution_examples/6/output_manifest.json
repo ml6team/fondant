@@ -21,6 +21,10 @@
       "type": "binary",
       "location": "/example_component_1"
     },
+    "images_data": {
+      "location": "/example_component",
+      "type": "binary"
+    },
     "text_string": {
       "type": "string",
       "location": "/example_component_1"

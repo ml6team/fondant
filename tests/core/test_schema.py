@@ -1,7 +1,11 @@
+import json
+
 import pyarrow as pa
 import pytest
+from fondant.component.executor import Executor
 from fondant.core.exceptions import InvalidTypeSchema
-from fondant.core.schema import Type, dict_to_produces, produces_to_dict
+from fondant.core.schema import Type
+from fondant.pipeline import ComponentOp
 
 
 def test_produces_parsing():
@@ -14,9 +18,9 @@ def test_produces_parsing():
         "text": {"type": "string"},
         "embedding": {"type": "array", "items": {"type": "int32"}},
     }
-    actual_produces_to_dict = produces_to_dict(produces)
+    actual_produces_to_dict = ComponentOp._dump_mapping(produces)
     assert actual_produces_to_dict == expected_produces_to_dict
-    assert dict_to_produces(actual_produces_to_dict) == produces
+    assert Executor._parse_mapping(json.dumps(actual_produces_to_dict)) == produces
 
 
 def test_valid_type():

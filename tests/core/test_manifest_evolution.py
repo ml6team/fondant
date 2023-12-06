@@ -4,10 +4,11 @@ from pathlib import Path
 import pyarrow as pa
 import pytest
 import yaml
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
-from fondant.core.schema import Field, Type
+
+EXAMPLES_PATH = Path(__file__).parent / "examples/evolution_examples"
 
 EXAMPLES_PATH = Path(__file__).parent / "examples/evolution_examples"
 
@@ -18,7 +19,7 @@ VALID_EXAMPLE = {
     "4": {"produces": None},
     "5": {
         "produces": {
-            "embedding_data": Type(pa.list_(pa.float32())).to_json(),
+            "embedding_data": pa.list_(pa.float32()),
             "audio_data": "audio_array",
         },
     },
@@ -37,26 +38,26 @@ INVALID_EXAMPLES = {
         "produces": {
             "embedding_data": True,
         },
-        "3":
-        # Non-existent field in the component spec
-        {
-            "produces": {
-                "images_array": "numpy_array",
-            },
+    },
+    "3":
+    # Non-existent field in the component spec
+    {
+        "produces": {
+            "images_array": "numpy_array",
         },
-        "5":
-        # Generic produces that has a field in the component mapping that is not in the
-        # component spec
-        {
-            "produces": {
-                "images_array": "images_data",
-            },
+    },
+    "5":
+    # Generic produces that has a field in the component mapping that is not in the
+    # component spec
+    {
+        "produces": {
+            "images_array": "images_data",
         },
-        "6": {
-            # Non-generic component that has a Field in the produces mapping
-            "produces": {
-                "embedding_data": Field("embedding_data", Type(pa.list_(pa.float32()))),
-            },
+    },
+    "6": {
+        # Non-generic component that has a type in the produces mapping
+        "produces": {
+            "embedding_data": pa.list_(pa.float32()),
         },
     },
 }
@@ -90,10 +91,10 @@ def test_evolution(input_manifest, component_spec, output_manifest, test_conditi
     component_spec = ComponentSpec(component_spec)
     for test_condition in test_conditions:
         produces = test_condition["produces"]
+        operation_spec = OperationSpec(component_spec, produces=produces)
         evolved_manifest = manifest.evolve(
-            component_spec=component_spec,
+            component_spec=operation_spec,
             run_id=run_id,
-            produces=produces,
         )
         assert evolved_manifest._specification == output_manifest
 
@@ -113,11 +114,11 @@ def test_invalid_evolution_examples(
     component_spec = ComponentSpec(component_spec)
     for test_condition in test_conditions:
         produces = test_condition["produces"]
-        with pytest.raises(InvalidPipelineDefinition):
+        with pytest.raises(InvalidPipelineDefinition):  # noqa: PT012
+            operation_spec = OperationSpec(component_spec, produces=produces)
             manifest.evolve(
-                component_spec=component_spec,
+                component_spec=operation_spec,
                 run_id=run_id,
-                produces=produces,
             )
 
 

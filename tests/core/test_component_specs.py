@@ -93,6 +93,10 @@ def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     """Test that the created kubeflow component matches the expected kubeflow component."""
     fondant_component = ComponentSpec(valid_fondant_schema)
     kubeflow_component = fondant_component.kubeflow_specification
+    with open("./new_spec", "w") as f:
+        import json
+
+        json.dump(kubeflow_component._specification, f)
     assert kubeflow_component._specification == valid_kubeflow_schema
 
 
@@ -152,12 +156,12 @@ def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
 def test_component_spec_generic_consumes(valid_fondant_schema_generic_consumes):
     """Test that a component spec with generic consumes is detected."""
     component_spec = ComponentSpec(valid_fondant_schema_generic_consumes)
-    assert component_spec.is_consumes_generic is True
-    assert component_spec.is_produces_generic is False
+    assert component_spec.is_generic("consumes") is True
+    assert component_spec.is_generic("produces") is False
 
 
 def test_component_spec_generic_produces(valid_fondant_schema_generic_produces):
     """Test that a component spec with generic produces is detected."""
     component_spec = ComponentSpec(valid_fondant_schema_generic_produces)
-    assert component_spec.is_consumes_generic is False
-    assert component_spec.is_produces_generic is True
+    assert component_spec.is_generic("consumes") is False
+    assert component_spec.is_generic("produces") is True

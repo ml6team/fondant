@@ -16,6 +16,7 @@ from pathlib import Path
 import dask
 import dask.dataframe as dd
 import pandas as pd
+import pyarrow as pa
 from dask.distributed import Client, LocalCluster
 from fsspec import open as fs_open
 
@@ -27,9 +28,9 @@ from fondant.component import (
     PandasTransformComponent,
 )
 from fondant.component.data_io import DaskDataLoader, DaskDataWriter
-from fondant.core.component_spec import Argument, ComponentSpec
+from fondant.core.component_spec import Argument, ComponentSpec, OperationSpec
 from fondant.core.manifest import Manifest, Metadata
-from fondant.core.schema import ProducesType, dict_to_produces
+from fondant.core.schema import Type
 
 dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)
@@ -68,8 +69,8 @@ class Executor(t.Generic[Component]):
         input_partition_rows: int,
         cluster_type: t.Optional[str] = None,
         client_kwargs: t.Optional[dict] = None,
-        consumes: t.Optional[t.Dict[str, str]] = None,
-        produces: t.Optional[ProducesType] = None,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
     ) -> None:
         self.spec = spec
         self.cache = cache
@@ -78,8 +79,8 @@ class Executor(t.Generic[Component]):
         self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
-        self.consumes = consumes
-        self.produces = produces
+
+        self.operation_spec = OperationSpec(spec, consumes=consumes, produces=produces)
 
         if cluster_type == "local":
             client_kwargs = client_kwargs or {
@@ -117,8 +118,8 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--input_partition_rows", type=int)
         parser.add_argument("--cluster_type", type=str)
         parser.add_argument("--client_kwargs", type=json.loads)
-        parser.add_argument("--consumes", type=json.loads)
-        parser.add_argument("--produces", type=json.loads)
+        parser.add_argument("--consumes", type=cls._parse_mapping)
+        parser.add_argument("--produces", type=cls._parse_mapping)
         args, _ = parser.parse_known_args()
 
         if "component_spec" not in args:
@@ -126,21 +127,15 @@ class Executor(t.Generic[Component]):
             raise ValueError(msg)
 
         component_spec = ComponentSpec(args.component_spec)
-        input_partition_rows = args.input_partition_rows
-        cache = args.cache
-        cluster_type = args.cluster_type
-        client_kwargs = args.client_kwargs
-        consumes = args.consumes
-        produces = dict_to_produces(args.produces)
 
         return cls.from_spec(
             component_spec,
-            cache=cache,
-            input_partition_rows=input_partition_rows,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
-            consumes=consumes,
-            produces=produces,
+            cache=args.cache,
+            input_partition_rows=args.input_partition_rows,
+            cluster_type=args.cluster_type,
+            client_kwargs=args.client_kwargs,
+            consumes=args.consumes,
+            produces=args.produces,
         )
 
     @classmethod
@@ -152,32 +147,22 @@ class Executor(t.Generic[Component]):
         input_partition_rows: int,
         cluster_type: t.Optional[str],
         client_kwargs: t.Optional[dict],
-        consumes: t.Optional[dict],
-        produces: t.Optional[dict],
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(component_spec))
 
-        if "component_spec" in args_dict:
-            args_dict.pop("component_spec")
-
-        if "input_partition_rows" in args_dict:
-            args_dict.pop("input_partition_rows")
-
-        if "cache" in args_dict:
-            args_dict.pop("cache")
-
-        if "cluster_type" in args_dict:
-            args_dict.pop("cluster_type")
-
-        if "client_kwargs" in args_dict:
-            args_dict.pop("client_kwargs")
-
-        if "consumes" in args_dict:
-            args_dict.pop("consumes")
-
-        if "produces" in args_dict:
-            args_dict.pop("produces")
+        for argument in [
+            "component_spec",
+            "input_partition_rows",
+            "cache",
+            "cluster_type",
+            "client_kwargs",
+            "consumes",
+            "produces",
+        ]:
+            args_dict.pop(argument, None)
 
         input_manifest_path = args_dict.pop("input_manifest_path")
         output_manifest_path = args_dict.pop("output_manifest_path")
@@ -197,6 +182,16 @@ class Executor(t.Generic[Component]):
             consumes=consumes,
             produces=produces,
         )
+
+    @staticmethod
+    def _parse_mapping(json_mapping: str) -> t.Mapping:
+        """Parse a json mapping to a Python mapping with Fondant types."""
+        mapping = json.loads(json_mapping)
+
+        for key, value in mapping.items():
+            if isinstance(value, dict):
+                mapping[key] = Type.from_json(value).value
+        return mapping
 
     @classmethod
     def _add_and_parse_args(cls, spec: ComponentSpec):
@@ -277,13 +272,11 @@ class Executor(t.Generic[Component]):
         dataframe: dd.DataFrame,
         *,
         manifest: Manifest,
-        produces: t.Optional[t.Dict[str, t.Any]] = None,
     ):
         """Create a data writer given a manifest and writes out the index and subsets."""
         data_writer = DaskDataWriter(
             manifest=manifest,
-            component_spec=self.spec,
-            produces=produces,
+            operation_spec=self.operation_spec,
         )
 
         data_writer.write_dataframe(dataframe, self.client)
@@ -367,13 +360,8 @@ class Executor(t.Generic[Component]):
         output_manifest = input_manifest.evolve(
             component_spec=self.spec,
             run_id=self.metadata.run_id,
-            produces=self.produces,
         )
-        self._write_data(
-            dataframe=output_df,
-            manifest=output_manifest,
-            produces=self.produces,
-        )
+        self._write_data(dataframe=output_df, manifest=output_manifest)
 
         return output_manifest
 
@@ -509,9 +497,8 @@ class DaskTransformExecutor(TransformExecutor[DaskTransformComponent]):
         """
         data_loader = DaskDataLoader(
             manifest=manifest,
-            component_spec=self.spec,
+            operation_spec=self.operation_spec,
             input_partition_rows=self.input_partition_rows,
-            consumes=self.consumes,
         )
         dataframe = data_loader.load_dataframe()
         return component.transform(dataframe)
@@ -562,9 +549,8 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         """
         data_loader = DaskDataLoader(
             manifest=manifest,
-            component_spec=self.spec,
+            operation_spec=self.operation_spec,
             input_partition_rows=self.input_partition_rows,
-            consumes=self.consumes,
         )
         dataframe = data_loader.load_dataframe()
 
@@ -607,20 +593,13 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
     ) -> None:
         data_loader = DaskDataLoader(
             manifest=manifest,
-            component_spec=self.spec,
+            operation_spec=self.operation_spec,
             input_partition_rows=self.input_partition_rows,
-            consumes=self.consumes,
         )
         dataframe = data_loader.load_dataframe()
         component.write(dataframe)
 
-    def _write_data(
-        self,
-        dataframe: dd.DataFrame,
-        *,
-        manifest: Manifest,
-        produces: t.Optional[t.Dict[str, t.Any]] = None,
-    ):
+    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
