@@ -9,12 +9,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import jsonschema.exceptions
+import pyarrow as pa
 import yaml
 from jsonschema import Draft4Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
-from fondant.core.exceptions import InvalidComponentSpec
+from fondant.core.exceptions import InvalidComponentSpec, InvalidPipelineDefinition
 from fondant.core.schema import Field, Type
 
 
@@ -168,6 +169,7 @@ class ComponentSpec:
             {
                 name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification.get("consumes", {}).items()
+                if name != "additionalProperties"
             },
         )
 
@@ -178,8 +180,21 @@ class ComponentSpec:
             {
                 name: Field(name=name, type=Type.from_json(field))
                 for name, field in self._specification.get("produces", {}).items()
+                if name != "additionalProperties"
             },
         )
+
+    def is_generic(self, mapping: str) -> bool:
+        """Returns a boolean indicating whether the provided mapping is generic.
+
+        Args:
+            mapping: "consumes" or "produces"
+        """
+        additional_fields = self._specification.get(mapping, {}).get(
+            "additionalProperties",
+        )
+
+        return bool(additional_fields)
 
     @property
     def previous_index(self) -> t.Optional[str]:
@@ -269,6 +284,157 @@ class ComponentSpec:
         if not isinstance(other, ComponentSpec):
             return False
         return self._specification == other._specification
+
+
+class OperationSpec:
+    """A spec for the operation, which contains the `consumes` and `produces` sections of the
+    component spec, updated with the `consumes` and `produces` mappings provided as arguments to
+    the operation.
+    """
+
+    def __init__(
+        self,
+        specification: ComponentSpec,
+        *,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+    ) -> None:
+        self.specification = specification
+
+        self._mappings = {
+            "consumes": consumes,
+            "produces": produces,
+        }
+        self._validate_mappings()
+
+        self._inner_consumes: t.Optional[t.Mapping[str, Field]] = None
+        self._outer_consumes: t.Optional[t.Mapping[str, Field]] = None
+        self._inner_produces: t.Optional[t.Mapping[str, Field]] = None
+        self._outer_produces: t.Optional[t.Mapping[str, Field]] = None
+
+    def _validate_mappings(self) -> None:
+        """Validate received consumes and produces mappings on their types."""
+        for name, mapping in self._mappings.items():
+            if not mapping:
+                continue
+            for key, value in mapping.items():
+                if not isinstance(value, (str, pa.DataType)):
+                    msg = f"Unexpected type {type(value)} received for key {key} in {name} mapping"
+                    raise InvalidPipelineDefinition(msg)
+
+    def _inner_mapping(self, name: str) -> t.Mapping[str, Field]:
+        """Calculate the "inner mapping" of the operation. This is the mapping that the component
+        `transform` (or equivalent) method will receive. This is calculated by starting from the
+        component spec section, and updating it with any string to type mappings from the
+        argument mapping.
+
+        Args:
+            name: "consumes" or "produces"
+        """
+        spec_mapping = getattr(self.specification, name)
+        args_mapping = self._mappings[name]
+
+        if not args_mapping:
+            return spec_mapping
+
+        mapping = dict(spec_mapping)
+
+        for key, value in args_mapping.items():
+            if not isinstance(value, pa.DataType):
+                continue
+
+            if not self.specification.is_generic(name):
+                msg = (
+                    f"Component {self.specification.name} does not allow specifying additional "
+                    f"fields but received {key}."
+                )
+                raise InvalidPipelineDefinition(msg)
+
+            if key not in spec_mapping:
+                mapping[key] = Field(name=key, type=Type(value))
+            else:
+                spec_type = spec_mapping[key].type.value
+                if spec_type == value:
+                    # Same info in mapping and component spec, let it pass
+                    pass
+                else:
+                    msg = (
+                        f"Received pyarrow DataType value {value} for key {key} in the "
+                        f"`{name}` argument passed to the operation, but {key} is "
+                        f"already defined in the `{name}` section of the component spec "
+                        f"with type {spec_type}"
+                    )
+                    raise InvalidPipelineDefinition(msg)
+
+        return types.MappingProxyType(mapping)
+
+    def _outer_mapping(self, name: str) -> t.Mapping[str, Field]:
+        """Calculate the "outer mapping" of the operation. This is the mapping that the dataIO
+        needs to read / write. This is calculated by starting from the "inner mapping" updating it
+        with any string to string mappings from the argument mapping.
+
+        Args:
+            name: "consumes" or "produces"
+        """
+        spec_mapping = getattr(self, f"inner_{name}")
+        args_mapping = self._mappings[name]
+
+        if not args_mapping:
+            return spec_mapping
+
+        mapping = dict(spec_mapping)
+
+        for key, value in args_mapping.items():
+            if not isinstance(value, str):
+                continue
+
+            if key in spec_mapping:
+                mapping[value] = Field(name=value, type=mapping.pop(key).type)
+            else:
+                msg = (
+                    f"Received a string value for key {key} in the `{name}` "
+                    f"argument passed to the operation, but {key} is not defined in "
+                    f"the `{name}` section of the component spec."
+                )
+                raise InvalidPipelineDefinition(msg)
+
+        return types.MappingProxyType(mapping)
+
+    @property
+    def inner_consumes(self) -> t.Mapping[str, Field]:
+        """The "inner" `consumes` mapping which the component `transform` (or equivalent) method
+        will receive.
+        """
+        if self._inner_consumes is None:
+            self._inner_consumes = self._inner_mapping("consumes")
+
+        return self._inner_consumes
+
+    @property
+    def outer_consumes(self) -> t.Mapping[str, Field]:
+        """The "outer" `consumes` mapping which the dataIO needs to read / write."""
+        if self._outer_consumes is None:
+            self._outer_consumes = self._outer_mapping("consumes")
+
+        return self._outer_consumes
+
+    @property
+    def inner_produces(self) -> t.Mapping[str, Field]:
+        """The "inner" `produces` mapping which the component `transform` (or equivalent) method
+        will receive.
+        """
+        if self._inner_produces is None:
+            self._inner_produces = self._inner_mapping("produces")
+
+        return self._inner_produces
+
+    @property
+    def outer_produces(self) -> t.Mapping[str, Field]:
+        """The "outer" `produces` mapping which the dataIO needs to read / write."""
+        if self._outer_produces is None:
+            self._outer_produces = self._outer_mapping("produces")
+
+        return self._outer_produces
 
 
 class KubeflowComponentSpec:

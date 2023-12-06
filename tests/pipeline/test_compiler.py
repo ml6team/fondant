@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from unittest import mock
 
+import pyarrow as pa
 import pytest
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Metadata
@@ -37,6 +38,7 @@ TEST_PIPELINES = [
                         memory_limit="512M",
                         memory_request="256M",
                     ),
+                    produces={"images_data": pa.binary()},
                 ),
                 "cache_key": "1",
             },
@@ -66,6 +68,7 @@ TEST_PIPELINES = [
                 "component_op": ComponentOp(
                     Path(COMPONENTS_PATH / "example_1" / "first_component"),
                     arguments={"storage_args": "a dummy string arg"},
+                    produces={"images_data": pa.binary()},
                 ),
                 "cache_key": "1",
             },
@@ -288,6 +291,7 @@ def test_docker_configuration(tmp_path_factory):
             accelerator_number=1,
             accelerator_name="GPU",
         ),
+        produces={"captions_data": pa.string()},
     )
 
     compiler = DockerCompiler()
@@ -315,6 +319,7 @@ def test_invalid_docker_configuration(tmp_path_factory):
             accelerator_number=1,
             accelerator_name="unknown resource",
         ),
+        produces={"captions_data": pa.string()},
     )
 
     compiler = DockerCompiler()
@@ -379,6 +384,7 @@ def test_kubeflow_configuration(tmp_path_factory):
             accelerator_number=1,
             accelerator_name="GPU",
         ),
+        produces={"captions_data": pa.string()},
     )
     compiler = KubeFlowCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
@@ -408,6 +414,7 @@ def test_invalid_kubeflow_configuration(tmp_path_factory):
             accelerator_number=1,
             accelerator_name="unknown resource",
         ),
+        produces={"captions_data": pa.string()},
     )
 
     compiler = KubeFlowCompiler()
@@ -476,6 +483,7 @@ def test_vertex_configuration(tmp_path_factory):
             accelerator_number=1,
             accelerator_name="NVIDIA_TESLA_K80",
         ),
+        produces={"captions_data": pa.string()},
     )
     compiler = VertexCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
@@ -503,8 +511,8 @@ def test_invalid_vertex_configuration(tmp_path_factory):
             accelerator_number=1,
             accelerator_name="unknown resource",
         ),
+        produces={"captions_data": pa.string()},
     )
-
     compiler = VertexCompiler()
     with pytest.raises(InvalidPipelineDefinition):
         compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
@@ -528,6 +536,7 @@ def test_caching_dependency_docker(tmp_path_factory):
         dataset = pipeline.read(
             Path(COMPONENTS_PATH / "example_1" / "first_component"),
             arguments={"storage_args": f"{arg}"},
+            produces={"images_data": pa.binary()},
         )
         dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
@@ -570,6 +579,7 @@ def test_caching_dependency_kfp(tmp_path_factory):
         dataset = pipeline.read(
             Path(COMPONENTS_PATH / "example_1" / "first_component"),
             arguments={"storage_args": f"{arg}"},
+            produces={"images_data": pa.binary()},
         )
         dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
