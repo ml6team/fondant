@@ -10,8 +10,6 @@ from fondant.core.manifest import Manifest
 
 EXAMPLES_PATH = Path(__file__).parent / "examples/evolution_examples"
 
-EXAMPLES_PATH = Path(__file__).parent / "examples/evolution_examples"
-
 VALID_EXAMPLE = {
     "1": {"produces": None},
     "2": {"produces": None},
