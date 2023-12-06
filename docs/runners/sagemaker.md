@@ -17,24 +17,26 @@ pip install fondant[sagemaker]
 ```
 
 ### Prerequisites
-
+- You will need a sagemaker domain and user with the correct permissions. You can follow the instructions [here](https://docs.aws.amazon.com/sagemaker/latest/dg/onboard-quick-start.html) to set this up. Make sure to note down the role arn( arn:aws:iam::<account_id>:role/service-role/AmazonSageMaker-ExecutionRole-<creation_timestamp>) of the user you are using since you will need it.
 - You will need to have an AWS account and have the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) installed and configured.
-- Fondant on SageMaker uses an s3 bucket to store the pipeline artifacts. You will need to create an s3 bucket and make sure that the role you are using has access to it. You can create a bucket using the AWS CLI:
+- Fondant on SageMaker uses an s3 bucket to store the pipeline artifacts. You will need to create an s3 bucket that SageMaker can use to store artifacts (manifests and data). You can create a bucket using the AWS CLI:
+
     ```bash
-    aws s3 create-bucket --bucket <bucket_name> --region <region>
+        aws s3 mb s3://<bucket-name>
     ```
+
+Regarding [the bucket and SageMaker permissions](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-ex-bucket.html):
+- If you use the the term 'sagemaker' in the name of the bucket, SageMaker will automatically have the correct permissions to the access bucket.
+- If you use any other name or existing bucket you will need to add a policy on the role that SageMaker uses to access the bucket. 
+
+
 You can then set this bucket as the `base_path` of your pipeline with the syntax: `s3://<bucket_name>/<path>`.
--  Setup a [SageMaker domain](https://docs.aws.amazon.com/sagemaker/latest/dg/onboard-quick-start.html)
-TODO: try with new domains on fresh account
 
 ### Running a pipeline with SageMaker
 
 
 Since compiling a sagemaker spec requires access to the AWS SageMaker API, you will need to be logged in to 
-AWS with a role that has all the required permissions:
-- TODO: add instructions
-
-
+AWS with a role that has all the required permissions to launch a SageMaker pipeline. 
 
 
 === "Console"
