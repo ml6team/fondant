@@ -3,14 +3,13 @@ description: This is an example component
 image: example_component:latest
 
 consumes:
-  Name:
+  LastName:
     type: "string"
-  HP:
+  HealthPoints:
     type: "int32"
   Type 1:
     type: "string"
-  Type 2:
-    type: "string"
+  additionalProperties: true
 
 produces:
   Name:

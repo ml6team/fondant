@@ -7,7 +7,7 @@ import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 from dask.distributed import Client
 
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.component_spec import OperationSpec
 from fondant.core.manifest import Manifest
 
 logger = logging.getLogger(__name__)
@@ -16,9 +16,9 @@ DEFAULT_INDEX_NAME = "id"
 
 
 class DataIO:
-    def __init__(self, *, manifest: Manifest, component_spec: ComponentSpec) -> None:
+    def __init__(self, *, manifest: Manifest, operation_spec: OperationSpec) -> None:
         self.manifest = manifest
-        self.component_spec = component_spec
+        self.operation_spec = operation_spec
 
 
 class DaskDataLoader(DataIO):
@@ -26,10 +26,10 @@ class DaskDataLoader(DataIO):
         self,
         *,
         manifest: Manifest,
-        component_spec: ComponentSpec,
+        operation_spec: OperationSpec,
         input_partition_rows: t.Optional[int] = None,
     ):
-        super().__init__(manifest=manifest, component_spec=component_spec)
+        super().__init__(manifest=manifest, operation_spec=operation_spec)
         self.input_partition_rows = input_partition_rows
 
     def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
@@ -93,7 +93,7 @@ class DaskDataLoader(DataIO):
         Returns:
             The Dask dataframe with all columns defined in the manifest field mapping
         """
-        dataframe = None
+        dataframe: t.Optional[dd.DataFrame] = None
         field_mapping = defaultdict(list)
 
         # Add index field to field mapping to guarantee start reading with the index dataframe
@@ -101,7 +101,7 @@ class DaskDataLoader(DataIO):
             DEFAULT_INDEX_NAME,
         )
 
-        for field_name in self.component_spec.consumes:
+        for field_name in self.operation_spec.outer_consumes:
             location = self.manifest.get_field_location(field_name)
             field_mapping[location].append(field_name)
 
@@ -127,6 +127,17 @@ class DaskDataLoader(DataIO):
                     right_index=True,
                 )
 
+        if dataframe is None:
+            msg = "No data could be loaded"
+            raise RuntimeError(msg)
+
+        if consumes_mapping := self.operation_spec._mappings["consumes"]:
+            dataframe = dataframe.rename(
+                columns={
+                    v: k for k, v in consumes_mapping.items() if isinstance(v, str)
+                },
+            )
+
         dataframe = self.partition_loaded_dataframe(dataframe)
 
         logging.info(f"Columns of dataframe: {list(dataframe.columns)}")
@@ -139,25 +150,28 @@ class DaskDataWriter(DataIO):
         self,
         *,
         manifest: Manifest,
-        component_spec: ComponentSpec,
+        operation_spec: OperationSpec,
     ):
-        super().__init__(manifest=manifest, component_spec=component_spec)
+        super().__init__(manifest=manifest, operation_spec=operation_spec)
 
     def write_dataframe(
         self,
         dataframe: dd.DataFrame,
         dask_client: t.Optional[Client] = None,
     ) -> None:
-        columns_to_produce = [
-            column_name for column_name, field in self.component_spec.produces.items()
-        ]
-
         dataframe.index = dataframe.index.rename(DEFAULT_INDEX_NAME)
 
         # validation that all columns are in the dataframe
-        self.validate_dataframe_columns(dataframe, columns_to_produce)
+        expected_columns = list(self.operation_spec.inner_produces)
+        self.validate_dataframe_columns(dataframe, expected_columns)
 
-        dataframe = dataframe[columns_to_produce]
+        dataframe = dataframe[expected_columns]
+        if produces_mapping := self.operation_spec._mappings["produces"]:
+            dataframe = dataframe.rename(
+                columns={
+                    k: v for k, v in produces_mapping.items() if isinstance(v, str)
+                },
+            )
         write_task = self._write_dataframe(dataframe)
 
         with ProgressBar():
@@ -185,12 +199,12 @@ class DaskDataWriter(DataIO):
         """Create dataframe writing task."""
         location = (
             f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
-            f"{self.manifest.run_id}/{self.component_spec.component_folder_name}"
+            f"{self.manifest.run_id}/{self.operation_spec.specification.component_folder_name}"
         )
 
         schema = {
             field.name: field.type.value
-            for field in self.component_spec.produces.values()
+            for field in self.operation_spec.outer_produces.values()
         }
         return self._create_write_task(dataframe, location=location, schema=schema)
 
