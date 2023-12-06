@@ -1,41 +1,56 @@
+---
 components:
   comp-example-component:
     executorLabel: exec-example-component
-    inputDefinitions: &id001
+    inputDefinitions:
       parameters:
-        cache:
-          defaultValue: true
-          description: Set to False to disable caching, True by default.
-          parameterType: BOOLEAN
-        client_kwargs:
-          defaultValue: {}
-          description: Keyword arguments to pass to the Dask client
-          parameterType: STRUCT
-        cluster_type:
-          defaultValue: default
-          description: The cluster type to use for the execution
-          parameterType: STRING
-        component_spec:
-          description: The component specification as a dictionary
-          parameterType: STRUCT
         input_manifest_path:
+          parameterType: STRING
           description: Path to the input manifest
           isOptional: true
-          parameterType: STRING
+        component_spec:
+          parameterType: STRUCT
+          description: The component specification as a dictionary
         input_partition_rows:
+          parameterType: NUMBER_INTEGER
           description: The number of rows to load per partition.                         Set
             to override the automatic partitioning
           isOptional: true
-          parameterType: NUMBER_INTEGER
+        cache:
+          parameterType: BOOLEAN
+          description: Set to False to disable caching, True by default.
+          defaultValue: true
+        cluster_type:
+          parameterType: STRING
+          description: The cluster type to use for the execution
+          defaultValue: default
+        client_kwargs:
+          parameterType: STRUCT
+          description: Keyword arguments to pass to the Dask client
+          defaultValue: {}
         metadata:
+          parameterType: STRING
           description: Metadata arguments containing the run id and base path
-          parameterType: STRING
         output_manifest_path:
+          parameterType: STRING
           description: Path to the output manifest
-          parameterType: STRING
+        consumes:
+          parameterType: STRUCT
+          description: A mapping to update the fields consumed by the operation as
+            defined in the component spec. The keys are the names of the fields to
+            be received by the component, while the values are the type of the field,
+            or the name of the field to map from the input dataset.
+          defaultValue: {}
+        produces:
+          parameterType: STRUCT
+          description: A mapping to update the fields produced by the operation as
+            defined in the component spec. The keys are the names of the fields to
+            be produced by the component, while the values are the type of the field,
+            or the name that should be used to write the field to the output dataset.
+          defaultValue: {}
         storage_args:
-          description: Storage arguments
           parameterType: STRING
+          description: Storage arguments
 deploymentSpec:
   executors:
     exec-example-component:
@@ -57,26 +72,78 @@ root:
           name: comp-example-component
         inputs:
           parameters:
-            cache:
-              componentInputParameter: cache
-            client_kwargs:
-              componentInputParameter: client_kwargs
-            cluster_type:
-              componentInputParameter: cluster_type
-            component_spec:
-              componentInputParameter: component_spec
             input_manifest_path:
               componentInputParameter: input_manifest_path
+            component_spec:
+              componentInputParameter: component_spec
             input_partition_rows:
               componentInputParameter: input_partition_rows
+            cache:
+              componentInputParameter: cache
+            cluster_type:
+              componentInputParameter: cluster_type
+            client_kwargs:
+              componentInputParameter: client_kwargs
             metadata:
               componentInputParameter: metadata
             output_manifest_path:
               componentInputParameter: output_manifest_path
+            consumes:
+              componentInputParameter: consumes
+            produces:
+              componentInputParameter: produces
             storage_args:
               componentInputParameter: storage_args
         taskInfo:
           name: example-component
-  inputDefinitions: *id001
+  inputDefinitions:
+    parameters:
+      input_manifest_path:
+        parameterType: STRING
+        description: Path to the input manifest
+        isOptional: true
+      component_spec:
+        parameterType: STRUCT
+        description: The component specification as a dictionary
+      input_partition_rows:
+        parameterType: NUMBER_INTEGER
+        description: The number of rows to load per partition.                         Set
+          to override the automatic partitioning
+        isOptional: true
+      cache:
+        parameterType: BOOLEAN
+        description: Set to False to disable caching, True by default.
+        defaultValue: true
+      cluster_type:
+        parameterType: STRING
+        description: The cluster type to use for the execution
+        defaultValue: default
+      client_kwargs:
+        parameterType: STRUCT
+        description: Keyword arguments to pass to the Dask client
+        defaultValue: {}
+      metadata:
+        parameterType: STRING
+        description: Metadata arguments containing the run id and base path
+      output_manifest_path:
+        parameterType: STRING
+        description: Path to the output manifest
+      consumes:
+        parameterType: STRUCT
+        description: A mapping to update the fields consumed by the operation as defined
+          in the component spec. The keys are the names of the fields to be received
+          by the component, while the values are the type of the field, or the name
+          of the field to map from the input dataset.
+        defaultValue: {}
+      produces:
+        parameterType: STRUCT
+        description: A mapping to update the fields produced by the operation as defined
+          in the component spec. The keys are the names of the fields to be produced
+          by the component, while the values are the type of the field, or the name
+          that should be used to write the field to the output dataset.
+        defaultValue: {}
+      storage_args:
+        parameterType: STRING
+        description: Storage arguments
 schemaVersion: 2.1.0
 sdkVersion: kfp-2.0.1
