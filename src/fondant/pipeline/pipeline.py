@@ -163,12 +163,16 @@ class ComponentOp:
         self.arguments = arguments or {}
         self.arguments.update(
             {
-                "input_partition_rows": input_partition_rows,
-                "cache": self.cache,
-                "cluster_type": cluster_type,
-                "client_kwargs": client_kwargs,
-                "consumes": self._dump_mapping(consumes),
-                "produces": self._dump_mapping(produces),
+                key: value
+                for key, value in {
+                    "input_partition_rows": input_partition_rows,
+                    "cache": self.cache,
+                    "cluster_type": cluster_type,
+                    "client_kwargs": client_kwargs,
+                    "consumes": self._dump_mapping(consumes),
+                    "produces": self._dump_mapping(produces),
+                }.items()
+                if value is not None
             },
         )
 
@@ -301,7 +305,8 @@ class Pipeline:
         """
         Args:
             name: The name of the pipeline.
-            base_path: The base path for the pipeline where the artifacts are stored.
+            base_path: The base path for the pipeline to use to store artifacts and data. This
+                can be a local path or a remote path on one of the supported cloud storage services.
             description: Optional description of the pipeline.
         """
         self.base_path = base_path
