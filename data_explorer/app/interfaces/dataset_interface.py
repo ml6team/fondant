@@ -283,9 +283,12 @@ class DatasetLoaderApp(MainInterface):
         if next_partition == dask_df.npartitions - 1:
             # Check if the last row of the last partition is the same as the last row of the
             # dataframe. If so, we have reached the end of the dataframe.
-            partition_index = dask_df.tail(1).index[0]
-            dask_df_index = pandas_df.tail(1)[DEFAULT_INDEX_NAME].iloc[0]
-            if partition_index == dask_df_index:
+            try:
+                partition_index = dask_df.tail(1).index[0]
+                dask_df_index = pandas_df.tail(1)[DEFAULT_INDEX_NAME].iloc[0]
+                if partition_index == dask_df_index:
+                    next_button_disabled = True
+            except IndexError:
                 next_button_disabled = True
 
         if previous_col.button(

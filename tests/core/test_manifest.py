@@ -84,9 +84,17 @@ def test_manifest_creation():
         cache_key=cache_key,
     )
 
-    manifest.add_or_update_field(Field(name="width", type=Type("int32")))
-    manifest.add_or_update_field(Field(name="height", type=Type("int32")))
-    manifest.add_or_update_field(Field(name="data", type=Type("binary")))
+    location = f"/{run_id}/{component_id}"
+
+    manifest.add_or_update_field(
+        Field(name="width", type=Type("int32"), location=location),
+    )
+    manifest.add_or_update_field(
+        Field(name="height", type=Type("int32"), location=location),
+    )
+    manifest.add_or_update_field(
+        Field(name="data", type=Type("binary"), location=location),
+    )
 
     assert manifest._specification == {
         "metadata": {
@@ -96,19 +104,19 @@ def test_manifest_creation():
             "component_id": component_id,
             "cache_key": cache_key,
         },
-        "index": {"location": f"/{component_id}"},
+        "index": {"location": location},
         "fields": {
             "width": {
                 "type": "int32",
-                "location": f"/{component_id}",
+                "location": location,
             },
             "height": {
                 "type": "int32",
-                "location": f"/{component_id}",
+                "location": location,
             },
             "data": {
                 "type": "binary",
-                "location": f"/{component_id}",
+                "location": location,
             },
         },
     }
@@ -126,7 +134,7 @@ def test_manifest_repr():
         manifest.__repr__()
         == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME', 'run_id': 'A',"
         " 'component_id': '1', 'cache_key': '42'},"
-        " 'index': {'location': '/1'}, 'fields': {}})"
+        " 'index': {'location': '/A/1'}, 'fields': {}})"
     )
 
 
@@ -188,7 +196,7 @@ def test_evolve_manifest():
 
     assert output_manifest.base_path == input_manifest.base_path
     assert output_manifest.run_id == run_id
-    assert output_manifest.index.location == "/" + spec.component_folder_name
+    assert output_manifest.index.location == f"/{run_id}/{spec.component_folder_name}"
     assert output_manifest.fields["captions"].type.name == "string"
 
 
