@@ -13,8 +13,8 @@ from jsonschema import Draft4Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
-from fondant.core.component_spec import ComponentSpec
-from fondant.core.exceptions import InvalidManifest, InvalidPipelineDefinition
+from fondant.core.component_spec import ComponentSpec, OperationSpec
+from fondant.core.exceptions import InvalidManifest
 from fondant.core.schema import Field, Type
 
 
@@ -238,86 +238,11 @@ class Manifest:
 
         del self._specification["fields"][name]
 
-    @staticmethod
-    def _get_produces(
-        produces: t.Optional[t.Union[t.Dict[str, str], t.Dict[str, Field]]],
-        component_spec: ComponentSpec,
-    ) -> t.Mapping[str, Field]:
-        """
-         Resolve the fields that will be produces by the component based on the produces argument
-         defined in the component operation and the produces defined in the component spec.
-
-        Args:
-            produces: the produces defined in the component operation, this is a dictionary
-            of column names and mapping names (renaming based on fields in the components spec for
-            generic fields) or pyarrow data types for non-generic fields.
-            component_spec: the component spec of the component that will be executed
-        Returns:
-            A mapping of column names to fields that will be produced by the component.
-        """
-        handled_produces: t.Dict[str, Field] = {}
-        is_produces_generic = component_spec.is_produces_generic
-
-        # Add component spec produces
-        if component_spec.produces:
-            for column_name, field in component_spec.produces.items():
-                handled_produces[column_name] = field
-
-        # Add custom produces defined in the component operation
-        if produces:
-            for column_name, mapping_name_or_type in produces.items():
-                # String mapping name
-                if isinstance(mapping_name_or_type, str):
-                    try:
-                        field = handled_produces[column_name]
-                    except KeyError:
-                        msg = (
-                            f"Field {column_name} not found in component spec produces: "
-                            f"{component_spec.produces}"
-                        )
-                        raise InvalidPipelineDefinition(msg)
-
-                    field.name = mapping_name_or_type
-                    handled_produces[mapping_name_or_type] = field
-
-                # Pyarrow data type
-                elif isinstance(mapping_name_or_type, dict):
-                    if not is_produces_generic:
-                        msg = (
-                            "For non-generic components, 'produces' must be a dictionary with "
-                            "column names as keys and mapping names as values."
-                        )
-                        raise InvalidPipelineDefinition(msg)
-
-                    if column_name in handled_produces:
-                        msg = (
-                            f"Trying to add non-generic field {column_name} with custom mapping"
-                            f" {mapping_name_or_type}. Field already exists in the "
-                            f"component spec: {component_spec.produces[column_name]}"
-                        )
-                        raise InvalidPipelineDefinition(msg)
-
-                    handled_produces[column_name] = Field(
-                        column_name,
-                        Type.from_json(mapping_name_or_type),
-                    )
-                    continue
-
-                else:
-                    msg = (
-                        f"Unexpected type for 'produces' value: {type(mapping_name_or_type)}, "
-                        f"expected a column name (string) or pyarrow data type."
-                    )
-                    raise InvalidPipelineDefinition(msg)
-
-        return types.MappingProxyType(handled_produces)
-
     def evolve(  # : PLR0912 (too many branches)
         self,
-        component_spec: ComponentSpec,
+        component_spec: t.Union[ComponentSpec, OperationSpec],
         *,
         run_id: t.Optional[str] = None,
-        produces: t.Optional[t.Union[t.Dict[str, str], t.Dict[str, Field]]] = None,
     ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
@@ -327,13 +252,21 @@ class Manifest:
             component_spec: the component spec
             run_id: the run id to include in the evolved manifest. If no run id is provided,
             the run id from the original manifest is propagated.
-            produces: the fields produced by the component by a generic component operation.
-             If no produces is provided, the produces from the component spec will be used.
         """
         evolved_manifest = self.copy()
 
+        # TODO: clean up when component SDK has been updated to use UpdatedComponentSpec
+        if isinstance(component_spec, ComponentSpec):
+            specification = component_spec
+            produces = component_spec.produces
+        elif isinstance(component_spec, OperationSpec):
+            specification = component_spec.specification
+            produces = component_spec.outer_produces
+        else:
+            raise ValueError
+
         # Update `component_id` of the metadata
-        component_id = component_spec.component_folder_name
+        component_id = specification.component_folder_name
         evolved_manifest.update_metadata(key="component_id", value=component_id)
 
         if run_id is not None:
@@ -341,27 +274,16 @@ class Manifest:
 
         # Update index location as this is always rewritten
         evolved_manifest.add_or_update_field(
-            Field(name="index", location=component_spec.component_folder_name),
+            Field(name="index", location=component_id),
         )
 
         # Remove all previous fields if the component changes the index
-        if component_spec.previous_index:
+        if specification.previous_index:
             for field_name in evolved_manifest.fields:
                 evolved_manifest.remove_field(field_name)
 
-        # Get the fields that will be produced by the component
-        produces_fields = self._get_produces(
-            produces,
-            component_spec,
-        )
-        # Remove fields that were already in the manifest and are mapped under a new name
-        if produces:
-            for name, field in produces_fields.items():
-                if name in produces and name in evolved_manifest.fields:
-                    evolved_manifest.remove_field(name)
-
         # Add or update all produced fields defined in the component spec
-        for name, field in produces_fields.items():
+        for name, field in produces.items():
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.

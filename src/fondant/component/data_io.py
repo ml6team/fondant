@@ -28,11 +28,9 @@ class DaskDataLoader(DataIO):
         manifest: Manifest,
         component_spec: ComponentSpec,
         input_partition_rows: t.Optional[int] = None,
-        consumes: t.Optional[t.Dict[str, str]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
         self.input_partition_rows = input_partition_rows
-        self.consumes = consumes
 
     def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
@@ -142,10 +140,8 @@ class DaskDataWriter(DataIO):
         *,
         manifest: Manifest,
         component_spec: ComponentSpec,
-        produces: t.Optional[t.Dict[str, t.Any]] = None,
     ):
         super().__init__(manifest=manifest, component_spec=component_spec)
-        self.produces = produces
 
     def write_dataframe(
         self,
