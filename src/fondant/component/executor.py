@@ -358,7 +358,7 @@ class Executor(t.Generic[Component]):
             manifest=input_manifest,
         )
         output_manifest = input_manifest.evolve(
-            component_spec=self.spec,
+            operation_spec=OperationSpec(self.spec),
             run_id=self.metadata.run_id,
         )
         self._write_data(dataframe=output_df, manifest=output_manifest)

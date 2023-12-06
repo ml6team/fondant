@@ -3,7 +3,7 @@ import pkgutil
 from pathlib import Path
 
 import pytest
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidManifest
 from fondant.core.manifest import Field, Manifest, Type
 
@@ -181,7 +181,10 @@ def test_evolve_manifest():
         cache_key="42",
     )
 
-    output_manifest = input_manifest.evolve(component_spec=spec, run_id=run_id)
+    output_manifest = input_manifest.evolve(
+        operation_spec=OperationSpec(spec),
+        run_id=run_id,
+    )
 
     assert output_manifest.base_path == input_manifest.base_path
     assert output_manifest.run_id == run_id
