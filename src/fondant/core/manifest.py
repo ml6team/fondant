@@ -13,7 +13,7 @@ from jsonschema import Draft4Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
-from fondant.core.component_spec import ComponentSpec, OperationSpec
+from fondant.core.component_spec import OperationSpec
 from fondant.core.exceptions import InvalidManifest
 from fondant.core.schema import Field, Type
 
@@ -240,7 +240,7 @@ class Manifest:
 
     def evolve(  # : PLR0912 (too many branches)
         self,
-        component_spec: t.Union[ComponentSpec, OperationSpec],
+        operation_spec: OperationSpec,
         *,
         run_id: t.Optional[str] = None,
     ) -> "Manifest":
@@ -249,24 +249,14 @@ class Manifest:
         to the component defined by the component spec.
 
         Args:
-            component_spec: the component spec
+            operation_spec: the operation spec
             run_id: the run id to include in the evolved manifest. If no run id is provided,
             the run id from the original manifest is propagated.
         """
         evolved_manifest = self.copy()
 
-        # TODO: clean up when component SDK has been updated to use UpdatedComponentSpec
-        if isinstance(component_spec, ComponentSpec):
-            specification = component_spec
-            produces = component_spec.produces
-        elif isinstance(component_spec, OperationSpec):
-            specification = component_spec.specification
-            produces = component_spec.outer_produces
-        else:
-            raise ValueError
-
         # Update `component_id` of the metadata
-        component_id = specification.component_folder_name
+        component_id = operation_spec.specification.component_folder_name
         evolved_manifest.update_metadata(key="component_id", value=component_id)
 
         if run_id is not None:
@@ -278,12 +268,12 @@ class Manifest:
         )
 
         # Remove all previous fields if the component changes the index
-        if specification.previous_index:
+        if operation_spec.specification.previous_index:
             for field_name in evolved_manifest.fields:
                 evolved_manifest.remove_field(field_name)
 
         # Add or update all produced fields defined in the component spec
-        for name, field in produces.items():
+        for name, field in operation_spec.outer_produces.items():
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.
