@@ -19,8 +19,8 @@ produces:
     type: "int32"
   Type 1:
     type: "string"
-  Type 2:
-    type: "string"
+  additionalProperties: true
+
 
 args:
   storage_args:

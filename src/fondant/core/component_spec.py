@@ -271,6 +271,25 @@ class ComponentSpec:
                 description="Path to the output manifest",
                 type="str",
             ),
+            "consumes": Argument(
+                name="consumes",
+                description="A mapping to update the fields consumed by the operation as defined "
+                "in the component spec. The keys are the names of the fields to be "
+                "received by the component, while the values are the type of the "
+                "field, or the name of the field to map from the input dataset.",
+                type="dict",
+                default={},
+            ),
+            "produces": Argument(
+                name="produces",
+                description="A mapping to update the fields produced by the operation as defined "
+                "in the component spec. The keys are the names of the fields to be "
+                "produced by the component, while the values are the type of the "
+                "field, or the name that should be used to write the field to the "
+                "output dataset.",
+                type="dict",
+                default={},
+            ),
         }
 
     @property
