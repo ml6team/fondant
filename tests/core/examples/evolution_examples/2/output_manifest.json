@@ -6,12 +6,12 @@
       "component_id":"example_component"
    },
    "index":{
-      "location":"/example_component"
+      "location":"/custom_run_id/example_component"
    },
    "fields": {
       "images_data": {
          "type": "binary",
-         "location":"/example_component"
+         "location":"/custom_run_id/example_component"
       }
    }
 }

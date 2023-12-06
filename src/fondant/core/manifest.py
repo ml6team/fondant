@@ -118,7 +118,7 @@ class Manifest:
 
         specification = {
             "metadata": metadata.to_dict(),
-            "index": {"location": f"/{component_id}"},
+            "index": {"location": f"/{run_id}/{component_id}"},
             "fields": {},
         }
         return cls(specification)
@@ -157,13 +157,13 @@ class Manifest:
     def get_field_location(self, field_name: str):
         """Return absolute path to the field location."""
         if field_name == "id":
-            return f"{self.base_path}/{self.pipeline_name}/{self.run_id}{self.index.location}"
+            return f"{self.base_path}/{self.pipeline_name}{self.index.location}"
         if field_name not in self.fields:
             msg = f"Field {field_name} is not available in the manifest."
             raise ValueError(msg)
 
         field = self.fields[field_name]
-        return f"{self.base_path}/{self.pipeline_name}/{self.run_id}{field.location}"
+        return f"{self.base_path}/{self.pipeline_name}{field.location}"
 
     @property
     def run_id(self) -> str:
@@ -207,7 +207,7 @@ class Manifest:
             raise ValueError(msg)
         else:
             self._specification["fields"][field.name] = {
-                "location": f"/{self.component_id}",
+                "location": field.location,
                 **field.type.to_json(),
             }
 
@@ -228,7 +228,7 @@ class Manifest:
             raise ValueError(msg)
 
         self._specification["index"] = {
-            "location": f"/{field.location}",
+            "location": field.location,
         }
 
     def remove_field(self, name: str) -> None:
@@ -242,7 +242,7 @@ class Manifest:
         self,
         operation_spec: OperationSpec,
         *,
-        run_id: t.Optional[str] = None,
+        run_id: str,
     ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
@@ -255,16 +255,14 @@ class Manifest:
         """
         evolved_manifest = self.copy()
 
-        # Update `component_id` of the metadata
+        # Update `run_id` and `component_id` in the metadata
         component_id = operation_spec.specification.component_folder_name
         evolved_manifest.update_metadata(key="component_id", value=component_id)
-
-        if run_id is not None:
-            evolved_manifest.update_metadata(key="run_id", value=run_id)
+        evolved_manifest.update_metadata(key="run_id", value=run_id)
 
         # Update index location as this is always rewritten
         evolved_manifest.add_or_update_field(
-            Field(name="index", location=component_id),
+            Field(name="index", location=f"/{run_id}/{component_id}"),
         )
 
         # Remove all previous fields if the component changes the index
@@ -277,6 +275,7 @@ class Manifest:
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.
+            field.location = f"/{run_id}/{component_id}"
             evolved_manifest.add_or_update_field(field, overwrite=True)
 
         return evolved_manifest
