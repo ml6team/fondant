@@ -7,9 +7,7 @@ Component that loads a dataset from a parquet uri
 
 **This component consumes no data.**
 
-**This component produces:**
-
-- dummy_variable: binary
+**This component produces no data.**
 
 ### Arguments
 

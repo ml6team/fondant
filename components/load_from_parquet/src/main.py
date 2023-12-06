@@ -6,7 +6,7 @@ import dask
 import dask.dataframe as dd
 import pandas as pd
 from fondant.component import DaskLoadComponent
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.schema import Field
 
 logger = logging.getLogger(__name__)
 
@@ -16,28 +16,30 @@ dask.config.set({"dataframe.convert-string": False})
 class LoadFromParquet(DaskLoadComponent):
     def __init__(
         self,
-        spec: ComponentSpec,
-        *_,
+        *,
+        produces: t.Dict[str, Field],
         dataset_uri: str,
         column_name_mapping: t.Optional[dict],
         n_rows_to_load: t.Optional[int],
         index_column: t.Optional[str],
+        **kwargs,
     ) -> None:
         """
         Args:
-            spec: the component spec
+            produces: The schema the component should produce
             dataset_uri: The remote path to the parquet file/folder containing the dataset
             column_name_mapping: Mapping of the consumed dataset to fondant column names
             n_rows_to_load: optional argument that defines the number of rows to load. Useful for
               testing pipeline runs on a small scale.
             index_column: Column to set index to in the load component, if not specified a default
                 globally unique index will be set.
+            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.dataset_uri = dataset_uri
         self.column_name_mapping = column_name_mapping
         self.n_rows_to_load = n_rows_to_load
         self.index_column = index_column
-        self.spec = spec
+        self.produces = produces
 
     def get_columns_to_keep(self) -> t.List[str]:
         # Only read required columns
@@ -50,7 +52,7 @@ class LoadFromParquet(DaskLoadComponent):
         else:
             invert_column_name_mapping = {}
 
-        for field_name, field in self.spec.produces.items():
+        for field_name, field in self.produces.items():
             column_name = field_name
             if invert_column_name_mapping and column_name in invert_column_name_mapping:
                 columns.append(invert_column_name_mapping[column_name])
@@ -81,7 +83,7 @@ class LoadFromParquet(DaskLoadComponent):
 
             def _get_meta_df() -> pd.DataFrame:
                 meta_dict = {"id": pd.Series(dtype="object")}
-                for field_name, field in self.spec.produces.items():
+                for field_name, field in self.produces.items():
                     meta_dict[field_name] = pd.Series(
                         dtype=pd.ArrowDtype(field.type.value),
                     )

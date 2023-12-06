@@ -106,14 +106,16 @@ class SegmentImagesComponent(PandasTransformComponent):
 
     def __init__(
         self,
-        *_,
+        *,
         model_id: str,
         batch_size: int,
+        **kwargs,
     ):
         """
         Args:
             model_id: id of the model on the Hugging Face hub
             batch_size: batch size to use.
+            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Device: {self.device}")

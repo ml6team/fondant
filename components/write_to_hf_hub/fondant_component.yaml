@@ -5,8 +5,7 @@ tags:
   - Data writing
 
 consumes:
-  dummy_variable:
-    type: binary
+  additional_properties: true
 
 args:
   hf_token:

@@ -25,11 +25,12 @@ def to_env_vars(api_keys: dict):
 class EmbedTextComponent(PandasTransformComponent):
     def __init__(
         self,
-        *_,
+        *,
         model_provider: str,
         model: str,
         api_keys: dict,
         auth_kwargs: dict,
+        **kwargs,
     ):
         self.embedding_model = self.get_embedding_model(
             model_provider,
