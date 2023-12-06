@@ -5,8 +5,7 @@ tags:
   - Data loading
 
 produces:
-  dummy_variable: #TODO: fill in here
-    type: binary
+  additionalProperties: true
 
 args:
   dataset_name:

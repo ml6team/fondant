@@ -5,8 +5,7 @@ tags:
   - Data loading
 
 produces:
-  dummy_variable:
-    type: binary
+  additionalProperties: true
 
 args:
   dataset_uri:

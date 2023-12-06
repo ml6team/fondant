@@ -46,12 +46,13 @@ class NormalizeTextComponent(PandasTransformComponent):
 
     def __init__(
         self,
-        *args,
+        *,
         remove_additional_whitespaces: bool,
         apply_nfc: bool,
         normalize_lines: bool,
         do_lowercase: bool,
         remove_punctuation: bool,
+        **kwargs,
     ):
         self.remove_additional_whitespaces = remove_additional_whitespaces
         self.apply_nfc = apply_nfc
