@@ -7,7 +7,12 @@ from abc import ABC, abstractmethod
 import yaml
 
 from fondant.pipeline import Pipeline
-from fondant.pipeline.compiler import DockerCompiler, SagemakerCompiler
+from fondant.pipeline.compiler import (
+    DockerCompiler,
+    KubeFlowCompiler,
+    SagemakerCompiler,
+    VertexCompiler,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -93,10 +98,36 @@ class KubeflowRunner(Runner):
 
     def run(
         self,
-        input_spec: str,
+        input: t.Union[Pipeline, str],
+        *,
         experiment_name: str = "Default",
-        *args,
-        **kwargs,
+    ):
+        """Run a pipeline, either from a compiled kubeflow spec or from a fondant pipeline.
+
+        Args:
+            input: the pipeline to compile or a path to a already compiled sagemaker spec
+            experiment_name: the name of the experiment to create
+        """
+        if isinstance(input, Pipeline):
+            os.makedirs(".fondant", exist_ok=True)
+            output_path = ".fondant/kubeflow-pipeline.yaml"
+            logging.info(
+                "Found reference to un-compiled pipeline... compiling",
+            )
+            compiler = KubeFlowCompiler()
+            compiler.compile(
+                input,
+                output_path=output_path,
+            )
+            self._run(output_path)
+        else:
+            self._run(input)
+
+    def _run(
+        self,
+        input_spec: str,
+        *,
+        experiment_name: str = "Default",
     ):
         """Run a kubeflow pipeline."""
         try:
@@ -148,7 +179,31 @@ class VertexRunner(Runner):
         self.service_account = service_account
         self.network = network
 
-    def run(self, input_spec: str, *args, **kwargs):
+    def run(
+        self,
+        input: t.Union[Pipeline, str],
+    ):
+        """Run a pipeline, either from a compiled vertex spec or from a fondant pipeline.
+
+        Args:
+            input: the pipeline to compile or a path to a already compiled sagemaker spec
+        """
+        if isinstance(input, Pipeline):
+            os.makedirs(".fondant", exist_ok=True)
+            output_path = ".fondant/vertex-pipeline.yaml"
+            logging.info(
+                "Found reference to un-compiled pipeline... compiling",
+            )
+            compiler = VertexCompiler()
+            compiler.compile(
+                input,
+                output_path=output_path,
+            )
+            self._run(output_path)
+        else:
+            self._run(input)
+
+    def _run(self, input_spec: str, *args, **kwargs):
         job = self.aip.PipelineJob(
             display_name=self.get_name_from_spec(input_spec),
             template_path=input_spec,
