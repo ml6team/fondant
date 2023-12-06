@@ -131,6 +131,9 @@ def test_component_spec_location_update():
     component_spec = ComponentSpec(specification)
     evolved_manifest = manifest.evolve(
         operation_spec=OperationSpec(component_spec),
+        run_id="123",
     )
 
-    assert evolved_manifest.index.location == "/" + component_spec.component_folder_name
+    assert evolved_manifest.index.location.endswith(
+        component_spec.component_folder_name,
+    )

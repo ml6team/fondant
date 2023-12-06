@@ -189,6 +189,10 @@ class Field:
         """The relative location of the field."""
         return self._location
 
+    @location.setter
+    def location(self, value) -> None:
+        self._location = value
+
 
 def validate_partition_size(arg_value):
     if arg_value in ["disable", None, "None"]:
