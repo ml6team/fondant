@@ -6,24 +6,24 @@
       "component_id":"example_component_1"
    },
    "index":{
-      "location":"/example_component_1"
+      "location":"/custom_run_id/example_component_1"
    },
    "fields": {
       "images_width": {
          "type": "int32",
-         "location":"/example_component"
+         "location":"/custom_run_id/example_component"
       },
       "images_height": {
          "type": "int32",
-         "location":"/example_component"
+         "location":"/custom_run_id/example_component"
       },
       "images_data": {
          "type": "string",
-         "location":"/example_component_1"
+         "location":"/custom_run_id/example_component_1"
       },
       "captions_data": {
          "type": "binary",
-         "location":"/example_component"
+         "location":"/custom_run_id/example_component"
       }
    }
 }

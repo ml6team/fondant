@@ -6,24 +6,24 @@
     "component_id": "67890"
   },
   "index": {
-    "location": "/component_1"
+    "location": "/test_pipeline_12345/component_1"
   },
   "fields": {
     "Name": {
       "type": "string",
-      "location": "/component_1"
+      "location": "/test_pipeline_12345/component_1"
     },
     "HP": {
       "type": "int32",
-      "location": "/component_1"
+      "location": "/test_pipeline_12345/component_1"
     },
     "Type 1": {
       "type": "string",
-      "location": "/component_2"
+      "location": "/test_pipeline_12345/component_2"
     },
     "Type 2": {
       "type": "string",
-      "location": "/component_2"
+      "location": "/test_pipeline_12345/component_2"
     }
   }
 }
