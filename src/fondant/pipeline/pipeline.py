@@ -14,7 +14,9 @@ try:
 except ImportError:
     from importlib_resources import files  # type: ignore
 
-from fondant.core.component_spec import ComponentSpec
+import pyarrow as pa
+
+from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
 
@@ -128,6 +130,8 @@ class ComponentOp:
         self,
         name_or_path: t.Union[str, Path],
         *,
+        consumes: t.Optional[t.Dict[str, str]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         cache: t.Optional[bool] = True,
@@ -149,11 +153,21 @@ class ComponentOp:
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
 
+        self.operation_spec = OperationSpec(
+            self.component_spec,
+            consumes=consumes,
+            produces=produces,
+        )
+
         self.arguments = arguments or {}
-        self._add_component_argument("input_partition_rows", input_partition_rows)
-        self._add_component_argument("cache", self.cache)
-        self._add_component_argument("cluster_type", cluster_type)
-        self._add_component_argument("client_kwargs", client_kwargs)
+        self.arguments.update(
+            {
+                "input_partition_rows": input_partition_rows,
+                "cache": self.cache,
+                "cluster_type": cluster_type,
+                "client_kwargs": client_kwargs,
+            },
+        )
 
         self.arguments.setdefault("component_spec", self.component_spec.specification)
 
@@ -190,20 +204,6 @@ class ComponentOp:
                 return False
 
         return cache
-
-    def _add_component_argument(
-        self,
-        argument_name: str,
-        argument_value: t.Any,
-        validator: t.Optional[t.Callable] = None,
-    ):
-        """Register component argument to arguments dict as well as component attributes."""
-        if hasattr(self, "arguments") is False:
-            self.arguments = {}
-
-        if argument_value is not None and (not validator or validator(argument_value)):
-            self.argument_name = argument_value
-            self.arguments[argument_name] = argument_value
 
     @property
     def dockerfile_path(self) -> t.Optional[Path]:
@@ -331,6 +331,7 @@ class Pipeline:
         self,
         name_or_path: t.Union[str, Path],
         *,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
@@ -344,6 +345,10 @@ class Pipeline:
         Args:
             name_or_path: The name of a reusable component, or the path to the directory containing
                 a custom component.
+            produces: A mapping to update the fields produced by the operation as defined in the
+                component spec. The keys are the names of the fields to be received by the
+                component, while the values are the type of the field, or the name of the field to
+                map from the dataset.
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
@@ -363,6 +368,7 @@ class Pipeline:
 
         operation = ComponentOp(
             name_or_path,
+            produces=produces,
             arguments=arguments,
             input_partition_rows=input_partition_rows,
             resources=resources,
@@ -448,18 +454,18 @@ class Pipeline:
             cache_key="42",
         )
         for operation_specs in self._graph.values():
-            fondant_component_op = operation_specs["operation"]
-            component_spec = fondant_component_op.component_spec
+            component_op = operation_specs["operation"]
+            operation_spec = component_op.operation_spec
 
             if not load_component:
                 # Check subset exists
                 for (
                     component_field_name,
                     component_field,
-                ) in component_spec.consumes.items():
+                ) in operation_spec.outer_consumes.items():
                     if component_field_name not in manifest.fields:
                         msg = (
-                            f"Component '{component_spec.name}' is trying to invoke the field "
+                            f"Component '{component_op.name}' is trying to invoke the field "
                             f"'{component_field_name}', which has not been defined or created "
                             f"in the previous components."
                         )
@@ -474,7 +480,7 @@ class Pipeline:
                     if component_field.type != manifest_field.type:
                         msg = (
                             f"The invoked field '{component_field_name}' of the "
-                            f"'{component_spec.name}' component does not match  the "
+                            f"'{component_op.name}' component does not match  the "
                             f"previously created field type.\n The '{manifest_field.name}' "
                             f"field is currently defined with the following type:\n"
                             f"{manifest_field.type}\nThe current component to "
@@ -484,7 +490,7 @@ class Pipeline:
                             msg,
                         )
 
-            manifest = manifest.evolve(component_spec, run_id=run_id)
+            manifest = manifest.evolve(operation_spec, run_id=run_id)
             load_component = False
 
         logger.info("All pipeline component specifications match.")
@@ -509,6 +515,8 @@ class Dataset:
         self,
         name_or_path: t.Union[str, Path],
         *,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
@@ -522,6 +530,14 @@ class Dataset:
         Args:
             name_or_path: The name of a reusable component, or the path to the directory containing
                 a custom component.
+            consumes: A mapping to update the fields consumed by the operation as defined in the
+                component spec. The keys are the names of the fields to be received by the
+                component, while the values are the type of the field, or the name of the field to
+                map from the input dataset.
+            produces: A mapping to update the fields produced by the operation as defined in the
+                component spec. The keys are the names of the fields to be produced by the
+                component, while the values are the type of the field, or the name that should be
+                used to write the field to the output dataset.
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
@@ -535,6 +551,8 @@ class Dataset:
         """
         operation = ComponentOp(
             name_or_path,
+            consumes=consumes,
+            produces=produces,
             arguments=arguments,
             input_partition_rows=input_partition_rows,
             resources=resources,
@@ -548,6 +566,7 @@ class Dataset:
         self,
         name_or_path: t.Union[str, Path],
         *,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
@@ -561,6 +580,10 @@ class Dataset:
         Args:
             name_or_path: The name of a reusable component, or the path to the directory containing
                 a custom component.
+            consumes: A mapping to update the fields consumed by the operation as defined in the
+                component spec. The keys are the names of the fields to be received by the
+                component, while the values are the type of the field, or the name of the field to
+                map from the input dataset.
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
@@ -574,6 +597,7 @@ class Dataset:
         """
         operation = ComponentOp(
             name_or_path,
+            consumes=consumes,
             arguments=arguments,
             input_partition_rows=input_partition_rows,
             resources=resources,

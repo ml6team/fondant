@@ -1,19 +1,18 @@
-name: Third component
+name: Example component 1
 description: This is an example component
-image: example_component:latest
+image: example_component_1:latest
 
 consumes:
   images_data:
     type: binary
 
-  embeddings_data:
-    type: array
-    items:
-      type: float32
-
 produces:
-  images_data:
+  additionalProperties: true
+  images_caption:
+    type: string
+  audio_data:
     type: binary
+
 
 args:
   storage_args:
