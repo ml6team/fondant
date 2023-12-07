@@ -119,7 +119,7 @@ class KubeflowRunner(Runner):
                 input,
                 output_path=output_path,
             )
-            self._run(output_path)
+            self._run(output_path, experiment_name=experiment_name)
         else:
             self._run(input, experiment_name=experiment_name)
 
