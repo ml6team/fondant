@@ -136,7 +136,10 @@ def test_kubeflow_runner_from_pipeline():
             input=PIPELINE,
         )
 
-        mock_run.assert_called_once_with(".fondant/kubeflow-pipeline.yaml")
+        mock_run.assert_called_once_with(
+            ".fondant/kubeflow-pipeline.yaml",
+            experiment_name="Default",
+        )
 
 
 def test_vertex_runner():
