@@ -129,27 +129,25 @@ to load a dataset from the Hugging Face Hub and process it using a custom compon
 
 **_pipeline.py_**
 ```python
-from fondant.pipeline import ComponentOp, Pipeline
+from fondant.pipeline import Pipeline
 
 
 pipeline = Pipeline(pipeline_name="example pipeline", base_path="fs://bucket")
 
-load_from_hub_op = ComponentOp.from_registry(
-    name="load_from_hf_hub",
+dataset = pipeline.read(
+    "load_from_hf_hub",
     arguments={
         "dataset_name": "lambdalabs/pokemon-blip-captions"
     },
 )
-pipeline.add_op(load_from_hub_op)
 
-custom_op = ComponentOp(
-    component_dir="components/custom_component",
+dataset = dataset.apply(
+    "components/custom_component",
     arguments={
         "min_width": 600,
         "min_height": 600,
     },
 )
-pipeline.add_op(custom_op, dependencies=load_from_hub_op)
 ```
 
 #### Component
@@ -164,16 +162,12 @@ description: This is a custom component
 image: custom_component:latest
 
 consumes:
-  images:
-    fields:
-      data:
-        type: binary
+  image:
+    type: binary
 
 produces:
-  captions:
-    fields:
-      data:
-        type: utf8
+  caption:
+    type: utf8
 
 args:
   argument1:
@@ -196,7 +190,7 @@ from fondant.component import PandasTransformComponent
 
 class ExampleComponent(PandasTransformComponent):
 
-    def __init__(self, *args, argument1, argument2) -> None:
+    def __init__(self, *, argument1, argument2, **kwargs) -> None:
         """
         Args:
             argumentX: An argument passed to the component
