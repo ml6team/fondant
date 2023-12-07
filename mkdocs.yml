@@ -43,11 +43,11 @@ nav:
           - Installation: guides/installation.md
           - Running your first pipeline: guides/first_pipeline.md
           - Building your own pipeline: guides/build_a_simple_pipeline.md
-          - Implement custom components: guides/implement_custom_components.md
+          - Implementing custom components: guides/implement_custom_components.md
       - Pipeline: pipeline.md
       - Components:
           - Components: components/components.md
-          - Using generic components: components/generic_component.md
+#          - Generic components: components/generic_component.md
           - Creating custom components: components/custom_component.md
           - Component spec: components/component_spec.md
           - Publishing components: components/publishing_components.md
@@ -58,7 +58,6 @@ nav:
       - Explorer: data_explorer.md
       - Advanced:
           - Architecture: architecture.md
-          - Manifest: manifest.md
           - Caching: caching.md
           - Handling partitions: partitions.md
           - Setting up Kubeflow: runners/kfp_infrastructure.md

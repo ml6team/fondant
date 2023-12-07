@@ -1,6 +1,6 @@
 <a id="top"></a>
 <p align="center">
-    <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" height="250px"/>
+    <img src="https://raw.githubusercontent.com/ml6team/fondant/main/docs/art/fondant_banner.svg" style="height:225px;"/>
 </p>
 <p align="center">
     <i>

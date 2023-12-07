@@ -1,44 +1,59 @@
 # Getting started
 
-Check out the [installation guide](installation.md) to get started with Fondant.
+Fondant provides a couple of [example pipelines](../index.md#example-pipelines) which can help you 
+get started.
 
-For demonstration purposes, we provide sample pipelines in the Fondant GitHub repository. A great starting point is the pipeline that loads and filters creative commons images. To follow along with the upcoming instructions, you can clone the [repository](https://github.com/ml6team/fondant) and navigate to the `examples/pipelines/filter-cc-25m` folder.
+For demonstration purposes, we'll use the 
+[example pipeline](https://github.com/ml6team/fondant-usecase-filter-creative-commons) to download 
+and filter images from the 
+[fondant-cc-25m](https://huggingface.co/datasets/fondant-ai/fondant-cc-25m) creative commons image 
+dataset.
 
-Clone the Fondant GitHub repository
+### Clone the Fondant GitHub repository
 
 ```
-git clone https://github.com/ml6team/fondant.git
+git clone https://github.com/ml6team/fondant-usecase-filter-creative-commons.git
 ```
 
-Make sure that Docker Compose is [installed](installation.md#docker-installation), navigate to `fondant/examples/pipelines/filter-cc-25m`, and initiate the pipeline by executing:
+### Install the requirements
 
+Install the `requirements.txt`
+
+```
+pip install -r requirements.txt
+```
+
+And make sure that Docker Compose is [installed](installation.md#docker-installation).
+
+### Run the pipeline
+
+
+navigate into the `src` folder:
+```
+cd src
+```
+
+And execute the pipeline locally using the fondant cli:
 ```
 fondant run local pipeline.py
 ```
 
 !!! note "IMPORTANT"   
 
-    For local testing purposes, the pipeline will only download the first 10,000 images. If you want to download the full dataset, you will need to modify the component arguments in the pipeline.py file, specifically the following part:
+    For local testing purposes, the pipeline will only download the first 100 images. 
 
-```python
-load_from_hf_hub = ComponentOp(
-    component_dir="components/load_from_hf_hub",
-    arguments={
-        "dataset_name": "fondant-ai/fondant-cc-25m",
-        "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": <HERE INSERT THE NUMBER OF IMAGES YOU WANT TO DOWNLOAD>
-    },
-)
+### Inspect the results
+
+Congrats, you just ran your first Fondant pipeline!
+To visually inspect the results between every pipeline step, you can use the fondant explorer:
+```
+fondant explore --base_path ./data-dir
 ```
 
-To visually inspect the results quickly, you can use:
+### Building your own pipeline
 
-```
-fondant explore --base_path ./data
-```
-
-### Custom pipelines
-
-Fondant enables you to leverage existing reusable components and integrate them with custom components. 
-To delve deeper into creating your own pipelines, please explore our [guide](build_a_simple_pipeline.md).
-There, you will gain insights into components, various component types, and how to effectively utilise them.
+To learn how to build your own pipeline, you can:
+- Check out the 
+  [`pipeline.ipynb` notebook](https://github.com/ml6team/fondant-usecase-filter-creative-commons/blob/main/src/notebook.ipynb) 
+  in the example repository which runs through the steps to build the pipeline one by one.
+- Continue to the next guide on [building your own pipeline](implement_custom_components.md)

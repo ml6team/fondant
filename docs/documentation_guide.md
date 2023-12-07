@@ -15,12 +15,12 @@ own [custom components](guides/implement_custom_components.md).
 
 Learn how to use Fondant to build your own data processing pipeline.
 
--> Design your own fondant [pipeline](pipeline.md) using the Fondant pipeline API.  
--> Use existing [reusable components](components/hub.md) to build your pipeline.  
--> Use [generic components](components/generic_component.md) to load/write your custom data format
-to/from Fondant.  
+-> Design your own fondant [pipeline](pipeline.md) using the Fondant pipeline SDK.  
+-> Use existing [reusable components](components/hub.md) to build your pipeline.
+[//]: # (-> Use [generic components]&#40;components/generic_component.md&#41; to load/write your custom data format)
+[//]: # (to/from Fondant.)
 -> Build your own [custom component](components/custom_component.md) using the Fondant component
-API.  
+SDK.  
 -> Learn how to publish your own [components](components/publishing_components.md) to a container
 registry so that you can reuse them in your pipelines.
 
@@ -92,7 +92,4 @@ our [contribution guidelines](contributing.md).
 
 ## Announcements
 
-Check out our latest [announcements] about Fondant.
-
--> 25 million Creative Commons image dataset released. Read more about it [here](blog/posts/2023-09-27|CC_25M_community.md).
-
+Check out our latest [announcements](blog/index.md) about Fondant.

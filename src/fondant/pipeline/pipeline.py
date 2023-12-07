@@ -306,7 +306,8 @@ class Pipeline:
         Args:
             name: The name of the pipeline.
             base_path: The base path for the pipeline to use to store artifacts and data. This
-                can be a local path or a remote path on one of the supported cloud storage services.
+                can be a local path or a remote path on one of the supported cloud storage
+                services. The path should already exist.
             description: Optional description of the pipeline.
         """
         self.base_path = base_path
