@@ -121,7 +121,7 @@ class KubeflowRunner(Runner):
             )
             self._run(output_path)
         else:
-            self._run(input)
+            self._run(input, experiment_name=experiment_name)
 
     def _run(
         self,
