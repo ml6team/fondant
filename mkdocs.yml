@@ -55,6 +55,7 @@ nav:
           - Local: runners/local.md
           - Vertex: runners/vertex.md
           - Kubeflow: runners/kfp.md
+          - SageMaker: runners/sagemaker.md
       - Explorer: data_explorer.md
       - Advanced:
           - Architecture: architecture.md

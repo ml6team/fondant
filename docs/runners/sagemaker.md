@@ -8,6 +8,10 @@ deployment.
 The Fondant SageMaker runner will compile your pipeline to a SageMaker pipeline spec and submit it to SageMaker.
 
 
+!!! note "IMPORTANT"
+
+    Using the SafeMaker runner will create a [through cache rule](https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html) on the private ECR registry of your account. This is required to make sure that SageMaker can access the public [reusable images](../components/hub.md) used by Fondant components.
+
 ### Installing the SageMaker runner
 
 Make sure to install Fondant with the SageMaker runner extra.
@@ -17,17 +21,19 @@ pip install fondant[sagemaker]
 ```
 
 ### Prerequisites
-- You will need a sagemaker domain and user with the correct permissions. You can follow the instructions [here](https://docs.aws.amazon.com/sagemaker/latest/dg/onboard-quick-start.html) to set this up. Make sure to note down the role arn( arn:aws:iam::<account_id>:role/service-role/AmazonSageMaker-ExecutionRole-<creation_timestamp>) of the user you are using since you will need it.
+- You will need a sagemaker domain and user with the correct permissions. You can follow the instructions [here](https://docs.aws.amazon.com/sagemaker/latest/dg/onboard-quick-start.html) to set this up. Make sure to note down the role arn( `arn:aws:iam::<account_id>:role/service-role/AmazonSageMaker-ExecutionRole-<creation_timestamp>`) of the user you are using since you will need it.
 - You will need to have an AWS account and have the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) installed and configured.
 - Fondant on SageMaker uses an s3 bucket to store the pipeline artifacts. You will need to create an s3 bucket that SageMaker can use to store artifacts (manifests and data). You can create a bucket using the AWS CLI:
 
     ```bash
-        aws s3 mb s3://<bucket-name>
+    aws s3 mb s3://<bucket-name>
     ```
+!!! note "IMPORTANT"
 
-Regarding [the bucket and SageMaker permissions](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-ex-bucket.html):
-- If you use the the term 'sagemaker' in the name of the bucket, SageMaker will automatically have the correct permissions to the access bucket.
-- If you use any other name or existing bucket you will need to add a policy on the role that SageMaker uses to access the bucket. 
+    Regarding [the bucket and SageMaker permissions](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-ex-bucket.html):
+
+    - If you use the the term 'sagemaker' in the name of the bucket, SageMaker will automatically have the correct permissions to the access bucket.
+    - If you use any other name or existing bucket you will need to add a policy on the role that SageMaker uses to access the bucket. 
 
 
 You can then set this bucket as the `base_path` of your pipeline with the syntax: `s3://<bucket_name>/<path>`.
@@ -46,9 +52,6 @@ AWS with a role that has all the required permissions to launch a SageMaker pipe
      --role-arn $SAGEMAKER_ROLE_ARN 
     ```
     
-    The pipeline ref is reference to a fondant pipeline (e.g. `pipeline.py`) where a pipeline instance
-    exists.
-
 
 === "Python"
     
@@ -66,10 +69,6 @@ AWS with a role that has all the required permissions to launch a SageMaker pipe
 
 
 Once your pipeline is running you can monitor it using the SageMaker [Studio](https://aws.amazon.com/sagemaker/studio/).
-
-!!! note "IMPORTANT"
-
-    If the Fondant SageMaker runner takes a Fondant pipeline object as input it will compile it first and then run it subsequently. You can also use the SageMaker compiler to compile your pipeline and then run it with the SageMaker runner by specifying the compiled spec as input to the runner.
 
 
 
