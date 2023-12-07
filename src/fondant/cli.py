@@ -376,7 +376,7 @@ def register_compile(parent_parser):
         "--output-path",
         "-o",
         help="Output path of compiled pipeline",
-        default="pipeline.yaml",
+        default="kubeflow-pipeline.yaml",
     )
 
     # vertex parser
@@ -390,7 +390,7 @@ def register_compile(parent_parser):
         "--output-path",
         "-o",
         help="Output path of compiled pipeline",
-        default="vertex_pipeline.yml",
+        default="vertex-pipeline.yml",
     )
 
     # sagemaker parser
@@ -547,7 +547,7 @@ def register_run(parent_parser):
         "--output-path",
         "-o",
         help="Output path of compiled pipeline",
-        default="pipeline.yaml",
+        default="kubeflow-pipeline.yaml",
     )
     kubeflow_parser.add_argument(
         "--host",
@@ -596,7 +596,7 @@ def register_run(parent_parser):
         "--output-path",
         "-o",
         help="Output path of compiled pipeline",
-        default="vertex_pipeline.yaml",
+        default="vertex-pipeline.yaml",
     )
 
     vertex_parser.add_argument(
@@ -670,43 +670,27 @@ def run_local(args):
 
 
 def run_kfp(args):
-    from fondant.pipeline.compiler import KubeFlowCompiler
     from fondant.pipeline.runner import KubeflowRunner
 
     if not args.host:
         msg = "--host argument is required for running on Kubeflow"
         raise ValueError(msg)
     try:
-        pipeline = pipeline_from_string(args.ref)
+        ref = pipeline_from_string(args.ref)
     except ModuleNotFoundError:
-        spec_ref = args.ref
-    else:
-        spec_ref = args.output_path
-        logging.info(
-            "Found reference to un-compiled pipeline... compiling to {spec_ref}",
-        )
-        compiler = KubeFlowCompiler()
-        compiler.compile(pipeline=pipeline, output_path=spec_ref)
+        ref = args.ref
 
     runner = KubeflowRunner(host=args.host)
-    runner.run(input_spec=spec_ref)
+    runner.run(input=ref)
 
 
 def run_vertex(args):
-    from fondant.pipeline.compiler import VertexCompiler
     from fondant.pipeline.runner import VertexRunner
 
     try:
-        pipeline = pipeline_from_string(args.ref)
+        ref = pipeline_from_string(args.ref)
     except ModuleNotFoundError:
-        spec_ref = args.ref
-    else:
-        spec_ref = args.output_path
-        logging.info(
-            "Found reference to un-compiled pipeline... compiling to {spec_ref}",
-        )
-        compiler = VertexCompiler()
-        compiler.compile(pipeline=pipeline, output_path=spec_ref)
+        ref = args.ref
 
     runner = VertexRunner(
         project_id=args.project_id,
@@ -714,7 +698,7 @@ def run_vertex(args):
         service_account=args.service_account,
         network=args.network,
     )
-    runner.run(input_spec=spec_ref)
+    runner.run(input=ref)
 
 
 def run_sagemaker(args):

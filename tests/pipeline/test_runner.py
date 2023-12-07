@@ -84,7 +84,7 @@ def test_kubeflow_runner():
         new=MockKfpClient,
     ):
         runner = KubeflowRunner(host="some_host")
-        runner.run(input_spec=input_spec_path)
+        runner.run(input=input_spec_path)
 
         assert runner.client.host == "some_host"
 
@@ -96,7 +96,7 @@ def test_kubeflow_runner_new_experiment():
         new=MockKfpClient,
     ):
         runner = KubeflowRunner(host="some_host")
-        runner.run(input_spec=input_spec_path, experiment_name="NewExperiment")
+        runner.run(input=input_spec_path, experiment_name="NewExperiment")
 
 
 def test_kfp_import():
@@ -111,13 +111,44 @@ def test_kfp_import():
             _ = KubeflowRunner(host="some_host")
 
 
+class MockKubeFlowCompiler:
+    def compile(
+        self,
+        pipeline,
+        output_path,
+    ) -> None:
+        with open(output_path, "w") as f:
+            f.write("foo: bar")
+
+
+def test_kubeflow_runner_from_pipeline():
+    with mock.patch(
+        "fondant.pipeline.runner.KubeFlowCompiler",
+        new=MockKubeFlowCompiler,
+    ), mock.patch(
+        "fondant.pipeline.runner.KubeflowRunner._run",
+    ) as mock_run, mock.patch(
+        "kfp.Client",
+        new=MockKfpClient,
+    ):
+        runner = KubeflowRunner(host="some_host")
+        runner.run(
+            input=PIPELINE,
+        )
+
+        mock_run.assert_called_once_with(
+            ".fondant/kubeflow-pipeline.yaml",
+            experiment_name="Default",
+        )
+
+
 def test_vertex_runner():
     input_spec_path = str(VALID_PIPELINE / "kubeflow_pipeline.yml")
     with mock.patch("google.cloud.aiplatform.init", return_value=None), mock.patch(
         "google.cloud.aiplatform.PipelineJob",
     ):
         runner = VertexRunner(project_id="some_project", region="some_region")
-        runner.run(input_spec=input_spec_path)
+        runner.run(input=input_spec_path)
 
         # test with service account
         runner2 = VertexRunner(
@@ -125,7 +156,23 @@ def test_vertex_runner():
             region="some_region",
             service_account="some_account",
         )
-        runner2.run(input_spec=input_spec_path)
+        runner2.run(input=input_spec_path)
+
+
+def test_vertex_runner_from_pipeline():
+    with mock.patch(
+        "fondant.pipeline.runner.VertexCompiler",
+        new=MockKubeFlowCompiler,
+    ), mock.patch("fondant.pipeline.runner.VertexRunner._run") as mock_run, mock.patch(
+        "google.cloud.aiplatform.init",
+        return_value=None,
+    ):
+        runner = VertexRunner(project_id="some_project", region="some_region")
+        runner.run(
+            input=PIPELINE,
+        )
+
+        mock_run.assert_called_once_with(".fondant/vertex-pipeline.yaml")
 
 
 def test_sagemaker_runner(tmp_path_factory):
