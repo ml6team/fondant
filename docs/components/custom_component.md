@@ -43,12 +43,11 @@ chunks as pandas dataframes.
 ```python
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 
 
 class ExampleComponent(PandasTransformComponent):
 
-    def __init__(self, *args, argument1, argument2) -> None:
+    def __init__(self, *, argument1, argument2, **kwargs) -> None:
         """
         Args:
             argumentX: An argument passed to the component
@@ -74,11 +73,11 @@ The `transform` method is called multiple times, each time containing a pandas `
 with a partition of your data loaded in memory.
 
 The `dataframes` passed to the `transform` method contains the data specified in the `consumes`
-section of the component specification. If a component defines that it consumes an `images` subset
-with a `data` field, this data can be accessed using `dataframe["images"]["data"]`.
+section of the component specification. If a component defines that it consumes an `image` field, 
+this data can be accessed using `dataframe["image"]`.
 
 The `transform` method should return a single dataframe, with the columns complying to the
-`[subset][field]` format matching the `produces` section of the component specification.
+schema defined by the `produces` section of the component specification.
 
 Note that the `main.py` script can be split up into several Python scripts in case it would become
 prohibitively long. See the
@@ -92,12 +91,7 @@ The `Dockerfile` defines how to build the component into a Docker image. An exam
 defined below.
 
 ```bash
-FROM --platform=linux/amd64 pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
-
-## System dependencies
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install git -y
+FROM --platform=linux/amd64 python:3.8-slim
 
 # install requirements
 COPY requirements.txt ./
@@ -115,18 +109,19 @@ ENTRYPOINT ["fondant", "execute", "main"]
 ## Requirements.txt
 
 A `requirements.txt` file lists the Python dependencies of the component. Note that any Fondant
-component will always have `Fondant` as the minimum requirement. It's important to also pin the
-version of each dependency to make sure the component remains working as expected. Below is an
-example of a component that relies on several Python libraries such as Pillow, PyTorch and
+component will always have `Fondant[component]` as the minimum requirement. It's important to also 
+pin the version of each dependency to make sure the component remains working as expected. Below is 
+an example of a component that relies on several Python libraries such as Pillow, PyTorch and
 Transformers.
 
 ```
-fondant
+fondant[component]
 Pillow==10.0.1
 torch==2.0.1
 transformers==4.29.2
 ```
 
-Refer to this [section](publishing_components.md) to find out how to build and publish your components to use them in your own pipelines.
+Refer to this [section](publishing_components.md) to find out how to build and publish your components to use them in 
+your own pipelines.
 
 
