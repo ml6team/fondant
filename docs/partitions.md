@@ -21,10 +21,9 @@ own custom partitioning logic if you have specific requirements.
 Here's an example of disabling the automatic partitioning:
 
 ```python
-from fondant.pipeline.pipeline import ComponentOp
 
-caption_images_op = ComponentOp(
-    component_dir="components/captioning_component",
+dataset = dataset.apply(
+    "caption_images",
     arguments={
         "model_id": "Salesforce/blip-image-captioning-base",
         "batch_size": 2,
@@ -40,10 +39,9 @@ allowing you to define your own partitioning logic inside the components.
 Moreover, you have the flexibility to set your own custom partitioning parameters to override the default settings:
 
 ```python
-from fondant.pipeline.pipeline import ComponentOp
 
-caption_images_op = ComponentOp(  
-    component_dir="components/captioning_component",  
+dataset = dataset.apply(  
+    "caption_images",  
     arguments={  
         "model_id": "Salesforce/blip-image-captioning-base",  
         "batch_size": 2,  

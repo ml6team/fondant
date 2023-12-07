@@ -134,10 +134,10 @@ The local runner uses the computation resources (RAM, CPU) of the host machine. 
 it needs to be assigned explicitly. 
 
 ```python
-from fondant.pipeline.pipeline import ComponentOp, Resources
+from fondant.pipeline.pipeline import Resources
 
-component = ComponentOp(  
-    component_dir="...",  
+dataset = dataset.apply(  
+    "...",  
     arguments={  
      ...,  
     },  

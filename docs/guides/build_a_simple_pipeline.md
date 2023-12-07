@@ -1,138 +1,109 @@
-# Guide - Build a simple pipeline
+[//]: # (TODO: Add named reference links to the hub for stable links on this page)
 
-We present a walkthrough to build by yourself the pipeline presented in the Getting Started section. Have fun!
+# Building your own pipeline
 
-**Level**: Beginner </br>
-**Time**: 20min </br>
-**Goal**: After completing this tutorial with Fondant, you will be able to understand the different elements of a pipeline, build, and execute your first pipeline by using existing components. </br>
-
-**Prerequisite**: Make sure docker compose is installed on your local system
+This guide will teach you how to build and run your own pipeline using components available on 
+the Fondant hub.
 
 ## Overview
 
-The sample pipeline that is going to be built in this tutorial demonstrates how to effectively utilise a creative commons image dataset within a fondant pipeline. This dataset comprises images from diverse sources and is available in various data formats.
+In this guide, we will build a pipeline that downloads images from the 
+[fondant-cc-25m](https://huggingface.co/datasets/fondant-ai/fondant-cc-25m) dataset.
 
-The pipeline starts with the initialization of the image dataset sourced from HuggingFace and proceeds with the downloading of these carefully selected images. Accomplishing these tasks necessitates the use of: 
+It consists of two steps:
 
-* [load_from_hf_hub](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub): A [generic component](../components/generic_component.md) that loads the initial dataset from the Huggingface hub.
-* [download_images](https://github.com/ml6team/fondant/tree/main/components/download_images): A [reusable component](../components/components.md) that downloades images from urls. 
+* **[load_from_hf_hub](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub)**: 
+  Loads the dataset containing image urls from the Huggingface hub.
+* **[download_images](https://github.com/ml6team/fondant/tree/main/components/download_images)**:
+  Downloads images from the image urls. 
 
 ## Setting up the environment
 
-We will be using the [local runner](../runners/local.md) to run this pipelines. To set up your local environment, please refer to our [installation](installation.md) documentation.
+We will be using the [local runner](../runners/local.md) to run this pipelines. To set up your local environment, 
+please refer to our [installation](installation.md) documentation.
 
 ## Building the pipeline
 
-Everything begins with the pipeline definition. Start by creating a `pipeline.py` file and adding the following script.
+Start by creating a `pipeline.py` file and adding the following code.
 
 ```python
-from fondant.pipeline import ComponentOp, Pipeline
+from fondant.pipeline import Pipeline
 
 pipeline = Pipeline(
-pipeline_name="creative_commons_pipline", # This is the name of your pipeline
-base_path="./data" # The directory that will be used to store the data
+    name="creative_commons_pipline",
+    base_path="./data"
 )
 ```
 
-All you need to initialise a Fondant pipeline are two key parameters:
+!!! note "IMPORTANT"
 
-- **pipeline_name**: This is a name you can use to reference your pipeline. In this example, we've named it after the creative commons-licensed dataset used in the pipeline.
-- **base_path**: This is the base path that Fondant should use for storing artifacts and data. In our case, it's a local directory path. However, it can also be a path to a remote storage bucket provided by a cloud service. Please note that the directory you reference must exist; if it doesn't, make sure to create it.
+    Make sure the provided base_path already exists.
+
+??? "View a detailed reference of the options accepted by the `Pipeline` class"
+
+    ::: fondant.pipeline.Pipeline.__init__
+        handler: python
+        options:
+            show_source: false
 
 ## Adding components
 
-Now it's time to incrementally build our pipeline by adding different execution steps. We refer to these steps as `Components`. Components are executable elements of a pipeline that consume and produce dataframes. The components are defined by a component specification. The component specification is a YAML file that outlines the input and output data structures, along with the arguments utilised by the component and a reference the the docker image used to run the component.
+Now it's time to incrementally build our pipeline by adding different execution steps or 
+`components`. Components are executable elements of a pipeline that consume and produce data.
 
-Fondant offers three distinct component types:
+You can use two types of components with Fondant:
 
-- **Reusable components**: These can be readily used without modification.
-- **Generic components**: They provide the business logic but may require adjustments to the component spec.
-- **Custom components**: The component implementation is user-dependent.
+- **Reusable components**: A bunch of reusable components are available on our 
+  [hub](../components/hub.md), which you can easily add to your pipeline.
+- **Custom components**: You can also implement your own custom component.
 
-If you want to learn more about components, you can check out the [components documentation](../components/components.md).
+If you want to learn more about components, you can check out the 
+[components](../components/components.md) documentation.
 
-### First component to load the dataset
+### 1. A reusable load component
 
-For every pipeline, the initial step is data initialization. In our case, we aim to load the dataset into our pipeline base from HuggingFace. Fortunately, we already have a generic component available called `load_from_hf_hub`.
-This component is categorised as a generic component because the structure of the datasets we load from HuggingFace can vary from one dataset to another. While we can leverage the implemented business logic of the component, we must customise the component spec. This customization is necessary to inform the component about the specific columns it will produce.
-To utilise this component, it's time to create your first component spec.
-Create a folder `component/load_from_hub` and create a `fondant_component.yaml` with the following content:
+As a first step, we want to read data into our pipeline. In this case, we will load a dataset 
+from the HuggingFace Hub. For this, we can use the reusable 
+[load_from_hf_hub](../components/hub.md#description_1) component.
 
-```yaml
-name: Load from hub
-description: Component that loads a dataset from the hub
-image: fndnt/load_from_hf_hub:dev
-
-produces:
-  images:
-    fields:
-      alt+text:
-        type: string
-      url:
-        type: string
-      license+location:
-        type: string
-      license+type:
-        type: string
-      webpage+url:
-        type: string
-
-args:
-  dataset_name:
-    description: Name of dataset on the hub
-    type: str
-  column_name_mapping:
-    description: Mapping of the consumed hub dataset to fondant column names
-    type: dict
-  image_column_names:
-    description:
-      Optional argument, a list containing the original image column names in case the
-      dataset on the hub contains them. Used to format the image from HF hub format to a byte string.
-    type: list
-    default: None
-  n_rows_to_load:
-    description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
-    type: int
-    default: None
-  index_column:
-    description: Column to set index to in the load component, if not specified a default globally unique index will be set
-    type: str
-    default: None
-```
-
-As mentioned earlier, the component spec specifies the data structure consumed and/or produced by the component. In this case, the component solely produces data, and this structure is defined within the `produces` section. Fondant operates with hierarchical column structures. In our example, we are defining a column called `images` with several subset fields.
-Now that we have created the component specification file, we can incorporate the component into our python code. The next steps involve initialising the component from the component spec and adding it to our pipeline using the following code:
+We can read data into our pipeline using the `Pipeline.read()` method, which returns a (lazy) 
+`Dataset`.
 
 ```python
-from fondant.pipeline import ComponentOp
+import pyarrow as pa
 
-load_component_column_mapping = {
-    "alt_text": "images_alt+text",
-    "image_url": "images_url",
-    "license_location": "images_license+location",
-    "license_type": "images_license+type",
-    "webpage_url": "images_webpage+url",
-}
-
-load_from_hf_hub = ComponentOp(
-    component_dir="components/load_from_hf_hub",
+dataset = pipeline.read(
+    "load_from_hf_hub",
     arguments={
-        "dataset_name": "mrchtr/cc-test",
-        "column_name_mapping": load_component_column_mapping,
+        "dataset_name": "fondant-ai/fondant-cc-25m",
         "n_rows_to_load": 100,
+    },
+    produces={
+      "alt_text": pa.string(),
+      "url": pa.string(),
+      "license_location": pa.string(),
+      "license_type": pa.string(),
+      "webpage_url": pa.string(),
     }
 )
-
-pipeline.add_op(load_from_hf_hub)
 ```
 
-Two key actions are taking place here:
+We provide three arguments to the `.read()` method:
 
-1. We create a ComponentOp from the registry, configuring the component with specific arguments. In this process, we override default arguments as needed. If we don't provide an argument override, the default values are used. Notably, we are modifying the dataset to be loaded, specifying the number of rows to load (which can be a small number for testing purposes), and mapping columns from the HuggingFace dataset to columns in our dataframe.
+- The name of the reusable component
+- Some arguments to configure the component. Check the component's 
+  [documentation](../components/hub.md#arguments_1) for the supported arguments
+- The schema of the data the component will produce. This is necessary for this specific 
+  component since the output is dynamic based on the dataset being loaded. You can see this 
+  defined in the component [documentation](../components/hub.md#inputs-outputs_1) with 
+  `additionalProperties: true` under the produces section.
 
-2. We provide a column mapping argument for the component to change the column names from the [initial dataset](https://huggingface.co/datasets/mrchtr/cc-test) to ones that match the component specification.  
+??? "View a detailed reference of the `Pipeline.read()` method"
 
-3. The add_op method registers the configured component into the pipeline.
+    ::: fondant.pipeline.Pipeline.read
+        handler: python
+        options:
+            show_source: false
 
 To test the pipeline, you can execute the following command within the pipeline directory:
 
@@ -147,34 +118,68 @@ After the pipeline has completed, you can explore the pipeline result using the 
 fondant explore --base_path ./data
 ```
 
-You can open your browser at `localhost:8501` to explore the data and columns of the loaded dataset.
+You can open your browser at `localhost:8501` to explore the loaded data.
 
-### Add a reusable component
+### 2. A reusable transform component
 
-Our pipeline has successfully loaded the dataset from HuggingFace. One of these columns, `image_url`, directs us to the original source of the images. To access and utilise these images directly, we must download each of them.
+Our pipeline has successfully loaded the dataset from HuggingFace. One of these columns, 
+`url`, directs us to the original source of the images. To access and utilise these images 
+directly, we must download each of them.
 
-Downloading images is a common requirement across various use cases, which is why Fondant provides a reusable component specifically for this purpose. This component is appropriately named [`download_images`](https://github.com/ml6team/fondant/tree/main/components/download_images).
+Downloading images is a common requirement across various use cases, which is why Fondant provides 
+a reusable component specifically for this purpose. This component is appropriately named 
+[download_images](../components/hub.md#description_10).
 
-We can extend our code to incorporate this component into our pipeline with the following code snippet:
+We can add this component to our pipeline as follows:
 
 ```python
-# Download images component
-download_images = ComponentOp.from_registry(
-    name="download_images",
-    arguments={}
+images = dataset.apply(
+    "download_images",
 )
-
-pipeline.add_op(download_images, dependencies=load_from_hf_hub)
 ```
 
-The reusable component requires a specific dataset input format to function effectively. Referring to the [component's documentation](https://hub.docker.com/r/fndnt/download_images), this component downloads images based on the URLs provided in the `image_url` column. Fortunately, the column generated by the first component is already named correctly for this purpose.
+Looking at the component [documentation](../components/hub.md#inputs-outputs_1), we can see that 
+it expects an `"image_url"` field, which was generated by our previous component. This means 
+that we can simply chain the components as-is.
 
-Instead of initialising the component from a YAML file, we'll use the method `ComponentOp.from_registry(...)` where we can easily specify the name of the reusable component. This is arguably the simplest way to start using a Fondant component.
+### 3. A reusable transform component with non-matching fields
 
-Finally, we add the component to the pipeline using the `add_op` method. Notably, we define `dependencies=load_from_hf_hub` in this step. This command ensures that we chain both components together. Specifically, the `download_images` component awaits the execution input from the `load_from_hf_hub` component.
+This won't always be the case though. We now want to filter our dataset for images that contain 
+English alt text. For this, we leverage the 
+[filter_language](../components/hub.md#description_18) component. Looking at the component 
+[documentation](../components/hub.md#inputs-outputs_18), we can see that it expects an `"text"` 
+field, while we would like to apply it to the `"alt_text"` field in our dataset.
 
-Now, you can proceed to execute your pipeline once more and explore the results. In the explorer, you will be able to view the images that have been downloaded.
+We can easily achieve this using the `consumes` argument, which lets us maps the fields that the 
+component will consume. Here we indicate that the component should read the `"alt_text"` field 
+instead of the `"text"` field.
 
-![explorer](https://github.com/ml6team/fondant/blob/main/docs/art/guides/explorer.png?raw=true)
+```python
+english_images = images.apply(
+  "filter_language",
+  arguments={
+    "language": "en"
+  },
+  consumes={
+    "text": "alt_text"
+  }
+)
+```
 
-Well done! You have now acquired the skills to construct a simple Fondant pipeline by leveraging generic and reusable components. In the [following tutorial](implement_custom_components.md), we'll demonstrate how you can customise the pipeline by implementing a custom component.
+??? "View a detailed reference of the `Dataset.apply()` method"
+
+    ::: fondant.pipeline.pipeline.Dataset.apply
+        handler: python
+        options:
+            show_source: false
+
+## Inspecting your data
+
+Now, you can proceed to execute your pipeline once more and explore the results. In the explorer, 
+you will be able to view the images that have been downloaded.
+
+![explorer](../art/guides/explorer.png?raw=true)
+
+Well done! You have now acquired the skills to construct a simple Fondant pipeline by leveraging 
+reusable components. In the [next tutorial](implement_custom_components.md), we'll demonstrate how 
+you can customise the pipeline by implementing a custom component.

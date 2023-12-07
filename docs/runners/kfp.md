@@ -58,10 +58,10 @@ needs to
 have an available GPU.
 
 ```python
-from fondant.pipeline.pipeline import ComponentOp, Resources
+from fondant.pipeline.pipeline import Resources
 
-component = ComponentOp(
-    component_dir="...",
+dataset = dataset.apply(
+    "...",
     arguments={
         ...,
     },

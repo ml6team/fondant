@@ -71,10 +71,10 @@ for a list of available GPU resources. Make sure to check that the chosen GPU is
 region where the pipeline will be run.
 
 ```python
-from fondant.pipeline.pipeline import ComponentOp, Resources
+from fondant.pipeline.pipeline import Resources
 
-component = ComponentOp(
-    component_dir="...",
+dataset = dataset.apply(
+    "...",
     arguments={
         ...,
     },

@@ -13,41 +13,33 @@ component, which data it consumes and produces, and which arguments it takes.
 
 ## Component types
 
-We can distinguish three different types of components:
+We can distinguish two different types of components:
 
 - **Reusable components** can be used out of the box and can be loaded from the fondant 
   component registry
 - **Custom components** are completely defined and implemented by the user
-- **Generic components** leverage a reusable implementation, but require a custom component 
-  specification
 
 ### Reusable components
 
-Reusable components are completely defined and implemented by fondant. You can easily add them 
-to your pipeline by creating an operation using `ComponentOp.from_registry()`.
+Reusable components are out of the box components from the Fondant hub that you can easily add 
+to your pipeline:
 
 ```python
-from fondant.pipeline import ComponentOp
 
-component_op = ComponentOp.from_registry(
-  name="reusable_component",
+dataset = dataset.apply(
+  "reusable_component",
   arguments={
     "arg": "value"
   }
 )
 ```
 
-??? "fondant.pipeline.ComponentOp.from_registry"
+You can find an overview of the available reusable components on the
+[Fondant hub](https://github.com/ml6team/fondant/tree/main/components). Check their 
+documentation for information on which arguments they accept and which data they consume and 
+produce.
 
-    ::: fondant.pipeline.ComponentOp.from_registry
-        handler: python
-        options:
-          show_source: false
-
-You can find an overview of the reusable components offered by fondant 
-[here](https://github.com/ml6team/fondant/tree/main/components). Check their 
-`fondant_component.yaml` file for information on which arguments they accept and which data they 
-consume and produce.
+[//]: # (TODO: Add info on "generic" components)
 
 ### Custom components
 
@@ -62,6 +54,7 @@ A typical file structure for a custom component looks like this:
 |     |  |- main.py
 |     |- Dockerfile
 |     |- fondant_component.yaml
+|     |- requirements.txt
 |- pipeline.py
 ```
 
@@ -74,13 +67,12 @@ description: This is a custom component
 image: custom_component:latest
 ```
 
-You can add a custom component to your pipeline by creating a `ComponentOp` and passing in the path 
-to the directory containing your `fondant_component.yaml`.
+You can add a custom component to your pipeline by passing in the path to the directory containing 
+your `fondant_component.yaml`.
 
 ```python title="pipeline.py"
-from fondant.pipeline import ComponentOp
 
-component_op = ComponentOp(
+dataset = dataset.apply(
   component_dir="components/custom_component",
   arguments={
     "arg": "value"
@@ -88,61 +80,4 @@ component_op = ComponentOp(
 )
 ```
 
-??? "fondant.pipeline.ComponentOp"
-
-    ::: fondant.pipeline.ComponentOp
-        handler: python
-        options:
-          members: []
-          show_source: false
-
 See our [best practices on creating a custom component](../components/custom_component.md).
-
-### Generic components
-
-A generic component is a component leveraging a reusable docker image, but requiring a custom 
-`fondant_component.yaml` specification.
-
-Since a generic component only requires a custom `fondant_component.yaml`, its file structure 
-looks like this:
-```
-|- components
-|  |- generic_component
-|     |- fondant_component.yaml
-|- pipeline.py
-```
-
-The `fondant_component.yaml` refers to the reusable image it leverages:
-
-```yaml title="components/generic_component/fondant_component.yaml"
-name: Generic component
-description: This is a generic component
-image: reusable_component:latest
-```
-
-You can add a generic component to your pipeline by creating a `ComponentOp` and passing in the path
-to the directory containing your custom `fondant_component.yaml`.
-
-```python title="pipeline.py"
-from fondant.pipeline import ComponentOp
-
-component_op = ComponentOp(
-  component_dir="components/generic_component",
-  arguments={
-    "arg": "value"
-  }
-)
-```
-
-??? "fondant.pipeline.ComponentOp"
-
-    ::: fondant.pipeline.ComponentOp
-        handler: python
-        options:
-          members: []
-          show_source: false
-
-An example of a generic component is the 
-[`load_from_hf_hub`](https://github.com/ml6team/fondant/tree/main/components/load_from_hf_hub) 
-components. It can read any dataset from the HuggingFace hub, but it requires the user to define 
-the schema of the produced dataset in a custom `fondant_component.yaml` specification.
