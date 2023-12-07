@@ -3,6 +3,7 @@
 import os
 import typing as t
 from collections import defaultdict
+from pathlib import Path
 
 import dask.dataframe as dd
 import pandas as pd
@@ -22,8 +23,10 @@ class DatasetLoaderApp(MainInterface):
     def _select_component():
         """Select component from available components."""
         selected_run_path = st.session_state["run_path"]
+        available_components = [
+            os.path.basename(item) for item in os.listdir(selected_run_path)
+        ]
 
-        available_components = ["chunk_text"]
         default_index = get_default_index("component", available_components)
         selected_component = st.selectbox(
             "Component",
@@ -44,7 +47,7 @@ class DatasetLoaderApp(MainInterface):
         with cols[0]:
             selected_component_path = self._select_component()
 
-        manifest_path = os.path.join(selected_component_path, "manifest.json")
+        manifest_path = (Path(selected_component_path) / "manifest.json").resolve()
         manifest = Manifest.from_file(manifest_path)
         fields = manifest.fields
         field_list = list(fields.keys())
@@ -296,9 +299,13 @@ class DatasetLoaderApp(MainInterface):
         if partition_index == dask_df.npartitions - 1:
             # Check if the last row of the last partition is the same as the last row of the
             # dataframe. If so, we have reached the end of the dataframe.
-            partition_index = dask_df.compute().tail(1).index[0]
-            pandas_df_index = pandas_df.tail(1)[DEFAULT_INDEX_NAME].iloc[0]
-            if partition_index == pandas_df_index:
+            try:
+                partition_index = dask_df.tail(1).index[0]
+                pandas_df_index = pandas_df.tail(1)[DEFAULT_INDEX_NAME].iloc[0]
+                if partition_index == pandas_df_index:
+                    next_button_disabled = True
+            except IndexError:
+                # TODO: Fix try block
                 next_button_disabled = True
 
         if previous_col.button(
