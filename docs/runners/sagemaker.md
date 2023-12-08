@@ -10,7 +10,7 @@ The Fondant SageMaker runner will compile your pipeline to a SageMaker pipeline 
 
 !!! note "IMPORTANT"
 
-    Using the SafeMaker runner will create a [through cache rule](https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html) on the private ECR registry of your account. This is required to make sure that SageMaker can access the public [reusable images](../components/hub.md) used by Fondant components.
+    Using the SageMaker runner will create a [through cache rule](https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html) on the private ECR registry of your account. This is required to make sure that SageMaker can access the public [reusable images](../components/hub.md) used by Fondant components.
 
 ### Installing the SageMaker runner
 
@@ -63,7 +63,6 @@ AWS with a role that has all the required permissions to launch a SageMaker pipe
         input=<path_to_pipeline>,
         role_arn=<role_arn>,
         pipeline_name=<pipeline_name>
-        instance_type=<instance_type>,
     )
     ```
 
@@ -94,4 +93,19 @@ fondant build <component dir> -t <aws_account_id>.dkr.ecr.<region>.amazonaws.com
 
 #### Assigning custom resources to the pipeline
 
-You can specify different kinds of `instance_type` while running your pipeline, you can see the available options [here](https://docs.aws.amazon.com/sagemaker/latest/dg/notebooks-available-instance-types.html). You may need to request a [quota increase](https://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html) for certain `instance_type`'s.
+The SageMaker runner supports assigning a specific `instance_type` to each component. This can be done by using the resources block when defining a component.
+
+If not specified, the default `instance_type` is `ml.t3.medium`. The `instance_type` needs to be a valid SageMaker instance type you can find more info [here](https://docs.aws.amazon.com/sagemaker/latest/dg/notebooks-available-instance-types.html).
+
+```python
+from fondant.pipeline import Resources
+
+images = raw_data.apply(
+    "download_images",
+    arguments={
+        "input_partition_rows": 100,
+        "resize_mode": "no",
+    },
+    resources=Resources(instance_type="ml.t3.xlarge"),
+)
+```

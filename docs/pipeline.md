@@ -144,7 +144,7 @@ pipeline.
         ```bash
         fondant run local <pipeline_ref>
         ```
-    === "Vertex Runner"
+    === "Vertex"
     
         ```bash 
         fondant run vertex <pipeline_ref> \
@@ -152,18 +152,16 @@ pipeline.
          --project-region $PROJECT_REGION \
          --service-account $SERVICE_ACCOUNT
         ```
-
-    === "Kubeflow"
-    
-        ```bash
-        fondant run kubeflow <pipeline_ref>
-        ```
-    
     === "SageMaker"
     
         ```bash
         fondant run sagemaker <pipeline_ref> \
          --role-arn <sagemaker_role_arn> 
+        ```
+    === "Kubeflow"
+    
+        ```bash
+        fondant run kubeflow <pipeline_ref>
         ```
 
 === "Python"
@@ -184,16 +182,6 @@ pipeline.
         runner = VertexRunner()
         runner.run(input=<pipeline_ref>)
         ```
-
-    === "KubeFlow"
-    
-        ```python
-        from fondant.pipeline.runner import KubeFlowRunner
-
-        runner = KubeFlowRunner(host=<kubeflow_host>)
-        runner.run(input=<pipeline_ref>)        
-        ```
-    
     === "SageMaker"
     
         ```python
@@ -201,6 +189,14 @@ pipeline.
 
         runner = SageMakerRunner()
         runner.run(input=<pipeline_ref>, pipeline_name=<pipeline-name> role_arn=<sagemaker_role_arn>)        
+        ```
+    === "KubeFlow"
+    
+        ```python
+        from fondant.pipeline.runner import KubeFlowRunner
+
+        runner = KubeFlowRunner(host=<kubeflow_host>)
+        runner.run(input=<pipeline_ref>)        
         ```
     
   The pipeline ref can be a reference to the file containing your pipeline, a variable 
