@@ -654,8 +654,7 @@ def test_sagemaker_generate_script(tmp_path_factory):
         with open(script_path) as f:
             assert (
                 f.read()
-                == """fondant execute main echo 'hello world'
-                'special chars: $ ! # & '\"'\"' ( ) | < > ` \\ ;'"""
+                == "fondant execute main echo 'hello world' 'special chars: $ ! # & '\"'\"' ( ) | < > ` \\ ;'"  # noqa E501
             )
 
 
