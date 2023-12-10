@@ -645,14 +645,18 @@ def test_sagemaker_build_command():
 
 def test_sagemaker_generate_script(tmp_path_factory):
     compiler = SagemakerCompiler()
-    command = ["echo", "hello world"]
+    command = ["echo", "hello world", r"special chars: $ ! # & ' ( ) | < > ` \ ;"]
     with tmp_path_factory.mktemp("temp") as fn:
         script_path = compiler.generate_component_script("component_1", command, fn)
 
         assert script_path == f"{fn}/component_1.sh"
 
         with open(script_path) as f:
-            assert f.read() == "fondant execute main echo hello world"
+            assert (
+                f.read()
+                == """fondant execute main echo 'hello world'
+                'special chars: $ ! # & '\"'\"' ( ) | < > ` \\ ;'"""
+            )
 
 
 def test_sagemaker_base_path_validator():
