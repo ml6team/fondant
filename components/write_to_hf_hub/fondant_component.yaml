@@ -5,7 +5,7 @@ tags:
   - Data writing
 
 consumes:
-  additional_properties: true
+  additionalProperties: true
 
 args:
   hf_token:
