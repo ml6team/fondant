@@ -1,0 +1,27 @@
+name: Load from csv file
+description: Component that loads a dataset from a csv file
+image: ghcr.io/ml6team/load_from_csv:dev
+
+produces:
+  text: #TODO: fill in here
+    type: string
+
+args:
+  dataset_uri:
+    description: The remote path to the parquet file/folder containing the dataset
+    type: str
+  column_separator:
+    description: Define the column separator of the csv file
+    type: str
+  column_name_mapping:
+    description: Mapping of the consumed dataset
+    type: dict
+    default: {}
+  n_rows_to_load:
+    description: Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale
+    type: int
+    default: None
+  index_column:
+    description: Column to set index to in the load component, if not specified a default globally unique index will be set
+    type: str
+    default: None
