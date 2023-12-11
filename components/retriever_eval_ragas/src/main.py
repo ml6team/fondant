@@ -72,6 +72,6 @@ class RetrieverEval(PandasTransformComponent):
 
         result = self.ragas_eval(dataset=hf_dataset)
         results_df = result.to_pandas()
-        results_df.index = results_df.index.astype(str)
+        results_df = results_df.set_index(dataframe.index)
 
         return results_df
