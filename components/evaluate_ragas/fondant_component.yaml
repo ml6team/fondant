@@ -1,12 +1,11 @@
-#metadata: to be matched w/ docker image
 name: retriever_eval_ragas
 description: Component that evaluates the retriever using RAGAS
-image: ghcr.io/ml6team/retriever_eval:dev
+image: fndnt/retriever_eval:dev
 tags:
-  - Data writing
+  - Text processing
 
 consumes:
-  text: #TODO: same as previous component produces
+  text:
     type: string
   retrieved_chunks:
     type: array
@@ -14,11 +13,10 @@ consumes:
       type: string
 
 produces:
-  #TODO: add/retrieve chosen metrics to compute
-  context_precision:
-    type: float32
-  context_relevancy:
-    type: float32
+  additionalProperties: true
+  # Overwrite with metrics to be computed by ragas
+  # (https://docs.ragas.io/en/latest/concepts/metrics/index.html)
+
 
 args:
   module:

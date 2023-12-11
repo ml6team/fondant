@@ -1,4 +1,7 @@
+import os
+
 import pandas as pd
+import pyarrow as pa
 from main import RetrieverEval
 
 
@@ -49,8 +52,11 @@ def test_transform():
     component = RetrieverEval(
         module="langchain.llms",
         llm_name="OpenAI",
-        llm_kwargs={"openai_api_key": ""},
-        metrics=["context_precision", "context_relevancy"],
+        llm_kwargs={"openai_api_key": os.environ["OPENAI_KEY"]},
+        produces={
+            "context_precision": pa.float32(),
+            "context_relevancy": pa.float32(),
+        },
     )
 
     output_dataframe = component.transform(input_dataframe)

@@ -1,3 +1,5 @@
+import typing as t
+
 import pandas as pd
 from datasets import Dataset
 from fondant.component import PandasTransformComponent
@@ -12,7 +14,7 @@ class RetrieverEval(PandasTransformComponent):
         module: str,
         llm_name: str,
         llm_kwargs: dict,
-        metrics: list,
+        produces: t.Dict[str, t.Any],
         **kwargs,
     ) -> None:
         """
@@ -20,7 +22,7 @@ class RetrieverEval(PandasTransformComponent):
             module: Module from which the LLM is imported. Defaults to langchain.llms
             llm_name: Name of the selected llm
             llm_kwargs: Arguments of the selected llm
-            metrics: RAGAS metrics to compute.
+            produces: RAGAS metrics to compute.
             kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.llm = self.extract_llm(
@@ -29,7 +31,9 @@ class RetrieverEval(PandasTransformComponent):
             model_kwargs=llm_kwargs,
         )
         self.gpt_wrapper = LangchainLLM(llm=self.llm)
-        self.metric_functions = self.extract_metric_functions(metrics=metrics)
+        self.metric_functions = self.extract_metric_functions(
+            metrics=list(produces.keys()),
+        )
         self.set_llm(self.metric_functions)
 
     # import the metric functions selected

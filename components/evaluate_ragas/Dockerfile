@@ -9,15 +9,20 @@ RUN apt-get update && \
 COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Set the working directory to the component folder
-WORKDIR /component/src
+# Install Fondant
+# This is split from other requirements to leverage caching
+ARG FONDANT_VERSION=main
+RUN pip3 install fondant[component,aws,azure,gcp]@git+https://github.com/ml6team/fondant@${FONDANT_VERSION}
 
-# Copy over src-files
-COPY src/ .
+# Set the working directory to the component folder
+WORKDIR /component
+COPY src/ src/
 
 FROM base as test
 COPY tests/ tests/
 RUN pip3 install --no-cache-dir -r tests/requirements.txt
+ARG OPENAI_KEY
+ENV OPENAI_KEY=${OPENAI_KEY}
 RUN python -m pytest tests
 
 FROM base
