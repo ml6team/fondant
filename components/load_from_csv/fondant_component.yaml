@@ -1,7 +1,8 @@
 name: Load from csv file
 description: Component that loads a dataset from a csv file
 image: ghcr.io/ml6team/load_from_csv:dev
-
+tags:
+  - Data retrieval
 produces:
   text: #TODO: fill in here
     type: string
