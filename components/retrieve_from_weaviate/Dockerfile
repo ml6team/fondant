@@ -1,9 +1,4 @@
-FROM --platform=linux/amd64 python:3.8-slim as base
-
-# System dependencies
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install git -y
+FROM --platform=linux/amd64 python:3.8-slim
 
 # Install requirements
 COPY requirements.txt /
