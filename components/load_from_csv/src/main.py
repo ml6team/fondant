@@ -120,8 +120,6 @@ class CSVReader(DaskLoadComponent):
 
     def load(self) -> dd.DataFrame:
         # 1) Load data, read as Dask dataframe
-        logger.info("Loading dataset from the hub...")
-
         columns = self.get_columns_to_keep()
 
         logger.debug(f"Columns to keep: {columns}")
@@ -136,9 +134,9 @@ class CSVReader(DaskLoadComponent):
             logger.info("Renaming columns...")
             dask_df = dask_df.rename(columns=self.column_name_mapping)
 
-        # 4) Optional: only return specific amount of rows
+        # 3) Optional: only return specific amount of rows
         dask_df = self.return_subset_of_df(dask_df)
 
-        # 5) Set the index
+        # 4) Set the index
         dask_df = self.set_df_index(dask_df)
         return dask_df
