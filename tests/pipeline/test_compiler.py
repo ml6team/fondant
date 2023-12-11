@@ -1,5 +1,6 @@
 import datetime
 import json
+import subprocess
 import sys
 from pathlib import Path
 from unittest import mock
@@ -650,6 +651,8 @@ def test_sagemaker_generate_script(tmp_path_factory):
         script_path = compiler.generate_component_script("component_1", command, fn)
 
         assert script_path == f"{fn}/component_1.sh"
+
+        assert not subprocess.check_call(["bash", "-n", script_path])  # nosec
 
         with open(script_path) as f:
             assert (
