@@ -1,0 +1,32 @@
+#metadata: to be matched w/ docker image
+name: retrieve_from_weaviate
+description: Component that retrieves chunks from a weaviate vectorDB
+image: ghcr.io/ml6team/retrieve_from_weaviate:dev
+
+consumes:
+  text: #TODO: fill in here
+    type: string
+  embedding:
+    type: array
+    items:
+      type: float32
+
+produces:
+  retrieved_chunks:
+    type: array
+    items:
+      type: string
+
+args:
+  weaviate_url:
+    description: The URL of the weaviate instance.
+    type: str
+    default: http://localhost:8080
+  class_name:
+    description:
+      The name of the weaviate class that will be created and used to store the embeddings.
+      Should follow the weaviate naming conventions.
+    type: str
+  top_k:
+    description: Number of chunks to retrieve
+    type: int
