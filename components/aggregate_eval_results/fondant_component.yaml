@@ -1,0 +1,17 @@
+#metadata: to be matched w/ docker image
+name: aggregate_eval_results
+description: Component that aggregates results of the evaluation of the retriever
+image: ghcr.io/ml6team/aggregate_eval_results:dev
+
+consumes: #TODO: add/retrieve metrics to consider
+  context_precision:
+    type: float32
+  context_relevancy:
+    type: float32 
+
+
+produces:
+  metric:
+    type: string
+  score:
+    type: float32
