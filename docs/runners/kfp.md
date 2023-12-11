@@ -58,7 +58,7 @@ needs to
 have an available GPU.
 
 ```python
-from fondant.pipeline.pipeline import Resources
+from fondant.pipeline import Resources
 
 dataset = dataset.apply(
     "...",

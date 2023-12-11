@@ -71,7 +71,7 @@ for a list of available GPU resources. Make sure to check that the chosen GPU is
 region where the pipeline will be run.
 
 ```python
-from fondant.pipeline.pipeline import Resources
+from fondant.pipeline import Resources
 
 dataset = dataset.apply(
     "...",
