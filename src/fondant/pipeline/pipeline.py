@@ -56,6 +56,7 @@ class Resources:
     memory_limit: t.Optional[str] = None
     node_pool_label: t.Optional[str] = None
     node_pool_name: t.Optional[str] = None
+    instance_type: t.Optional[str] = None
 
     """
     Class representing the resources to assign to a Fondant Component operation in a Fondant
@@ -81,6 +82,7 @@ class Resources:
              number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
            memory_limit: the maximum memory that can be used by the component. The value  can be a
             number or a number followed by one of “E”, “P”, “T”, “G”, “M”, “K”.
+           instancy_type: the instancy type of the component.
        """
 
     def __post_init__(self):

@@ -630,13 +630,11 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
         return uri
 
     def validate_base_path(self, base_path: str) -> None:
-        file_prefix, storage_path = base_path.split("://")
-
-        if file_prefix != "s3":
+        if not base_path.startswith("s3://"):
             msg = "base_path must be a valid s3 path, starting with s3://"
             raise ValueError(msg)
 
-        if storage_path.endswith("/"):
+        if base_path.endswith("/"):
             msg = "base_path must not end with a '/'"
             raise ValueError(msg)
 
@@ -645,7 +643,6 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
         pipeline: Pipeline,
         output_path: str,
         *,
-        instance_type: str = "ml.t3.medium",
         role_arn: t.Optional[str] = None,
     ) -> None:
         """Compile a fondant pipeline to sagemaker pipeline spec and save it
@@ -654,8 +651,6 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
         Args:
             pipeline: the pipeline to compile
             output_path: the path where to save the sagemaker pipeline spec.
-            instance_type: the instance type to use for the processing steps
-            (see: https://aws.amazon.com/ec2/instance-types/ for options).
             role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
         """
@@ -706,13 +701,15 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
                     # https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-ex-role.html
                     role_arn = self.sagemaker.get_execution_role()
 
+                resources_dict = self._set_configuration(component_op)
+
                 processor = self.sagemaker.processing.ScriptProcessor(
                     image_uri=self._patch_uri(component_op.component_spec.image),
                     command=["bash"],
-                    instance_type=instance_type,
                     instance_count=1,
                     base_job_name=component_name,
                     role=role_arn,
+                    **resources_dict,
                 )
 
                 step = self.sagemaker.workflow.steps.ProcessingStep(
@@ -735,8 +732,29 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
                     indent=4,
                 )
 
-    def _set_configuration(self, *args, **kwargs) -> None:
-        raise NotImplementedError
+    def _set_configuration(
+        self,
+        fondant_component_operation,
+        *args,
+        **kwargs,
+    ):
+        # Used configurations
+        resources_dict = fondant_component_operation.resources.to_dict()
+
+        instance_type = resources_dict.pop("instance_type")
+
+        if not instance_type:
+            logger.warning(
+                """No instance type provided, using default `ml.t3.medium`. See:
+            https://docs.aws.amazon.com/sagemaker/latest/dg/notebooks-available-instance-types.html
+            for options""",
+            )
+            instance_type = "ml.t3.medium"
+
+        # Unused configurations
+        self.log_unused_configurations(**resources_dict)
+
+        return {"instance_type": instance_type}
 
     def generate_component_script(
         self,

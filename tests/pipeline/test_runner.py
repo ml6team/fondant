@@ -236,7 +236,6 @@ class MockSagemakerCompiler:
         pipeline,
         output_path,
         *,
-        instance_type,
         role_arn,
     ) -> None:
         with open(output_path, "w") as f:

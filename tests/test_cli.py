@@ -252,13 +252,11 @@ def test_sagemaker_compile(tmp_path_factory):
             sagemaker=True,
             output_path=str(fn / "sagemaker_pipeline.json"),
             role_arn="some_role",
-            instance_type="some_instance_type",
         )
         compile_sagemaker(args)
         mock_compiler.assert_called_once_with(
             pipeline=TEST_PIPELINE,
             output_path=str(fn / "sagemaker_pipeline.json"),
-            instance_type="some_instance_type",
             role_arn="some_role",
         )
 

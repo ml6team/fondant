@@ -243,8 +243,6 @@ class SagemakerRunner(Runner):
         input: t.Union[Pipeline, str],
         pipeline_name: str,
         role_arn: str,
-        *,
-        instance_type: str = "ml.m5.xlarge",
     ):
         """Run a pipeline, either from a compiled sagemaker spec or from a fondant pipeline.
 
@@ -266,7 +264,6 @@ class SagemakerRunner(Runner):
             compiler.compile(
                 input,
                 output_path=output_path,
-                instance_type=instance_type,
                 role_arn=role_arn,
             )
             self._run(output_path, pipeline_name=pipeline_name, role_arn=role_arn)

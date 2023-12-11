@@ -407,13 +407,6 @@ def register_compile(parent_parser):
         default=".fondant/sagemaker_pipeline.json",
     )
     sagemaker_parser.add_argument(
-        "--instance-type",
-        help="""the instance type to use for the processing steps
-        (see: https://aws.amazon.com/ec2/instance-types/ for options).""",
-        default="ml.m5.large",
-    )
-
-    sagemaker_parser.add_argument(
         "--role-arn",
         help="""the Amazon Resource Name role to use for the processing steps""",
         default=None,
@@ -471,7 +464,6 @@ def compile_sagemaker(args):
     compiler.compile(
         pipeline=pipeline,
         output_path=args.output_path,
-        instance_type=args.instance_type,
         role_arn=args.role_arn,
     )
 
@@ -631,12 +623,6 @@ def register_run(parent_parser):
         help="""the Amazon Resource Name role to use for the processing steps""",
         default=None,
     )
-    sagemaker_parser.add_argument(
-        "--instance-type",
-        help="""the instance type to use for the processing steps
-        (see: https://aws.amazon.com/ec2/instance-types/ for options).""",
-        default="ml.m5.large",
-    )
 
     local_parser.set_defaults(func=run_local)
     kubeflow_parser.set_defaults(func=run_kfp)
@@ -714,7 +700,6 @@ def run_sagemaker(args):
         input=ref,
         pipeline_name=args.pipeline_name,
         role_arn=args.role_arn,
-        instance_type=args.instance_type,
     )
 
 
