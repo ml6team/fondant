@@ -29,8 +29,3 @@ args:
   llm_kwargs:
     description: Arguments of the selected llm
     type: dict
-  metrics:
-    description: RAGAS metrics to compute
-    type: list
-    items:
-      type: str

@@ -21,7 +21,6 @@ The component takes the following arguments to alter its behavior:
 | module | str | Module from which the LLM is imported. Defaults to langchain.llms | langchain.llms |
 | llm_name | str | Name of the selected llm | / |
 | llm_kwargs | dict | Arguments of the selected llm | / |
-| metrics | list | RAGAS metrics to compute | / |
 
 ### Usage
 
@@ -42,7 +41,6 @@ dataset = dataset.apply(
         # "module": "langchain.llms",
         # "llm_name": ,
         # "llm_kwargs": {},
-        # "metrics": [],
     }
 )
 ```
