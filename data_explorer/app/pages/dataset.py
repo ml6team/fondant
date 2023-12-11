@@ -13,7 +13,9 @@ from df_helpers.fields import get_image_fields, get_numeric_fields, get_string_f
 from df_helpers.image_render import configure_image_builder, convert_image_column
 from fondant.core.schema import Field
 from fpdf import FPDF
+from interfaces.common import render_common_interface
 from interfaces.dataset_interface import DatasetLoaderApp
+from interfaces.sidebar import render_sidebar
 from st_aggrid import AgGrid, AgGridReturn, ColumnsAutoSizeMode, GridOptionsBuilder
 
 
@@ -273,8 +275,10 @@ class DatasetExplorerApp(DatasetLoaderApp):
         return df, filter_cache_key
 
 
+render_sidebar()
+render_common_interface()
+
 app = DatasetExplorerApp()
-app.create_common_interface()
 field_mapping, selected_fields = app.get_fields_mapping()
 dask_df = app.load_dask_dataframe(field_mapping)
 dask_df, cache_key = app.setup_search_widget(dask_df, selected_fields, field_mapping)
