@@ -1,7 +1,9 @@
 #metadata: to be matched w/ docker image
-name: retriever_eval
+name: retriever_eval_ragas
 description: Component that evaluates the retriever using RAGAS
 image: ghcr.io/ml6team/retriever_eval:dev
+tags:
+  - Data writing
 
 consumes:
   text: #TODO: same as previous component produces
