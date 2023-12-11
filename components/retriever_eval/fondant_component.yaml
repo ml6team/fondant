@@ -1,0 +1,36 @@
+#metadata: to be matched w/ docker image
+name: retriever_eval
+description: Component that evaluates the retriever using RAGAS
+image: ghcr.io/ml6team/retriever_eval:dev
+
+consumes:
+  text: #TODO: same as previous component produces
+    type: string
+  retrieved_chunks:
+    type: array
+    items:
+      type: string
+
+produces:
+  #TODO: add/retrieve chosen metrics to compute
+  context_precision:
+    type: float32
+  context_relevancy:
+    type: float32
+
+args:
+  module:
+    description: Module from which the LLM is imported. Defaults to langchain.llms
+    type: str
+    default: "langchain.llms"
+  llm_name:
+    description: Name of the selected llm
+    type: str
+  llm_kwargs:
+    description: Arguments of the selected llm
+    type: dict
+  metrics:
+    description: RAGAS metrics to compute
+    type: list
+    items:
+      type: str
