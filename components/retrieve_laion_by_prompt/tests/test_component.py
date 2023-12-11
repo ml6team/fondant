@@ -38,6 +38,7 @@ def test_component(monkeypatch):
             "prompt": ["first prompt", "second prompt"],
         },
     )
+    input_dataframe = input_dataframe.set_index("id")
 
     expected_output_dataframe = pd.DataFrame.from_dict(
         {
