@@ -1,58 +1,14 @@
 """Interface for the data explorer app."""
 
-import argparse
 import logging
 import os
 
 import fsspec
 import streamlit as st
-from config import SESSION_STATE_VARIABLES
 from interfaces.utils import get_default_index
 from streamlit_extras.app_logo import add_logo
 
 LOGGER = logging.getLogger(__name__)
-
-
-class AppStateInterface:
-    """
-    Interface for the app state. The app state is responsible for initializing the app state
-    variables and handling base path retrieval. It's implemented as a singleton class to ensure
-    that the app state is initialized only once.
-    """
-
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    @staticmethod
-    def _initialize_state_variables():
-        """Initializes session state variables if not already initialized."""
-        for session_state_variable in SESSION_STATE_VARIABLES:
-            if session_state_variable not in st.session_state:
-                st.session_state[session_state_variable] = None
-
-    @staticmethod
-    def _get_base_path() -> str:
-        """Retrieves the base path from command line arguments or session state."""
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            "--base_path",
-            type=str,
-            help="Mounted, remote, or local base path",
-        )
-        args, _ = parser.parse_known_args()
-
-        st.session_state["base_path"] = args.base_path
-
-        return args.base_path
-
-    def initialize(self):
-        """Initializes the app state."""
-        self._initialize_state_variables()
-        self._get_base_path()
 
 
 class MainInterface:
@@ -62,9 +18,8 @@ class MainInterface:
     """
 
     def __init__(self):
-        app_interface = AppStateInterface()
-        app_interface.initialize()
         st.set_page_config(layout="wide")
+        print(st.session_state)
         self.fs, _ = fsspec.core.url_to_fs(st.session_state["base_path"])
 
     def _display_base_info(self):

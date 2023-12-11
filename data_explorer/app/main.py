@@ -1,5 +1,6 @@
 """Main module for the data explorer interface."""
 
+import argparse
 import logging
 import os
 import typing as t
@@ -9,6 +10,7 @@ import dask
 import graphviz
 import pandas as pd
 import streamlit as st
+from config import SESSION_STATE_VARIABLES
 from fondant.core.manifest import Manifest
 from interfaces.common_interface import MainInterface
 from st_pages import show_pages_from_config
@@ -16,6 +18,24 @@ from st_pages import show_pages_from_config
 LOGGER = logging.getLogger(__name__)
 
 dask.config.set({"dataframe.convert-string": False})
+
+
+def initialize_state():
+    for session_state_variable in SESSION_STATE_VARIABLES:
+        if session_state_variable not in st.session_state:
+            st.session_state[session_state_variable] = None
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--base_path",
+        type=str,
+        help="Mounted, remote, or local base path",
+    )
+    args, _ = parser.parse_known_args()
+
+    st.session_state["base_path"] = args.base_path
+
+    print(st.session_state)
 
 
 class PipelineOverviewApp(MainInterface):
@@ -154,12 +174,13 @@ class PipelineOverviewApp(MainInterface):
             st.table(pipeline_df[:max_runs_to_display])
 
 
-if __name__ == "__main__":
-    # Show streamlit page from pages.toml config file
-    show_pages_from_config()
+initialize_state()
 
-    app = PipelineOverviewApp()
+# Show streamlit page from pages.toml config file
+show_pages_from_config()
 
-    app.create_common_interface()
+app = PipelineOverviewApp()
 
-    app.setup_app_page()
+app.create_common_interface()
+
+app.setup_app_page()
