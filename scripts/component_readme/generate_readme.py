@@ -52,4 +52,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     for spec in args.component_specs:
+        print(f"Generating readme for {spec}")
         main(spec)
