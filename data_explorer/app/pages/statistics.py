@@ -7,7 +7,9 @@ import dask.dataframe as dd
 import pandas as pd
 import streamlit as st
 from df_helpers.fields import get_numeric_fields
+from interfaces.common import render_common_interface
 from interfaces.dataset_interface import DatasetLoaderApp
+from interfaces.sidebar import render_sidebar
 from st_aggrid import AgGrid, ColumnsAutoSizeMode, GridOptionsBuilder
 
 LOGGER = logging.getLogger(__name__)
@@ -85,8 +87,10 @@ class NumericAnalysisApp(DatasetLoaderApp):
         self.build_numeric_analysis_table(dataframe, numeric_fields)
 
 
+render_sidebar()
+render_common_interface()
+
 app = NumericAnalysisApp()
-app.create_common_interface()
 field_mapping, selected_fields = app.get_fields_mapping()
 dask_df = app.load_dask_dataframe(field_mapping)
 app.setup_app_page(dask_df, selected_fields)

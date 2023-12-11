@@ -40,7 +40,9 @@ class DockerRunner(Runner):
             "--remove-orphans",
         ]
 
+        print("Starting pipeline run...")
         subprocess.call(cmd)  # nosec
+        print("Finished pipeline run.")
 
     def run(
         self,
