@@ -3,7 +3,7 @@ import weaviate
 from fondant.component import PandasTransformComponent
 
 
-class RetrieveChunks(PandasTransformComponent):
+class RetrieveFromWeaviateComponent(PandasTransformComponent):
     def __init__(
         self,
         *,
