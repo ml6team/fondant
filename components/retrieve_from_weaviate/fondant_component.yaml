@@ -2,6 +2,8 @@
 name: retrieve_from_weaviate
 description: Component that retrieves chunks from a weaviate vectorDB
 image: ghcr.io/ml6team/retrieve_from_weaviate:dev
+tags:
+  - Data retrieval
 
 consumes:
   text: #TODO: fill in here
