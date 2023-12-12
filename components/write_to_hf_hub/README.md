@@ -1,4 +1,4 @@
-# Write to hub
+# Write to Hugging Face hub
 
 ### Description
 Component that writes a dataset to the hub

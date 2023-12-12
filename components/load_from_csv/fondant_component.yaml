@@ -1,4 +1,4 @@
-name: Load from csv file
+name: Load from csv
 description: Component that loads a dataset from a csv file
 image: fndnt/load_from_csv:dev
 tags:
