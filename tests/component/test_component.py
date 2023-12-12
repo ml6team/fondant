@@ -403,6 +403,7 @@ def test_wrap_transform():
                 },
             },
             "produces": {
+                "additionalProperties": True,
                 "caption_text": {
                     "type": "string",
                 },
@@ -430,9 +431,14 @@ def test_wrap_transform():
         ]
         return dataframe
 
+    overwrite_produces = {
+        "caption_text": pa.string(),
+        "image_height": pa.int16(),
+    }
+
     wrapped_transform = PandasTransformExecutor.wrap_transform(
         transform,
-        operation_spec=OperationSpec(spec),
+        operation_spec=OperationSpec(spec, produces=overwrite_produces),
     )
     output_df = wrapped_transform(input_df)
 
