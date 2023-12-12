@@ -514,7 +514,11 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         return ["input_manifest_path", "input_partition_rows"]
 
     @staticmethod
-    def wrap_transform(transform: t.Callable, *, spec: ComponentSpec) -> t.Callable:
+    def wrap_transform(
+        transform: t.Callable,
+        *,
+        operation_spec: OperationSpec,
+    ) -> t.Callable:
         """Factory that creates a function to wrap the component transform function. The wrapper:
         - Removes extra columns from the returned dataframe which are not defined in the component
           spec `produces` section
@@ -524,7 +528,7 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
 
         Args:
             transform: Transform method to wrap
-            spec: Component specification to base behavior on
+            operation_spec: Operation specification to base behavior on
         """
 
         def wrapped_transform(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -532,7 +536,7 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
             dataframe = transform(dataframe)
 
             # Drop columns not in specification
-            columns = [name for name, field in spec.produces.items()]
+            columns = [name for name, field in operation_spec.inner_produces.items()]
 
             return dataframe[columns]
 
@@ -560,11 +564,14 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
 
         # Create meta dataframe with expected format
         meta_dict = {"id": pd.Series(dtype="object")}
-        for field_name, field in self.spec.produces.items():
+        for field_name, field in self.operation_spec.inner_produces.items():
             meta_dict[field_name] = pd.Series(dtype=pd.ArrowDtype(field.type.value))
         meta_df = pd.DataFrame(meta_dict).set_index("id")
 
-        wrapped_transform = self.wrap_transform(component.transform, spec=self.spec)
+        wrapped_transform = self.wrap_transform(
+            component.transform,
+            operation_spec=self.operation_spec,
+        )
 
         # Call the component transform method for each partition
         dataframe = dataframe.map_partitions(
