@@ -33,7 +33,7 @@ class EmbedTextComponent(PandasTransformComponent):
         **kwargs,
     ):
         to_env_vars(api_keys)
-        
+
         self.embedding_model = self.get_embedding_model(
             model_provider,
             model,
