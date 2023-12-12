@@ -32,13 +32,13 @@ class EmbedTextComponent(PandasTransformComponent):
         auth_kwargs: dict,
         **kwargs,
     ):
+        to_env_vars(api_keys)
+        
         self.embedding_model = self.get_embedding_model(
             model_provider,
             model,
             auth_kwargs,
         )
-
-        to_env_vars(api_keys)
 
     @staticmethod
     def get_embedding_model(
