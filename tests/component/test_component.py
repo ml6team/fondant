@@ -21,7 +21,7 @@ from fondant.component.executor import (
     ExecutorFactory,
     PandasTransformExecutor,
 )
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.manifest import Manifest, Metadata
 from fondant.pipeline import ComponentOp
 
@@ -430,7 +430,10 @@ def test_wrap_transform():
         ]
         return dataframe
 
-    wrapped_transform = PandasTransformExecutor.wrap_transform(transform, spec=spec)
+    wrapped_transform = PandasTransformExecutor.wrap_transform(
+        transform,
+        operation_spec=OperationSpec(spec),
+    )
     output_df = wrapped_transform(input_df)
 
     # Check column flattening, trimming, and ordering
