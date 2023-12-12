@@ -10,7 +10,7 @@ description: |
 
 image: fndnt/download_images:dev
 tags:
-  - Image processing
+  - Data retrieval
 
 consumes:
   image_url:

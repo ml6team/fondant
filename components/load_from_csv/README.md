@@ -1,4 +1,4 @@
-# Load from csv file
+# Load from csv
 
 ### Description
 Component that loads a dataset from a csv file

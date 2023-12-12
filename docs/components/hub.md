@@ -8,11 +8,15 @@ Below you can find the reusable components offered by Fondant.
 
 **Data loading**
 
+??? "Load from csv"
+
+    --8<-- "components/load_from_csv/README.md:1"
+
 ??? "Load from files"
 
     --8<-- "components/load_from_files/README.md:1"
 
-??? "Load from hub"
+??? "Load from Hugging Face hub"
 
     --8<-- "components/load_from_hf_hub/README.md:1"
 
@@ -20,7 +24,19 @@ Below you can find the reusable components offered by Fondant.
 
     --8<-- "components/load_from_parquet/README.md:1"
 
+??? "Load with LlamaHub"
+
+    --8<-- "components/load_with_llamahub/README.md:1"
+
 **Data retrieval**
+
+??? "Download images"
+
+    --8<-- "components/download_images/README.md:1"
+
+??? "retrieve_from_weaviate"
+
+    --8<-- "components/retrieve_from_weaviate/README.md:1"
 
 ??? "Embedding based LAION retrieval"
 
@@ -40,7 +56,7 @@ Below you can find the reusable components offered by Fondant.
 
     --8<-- "components/index_weaviate/README.md:1"
 
-??? "Write to hub"
+??? "Write to Hugging Face hub"
 
     --8<-- "components/write_to_hf_hub/README.md:1"
 
@@ -53,10 +69,6 @@ Below you can find the reusable components offered by Fondant.
 ??? "Image cropping"
 
     --8<-- "components/crop_images/README.md:1"
-
-??? "Download images"
-
-    --8<-- "components/download_images/README.md:1"
 
 ??? "Embed images"
 
@@ -87,6 +99,10 @@ Below you can find the reusable components offered by Fondant.
 ??? "Embed text"
 
     --8<-- "components/embed_text/README.md:1"
+
+??? "retriever_eval_ragas"
+
+    --8<-- "components/evaluate_ragas/README.md:1"
 
 ??? "Filter languages"
 

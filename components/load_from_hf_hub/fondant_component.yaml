@@ -1,4 +1,4 @@
-name: Load from hub
+name: Load from Hugging Face hub
 description: Component that loads a dataset from the hub
 image: fndnt/load_from_hf_hub:dev
 tags:
