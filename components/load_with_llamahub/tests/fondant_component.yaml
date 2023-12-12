@@ -1,0 +1,50 @@
+name: Load with LlamaHub
+description: |
+  Load data using a LlamaHub loader. For available loaders, check the 
+  [LlamaHub](https://llamahub.ai/).
+image: ghcr.io/ml6team/load_with_llamahub:dev
+
+produces:
+  text:
+    type: string
+  URL:
+    type: string
+  Title of this paper:
+    type: string
+
+args:
+  loader_class:
+    description: |
+      The name of the LlamaIndex loader class to use. Make sure to provide the name and not the 
+      id. The name is passed to `llama_index.download_loader` to download the specified loader.
+    type: str
+  loader_kwargs:
+    description: |
+      Keyword arguments to pass when instantiating the loader class. Check the documentation of 
+      the loader to check which arguments it accepts.
+    type: str
+  load_kwargs:
+    description: |
+      Keyword arguments to pass to the `.load()` method of the loader. Check the documentation of
+      the loader to check which arguments it accepts.
+    type: str
+  additional_requirements:
+    description: |
+      Some loaders require additional dependencies to be installed. You can specify those here. 
+      Use a format accepted by `pip install`. Eg. "pypdf" or "pypdf==3.17.1". Unfortunately 
+      additional requirements for LlamaIndex loaders are not documented well, but if a dependency
+      is missing, a clear error message will be thrown.
+    type: list
+    default: []
+  n_rows_to_load:
+    description: |
+      Optional argument that defines the number of rows to load. Useful for testing pipeline runs 
+      on a small scale
+    type: int
+    default: None
+  index_column:
+    description: |
+      Column to set index to in the load component, if not specified a default globally unique 
+      index will be set
+    type: str
+    default: None
