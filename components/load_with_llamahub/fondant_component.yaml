@@ -2,12 +2,12 @@ name: Load with LlamaHub
 description: |
   Load data using a LlamaHub loader. For available loaders, check the 
   [LlamaHub](https://llamahub.ai/).
-image: ghcr.io/ml6team/load_with_llamahub:dev
+image: fndnt/load_with_llamahub:dev
+tags:
+  - Data loading
 
 produces:
-  text:
-    type: string
-  #TODO: Add extra fields to extract from document metadata
+  additionalProperties: true
 
 args:
   loader_class:
