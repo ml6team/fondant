@@ -29,7 +29,7 @@ info [here](https://codelabs.developers.google.com/vertex-pipelines-intro#2)
     ```bash 
     fondant run vertex <pipeline_ref> \
      --project-id $PROJECT_ID \
-     --project-region $PROJECT_REGION \
+     --region $PROJECT_REGION \
      --service-account $SERVICE_ACCOUNT
     ```
     
@@ -52,7 +52,7 @@ info [here](https://codelabs.developers.google.com/vertex-pipelines-intro#2)
 
     runner = VertexRunner(
         project_id=project_id,
-        project_region=project_region,
+        region=project_region,
         service_account=service_account)
     )
     runner.run(input_spec=<path_to_compiled_spec>)
