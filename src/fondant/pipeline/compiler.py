@@ -770,8 +770,10 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
 
         # use shlex.quote to escape special bash chars
         for c in command:
-            content.append(shlex.quote(c))
+            content.append(c.replace("'", ""))
+
+        cleaned_content = shlex.join(content)
 
         with open(f"{directory}/{component_name}.sh", "w") as f:
-            f.write(" ".join(content))
+            f.write(cleaned_content)
         return f"{directory}/{component_name}.sh"
