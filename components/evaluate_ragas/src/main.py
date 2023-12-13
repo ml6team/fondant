@@ -60,7 +60,7 @@ class RetrieverEval(PandasTransformComponent):
     @staticmethod
     def create_hf_ds(dataframe: pd.DataFrame):
         dataframe = dataframe.rename(
-            columns={"text": "question", "retrieved_chunks": "contexts"},
+            columns={"retrieved_chunks": "contexts"},
         )
         return Dataset.from_pandas(dataframe)
 
@@ -69,7 +69,7 @@ class RetrieverEval(PandasTransformComponent):
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         hf_dataset = self.create_hf_ds(
-            dataframe=dataframe[["text", "retrieved_chunks"]],
+            dataframe=dataframe[["question", "retrieved_chunks"]],
         )
         if "id" in hf_dataset.column_names:
             hf_dataset = hf_dataset.remove_columns("id")
