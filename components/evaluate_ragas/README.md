@@ -7,7 +7,7 @@ Component that evaluates the retriever using RAGAS
 
 **This component consumes:**
 
-- text: string
+- question: string
 - retrieved_chunks: list<item: string>
 
 **This component produces no data.**

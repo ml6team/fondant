@@ -5,7 +5,7 @@ tags:
   - Text processing
 
 consumes:
-  text:
+  question:
     type: string
   retrieved_chunks:
     type: array
