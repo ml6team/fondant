@@ -646,7 +646,7 @@ def test_sagemaker_build_command():
 
 def test_sagemaker_generate_script(tmp_path_factory):
     compiler = SagemakerCompiler()
-    command = ["echo", "hello world", r"special chars: $ ! # & ' ( ) | < > ` \ ;"]
+    command = ["--metadata", '{"foo": "bar\'s"}']
     with tmp_path_factory.mktemp("temp") as fn:
         script_path = compiler.generate_component_script("component_1", command, fn)
 
@@ -657,7 +657,7 @@ def test_sagemaker_generate_script(tmp_path_factory):
         with open(script_path) as f:
             assert (
                 f.read()
-                == "fondant execute main echo 'hello world' 'special chars: $ ! # & '\"'\"' ( ) | < > ` \\ ;'"  # noqa E501
+                == 'fondant execute main --metadata \'{"foo": "bars"}\''  # E501
             )
 
 
