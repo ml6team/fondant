@@ -96,8 +96,8 @@ available components**
 We have created several ready-made example pipelines for you to use as a starting point for exploring Fondant. 
 They are hosted as separate repositories containing a notebook tutorial so you can easily clone them and get started:
 
-📖 [**RAG ingestion pipeline**](https://github.com/ml6team/fondant-usecase-RAG)  
-An end-to-end Fondant pipeline that prepares documents for a RAG (Retrieval Augmented Generation) system by chunking and embedding them, and writing them to a vector store.
+📖 [**RAG tuning pipeline**](https://github.com/ml6team/fondant-usecase-RAG)  
+End-to-end Fondant pipelines to index and evaluate RAG (Retrieval-Augmented Generation) systems.
 
 🛋️ [**ControlNet Interior Design Pipeline**](https://github.com/ml6team/fondant-usecase-controlnet)  
 An end-to-end Fondant pipeline to collect and process data for the fine-tuning of a ControlNet model, focusing on images related to interior design.
