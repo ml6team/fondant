@@ -526,6 +526,12 @@ def register_run(parent_parser):
         action="append",
         help="Build arguments for `docker build`",
     )
+    local_parser.add_argument(
+        "--quiet-pull",
+        action="store_true",
+        help="Flag to suppress the output of the docker pull command",
+        default=True,
+    )
 
     # kubeflow runner parser
     kubeflow_parser.add_argument(
@@ -652,6 +658,7 @@ def run_local(args):
         input=ref,
         extra_volumes=extra_volumes,
         build_args=args.build_arg,
+        quiet_pull=args.quiet_pull,
     )
 
 

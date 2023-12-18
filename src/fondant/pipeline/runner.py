@@ -26,7 +26,7 @@ class Runner(ABC):
 
 
 class DockerRunner(Runner):
-    def _run(self, input_spec: str, *args, **kwargs):
+    def _run(self, input_spec: str, quiet_pull: bool, *args, **kwargs):
         """Run a docker-compose spec."""
         cmd = [
             "docker",
@@ -40,6 +40,9 @@ class DockerRunner(Runner):
             "--remove-orphans",
         ]
 
+        if quiet_pull:
+            cmd.append("--quiet-pull")
+
         print("Starting pipeline run...")
         subprocess.call(cmd)  # nosec
         print("Finished pipeline run.")
@@ -50,16 +53,18 @@ class DockerRunner(Runner):
         *,
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
+        quiet_pull: bool = True,
     ) -> None:
         """Run a pipeline, either from a compiled docker-compose spec or from a fondant pipeline.
 
         Args:
             input: the pipeline to compile or a path to a already compiled docker-compose spec
-            output_path: the path where to save the docker-compose spec
             extra_volumes: a list of extra volumes (using the Short syntax:
-            https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
+             https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
             to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
+            quiet_pull: Whether to use the --quiet-pull flag when running docker-compose to
+            suppress the output of the docker pull command.
         """
         if isinstance(input, Pipeline):
             os.makedirs(".fondant", exist_ok=True)
@@ -74,9 +79,9 @@ class DockerRunner(Runner):
                 extra_volumes=extra_volumes,
                 build_args=build_args,
             )
-            self._run(output_path)
+            self._run(output_path, quiet_pull)
         else:
-            self._run(input)
+            self._run(input, quiet_pull)
 
 
 class KubeflowRunner(Runner):

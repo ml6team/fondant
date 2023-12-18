@@ -36,6 +36,7 @@ def test_docker_runner():
                 "--pull",
                 "always",
                 "--remove-orphans",
+                "--quiet-pull",
             ],
         )
 
@@ -54,6 +55,7 @@ def test_docker_runner_from_pipeline():
                 "--pull",
                 "always",
                 "--remove-orphans",
+                "--quiet-pull",
             ],
         )
 

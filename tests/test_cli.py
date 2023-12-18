@@ -273,6 +273,7 @@ def test_local_run():
         credentials=None,
         extra_volumes=[],
         build_arg=[],
+        quiet_pull=True,
     )
     with patch("subprocess.call") as mock_call:
         run_local(args)
@@ -287,6 +288,7 @@ def test_local_run():
                 "--pull",
                 "always",
                 "--remove-orphans",
+                "--quiet-pull",
             ],
         )
 
@@ -302,6 +304,7 @@ def test_local_run():
             auth_azure=False,
             auth_aws=False,
             credentials=None,
+            quiet_pull=False,
         )
         run_local(args1)
         mock_call.assert_called_once_with(
@@ -341,6 +344,7 @@ def test_local_run_cloud_credentials():
                 credentials=None,
                 extra_volumes=[],
                 build_arg=[],
+                quiet_pull=False,
             )
             run_local(args)
 
