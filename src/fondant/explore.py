@@ -115,9 +115,9 @@ def run_explorer_app(  # type: ignore
             ["--base_path", f"{base_path}"],
         )
 
+    subprocess.call(cmd, stdout=subprocess.PIPE)  # nosec
+
     logging.info(
         f"Running image from registry: {container} with tag: {tag} on port: {port}",
     )
     logging.info(f"Access the explorer at http://localhost:{port}")
-
-    subprocess.call(cmd, stdout=subprocess.PIPE)  # nosec
