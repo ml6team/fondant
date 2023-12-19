@@ -1,6 +1,6 @@
 # Prompt based LAION retrieval
 
-### Description
+## Description
 This component retrieves image URLs from the [LAION-5B dataset](https://laion.ai/blog/laion-5b/) 
 based on text prompts. The retrieval itself is done based on CLIP embeddings similarity between 
 the prompt sentences and the captions in the LAION dataset. 
@@ -8,18 +8,24 @@ the prompt sentences and the captions in the LAION dataset.
 This component doesn’t return the actual images, only URLs.
 
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - prompt: string
+
+
+
+### Produces
 
 **This component produces:**
 
 - image_url: string
 - prompt_id: string
 
-### Arguments
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -30,7 +36,7 @@ The component takes the following arguments to alter its behavior:
 | aesthetic_weight | float | Weight of the aesthetic embedding when added to the query, between 0 and 1 | 0.5 |
 | url | str | The url of the backend clip retrieval service, defaults to the public service | https://knn.laion.ai/knn-service |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -50,11 +56,11 @@ dataset = dataset.apply(
         # "aesthetic_score": 9,
         # "aesthetic_weight": 0.5,
         # "url": "https://knn.laion.ai/knn-service",
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

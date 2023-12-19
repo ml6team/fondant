@@ -1,19 +1,25 @@
 # Embed text
 
-### Description
+## Description
 Component that generates embeddings of text passages.
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - text: string
+
+
+
+### Produces
 
 **This component produces:**
 
 - embedding: list<item: float>
 
-### Arguments
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -24,7 +30,7 @@ The component takes the following arguments to alter its behavior:
 | api_keys | dict | The API keys to use for the model provider that are written to environment variables.Pass only the keys required by the model provider or conveniently pass all keys you will ever need. Pay attention how to name the dictionary keys so that they can be used by the model provider. | / |
 | auth_kwargs | dict | Additional keyword arguments required for api initialization/authentication. | / |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -44,11 +50,11 @@ dataset = dataset.apply(
         # "model": ,
         # "api_keys": {},
         # "auth_kwargs": {},
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

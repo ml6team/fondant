@@ -1,18 +1,24 @@
 # Index Weaviate
 
-### Description
+## Description
 Component that takes embeddings of text snippets and indexes them into a weaviate vector database.
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - text: string
 - embedding: list<item: float>
 
-**This component produces no data.**
 
-### Arguments
+
+### Produces
+
+_**This component does not produce specific data.**_
+
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -26,7 +32,7 @@ The component takes the following arguments to alter its behavior:
 | class_name | str | The name of the weaviate class that will be created and used to store the embeddings.Should follow the weaviate naming conventions. | / |
 | vectorizer | str | Which vectorizer to use. You can find the available vectorizers in the weaviate documentation: https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modulesSet this to None if you want to insert your own embeddings. | / |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -51,7 +57,7 @@ dataset.write(
         # "overwrite": False,
         # "class_name": ,
         # "vectorizer": ,
-    }
+    },
 )
 ```
 

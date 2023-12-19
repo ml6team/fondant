@@ -1,13 +1,18 @@
 # Image resolution extraction
 
-### Description
+## Description
 Component that extracts image resolution data from the images
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - image: binary
+
+
+
+### Produces
 
 **This component produces:**
 
@@ -15,11 +20,12 @@ Component that extracts image resolution data from the images
 - image_width: int32
 - image_height: int32
 
-### Arguments
+
+## Arguments
 
 This component takes no arguments.
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -35,7 +41,7 @@ dataset = dataset.apply(
     "extract_image_resolution",
     arguments={
         # Add arguments
-    }
+    },
 )
 ```
 

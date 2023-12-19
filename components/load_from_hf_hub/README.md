@@ -1,15 +1,23 @@
 # Load from Hugging Face hub
 
-### Description
+## Description
 Component that loads a dataset from the hub
 
-### Inputs / outputs
+## Inputs / outputs
 
-**This component consumes no data.**
+### Consumes
+_**This component does not consume specific data.**_
 
-**This component produces no data.**
 
-### Arguments
+
+### Produces
+
+_**This component does not produce specific data.**_
+
+**This component produces generic data**
+- <field_name>: <field_schema>
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -21,7 +29,7 @@ The component takes the following arguments to alter its behavior:
 | n_rows_to_load | int | Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale | / |
 | index_column | str | Column to set index to in the load component, if not specified a default globally unique index will be set | / |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -40,7 +48,11 @@ dataset = pipeline.read(
         # "image_column_names": [],
         # "n_rows_to_load": 0,
         # "index_column": ,
-    }
+    },
+    produces={
+         <field_name>: <field_schema>,
+         ..., # Add fields
+    },
 )
 ```
 

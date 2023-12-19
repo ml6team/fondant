@@ -1,22 +1,28 @@
 # Embedding based LAION retrieval
 
-### Description
+## Description
 This component retrieves image URLs from LAION-5B based on a set of CLIP embeddings. It can be 
 used to find images similar to the embedded images / captions.
 
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - embedding: list<item: float>
+
+
+
+### Produces
 
 **This component produces:**
 
 - image_url: string
 - embedding_id: string
 
-### Arguments
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -26,7 +32,7 @@ The component takes the following arguments to alter its behavior:
 | aesthetic_score | int | Aesthetic embedding to add to the query embedding, between 0 and 9 (higher is prettier). | 9 |
 | aesthetic_weight | float | Weight of the aesthetic embedding when added to the query, between 0 and 1 | 0.5 |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -45,11 +51,11 @@ dataset = dataset.apply(
         # "num_images": 0,
         # "aesthetic_score": 9,
         # "aesthetic_weight": 0.5,
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

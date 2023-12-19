@@ -1,10 +1,11 @@
 # {{ name }}
 
-### Description
+## Description
 {{ description }}
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 {% if consumes %}
 **This component consumes:**
 
@@ -12,8 +13,16 @@
 - {{ field.name }}: {{ field.type.value }}
 {% endfor %}
 {% else %}
-**This component consumes no data.**
+_**This component does not consume specific data.**_
 {% endif %}
+
+{% if is_consumes_generic %}
+**This component consumes generic data**
+- <field_name>: <mapped_field_name>
+{% endif %}
+
+
+### Produces
 
 {% if produces %}
 **This component produces:**
@@ -22,10 +31,15 @@
 - {{ field.name }}: {{ field.type.value }}
 {% endfor %}
 {% else %}
-**This component produces no data.**
+_**This component does not produce specific data.**_
 {% endif %}
 
-### Arguments
+{% if is_produces_generic %}
+**This component produces generic data**
+- <field_name>: <field_schema>
+{% endif %}
+
+## Arguments
 
 {% if arguments %}
 The component takes the following arguments to alter its behavior:
@@ -39,7 +53,7 @@ The component takes the following arguments to alter its behavior:
 This component takes no arguments.
 {% endif %}
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -72,12 +86,24 @@ dataset.write(
         # "{{ argument.name }}": {{ (argument.type|eval)() }},
 {% endif %}
 {% endfor %}
-    }
+    },
+{% if is_consumes_generic %}
+    consumes={
+         <field_name>: <mapped_field_name>,
+         ..., # Add fields
+     },
+{% endif %}
+{% if is_produces_generic %}
+    produces={
+         <field_name>: <field_schema>,
+         ..., # Add fields
+    },
+{% endif %}
 )
 ```
 
 {% if tests %}
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

@@ -1,19 +1,25 @@
 # retrieve_from_weaviate
 
-### Description
+## Description
 Component that retrieves chunks from a weaviate vectorDB
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - embedding: list<item: float>
+
+
+
+### Produces
 
 **This component produces:**
 
 - retrieved_chunks: list<item: string>
 
-### Arguments
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -23,7 +29,7 @@ The component takes the following arguments to alter its behavior:
 | class_name | str | The name of the weaviate class that will be queried | / |
 | top_k | int | Number of chunks to retrieve | / |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -42,11 +48,11 @@ dataset = dataset.apply(
         # "weaviate_url": "http://localhost:8080",
         # "class_name": ,
         # "top_k": 0,
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

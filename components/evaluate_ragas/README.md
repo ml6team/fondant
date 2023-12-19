@@ -1,18 +1,26 @@
 # retriever_eval_ragas
 
-### Description
+## Description
 Component that evaluates the retriever using RAGAS
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - question: string
 - retrieved_chunks: list<item: string>
 
-**This component produces no data.**
 
-### Arguments
+
+### Produces
+
+_**This component does not produce specific data.**_
+
+**This component produces generic data**
+- <field_name>: <field_schema>
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -22,7 +30,7 @@ The component takes the following arguments to alter its behavior:
 | llm_name | str | Name of the selected llm | / |
 | llm_kwargs | dict | Arguments of the selected llm | / |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -41,11 +49,15 @@ dataset = dataset.apply(
         # "module": "langchain.llms",
         # "llm_name": ,
         # "llm_kwargs": {},
-    }
+    },
+    produces={
+         <field_name>: <field_schema>,
+         ..., # Add fields
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

@@ -1,19 +1,25 @@
 # MinHash generator
 
-### Description
+## Description
 A component that generates minhashes of text.
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - text: string
+
+
+
+### Produces
 
 **This component produces:**
 
 - minhash: list<item: uint64>
 
-### Arguments
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -21,7 +27,7 @@ The component takes the following arguments to alter its behavior:
 | -------- | ---- | ----------- | ------- |
 | shingle_ngram_size | int | Define size of ngram used for the shingle generation | 3 |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -38,11 +44,11 @@ dataset = dataset.apply(
     arguments={
         # Add arguments
         # "shingle_ngram_size": 3,
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

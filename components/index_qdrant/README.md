@@ -1,18 +1,24 @@
 # Index Qdrant
 
-### Description
+## Description
 A Fondant component to load textual data and embeddings into a Qdrant database. NOTE: A Qdrant collection has to be created in advance with the appropriate configurations. https://qdrant.tech/documentation/concepts/collections/
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - text: string
 - embedding: list<item: float>
 
-**This component produces no data.**
 
-### Arguments
+
+### Produces
+
+_**This component does not produce specific data.**_
+
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -34,7 +40,7 @@ The component takes the following arguments to alter its behavior:
 | path | str | Persistence path for QdrantLocal. Eg. `local_data/qdrant` | / |
 | force_disable_check_same_thread | bool | Force disable check_same_thread for QdrantLocal sqlite connection. | / |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -67,11 +73,11 @@ dataset.write(
         # "host": ,
         # "path": ,
         # "force_disable_check_same_thread": False,
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```
