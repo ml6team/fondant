@@ -1,6 +1,7 @@
 import logging
 import os
 
+import dask
 import google.cloud.aiplatform as aip
 import pandas as pd
 from fondant.component import PandasTransformComponent
@@ -15,6 +16,8 @@ from langchain.schema.embeddings import Embeddings
 from retry import retry
 
 logger = logging.getLogger(__name__)
+
+dask.config.set(scheduler="processes")
 
 
 def to_env_vars(api_keys: dict):
