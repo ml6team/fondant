@@ -29,7 +29,7 @@ info [here](https://codelabs.developers.google.com/vertex-pipelines-intro#2)
     ```bash 
     fondant run vertex <pipeline_ref> \
      --project-id $PROJECT_ID \
-     --project-region $PROJECT_REGION \
+     --region $PROJECT_REGION \
      --service-account $SERVICE_ACCOUNT
     ```
     

@@ -558,10 +558,72 @@ class Dataset:
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
                 map from the input dataset.
+
+                Suppose we have a component spec that expects the following fields:
+
+                ```
+                ...
+                consumes:
+                    text:
+                        type: string
+                    image:
+                        type: binary
+                ...
+                ```
+
+                To override the default mapping and specify that the 'text' field should be sourced
+                from the 'custom_text' field in the input dataset, the 'consumes' mapping can be
+                defined as follows:
+
+                ```
+                consumes = {
+                    "text": "custom_text"
+                }
+                ```
+
+                In this example, the 'text' field will be sourced from 'custom_text' and 'image'
+                will be sourced from the 'image' field.
+
             produces: A mapping to update the fields produced by the operation as defined in the
                 component spec. The keys are the names of the fields to be produced by the
                 component, while the values are the type of the field, or the name that should be
                 used to write the field to the output dataset.
+
+                Suppose we have a component spec that expects the following fields:
+
+                ```
+                ...
+                produces:
+                    text:
+                        type: string
+                    width:
+                        type: int
+                ```
+
+                To customize the field names and types during the production step, the 'produces'
+                mapping can be defined as follows:
+
+                ```
+                produces = {
+                    "width": "custom_width",
+                }
+                ```
+
+                In this example, the 'text' field will retain as text, while the 'width' field will
+                be stored with the name 'custom_width' in the output dataset.
+
+                Alternatively, the produces defines the data type of the output data.
+
+                ```
+                produces = {
+                    "width": pa.float32(),
+                }
+                ```
+
+                In this example, the 'text' field will retain its type 'string' without specifying a
+                different source, while the 'width' field will be produced as type float in the
+                output dataset.
+
             arguments: A dictionary containing the argument name and value for the operation.
             input_partition_rows: The number of rows to load per partition. Set to override the
             automatic partitioning
