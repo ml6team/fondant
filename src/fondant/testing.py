@@ -99,7 +99,7 @@ class PipelineConfigs:
 
 
 @dataclass
-class DockerPipelineConfigs(PipelineConfigs):
+class DockerComposeConfigs(PipelineConfigs):
     """
     Represents Docker-specific configurations for a pipeline.
 
@@ -110,7 +110,7 @@ class DockerPipelineConfigs(PipelineConfigs):
     component_configs: t.Optional[t.Dict[str, DockerComponentConfig]] = None
 
     @classmethod
-    def from_spec(cls, spec_path: str) -> "DockerPipelineConfigs":
+    def from_spec(cls, spec_path: str) -> "DockerComposeConfigs":
         """Get pipeline configs from a pipeline specification."""
         with open(spec_path) as file_:
             specification = yaml.safe_load(file_)

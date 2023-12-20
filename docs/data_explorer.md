@@ -48,7 +48,7 @@ together with the Fondant python package.
 === "Console"
 
     ```bash
-    fondant explore --base_path $BASE_PATH
+    fondant explore start --base_path $BASE_PATH
     ```
 
 === "Python"
@@ -67,22 +67,22 @@ or `--auth-azure` to
 mount your default local cloud credentials to the pipeline. Or You can also use
 the `--extra-volumnes` flag to specify credentials or local files you need to mount.
 
+To stop the data explorer service you can use the following commands: 
+
 Example:
 
 === "Console"
 
     ```bash
-    export BASE_PATH=gs://foo/bar
-    fondant explore --base_path $BASE_PATH
+    fondant explore stop
     ```
 
 === "Python"
 
     ```python
-    from fondant.explore import run_explorer_app
-    
-    BASE_PATH = "gs://foo/bar"
-    run_explorer_app(base_path=BASE_PATH)
+    from fondant.explore import stop_explorer_app
+
+    stop_explorer_app()
     ```
 
 

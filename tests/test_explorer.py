@@ -2,9 +2,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from fondant.explore import run_explorer_app
+from fondant.explore import run_explorer_app, stop_explorer_app
+from fondant.testing import DockerComposeConfigs
 
 DEFAULT_CONTAINER = "fndnt/data_explorer"
+OUTPUT_FILE = "explorer-compose.yaml"
 DEFAULT_TAG = "latest"
 DEFAULT_PORT = 8501
 
@@ -32,66 +34,114 @@ def container_path() -> str:
     return "/source"
 
 
-def test_run_data_explorer_local_base_path(host_path, container_path, extra_volumes):
+def test_run_data_explorer_local_base_path(
+    host_path,
+    container_path,
+    extra_volumes,
+    tmp_path_factory,
+):
     """Test that the data explorer can be run with a local base path."""
-    with patch("subprocess.call") as mock_call:
+    with tmp_path_factory.mktemp("temp") as fn, patch("subprocess.call") as mock_call:
+        output_path = str(fn / OUTPUT_FILE)
         run_explorer_app(
             base_path=host_path,
+            output_path=output_path,
             port=DEFAULT_PORT,
             container=DEFAULT_CONTAINER,
             tag=DEFAULT_TAG,
             extra_volumes=extra_volumes,
         )
+
+        pipeline_configs = DockerComposeConfigs.from_spec(output_path)
+        data_explorer_config = pipeline_configs.component_configs["data_explorer"]
+        volumes = data_explorer_config.volumes
+
+        assert data_explorer_config.arguments["base_path"] == container_path
+        assert data_explorer_config.image == f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}"
+        assert data_explorer_config.ports == [f"{DEFAULT_PORT}:8501"]
+        assert volumes[0] == extra_volumes
+        assert volumes[1]["source"] == str(Path(host_path).resolve())
+        assert volumes[1]["target"] == container_path
+
         mock_call.assert_called_once_with(
             [
                 "docker",
-                "run",
+                "compose",
+                "-f",
+                output_path,
+                "up",
+                "--build",
                 "--pull",
                 "always",
-                "--name",
-                "fondant-explorer",
-                "--rm",
-                "-p",
-                "8501:8501",
-                "-v",
-                f"{extra_volumes}",
-                "-v",
-                f"{Path(host_path).resolve()}:{container_path}",
-                f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
-                "--base_path",
-                f"{container_path}",
+                "--remove-orphans",
+                "--detach",
             ],
             stdout=-1,
         )
 
 
-def test_run_data_explorer_remote_base_path(remote_path, extra_volumes):
+def test_run_data_explorer_remote_base_path(
+    remote_path,
+    extra_volumes,
+    tmp_path_factory,
+):
     """Test that the data explorer can be run with a remote base path."""
-    with patch("subprocess.call") as mock_call:
+    with tmp_path_factory.mktemp("temp") as fn, patch("subprocess.call") as mock_call:
+        output_path = str(fn / OUTPUT_FILE)
         run_explorer_app(
             base_path=remote_path,
+            output_path=output_path,
             port=DEFAULT_PORT,
             container=DEFAULT_CONTAINER,
             tag=DEFAULT_TAG,
             extra_volumes=extra_volumes,
         )
 
+        pipeline_configs = DockerComposeConfigs.from_spec(output_path)
+        data_explorer_config = pipeline_configs.component_configs["data_explorer"]
+        volumes = data_explorer_config.volumes
+
+        assert data_explorer_config.arguments["base_path"] == remote_path
+        assert data_explorer_config.image == f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}"
+        assert data_explorer_config.ports == [f"{DEFAULT_PORT}:8501"]
+        assert volumes[0] == extra_volumes
+
         mock_call.assert_called_once_with(
             [
                 "docker",
-                "run",
+                "compose",
+                "-f",
+                output_path,
+                "up",
+                "--build",
                 "--pull",
                 "always",
-                "--name",
-                "fondant-explorer",
-                "--rm",
-                "-p",
-                "8501:8501",
-                "-v",
-                f"{extra_volumes}",
-                f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}",
-                "--base_path",
-                f"{remote_path}",
+                "--remove-orphans",
+                "--detach",
+            ],
+            stdout=-1,
+        )
+
+
+def test_stop_data_explorer(
+    remote_path,
+    extra_volumes,
+    tmp_path_factory,
+):
+    """Test that the data explorer can be run with a remote base path."""
+    with tmp_path_factory.mktemp("temp") as fn, patch("subprocess.call") as mock_call:
+        output_path = str(fn / OUTPUT_FILE)
+        stop_explorer_app(
+            output_path=output_path,
+        )
+
+        mock_call.assert_called_once_with(
+            [
+                "docker",
+                "compose",
+                "-f",
+                output_path,
+                "stop",
             ],
             stdout=-1,
         )
