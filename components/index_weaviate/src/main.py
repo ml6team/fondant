@@ -4,6 +4,7 @@ import typing as t
 import dask.dataframe as dd
 import weaviate
 from fondant.component import DaskWriteComponent
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,11 @@ class IndexWeaviateComponent(DaskWriteComponent):
 
     def write(self, dataframe: dd.DataFrame) -> None:
         with self.client.batch as batch:
-            for part in dataframe.partitions:
+            for part in tqdm(
+                dataframe.partitions,
+                desc="Processing partitions",
+                total=dataframe.npartitions,
+            ):
                 df = part.compute()
                 for row in df.itertuples():
                     properties = {
