@@ -34,7 +34,7 @@ def test_run_component_test():
         model="all-MiniLM-L6-v2",
         api_keys={},
         auth_kwargs={},
-        tries=5,
+        retries=5,
     )
 
     dataframe = component.transform(dataframe=dataframe)

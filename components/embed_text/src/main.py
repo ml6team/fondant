@@ -30,12 +30,12 @@ class EmbedTextComponent(PandasTransformComponent):
         model: str,
         api_keys: dict,
         auth_kwargs: dict,
-        tries: int,
+        retries: int,
         **kwargs,
     ):
         to_env_vars(api_keys)
 
-        self.tries = tries
+        self.retries = retries
         self.embedding_model = self.get_embedding_model(
             model_provider,
             model,
@@ -65,11 +65,8 @@ class EmbedTextComponent(PandasTransformComponent):
 
     # make sure to keep trying even when api call limit is reached
     def get_embeddings_vectors(self, texts):
-        @retry(tries=self.tries, logger=logger)
-        def return_embeddings():
-            return self.embedding_model.embed_documents(texts.tolist())
-
-        return return_embeddings()
+        retry_wrapper = retry(tries=self.retries, logger=logger)
+        return retry_wrapper(self.embedding_model.embed_documents(texts.tolist()))
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         dataframe["embedding"] = self.get_embeddings_vectors(
