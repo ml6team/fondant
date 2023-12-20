@@ -6,19 +6,16 @@ from collections import defaultdict
 from pathlib import Path
 
 import dask.dataframe as dd
+import fsspec
 import pandas as pd
 import streamlit as st
 from config import DEFAULT_INDEX_NAME, ROWS_TO_RETURN
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
-from interfaces.common_interface import MainInterface
-from interfaces.utils import get_default_index
+from interfaces.utils import get_index_from_state
 
 
-class DatasetLoaderApp(MainInterface):
-    def __init__(self):
-        super().__init__()
-
+class DatasetLoaderApp:
     @staticmethod
     def _select_component():
         """Select component from available components."""
@@ -27,13 +24,12 @@ class DatasetLoaderApp(MainInterface):
             os.path.basename(item) for item in os.listdir(selected_run_path)
         ]
 
-        default_index = get_default_index("component", available_components)
         selected_component = st.selectbox(
             "Component",
-            available_components,
-            default_index,
+            options=available_components,
+            index=get_index_from_state("component", available_components),
         )
-        selected_component_path = os.path.join(selected_run_path, selected_component)
+        selected_component_path = selected_run_path / selected_component
 
         st.session_state["component"] = selected_component
         st.session_state["selected_component_path"] = selected_component_path
@@ -74,9 +70,9 @@ class DatasetLoaderApp(MainInterface):
         base_path = st.session_state["base_path"]
         field_location = manifest.get_field_location(field_name)
 
-        if (
-            os.path.ismount(base_path) is False
-            and self.fs.__class__.__name__ == "LocalFileSystem"
+        if os.path.ismount(base_path) is False and isinstance(
+            st.session_state.file_system,
+            fsspec.implementations.local.LocalFileSystem,
         ):
             # Used for local development when running the app locally
             field_location = os.path.join(

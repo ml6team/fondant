@@ -1,4 +1,4 @@
-# Load from hub
+# Load from Hugging Face hub
 
 ### Description
 Component that loads a dataset from the hub

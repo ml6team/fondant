@@ -55,7 +55,7 @@ Learn how to run your Fondant pipeline on different platforms.
         <td width="25%" style="border: 0px; width: 25%">
             <figure>
                 <img src="https://github.com/ml6team/fondant/blob/main/docs/art/runners/sagemaker.png?raw=true"  style="height: 150px; margin-left: auto; margin-right: auto;" />
-                <figcaption class="caption"><strong>🚧SageMakerRunner🚧</strong></figcaption>
+                <figcaption class="caption"><strong>SageMakerRunner</strong></figcaption>
             </figure>
         </td>
     </tr>
@@ -66,8 +66,7 @@ Learn how to run your Fondant pipeline on different platforms.
 -> [LocalRunner](runners/local.md): ideal for developing fondant pipelines and components faster.   
 -> [VertexRunner](runners/vertex.md): used for running a fondant pipeline on Vertex AI.  
 -> [KubeflowRunner](runners/kfp.md): used for running a fondant pipeline on a Kubeflow cluster.  
--> [SageMakerRunner](runners/kfp.md): used for running a fondant pipeline on a SageMaker pipelines (
-🚧 Coming Soon 🚧).
+-> [SageMakerRunner](runners/sagemaker.md): used for running a fondant pipeline on a SageMaker pipelines
 
 ## Fondant Explorer
 

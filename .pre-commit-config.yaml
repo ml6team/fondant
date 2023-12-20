@@ -68,5 +68,5 @@ repos:
         name: Generate component READMEs
         language: python
         entry: python scripts/component_readme/generate_readme.py
-        files: ^components/.*/fondant_component.yaml
+        files: ^components/[^/]*/fondant_component.yaml
         additional_dependencies: ["fondant@git+https://github.com/ml6team/fondant@main", "Jinja2==3.1.2"]

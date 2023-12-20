@@ -1,0 +1,30 @@
+name: retrieve_from_weaviate
+description: Component that retrieves chunks from a weaviate vectorDB
+image: fndnt/retrieve_from_weaviate:dev
+tags:
+  - Data retrieval
+
+consumes:
+  embedding:
+    type: array
+    items:
+      type: float32
+
+produces:
+  retrieved_chunks:
+    type: array
+    items:
+      type: string
+
+args:
+  weaviate_url:
+    description: The URL of the weaviate instance.
+    type: str
+    default: http://localhost:8080
+  class_name:
+    description:
+      The name of the weaviate class that will be queried
+    type: str
+  top_k:
+    description: Number of chunks to retrieve
+    type: int

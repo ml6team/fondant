@@ -1,4 +1,4 @@
-name: Write to hub
+name: Write to Hugging Face hub
 description: Component that writes a dataset to the hub
 image: fndnt/write_to_hf_hub:dev
 tags:

@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import shlex
 import tempfile
 import typing as t
 from abc import ABC, abstractmethod
@@ -765,8 +766,14 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
         """Generate a bash script for a component to be used as input in a
         sagemaker pipeline step. Returns the path to the script.
         """
-        content = " ".join(["fondant", "execute", "main", *command])
+        content = ["fondant", "execute", "main"]
+
+        # use shlex.quote to escape special bash chars
+        for c in command:
+            content.append(c.replace("'", ""))
+
+        cleaned_content = shlex.join(content)
 
         with open(f"{directory}/{component_name}.sh", "w") as f:
-            f.write(content)
+            f.write(cleaned_content)
         return f"{directory}/{component_name}.sh"
