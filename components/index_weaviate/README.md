@@ -7,16 +7,17 @@ Component that takes embeddings of text snippets and indexes them into a weaviat
 
 ### Consumes
 **This component consumes:**
-
 - text: string
 - embedding: list<item: float>
 
 
 
+
+
 ### Produces
 
-_**This component does not produce specific data.**_
 
+**This component does not produce data.**
 
 ## Arguments
 

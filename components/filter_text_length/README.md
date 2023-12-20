@@ -7,15 +7,16 @@ A component that filters out text based on their length
 
 ### Consumes
 **This component consumes:**
-
 - text: string
+
+
 
 
 
 ### Produces
 
-_**This component does not produce specific data.**_
 
+**This component does not produce data.**
 
 ## Arguments
 

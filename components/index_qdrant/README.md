@@ -7,16 +7,17 @@ A Fondant component to load textual data and embeddings into a Qdrant database. 
 
 ### Consumes
 **This component consumes:**
-
 - text: string
 - embedding: list<item: float>
 
 
 
+
+
 ### Produces
 
-_**This component does not produce specific data.**_
 
+**This component does not produce data.**
 
 ## Arguments
 

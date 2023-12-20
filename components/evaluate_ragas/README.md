@@ -7,18 +7,21 @@ Component that evaluates the retriever using RAGAS
 
 ### Consumes
 **This component consumes:**
-
 - question: string
 - retrieved_chunks: list<item: string>
 
 
 
+
+
 ### Produces
 
-_**This component does not produce specific data.**_
-
-**This component produces generic data**
+**This component can produce additional fields**
 - <field_name>: <field_schema>
+This defines a mapping to update the fields produced by the operation as defined in the component spec.
+The keys are the names of the fields to be produced by the component, while the values are 
+the type of the field that should be used to write the output dataset.
+
 
 ## Arguments
 

@@ -11,17 +11,17 @@ consists of the id of the original document followed by the chunk index.
 
 ### Consumes
 **This component consumes:**
-
 - text: string
+
+
 
 
 
 ### Produces
-
 **This component produces:**
-
 - text: string
 - original_document_id: string
+
 
 
 ## Arguments

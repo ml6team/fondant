@@ -6,16 +6,23 @@ Component that writes a dataset to the hub
 ## Inputs / outputs
 
 ### Consumes
-_**This component does not consume specific data.**_
 
-**This component consumes generic data**
-- <field_name>: <mapped_field_name>
+**This component can consume additional fields**
+- <field_name>: <dataset_field_name>
+This defines a mapping to update the fields consumed by the operation as defined in the component spec.
+The keys are the names of the fields to be received by the component, while the values are 
+the name of the field to map from the input dataset
+
+See the usage example below on how to define a field name for additional fields.
+
+
+
 
 
 ### Produces
 
-_**This component does not produce specific data.**_
 
+**This component does not produce data.**
 
 ## Arguments
 
@@ -54,7 +61,7 @@ dataset.write(
         # "column_name_mapping": {},
     },
     consumes={
-         <field_name>: <mapped_field_name>,
+         <field_name>: <dataset_field_name>,
          ..., # Add fields
      },
 )

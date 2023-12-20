@@ -8,16 +8,17 @@ location. It supports the following formats: .zip, gzip, tar and tar.gz.
 ## Inputs / outputs
 
 ### Consumes
-_**This component does not consume specific data.**_
+
+
+**This component does not consume data.**
 
 
 
 ### Produces
-
 **This component produces:**
-
 - filename: string
 - content: binary
+
 
 
 ## Arguments

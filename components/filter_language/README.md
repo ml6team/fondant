@@ -7,15 +7,16 @@ A component that filters text based on the provided language.
 
 ### Consumes
 **This component consumes:**
-
 - text: string
+
+
 
 
 
 ### Produces
 
-_**This component does not produce specific data.**_
 
+**This component does not produce data.**
 
 ## Arguments
 

@@ -9,17 +9,17 @@ used to find images similar to the embedded images / captions.
 
 ### Consumes
 **This component consumes:**
-
 - embedding: list<item: float>
 
 
 
+
+
 ### Produces
-
 **This component produces:**
-
 - image_url: string
 - embedding_id: string
+
 
 
 ## Arguments

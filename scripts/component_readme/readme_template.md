@@ -8,35 +8,46 @@
 ### Consumes
 {% if consumes %}
 **This component consumes:**
-
 {% for field_name, field in consumes.items() %}
 - {{ field.name }}: {{ field.type.value }}
 {% endfor %}
-{% else %}
-_**This component does not consume specific data.**_
 {% endif %}
 
 {% if is_consumes_generic %}
-**This component consumes generic data**
-- <field_name>: <mapped_field_name>
+**This component can consume additional fields**
+- <field_name>: <dataset_field_name>
+This defines a mapping to update the fields consumed by the operation as defined in the component spec.
+The keys are the names of the fields to be received by the component, while the values are 
+the name of the field to map from the input dataset
+
+See the usage example below on how to define a field name for additional fields.
+
 {% endif %}
+
+{% if not is_consumes_generic and not consumes%}
+**This component does not consume data.**
+{% endif %}
+
 
 
 ### Produces
-
 {% if produces %}
 **This component produces:**
-
 {% for field_name, field in produces.items() %}
 - {{ field.name }}: {{ field.type.value }}
 {% endfor %}
-{% else %}
-_**This component does not produce specific data.**_
 {% endif %}
 
 {% if is_produces_generic %}
-**This component produces generic data**
+**This component can produce additional fields**
 - <field_name>: <field_schema>
+This defines a mapping to update the fields produced by the operation as defined in the component spec.
+The keys are the names of the fields to be produced by the component, while the values are 
+the type of the field that should be used to write the output dataset.
+{% endif %}
+
+{% if not is_produces_generic and not produces%}
+**This component does not produce data.**
 {% endif %}
 
 ## Arguments
@@ -89,7 +100,7 @@ dataset.write(
     },
 {% if is_consumes_generic %}
     consumes={
-         <field_name>: <mapped_field_name>,
+         <field_name>: <dataset_field_name>,
          ..., # Add fields
      },
 {% endif %}

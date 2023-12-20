@@ -7,16 +7,16 @@ Component that creates segmentation masks for images using a model from the Hugg
 
 ### Consumes
 **This component consumes:**
-
 - image: binary
 
 
 
+
+
 ### Produces
-
 **This component produces:**
-
 - segmentation_map: binary
+
 
 
 ## Arguments
