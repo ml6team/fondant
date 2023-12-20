@@ -61,7 +61,7 @@ class IndexWeaviateComponent(DaskWriteComponent):
                 total=dataframe.npartitions,
             ):
                 df = part.compute()
-                for row in tqdm(df.itertuples(), desc="Processing rows", total=len(df)):
+                for row in df.itertuples():
                     properties = {
                         "id_": str(row.Index),
                         "passage": row.text,
