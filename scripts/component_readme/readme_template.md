@@ -8,6 +8,7 @@
 ### Consumes
 {% if consumes %}
 **This component consumes:**
+
 {% for field_name, field in consumes.items() %}
 - {{ field.name }}: {{ field.type.value }}
 {% endfor %}
@@ -33,6 +34,7 @@ See the usage example below on how to define a field name for additional fields.
 ### Produces
 {% if produces %}
 **This component produces:**
+
 {% for field_name, field in produces.items() %}
 - {{ field.name }}: {{ field.type.value }}
 {% endfor %}
