@@ -582,7 +582,8 @@ class Dataset:
                 ```
 
                 In this example, the 'text' field will be sourced from 'custom_text' and 'image'
-                will be sourced from the 'image' field.
+                will be sourced from the 'image' field by default, since it's not specified in the
+                custom mapping.
 
             produces: A mapping to update the fields produced by the operation as defined in the
                 component spec. The keys are the names of the fields to be produced by the
@@ -609,8 +610,9 @@ class Dataset:
                 }
                 ```
 
-                In this example, the 'text' field will retain as text, while the 'width' field will
-                be stored with the name 'custom_width' in the output dataset.
+                In this example, the 'text' field will retain as text since it is not specified in
+                the custom mapping. The 'width' field will be stored with the name 'custom_width'
+                in the output dataset.
 
                 Alternatively, the produces defines the data type of the output data.
 
