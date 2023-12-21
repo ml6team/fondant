@@ -1,8 +1,10 @@
-from typing import Dict, Any
+from typing import Any, Dict
+
+import boto3
 import dask.dataframe as dd
 from fondant.component import DaskWriteComponent
-import boto3
-from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
+from opensearchpy import AWSV4SignerAuth, OpenSearch, RequestsHttpConnection
+
 
 class IndexAWSOpenSearchComponent(DaskWriteComponent):
     def __init__(
@@ -33,29 +35,31 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
         self.create_index(index_body)
 
     def create_index(self, index_body: Dict[str, Any]):
-        """Creates an index in AWS OpenSearch
+        """Creates an index in AWS OpenSearch.
 
         Args:
-            index_body (Dict[str, Any]): Parameters that specify index settings, mappings, and aliases for newly created index.
+            index_body (Dict[str, Any]): Parameters that specify index settings,
+            mappings, and aliases for newly created index.
         """
-        response = self.client.indices.create(self.index_name, body=index_body)
+        self.client.indices.create(self.index_name, body=index_body)
 
     def write(self, dataframe: dd.DataFrame):
         """
         Writes the data from the given Dask DataFrame to AWS OpenSearch Index.
+
         Args:
             dataframe (dd.DataFrame): The Dask DataFrame containing the data to be written.
         """
         if not self.client.indices.exists(index=self.index_name):
-            raise ValueError(f"Index: {self.index_name} doesn't exist. Please Create")
+            msg = f"Index: {self.index_name} doesn't exist. Please Create"
+            raise ValueError(msg)
 
         for part in dataframe.partitions:
             df = part.compute()
             for row in df.itertuples():
-                body = {
-                    "embedding": row.embedding,
-                    "text": row.text
-                }
-                response = self.client.index(
-                    index=self.index_name, id=str(row.Index), body=body
+                body = {"embedding": row.embedding, "text": row.text}
+                self.client.index(
+                    index=self.index_name,
+                    id=str(row.Index),
+                    body=body,
                 )
