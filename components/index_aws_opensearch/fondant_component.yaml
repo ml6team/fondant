@@ -1,0 +1,41 @@
+name: Index AWS OpenSearch
+description: Component that takes embeddings of text snippets and indexes them into AWS OpenSearch vector database.
+image: fndnt/index_aws_opensearch:dev
+tags:
+  - Data writing
+
+consumes:
+  text:
+    type: string
+  embedding:
+    type: array
+    items:
+      type: float32
+
+args:
+  host:
+    description: The Cluster endpoint of the AWS OpenSearch cluster where the embeddings will be indexed. E.g. "my-test-domain.us-east-1.aoss.amazonaws.com"
+    type: str
+  region:
+    description:  The AWS region where the OpenSearch cluster is located. If not specified, the default region will be used.
+    type: str
+  index_name:
+    description: The name of the index in the AWS OpenSearch cluster where the embeddings will be stored.
+    type: str
+  port:
+    description: The port number to connect to the AWS OpenSearch cluster.
+    type: int
+    default: 443
+  use_ssl:
+    description: A boolean flag indicating whether to use SSL/TLS for the connection to the OpenSearch cluster.
+    type: bool
+    default: True
+  verify_certs:
+    description: A boolean flag indicating whether to verify SSL certificates when connecting to the OpenSearch cluster.
+    type: bool
+    default: True
+  pool_maxsize:
+    description: The maximum size of the connection pool to the AWS OpenSearch cluster.
+    type: int
+    default: 20
+
