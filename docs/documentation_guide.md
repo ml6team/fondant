@@ -17,8 +17,6 @@ Learn how to use Fondant to build your own data processing pipeline.
 
 -> Design your own fondant [pipeline](pipeline.md) using the Fondant pipeline SDK.  
 -> Use existing [reusable components](components/hub.md) to build your pipeline.
-[//]: # (-> Use [generic components]&#40;components/generic_component.md&#41; to load/write your custom data format)
-[//]: # (to/from Fondant.)
 -> Build your own [custom component](components/custom_component.md) using the Fondant component
 SDK.  
 -> Learn how to publish your own [components](components/publishing_components.md) to a container
@@ -79,10 +77,10 @@ Learn about some of the more advanced concepts in Fondant.
 
 -> Learn more about the [architecture](architecture.md) of Fondant and how it works under the
 hood.  
--> Understand how Fondant passes data between components with the [manifest](manifest.md).  
 -> Learn how Fondant uses [caching](caching.md) to speed up your pipeline development.  
 -> Find out how Fondant uses [partitions](partitions.md) to parallelize and scale your pipeline and
 how you can use it to your advantage.
+-> Learn how to setup a Kubeflow to run your Fondant pipeline on a [Kubeflow cluster](runners/kfp_infrastructure.md).
 
 ## Contributing
 
