@@ -8,7 +8,7 @@ components:
           description: Path to the input manifest
           isOptional: true
         operation_spec:
-          parameterType: STRUCT
+          parameterType: STRING
           description: The operation specification as a dictionary
         input_partition_rows:
           parameterType: NUMBER_INTEGER
