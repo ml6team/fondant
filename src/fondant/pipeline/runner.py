@@ -61,6 +61,8 @@ class DockerRunner(Runner):
             to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
         """
+        self.check_docker_installation()
+
         if isinstance(input, Pipeline):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/compose.yaml"
@@ -77,6 +79,24 @@ class DockerRunner(Runner):
             self._run(output_path)
         else:
             self._run(input)
+
+    @staticmethod
+    def check_docker_installation():
+        try:
+            # Check Docker info
+            subprocess.call(["docker", "info"])  # nosec
+
+            # Check Docker Compose version
+            subprocess.call(["docker", "compose", "version"])  # nosec
+
+        except subprocess.CalledProcessError:
+            msg = (
+                "Docker or Docker Compose is not installed or not running. Please make sure "
+                "both are installed and Docker is running."
+            )
+            raise OSError(
+                msg,
+            )
 
 
 class KubeflowRunner(Runner):

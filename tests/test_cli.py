@@ -276,7 +276,7 @@ def test_local_run():
     )
     with patch("subprocess.call") as mock_call:
         run_local(args)
-        mock_call.assert_called_once_with(
+        mock_call.assert_called_with(
             [
                 "docker",
                 "compose",
@@ -304,7 +304,7 @@ def test_local_run():
             credentials=None,
         )
         run_local(args1)
-        mock_call.assert_called_once_with(
+        mock_call.assert_called_with(
             [
                 "docker",
                 "compose",
@@ -358,7 +358,7 @@ def test_local_run_cloud_credentials():
                 build_args=[],
             )
 
-            mock_runner.assert_called_once_with(
+            mock_runner.assert_called_with(
                 [
                     "docker",
                     "compose",

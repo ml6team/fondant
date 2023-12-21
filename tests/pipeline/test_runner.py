@@ -25,36 +25,72 @@ def test_docker_runner():
     """Test that the docker runner while mocking subprocess.call."""
     with mock.patch("subprocess.call") as mock_call:
         DockerRunner().run("some/path")
-        mock_call.assert_called_once_with(
+        mock_call.assert_has_calls(
             [
-                "docker",
-                "compose",
-                "-f",
-                "some/path",
-                "up",
-                "--build",
-                "--pull",
-                "always",
-                "--remove-orphans",
+                mock.call(
+                    [
+                        "docker",
+                        "info",
+                    ],
+                ),
+                mock.call(
+                    [
+                        "docker",
+                        "compose",
+                        "version",
+                    ],
+                ),
+                mock.call(
+                    [
+                        "docker",
+                        "compose",
+                        "-f",
+                        "some/path",
+                        "up",
+                        "--build",
+                        "--pull",
+                        "always",
+                        "--remove-orphans",
+                    ],
+                ),
             ],
+            any_order=False,
         )
 
 
 def test_docker_runner_from_pipeline():
     with mock.patch("subprocess.call") as mock_call:
         DockerRunner().run(PIPELINE)
-        mock_call.assert_called_once_with(
+        mock_call.assert_has_calls(
             [
-                "docker",
-                "compose",
-                "-f",
-                ".fondant/compose.yaml",
-                "up",
-                "--build",
-                "--pull",
-                "always",
-                "--remove-orphans",
+                mock.call(
+                    [
+                        "docker",
+                        "info",
+                    ],
+                ),
+                mock.call(
+                    [
+                        "docker",
+                        "compose",
+                        "version",
+                    ],
+                ),
+                mock.call(
+                    [
+                        "docker",
+                        "compose",
+                        "-f",
+                        ".fondant/compose.yaml",
+                        "up",
+                        "--build",
+                        "--pull",
+                        "always",
+                        "--remove-orphans",
+                    ],
+                ),
             ],
+            any_order=False,
         )
 
 
