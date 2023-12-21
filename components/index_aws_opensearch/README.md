@@ -21,6 +21,7 @@ The component takes the following arguments to alter its behavior:
 | host | str | The Cluster endpoint of the AWS OpenSearch cluster where the embeddings will be indexed. For example, "my-opensearch-cluster.us-east-1.es.amazonaws.com" | / |
 | region | str | The AWS region where the OpenSearch cluster is located. If not specified, the default region will be used. | / |
 | index_name | str | The name of the index in the AWS OpenSearch cluster where the embeddings will be stored. | / |
+| index_body | Dict[str, Any] | A dictionary representing the body of the index request. This can include additional settings for the index operation. | / |
 | port | int | The port number to connect to the AWS OpenSearch cluster. | 443 |
 | use_ssl | bool | A boolean flag indicating whether to use SSL/TLS for the connection to the OpenSearch cluster. | True |
 | verify_certs | bool | A boolean flag indicating whether to verify SSL certificates when connecting to the OpenSearch cluster. | True |

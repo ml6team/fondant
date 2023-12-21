@@ -10,6 +10,7 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
         host: str,
         region: str,
         index_name: str,
+        index_body: Dict[str, Any],
         port: int = 443,
         use_ssl: bool = True,
         verify_certs: bool = True,
@@ -29,6 +30,7 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
             pool_maxsize=pool_maxsize,
             **kwargs,
         )
+        self.create_index(index_body)
 
     def create_index(self, index_body: Dict[str, Any]):
         """Creates an index in AWS OpenSearch
@@ -41,9 +43,7 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
     def write(self, dataframe: dd.DataFrame):
         """
         Writes the data from the given Dask DataFrame to AWS OpenSearch Index.
-
         Args:
-            index_name (str): The existing index to which the given dataframe will be written
             dataframe (dd.DataFrame): The Dask DataFrame containing the data to be written.
         """
         if not self.client.indices.exists(index=self.index_name):

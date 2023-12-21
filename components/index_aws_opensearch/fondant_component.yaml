@@ -22,6 +22,9 @@ args:
   index_name:
     description: The name of the index in the AWS OpenSearch cluster where the embeddings will be stored.
     type: str
+  index_body:
+    description: Parameters that specify index settings, mappings, and aliases for newly created index.
+    type: Dict[str, Any]
   port:
     description: The port number to connect to the AWS OpenSearch cluster.
     type: int
