@@ -30,10 +30,12 @@ class EmbedTextComponent(PandasTransformComponent):
         model: str,
         api_keys: dict,
         auth_kwargs: dict,
+        retries: int,
         **kwargs,
     ):
         to_env_vars(api_keys)
 
+        self.retries = retries
         self.embedding_model = self.get_embedding_model(
             model_provider,
             model,
@@ -61,9 +63,10 @@ class EmbedTextComponent(PandasTransformComponent):
         msg = f"Unknown provider {model_provider}"
         raise ValueError(msg)
 
-    @retry()  # make sure to keep trying even when api call limit is reached
+    # make sure to keep trying even when api call limit is reached
     def get_embeddings_vectors(self, texts):
-        return self.embedding_model.embed_documents(texts.tolist())
+        retry_wrapper = retry(tries=self.retries, logger=logger)
+        return retry_wrapper(self.embedding_model.embed_documents(texts.tolist()))
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         dataframe["embedding"] = self.get_embeddings_vectors(
