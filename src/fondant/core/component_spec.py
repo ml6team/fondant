@@ -234,7 +234,7 @@ class ComponentSpec:
             "operation_spec": Argument(
                 name="operation_spec",
                 description="The operation specification as a dictionary",
-                type="dict",
+                type="str",
             ),
             "input_partition_rows": Argument(
                 name="input_partition_rows",
@@ -273,6 +273,7 @@ class ComponentSpec:
             ),
         }
 
+    @property
     def kubeflow_specification(self) -> "KubeflowComponentSpec":
         return KubeflowComponentSpec.from_fondant_component_spec(self)
 

@@ -1,26 +1,7 @@
-import json
-
 import pyarrow as pa
 import pytest
-from fondant.component.executor import Executor
 from fondant.core.exceptions import InvalidTypeSchema
 from fondant.core.schema import Type
-from fondant.pipeline import ComponentOp
-
-
-def test_produces_parsing():
-    """Test that the produces argument can be properly serialized and deserialized."""
-    produces = {
-        "text": pa.string(),
-        "embedding": pa.list_(pa.int32()),
-    }
-    expected_produces_to_dict = {
-        "text": {"type": "string"},
-        "embedding": {"type": "array", "items": {"type": "int32"}},
-    }
-    actual_produces_to_dict = ComponentOp._dump_mapping(produces)
-    assert actual_produces_to_dict == expected_produces_to_dict
-    assert Executor._parse_mapping(json.dumps(actual_produces_to_dict)) == produces
 
 
 def test_valid_type():
