@@ -7,6 +7,7 @@ Component that filters images based on minimum size and max aspect ratio
 
 ### Consumes
 **This component consumes:**
+
 - image_width: int32
 - image_height: int32
 

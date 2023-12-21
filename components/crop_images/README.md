@@ -22,6 +22,7 @@ right side is border-cropped image.
 
 ### Consumes
 **This component consumes:**
+
 - images_data: binary
 
 
@@ -30,6 +31,7 @@ right side is border-cropped image.
 
 ### Produces
 **This component produces:**
+
 - image: binary
 - image_width: int32
 - image_height: int32

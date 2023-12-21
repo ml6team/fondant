@@ -7,6 +7,7 @@ Component that retrieves chunks from a weaviate vectorDB
 
 ### Consumes
 **This component consumes:**
+
 - embedding: list<item: float>
 
 
@@ -15,6 +16,7 @@ Component that retrieves chunks from a weaviate vectorDB
 
 ### Produces
 **This component produces:**
+
 - retrieved_chunks: list<item: string>
 
 

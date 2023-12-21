@@ -7,6 +7,7 @@ A component that filters text based on the provided language.
 
 ### Consumes
 **This component consumes:**
+
 - text: string
 
 

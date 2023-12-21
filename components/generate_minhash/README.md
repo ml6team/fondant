@@ -7,6 +7,7 @@ A component that generates minhashes of text.
 
 ### Consumes
 **This component consumes:**
+
 - text: string
 
 
@@ -15,6 +16,7 @@ A component that generates minhashes of text.
 
 ### Produces
 **This component produces:**
+
 - minhash: list<item: uint64>
 
 

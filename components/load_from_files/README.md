@@ -16,6 +16,7 @@ location. It supports the following formats: .zip, gzip, tar and tar.gz.
 
 ### Produces
 **This component produces:**
+
 - filename: string
 - content: binary
 

@@ -7,6 +7,7 @@ A component that filters out text based on their length
 
 ### Consumes
 **This component consumes:**
+
 - text: string
 
 
