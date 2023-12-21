@@ -199,7 +199,7 @@ class DaskDataWriter(DataIO):
         """Create dataframe writing task."""
         location = (
             f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
-            f"{self.manifest.run_id}/{self.operation_spec.specification.component_folder_name}"
+            f"{self.manifest.run_id}/{self.operation_spec.component_spec.component_folder_name}"
         )
 
         schema = {

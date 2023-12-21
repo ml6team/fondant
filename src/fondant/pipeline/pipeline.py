@@ -171,14 +171,13 @@ class ComponentOp:
                     "cache": self.cache,
                     "cluster_type": cluster_type,
                     "client_kwargs": client_kwargs,
-                    "consumes": self._dump_mapping(consumes),
-                    "produces": self._dump_mapping(produces),
+                    "operation_spec": self.operation_spec.to_json(),
                 }.items()
                 if value is not None
             },
         )
 
-        self.arguments.setdefault("component_spec", self.component_spec.specification)
+        self.arguments.setdefault("operation_spec", self.operation_spec.to_json())
 
         self.resources = resources or Resources()
 

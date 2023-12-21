@@ -231,9 +231,9 @@ class ComponentSpec:
                 type="str",
                 optional=True,
             ),
-            "component_spec": Argument(
-                name="component_spec",
-                description="The component specification as a dictionary",
+            "operation_spec": Argument(
+                name="operation_spec",
+                description="The operation specification as a dictionary",
                 type="dict",
             ),
             "input_partition_rows": Argument(
@@ -271,28 +271,8 @@ class ComponentSpec:
                 description="Path to the output manifest",
                 type="str",
             ),
-            "consumes": Argument(
-                name="consumes",
-                description="A mapping to update the fields consumed by the operation as defined "
-                "in the component spec. The keys are the names of the fields to be "
-                "received by the component, while the values are the type of the "
-                "field, or the name of the field to map from the input dataset.",
-                type="dict",
-                default={},
-            ),
-            "produces": Argument(
-                name="produces",
-                description="A mapping to update the fields produced by the operation as defined "
-                "in the component spec. The keys are the names of the fields to be "
-                "produced by the component, while the values are the type of the "
-                "field, or the name that should be used to write the field to the "
-                "output dataset.",
-                type="dict",
-                default={},
-            ),
         }
 
-    @property
     def kubeflow_specification(self) -> "KubeflowComponentSpec":
         return KubeflowComponentSpec.from_fondant_component_spec(self)
 
@@ -313,12 +293,12 @@ class OperationSpec:
 
     def __init__(
         self,
-        specification: ComponentSpec,
+        component_spec: ComponentSpec,
         *,
         consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
     ) -> None:
-        self.specification = specification
+        self.component_spec = component_spec
 
         self._mappings = {
             "consumes": consumes,
@@ -330,6 +310,48 @@ class OperationSpec:
         self._outer_consumes: t.Optional[t.Mapping[str, Field]] = None
         self._inner_produces: t.Optional[t.Mapping[str, Field]] = None
         self._outer_produces: t.Optional[t.Mapping[str, Field]] = None
+
+    def to_json(self) -> str:
+        def _dump_mapping(
+            mapping: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
+        ) -> dict:
+            if mapping is None:
+                return {}
+
+            serialized_mapping: t.Dict[str, t.Any] = mapping.copy()
+            for key, value in mapping.items():
+                if isinstance(value, pa.DataType):
+                    serialized_mapping[key] = Type(value).to_json()
+            return serialized_mapping
+
+        specification_dict = {
+            "specification": self.component_spec.specification,
+            "consumes": _dump_mapping(self._mappings["consumes"]),
+            "produces": _dump_mapping(self._mappings["produces"]),
+        }
+
+        return json.dumps(specification_dict)
+
+    @classmethod
+    def from_dict(cls, operation_spec_dict: t.Dict[str, t.Any]) -> "OperationSpec":
+        def _parse_mapping(
+            json_mapping: dict,
+        ) -> t.Optional[t.Dict[str, t.Union[str, pa.DataType]]]:
+            """Parse a json mapping to a Python mapping with Fondant types."""
+            for key, value in json_mapping.items():
+                if isinstance(value, dict):
+                    json_mapping[key] = Type.from_json(value).value
+            return json_mapping
+
+        return cls(
+            component_spec=ComponentSpec(operation_spec_dict["specification"]),
+            consumes=_parse_mapping(operation_spec_dict["consumes"]),
+            produces=_parse_mapping(operation_spec_dict["produces"]),
+        )
+
+    @classmethod
+    def from_json(cls, operation_spec_json: str) -> "OperationSpec":
+        return cls.from_dict(json.loads(operation_spec_json))
 
     def _validate_mappings(self) -> None:
         """Validate received consumes and produces mappings on their types."""
@@ -350,7 +372,7 @@ class OperationSpec:
         Args:
             name: "consumes" or "produces"
         """
-        spec_mapping = getattr(self.specification, name)
+        spec_mapping = getattr(self.component_spec, name)
         args_mapping = self._mappings[name]
 
         if not args_mapping:
@@ -362,9 +384,9 @@ class OperationSpec:
             if not isinstance(value, pa.DataType):
                 continue
 
-            if not self.specification.is_generic(name):
+            if not self.component_spec.is_generic(name):
                 msg = (
-                    f"Component {self.specification.name} does not allow specifying additional "
+                    f"Component {self.component_spec.name} does not allow specifying additional "
                     f"fields but received {key}."
                 )
                 raise InvalidPipelineDefinition(msg)
@@ -454,6 +476,20 @@ class OperationSpec:
             self._outer_produces = self._outer_mapping("produces")
 
         return self._outer_produces
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, OperationSpec):
+            return False
+
+        # Compare component_spec attribute
+        if self.component_spec != other.component_spec:
+            return False
+
+        # Compare mappings attribute
+        if self._mappings != other._mappings:
+            return False
+
+        return True
 
 
 class KubeflowComponentSpec:
