@@ -15,7 +15,7 @@ In the general overview, you can select the pipeline and pipeline run you want t
 be able to see the different components that were run in the pipeline run and get an overview of
 your latest runs.
 
-![data explorer](art/data_explorer/general_overview.png)
+![general overview](art/data_explorer/general_overview.png)
 
 ### Dataset Explorer
 
@@ -34,11 +34,15 @@ In this you can:
 
 The image explorer tab enables the user to choose one of the image columns and analyse these images.
 
+![image gallery](art/data_explorer/image_gallery.png)
+
 ### Numerical Analysis
 
 The numerical analysis tab shows global statistics of the numerical columns of the loaded subset (
 mean,
 std, percentiles, ...).
+
+![numerical analysis](art/data_explorer/numerical_analysis.png)
 
 ## How to use?
 
