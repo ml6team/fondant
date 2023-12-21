@@ -24,7 +24,7 @@ args:
     type: str
   index_body:
     description: Parameters that specify index settings, mappings, and aliases for newly created index.
-    type: Dict[str, Any]
+    type: dict
   port:
     description: The port number to connect to the AWS OpenSearch cluster.
     type: int
