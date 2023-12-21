@@ -621,7 +621,7 @@ class Dataset:
                 ```
 
                 In this example, the 'text' field will retain its type 'string' without specifying a
-                different source, while the 'width' field will be produced as type float in the
+                different source, while the 'width' field will be produced as type `float` in the
                 output dataset.
 
             arguments: A dictionary containing the argument name and value for the operation.
