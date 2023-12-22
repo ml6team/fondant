@@ -1,18 +1,26 @@
 # Filter image resolution
 
-### Description
+## Description
 Component that filters images based on minimum size and max aspect ratio
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - image_width: int32
 - image_height: int32
 
-**This component produces no data.**
 
-### Arguments
+
+
+
+### Produces
+
+
+**This component does not produce data.**
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -21,7 +29,7 @@ The component takes the following arguments to alter its behavior:
 | min_image_dim | int | Minimum image dimension | / |
 | max_aspect_ratio | float | Maximum aspect ratio | / |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -39,7 +47,7 @@ dataset = dataset.apply(
         # Add arguments
         # "min_image_dim": 0,
         # "max_aspect_ratio": 0.0,
-    }
+    },
 )
 ```
 

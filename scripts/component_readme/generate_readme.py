@@ -24,6 +24,8 @@ def generate_readme(component_spec: ComponentSpec, *, component_dir: Path) -> st
         description=component_spec.description,
         consumes=component_spec.consumes,
         produces=component_spec.produces,
+        is_consumes_generic=component_spec.is_generic("consumes"),
+        is_produces_generic=component_spec.is_generic("produces"),
         arguments=[arg for arg in component_spec.args.values()
                    if arg.name not in component_spec.default_arguments],
         tests=(component_dir / "tests").exists(),

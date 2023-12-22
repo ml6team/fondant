@@ -1,19 +1,27 @@
 # Caption images
 
-### Description
+## Description
 This component captions images using a BLIP model from the Hugging Face hub
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - image: binary
 
+
+
+
+
+### Produces
 **This component produces:**
 
 - caption: string
 
-### Arguments
+
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -23,7 +31,7 @@ The component takes the following arguments to alter its behavior:
 | batch_size | int | Batch size to use for inference | 8 |
 | max_new_tokens | int | Maximum token length of each caption | 50 |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -42,11 +50,11 @@ dataset = dataset.apply(
         # "model_id": "Salesforce/blip-image-captioning-base",
         # "batch_size": 8,
         # "max_new_tokens": 50,
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

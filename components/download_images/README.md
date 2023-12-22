@@ -1,6 +1,6 @@
 # Download images
 
-### Description
+## Description
 Component that downloads images from a list of URLs.
 
 This component takes in image URLs as input and downloads the images, along with some metadata 
@@ -10,19 +10,27 @@ component also resizes the images using the
 from the img2dataset library.
 
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - image_url: string
 
+
+
+
+
+### Produces
 **This component produces:**
 
 - image: binary
 - image_width: int32
 - image_height: int32
 
-### Arguments
+
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -37,7 +45,7 @@ The component takes the following arguments to alter its behavior:
 | min_image_size | int | Minimum size of the images. | / |
 | max_aspect_ratio | float | Maximum aspect ratio of the images. | 99.9 |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -61,11 +69,11 @@ dataset = dataset.apply(
         # "resize_only_if_bigger": False,
         # "min_image_size": 0,
         # "max_aspect_ratio": 99.9,
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

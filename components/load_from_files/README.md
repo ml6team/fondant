@@ -1,20 +1,28 @@
 # Load from files
 
-### Description
+## Description
 This component loads data from files in a local or remote (AWS S3, Azure Blob storage, GCS) 
 location. It supports the following formats: .zip, gzip, tar and tar.gz.
 
 
-### Inputs / outputs
+## Inputs / outputs
 
-**This component consumes no data.**
+### Consumes
 
+
+**This component does not consume data.**
+
+
+
+### Produces
 **This component produces:**
 
 - filename: string
 - content: binary
 
-### Arguments
+
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -22,7 +30,7 @@ The component takes the following arguments to alter its behavior:
 | -------- | ---- | ----------- | ------- |
 | directory_uri | str | Local or remote path to the directory containing the files | / |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -37,11 +45,11 @@ dataset = pipeline.read(
     arguments={
         # Add arguments
         # "directory_uri": ,
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```
