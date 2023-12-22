@@ -18,6 +18,11 @@ RUN pip3 install fondant[component,aws,azure,gcp]@git+https://github.com/ml6team
 WORKDIR /component
 COPY src/ src/
 
+FROM base as test
+COPY tests/ tests/
+RUN pip3 install --no-cache-dir -r tests/requirements.txt
+RUN python -m pytest tests
+
 FROM base
 WORKDIR /component/src
 ENTRYPOINT ["fondant", "execute", "main"]

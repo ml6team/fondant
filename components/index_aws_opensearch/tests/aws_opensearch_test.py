@@ -1,3 +1,5 @@
+from time import sleep
+
 import dask.dataframe as dd
 import numpy as np
 import opensearch_py_ml as oml
@@ -34,6 +36,7 @@ def test_aws_opensearch_write():
     )
     dask_df = dd.from_pandas(pandas_df, npartitions=2)
     aws_os_comp.write(dask_df)
+    sleep(5)
     oml_df = oml.DataFrame(aws_os_comp.client, aws_os_comp.index_name)
     assert oml_df.shape[0] == pandas_df.shape[0]
     print(
