@@ -41,7 +41,9 @@ def test_run_data_explorer_local_base_path(
     tmp_path_factory,
 ):
     """Test that the data explorer can be run with a local base path."""
-    with tmp_path_factory.mktemp("temp") as fn, patch("subprocess.call") as mock_call:
+    with tmp_path_factory.mktemp("temp") as fn, patch(
+        "subprocess.check_call",
+    ) as mock_call:
         output_path = str(fn / OUTPUT_FILE)
         run_explorer_app(
             base_path=host_path,
@@ -86,7 +88,9 @@ def test_run_data_explorer_remote_base_path(
     tmp_path_factory,
 ):
     """Test that the data explorer can be run with a remote base path."""
-    with tmp_path_factory.mktemp("temp") as fn, patch("subprocess.call") as mock_call:
+    with tmp_path_factory.mktemp("temp") as fn, patch(
+        "subprocess.check_call",
+    ) as mock_call:
         output_path = str(fn / OUTPUT_FILE)
         run_explorer_app(
             base_path=remote_path,
@@ -129,7 +133,9 @@ def test_stop_data_explorer(
     tmp_path_factory,
 ):
     """Test that the data explorer can be run with a remote base path."""
-    with tmp_path_factory.mktemp("temp") as fn, patch("subprocess.call") as mock_call:
+    with tmp_path_factory.mktemp("temp") as fn, patch(
+        "subprocess.check_call",
+    ) as mock_call:
         output_path = str(fn / OUTPUT_FILE)
         stop_explorer_app(
             output_path=output_path,
