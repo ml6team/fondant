@@ -1,11 +1,11 @@
 # Generate minhash
 
-## Description
+## Description {: #description_generate_minhash}
 A component that generates minhashes of text.
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_generate_minhash}
 
-### Consumes
+### Consumes  {: #consumes_generate_minhash}
 **This component consumes:**
 
 - text: string
@@ -14,14 +14,14 @@ A component that generates minhashes of text.
 
 
 
-### Produces
+### Produces {: #produces_generate_minhash}
 **This component produces:**
 
 - minhash: list<item: uint64>
 
 
 
-## Arguments
+## Arguments {: #arguments_generate_minhash}
 
 The component takes the following arguments to alter its behavior:
 
@@ -29,7 +29,7 @@ The component takes the following arguments to alter its behavior:
 | -------- | ---- | ----------- | ------- |
 | shingle_ngram_size | int | Define size of ngram used for the shingle generation | 3 |
 
-## Usage
+## Usage {: #usage_generate_minhash}
 
 You can add this component to your pipeline using the following code:
 
@@ -50,7 +50,7 @@ dataset = dataset.apply(
 )
 ```
 
-## Testing
+## Testing {: #testing_generate_minhash}
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

@@ -1,11 +1,11 @@
 # {{ name }}
 
-## Description
+## Description {: #description_{{ component_folder_name }}}
 {{ description }}
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_{{ component_folder_name }}}
 
-### Consumes
+### Consumes  {: #consumes_{{ component_folder_name }}}
 {% if consumes %}
 **This component consumes:**
 
@@ -31,7 +31,7 @@ See the usage example below on how to define a field name for additional fields.
 
 
 
-### Produces
+### Produces {: #produces_{{ component_folder_name }}}
 {% if produces %}
 **This component produces:**
 
@@ -52,7 +52,7 @@ the type of the field that should be used to write the output dataset.
 **This component does not produce data.**
 {% endif %}
 
-## Arguments
+## Arguments {: #arguments_{{ component_folder_name }}}
 
 {% if arguments %}
 The component takes the following arguments to alter its behavior:
@@ -66,7 +66,7 @@ The component takes the following arguments to alter its behavior:
 This component takes no arguments.
 {% endif %}
 
-## Usage
+## Usage {: #usage_{{ component_folder_name }}}
 
 You can add this component to your pipeline using the following code:
 
@@ -116,7 +116,7 @@ dataset.write(
 ```
 
 {% if tests %}
-## Testing
+## Testing {: #testing_{{ component_folder_name }}}
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

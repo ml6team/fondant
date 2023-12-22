@@ -1,18 +1,18 @@
 # Load from Hugging Face hub
 
-## Description
+## Description {: #description_load_from_hugging_face_hub}
 Component that loads a dataset from the hub
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_load_from_hugging_face_hub}
 
-### Consumes
+### Consumes  {: #consumes_load_from_hugging_face_hub}
 
 
 **This component does not consume data.**
 
 
 
-### Produces
+### Produces {: #produces_load_from_hugging_face_hub}
 
 **This component can produce additional fields**
 - <field_name>: <field_schema>
@@ -21,7 +21,7 @@ The keys are the names of the fields to be produced by the component, while the 
 the type of the field that should be used to write the output dataset.
 
 
-## Arguments
+## Arguments {: #arguments_load_from_hugging_face_hub}
 
 The component takes the following arguments to alter its behavior:
 
@@ -33,7 +33,7 @@ The component takes the following arguments to alter its behavior:
 | n_rows_to_load | int | Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale | / |
 | index_column | str | Column to set index to in the load component, if not specified a default globally unique index will be set | / |
 
-## Usage
+## Usage {: #usage_load_from_hugging_face_hub}
 
 You can add this component to your pipeline using the following code:
 

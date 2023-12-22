@@ -1,11 +1,11 @@
 # Caption images
 
-## Description
+## Description {: #description_caption_images}
 This component captions images using a BLIP model from the Hugging Face hub
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_caption_images}
 
-### Consumes
+### Consumes  {: #consumes_caption_images}
 **This component consumes:**
 
 - image: binary
@@ -14,14 +14,14 @@ This component captions images using a BLIP model from the Hugging Face hub
 
 
 
-### Produces
+### Produces {: #produces_caption_images}
 **This component produces:**
 
 - caption: string
 
 
 
-## Arguments
+## Arguments {: #arguments_caption_images}
 
 The component takes the following arguments to alter its behavior:
 
@@ -31,7 +31,7 @@ The component takes the following arguments to alter its behavior:
 | batch_size | int | Batch size to use for inference | 8 |
 | max_new_tokens | int | Maximum token length of each caption | 50 |
 
-## Usage
+## Usage {: #usage_caption_images}
 
 You can add this component to your pipeline using the following code:
 
@@ -54,7 +54,7 @@ dataset = dataset.apply(
 )
 ```
 
-## Testing
+## Testing {: #testing_caption_images}
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

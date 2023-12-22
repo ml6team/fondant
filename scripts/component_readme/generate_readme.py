@@ -21,6 +21,7 @@ def generate_readme(component_spec: ComponentSpec, *, component_dir: Path) -> st
     return template.render(
         id=component_dir.name,
         name=component_spec.name,
+        component_folder_name=component_spec.component_folder_name,
         description=component_spec.description,
         consumes=component_spec.consumes,
         produces=component_spec.produces,

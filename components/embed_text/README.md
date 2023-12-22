@@ -1,11 +1,11 @@
 # Embed text
 
-## Description
+## Description {: #description_embed_text}
 Component that generates embeddings of text passages.
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_embed_text}
 
-### Consumes
+### Consumes  {: #consumes_embed_text}
 **This component consumes:**
 
 - text: string
@@ -14,14 +14,14 @@ Component that generates embeddings of text passages.
 
 
 
-### Produces
+### Produces {: #produces_embed_text}
 **This component produces:**
 
 - embedding: list<item: float>
 
 
 
-## Arguments
+## Arguments {: #arguments_embed_text}
 
 The component takes the following arguments to alter its behavior:
 
@@ -33,7 +33,7 @@ The component takes the following arguments to alter its behavior:
 | auth_kwargs | dict | Additional keyword arguments required for api initialization/authentication. | / |
 | retries | int | Number of retries to attempt when an embedding request fails. | 5 |
 
-## Usage
+## Usage {: #usage_embed_text}
 
 You can add this component to your pipeline using the following code:
 
@@ -58,7 +58,7 @@ dataset = dataset.apply(
 )
 ```
 
-## Testing
+## Testing {: #testing_embed_text}
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

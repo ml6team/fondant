@@ -1,11 +1,11 @@
 # Embed images
 
-## Description
+## Description {: #description_embed_images}
 Component that generates CLIP embeddings from images
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_embed_images}
 
-### Consumes
+### Consumes  {: #consumes_embed_images}
 **This component consumes:**
 
 - image: binary
@@ -14,14 +14,14 @@ Component that generates CLIP embeddings from images
 
 
 
-### Produces
+### Produces {: #produces_embed_images}
 **This component produces:**
 
 - embedding: list<item: float>
 
 
 
-## Arguments
+## Arguments {: #arguments_embed_images}
 
 The component takes the following arguments to alter its behavior:
 
@@ -30,7 +30,7 @@ The component takes the following arguments to alter its behavior:
 | model_id | str | Model id of a CLIP model on the Hugging Face hub | openai/clip-vit-large-patch14 |
 | batch_size | int | Batch size to use when embedding | 8 |
 
-## Usage
+## Usage {: #usage_embed_images}
 
 You can add this component to your pipeline using the following code:
 

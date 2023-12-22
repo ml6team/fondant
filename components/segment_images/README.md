@@ -1,11 +1,11 @@
 # Segment images
 
-## Description
+## Description {: #description_segment_images}
 Component that creates segmentation masks for images using a model from the Hugging Face hub
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_segment_images}
 
-### Consumes
+### Consumes  {: #consumes_segment_images}
 **This component consumes:**
 
 - image: binary
@@ -14,14 +14,14 @@ Component that creates segmentation masks for images using a model from the Hugg
 
 
 
-### Produces
+### Produces {: #produces_segment_images}
 **This component produces:**
 
 - segmentation_map: binary
 
 
 
-## Arguments
+## Arguments {: #arguments_segment_images}
 
 The component takes the following arguments to alter its behavior:
 
@@ -30,7 +30,7 @@ The component takes the following arguments to alter its behavior:
 | model_id | str | id of the model on the Hugging Face hub | openmmlab/upernet-convnext-small |
 | batch_size | int | batch size to use | 8 |
 
-## Usage
+## Usage {: #usage_segment_images}
 
 You can add this component to your pipeline using the following code:
 

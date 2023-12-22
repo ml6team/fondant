@@ -1,11 +1,11 @@
 # Evalute ragas
 
-## Description
+## Description {: #description_evalute_ragas}
 Component that evaluates the retriever using RAGAS
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_evalute_ragas}
 
-### Consumes
+### Consumes  {: #consumes_evalute_ragas}
 **This component consumes:**
 
 - question: string
@@ -15,7 +15,7 @@ Component that evaluates the retriever using RAGAS
 
 
 
-### Produces
+### Produces {: #produces_evalute_ragas}
 
 **This component can produce additional fields**
 - <field_name>: <field_schema>
@@ -24,7 +24,7 @@ The keys are the names of the fields to be produced by the component, while the 
 the type of the field that should be used to write the output dataset.
 
 
-## Arguments
+## Arguments {: #arguments_evalute_ragas}
 
 The component takes the following arguments to alter its behavior:
 
@@ -34,7 +34,7 @@ The component takes the following arguments to alter its behavior:
 | llm_name | str | Name of the selected llm | / |
 | llm_kwargs | dict | Arguments of the selected llm | / |
 
-## Usage
+## Usage {: #usage_evalute_ragas}
 
 You can add this component to your pipeline using the following code:
 
@@ -61,7 +61,7 @@ dataset = dataset.apply(
 )
 ```
 
-## Testing
+## Testing {: #testing_evalute_ragas}
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

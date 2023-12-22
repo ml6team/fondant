@@ -1,15 +1,15 @@
 # Chunk text
 
-## Description
+## Description {: #description_chunk_text}
 Component that chunks text into smaller segments 
 
 This component takes a body of text and chunks into small chunks. The id of the returned dataset
 consists of the id of the original document followed by the chunk index.
 
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_chunk_text}
 
-### Consumes
+### Consumes  {: #consumes_chunk_text}
 **This component consumes:**
 
 - text: string
@@ -18,7 +18,7 @@ consists of the id of the original document followed by the chunk index.
 
 
 
-### Produces
+### Produces {: #produces_chunk_text}
 **This component produces:**
 
 - text: string
@@ -26,7 +26,7 @@ consists of the id of the original document followed by the chunk index.
 
 
 
-## Arguments
+## Arguments {: #arguments_chunk_text}
 
 The component takes the following arguments to alter its behavior:
 
@@ -35,7 +35,7 @@ The component takes the following arguments to alter its behavior:
 | chunk_size | int | Maximum size of chunks to return | / |
 | chunk_overlap | int | Overlap in characters between chunks | / |
 
-## Usage
+## Usage {: #usage_chunk_text}
 
 You can add this component to your pipeline using the following code:
 
@@ -57,7 +57,7 @@ dataset = dataset.apply(
 )
 ```
 
-## Testing
+## Testing {: #testing_chunk_text}
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

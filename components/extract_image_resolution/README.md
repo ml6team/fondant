@@ -1,11 +1,11 @@
 # Exttact image resolution
 
-## Description
+## Description {: #description_exttact_image_resolution}
 Component that extracts image resolution data from the images
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_exttact_image_resolution}
 
-### Consumes
+### Consumes  {: #consumes_exttact_image_resolution}
 **This component consumes:**
 
 - image: binary
@@ -14,7 +14,7 @@ Component that extracts image resolution data from the images
 
 
 
-### Produces
+### Produces {: #produces_exttact_image_resolution}
 **This component produces:**
 
 - image: binary
@@ -23,11 +23,11 @@ Component that extracts image resolution data from the images
 
 
 
-## Arguments
+## Arguments {: #arguments_exttact_image_resolution}
 
 This component takes no arguments.
 
-## Usage
+## Usage {: #usage_exttact_image_resolution}
 
 You can add this component to your pipeline using the following code:
 

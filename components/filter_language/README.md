@@ -1,11 +1,11 @@
 # Filter languages
 
-## Description
+## Description {: #description_filter_languages}
 A component that filters text based on the provided language.
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_filter_languages}
 
-### Consumes
+### Consumes  {: #consumes_filter_languages}
 **This component consumes:**
 
 - text: string
@@ -14,12 +14,12 @@ A component that filters text based on the provided language.
 
 
 
-### Produces
+### Produces {: #produces_filter_languages}
 
 
 **This component does not produce data.**
 
-## Arguments
+## Arguments {: #arguments_filter_languages}
 
 The component takes the following arguments to alter its behavior:
 
@@ -27,7 +27,7 @@ The component takes the following arguments to alter its behavior:
 | -------- | ---- | ----------- | ------- |
 | language | str | A valid language code or identifier (e.g., "en", "fr", "de"). | en |
 
-## Usage
+## Usage {: #usage_filter_languages}
 
 You can add this component to your pipeline using the following code:
 
@@ -48,7 +48,7 @@ dataset = dataset.apply(
 )
 ```
 
-## Testing
+## Testing {: #testing_filter_languages}
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

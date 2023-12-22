@@ -1,11 +1,11 @@
 # Index Qdrant
 
-## Description
+## Description {: #description_index_qdrant}
 A Fondant component to load textual data and embeddings into a Qdrant database. NOTE: A Qdrant collection has to be created in advance with the appropriate configurations. https://qdrant.tech/documentation/concepts/collections/
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_index_qdrant}
 
-### Consumes
+### Consumes  {: #consumes_index_qdrant}
 **This component consumes:**
 
 - text: string
@@ -15,12 +15,12 @@ A Fondant component to load textual data and embeddings into a Qdrant database. 
 
 
 
-### Produces
+### Produces {: #produces_index_qdrant}
 
 
 **This component does not produce data.**
 
-## Arguments
+## Arguments {: #arguments_index_qdrant}
 
 The component takes the following arguments to alter its behavior:
 
@@ -42,7 +42,7 @@ The component takes the following arguments to alter its behavior:
 | path | str | Persistence path for QdrantLocal. Eg. `local_data/qdrant` | / |
 | force_disable_check_same_thread | bool | Force disable check_same_thread for QdrantLocal sqlite connection. | / |
 
-## Usage
+## Usage {: #usage_index_qdrant}
 
 You can add this component to your pipeline using the following code:
 
@@ -79,7 +79,7 @@ dataset.write(
 )
 ```
 
-## Testing
+## Testing {: #testing_index_qdrant}
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

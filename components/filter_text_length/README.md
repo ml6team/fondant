@@ -1,11 +1,11 @@
 # Filter text length
 
-## Description
+## Description {: #description_filter_text_length}
 A component that filters out text based on their length
 
-## Inputs / outputs
+## Inputs / outputs  {: #inputs_outputs_filter_text_length}
 
-### Consumes
+### Consumes  {: #consumes_filter_text_length}
 **This component consumes:**
 
 - text: string
@@ -14,12 +14,12 @@ A component that filters out text based on their length
 
 
 
-### Produces
+### Produces {: #produces_filter_text_length}
 
 
 **This component does not produce data.**
 
-## Arguments
+## Arguments {: #arguments_filter_text_length}
 
 The component takes the following arguments to alter its behavior:
 
@@ -28,7 +28,7 @@ The component takes the following arguments to alter its behavior:
 | min_characters_length | int | Minimum number of characters | / |
 | min_words_length | int | Mininum number of words | / |
 
-## Usage
+## Usage {: #usage_filter_text_length}
 
 You can add this component to your pipeline using the following code:
 
@@ -50,7 +50,7 @@ dataset = dataset.apply(
 )
 ```
 
-## Testing
+## Testing {: #testing_filter_text_length}
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```
