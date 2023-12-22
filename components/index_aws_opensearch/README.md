@@ -1,18 +1,26 @@
 # Index AWS OpenSearch
 
-### Description
+## Description
 Component that takes embeddings of text snippets and indexes them into AWS OpenSearch vector database.
 
-### Inputs / outputs
+## Inputs / outputs
 
+### Consumes
 **This component consumes:**
 
 - text: string
 - embedding: list<item: float>
 
-**This component produces no data.**
 
-### Arguments
+
+
+
+### Produces
+
+
+**This component does not produce data.**
+
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -27,7 +35,7 @@ The component takes the following arguments to alter its behavior:
 | verify_certs | bool | A boolean flag indicating whether to verify SSL certificates when connecting to the OpenSearch cluster. | True |
 | pool_maxsize | int | The maximum size of the connection pool to the AWS OpenSearch cluster. | 20 |
 
-### Usage
+## Usage
 
 You can add this component to your pipeline using the following code:
 
@@ -53,11 +61,11 @@ dataset.write(
         # "use_ssl": True,
         # "verify_certs": True,
         # "pool_maxsize": 20,
-    }
+    },
 )
 ```
 
-### Testing
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```
