@@ -61,38 +61,53 @@ class DockerRunner(Runner):
             to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
         """
-        self.check_docker_installation()
-
-        if isinstance(input, Pipeline):
-            os.makedirs(".fondant", exist_ok=True)
-            output_path = ".fondant/compose.yaml"
-            logging.info(
-                "Found reference to un-compiled pipeline... compiling",
-            )
-            compiler = DockerCompiler()
-            compiler.compile(
-                input,
-                output_path=output_path,
-                extra_volumes=extra_volumes,
-                build_args=build_args,
-            )
-            self._run(output_path)
-        else:
-            self._run(input)
+        if self.docker_is_installed() and self.docker_compose_is_installed():
+            if isinstance(input, Pipeline):
+                os.makedirs(".fondant", exist_ok=True)
+                output_path = ".fondant/compose.yaml"
+                logging.info(
+                    "Found reference to un-compiled pipeline... compiling",
+                )
+                compiler = DockerCompiler()
+                compiler.compile(
+                    input,
+                    output_path=output_path,
+                    extra_volumes=extra_volumes,
+                    build_args=build_args,
+                )
+                self._run(output_path)
+            else:
+                self._run(input)
 
     @staticmethod
-    def check_docker_installation():
+    def docker_is_installed():
+        """Execute docker command to check if docker is available."""
         try:
             # Check Docker info
             subprocess.call(["docker", "info"])  # nosec
-
-            # Check Docker Compose version
-            subprocess.call(["docker", "compose", "version"])  # nosec
+            return True
 
         except subprocess.CalledProcessError:
             msg = (
                 "Docker or Docker Compose is not installed or not running. Please make sure "
-                "both are installed and Docker is running."
+                "Docker is installed and is running."
+            )
+            raise OSError(
+                msg,
+            )
+
+    @staticmethod
+    def docker_compose_is_installed():
+        """Execute docker compose command to check if docker is available."""
+        try:
+            # Check Docker info
+            subprocess.call(["docker", "compose", "version"])  # nosec
+            return True
+
+        except subprocess.CalledProcessError:
+            msg = (
+                "Docker Compose is not installed or not running. Please make sure "
+                "Docker Compose is installed."
             )
             raise OSError(
                 msg,
