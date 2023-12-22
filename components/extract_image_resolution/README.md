@@ -1,4 +1,4 @@
-# Image resolution extraction
+# Exttact image resolution
 
 ## Description
 Component that extracts image resolution data from the images

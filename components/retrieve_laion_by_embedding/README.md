@@ -1,4 +1,4 @@
-# Embedding based LAION retrieval
+# Retrieve LAION by embedding
 
 ## Description
 This component retrieves image URLs from LAION-5B based on a set of CLIP embeddings. It can be 
