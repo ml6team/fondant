@@ -1,6 +1,6 @@
-name: MinHash generator
+name: Generate minhash
 description: A component that generates minhashes of text.
-image: fndnt/minhash_generator:latest
+image: fndnt/generate_minhash:dev
 tags:
   - Text processing
 

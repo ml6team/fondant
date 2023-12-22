@@ -1,4 +1,4 @@
-# MinHash generator
+# Generate minhash
 
 ## Description
 A component that generates minhashes of text.
