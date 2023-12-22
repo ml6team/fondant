@@ -1,4 +1,4 @@
-# retriever_eval_ragas
+# Evalute ragas
 
 ## Description
 Component that evaluates the retriever using RAGAS

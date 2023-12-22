@@ -1,4 +1,4 @@
-# Prompt based LAION retrieval
+# Retrieve LAION by prompt
 
 ## Description
 This component retrieves image URLs from the [LAION-5B dataset](https://laion.ai/blog/laion-5b/) 

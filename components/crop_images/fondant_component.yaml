@@ -1,5 +1,5 @@
-name: Image cropping
-image: fndnt/image_cropping:dev
+name: Crop images
+image: fndnt/crop_images:dev
 description: |
   This component crops out image borders. This is typically useful when working with graphical 
   images that have single-color borders (e.g. logos, icons, etc.).
@@ -14,8 +14,8 @@ description: |
   Examples of image cropping by removing the single-color border. Left side is original image, 
   right side is border-cropped image.
   
-  ![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)
-  ![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)
+  ![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/crop_images/component_border_crop_1.png)
+  ![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/crop_images/component_border_crop_0.png)
 tags:
   - Image processing
 
