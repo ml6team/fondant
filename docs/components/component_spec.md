@@ -51,27 +51,25 @@ image-caption combination.
 ```yaml
 ...
 consumes:
-  fields:
-    images:
-      type: binary
-    text:
-      type: utf8
+  images:
+    type: binary
+  text:
+    type: utf8
 
 produces:
   embeddings:
-      type: array
-      items:
-        type: float32
+    type: array
+    items:
+      type: float32
 ```
 
 The `consumes` and `produces` sections follow the schema below:
 
 ```yaml
 consumes/produces:
-  fields:
-    <field>:
-      type: <type>
-    additionalProperties: false
+  <field>:
+    type: <type>
+  additionalProperties: false
 ```
 
 
@@ -86,10 +84,10 @@ dataset.
   to storage
 
 Each field defines the expected data type, which should match the
-[types defined by Fondant](https://github.com/ml6team/fondant/blob/main/fondant/schema.py#L13),
-which mostly match the [Arrow data types](https://arrow.apache.org/docs/python/api/datatypes.html).
+[types defined by Fondant](https://github.com/ml6team/fondant/blob/main/src/fondant/core/schema.py),
+that correespond to [Arrow data types](https://arrow.apache.org/docs/python/api/datatypes.html).
 
-Note that you can always map name of your dataset field to a specific field name expected by the
+Note that you can always map a field from your dataset with a different name to a specific field name expected by the
 component provided they have the same data type. For example, suppose we have a component spec that
 consumes a `text` field:
 
@@ -150,10 +148,9 @@ here are a few examples:
 
 - Components that load/write general fields from/to external source (e.g. a CSV file, HuggingFace dataset, ...)
   can use this to define dynamic fields that should be loaded/written.
-- Components that take optional fields as input to define which fields are optional. For example, a
+- Components that consume or produce optional fields. For example, a
   component that queries a vector database can accept either a text passage or optionally precalculated text embeddings.
-- Components that aggregate data can use this to define which fields should be aggregated. For example, a component that
-  aggregates different optional evaluation scores.
+- Components that can work on a dynamic amount of fields.
 
 Let's take an example of a component that loads a dataset from a CSV file. The CSV file can contain any number of
 columns, so we set `additionalProperties` to `true` to allow any column to be loaded.
@@ -271,10 +268,8 @@ These arguments are passed in when the component is instantiated.
 If an argument is not explicitly provided, the default value will be used instead if available.
 
 ```python
-from fondant.pipeline import ComponentOp
-
-custom_op = ComponentOp(
-    component_dir="components/custom_component",
+dataset = pipeline.read(
+    "custom_component",
     arguments={
         "custom_argument": "foo"
     },
@@ -286,12 +281,11 @@ Afterwards, we pass all keyword arguments to the `__init__()` method of the comp
 ```python
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 
 
 class ExampleComponent(PandasTransformComponent):
 
-  def __init__(self, *args, custom_argument, default_argument) -> None:
+  def __init__(self, *, custom_argument, default_argument, **kwargs) -> None:
     """
     Args:
         x_argument: An argument passed to the component
