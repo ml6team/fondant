@@ -12,7 +12,7 @@ The component specification should be defined by the author of the component.
 
 ## Contents
 
-A component spec(ification) consists of the following sections:
+A component specification consists of the following sections:
 
 ```yaml
 name:
@@ -77,7 +77,8 @@ consumes/produces:
 
 #### Fields
 
-Each component specification defines a list of `fields`.
+Each component specification defines a list of `fields` where the fields are the columns of the
+dataset. 
 
 - Only those fields defined in the `consumes` section of the component specification are read
   and passed to the component implementation.
@@ -112,7 +113,7 @@ dataset = dataset.apply(
 ```
 
 In this example, the `custom_text` field will be mapped to the `text` field to match the 
-component spec field.
+field expected by the component.
 
 Similarly, you can also the map the output field of a component to a specific field name in the
 dataset. Suppose we have a component spec that produces a `width` field:
@@ -136,7 +137,7 @@ dataset = dataset.apply(
     }
 ```
 
-In this example, the component produces a field called `width` that we map to a custom field 
+In this example, the component produces a field called `width`. This field name is mapped to a custom field 
 name `custom_width` which can be referenced in later components or used to change the field name of the final
 written dataset. 
 
@@ -162,7 +163,8 @@ produces:
     additionalProperties: true
 ```
 
-Note that the schema of the fields to be produced is not defined, so we will need to specify the schema of the
+Note that the schema of the fields to be produced is not defined as it would usually be 
+in the component specification, so we will need to specify the schema of the
 fields when defining the components
 
 ```python
@@ -173,7 +175,7 @@ dataset = pipeline.read(
     },
     produces={
         "image": pa.binary(),
-         "embedding": pa.list_(pa.binary())
+        "embedding": pa.list_(pa.binary())
     }
 )
 ```
@@ -181,8 +183,9 @@ dataset = pipeline.read(
 Here we define the schema of the `image` and `embedding` fields which will be produced by the component. 
 
 Now that we know how to define dynamic fields to be produced, let's take a look at how we can use the `additionalProperties`
-to define additional field to be consumed. Building on the previous example, suppose we have a component that takes
-either an `image` or `embedding` field as input to query a certain vector database. This can be defined as follows:
+to define additional field to be consumed. Building on the previous example, let's take a component that takes
+either an `image` or `embedding` field as input to query a certain vector database. The specification 
+for such a component can be defined as follows:
 
 ```yaml
 consumes:
@@ -191,7 +194,7 @@ produces:
     retrieved_images:
         type: binary
 ```
-We can now use the `additionalProperties` to allow us to flexibly choose which field to consume
+We can now use the `additionalProperties` to allow the component to accept dynamic fields. This gives us the flexibly choose which field to consume
 by the next component. We can either load the `image` field:
 
 ```python 
@@ -238,8 +241,8 @@ dataset = dataset.apply(
 )
 ```
 
-Where `my_image` and `my_embedding` are the fields produced by the previous component and `image`, `embedding` are the fields
-that can be consumed by the `query_vector_database` component. The type of the consumed field does not need to be specified here
+Where `my_image` and `my_embedding` are the fields produced by the previous component and `image`, `embedding` are the field names
+that can be consumed by the `query_vector_database` component. The data type of the consumed field does not need to be specified here
 since it can be inferred from the previous component.
 
 Note that in the implementation of the component, there 
