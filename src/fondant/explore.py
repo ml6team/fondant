@@ -151,7 +151,7 @@ def run_explorer_app(  # type: ignore  # noqa: PLR0913
     try:
         subprocess.check_call(cmd, stdout=subprocess.PIPE)  # nosec
     except subprocess.CalledProcessError as e:
-        raise OSError(e.returncode)
+        raise SystemExit(e.returncode)
 
     logging.info(
         f"Running image from registry '{container}' with tag '{tag}' on port '{port}'",
@@ -180,7 +180,7 @@ def stop_explorer_app(
     try:
         subprocess.check_call(cmd, stdout=subprocess.PIPE)  # nosec
     except subprocess.CalledProcessError as e:
-        raise OSError(e.returncode)
+        raise SystemExit(e.returncode)
 
     # check if the container is running
     logging.info(
