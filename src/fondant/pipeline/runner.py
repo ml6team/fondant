@@ -89,7 +89,7 @@ class DockerRunner(Runner):
 
         except subprocess.CalledProcessError:
             msg = (
-                "Docker or Docker Compose is not installed or not running. Please make sure "
+                "Docker is not installed or not running. Please make sure "
                 "Docker is installed and is running."
             )
             raise OSError(
