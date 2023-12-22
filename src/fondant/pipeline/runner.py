@@ -91,6 +91,8 @@ class DockerRunner(Runner):
             msg = (
                 "Docker is not installed or not running. Please make sure "
                 "Docker is installed and is running."
+                "Find more details on the Docker installation here: "
+                "https://fondant.ai/en/latest/guides/installation/#docker-installation"
             )
             raise OSError(
                 msg,
@@ -108,6 +110,8 @@ class DockerRunner(Runner):
             msg = (
                 "Docker Compose is not installed or not running. Please make sure "
                 "Docker Compose is installed."
+                "Find more details on the Docker installation here: "
+                "https://fondant.ai/en/latest/guides/installation/#docker-installation"
             )
             raise OSError(
                 msg,
