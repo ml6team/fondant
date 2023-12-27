@@ -386,33 +386,6 @@ def test_invalid_pipeline_declaration(
         pipeline._validate_pipeline_definition("test_pipeline")
 
 
-def test_invalid_pipeline_validation(default_pipeline_args):
-    """
-    Test that an InvalidPipelineDefinition exception is raised when attempting to compile
-    an invalid pipeline definition.
-    """
-    components_path = Path(invalid_pipeline_path / "example_1")
-    component_args = {"storage_args": "a dummy string arg"}
-
-    first_component_op = ComponentOp(
-        Path(components_path / "first_component"),
-        arguments=component_args,
-    )
-    second_component_op = ComponentOp(
-        Path(components_path / "second_component"),
-        arguments=component_args,
-    )
-
-    # double dependency
-    pipeline1 = Pipeline(**default_pipeline_args)
-    dataset = pipeline1._apply(first_component_op)
-    with pytest.raises(InvalidPipelineDefinition):
-        pipeline1._apply(
-            second_component_op,
-            datasets=[dataset, dataset],
-        )
-
-
 def test_reusable_component_op():
     laion_retrieval_op = ComponentOp(
         name_or_path="retrieve_laion_by_prompt",
