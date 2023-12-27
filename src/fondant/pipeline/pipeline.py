@@ -14,12 +14,13 @@ try:
 except ImportError:
     from importlib_resources import files  # type: ignore
 
+import dask.dataframe as dd
 import pyarrow as pa
 
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
-from fondant.core.schema import Type
+from fondant.core.schema import Field, Type
 
 logger = logging.getLogger(__name__)
 
@@ -534,6 +535,16 @@ class Dataset:
         """
         self.pipeline = pipeline
         self.operation = operation
+
+    @property
+    def fields(self) -> t.Mapping[str, Field]:
+        """The fields of the manifest as an immutable mapping."""
+        return NotImplemented
+
+    @property
+    def dataframe(self) -> dd.DataFrame:
+        """The loaded dataframe with the schema defined in `fields`."""
+        return NotImplemented
 
     def apply(
         self,
