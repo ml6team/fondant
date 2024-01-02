@@ -1,6 +1,7 @@
 # Crop images
 
-## Description {: #description_crop_images}
+<a id="crop_images#description"></a>
+## Description
 This component crops out image borders. This is typically useful when working with graphical 
 images that have single-color borders (e.g. logos, icons, etc.).
 
@@ -18,9 +19,11 @@ right side is border-cropped image.
 ![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/crop_images/component_border_crop_0.png)
 
 
-## Inputs / outputs  {: #inputs_outputs_crop_images}
+<a id="crop_images#inputs_outputs"></a>
+## Inputs / outputs 
 
-### Consumes  {: #consumes_crop_images}
+<a id="crop_images#consumes"></a>
+### Consumes 
 **This component consumes:**
 
 - images_data: binary
@@ -28,8 +31,8 @@ right side is border-cropped image.
 
 
 
-
-### Produces {: #produces_crop_images}
+<a id="crop_images#produces"></a>  
+### Produces 
 **This component produces:**
 
 - image: binary
@@ -38,7 +41,8 @@ right side is border-cropped image.
 
 
 
-## Arguments {: #arguments_crop_images}
+<a id="crop_images#arguments"></a>
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -47,7 +51,8 @@ The component takes the following arguments to alter its behavior:
 | cropping_threshold | int | Threshold parameter used for detecting borders. A lower (negative) parameter results in a more performant border detection, but can cause overcropping. Default is -30 | -30 |
 | padding | int | Padding for the image cropping. The padding is added to all borders of the image. | 10 |
 
-## Usage {: #usage_crop_images}
+<a id="crop_images#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 

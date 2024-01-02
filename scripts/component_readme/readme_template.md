@@ -1,11 +1,14 @@
 # {{ name }}
 
-## Description {: #description_{{ component_folder_name }}}
+<a id="{{ component_folder_name }}#description"></a>
+## Description
 {{ description }}
 
-## Inputs / outputs  {: #inputs_outputs_{{ component_folder_name }}}
+<a id="{{ component_folder_name }}#inputs_outputs"></a>
+## Inputs / outputs 
 
-### Consumes  {: #consumes_{{ component_folder_name }}}
+<a id="{{ component_folder_name }}#consumes"></a>
+### Consumes 
 {% if consumes %}
 **This component consumes:**
 
@@ -30,8 +33,8 @@ See the usage example below on how to define a field name for additional fields.
 {% endif %}
 
 
-
-### Produces {: #produces_{{ component_folder_name }}}
+<a id="{{ component_folder_name }}#produces"></a>  
+### Produces 
 {% if produces %}
 **This component produces:**
 
@@ -52,7 +55,8 @@ the type of the field that should be used to write the output dataset.
 **This component does not produce data.**
 {% endif %}
 
-## Arguments {: #arguments_{{ component_folder_name }}}
+<a id="{{ component_folder_name }}#arguments"></a>
+## Arguments
 
 {% if arguments %}
 The component takes the following arguments to alter its behavior:
@@ -66,7 +70,8 @@ The component takes the following arguments to alter its behavior:
 This component takes no arguments.
 {% endif %}
 
-## Usage {: #usage_{{ component_folder_name }}}
+<a id="{{ component_folder_name }}#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 
@@ -116,7 +121,8 @@ dataset.write(
 ```
 
 {% if tests %}
-## Testing {: #testing_{{ component_folder_name }}}
+<a id="{{ component_folder_name }}#testing"></a>
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

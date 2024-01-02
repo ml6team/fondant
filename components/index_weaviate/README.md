@@ -1,11 +1,14 @@
 # Index Weaviate
 
-## Description {: #description_index_weaviate}
+<a id="index_weaviate#description"></a>
+## Description
 Component that takes embeddings of text snippets and indexes them into a weaviate vector database.
 
-## Inputs / outputs  {: #inputs_outputs_index_weaviate}
+<a id="index_weaviate#inputs_outputs"></a>
+## Inputs / outputs 
 
-### Consumes  {: #consumes_index_weaviate}
+<a id="index_weaviate#consumes"></a>
+### Consumes 
 **This component consumes:**
 
 - text: string
@@ -14,13 +17,14 @@ Component that takes embeddings of text snippets and indexes them into a weaviat
 
 
 
-
-### Produces {: #produces_index_weaviate}
+<a id="index_weaviate#produces"></a>  
+### Produces 
 
 
 **This component does not produce data.**
 
-## Arguments {: #arguments_index_weaviate}
+<a id="index_weaviate#arguments"></a>
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -34,7 +38,8 @@ The component takes the following arguments to alter its behavior:
 | class_name | str | The name of the weaviate class that will be created and used to store the embeddings.Should follow the weaviate naming conventions. | / |
 | vectorizer | str | Which vectorizer to use. You can find the available vectorizers in the weaviate documentation: https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modulesSet this to None if you want to insert your own embeddings. | / |
 
-## Usage {: #usage_index_weaviate}
+<a id="index_weaviate#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 

@@ -1,6 +1,7 @@
 # Normalize text
 
-## Description {: #description_normalize_text}
+<a id="normalize_text#description"></a>
+## Description
 This component implements several text normalization techniques to clean and preprocess textual 
 data:
 
@@ -15,9 +16,11 @@ These text normalization techniques are valuable for preparing text data before 
 the training of large language models.
 
 
-## Inputs / outputs  {: #inputs_outputs_normalize_text}
+<a id="normalize_text#inputs_outputs"></a>
+## Inputs / outputs 
 
-### Consumes  {: #consumes_normalize_text}
+<a id="normalize_text#consumes"></a>
+### Consumes 
 **This component consumes:**
 
 - text: string
@@ -25,15 +28,16 @@ the training of large language models.
 
 
 
-
-### Produces {: #produces_normalize_text}
+<a id="normalize_text#produces"></a>  
+### Produces 
 **This component produces:**
 
 - text: string
 
 
 
-## Arguments {: #arguments_normalize_text}
+<a id="normalize_text#arguments"></a>
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -45,7 +49,8 @@ The component takes the following arguments to alter its behavior:
 | do_lowercase | bool | If true apply lowercasing | / |
 | remove_punctuation | str | If true punctuation will be removed | / |
 
-## Usage {: #usage_normalize_text}
+<a id="normalize_text#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 
@@ -70,7 +75,8 @@ dataset = dataset.apply(
 )
 ```
 
-## Testing {: #testing_normalize_text}
+<a id="normalize_text#testing"></a>
+## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
 ```

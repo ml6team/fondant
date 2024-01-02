@@ -1,11 +1,14 @@
 # Filter image resolution
 
-## Description {: #description_filter_image_resolution}
+<a id="filter_image_resolution#description"></a>
+## Description
 Component that filters images based on minimum size and max aspect ratio
 
-## Inputs / outputs  {: #inputs_outputs_filter_image_resolution}
+<a id="filter_image_resolution#inputs_outputs"></a>
+## Inputs / outputs 
 
-### Consumes  {: #consumes_filter_image_resolution}
+<a id="filter_image_resolution#consumes"></a>
+### Consumes 
 **This component consumes:**
 
 - image_width: int32
@@ -14,13 +17,14 @@ Component that filters images based on minimum size and max aspect ratio
 
 
 
-
-### Produces {: #produces_filter_image_resolution}
+<a id="filter_image_resolution#produces"></a>  
+### Produces 
 
 
 **This component does not produce data.**
 
-## Arguments {: #arguments_filter_image_resolution}
+<a id="filter_image_resolution#arguments"></a>
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -29,7 +33,8 @@ The component takes the following arguments to alter its behavior:
 | min_image_dim | int | Minimum image dimension | / |
 | max_aspect_ratio | float | Maximum aspect ratio | / |
 
-## Usage {: #usage_filter_image_resolution}
+<a id="filter_image_resolution#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 

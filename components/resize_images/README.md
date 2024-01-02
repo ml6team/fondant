@@ -1,11 +1,14 @@
 # Resize images
 
-## Description {: #description_resize_images}
+<a id="resize_images#description"></a>
+## Description
 Component that resizes images based on given width and height
 
-## Inputs / outputs  {: #inputs_outputs_resize_images}
+<a id="resize_images#inputs_outputs"></a>
+## Inputs / outputs 
 
-### Consumes  {: #consumes_resize_images}
+<a id="resize_images#consumes"></a>
+### Consumes 
 **This component consumes:**
 
 - image: binary
@@ -13,15 +16,16 @@ Component that resizes images based on given width and height
 
 
 
-
-### Produces {: #produces_resize_images}
+<a id="resize_images#produces"></a>  
+### Produces 
 **This component produces:**
 
 - image: binary
 
 
 
-## Arguments {: #arguments_resize_images}
+<a id="resize_images#arguments"></a>
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -30,7 +34,8 @@ The component takes the following arguments to alter its behavior:
 | resize_width | int | The width to resize to | / |
 | resize_height | int | The height to resize to | / |
 
-## Usage {: #usage_resize_images}
+<a id="resize_images#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 
