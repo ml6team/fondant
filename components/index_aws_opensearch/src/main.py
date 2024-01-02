@@ -50,7 +50,7 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
             logger.info(f"Index: {self.index_name} already exists.")
         else:
             logger.info(f"Creating Index: {self.index_name} with body: {index_body}")
-            self.client.indices.create(self.index_name, body=index_body)
+            self.client.indices.create(index=self.index_name, body=index_body)
 
     def write(self, dataframe: dd.DataFrame):
         """
