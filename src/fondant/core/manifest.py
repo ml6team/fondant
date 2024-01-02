@@ -256,7 +256,7 @@ class Manifest:
         evolved_manifest = self.copy()
 
         # Update `run_id` and `component_id` in the metadata
-        component_id = operation_spec.component_spec.component_folder_name
+        component_id = operation_spec.component_folder_name
         evolved_manifest.update_metadata(key="component_id", value=component_id)
         evolved_manifest.update_metadata(key="run_id", value=run_id)
 
@@ -266,7 +266,7 @@ class Manifest:
         )
 
         # Remove all previous fields if the component changes the index
-        if operation_spec.component_spec.previous_index:
+        if operation_spec.previous_index:
             for field_name in evolved_manifest.fields:
                 evolved_manifest.remove_field(field_name)
 

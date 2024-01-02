@@ -27,7 +27,7 @@ from fondant.component import (
     PandasTransformComponent,
 )
 from fondant.component.data_io import DaskDataLoader, DaskDataWriter
-from fondant.core.component_spec import Argument, ComponentSpec, OperationSpec
+from fondant.core.component_spec import Argument, OperationSpec
 from fondant.core.manifest import Manifest, Metadata
 
 dask.config.set({"dataframe.convert-string": False})
@@ -143,7 +143,7 @@ class Executor(t.Generic[Component]):
         client_kwargs: t.Optional[dict],
     ) -> "Executor":
         """Create an executor from a component spec."""
-        args_dict = vars(cls._add_and_parse_args(operation_spec.component_spec))
+        args_dict = vars(cls._add_and_parse_args(operation_spec))
 
         for argument in [
             "operation_spec",
@@ -171,13 +171,13 @@ class Executor(t.Generic[Component]):
             input_partition_rows=input_partition_rows,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
-            previous_index=operation_spec.component_spec.previous_index,
+            previous_index=operation_spec.previous_index,
         )
 
     @classmethod
-    def _add_and_parse_args(cls, spec: ComponentSpec):
+    def _add_and_parse_args(cls, operation_spec: OperationSpec):
         parser = argparse.ArgumentParser()
-        component_arguments = cls._get_component_arguments(spec)
+        component_arguments = cls._get_component_arguments(operation_spec)
 
         for arg in component_arguments.values():
             if arg.name in cls.optional_fondant_arguments():
@@ -213,17 +213,19 @@ class Executor(t.Generic[Component]):
         return []
 
     @staticmethod
-    def _get_component_arguments(spec: ComponentSpec) -> t.Dict[str, Argument]:
+    def _get_component_arguments(
+        operation_spec: OperationSpec,
+    ) -> t.Dict[str, Argument]:
         """
         Get the component arguments as a dictionary representation containing both input and output
             arguments of a component
         Args:
-            spec: the component spec
+            operation_spec: the operation spec
         Returns:
             Input and output arguments of the component.
         """
         component_arguments: t.Dict[str, Argument] = {}
-        component_arguments.update(spec.args)
+        component_arguments.update(operation_spec.args)
         return component_arguments
 
     @abstractmethod

@@ -299,7 +299,7 @@ class OperationSpec:
         consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
     ) -> None:
-        self.component_spec = component_spec
+        self._component_spec = component_spec
 
         self._mappings = {
             "consumes": consumes,
@@ -326,7 +326,7 @@ class OperationSpec:
             return serialized_mapping
 
         specification_dict = {
-            "specification": self.component_spec.specification,
+            "specification": self._component_spec.specification,
             "consumes": _dump_mapping(self._mappings["consumes"]),
             "produces": _dump_mapping(self._mappings["produces"]),
         }
@@ -373,7 +373,7 @@ class OperationSpec:
         Args:
             name: "consumes" or "produces"
         """
-        spec_mapping = getattr(self.component_spec, name)
+        spec_mapping = getattr(self._component_spec, name)
         args_mapping = self._mappings[name]
 
         if not args_mapping:
@@ -385,9 +385,9 @@ class OperationSpec:
             if not isinstance(value, pa.DataType):
                 continue
 
-            if not self.component_spec.is_generic(name):
+            if not self._component_spec.is_generic(name):
                 msg = (
-                    f"Component {self.component_spec.name} does not allow specifying additional "
+                    f"Component {self._component_spec.name} does not allow specifying additional "
                     f"fields but received {key}."
                 )
                 raise InvalidPipelineDefinition(msg)
@@ -478,12 +478,27 @@ class OperationSpec:
 
         return self._outer_produces
 
+    @property
+    def component_folder_name(self) -> str:
+        """Cleans and converts a name to a proper folder name."""
+        return self._component_spec.component_folder_name
+
+    @property
+    def previous_index(self) -> t.Optional[str]:
+        """The name of the index column of the previous component."""
+        return self._component_spec.previous_index
+
+    @property
+    def args(self) -> t.Mapping[str, Argument]:
+        """The component arguments."""
+        return self._component_spec.args
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, OperationSpec):
             return False
 
         # Compare component_spec attribute
-        if self.component_spec != other.component_spec:
+        if self._component_spec != other._component_spec:
             return False
 
         # Compare mappings attribute
