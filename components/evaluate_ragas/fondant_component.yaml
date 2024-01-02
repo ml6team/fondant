@@ -1,6 +1,6 @@
-name: retriever_eval_ragas
+name: Evalute ragas
 description: Component that evaluates the retriever using RAGAS
-image: fndnt/retriever_eval:dev
+image: fndnt/evaluate_ragas:dev
 tags:
   - Text processing
 

@@ -1,4 +1,4 @@
-# Image cropping
+# Crop images
 
 ## Description
 This component crops out image borders. This is typically useful when working with graphical 
@@ -14,8 +14,8 @@ the original image.
 Examples of image cropping by removing the single-color border. Left side is original image, 
 right side is border-cropped image.
 
-![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)
-![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)
+![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/crop_images/component_border_crop_1.png)
+![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/crop_images/component_border_crop_0.png)
 
 
 ## Inputs / outputs
