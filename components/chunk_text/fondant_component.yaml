@@ -19,6 +19,8 @@ produces:
   original_document_id:
     type: string
 
+previous_index: original_document_id
+
 args:
   chunk_size:
     description: Maximum size of chunks to return

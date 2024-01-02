@@ -7,6 +7,7 @@ import pytest
 import yaml
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
+from fondant.core.schema import Field, Type
 from fondant.pipeline import ComponentOp, Pipeline, Resources
 
 valid_pipeline_path = Path(__file__).parent / "examples/pipelines/valid_pipeline"
@@ -430,3 +431,87 @@ def test_pipeline_name():
     Pipeline(name="valid-name", base_path="base_path")
     with pytest.raises(InvalidPipelineDefinition, match="The pipeline name violates"):
         Pipeline(name="invalid name", base_path="base_path")
+
+
+def test_schema_propagation():
+    """Test that the schema is propagated correctly between datasets taking into account the
+    component specs and `consumes` and `produces` arguments.
+    """
+    pipeline = Pipeline(name="pipeline", base_path="base_path")
+
+    pipeline.get_run_id = lambda: "pipeline-id"
+
+    dataset = pipeline.read(
+        "load_from_hf_hub",
+        produces={
+            "image": pa.binary(),
+        },
+    )
+
+    assert dataset.fields == {
+        "image": Field(
+            "image",
+            type=Type(pa.binary()),
+            location="/pipeline-id/load_from_hugging_face_hub",
+        ),
+    }
+
+    dataset = dataset.apply(
+        "caption_images",
+    )
+
+    assert dataset.fields == {
+        "image": Field(
+            "image",
+            type=Type(pa.binary()),
+            location="/pipeline-id/load_from_hugging_face_hub",
+        ),
+        "caption": Field(
+            "caption",
+            type=Type(pa.string()),
+            location="/pipeline-id/caption_images",
+        ),
+    }
+
+    dataset = dataset.apply(
+        "filter_language",
+        consumes={
+            "text": "caption",
+        },
+    )
+
+    assert dataset.fields == {
+        "image": Field(
+            "image",
+            type=Type(pa.binary()),
+            location="/pipeline-id/load_from_hugging_face_hub",
+        ),
+        "caption": Field(
+            "caption",
+            type=Type(pa.string()),
+            location="/pipeline-id/caption_images",
+        ),
+    }
+
+    dataset = dataset.apply(
+        "chunk_text",
+        consumes={
+            "text": "caption",
+        },
+        produces={
+            "text": "chunks",
+        },
+    )
+
+    assert dataset.fields == {
+        "chunks": Field(
+            "chunks",
+            type=Type(pa.string()),
+            location="/pipeline-id/chunk_text",
+        ),
+        "original_document_id": Field(
+            "original_document_id",
+            type=Type(pa.string()),
+            location="/pipeline-id/chunk_text",
+        ),
+    }

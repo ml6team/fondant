@@ -195,6 +195,9 @@ class Field:
         """Returns a string representation of the `Type` instance."""
         return f"Field({vars(self)})"
 
+    def __eq__(self, other):
+        return vars(self) == vars(other)
+
 
 def validate_partition_size(arg_value):
     if arg_value in ["disable", None, "None"]:
