@@ -4,11 +4,13 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+import pyarrow as pa
 import pytest
 import yaml
 from fondant.core.component_spec import (
     ComponentSpec,
     KubeflowComponentSpec,
+    OperationSpec,
 )
 from fondant.core.exceptions import InvalidComponentSpec
 from fondant.core.schema import Type
@@ -49,6 +51,12 @@ def valid_fondant_schema_generic_consumes() -> dict:
 @pytest.fixture()
 def valid_fondant_schema_generic_produces() -> dict:
     with open(component_specs_path / "generic_produces.yaml") as f:
+        return yaml.safe_load(f)
+
+
+@pytest.fixture()
+def valid_fondant_schema_generic_consumes_produces() -> dict:
+    with open(component_specs_path / "generic_consumes_produces.yaml") as f:
         return yaml.safe_load(f)
 
 
@@ -93,10 +101,6 @@ def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     """Test that the created kubeflow component matches the expected kubeflow component."""
     fondant_component = ComponentSpec(valid_fondant_schema)
     kubeflow_component = fondant_component.kubeflow_specification
-    with open("./new_spec", "w") as f:
-        import json
-
-        json.dump(kubeflow_component._specification, f)
     assert kubeflow_component._specification == valid_kubeflow_schema
 
 
@@ -165,3 +169,21 @@ def test_component_spec_generic_produces(valid_fondant_schema_generic_produces):
     component_spec = ComponentSpec(valid_fondant_schema_generic_produces)
     assert component_spec.is_generic("consumes") is False
     assert component_spec.is_generic("produces") is True
+
+
+def test_operation_spec_parsing(valid_fondant_schema_generic_consumes_produces):
+    """Test that the operation spec is parsed correctly."""
+    component_spec = ComponentSpec(valid_fondant_schema_generic_consumes_produces)
+    operation_spec = OperationSpec(
+        component_spec=component_spec,
+        consumes={
+            "images_data": "images",
+        },
+        produces={
+            "audio": "audio_data",
+            "text": pa.string(),
+        },
+    )
+
+    serialized_operation_spec = operation_spec.to_json()
+    assert OperationSpec.from_json(serialized_operation_spec) == operation_spec

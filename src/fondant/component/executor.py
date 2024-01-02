@@ -16,7 +16,6 @@ from pathlib import Path
 import dask
 import dask.dataframe as dd
 import pandas as pd
-import pyarrow as pa
 from dask.distributed import Client, LocalCluster
 from fsspec import open as fs_open
 
@@ -28,9 +27,8 @@ from fondant.component import (
     PandasTransformComponent,
 )
 from fondant.component.data_io import DaskDataLoader, DaskDataWriter
-from fondant.core.component_spec import Argument, ComponentSpec, OperationSpec
+from fondant.core.component_spec import Argument, OperationSpec
 from fondant.core.manifest import Manifest, Metadata
-from fondant.core.schema import Type
 
 dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)
@@ -41,7 +39,7 @@ class Executor(t.Generic[Component]):
     An executor executes a Component.
 
     Args:
-        spec: The specification of the Component to be executed.
+        operation_spec: The operation spec of the component to be executed.
         cache: Flag indicating whether to use caching for intermediate results.
         input_manifest_path: The path to the input manifest file.
         output_manifest_path: The path to the output manifest file.
@@ -55,11 +53,13 @@ class Executor(t.Generic[Component]):
         (default is "local").
         client_kwargs: Additional keyword arguments dict which will be used to
         initialise the dask client, allowing for advanced configuration.
+        previous_index: The name of the index column of the previous component.
+            Used to remove all previous fields if the component changes the index
     """
 
     def __init__(
         self,
-        spec: ComponentSpec,
+        operation_spec: OperationSpec,
         *,
         cache: bool,
         input_manifest_path: t.Union[str, Path],
@@ -69,18 +69,16 @@ class Executor(t.Generic[Component]):
         input_partition_rows: int,
         cluster_type: t.Optional[str] = None,
         client_kwargs: t.Optional[dict] = None,
-        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
-        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        previous_index: t.Optional[str] = None,
     ) -> None:
-        self.spec = spec
+        self.operation_spec = operation_spec
         self.cache = cache
         self.input_manifest_path = input_manifest_path
         self.output_manifest_path = output_manifest_path
         self.metadata = Metadata.from_dict(metadata)
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
-
-        self.operation_spec = OperationSpec(spec, consumes=consumes, produces=produces)
+        self.previous_index = previous_index
 
         if cluster_type == "local":
             client_kwargs = client_kwargs or {
@@ -113,48 +111,42 @@ class Executor(t.Generic[Component]):
     def from_args(cls) -> "Executor":
         """Create an executor from a passed argument containing the specification as a dict."""
         parser = argparse.ArgumentParser()
-        parser.add_argument("--component_spec", type=json.loads)
+        parser.add_argument("--operation_spec", type=json.loads)
         parser.add_argument("--cache", type=lambda x: bool(strtobool(x)))
         parser.add_argument("--input_partition_rows", type=int)
         parser.add_argument("--cluster_type", type=str)
         parser.add_argument("--client_kwargs", type=json.loads)
-        parser.add_argument("--consumes", type=cls._parse_mapping)
-        parser.add_argument("--produces", type=cls._parse_mapping)
         args, _ = parser.parse_known_args()
 
-        if "component_spec" not in args:
-            msg = "Error: The --component_spec argument is required."
+        if "operation_spec" not in args:
+            msg = "Error: The --operation_spec argument is required."
             raise ValueError(msg)
 
-        component_spec = ComponentSpec(args.component_spec)
+        operation_spec = OperationSpec.from_dict(args.operation_spec)
 
         return cls.from_spec(
-            component_spec,
+            operation_spec,
             cache=args.cache,
             input_partition_rows=args.input_partition_rows,
             cluster_type=args.cluster_type,
             client_kwargs=args.client_kwargs,
-            consumes=args.consumes,
-            produces=args.produces,
         )
 
     @classmethod
     def from_spec(
         cls,
-        component_spec: ComponentSpec,
+        operation_spec: OperationSpec,
         *,
         cache: bool,
         input_partition_rows: int,
         cluster_type: t.Optional[str],
         client_kwargs: t.Optional[dict],
-        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
-        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
     ) -> "Executor":
         """Create an executor from a component spec."""
-        args_dict = vars(cls._add_and_parse_args(component_spec))
+        args_dict = vars(cls._add_and_parse_args(operation_spec))
 
         for argument in [
-            "component_spec",
+            "operation_spec",
             "input_partition_rows",
             "cache",
             "cluster_type",
@@ -170,7 +162,7 @@ class Executor(t.Generic[Component]):
         metadata = json.loads(metadata) if metadata else {}
 
         return cls(
-            component_spec,
+            operation_spec,
             input_manifest_path=input_manifest_path,
             output_manifest_path=output_manifest_path,
             cache=cache,
@@ -179,24 +171,13 @@ class Executor(t.Generic[Component]):
             input_partition_rows=input_partition_rows,
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
-            consumes=consumes,
-            produces=produces,
+            previous_index=operation_spec.previous_index,
         )
 
-    @staticmethod
-    def _parse_mapping(json_mapping: str) -> t.Mapping:
-        """Parse a json mapping to a Python mapping with Fondant types."""
-        mapping = json.loads(json_mapping)
-
-        for key, value in mapping.items():
-            if isinstance(value, dict):
-                mapping[key] = Type.from_json(value).value
-        return mapping
-
     @classmethod
-    def _add_and_parse_args(cls, spec: ComponentSpec):
+    def _add_and_parse_args(cls, operation_spec: OperationSpec):
         parser = argparse.ArgumentParser()
-        component_arguments = cls._get_component_arguments(spec)
+        component_arguments = cls._get_component_arguments(operation_spec)
 
         for arg in component_arguments.values():
             if arg.name in cls.optional_fondant_arguments():
@@ -232,17 +213,19 @@ class Executor(t.Generic[Component]):
         return []
 
     @staticmethod
-    def _get_component_arguments(spec: ComponentSpec) -> t.Dict[str, Argument]:
+    def _get_component_arguments(
+        operation_spec: OperationSpec,
+    ) -> t.Dict[str, Argument]:
         """
         Get the component arguments as a dictionary representation containing both input and output
             arguments of a component
         Args:
-            spec: the component spec
+            operation_spec: the operation spec
         Returns:
             Input and output arguments of the component.
         """
         component_arguments: t.Dict[str, Argument] = {}
-        component_arguments.update(spec.args)
+        component_arguments.update(operation_spec.args)
         return component_arguments
 
     @abstractmethod
@@ -580,7 +563,7 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         )
 
         # Clear divisions if component spec indicates that the index is changed
-        if self.spec.previous_index is not None:
+        if self.previous_index is not None:
             dataframe.clear_divisions()
 
         return dataframe

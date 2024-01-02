@@ -19,7 +19,6 @@ import pyarrow as pa
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
-from fondant.core.schema import Type
 
 logger = logging.getLogger(__name__)
 
@@ -171,29 +170,15 @@ class ComponentOp:
                     "cache": self.cache,
                     "cluster_type": cluster_type,
                     "client_kwargs": client_kwargs,
-                    "consumes": self._dump_mapping(consumes),
-                    "produces": self._dump_mapping(produces),
+                    "operation_spec": self.operation_spec.to_json(),
                 }.items()
                 if value is not None
             },
         )
 
-        self.arguments.setdefault("component_spec", self.component_spec.specification)
+        self.arguments.setdefault("operation_spec", self.operation_spec.to_json())
 
         self.resources = resources or Resources()
-
-    @staticmethod
-    def _dump_mapping(
-        mapping: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
-    ) -> dict:
-        if mapping is None:
-            return {}
-
-        serialized_mapping: t.Dict[str, t.Any] = mapping.copy()
-        for key, value in mapping.items():
-            if isinstance(value, pa.DataType):
-                serialized_mapping[key] = Type(value).to_json()
-        return serialized_mapping
 
     def _configure_caching_from_image_tag(
         self,
