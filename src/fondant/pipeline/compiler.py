@@ -5,13 +5,14 @@ import shlex
 import tempfile
 import typing as t
 from abc import ABC, abstractmethod
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from pathlib import Path
 
 import yaml
 
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Metadata
+from fondant.core.schema import DockerVolume
 from fondant.pipeline import (
     VALID_ACCELERATOR_TYPES,
     VALID_VERTEX_ACCELERATOR_TYPES,
@@ -43,22 +44,6 @@ class Compiler(ABC):
                     f"Configuration `{config_name}` is set with `{config_value}` but has no effect"
                     f" for runner `{self.__class__.__name__}`.",
                 )
-
-
-@dataclass
-class DockerVolume:
-    """Dataclass representing a DockerVolume.
-    (https://docs.docker.com/compose/compose-file/05-services/#volumes).
-
-    Args:
-        type: the mount type volume (bind, volume)
-        source: the source of the mount, a path on the host for a bind mount
-        target: the path in the container where the volume is mounted.
-    """
-
-    type: str
-    source: str
-    target: str
 
 
 class DockerCompiler(Compiler):

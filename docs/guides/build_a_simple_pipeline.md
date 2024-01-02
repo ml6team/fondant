@@ -118,7 +118,7 @@ The pipeline execution will start, initiating the download of the dataset from H
 After the pipeline has completed, you can explore the pipeline result using the fondant explorer:
 
 ```bash
-fondant explore --base_path ./data
+fondant explore start --base_path ./data
 ```
 
 You can open your browser at `localhost:8501` to explore the loaded data.

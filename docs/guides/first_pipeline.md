@@ -47,7 +47,7 @@ fondant run local pipeline.py
 Congrats, you just ran your first Fondant pipeline!
 To visually inspect the results between every pipeline step, you can use the fondant explorer:
 ```
-fondant explore --base_path ./data-dir
+fondant explore start --base_path ./data-dir
 ```
 
 ### Building your own pipeline

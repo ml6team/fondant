@@ -5,11 +5,28 @@ and pipelines.
 import os
 import re
 import typing as t
+from dataclasses import dataclass
 from enum import Enum
 
 import pyarrow as pa
 
 from fondant.core.exceptions import InvalidTypeSchema
+
+
+@dataclass
+class DockerVolume:
+    """Dataclass representing a DockerVolume.
+    (https://docs.docker.com/compose/compose-file/05-services/#volumes).
+
+    Args:
+        type: the mount type volume (bind, volume)
+        source: the source of the mount, a path on the host for a bind mount
+        target: the path in the container where the volume is mounted.
+    """
+
+    type: str
+    source: str
+    target: str
 
 
 class CloudCredentialsMount(Enum):
