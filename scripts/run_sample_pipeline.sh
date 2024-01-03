@@ -15,4 +15,4 @@ cleanup() {
 
 trap cleanup EXIT
 
-fondant run local examples/sample_pipeline.py
+poetry run fondant run local examples/sample_pipeline.py
