@@ -15,7 +15,8 @@ cleanup() {
 
 trap cleanup EXIT
 
-poetry run fondant run local examples/sample_pipeline_test/sample_pipeline.py
+poetry run fondant run local examples/sample_pipeline_test/sample_pipeline.py \
+  --extra-volumes ./examples/sample_pipeline_test/data:/data
 
 # Expect that .artifacts was created and isn't empty
 if [ -d "./examples/sample_pipeline_test/.artifacts" ]; then
