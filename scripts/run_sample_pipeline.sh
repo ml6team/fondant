@@ -15,5 +15,4 @@ cleanup() {
 
 trap cleanup EXIT
 
-echo "Temporary directory created: $artifact_directory"
 fondant run local examples/sample_pipeline.py
