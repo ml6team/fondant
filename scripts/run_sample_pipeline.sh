@@ -1,6 +1,7 @@
 #!/bin/bash
 # This script executes the sample pipeline in the example folder, checks the correct execution and
 # cleans up the directory again
+set -e
 
 cleanup() {
   # Create a temporary directory
