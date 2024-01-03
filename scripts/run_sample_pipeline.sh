@@ -22,7 +22,7 @@ poetry run fondant run local examples/sample_pipeline_test/sample_pipeline.py \
 
 # Expect that .artifacts was created and isn't empty
 if [ -d "./examples/sample_pipeline_test/.artifacts" ]; then
-    if [ "$(ls -A .artifacts)" ]; then
+    if [ "$(ls -A ./examples/sample_pipeline_test/.artifacts)" ]; then
         echo "Sample pipeline executed successfully."
         exit 0
     fi

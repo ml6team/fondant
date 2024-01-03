@@ -1,8 +1,6 @@
 # This file contains a sample pipeline. Loading data from a parquet file,
 # using the load_from_parquet component, chain a custom dummy component, and use
 # the reusable chunking component
-import glob
-import logging
 import os
 import pyarrow as pa
 from pathlib import Path
@@ -10,6 +8,7 @@ from fondant.pipeline import Pipeline
 
 os.environ["DOCKER_DEFAULT_PLATFORM"] = "linux/amd64"
 BASE_PATH = Path("./examples/sample_pipeline_test")
+Path(BASE_PATH / ".artifacts").mkdir(parents=True, exist_ok=True)
 NUMBER_OF_COMPONENTS = 3
 
 # Define pipeline

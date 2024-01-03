@@ -1,7 +1,6 @@
 name: Dummy component
 description: Dummy component for testing custom components
-
-image: fndnt/dummy_component:dev
+image: dummy_component
 
 consumes:
   text_data:
