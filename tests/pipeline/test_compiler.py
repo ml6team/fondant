@@ -8,8 +8,8 @@ from unittest import mock
 import pyarrow as pa
 import pytest
 from fondant.core.exceptions import InvalidPipelineDefinition
-from fondant.core.manifest import Metadata
-from fondant.pipeline import ComponentOp, Pipeline, Resources
+from fondant.core.manifest import Manifest, Metadata
+from fondant.pipeline import ComponentOp, Dataset, Pipeline, Resources
 from fondant.pipeline.compiler import (
     DockerCompiler,
     KubeFlowCompiler,
@@ -106,9 +106,14 @@ def setup_pipeline(request, tmp_path, monkeypatch):
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    example_dir, components = request.param
-    dataset = None
+    manifest = Manifest.create(
+        pipeline_name=pipeline.name,
+        base_path=pipeline.base_path,
+        run_id=pipeline.get_run_id(),
+    )
+    dataset = Dataset(manifest, pipeline=pipeline)
     cache_dict = {}
+    example_dir, components = request.param
     for component_dict in components:
         component = component_dict["component_op"]
         cache_key = component_dict["cache_key"]
@@ -119,7 +124,7 @@ def setup_pipeline(request, tmp_path, monkeypatch):
             "get_component_cache_key",
             lambda cache_key=cache_key, previous_component_cache=None: cache_key,
         )
-        dataset = pipeline._apply(component, datasets=dataset)
+        dataset = dataset._apply(component)
         cache_dict[component.name] = cache_key
 
     # override the default package_path with temporary path to avoid the creation of artifacts

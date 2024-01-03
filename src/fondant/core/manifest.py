@@ -34,8 +34,8 @@ class Metadata:
     base_path: str
     pipeline_name: str
     run_id: str
-    component_id: str
-    cache_key: str
+    component_id: t.Optional[str]
+    cache_key: t.Optional[str]
 
     def to_dict(self):
         return asdict(self)
@@ -96,8 +96,8 @@ class Manifest:
         pipeline_name: str,
         base_path: str,
         run_id: str,
-        component_id: str,
-        cache_key: str,
+        component_id: t.Optional[str] = None,
+        cache_key: t.Optional[str] = None,
     ) -> "Manifest":
         """Create an empty manifest.
 
