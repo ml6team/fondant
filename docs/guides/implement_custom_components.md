@@ -245,5 +245,5 @@ We now have a pipeline that downloads a dataset from the HuggingFace hub, filter
 image type, downloads the images, and filters them by alt text language.
 
 One final step still remaining, is to write teh final dataset to its destination. You could for 
-instance use the [`write_to_hf_hub`](../components/hub.md#description_11) component to write it to 
+instance use the [`write_to_hf_hub`](../components/hub.md#write_to_hugging_face_hub#description) component to write it to 
 the HuggingFace Hub, or create a custom `WriteComponent`.

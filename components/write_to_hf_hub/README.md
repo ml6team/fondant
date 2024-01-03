@@ -1,11 +1,14 @@
 # Write to Hugging Face hub
 
+<a id="write_to_hugging_face_hub#description"></a>
 ## Description
 Component that writes a dataset to the hub
 
-## Inputs / outputs
+<a id="write_to_hugging_face_hub#inputs_outputs"></a>
+## Inputs / outputs 
 
-### Consumes
+<a id="write_to_hugging_face_hub#consumes"></a>
+### Consumes 
 
 **This component can consume additional fields**
 - <field_name>: <dataset_field_name>
@@ -18,12 +21,13 @@ See the usage example below on how to define a field name for additional fields.
 
 
 
-
-### Produces
+<a id="write_to_hugging_face_hub#produces"></a>  
+### Produces 
 
 
 **This component does not produce data.**
 
+<a id="write_to_hugging_face_hub#arguments"></a>
 ## Arguments
 
 The component takes the following arguments to alter its behavior:
@@ -36,7 +40,8 @@ The component takes the following arguments to alter its behavior:
 | image_column_names | list | A list containing the image column names. Used to format to image to HF hub format | / |
 | column_name_mapping | dict | Mapping of the consumed fondant column names to the written hub column names | / |
 
-## Usage
+<a id="write_to_hugging_face_hub#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 

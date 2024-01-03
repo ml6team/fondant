@@ -1,18 +1,21 @@
 # Load from parquet
 
+<a id="load_from_parquet#description"></a>
 ## Description
 Component that loads a dataset from a parquet uri
 
-## Inputs / outputs
+<a id="load_from_parquet#inputs_outputs"></a>
+## Inputs / outputs 
 
-### Consumes
+<a id="load_from_parquet#consumes"></a>
+### Consumes 
 
 
 **This component does not consume data.**
 
 
-
-### Produces
+<a id="load_from_parquet#produces"></a>  
+### Produces 
 
 **This component can produce additional fields**
 - <field_name>: <field_schema>
@@ -21,6 +24,7 @@ The keys are the names of the fields to be produced by the component, while the 
 the type of the field that should be used to write the output dataset.
 
 
+<a id="load_from_parquet#arguments"></a>
 ## Arguments
 
 The component takes the following arguments to alter its behavior:
@@ -32,7 +36,8 @@ The component takes the following arguments to alter its behavior:
 | n_rows_to_load | int | Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale | / |
 | index_column | str | Column to set index to in the load component, if not specified a default globally unique index will be set | / |
 
-## Usage
+<a id="load_from_parquet#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 

@@ -1,4 +1,4 @@
-name: Exttact image resolution
+name: Extract image resolution
 description: Component that extracts image resolution data from the images
 image: fndnt/extract_image_resolution:dev
 tags:

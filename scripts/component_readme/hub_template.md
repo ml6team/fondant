@@ -10,6 +10,7 @@ Below you can find the reusable components offered by Fondant.
 **{{ tag }}**
 
 {% for component in tag_components %}
+<a id="{{ component['dir'] }}"></a>
 ??? "{{ component['name'] }}"
 
     --8<-- "components/{{ component['dir'] }}/README.md:1"
