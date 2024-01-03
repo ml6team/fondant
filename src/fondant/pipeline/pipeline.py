@@ -491,7 +491,8 @@ class Pipeline:
                         msg = (
                             f"Component '{component_op.name}' is trying to invoke the field "
                             f"'{component_field_name}', which has not been defined or created "
-                            f"in the previous components."
+                            f"in the previous components. \n"
+                            f"Available field names: {list(manifest.fields.keys())}"
                         )
                         raise InvalidPipelineDefinition(
                             msg,
