@@ -47,7 +47,7 @@ jobs:
           poetry install --all-extras --with test
 
       - name: Execute sample pipeline
-        run: ./scripts//run_sample_pipeline.sh
+        run: ./scripts/run_sample_pipeline.sh
 
   finish-coveralls:
     needs: test
