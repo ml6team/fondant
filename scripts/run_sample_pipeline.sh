@@ -10,7 +10,7 @@ cleanup() {
   artifact_directory="./examples/sample_pipeline_test/.artifacts"
   # Check if the temporary directory exists before attempting to remove it
   if [ -d "$artifact_directory" ]; then
-    rm -r "$artifact_directory"
+    sudo rm -r "$artifact_directory"
     echo "Temporary directory removed"
   fi
 }
