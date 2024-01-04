@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess  # nosec
+import sys
 import typing as t
 from abc import ABC, abstractmethod
 
@@ -84,37 +85,38 @@ class DockerRunner(Runner):
         """Execute docker command to check if docker is available."""
         try:
             # Check Docker info
-            subprocess.call(["docker", "info"])  # nosec
-            return True
+            subprocess.check_call(  # nosec
+                ["docker", "info"],
+                stdout=subprocess.DEVNULL,
+            )
 
         except subprocess.CalledProcessError:
-            msg = (
+            sys.exit(
                 "Docker is not installed or not running. Please make sure "
                 "Docker is installed and is running."
                 "Find more details on the Docker installation here: "
-                "https://fondant.ai/en/latest/guides/installation/#docker-installation"
+                "https://fondant.ai/en/latest/guides/installation/#docker-installation",
             )
-            raise OSError(
-                msg,
-            )
+
+        return True
 
     @staticmethod
     def docker_compose_is_installed():
         """Execute docker compose command to check if docker is available."""
         try:
             # Check Docker info
-            subprocess.call(["docker", "compose", "version"])  # nosec
+            subprocess.check_call(  # nosec
+                ["docker", "compose", "version"],
+                stdout=subprocess.DEVNULL,
+            )
             return True
 
         except subprocess.CalledProcessError:
-            msg = (
+            sys.exit(
                 "Docker Compose is not installed or not running. Please make sure "
                 "Docker Compose is installed."
                 "Find more details on the Docker installation here: "
-                "https://fondant.ai/en/latest/guides/installation/#docker-installation"
-            )
-            raise OSError(
-                msg,
+                "https://fondant.ai/en/latest/guides/installation/#docker-installation",
             )
 
 
