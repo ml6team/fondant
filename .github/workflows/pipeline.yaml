@@ -46,6 +46,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
+          pip install poetry==1.4.0
           pip install fondant
 
       - name: Execute sample pipeline
