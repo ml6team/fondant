@@ -8,8 +8,6 @@ from fondant.pipeline import Pipeline
 
 os.environ["DOCKER_DEFAULT_PLATFORM"] = "linux/amd64"
 BASE_PATH = Path("./examples/sample_pipeline_test")
-Path(BASE_PATH / ".artifacts").mkdir(parents=True, exist_ok=True)
-NUMBER_OF_COMPONENTS = 3
 
 # Define pipeline
 pipeline = Pipeline(name="dummy-pipeline", base_path=str(BASE_PATH / ".artifacts"))

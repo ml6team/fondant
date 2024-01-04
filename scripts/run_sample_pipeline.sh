@@ -3,6 +3,8 @@
 # cleans up the directory again
 set -e
 
+mkdir -p ./examples/sample_pipeline_test/.artifacts
+
 cleanup() {
   # Create a temporary directory
   artifact_directory="./examples/sample_pipeline_test/.artifacts"
