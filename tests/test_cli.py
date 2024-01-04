@@ -274,7 +274,7 @@ def test_local_run():
         extra_volumes=[],
         build_arg=[],
     )
-    with patch("subprocess.call") as mock_call:
+    with patch("subprocess.call") as mock_call, patch("subprocess.check_call") as _:
         run_local(args)
         mock_call.assert_called_with(
             [
@@ -331,7 +331,9 @@ def test_local_run_cloud_credentials():
             "fondant.pipeline.compiler.DockerCompiler.compile",
         ) as mock_compiler, patch(
             "subprocess.call",
-        ) as mock_runner:
+        ) as mock_runner, patch(
+            "subprocess.check_call",
+        ) as _:
             args = argparse.Namespace(
                 local=True,
                 vertex=False,
