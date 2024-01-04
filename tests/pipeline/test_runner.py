@@ -23,15 +23,18 @@ PIPELINE = Pipeline(
 
 def test_docker_runner():
     """Test that the docker runner while mocking subprocess.call."""
-    with mock.patch("subprocess.call") as mock_call:
+    with mock.patch("subprocess.call") as mock_call, mock.patch(
+        "subprocess.check_call",
+    ) as mock_check_call:
         DockerRunner().run("some/path")
-        mock_call.assert_has_calls(
+        mock_check_call.assert_has_calls(
             [
                 mock.call(
                     [
                         "docker",
                         "info",
                     ],
+                    stdout=-3,
                 ),
                 mock.call(
                     [
@@ -39,35 +42,40 @@ def test_docker_runner():
                         "compose",
                         "version",
                     ],
-                ),
-                mock.call(
-                    [
-                        "docker",
-                        "compose",
-                        "-f",
-                        "some/path",
-                        "up",
-                        "--build",
-                        "--pull",
-                        "always",
-                        "--remove-orphans",
-                    ],
+                    stdout=-3,
                 ),
             ],
             any_order=False,
         )
 
+        mock_call.assert_called_once_with(
+            [
+                "docker",
+                "compose",
+                "-f",
+                "some/path",
+                "up",
+                "--build",
+                "--pull",
+                "always",
+                "--remove-orphans",
+            ],
+        )
+
 
 def test_docker_runner_from_pipeline():
-    with mock.patch("subprocess.call") as mock_call:
+    with mock.patch("subprocess.call") as mock_call, mock.patch(
+        "subprocess.check_call",
+    ) as mock_check_call:
         DockerRunner().run(PIPELINE)
-        mock_call.assert_has_calls(
+        mock_check_call.assert_has_calls(
             [
                 mock.call(
                     [
                         "docker",
                         "info",
                     ],
+                    stdout=-3,
                 ),
                 mock.call(
                     [
@@ -75,22 +83,24 @@ def test_docker_runner_from_pipeline():
                         "compose",
                         "version",
                     ],
-                ),
-                mock.call(
-                    [
-                        "docker",
-                        "compose",
-                        "-f",
-                        ".fondant/compose.yaml",
-                        "up",
-                        "--build",
-                        "--pull",
-                        "always",
-                        "--remove-orphans",
-                    ],
+                    stdout=-3,
                 ),
             ],
             any_order=False,
+        )
+
+        mock_call.assert_called_once_with(
+            [
+                "docker",
+                "compose",
+                "-f",
+                ".fondant/compose.yaml",
+                "up",
+                "--build",
+                "--pull",
+                "always",
+                "--remove-orphans",
+            ],
         )
 
 
