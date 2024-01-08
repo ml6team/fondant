@@ -29,24 +29,6 @@ from langchain.text_splitter import (
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_CHUNK_STRATEGIES = [
-    "RecursiveCharacterTextSplitter",
-    "HTMLHeaderTextSplitter",
-    "CharacterTextSplitter",
-    "Language",
-    "MarkdownHeaderTextSplitter",
-    "MarkdownTextSplitter",
-    "SentenceTransformersTokenTextSplitter",
-    "LatexTextSplitter",
-    "SpacyTextSplitter",
-    "TokenTextSplitter",
-    "NLTKTextSplitter",
-    "PythonCodeTextSplitter",
-    "character",
-    "NLTK",
-    "SpaCy",
-]
-
 
 class ChunkTextComponent(PandasTransformComponent):
     """Component that chunks text into smaller segments.
@@ -110,8 +92,10 @@ class ChunkTextComponent(PandasTransformComponent):
             "PythonCodeTextSplitter": PythonCodeTextSplitter,
         }
 
-        if chunk_strategy not in SUPPORTED_CHUNK_STRATEGIES:
-            msg = f"Chunk strategy must be one of: {SUPPORTED_CHUNK_STRATEGIES}"
+        supported_chunk_strategies = list(class_dict.keys())
+
+        if chunk_strategy not in supported_chunk_strategies:
+            msg = f"Chunk strategy must be one of: {supported_chunk_strategies}"
             raise ValueError(
                 msg,
             )
