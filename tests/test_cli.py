@@ -1,4 +1,5 @@
 import argparse
+import os
 import subprocess
 from pathlib import Path
 from unittest.mock import patch
@@ -288,6 +289,7 @@ def test_local_run():
                 "always",
                 "--remove-orphans",
             ],
+            env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
         )
 
     with patch("subprocess.call") as mock_call:
@@ -316,6 +318,7 @@ def test_local_run():
                 "always",
                 "--remove-orphans",
             ],
+            env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
         )
 
 
@@ -370,6 +373,7 @@ def test_local_run_cloud_credentials():
                     "always",
                     "--remove-orphans",
                 ],
+                env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
             )
 
 
