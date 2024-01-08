@@ -1,11 +1,14 @@
 # Index AWS OpenSearch
 
+<a id="index_aws_opensearch#description"></a>
 ## Description
 Component that takes embeddings of text snippets and indexes them into AWS OpenSearch vector database.
 
-## Inputs / outputs
+<a id="index_aws_opensearch#inputs_outputs"></a>
+## Inputs / outputs 
 
-### Consumes
+<a id="index_aws_opensearch#consumes"></a>
+### Consumes 
 **This component consumes:**
 
 - text: string
@@ -14,12 +17,13 @@ Component that takes embeddings of text snippets and indexes them into AWS OpenS
 
 
 
-
-### Produces
+<a id="index_aws_opensearch#produces"></a>  
+### Produces 
 
 
 **This component does not produce data.**
 
+<a id="index_aws_opensearch#arguments"></a>
 ## Arguments
 
 The component takes the following arguments to alter its behavior:
@@ -35,7 +39,8 @@ The component takes the following arguments to alter its behavior:
 | verify_certs | bool | A boolean flag indicating whether to verify SSL certificates when connecting to the OpenSearch cluster. | True |
 | pool_maxsize | int | The maximum size of the connection pool to the AWS OpenSearch cluster. | 20 |
 
-## Usage
+<a id="index_aws_opensearch#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 
@@ -65,6 +70,7 @@ dataset.write(
 )
 ```
 
+<a id="index_aws_opensearch#testing"></a>
 ## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
