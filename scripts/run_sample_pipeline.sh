@@ -23,7 +23,7 @@ trap cleanup EXIT
 
 resolved_path=$(readlink -f "examples/sample_pipeline_test/data")
 
-fondant run local examples/sample_pipeline_test/sample_pipeline.py \
+poetry run fondant run local examples/sample_pipeline_test/sample_pipeline.py \
   --extra-volumes $resolved_path:/data
 
 if [ "$(ls -A ./examples/sample_pipeline_test/.artifacts)" ]; then
