@@ -1,3 +1,4 @@
+import sys
 import typing as t
 
 import pytest
@@ -167,6 +168,7 @@ def test_parametrized_types_old():
     }
 
 
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
 def test_parametrized_types_new():
     class TestComponent(PandasTransformComponent):
         def __init__(
