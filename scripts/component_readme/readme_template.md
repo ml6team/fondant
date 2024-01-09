@@ -64,7 +64,7 @@ The component takes the following arguments to alter its behavior:
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
 {% for argument in arguments %}
-| {{ argument.name }} | {{ argument.type }} | {{ argument.description.replace("\n", "") }} | {{ argument.default or "/" }} |
+| {{ argument.name }} | {{ argument.type.__name__ }} | {{ argument.description.replace("\n", "") }} | {{ argument.default or "/" }} |
 {% endfor %}
 {% else %}
 This component takes no arguments.
@@ -101,7 +101,7 @@ dataset.write(
 {% if argument.default %}
         # "{{ argument.name }}": {{ '\"' + argument.default + '\"' if argument.default is string else argument.default }},
 {% else %}
-        # "{{ argument.name }}": {{ (argument.type|eval)() }},
+        # "{{ argument.name }}": {{ argument.type() }},
 {% endif %}
 {% endfor %}
     },

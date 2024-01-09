@@ -13,9 +13,6 @@ from fondant.pipeline.runner import DockerRunner
 
 logger = logging.getLogger(__name__)
 
-# TODO: probably removable after we have solved #344
-# work around to make test executable on M1 Macbooks
-os.environ["DOCKER_DEFAULT_PLATFORM"] = "linux/amd64"
 
 BASE_PATH = Path("./tests/integration_tests/sample_pipeline_test")
 NUMBER_OF_COMPONENTS = 3
