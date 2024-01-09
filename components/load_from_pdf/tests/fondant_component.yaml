@@ -6,6 +6,8 @@ tags:
   - Data loading
 
 produces:
+  pdf_path:
+    type: string
   file_name:
     type: string
   text:
@@ -18,15 +20,6 @@ args:
       Can be a local path or a remote path. If the path is remote, the loader class will be 
       determined by the scheme of the path.
     type: str
-  loader_kwargs:
-    description: |
-      Keyword arguments to pass when instantiating the loader class. Check the documentation of 
-      the loader to check which arguments it accepts.
-      GCS: https://python.langchain.com/docs/integrations/document_loaders/google_cloud_storage_file
-      S3: https://python.langchain.com/docs/integrations/document_loaders/aws_s3_file
-      Azure: https://python.langchain.com/docs/integrations/document_loaders/azure_blob_storage_file
-    type: dict
-    default: {}
   n_rows_to_load:
     description: |
       Optional argument that defines the number of rows to load. Useful for testing pipeline runs 

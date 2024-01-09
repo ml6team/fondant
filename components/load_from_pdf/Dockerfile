@@ -20,8 +20,6 @@ COPY src/ src/
 
 FROM base as test
 COPY tests/ tests/
-COPY test_file/ test_file/
-COPY test_folder/ test_folder/
 RUN pip3 install --no-cache-dir -r tests/requirements.txt
 RUN python -m pytest tests
 

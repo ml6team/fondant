@@ -1,16 +1,13 @@
 import logging
 import os
-import tempfile
 import typing as t
-from collections import defaultdict
 
 import dask.dataframe as dd
+import fitz
 import fsspec as fs
 import pandas as pd
 from fondant.component import DaskLoadComponent
 from fondant.core.component_spec import OperationSpec
-from langchain_community.document_loaders import PyPDFDirectoryLoader
-from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -73,47 +70,53 @@ class PDFReader(DaskLoadComponent):
 
         return dask_df
 
+    def load_pdf_from_fs(self, file_path: str):
+        with self.fs.open(file_path, "rb") as pdf_file:
+            pdf_bytes = pdf_file.read()
+
+        documents = fitz.open("pdf", pdf_bytes)
+        # get all text
+        text = "".join([document.get_text() for document in documents])
+        documents.close()
+
+        return text
+
+    def process_pdf(self, row):
+        file_path = row["pdf_path"]
+        text = self.load_pdf_from_fs(file_path)
+        row["file_name"] = file_path.split("/")[-1]  # Extracting filename
+        row["text"] = text
+        return row
+
     def load(self) -> dd.DataFrame:
-        if self.protocol == "file":
-            logger.info("Found PDF files local file system")
+        try:
+            file_paths = self.fs.ls(self.pdf_path)
+        except NotADirectoryError:
+            file_paths = [self.pdf_path]
 
-            if self.fs.exists(self.pdf_path):
-                if self.fs.isdir(self.pdf_path):
-                    pdf_dir = self.pdf_path
-                else:
-                    pdf_dir = os.path.dirname(self.pdf_path)
+        file_paths = [
+            file_path for file_path in file_paths if file_path.endswith(".pdf")
+        ]
 
-                loader = PyPDFDirectoryLoader(pdf_dir)
-                documents = loader.load()
+        if self.n_rows_to_load is not None:
+            file_paths = file_paths[: self.n_rows_to_load]
 
-            else:
-                msg = "PDF path does not exist"
-                raise ValueError(msg)
+        dask_df = dd.from_pandas(
+            pd.DataFrame({"pdf_path": file_paths}),
+            npartitions=os.cpu_count(),
+        )
 
-        else:
-            logger.info("Found PDF files on remote file system")
+        meta_dict = {}
+        for field_name, field in self.spec.inner_produces.items():
+            meta_dict[field_name] = pd.Series(
+                dtype=pd.ArrowDtype(field.type.value),
+            )
+        meta_dict = pd.DataFrame(meta_dict)
 
-            files = self.fs.ls(self.pdf_path)
-
-            with tempfile.TemporaryDirectory() as temp_dir:
-                for file_path in tqdm(files):
-                    if file_path.endswith(".pdf"):
-                        file_name = os.path.basename(file_path)
-                        temp_file_path = os.path.join(temp_dir, file_name)
-                        self.fs.get(file_path, temp_file_path)
-
-                loader = PyPDFDirectoryLoader(temp_dir)
-                documents = loader.lazy_load()
-
-        doc_dict = defaultdict(list)
-        for doc_counter, document in enumerate(documents):
-            doc_dict["file_name"].append(os.path.basename(document.metadata["source"]))
-            doc_dict["text"].append(document.page_content)
-
-            if doc_counter == self.n_rows_to_load:
-                break
-
-        dask_df = dd.from_dict(doc_dict, npartitions=1)
+        dask_df = dask_df.map_partitions(
+            lambda part: part.apply(self.process_pdf, axis=1),
+            meta=meta_dict,
+        )
 
         dask_df = self.set_df_index(dask_df)
         return dask_df

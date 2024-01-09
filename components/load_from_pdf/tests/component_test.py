@@ -17,7 +17,7 @@ def test_pdf_reader():
         spec = ComponentSpec(yaml.safe_load(f))
     spec = OperationSpec(spec)
 
-    pdf_path = ["test_file/dummy.pdf", "test_folder"]
+    pdf_path = ["tests/test_file/dummy.pdf", "tests/test_folder"]
 
     for path in pdf_path:
         component = PDFReader(
@@ -29,19 +29,19 @@ def test_pdf_reader():
 
         output_dataframe = component.load().compute()
 
-        assert output_dataframe.columns.tolist() == ["file_name", "text"]
+        assert output_dataframe.columns.tolist() == ["pdf_path", "file_name", "text"]
 
-        if path == "test_file/dummy.pdf":
-            assert output_dataframe.shape == (1, 2)
+        if path == "tests/test_file/dummy.pdf":
+            assert output_dataframe.shape == (1, 3)
             assert output_dataframe["file_name"].tolist() == ["dummy.pdf"]
-            assert output_dataframe["text"].tolist() == ["Dumm y PDF file"]
+            assert output_dataframe["text"].tolist() == ["Dummy PDF file\n"]
         else:
-            assert output_dataframe.shape == (2, 2)
+            assert output_dataframe.shape == (2, 3)
             assert output_dataframe["file_name"].tolist() == [
                 "dummy_2.pdf",
                 "dummy_1.pdf",
             ]
             assert output_dataframe["text"].tolist() == [
-                "Dumm y PDF file",
-                "Dumm y PDF file",
+                "Dummy PDF file\n",
+                "Dummy PDF file\n",
             ]

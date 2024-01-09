@@ -19,6 +19,7 @@ Load pdf data stored locally or remote using langchain loaders.
 ### Produces 
 **This component produces:**
 
+- pdf_path: string
 - file_name: string
 - text: string
 
