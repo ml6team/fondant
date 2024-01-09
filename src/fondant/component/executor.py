@@ -195,7 +195,7 @@ class Executor(t.Generic[Component]):
 
             parser.add_argument(
                 f"--{arg.name}",
-                type=arg.python_type,  # type: ignore
+                type=arg.parser,
                 required=input_required,
                 default=default,
                 help=arg.description,
