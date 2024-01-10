@@ -10,6 +10,7 @@ import fsspec
 import pandas as pd
 import streamlit as st
 from config import DEFAULT_INDEX_NAME, ROWS_TO_RETURN
+from df_helpers.fields import is_nested_string_array
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
 from interfaces.utils import get_index_from_state
@@ -131,6 +132,7 @@ class DatasetLoaderApp:
         partition_index: int,
         partition_row_index: int,
         cache_key: str,
+        _selected_fields: t.Dict[str, Field],
     ):
         """
         Converts a Dask DataFrame into a Pandas DataFrame with specified number of rows.
@@ -194,7 +196,26 @@ class DatasetLoaderApp:
         # Concatenate the selected partitions into a single pandas DataFrame
         df = pd.concat(data_to_return)
 
-        return df, partition_index, partition_row_index
+        # Unnest columns that contain lists of string values
+        additional_text_fields = []
+        nested_columns = []
+        normal_columns = []
+
+        for column in df.columns:
+            if is_nested_string_array(_selected_fields[column]):
+                unnested = df[column].apply(pd.Series)
+                unnested.columns = [f"{column}_{i}" for i in unnested.columns]
+                additional_text_fields.extend(unnested.columns)
+                nested_columns.append(column)
+                nested_columns.extend(unnested.columns)
+                df = pd.concat([df, unnested], axis=1)
+            else:
+                normal_columns.append(column)
+
+        desired_order = normal_columns + nested_columns
+        df = df[desired_order]
+
+        return df, partition_index, partition_row_index, additional_text_fields
 
     @staticmethod
     def _initialize_page_view_dict(component, cache_key):
@@ -236,16 +257,18 @@ class DatasetLoaderApp:
 
     def load_pandas_dataframe(
         self,
+        *,
         dask_df: dd.DataFrame,
         field_mapping: t.Dict[str, str],
         cache_key: t.Optional[str] = "",
+        selected_fields: t.Dict[str, Field],
     ):
         """
         Provides common widgets for loading a dataframe and selecting a partition to load. Uses
         Cached dataframes to avoid reloading the dataframe when changing the partition.
 
         Returns:
-            Dataframe and fields
+            Dataframe and name of additional text fields from unpacking
         """
         previous_button_disabled = True
         next_button_disabled = False
@@ -265,13 +288,19 @@ class DatasetLoaderApp:
         ]
         start_index = page_view_dict[component][cache_key][page_index]["start_index"]
 
-        pandas_df, partition_index, partition_row_index = self.get_pandas_from_dask(
+        (
+            pandas_df,
+            partition_index,
+            partition_row_index,
+            additional_text_fields,
+        ) = self.get_pandas_from_dask(
             field_mapping=field_mapping,
             _dask_df=dask_df,
             rows_to_return=ROWS_TO_RETURN,
             partition_index=start_partition,
             partition_row_index=start_index,
             cache_key=cache_key,
+            _selected_fields=selected_fields,
         )
 
         self._update_page_view_dict(
@@ -322,4 +351,4 @@ class DatasetLoaderApp:
 
         st.markdown(f"Page {page_index}")
 
-        return pandas_df
+        return pandas_df, additional_text_fields

@@ -131,11 +131,20 @@ class DatasetExplorerApp(DatasetLoaderApp):
         else:
             st.markdown(text)
 
-    def setup_viewer_widget(self, grid_dict: AgGridReturn, fields: t.Dict[str, t.Any]):
+    def setup_viewer_widget(
+        self,
+        grid_dict: AgGridReturn,
+        fields: t.Dict[str, t.Any],
+        extra_text_fields: t.Optional[t.List[str]],
+    ):
         """Setup the viewer widget. This widget allows the user to view the selected row in the
         dataframe.
         """
         text_fields = get_string_fields(fields)
+
+        if extra_text_fields:
+            text_fields.extend(extra_text_fields)
+
         if text_fields:
             st.markdown("### Document Viewer")
             selected_column = st.selectbox("View column", text_fields)
@@ -283,6 +292,11 @@ field_mapping, selected_fields = app.get_fields_mapping()
 dask_df = app.load_dask_dataframe(field_mapping)
 dask_df, cache_key = app.setup_search_widget(dask_df, selected_fields, field_mapping)
 if st.session_state.result_found is True:
-    loaded_df = app.load_pandas_dataframe(dask_df, field_mapping, cache_key)
+    loaded_df, additional_text_fields = app.load_pandas_dataframe(
+        dask_df=dask_df,
+        field_mapping=field_mapping,
+        cache_key=cache_key,
+        selected_fields=selected_fields,
+    )
     grid_data_dict = app.setup_app_page(loaded_df, selected_fields)
-    app.setup_viewer_widget(grid_data_dict, selected_fields)
+    app.setup_viewer_widget(grid_data_dict, selected_fields, additional_text_fields)
