@@ -16,6 +16,8 @@ except ImportError:
 
 import pyarrow as pa
 
+from fondant.component import BaseComponent
+from fondant.component.image import Image
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
@@ -131,7 +133,9 @@ class ComponentOp:
 
     def __init__(
         self,
-        name_or_path: t.Union[str, Path],
+        name: str,
+        image: Image,
+        component_spec: ComponentSpec,
         *,
         consumes: t.Optional[t.Dict[str, str]] = None,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
@@ -142,16 +146,10 @@ class ComponentOp:
         client_kwargs: t.Optional[dict] = None,
         resources: t.Optional[Resources] = None,
     ) -> None:
-        if self._is_custom_component(name_or_path):
-            self.component_dir = Path(name_or_path)
-        else:
-            self.component_dir = self._get_registry_path(str(name_or_path))
-
+        self.name = name
+        self.image = image
+        self.component_spec = component_spec
         self.input_partition_rows = input_partition_rows
-        self.component_spec = ComponentSpec.from_file(
-            self.component_dir / self.COMPONENT_SPEC_NAME,
-        )
-        self.name = self.component_spec.component_folder_name
         self.cache = self._configure_caching_from_image_tag(cache)
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
@@ -180,6 +178,22 @@ class ComponentOp:
         self.arguments.setdefault("operation_spec", self.operation_spec.to_json())
 
         self.resources = resources or Resources()
+
+    @classmethod
+    def from_component_yaml(cls, path, **kwargs):
+        if cls._is_custom_component(path):
+            component_dir = Path(path)
+        else:
+            component_dir = cls._get_registry_path(str(path))
+        component_spec = ComponentSpec.from_file(
+            component_dir / cls.COMPONENT_SPEC_NAME,
+        )
+        name = component_spec.component_folder_name
+
+        image = Image(
+            base_image=component_spec.image,
+        )
+        return cls(name=name, image=image, component_spec=component_spec, **kwargs)
 
     def _configure_caching_from_image_tag(
         self,
@@ -325,7 +339,7 @@ class Pipeline:
 
     def read(
         self,
-        name_or_path: t.Union[str, Path],
+        ref: t.Union[str, Path, t.Type["BaseComponent"]],
         *,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
@@ -362,16 +376,41 @@ class Pipeline:
                 msg,
             )
 
-        operation = ComponentOp(
-            name_or_path,
-            produces=produces,
-            arguments=arguments,
-            input_partition_rows=input_partition_rows,
-            resources=resources,
-            cache=cache,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
-        )
+        if isinstance(ref, (str, Path)):
+            operation = ComponentOp.from_component_yaml(ref)
+        else:
+            if not ref.is_python_component():
+                err = """Only Python components are currently supported.
+                Make sure your class is decorated with the @python_component decorator."""
+                raise ValueError(err)
+            name = ref().__class__.__name__
+            image = ref.image()
+
+            spec_dict = {
+                "name": name,
+                "description": "This is an example component",
+                "image": "example_component:latest",
+                "produces": {
+                    "additionalProperties": True,
+                },
+                "consumes": {
+                    "additionalProperties": True,
+                },
+            }
+            component_spec = ComponentSpec(spec_dict)
+
+            operation = ComponentOp(
+                name,
+                image,
+                component_spec,
+                produces=produces,
+                arguments=arguments,
+                input_partition_rows=input_partition_rows,
+                resources=resources,
+                cache=cache,
+                cluster_type=cluster_type,
+                client_kwargs=client_kwargs,
+            )
 
         manifest = Manifest.create(
             pipeline_name=self.name,
