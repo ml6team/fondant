@@ -25,5 +25,5 @@ trap cleanup EXIT
 data_dir=$(readlink -f "data")
 
 # Run pipeline
-fondant run local pipeline.py \
+poetry run fondant run local pipeline.py \
   --extra-volumes $data_dir:/data
