@@ -36,7 +36,7 @@ The component takes the following arguments to alter its behavior:
 | -------- | ---- | ----------- | ------- |
 | llm_module_name | str | Module from which the LLM is imported. Defaults to langchain.llms | langchain.chat_models |
 | llm_class_name | str | Name of the selected llm | ChatOpenAI |
-| llm_kwargs | dict | Arguments of the selected llm | {'model_name': 'gpt-4'} |
+| llm_kwargs | dict | Arguments of the selected llm | {'model_name': 'gpt-3.5-turbo'} |
 
 <a id="evalute_ragas#usage"></a>
 ## Usage 
@@ -57,7 +57,7 @@ dataset = dataset.apply(
         # Add arguments
         # "llm_module_name": "langchain.chat_models",
         # "llm_class_name": "ChatOpenAI",
-        # "llm_kwargs": {'model_name': 'gpt-4'},
+        # "llm_kwargs": {'model_name': 'gpt-3.5-turbo'},
     },
     produces={
          <field_name>: <field_schema>,
