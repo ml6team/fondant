@@ -44,6 +44,17 @@ class MyTestComponent(DaskLoadComponent):
         pass
 
 
+@pytest.fixture()
+def mock_subprocess_run():
+    def _mock_subprocess_run(*args, **kwargs):
+        class MockCompletedProcess:
+            returncode = 0
+
+        return MockCompletedProcess()
+
+    return _mock_subprocess_run
+
+
 @pytest.mark.parametrize("command", commands)
 def test_basic_invocation(command):
     """Test that the CLI (sub)commands can be invoked without errors."""
@@ -262,7 +273,7 @@ def test_sagemaker_compile(tmp_path_factory):
         )
 
 
-def test_local_run():
+def test_local_run(mock_subprocess_run):
     """Test that the run command works with different arguments."""
     args = argparse.Namespace(
         local=True,
@@ -275,9 +286,11 @@ def test_local_run():
         extra_volumes=[],
         build_arg=[],
     )
-    with patch("subprocess.call") as mock_call:
+
+    with patch("subprocess.run") as mock_run:
+        mock_run.side_effect = mock_subprocess_run
         run_local(args)
-        mock_call.assert_called_once_with(
+        mock_run.assert_called_once_with(
             [
                 "docker",
                 "compose",
@@ -290,9 +303,12 @@ def test_local_run():
                 "--remove-orphans",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+            capture_output=True,
+            encoding="utf8",
         )
 
-    with patch("subprocess.call") as mock_call:
+    with patch("subprocess.run") as mock_run:
+        mock_run.side_effect = mock_subprocess_run
         args1 = argparse.Namespace(
             local=True,
             vertex=False,
@@ -306,7 +322,7 @@ def test_local_run():
             credentials=None,
         )
         run_local(args1)
-        mock_call.assert_called_once_with(
+        mock_run.assert_called_once_with(
             [
                 "docker",
                 "compose",
@@ -319,10 +335,12 @@ def test_local_run():
                 "--remove-orphans",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+            capture_output=True,
+            encoding="utf8",
         )
 
 
-def test_local_run_cloud_credentials():
+def test_local_run_cloud_credentials(mock_subprocess_run):
     namespace_creds_kwargs = [
         {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
         {"auth_gcp": False, "auth_azure": True, "auth_aws": False},
@@ -333,8 +351,10 @@ def test_local_run_cloud_credentials():
         with patch(
             "fondant.pipeline.compiler.DockerCompiler.compile",
         ) as mock_compiler, patch(
-            "subprocess.call",
+            "subprocess.run",
         ) as mock_runner:
+            mock_runner.side_effect = mock_subprocess_run
+
             args = argparse.Namespace(
                 local=True,
                 vertex=False,
@@ -360,7 +380,6 @@ def test_local_run_cloud_credentials():
                 output_path=".fondant/compose.yaml",
                 build_args=[],
             )
-
             mock_runner.assert_called_once_with(
                 [
                     "docker",
@@ -374,6 +393,8 @@ def test_local_run_cloud_credentials():
                     "--remove-orphans",
                 ],
                 env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+                capture_output=True,
+                encoding="utf8",
             )
 
 
