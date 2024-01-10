@@ -302,3 +302,38 @@ class ExampleComponent(PandasTransformComponent):
         A pandas dataframe containing the transformed data
     """
 ```
+
+Afterwards, we pass all keyword arguments to the `__init__()` method of the component.
+
+
+You can also use the a `teardown()` method to perform any cleanup after the component has been executed.
+This is a good place to close any open connections or files.
+
+```python
+import pandas as pd
+from fondant.component import PandasTransformComponent
+from my_library import Client
+
+  def __init__(self, *, client_url, **kwargs) -> None:
+    """
+    Args:
+        x_argument: An argument passed to the component
+    """
+    # Initialize your component here based on the arguments
+    self.client = Client(client_url)
+    
+  def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+    """Implement your custom logic in this single method
+
+    Args:
+        dataframe: A Pandas dataframe containing the data
+
+    Returns:
+        A pandas dataframe containing the transformed data
+    """
+    
+  def teardown(self):
+    """Perform any cleanup after the component has been executed
+    """
+    self.client.shutdown()
+```

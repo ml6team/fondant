@@ -26,6 +26,11 @@ class BaseComponent:
     ):
         pass
 
+    def teardown(self) -> None:
+        """Method called after the component has been executed."""
+
+    pass
+
 
 class DaskLoadComponent(BaseComponent):
     """Component that loads data and returns a Dask DataFrame."""
