@@ -21,4 +21,5 @@ class DummyComponent(PandasTransformComponent):
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Dummy component that returns the dataframe as it is."""
+        # raise RuntimeError
         return dataframe

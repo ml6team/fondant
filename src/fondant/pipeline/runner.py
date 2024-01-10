@@ -41,7 +41,7 @@ class DockerRunner(Runner):
         ]
 
         print("Starting pipeline run...")
-        subprocess.call(cmd)  # nosec
+        subprocess.check_call(cmd)  # nosec
         print("Finished pipeline run.")
 
     def run(

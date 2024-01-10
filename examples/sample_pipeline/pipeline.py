@@ -1,16 +1,15 @@
 # This file contains a sample pipeline. Loading data from a parquet file,
 # using the load_from_parquet component, chain a custom dummy component, and use
 # the reusable chunking component
-import os
 import pyarrow as pa
 from pathlib import Path
 from fondant.pipeline import Pipeline
 
-os.environ["DOCKER_DEFAULT_PLATFORM"] = "linux/amd64"
-BASE_PATH = Path("./examples/sample_pipeline_test")
+BASE_PATH = Path("./.artifacts").resolve()
+BASE_PATH.mkdir(parents=True, exist_ok=True)
 
 # Define pipeline
-pipeline = Pipeline(name="dummy-pipeline", base_path=str(BASE_PATH / ".artifacts"))
+pipeline = Pipeline(name="dummy-pipeline", base_path=str(BASE_PATH))
 
 # Load from hub component
 load_component_column_mapping = {
@@ -28,7 +27,7 @@ dataset = pipeline.read(
 )
 
 dataset = dataset.apply(
-    name_or_path=Path(BASE_PATH / "components" / "dummy_component"),
+    name_or_path="./components/dummy_component",
 )
 
 dataset.apply(

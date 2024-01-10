@@ -23,7 +23,7 @@ PIPELINE = Pipeline(
 
 def test_docker_runner():
     """Test that the docker runner while mocking subprocess.call."""
-    with mock.patch("subprocess.call") as mock_call:
+    with mock.patch("subprocess.check_call") as mock_call:
         DockerRunner().run("some/path")
         mock_call.assert_called_once_with(
             [
@@ -41,7 +41,7 @@ def test_docker_runner():
 
 
 def test_docker_runner_from_pipeline():
-    with mock.patch("subprocess.call") as mock_call:
+    with mock.patch("subprocess.check_call") as mock_call:
         DockerRunner().run(PIPELINE)
         mock_call.assert_called_once_with(
             [
