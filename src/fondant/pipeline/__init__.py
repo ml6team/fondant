@@ -1,5 +1,6 @@
 from .pipeline import (  # noqa
     ComponentOp,
+    Dataset,
     Pipeline,
     Resources,
     VALID_ACCELERATOR_TYPES,

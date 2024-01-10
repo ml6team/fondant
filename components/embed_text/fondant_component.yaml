@@ -40,6 +40,10 @@ args:
       Additional keyword arguments required for api initialization/authentication.
     type: dict
     default: {}
+  retries:
+    description: Number of retries to attempt when an embedding request fails.
+    type: int
+    default: 5
 
   
   

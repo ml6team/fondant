@@ -5,11 +5,28 @@ and pipelines.
 import os
 import re
 import typing as t
+from dataclasses import dataclass
 from enum import Enum
 
 import pyarrow as pa
 
 from fondant.core.exceptions import InvalidTypeSchema
+
+
+@dataclass
+class DockerVolume:
+    """Dataclass representing a DockerVolume.
+    (https://docs.docker.com/compose/compose-file/05-services/#volumes).
+
+    Args:
+        type: the mount type volume (bind, volume)
+        source: the source of the mount, a path on the host for a bind mount
+        target: the path in the container where the volume is mounted.
+    """
+
+    type: str
+    source: str
+    target: str
 
 
 class CloudCredentialsMount(Enum):
@@ -170,28 +187,16 @@ class Field:
         type: Type = Type("null"),
         location: str = "",
     ) -> None:
-        self._name = name
-        self._type = type
-        self._location = location
+        self.name = name
+        self.type = type
+        self.location = location
 
-    @property
-    def name(self) -> str:
-        """The name of the field."""
-        return self._name
+    def __repr__(self):
+        """Returns a string representation of the `Type` instance."""
+        return f"Field({vars(self)})"
 
-    @property
-    def type(self) -> Type:
-        """The absolute location of the field."""
-        return self._type
-
-    @property
-    def location(self) -> str:
-        """The relative location of the field."""
-        return self._location
-
-    @location.setter
-    def location(self, value) -> None:
-        self._location = value
+    def __eq__(self, other):
+        return vars(self) == vars(other)
 
 
 def validate_partition_size(arg_value):

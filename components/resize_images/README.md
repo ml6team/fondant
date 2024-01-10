@@ -1,19 +1,31 @@
 # Resize images
 
-### Description
+<a id="resize_images#description"></a>
+## Description
 Component that resizes images based on given width and height
 
-### Inputs / outputs
+<a id="resize_images#inputs_outputs"></a>
+## Inputs / outputs 
 
+<a id="resize_images#consumes"></a>
+### Consumes 
 **This component consumes:**
 
 - image: binary
 
+
+
+
+<a id="resize_images#produces"></a>  
+### Produces 
 **This component produces:**
 
 - image: binary
 
-### Arguments
+
+
+<a id="resize_images#arguments"></a>
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -22,7 +34,8 @@ The component takes the following arguments to alter its behavior:
 | resize_width | int | The width to resize to | / |
 | resize_height | int | The height to resize to | / |
 
-### Usage
+<a id="resize_images#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 
@@ -40,7 +53,7 @@ dataset = dataset.apply(
         # Add arguments
         # "resize_width": 0,
         # "resize_height": 0,
-    }
+    },
 )
 ```
 

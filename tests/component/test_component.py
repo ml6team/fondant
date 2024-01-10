@@ -23,7 +23,6 @@ from fondant.component.executor import (
 )
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.manifest import Manifest, Metadata
-from fondant.pipeline import ComponentOp
 
 components_path = Path(__file__).parent / "examples/component_specs"
 base_path = Path(__file__).parent / "examples/mock_base_path"
@@ -94,7 +93,11 @@ def test_component_arguments(metadata):
         "embedding": pa.list_(pa.int32()),
         "data": "array",
     }
-    serialized_produces = json.dumps(ComponentOp._dump_mapping(user_produces))
+
+    operation_spec = OperationSpec(
+        ComponentSpec.from_file(components_path / "arguments/component.yaml"),
+        produces=user_produces,
+    )
 
     sys.argv = [
         "",
@@ -104,8 +107,8 @@ def test_component_arguments(metadata):
         metadata.to_json(),
         "--output_manifest_path",
         str(components_path / "arguments/output_manifest.json"),
-        "--component_spec",
-        yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--operation_spec",
+        operation_spec.to_json(),
         "--cache",
         "True",
         "--input_partition_rows",
@@ -116,10 +119,6 @@ def test_component_arguments(metadata):
         "3.14",
         "--override_default_arg_with_none",
         "None",
-        "--produces",
-        serialized_produces,
-        "--consumes",
-        "{}",
     ]
 
     class MyExecutor(Executor):
@@ -157,6 +156,11 @@ def test_component_arguments(metadata):
 
 def test_run_with_cache(metadata, monkeypatch):
     input_manifest_path = str(components_path / "arguments/input_manifest.json")
+
+    operation_spec = OperationSpec(
+        ComponentSpec.from_file(components_path / "arguments/component.yaml"),
+    )
+
     # Mock CLI arguments
     sys.argv = [
         "",
@@ -166,8 +170,8 @@ def test_run_with_cache(metadata, monkeypatch):
         metadata.to_json(),
         "--output_manifest_path",
         str(components_path / "arguments/output_manifest.json"),
-        "--component_spec",
-        yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--operation_spec",
+        operation_spec.to_json(),
         "--cache",
         "True",
         "--input_partition_rows",
@@ -201,6 +205,10 @@ def test_run_with_cache(metadata, monkeypatch):
 def test_run_with_no_cache(metadata):
     input_manifest_path = str(components_path / "arguments/input_manifest.json")
 
+    operation_spec = OperationSpec(
+        ComponentSpec.from_file(components_path / "arguments/component.yaml"),
+    )
+
     # Change metadata to a new cache key that's not cached
     metadata.cache_key = "123"
     # Mock CLI arguments
@@ -212,8 +220,8 @@ def test_run_with_no_cache(metadata):
         metadata.to_json(),
         "--output_manifest_path",
         str(components_path / "arguments/output_manifest.json"),
-        "--component_spec",
-        yaml_file_to_json_string(components_path / "arguments/component.yaml"),
+        "--operation_spec",
+        operation_spec.to_json(),
         "--cache",
         "True",
         "--input_partition_rows",
@@ -244,6 +252,9 @@ def test_run_with_no_cache(metadata):
 @pytest.mark.usefixtures("_patched_data_writing")
 def test_load_component(metadata):
     # Mock CLI arguments load
+    operation_spec = OperationSpec(
+        ComponentSpec.from_file(components_path / "component.yaml"),
+    )
 
     sys.argv = [
         "",
@@ -255,8 +266,8 @@ def test_load_component(metadata):
         "1",
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
-        "--component_spec",
-        yaml_file_to_json_string(components_path / "component.yaml"),
+        "--operation_spec",
+        operation_spec.to_json(),
         "--cache",
         "False",
         "--produces",
@@ -289,6 +300,10 @@ def test_load_component(metadata):
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
 def test_dask_transform_component(metadata):
+    operation_spec = OperationSpec(
+        ComponentSpec.from_file(components_path / "component.yaml"),
+    )
+
     # Mock CLI arguments
     sys.argv = [
         "",
@@ -304,8 +319,8 @@ def test_dask_transform_component(metadata):
         "10",
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
-        "--component_spec",
-        yaml_file_to_json_string(components_path / "component.yaml"),
+        "--operation_spec",
+        operation_spec.to_json(),
         "--cache",
         "False",
     ]
@@ -337,6 +352,10 @@ def test_dask_transform_component(metadata):
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
 def test_pandas_transform_component(metadata):
+    operation_spec = OperationSpec(
+        ComponentSpec.from_file(components_path / "component.yaml"),
+    )
+
     # Mock CLI arguments
     sys.argv = [
         "",
@@ -350,8 +369,8 @@ def test_pandas_transform_component(metadata):
         "1",
         "--output_manifest_path",
         str(components_path / "output_manifest.json"),
-        "--component_spec",
-        yaml_file_to_json_string(components_path / "component.yaml"),
+        "--operation_spec",
+        operation_spec.to_json(),
         "--cache",
         "False",
     ]
@@ -448,6 +467,9 @@ def test_wrap_transform():
 
 @pytest.mark.usefixtures("_patched_data_loading")
 def test_write_component(metadata):
+    operation_spec = OperationSpec(
+        ComponentSpec.from_file(components_path / "component.yaml"),
+    )
     # Mock CLI arguments
     sys.argv = [
         "",
@@ -459,8 +481,8 @@ def test_write_component(metadata):
         "success",
         "--value",
         "1",
-        "--component_spec",
-        yaml_file_to_json_string(components_path / "component.yaml"),
+        "--operation_spec",
+        operation_spec.to_json(),
         "--cache",
         "False",
     ]

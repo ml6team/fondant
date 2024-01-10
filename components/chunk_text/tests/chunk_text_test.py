@@ -17,8 +17,9 @@ def test_transform():
     )
 
     component = ChunkTextComponent(
-        chunk_size=50,
-        chunk_overlap=20,
+        chunk_strategy="RecursiveCharacterTextSplitter",
+        chunk_kwargs={"chunk_size": 50, "chunk_overlap": 20},
+        language_text_splitter=None,
     )
 
     output_dataframe = component.transform(input_dataframe)

@@ -21,3 +21,7 @@ class InvalidPipelineDefinition(ValidationError, FondantException):
 
 class InvalidTypeSchema(ValidationError, FondantException):
     """Thrown when a Type schema definition is invalid."""
+
+
+class UnsupportedTypeAnnotation(FondantException):
+    """Thrown when an unsupported type annotation is encountered during type inference."""

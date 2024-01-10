@@ -72,11 +72,7 @@ Docker compose, please upgrade to the latest version as described in the [Docker
 !!! note "IMPORTANT"
     For **Apple M1/M2 ship users**: <br>
     
-    - Make sure that Docker uses linux/amd64 platform and not arm64. <br>
-
-        ```bash
-        export DOCKER_DEFAULT_PLATFORM=linux/amd64
-        ```
+    - There is no support for `linux/arm64` based images (yet). `linux/amd64` images will be used by default.
 
     - In Docker Desktop Dashboards’ `Settings -> Features in development`, make sure to
       uncheck `Use containerid for pulling and storing images`.

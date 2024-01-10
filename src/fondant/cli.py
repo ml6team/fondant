@@ -107,40 +107,51 @@ def register_explore(parent_parser):
 
         Example:
 
-        fondant explore --base_path gs://foo/bar \
+        fondant explore start --base_path gs://foo/bar \
          -c $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json
         """,
         ),
     )
-    auth_group = parser.add_mutually_exclusive_group()
 
-    parser.add_argument(
+    explore_subparser = parser.add_subparsers()
+    start_parser = explore_subparser.add_parser(name="start", help="Start explorer app")
+    stop_parser = explore_subparser.add_parser(name="stop", help="Stop explorer app")
+
+    auth_group = start_parser.add_mutually_exclusive_group()
+
+    start_parser.add_argument(
         "--base_path",
         "-b",
         type=str,
         help="""Base path that contains the data produced by a Fondant pipeline (local or remote)
         .""",
     )
-    parser.add_argument(
+    start_parser.add_argument(
         "--container",
         "-r",
         type=str,
         default="fndnt/data_explorer",
         help="Docker container to use. Defaults to fndnt/data_explorer.",
     )
-    parser.add_argument(
+    start_parser.add_argument(
         "--tag",
         "-t",
         type=str,
         default=version("fondant") if version("fondant") != "0.1.dev0" else "latest",
         help="Docker image tag to use.",
     )
-    parser.add_argument(
+    start_parser.add_argument(
         "--port",
         "-p",
         type=int,
         default=8501,
         help="Port to expose the container on.",
+    )
+    start_parser.add_argument(
+        "--output-path",
+        type=str,
+        default=".fondant/explorer-compose.yaml",
+        help="The path to the Docker Compose specification.",
     )
 
     auth_group.add_argument(
@@ -172,10 +183,18 @@ def register_explore(parent_parser):
         nargs="+",
     )
 
-    parser.set_defaults(func=explore)
+    stop_parser.add_argument(
+        "--output-path",
+        type=str,
+        default=".fondant/explorer-compose.yaml",
+        help="The path to the Docker Compose specification.",
+    )
+
+    start_parser.set_defaults(func=start_explore)
+    stop_parser.set_defaults(func=stop_explore)
 
 
-def explore(args):
+def start_explore(args):
     from fondant.explore import run_explorer_app
 
     if not shutil.which("docker"):
@@ -199,6 +218,14 @@ def explore(args):
         tag=args.tag,
         port=args.port,
         extra_volumes=extra_volumes,
+    )
+
+
+def stop_explore(args):
+    from fondant.explore import stop_explorer_app
+
+    stop_explorer_app(
+        output_path=args.output_path,
     )
 
 

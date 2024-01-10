@@ -1,6 +1,7 @@
-# Image cropping
+# Crop images
 
-### Description
+<a id="crop_images#description"></a>
+## Description
 This component crops out image borders. This is typically useful when working with graphical 
 images that have single-color borders (e.g. logos, icons, etc.).
 
@@ -14,23 +15,34 @@ the original image.
 Examples of image cropping by removing the single-color border. Left side is original image, 
 right side is border-cropped image.
 
-![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_1.png)
-![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/image_cropping/component_border_crop_0.png)
+![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/crop_images/component_border_crop_1.png)
+![Example of image cropping by removing the single-color border. Left side is original, right side is cropped image](../../docs/art/components/crop_images/component_border_crop_0.png)
 
 
-### Inputs / outputs
+<a id="crop_images#inputs_outputs"></a>
+## Inputs / outputs 
 
+<a id="crop_images#consumes"></a>
+### Consumes 
 **This component consumes:**
 
 - images_data: binary
 
+
+
+
+<a id="crop_images#produces"></a>  
+### Produces 
 **This component produces:**
 
 - image: binary
 - image_width: int32
 - image_height: int32
 
-### Arguments
+
+
+<a id="crop_images#arguments"></a>
+## Arguments
 
 The component takes the following arguments to alter its behavior:
 
@@ -39,7 +51,8 @@ The component takes the following arguments to alter its behavior:
 | cropping_threshold | int | Threshold parameter used for detecting borders. A lower (negative) parameter results in a more performant border detection, but can cause overcropping. Default is -30 | -30 |
 | padding | int | Padding for the image cropping. The padding is added to all borders of the image. | 10 |
 
-### Usage
+<a id="crop_images#usage"></a>
+## Usage 
 
 You can add this component to your pipeline using the following code:
 
@@ -57,7 +70,7 @@ dataset = dataset.apply(
         # Add arguments
         # "cropping_threshold": -30,
         # "padding": 10,
-    }
+    },
 )
 ```
 

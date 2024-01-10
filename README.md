@@ -244,7 +244,7 @@ We welcome contributions of different kinds:
 For a detailed view on the roadmap and day to day development, you can check our [github project
 board](https://github.com/orgs/ml6team/projects/1).
 
-You can also check out our [architecture](docs/architecture.md) page to famliarize yourself with the Fondant architecture and repository structure.
+You can also check out our [architecture](docs/architecture.md) page to familiarize yourself with the Fondant architecture and repository structure.
 
 ### Environment setup
 

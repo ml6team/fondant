@@ -7,7 +7,7 @@ from collections import defaultdict
 import dask.dataframe as dd
 import pandas as pd
 from fondant.component import DaskLoadComponent
-from fondant.core.component_spec import ComponentSpec
+from fondant.core.component_spec import OperationSpec
 from llama_index import download_loader
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class LlamaHubReader(DaskLoadComponent):
     def __init__(
         self,
-        spec: ComponentSpec,
+        spec: OperationSpec,
         *,
         loader_class: str,
         loader_kwargs: dict,
@@ -73,7 +73,7 @@ class LlamaHubReader(DaskLoadComponent):
 
             def _get_meta_df() -> pd.DataFrame:
                 meta_dict = {"id": pd.Series(dtype="object")}
-                for field_name, field in self.spec.produces.items():
+                for field_name, field in self.spec.inner_produces.items():
                     meta_dict[field_name] = pd.Series(
                         dtype=pd.ArrowDtype(field.type.value),
                     )
@@ -95,7 +95,7 @@ class LlamaHubReader(DaskLoadComponent):
 
         doc_dict = defaultdict(list)
         for d, document in enumerate(documents):
-            for column in self.spec.produces:
+            for column in self.spec.inner_produces:
                 if column == "text":
                     doc_dict["text"].append(document.text)
                 else:
