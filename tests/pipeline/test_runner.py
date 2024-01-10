@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -37,6 +38,7 @@ def test_docker_runner():
                 "always",
                 "--remove-orphans",
             ],
+            env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
         )
 
 
@@ -55,6 +57,7 @@ def test_docker_runner_from_pipeline():
                 "always",
                 "--remove-orphans",
             ],
+            env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
         )
 
 

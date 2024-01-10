@@ -12,7 +12,7 @@ The component specification should be defined by the author of the component.
 
 ## Contents
 
-A component spec(ification) consists of the following sections:
+A component specification consists of the following sections:
 
 ```yaml
 name:
@@ -52,48 +52,31 @@ image-caption combination.
 ...
 consumes:
   images:
-    fields:
-      data:
-        type: binary
-  captions:
-    fields:
-      text:
-        type: utf8
+    type: binary
+  text:
+    type: utf8
 
 produces:
   embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
+    type: array
+    items:
+      type: float32
 ```
 
 The `consumes` and `produces` sections follow the schema below:
 
 ```yaml
 consumes/produces:
-  <subset>:
-    fields:
-      <field>:
-        type: <type>
-    additionalFields: true
-  additionalSubsets: true
+  <field>:
+    type: <type>
+  additionalProperties: false
 ```
 
-#### Subsets
-
-A component consumes or produces `subsets` which match the `subsets` from
-[the manifest](../manifest.md).
-
-- Only those subsets defined in the `consumes` section of the
-  component specification are read and passed to the component implementation.
-- Only those subsets defined in the `produces` section of the component specification are
-  written to storage.
 
 #### Fields
 
-Each subset defines a list of `fields`, which again match those from the manifest.
+Each component specification defines a list of `fields` where the fields are the columns of the
+dataset. 
 
 - Only those fields defined in the `consumes` section of the component specification are read
   and passed to the component implementation.
@@ -101,25 +84,168 @@ Each subset defines a list of `fields`, which again match those from the manifes
   to storage
 
 Each field defines the expected data type, which should match the
-[types defined by Fondant](https://github.com/ml6team/fondant/blob/main/fondant/schema.py#L13),
-which mostly match the [Arrow data types](https://arrow.apache.org/docs/python/api/datatypes.html).
+[types defined by Fondant](https://github.com/ml6team/fondant/blob/main/src/fondant/core/schema.py),
+that correespond to [Arrow data types](https://arrow.apache.org/docs/python/api/datatypes.html).
 
-#### AdditionalSubsets & additionalFields
+Note that you can always map a field from your dataset with a different name to a specific field name expected by the
+component provided they have the same data type. For example, suppose we have a component spec that
+consumes a `text` field:
 
-The schema also defines the `additionalSubsets` and `additionalFields` keywords, which can be
-used to define which additional data should be passed on from the input to the output. They both
-default to `true`, which means that by default untouched data is passed on to the next component.
+```yaml
+consumes:
+   text:
+      type: string
+```           
 
-- If `additionalSubsets` is `false` in the `consumes` section, all subsets not specified in the
-  component specification's `consumes` will be dropped.
-- If `additionalSubsets` is `false` in the `produces` section, all subsets not specified in the
-  component specification's `produces` section will be dropped, including consumed subsets.
-- If `additionalFields` is `false` for a subset in the `consumes` section, all fields not
-  specified will be dropped.
-- If `additionalFields` is `false` for a subset in the `produces` section, all fields not
-  specified will be dropped, including consumed fields.
+If your dataset has a field called `custom_text` with type `string`, you can map it to the
+`text` field in the component spec as follows:
 
-Please check the [examples](#examples) below to build a better understanding.
+```python 
+
+dataset = pipeline.read(...)
+dataset = dataset.apply(
+    "example_component",
+    consumes={
+        "text": "custom_text"
+    }
+```
+
+In this example, the `custom_text` field will be mapped to the `text` field to match the 
+field expected by the component.
+
+Similarly, you can also the map the output field of a component to a specific field name in the
+dataset. Suppose we have a component spec that produces a `width` field:
+
+```yaml
+produces:
+    width:
+        type: int
+```
+
+If you want to map the output field to a field called `custom_width` in the dataset, you can do
+so as follows:
+
+```python 
+
+dataset = pipeline.read(...)
+dataset = dataset.apply(
+    "example_component",
+    produces={
+        "width": "custom_width"
+    }
+```
+
+In this example, the component produces a field called `width`. This field name is mapped to a custom field 
+name `custom_width` which can be referenced in later components or used to change the field name of the final
+written dataset. 
+
+
+#### Dynamic fields
+
+The schema also defines the `additionalProperties` keyword. This can be
+used to define dynamic fields that should be produced or consumed when set to `true`. This can be useful in many scenarios,
+here are a few examples:
+
+- Components that load/write general fields from/to external source (e.g. a CSV file, HuggingFace dataset, ...)
+  can use this to define dynamic fields that should be loaded/written.
+- Components that consume or produce optional fields. For example, a
+  component that queries a vector database can accept either a text passage or optionally precalculated text embeddings.
+- Components that can work on a dynamic amount of fields.
+
+Let's take an example of a component that loads a dataset from a CSV file. The CSV file can contain any number of
+columns, so we set `additionalProperties` to `true` to allow any column to be loaded.
+
+```yaml
+produces:
+    additionalProperties: true
+```
+
+Note that the schema of the fields to be produced is not defined as it would usually be 
+in the component specification, so we will need to specify the schema of the
+fields when defining the components
+
+```python
+dataset = pipeline.read(
+    "load_from_csv",
+    arguments={
+        "dataset_uri": "path/to/dataset.csv",
+    },
+    produces={
+        "image": pa.binary(),
+        "embedding": pa.list_(pa.binary())
+    }
+)
+```
+
+Here we define the schema of the `image` and `embedding` fields which will be produced by the component. 
+
+Now that we know how to define dynamic fields to be produced, let's take a look at how we can use the `additionalProperties`
+to define additional field to be consumed. Building on the previous example, let's take a component that takes
+either an `image` or `embedding` field as input to query a certain vector database. The specification 
+for such a component can be defined as follows:
+
+```yaml
+consumes:
+    additionalProperties: true
+produces:
+    retrieved_images:
+        type: binary
+```
+We can now use the `additionalProperties` to allow the component to accept dynamic fields. This gives us the flexibly choose which field to consume
+by the next component. We can either load the `image` field:
+
+```python 
+
+dataset = pipeline.read(
+    "load_from_csv",
+    arguments={
+        "dataset_uri": "path/to/dataset.csv",
+    },
+    produces={
+        "my_image": pa.binary(),
+        "my_embedding": pa.list_(pa.binary())
+    }
+)
+
+dataset = dataset.apply(
+    "query_vector_database",
+    consumes={
+        "image": "my_image"
+    }
+)
+```
+
+or the `embedding` field:
+
+```python 
+
+dataset = pipeline.read(
+    "load_from_csv",
+    arguments={
+        "dataset_uri": "path/to/dataset.csv",
+    },
+    produces={
+        "my_image": pa.binary(),
+        "my_embedding": pa.list_(pa.binary())
+    }
+)
+
+dataset = dataset.apply(
+    "query_vector_database",
+    consumes={
+        "embedding": "my_embedding"
+    }
+)
+```
+
+Where `my_image` and `my_embedding` are the fields produced by the previous component and `image`, `embedding` are the field names
+that can be consumed by the `query_vector_database` component. The data type of the consumed field does not need to be specified here
+since it can be inferred from the previous component.
+
+Note that in the implementation of the component, there 
+should be a custom logic to handle the different cases of the consumed fields based on the passed field name.
+
+For a practical example on using dynamic fields, make sure to check the guide on implementing [your own custom component](../guides/implement_custom_components.md) below to build a better understanding.
 
 ### Args
 
@@ -142,10 +268,8 @@ These arguments are passed in when the component is instantiated.
 If an argument is not explicitly provided, the default value will be used instead if available.
 
 ```python
-from fondant.pipeline import ComponentOp
-
-custom_op = ComponentOp(
-    component_dir="components/custom_component",
+dataset = pipeline.read(
+    "custom_component",
     arguments={
         "custom_argument": "foo"
     },
@@ -157,12 +281,11 @@ Afterwards, we pass all keyword arguments to the `__init__()` method of the comp
 ```python
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.executor import PandasTransformExecutor
 
 
 class ExampleComponent(PandasTransformComponent):
 
-  def __init__(self, *args, custom_argument, default_argument) -> None:
+  def __init__(self, *, custom_argument, default_argument, **kwargs) -> None:
     """
     Args:
         x_argument: An argument passed to the component
@@ -179,481 +302,3 @@ class ExampleComponent(PandasTransformComponent):
         A pandas dataframe containing the transformed data
     """
 ```
-
-## Examples
-
-Each component specification defines how the input manifest will be transformed into the output
-manifest. The following examples show how the component specification works:
-
-### Example 1: defaults
-
-Even though only a single `subset` and `field` are defined in both `consumes` and `produces`,
-all data is passed along since `additionalSubsets` and `additionalFields` default to `true`.
-
-<table>
-<tr>
-<th width="500px">Input manifest</th>
-<th width="500px">Component spec</th>
-<th width="500px">Output manifest</th>
-</tr>
-<tr>
-<td>
-
-```json
-{
-  "subsets": {
-    "images": {
-      "location": "...",
-      "fields": {
-        "width": {
-          "type": "int32"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "data": {
-          "type": "binary"
-        }
-      }
-    },
-    "captions": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-<td>
-
-```yaml
-consumes:
-  images:
-    fields:
-      data:
-        type: binary
-
-produces:
-  embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
-```
-
-</td>
-<td>
-
-```json
-{
-  "subsets": {
-    "images": {
-      "location": "...",
-      "fields": {
-        "width": {
-          "type": "int32"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "data": {
-          "type": "binary"
-        }
-      }
-    },
-    "captions": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    },
-    "embeddings": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-</tr>
-</table>
-
-### Example 2: `additionalSubsets: false` in `consumes`
-
-When changing `additionalSubsets` in `consumes` to `false`, the unused `captions` subset is
-dropped.
-
-<table>
-<tr>
-<th width="500px">Input manifest</th>
-<th width="500px">Component spec</th>
-<th width="500px">Output manifest</th>
-</tr>
-<tr>
-<td>
-
-```json
-{
-  "subsets": {
-    "images": {
-      "location": "...",
-      "fields": {
-        "width": {
-          "type": "int32"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "data": {
-          "type": "binary"
-        }
-      }
-    },
-    "captions": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-<td>
-
-```yaml
-consumes:
-  images:
-    fields:
-      data:
-        type: binary
-  additionalSubsets: false
-
-produces:
-  embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
-```
-
-</td>
-<td>
-
-```json
-{
-  "subsets": {
-    "images": {
-      "location": "...",
-      "fields": {
-        "width": {
-          "type": "int32"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "data": {
-          "type": "binary"
-        }
-      }
-    },
-    "embeddings": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-</tr>
-</table>
-
-### Example 3: `additionalFields: false` in `consumes`
-
-When changing `additionalFields` in the consumed images subset to `false`, the unused fields of
-the images subset are dropped as well.
-
-<table>
-<tr>
-<th width="500px">Input manifest</th>
-<th width="500px">Component spec</th>
-<th width="500px">Output manifest</th>
-</tr>
-<tr>
-<td>
-
-```json
-{
-  "subsets": {
-    "images": {
-      "location": "...",
-      "fields": {
-        "width": {
-          "type": "int32"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "data": {
-          "type": "binary"
-        }
-      }
-    },
-    "captions": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-<td>
-
-```yaml
-consumes:
-  images:
-    fields:
-      data:
-        type: binary
-    additionalFields: false
-  additionalSubsets: false
-
-produces:
-  embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
-```
-
-</td>
-<td>
-
-```json
-{
-  "subsets": {
-    "images": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    },
-    "embeddings": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-</tr>
-</table>
-
-### Example 4 `additionalSubsets: false` in `produces`
-
-When changing `additionalSubsets` in `produces` to `false`, both the unused `captions` subset
-and the consumed `images` subsets are dropped.
-
-<table>
-<tr>
-<th width="500px">Input manifest</th>
-<th width="500px">Component spec</th>
-<th width="500px">Output manifest</th>
-</tr>
-<tr>
-<td>
-
-```json
-{
-  "subsets": {
-    "images": {
-      "location": "...",
-      "fields": {
-        "width": {
-          "type": "int32"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "data": {
-          "type": "binary"
-        }
-      }
-    },
-    "captions": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-<td>
-
-```yaml
-consumes:
-  images:
-    fields:
-      data:
-        type: binary
-
-produces:
-  embeddings:
-    fields:
-      data:
-        type: array
-        items:
-          type: float32
-  additionalSubsets: false
-```
-
-</td>
-<td>
-
-```json
-{
-  "subsets": {
-    "embeddings": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-</tr>
-</table>
-
-### Example 5: overwriting subsets
-
-Finally, when we define a subset both in `consumes` and `produces`, the produced fields
-overwrite the consumed ones. Others are passed on according to the `additionalFields` flag.
-
-<table>
-<tr>
-<th width="500px">Input manifest</th>
-<th width="500px">Component spec</th>
-<th width="500px">Output manifest</th>
-</tr>
-<tr>
-<td>
-
-```json
-{
-  "subsets": {
-    "images": {
-      "location": "...",
-      "fields": {
-        "width": {
-          "type": "int32"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "data": {
-          "type": "binary"
-        }
-      }
-    },
-    "captions": {
-      "location": "...",
-      "fields": {
-        "data": {
-          "type": "binary"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-<td>
-
-```yaml
-consumes:
-  images:
-    fields:
-      data:
-        type: binary
-
-produces:
-  images:
-    fields:
-      data:
-        type: string
-  additionalSubsets: false
-```
-
-</td>
-<td>
-
-```json
-{
-  "subsets": {
-    "images": {
-      "location": "...",
-      "fields": {
-        "width": {
-          "type": "int32"
-        },
-        "height": {
-          "type": "int32"
-        },
-        "data": {
-          "type": "string"
-        }
-      }
-    }
-  }
-}
-```
-
-</td>
-</tr>
-</table>

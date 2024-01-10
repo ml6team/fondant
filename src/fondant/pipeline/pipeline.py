@@ -19,7 +19,7 @@ import pyarrow as pa
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
-from fondant.core.schema import Type
+from fondant.core.schema import Field
 
 logger = logging.getLogger(__name__)
 
@@ -171,29 +171,15 @@ class ComponentOp:
                     "cache": self.cache,
                     "cluster_type": cluster_type,
                     "client_kwargs": client_kwargs,
-                    "consumes": self._dump_mapping(consumes),
-                    "produces": self._dump_mapping(produces),
+                    "operation_spec": self.operation_spec.to_json(),
                 }.items()
                 if value is not None
             },
         )
 
-        self.arguments.setdefault("component_spec", self.component_spec.specification)
+        self.arguments.setdefault("operation_spec", self.operation_spec.to_json())
 
         self.resources = resources or Resources()
-
-    @staticmethod
-    def _dump_mapping(
-        mapping: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
-    ) -> dict:
-        if mapping is None:
-            return {}
-
-        serialized_mapping: t.Dict[str, t.Any] = mapping.copy()
-        for key, value in mapping.items():
-            if isinstance(value, pa.DataType):
-                serialized_mapping[key] = Type(value).to_json()
-        return serialized_mapping
 
     def _configure_caching_from_image_tag(
         self,
@@ -319,37 +305,23 @@ class Pipeline:
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
 
-    def _apply(
+    def register_operation(
         self,
         operation: ComponentOp,
-        datasets: t.Optional[t.Union["Dataset", t.List["Dataset"]]] = None,
-    ) -> "Dataset":
-        """
-        Apply an operation to the provided input datasets.
-
-        Args:
-            operation: The operation to apply.
-            datasets: The input datasets to apply the operation on
-        """
-        if datasets is None:
-            datasets = []
-        elif not isinstance(datasets, list):
-            datasets = [datasets]
-
-        if len(datasets) > 1:
-            msg = (
-                f"Multiple input datasets provided for operation `{operation.name}`. The current "
-                f"version of Fondant can only handle components with a single input."
-            )
-            raise InvalidPipelineDefinition(
-                msg,
-            )
+        *,
+        input_dataset: t.Optional["Dataset"],
+        output_dataset: t.Optional["Dataset"],
+    ) -> None:
+        dependencies = []
+        for operation_name, info in self._graph.items():
+            if info["output_dataset"] == input_dataset:
+                dependencies.append(operation_name)
 
         self._graph[operation.name] = {
             "operation": operation,
-            "dependencies": [dataset.operation.name for dataset in datasets],
+            "dependencies": dependencies,
+            "output_dataset": output_dataset,
         }
-        return Dataset(pipeline=self, operation=operation)
 
     def read(
         self,
@@ -400,7 +372,16 @@ class Pipeline:
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
         )
-        return self._apply(operation)
+
+        manifest = Manifest.create(
+            pipeline_name=self.name,
+            base_path=self.base_path,
+            run_id=self.get_run_id(),
+            component_id=operation.name,
+        )
+        dataset = Dataset(manifest, pipeline=self)
+
+        return dataset._apply(operation)
 
     def sort_graph(self):
         """Sort the graph topologically based on task dependencies."""
@@ -526,15 +507,42 @@ class Pipeline:
 
 
 class Dataset:
-    def __init__(self, *, pipeline: Pipeline, operation: ComponentOp) -> None:
+    def __init__(self, manifest, *, pipeline: Pipeline) -> None:
         """A class representing an intermediate dataset.
 
         Args:
+            manifest: Manifest representing the dataset
             pipeline: The pipeline this dataset is a part of.
-            operation: The operation that created this dataset.
         """
+        self.manifest = manifest
         self.pipeline = pipeline
-        self.operation = operation
+
+    @property
+    def fields(self) -> t.Mapping[str, Field]:
+        """The fields of the manifest as an immutable mapping."""
+        return dict(self.manifest.fields)
+
+    def _apply(self, operation: ComponentOp) -> "Dataset":
+        """
+        Apply the provided operation to the dataset.
+
+        Args:
+            operation: The operation to apply.
+        """
+        evolved_manifest = self.manifest.evolve(
+            operation.operation_spec,
+            run_id=self.pipeline.get_run_id(),
+        )
+        evolved_dataset = Dataset(evolved_manifest, pipeline=self.pipeline)
+
+        if self.pipeline is not None:
+            self.pipeline.register_operation(
+                operation,
+                input_dataset=self,
+                output_dataset=evolved_dataset,
+            )
+
+        return evolved_dataset
 
     def apply(
         self,
@@ -649,7 +657,7 @@ class Dataset:
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
         )
-        return self.pipeline._apply(operation, self)
+        return self._apply(operation)
 
     def write(
         self,
@@ -694,4 +702,4 @@ class Dataset:
             cluster_type=cluster_type,
             client_kwargs=client_kwargs,
         )
-        self.pipeline._apply(operation, self)
+        self._apply(operation)

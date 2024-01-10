@@ -16,14 +16,13 @@
           "type": "string"
         },
         "component_id": {
-          "type": "string"
+          "type": ["string", "null"]
         }
       },
       "required": [
         "base_path",
         "pipeline_name",
-        "run_id",
-        "component_id"
+        "run_id"
       ]
     },
     "index": {

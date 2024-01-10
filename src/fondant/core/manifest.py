@@ -34,8 +34,8 @@ class Metadata:
     base_path: str
     pipeline_name: str
     run_id: str
-    component_id: str
-    cache_key: str
+    component_id: t.Optional[str]
+    cache_key: t.Optional[str]
 
     def to_dict(self):
         return asdict(self)
@@ -96,8 +96,8 @@ class Manifest:
         pipeline_name: str,
         base_path: str,
         run_id: str,
-        component_id: str,
-        cache_key: str,
+        component_id: t.Optional[str] = None,
+        cache_key: t.Optional[str] = None,
     ) -> "Manifest":
         """Create an empty manifest.
 
@@ -256,7 +256,7 @@ class Manifest:
         evolved_manifest = self.copy()
 
         # Update `run_id` and `component_id` in the metadata
-        component_id = operation_spec.specification.component_folder_name
+        component_id = operation_spec.component_folder_name
         evolved_manifest.update_metadata(key="component_id", value=component_id)
         evolved_manifest.update_metadata(key="run_id", value=run_id)
 
@@ -266,7 +266,7 @@ class Manifest:
         )
 
         # Remove all previous fields if the component changes the index
-        if operation_spec.specification.previous_index:
+        if operation_spec.previous_index:
             for field_name in evolved_manifest.fields:
                 evolved_manifest.remove_field(field_name)
 

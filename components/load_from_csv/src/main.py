@@ -23,7 +23,6 @@ class CSVReader(DaskLoadComponent):
     ) -> None:
         """
         Args:
-            spec: the component spec
             produces: The schema the component should produce
             dataset_uri: The remote path to the csv file/folder containing the dataset
             column_separator: Separator to use when parsing csv

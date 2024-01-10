@@ -41,7 +41,12 @@ class DockerRunner(Runner):
         ]
 
         print("Starting pipeline run...")
-        subprocess.check_call(cmd)  # nosec
+
+        # copy the current environment with the DOCKER_DEFAULT_PLATFORM argument
+        subprocess.check_call(  # nosec
+            cmd,
+            env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+        )
         print("Finished pipeline run.")
 
     def run(
