@@ -4,7 +4,13 @@ description: |
   
   This component takes a body of text and chunks into small chunks. The id of the returned dataset
   consists of the id of the original document followed by the chunk index.
-
+  
+  Different chunking strategies can be used. The default is to use the "recursive" strategy which
+    recursively splits the text into smaller chunks until the chunk size is reached. 
+  
+  More information about the different chunking strategies can be here:
+  - https://python.langchain.com/docs/modules/data_connection/document_transformers/
+  - https://www.pinecone.io/learn/chunking-strategies/
 image: fndnt/chunk_text:dev
 tags:
   - Text processing
@@ -22,9 +28,22 @@ produces:
 previous_index: original_document_id
 
 args:
-  chunk_size:
-    description: Maximum size of chunks to return
+  chunk_strategy:
+    description: The strategy to use for chunking the text. One of
+            ['RecursiveCharacterTextSplitter', 'HTMLHeaderTextSplitter', 'CharacterTextSplitter',
+            'Language', 'MarkdownHeaderTextSplitter', 'MarkdownTextSplitter',
+            'SentenceTransformersTokenTextSplitter', 'LatexTextSplitter', 'SpacyTextSplitter',
+            'TokenTextSplitter', 'NLTKTextSplitter', 'PythonCodeTextSplitter', 'character',
+            'NLTK', 'SpaCy']
     type: int
-  chunk_overlap:
-    description: Overlap in characters between chunks
-    type: int
+    default: RecursiveCharacterTextSplitter
+  chunk_kwargs:
+    description: The arguments to pass to the chunking strategy
+    type: dict
+    default: {}
+  language_text_splitter:
+    description: The programming language to use for splitting text into sentences if "language"
+        is selected as the splitter. Check  https://python.langchain.com/docs/modules/data_connection/document_transformers/code_splitter
+        for more information on supported languages.
+    type: str
+    default: None

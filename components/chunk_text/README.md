@@ -7,6 +7,13 @@ Component that chunks text into smaller segments
 This component takes a body of text and chunks into small chunks. The id of the returned dataset
 consists of the id of the original document followed by the chunk index.
 
+Different chunking strategies can be used. The default is to use the "recursive" strategy which
+  recursively splits the text into smaller chunks until the chunk size is reached. 
+
+More information about the different chunking strategies can be here:
+- https://python.langchain.com/docs/modules/data_connection/document_transformers/
+- https://www.pinecone.io/learn/chunking-strategies/
+
 
 <a id="chunk_text#inputs_outputs"></a>
 ## Inputs / outputs 
@@ -36,8 +43,9 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| chunk_size | int | Maximum size of chunks to return | / |
-| chunk_overlap | int | Overlap in characters between chunks | / |
+| chunk_strategy | int | The strategy to use for chunking the text. One of ['RecursiveCharacterTextSplitter', 'HTMLHeaderTextSplitter', 'CharacterTextSplitter', 'Language', 'MarkdownHeaderTextSplitter', 'MarkdownTextSplitter', 'SentenceTransformersTokenTextSplitter', 'LatexTextSplitter', 'SpacyTextSplitter', 'TokenTextSplitter', 'NLTKTextSplitter', 'PythonCodeTextSplitter', 'character', 'NLTK', 'SpaCy'] | RecursiveCharacterTextSplitter |
+| chunk_kwargs | dict | The arguments to pass to the chunking strategy | / |
+| language_text_splitter | str | The programming language to use for splitting text into sentences if "language" is selected as the splitter. Check  https://python.langchain.com/docs/modules/data_connection/document_transformers/code_splitter for more information on supported languages. | / |
 
 <a id="chunk_text#usage"></a>
 ## Usage 
@@ -56,8 +64,9 @@ dataset = dataset.apply(
     "chunk_text",
     arguments={
         # Add arguments
-        # "chunk_size": 0,
-        # "chunk_overlap": 0,
+        # "chunk_strategy": "RecursiveCharacterTextSplitter",
+        # "chunk_kwargs": {},
+        # "language_text_splitter": ,
     },
 )
 ```
