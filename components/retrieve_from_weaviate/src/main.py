@@ -24,6 +24,9 @@ class RetrieveFromWeaviateComponent(PandasTransformComponent):
         self.class_name = class_name
         self.k = top_k
 
+    def teardown(self) -> None:
+        del self.client
+
     def retrieve_chunks(self, vector_query: list):
         """Get results from weaviate database."""
         result = (
