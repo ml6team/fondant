@@ -14,7 +14,9 @@ cleanup() {
 
   if [ -d "$artifact_directory" ]; then
     # Directory exists, remove it
-    rm -rf "$artifact_directory"
+    # Can't delete files in cicd pipeline due to missing permissions. Not necessarily needed there,
+    # but might be useful if you executing the script locally.
+    rm -rf "$artifact_directory" 2>/dev/null || true
   fi
 
   exit $rv
