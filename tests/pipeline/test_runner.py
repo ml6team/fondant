@@ -117,7 +117,7 @@ def test_docker_is_not_available():
     with mock.patch(
         "subprocess.check_call",
         side_effect=CalledProcessError(returncode=1, cmd=""),
-    ) as _, pytest.raises(SystemExit, expected_exception=expected_msg):
+    ) as _, pytest.raises(SystemExit, match=expected_msg):
         DockerRunner().run(PIPELINE)
 
 
@@ -128,8 +128,9 @@ def test_docker_compose_is_not_available():
         "https://fondant.ai/en/latest/guides/installation/#docker-installation"
     )
 
-    def side_effect(check_call_to_fail=2):
-        if mock_check_call.call_count == check_call_to_fail:
+    def side_effect(*args, **kwargs):
+        NUMBER_OF_CHECK_CALL_TO_FAIL = 2
+        if mock_check_call.call_count == NUMBER_OF_CHECK_CALL_TO_FAIL:
             raise CalledProcessError(returncode=1, cmd="")
 
     with mock.patch(
