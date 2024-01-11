@@ -19,13 +19,15 @@ produces:
 
 
 args:
-  module:
+  llm_module_name:
     description: Module from which the LLM is imported. Defaults to langchain.llms
     type: str
-    default: "langchain.llms"
-  llm_name:
+    default: "langchain.chat_models"
+  llm_class_name:
     description: Name of the selected llm
     type: str
+    default: "ChatOpenAI"
   llm_kwargs:
     description: Arguments of the selected llm
     type: dict
+    default: {"model_name":"gpt-3.5-turbo"}

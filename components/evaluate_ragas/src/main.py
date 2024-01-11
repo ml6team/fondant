@@ -11,24 +11,26 @@ class RetrieverEval(PandasTransformComponent):
     def __init__(
         self,
         *,
-        module: str,
-        llm_name: str,
+        llm_module_name: str,
+        llm_class_name: str,
         llm_kwargs: dict,
         produces: t.Dict[str, t.Any],
         **kwargs,
     ) -> None:
         """
         Args:
+            llm_module_name: Module from which the LLM is imported. Defaults to
+             langchain.chat_models
+            llm_class_name: Name of the selected llm. Defaults to ChatOpenAI
             module: Module from which the LLM is imported. Defaults to langchain.llms
-            llm_name: Name of the selected llm
             llm_kwargs: Arguments of the selected llm
             produces: RAGAS metrics to compute.
             kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.llm = self.extract_llm(
-            module=module,
-            model_name=llm_name,
-            model_kwargs=llm_kwargs,
+            llm_module_name=llm_module_name,
+            llm_class_name=llm_class_name,
+            llm_kwargs=llm_kwargs,
         )
         self.gpt_wrapper = LangchainLLM(llm=self.llm)
         self.metric_functions = self.extract_metric_functions(
@@ -38,13 +40,16 @@ class RetrieverEval(PandasTransformComponent):
 
     # import the metric functions selected
     @staticmethod
-    def import_from(module, name):
-        module = __import__(module, fromlist=[name])
-        return getattr(module, name)
+    def import_from(module_name: str, element_name: str):
+        module = __import__(module_name, fromlist=[element_name])
+        return getattr(module, element_name)
 
-    def extract_llm(self, module, model_name, model_kwargs):
-        module = self.import_from(module, model_name)
-        return module(**model_kwargs)
+    def extract_llm(self, llm_module_name: str, llm_class_name: str, llm_kwargs: dict):
+        module = self.import_from(
+            module_name=llm_module_name,
+            element_name=llm_class_name,
+        )
+        return module(**llm_kwargs)
 
     def extract_metric_functions(self, metrics: list):
         functions = []
