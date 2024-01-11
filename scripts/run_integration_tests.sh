@@ -1,6 +1,8 @@
 #!/bin/bash
 # This script executes the sample pipeline in the example folder, checks the correct execution and
 # cleans up the directory again
+GIT_HASH=$1
+
 echo "Start integration tests execution ..."
 
 failed_tests=()
@@ -15,7 +17,7 @@ for test_script in ./examples/*/run.sh; do
     cd $(dirname "$test_script")
 
     # Execute the run.sh script
-    bash ./run.sh
+    bash ./run.sh $GIT_HASH
 
     # Check the exit status
     if [ $? -ne 0 ]; then

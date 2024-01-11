@@ -2,6 +2,7 @@
 # This script executes the sample pipeline in the example folder, checks the correct execution and
 # cleans up the directory again
 set -e
+GIT_HASH=$1
 
 
 # Setup teardown
@@ -26,4 +27,4 @@ data_dir=$(readlink -f "data")
 
 # Run pipeline
 poetry run fondant run local pipeline.py \
-  --extra-volumes $data_dir:/data
+  --extra-volumes $data_dir:/data --build-arg FONDANT_VERSION=$GIT_HASH
