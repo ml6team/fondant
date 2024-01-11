@@ -292,7 +292,7 @@ def test_local_run():
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
         )
 
-    with patch("subprocess.call") as mock_call:
+    with patch("subprocess.call") as mock_call, patch("subprocess.check_call") as _:
         args1 = argparse.Namespace(
             local=True,
             vertex=False,

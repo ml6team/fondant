@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from subprocess import CalledProcessError
 from types import SimpleNamespace
 from unittest import mock
 
@@ -105,6 +106,37 @@ def test_docker_runner_from_pipeline():
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
         )
+
+
+def test_docker_is_not_available():
+    expected_msg = (
+        "Docker is not installed or not running. Please make sure Docker is installed and is "
+        "running.Find more details on the Docker installation here: "
+        "https://fondant.ai/en/latest/guides/installation/#docker-installation"
+    )
+    with mock.patch(
+        "subprocess.check_call",
+        side_effect=CalledProcessError(returncode=1, cmd=""),
+    ) as _, pytest.raises(SystemExit, expected_exception=expected_msg):
+        DockerRunner().run(PIPELINE)
+
+
+def test_docker_compose_is_not_available():
+    expected_msg = (
+        "Docker Compose is not installed or not running. Please make sure Docker Compose is "
+        "installed.Find more details on the Docker installation here: "
+        "https://fondant.ai/en/latest/guides/installation/#docker-installation"
+    )
+
+    def side_effect(check_call_to_fail=2):
+        if mock_check_call.call_count == check_call_to_fail:
+            raise CalledProcessError(returncode=1, cmd="")
+
+    with mock.patch(
+        "subprocess.check_call",
+        side_effect=side_effect,
+    ) as mock_check_call, pytest.raises(SystemExit, match=expected_msg):
+        DockerRunner().run(PIPELINE)
 
 
 class MockKfpClient:
