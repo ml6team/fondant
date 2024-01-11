@@ -53,6 +53,9 @@ class IndexWeaviateComponent(DaskWriteComponent):
                 },
             )
 
+    def teardown(self) -> None:
+        del self.client
+
     def write(self, dataframe: dd.DataFrame) -> None:
         with self.client.batch as batch:
             for part in tqdm(
