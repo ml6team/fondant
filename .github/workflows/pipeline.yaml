@@ -32,6 +32,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_FLAG_NAME: test-${{ matrix.python-version }}
 
+  integration-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '3.8', '3.9', '3.10' ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install poetry==1.4.0
+          poetry install --all-extras --with test
+
+      - name: Execute sample pipeline
+        run: ./scripts/run_integration_tests.sh $GITHUB_SHA
+
   finish-coveralls:
     needs: test
     runs-on: ubuntu-latest
