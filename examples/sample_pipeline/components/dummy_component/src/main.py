@@ -16,9 +16,10 @@ logger = logging.getLogger(__name__)
 class DummyComponent(PandasTransformComponent):
     """Dummy component that returns the dataframe as it is."""
 
-    def __init__(self, *_):
+    def __init__(self, *_, **kwargs):
         pass
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Dummy component that returns the dataframe as it is."""
+        # raise RuntimeError
         return dataframe

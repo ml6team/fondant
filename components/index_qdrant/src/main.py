@@ -47,6 +47,9 @@ class IndexQdrantComponent(DaskWriteComponent):
         self.batch_size = batch_size
         self.parallelism = parallelism
 
+    def teardown(self) -> None:
+        self.client.close()
+
     def write(self, dataframe: dd.DataFrame) -> None:
         """
         Writes the data from the given Dask DataFrame to the Qdrant collection.

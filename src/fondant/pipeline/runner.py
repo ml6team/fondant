@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 
 import yaml
 
+from fondant.core.exceptions import PipelineRunError
 from fondant.pipeline import Pipeline
 from fondant.pipeline.compiler import (
     DockerCompiler,
@@ -39,15 +40,23 @@ class DockerRunner(Runner):
             "--pull",
             "always",
             "--remove-orphans",
+            "--abort-on-container-exit",
         ]
 
         print("Starting pipeline run...")
 
         # copy the current environment with the DOCKER_DEFAULT_PLATFORM argument
-        subprocess.call(  # nosec
+        output = subprocess.run(  # nosec
             cmd,
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+            capture_output=True,
+            encoding="utf8",
         )
+
+        if output.returncode != 0:
+            msg = f"Command failed with error: '{output.stderr}'"
+            raise PipelineRunError(msg)
+
         print("Finished pipeline run.")
 
     def run(
@@ -56,12 +65,11 @@ class DockerRunner(Runner):
         *,
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
-    ) -> None:
+    ):
         """Run a pipeline, either from a compiled docker-compose spec or from a fondant pipeline.
 
         Args:
             input: the pipeline to compile or a path to a already compiled docker-compose spec
-            output_path: the path where to save the docker-compose spec
             extra_volumes: a list of extra volumes (using the Short syntax:
             https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
             to mount in the docker-compose spec.
@@ -298,8 +306,6 @@ class SagemakerRunner(Runner):
             pipeline_name: the name of the pipeline to create
             role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
-            instance_type: the instance type to use for the processing steps
-            (see: https://aws.amazon.com/ec2/instance-types/ for options).
         """
         if isinstance(input, Pipeline):
             os.makedirs(".fondant", exist_ok=True)

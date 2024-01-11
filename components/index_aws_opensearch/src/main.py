@@ -39,6 +39,9 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
         )
         self.create_index(index_body)
 
+    def teardown(self) -> None:
+        self.client.close()
+
     def create_index(self, index_body: Dict[str, Any]):
         """Creates an index if not existing in AWS OpenSearch.
 

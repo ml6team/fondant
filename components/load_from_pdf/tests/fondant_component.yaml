@@ -1,0 +1,34 @@
+name: Load from pdf
+description: |
+  Load pdf data stored locally or remote using langchain loaders.
+image: fndnt/load_from_pdf:dev
+tags:
+  - Data loading
+
+produces:
+  pdf_path:
+    type: string
+  file_name:
+    type: string
+  text:
+    type: string
+
+args:
+  pdf_path:
+    description: |
+      The path to the a pdf file or a folder containing pdf files to load. 
+      Can be a local path or a remote path. If the path is remote, the loader class will be 
+      determined by the scheme of the path.
+    type: str
+  n_rows_to_load:
+    description: |
+      Optional argument that defines the number of rows to load. Useful for testing pipeline runs 
+      on a small scale
+    type: int
+    default: None
+  index_column:
+    description: |
+      Column to set index to in the load component, if not specified a default globally unique 
+      index will be set
+    type: str
+    default: None
