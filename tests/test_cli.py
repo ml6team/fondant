@@ -304,6 +304,7 @@ def test_local_run(mock_subprocess_run):
                 "--abort-on-container-exit",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+            stderr=subprocess.PIPE,
             encoding="utf8",
         )
 
@@ -336,6 +337,7 @@ def test_local_run(mock_subprocess_run):
                 "--abort-on-container-exit",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+            stderr=subprocess.PIPE,
             encoding="utf8",
         )
 
@@ -394,6 +396,7 @@ def test_local_run_cloud_credentials(mock_subprocess_run):
                     "--abort-on-container-exit",
                 ],
                 env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+                stderr=subprocess.PIPE,
                 encoding="utf8",
             )
 
