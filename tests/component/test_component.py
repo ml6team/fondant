@@ -274,6 +274,55 @@ def test_load_component(metadata):
         "{}",
     ]
 
+    class MyLoadComponent(DaskLoadComponent):
+        def __init__(self, *, flag, value, **kwargs):
+            self.flag = flag
+            self.value = value
+
+        def load(self):
+            assert self.flag == "success"
+            assert self.value == 1
+            data = {
+                "id": [0, 1],
+                "captions_data": ["hello world", "this is another caption"],
+            }
+            return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
+
+    executor_factory = ExecutorFactory(MyLoadComponent)
+    executor = executor_factory.get_executor()
+    assert executor.input_partition_rows is None
+
+    load = patch_method_class(MyLoadComponent.load)
+    with mock.patch.object(MyLoadComponent, "load", load):
+        executor.execute(MyLoadComponent)
+        load.mock.assert_called_once()
+
+
+@pytest.mark.usefixtures("_patched_data_writing")
+def test_teardown_method(metadata):
+    # Mock CLI arguments load
+    operation_spec = OperationSpec(
+        ComponentSpec.from_file(components_path / "component.yaml"),
+    )
+
+    sys.argv = [
+        "",
+        "--metadata",
+        metadata.to_json(),
+        "--flag",
+        "success",
+        "--value",
+        "1",
+        "--output_manifest_path",
+        str(components_path / "output_manifest.json"),
+        "--operation_spec",
+        operation_spec.to_json(),
+        "--cache",
+        "False",
+        "--produces",
+        "{}",
+    ]
+
     class MockClient:
         def __init__(self):
             self.is_connected = True
@@ -291,8 +340,6 @@ def test_load_component(metadata):
             self.client = client
 
         def load(self):
-            assert self.flag == "success"
-            assert self.value == 1
             data = {
                 "id": [0, 1],
                 "captions_data": ["hello world", "this is another caption"],
@@ -306,16 +353,10 @@ def test_load_component(metadata):
     executor = executor_factory.get_executor()
     assert executor.input_partition_rows is None
 
-    load = patch_method_class(MyLoadComponent.load)
     teardown = patch_method_class(MyLoadComponent.teardown)
     assert client.is_connected is True
-    with mock.patch.object(MyLoadComponent, "load", load), mock.patch.object(
-        MyLoadComponent,
-        "teardown",
-        teardown,
-    ):
+    with mock.patch.object(MyLoadComponent, "teardown", teardown):
         executor.execute(MyLoadComponent)
-        load.mock.assert_called_once()
         teardown.mock.assert_called_once()
         assert client.is_connected is False
 
