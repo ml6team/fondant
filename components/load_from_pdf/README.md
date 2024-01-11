@@ -35,6 +35,7 @@ The component takes the following arguments to alter its behavior:
 | pdf_path | str | The path to the a pdf file or a folder containing pdf files to load. Can be a local path or a remote path. If the path is remote, the loader class will be determined by the scheme of the path. | / |
 | n_rows_to_load | int | Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale | / |
 | index_column | str | Column to set index to in the load component, if not specified a default globally unique index will be set | / |
+| n_partitions | int | Number of partitions of the dask dataframe. If not specified, the number of partitions will be equal to the number of CPU cores. Set to high values if the data is large and the pipelineis running out of memory. | / |
 
 <a id="load_from_pdf#usage"></a>
 ## Usage 
@@ -54,6 +55,7 @@ dataset = pipeline.read(
         # "pdf_path": ,
         # "n_rows_to_load": 0,
         # "index_column": ,
+        # "n_partitions": 0,
     },
 )
 ```

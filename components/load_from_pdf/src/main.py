@@ -20,6 +20,7 @@ class PDFReader(DaskLoadComponent):
         pdf_path: str,
         n_rows_to_load: t.Optional[int] = None,
         index_column: t.Optional[str] = None,
+        n_partitions: t.Optional[int] = None,
     ) -> None:
         """
         Args:
@@ -29,6 +30,9 @@ class PDFReader(DaskLoadComponent):
                 Useful for testing pipeline runs on a small scale.
             index_column: Column to set index to in the load component, if not specified a default
                 globally unique index will be set.
+            n_partitions: Number of partitions of the dask dataframe. If not specified, the number
+                of partitions will be equal to the number of CPU cores. Set to high values if
+                the data is large and the pipeline is running out of memory.
         """
         self.spec = spec
         self.pdf_path = pdf_path
@@ -36,6 +40,7 @@ class PDFReader(DaskLoadComponent):
         self.index_column = index_column
         self.protocol = fs.utils.get_protocol(self.pdf_path)
         self.fs, _ = fs.core.url_to_fs(self.pdf_path)
+        self.n_partitions = n_partitions if n_partitions is not None else os.cpu_count()
 
     def set_df_index(self, dask_df: dd.DataFrame) -> dd.DataFrame:
         if self.index_column is None:
@@ -103,7 +108,7 @@ class PDFReader(DaskLoadComponent):
 
         dask_df = dd.from_pandas(
             pd.DataFrame({"pdf_path": file_paths}),
-            npartitions=os.cpu_count(),
+            npartitions=self.n_partitions,
         )
 
         meta_dict = {}

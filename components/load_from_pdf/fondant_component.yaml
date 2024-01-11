@@ -32,3 +32,10 @@ args:
       index will be set
     type: str
     default: None
+  n_partitions:
+    description: |
+      Number of partitions of the dask dataframe. If not specified, the number of partitions will 
+      be equal to the number of CPU cores. Set to high values if the data is large and the pipeline
+      is running out of memory.
+    type: int
+    default: None
