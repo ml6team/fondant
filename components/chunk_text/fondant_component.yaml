@@ -35,7 +35,7 @@ args:
             'SentenceTransformersTokenTextSplitter', 'LatexTextSplitter', 'SpacyTextSplitter',
             'TokenTextSplitter', 'NLTKTextSplitter', 'PythonCodeTextSplitter', 'character',
             'NLTK', 'SpaCy']
-    type: int
+    type: str
     default: RecursiveCharacterTextSplitter
   chunk_kwargs:
     description: The arguments to pass to the chunking strategy
