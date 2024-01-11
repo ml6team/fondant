@@ -282,11 +282,13 @@ def test_load_component(metadata):
             if self.is_connected:
                 self.is_connected = False
 
+    client = MockClient()
+
     class MyLoadComponent(DaskLoadComponent):
         def __init__(self, *, flag, value, **kwargs):
             self.flag = flag
             self.value = value
-            self.client = MockClient()
+            self.client = client
 
         def load(self):
             assert self.flag == "success"
@@ -299,7 +301,6 @@ def test_load_component(metadata):
 
         def teardown(self) -> None:
             self.client.shutdown()
-            assert self.client.is_connected is False
 
     executor_factory = ExecutorFactory(MyLoadComponent)
     executor = executor_factory.get_executor()
@@ -307,6 +308,7 @@ def test_load_component(metadata):
 
     load = patch_method_class(MyLoadComponent.load)
     teardown = patch_method_class(MyLoadComponent.teardown)
+    assert client.is_connected is True
     with mock.patch.object(MyLoadComponent, "load", load), mock.patch.object(
         MyLoadComponent,
         "teardown",
@@ -315,6 +317,7 @@ def test_load_component(metadata):
         executor.execute(MyLoadComponent)
         load.mock.assert_called_once()
         teardown.mock.assert_called_once()
+        assert client.is_connected is False
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
