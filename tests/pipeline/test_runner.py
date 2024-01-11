@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
+from fondant.core.exceptions import PipelineRunError
 from fondant.pipeline import Pipeline
 from fondant.pipeline.runner import (
     DockerRunner,
@@ -49,6 +50,7 @@ def test_docker_runner(mock_subprocess_run):
                 "--pull",
                 "always",
                 "--remove-orphans",
+                "--abort-on-container-exit",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
             capture_output=True,
@@ -71,11 +73,23 @@ def test_docker_runner_from_pipeline(mock_subprocess_run):
                 "--pull",
                 "always",
                 "--remove-orphans",
+                "--abort-on-container-exit",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
             capture_output=True,
             encoding="utf8",
         )
+
+
+def test_invalid_docker_run():
+    """Test that the docker runner throws the correct error."""
+    spec_path = "some/path"
+    resolved_spec_path = str(Path(spec_path).resolve())
+    with pytest.raises(
+        PipelineRunError,
+        match=f"stat {resolved_spec_path}: no such file or directory",
+    ):
+        DockerRunner().run(spec_path)
 
 
 class MockKfpClient:

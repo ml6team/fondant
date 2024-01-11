@@ -39,6 +39,7 @@ class DockerRunner(Runner):
             "--pull",
             "always",
             "--remove-orphans",
+            "--abort-on-container-exit",
         ]
 
         print("Starting pipeline run...")
