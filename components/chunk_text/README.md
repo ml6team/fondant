@@ -43,7 +43,7 @@ The component takes the following arguments to alter its behavior:
 
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
-| chunk_strategy | int | The strategy to use for chunking the text. One of ['RecursiveCharacterTextSplitter', 'HTMLHeaderTextSplitter', 'CharacterTextSplitter', 'Language', 'MarkdownHeaderTextSplitter', 'MarkdownTextSplitter', 'SentenceTransformersTokenTextSplitter', 'LatexTextSplitter', 'SpacyTextSplitter', 'TokenTextSplitter', 'NLTKTextSplitter', 'PythonCodeTextSplitter', 'character', 'NLTK', 'SpaCy'] | RecursiveCharacterTextSplitter |
+| chunk_strategy | str | The strategy to use for chunking the text. One of ['RecursiveCharacterTextSplitter', 'HTMLHeaderTextSplitter', 'CharacterTextSplitter', 'Language', 'MarkdownHeaderTextSplitter', 'MarkdownTextSplitter', 'SentenceTransformersTokenTextSplitter', 'LatexTextSplitter', 'SpacyTextSplitter', 'TokenTextSplitter', 'NLTKTextSplitter', 'PythonCodeTextSplitter', 'character', 'NLTK', 'SpaCy'] | RecursiveCharacterTextSplitter |
 | chunk_kwargs | dict | The arguments to pass to the chunking strategy | / |
 | language_text_splitter | str | The programming language to use for splitting text into sentences if "language" is selected as the splitter. Check  https://python.langchain.com/docs/modules/data_connection/document_transformers/code_splitter for more information on supported languages. | / |
 
