@@ -46,7 +46,7 @@ about this in the [installation](../guides/installation.md) guide.
         fondant run local <pipeline_ref> --auth-azure
         ```
 
-    You can also use the `--extra_volumes` argument to mount extra credentials or additional files.
+    You can also use the `--extra-volumes` argument to mount extra credentials or additional files.
     This volumes will be mounted to every component/service of the docker-compose spec.
 
 
