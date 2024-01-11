@@ -67,26 +67,28 @@ class DockerRunner(Runner):
             to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
         """
-        if self.docker_is_installed() and self.docker_compose_is_installed():
-            if isinstance(input, Pipeline):
-                os.makedirs(".fondant", exist_ok=True)
-                output_path = ".fondant/compose.yaml"
-                logging.info(
-                    "Found reference to un-compiled pipeline... compiling",
-                )
-                compiler = DockerCompiler()
-                compiler.compile(
-                    input,
-                    output_path=output_path,
-                    extra_volumes=extra_volumes,
-                    build_args=build_args,
-                )
-                self._run(output_path)
-            else:
-                self._run(input)
+        self.check_docker_install()
+        self.check_docker_compose_install()
+
+        if isinstance(input, Pipeline):
+            os.makedirs(".fondant", exist_ok=True)
+            output_path = ".fondant/compose.yaml"
+            logging.info(
+                "Found reference to un-compiled pipeline... compiling",
+            )
+            compiler = DockerCompiler()
+            compiler.compile(
+                input,
+                output_path=output_path,
+                extra_volumes=extra_volumes,
+                build_args=build_args,
+            )
+            self._run(output_path)
+        else:
+            self._run(input)
 
     @staticmethod
-    def docker_is_installed():
+    def check_docker_install():
         """Execute docker command to check if docker is available."""
         try:
             # Check Docker info
@@ -103,10 +105,8 @@ class DockerRunner(Runner):
                 "https://fondant.ai/en/latest/guides/installation/#docker-installation",
             )
 
-        return True
-
     @staticmethod
-    def docker_compose_is_installed():
+    def check_docker_compose_install():
         """Execute docker compose command to check if docker is available."""
         try:
             # Check Docker info
@@ -114,7 +114,6 @@ class DockerRunner(Runner):
                 ["docker", "compose", "version"],
                 stdout=subprocess.DEVNULL,
             )
-            return True
 
         except subprocess.CalledProcessError:
             sys.exit(
