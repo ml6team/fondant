@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 
 import yaml
 
-from fondant.core.exceptions import PipelineRunError
 from fondant.pipeline import Pipeline
 from fondant.pipeline.compiler import (
     DockerCompiler,
@@ -39,23 +38,15 @@ class DockerRunner(Runner):
             "--pull",
             "always",
             "--remove-orphans",
-            "--abort-on-container-exit",
         ]
 
         print("Starting pipeline run...")
 
         # copy the current environment with the DOCKER_DEFAULT_PLATFORM argument
-        output = subprocess.run(  # nosec
+        subprocess.call(  # nosec
             cmd,
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
-            capture_output=True,
-            encoding="utf8",
         )
-
-        if output.returncode != 0:
-            msg = f"Command failed with error: '{output.stderr}'"
-            raise PipelineRunError(msg)
-
         print("Finished pipeline run.")
 
     def run(
