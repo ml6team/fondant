@@ -17,11 +17,11 @@ except ImportError:
 import pyarrow as pa
 
 from fondant.component import BaseComponent
-from fondant.component.image import Image
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
+from fondant.pipeline import Image
 
 logger = logging.getLogger(__name__)
 
@@ -353,8 +353,8 @@ class Pipeline:
         Read data using the provided component.
 
         Args:
-            name_or_path: The name of a reusable component, or the path to the directory containing
-                a custom component.
+            ref: The name of a reusable component, or the path to the directory containing
+                a custom component, or a python component class.
             produces: A mapping to update the fields produced by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -376,28 +376,22 @@ class Pipeline:
                 msg,
             )
 
-        if isinstance(ref, (str, Path)):
-            operation = ComponentOp.from_component_yaml(ref)
-        else:
+        if isinstance(ref(), BaseComponent):
             if not ref.is_python_component():
                 err = """Only Python components are currently supported.
                 Make sure your class is decorated with the @python_component decorator."""
                 raise ValueError(err)
-            name = ref().__class__.__name__
+            name = ref.__name__
             image = ref.image()
+            description = ref.__doc__ or "python component"
 
-            spec_dict = {
-                "name": name,
-                "description": "This is an example component",
-                "image": "example_component:latest",
-                "produces": {
-                    "additionalProperties": True,
-                },
-                "consumes": {
-                    "additionalProperties": True,
-                },
-            }
-            component_spec = ComponentSpec(spec_dict)
+            component_spec = ComponentSpec.from_args(
+                name,
+                image.base_image,  # TODO: revisit
+                description=description,
+                consumes={},
+                produces={},
+            )
 
             operation = ComponentOp(
                 name,
@@ -411,6 +405,9 @@ class Pipeline:
                 cluster_type=cluster_type,
                 client_kwargs=client_kwargs,
             )
+
+        else:
+            operation = ComponentOp.from_component_yaml(ref)
 
         manifest = Manifest.create(
             pipeline_name=self.name,

@@ -109,6 +109,48 @@ class ComponentSpec:
         with open(path, "w", encoding="utf-8") as file_:
             yaml.dump(self._specification, file_)
 
+    @classmethod
+    def from_dict(cls, component_spec_dict: t.Dict[str, t.Any]) -> "ComponentSpec":
+        """Load the component spec from a dictionary."""
+        return cls(component_spec_dict)
+
+    @classmethod
+    def from_args(
+        cls,
+        name: str,
+        image: str,
+        *,
+        description: t.Optional[str] = None,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+    ) -> "ComponentSpec":
+        """Load the component spec from arguments."""
+        # TODO make this the __init__ method
+
+        spec_dict = {
+            "name": name,
+            "image": image,
+        }
+
+        if description:
+            spec_dict["description"] = description
+
+        if consumes:
+            spec_dict["consumes"] = consumes
+        else:
+            spec_dict["consumes"] = {"additionalProperties": True}
+
+        if produces:
+            spec_dict["produces"] = produces
+        else:
+            spec_dict["produces"] = {"additionalProperties": True}
+
+        if arguments:
+            spec_dict["args"] = arguments
+
+        return cls(spec_dict)
+
     @property
     def name(self):
         return self._specification["name"]

@@ -1,12 +1,10 @@
 """This module defines interfaces which components should implement to be executed by fondant."""
 
 import typing as t
-from functools import wraps
 
 import dask.dataframe as dd
 import pandas as pd
 
-from fondant.component.image import Image
 from fondant.core.schema import Field
 
 
@@ -78,30 +76,3 @@ class PandasTransformComponent(BaseComponent):
 
 Component = t.TypeVar("Component", bound=BaseComponent)
 """Component type which can represents any of the subclasses of BaseComponent"""
-
-
-def python_component(
-    extra_requires: t.Optional[t.List[str]] = None,
-    base_image: t.Optional[str] = None,
-):
-    """Decorator to enable a python component."""
-
-    def wrapper(cls):
-        image = Image(
-            base_image=base_image,
-            extra_requires=extra_requires,
-        )
-
-        @wraps(cls, updated=())
-        class PythonComponent(cls):
-            @classmethod
-            def image(cls) -> Image:
-                return image
-
-            @classmethod
-            def is_python_component(cls) -> bool:
-                return True
-
-        return PythonComponent
-
-    return wrapper

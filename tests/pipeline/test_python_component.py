@@ -1,19 +1,19 @@
 import dask.dataframe as dd
 import pandas as pd
 import pyarrow as pa
-from fondant.component import DaskLoadComponent, python_component
-from fondant.pipeline import Pipeline
+from fondant.component import DaskLoadComponent
+from fondant.pipeline import Pipeline, lightweight_component
 
 
-def test_python_component():
+def test_lightweight_component():
     pipeline = Pipeline(name="dummy-pipeline", base_path="./data")
 
-    @python_component(
+    @lightweight_component(
         base_image="python:3.8-slim-buster",
         extra_requires=["pandas", "dask"],
     )
     class CreateData(DaskLoadComponent):
-        def __init__(self, *_, **__):
+        def __init__(self, **kwargs):
             pass
 
         def load(self) -> dd.DataFrame:

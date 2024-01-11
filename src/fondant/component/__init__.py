@@ -16,5 +16,4 @@ from .component import (  # noqa
     DaskTransformComponent,
     DaskWriteComponent,
     PandasTransformComponent,
-    python_component,
 )
