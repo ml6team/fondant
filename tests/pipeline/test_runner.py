@@ -53,7 +53,6 @@ def test_docker_runner(mock_subprocess_run):
                 "--abort-on-container-exit",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
-            capture_output=True,
             encoding="utf8",
         )
 
@@ -76,7 +75,6 @@ def test_docker_runner_from_pipeline(mock_subprocess_run):
                 "--abort-on-container-exit",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
-            capture_output=True,
             encoding="utf8",
         )
 

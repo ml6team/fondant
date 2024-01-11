@@ -48,7 +48,7 @@ class DockerRunner(Runner):
         output = subprocess.run(  # nosec
             cmd,
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
-            capture_output=True,
+            stderr=subprocess.PIPE,
             encoding="utf8",
         )
 
