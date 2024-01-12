@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 
 import yaml
 
-from fondant.core.exceptions import PipelineRunError
 from fondant.pipeline import Pipeline
 from fondant.pipeline.compiler import (
     DockerCompiler,
@@ -27,34 +26,75 @@ class Runner(ABC):
 
 
 class DockerRunner(Runner):
+    @staticmethod
+    def get_service_dependency_order(spec_path: str) -> t.List[str]:
+        """
+        Get the dependency order of services in a docker-compose spec.
+
+        Args:
+            spec_path: path to the docker-compose spec
+        Returns:
+            A list of services in the order they should be started.
+        """
+        with open(spec_path, encoding="utf-8") as file_:
+            config = yaml.safe_load(file_)
+
+        services = config.get("services", {})
+        depends_on_dict = {
+            service: service_info.get("depends_on", {})
+            for service, service_info in services.items()
+        }
+
+        order = []
+        visited: set[str] = set()
+
+        while len(visited) < len(services):
+            for service, dependencies in depends_on_dict.items():
+                if service not in visited and all(
+                    dep in visited for dep in dependencies
+                ):
+                    visited.add(service)
+                    order.append(service)
+
+        return order
+
     def _run(self, input_spec: str, *args, **kwargs):
         """Run a docker-compose spec."""
-        cmd = [
-            "docker",
-            "compose",
-            "-f",
-            input_spec,
-            "up",
-            "--build",
-            "--pull",
-            "always",
-            "--remove-orphans",
-            "--abort-on-container-exit",
-        ]
+
+        def run_component(component_name):
+            cmd = [
+                "docker",
+                "compose",
+                "-f",
+                input_spec,
+                "up",
+                "--no-deps",
+                "--build",
+                "--pull",
+                "always",
+                "--remove-orphans",
+                "--abort-on-container-exit",
+                f"{component_name}",
+            ]
+
+            output = subprocess.run(  # nosec
+                cmd,
+                env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+                encoding="utf8",
+            )
+
+            if output.returncode != 0:
+                msg = f"Pipeline run failed with exit code {output.returncode}.\n"
+                raise Exception(msg)
 
         print("Starting pipeline run...")
 
-        # copy the current environment with the DOCKER_DEFAULT_PLATFORM argument
-        output = subprocess.run(  # nosec
-            cmd,
-            env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
-            stderr=subprocess.PIPE,
-            encoding="utf8",
-        )
+        # get the dependency order
+        dependency_order = self.get_service_dependency_order(input_spec)
 
-        if output.returncode != 0:
-            msg = f"Command failed with error: '{output.stderr}'"
-            raise PipelineRunError(msg)
+        # copy the current environment with the DOCKER_DEFAULT_PLATFORM argument
+        for component in dependency_order:
+            run_component(component)
 
         print("Finished pipeline run.")
 
