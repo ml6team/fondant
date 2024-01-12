@@ -23,7 +23,23 @@ PIPELINE = Pipeline(
 )
 
 
-def test_docker_runner():
+@pytest.fixture()
+def mock_docker_installation(monkeypatch):  # noqa: PT004
+    def mock_check_docker_install(self):
+        pass
+
+    def mock_check_docker_compose_install(self):
+        pass
+
+    monkeypatch.setattr(DockerRunner, "check_docker_install", mock_check_docker_install)
+    monkeypatch.setattr(
+        DockerRunner,
+        "check_docker_compose_install",
+        mock_check_docker_compose_install,
+    )
+
+
+def test_docker_runner(mock_docker_installation):
     """Test that the docker runner while mocking subprocess.call."""
     with mock.patch("subprocess.call") as mock_call:
         DockerRunner().run("some/path")
@@ -43,7 +59,7 @@ def test_docker_runner():
         )
 
 
-def test_docker_runner_from_pipeline():
+def test_docker_runner_from_pipeline(mock_docker_installation):
     with mock.patch("subprocess.call") as mock_call:
         DockerRunner().run(PIPELINE)
         mock_call.assert_called_once_with(

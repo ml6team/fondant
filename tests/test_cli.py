@@ -25,6 +25,7 @@ from fondant.component import DaskLoadComponent
 from fondant.component.executor import Executor, ExecutorFactory
 from fondant.core.schema import CloudCredentialsMount
 from fondant.pipeline import Pipeline
+from fondant.pipeline.runner import DockerRunner
 
 commands = [
     "fondant",
@@ -34,6 +35,22 @@ commands = [
     "fondant compile --help",
     "fondant run --help",
 ]
+
+
+@pytest.fixture()
+def mock_docker_installation(monkeypatch):  # noqa: PT004
+    def mock_check_docker_install(self):
+        pass
+
+    def mock_check_docker_compose_install(self):
+        pass
+
+    monkeypatch.setattr(DockerRunner, "check_docker_install", mock_check_docker_install)
+    monkeypatch.setattr(
+        DockerRunner,
+        "check_docker_compose_install",
+        mock_check_docker_compose_install,
+    )
 
 
 class MyTestComponent(DaskLoadComponent):
@@ -262,7 +279,7 @@ def test_sagemaker_compile(tmp_path_factory):
         )
 
 
-def test_local_run():
+def test_local_run(mock_docker_installation):
     """Test that the run command works with different arguments."""
     args = argparse.Namespace(
         local=True,
@@ -322,7 +339,7 @@ def test_local_run():
         )
 
 
-def test_local_run_cloud_credentials():
+def test_local_run_cloud_credentials(mock_docker_installation):
     namespace_creds_kwargs = [
         {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
         {"auth_gcp": False, "auth_azure": True, "auth_aws": False},
