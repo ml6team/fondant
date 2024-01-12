@@ -6,7 +6,6 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
-from fondant.core.exceptions import PipelineRunError
 from fondant.pipeline import Pipeline
 from fondant.pipeline.runner import (
     DockerRunner,
@@ -25,22 +24,26 @@ PIPELINE = Pipeline(
 
 
 @pytest.fixture()
-def mock_subprocess_run():
-    def _mock_subprocess_run(*args, **kwargs):
-        class MockCompletedProcess:
-            returncode = 0
+def mock_docker_installation(monkeypatch):  # noqa: PT004
+    def mock_check_docker_install(self):
+        pass
 
-        return MockCompletedProcess()
+    def mock_check_docker_compose_install(self):
+        pass
 
-    return _mock_subprocess_run
+    monkeypatch.setattr(DockerRunner, "check_docker_install", mock_check_docker_install)
+    monkeypatch.setattr(
+        DockerRunner,
+        "check_docker_compose_install",
+        mock_check_docker_compose_install,
+    )
 
 
-def test_docker_runner(mock_subprocess_run):
+def test_docker_runner(mock_docker_installation):
     """Test that the docker runner while mocking subprocess.call."""
-    with mock.patch("subprocess.run") as mock_run:
-        mock_run.side_effect = mock_subprocess_run
+    with mock.patch("subprocess.call") as mock_call:
         DockerRunner().run("some/path")
-        mock_run.assert_called_once_with(
+        mock_call.assert_called_once_with(
             [
                 "docker",
                 "compose",
@@ -51,19 +54,15 @@ def test_docker_runner(mock_subprocess_run):
                 "--pull",
                 "always",
                 "--remove-orphans",
-                "--abort-on-container-exit",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
-            capture_output=True,
-            encoding="utf8",
         )
 
 
-def test_docker_runner_from_pipeline(mock_subprocess_run):
-    with mock.patch("subprocess.run") as mock_run:
-        mock_run.side_effect = mock_subprocess_run
+def test_docker_runner_from_pipeline(mock_docker_installation):
+    with mock.patch("subprocess.call") as mock_call:
         DockerRunner().run(PIPELINE)
-        mock_run.assert_called_once_with(
+        mock_call.assert_called_once_with(
             [
                 "docker",
                 "compose",
@@ -74,23 +73,9 @@ def test_docker_runner_from_pipeline(mock_subprocess_run):
                 "--pull",
                 "always",
                 "--remove-orphans",
-                "--abort-on-container-exit",
             ],
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
-            capture_output=True,
-            encoding="utf8",
         )
-
-
-def test_invalid_docker_run():
-    """Test that the docker runner throws the correct error."""
-    spec_path = "some/path"
-    resolved_spec_path = str(Path(spec_path).resolve())
-    with pytest.raises(
-        PipelineRunError,
-        match=f"stat {resolved_spec_path}: no such file or directory",
-    ):
-        DockerRunner().run(spec_path)
 
 
 def test_docker_is_not_available():

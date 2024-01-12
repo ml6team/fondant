@@ -25,7 +25,3 @@ class InvalidTypeSchema(ValidationError, FondantException):
 
 class UnsupportedTypeAnnotation(FondantException):
     """Thrown when an unsupported type annotation is encountered during type inference."""
-
-
-class PipelineRunError(ValidationError, FondantException):
-    """Thrown when a pipeline run results in an error."""
