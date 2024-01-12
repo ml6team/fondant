@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess  # nosec
+import sys
 import typing as t
 from abc import ABC, abstractmethod
 
@@ -65,6 +66,9 @@ class DockerRunner(Runner):
             to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
         """
+        self.check_docker_install()
+        self.check_docker_compose_install()
+
         if isinstance(input, Pipeline):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/compose.yaml"
@@ -81,6 +85,42 @@ class DockerRunner(Runner):
             self._run(output_path)
         else:
             self._run(input)
+
+    @staticmethod
+    def check_docker_install():
+        """Execute docker command to check if docker is available."""
+        try:
+            # Check Docker info
+            subprocess.check_call(  # nosec
+                ["docker", "info"],
+                stdout=subprocess.DEVNULL,
+            )
+
+        except subprocess.CalledProcessError:
+            sys.exit(
+                "Docker is not installed or not running. Please make sure "
+                "Docker is installed and is running."
+                "Find more details on the Docker installation here: "
+                "https://fondant.ai/en/latest/guides/installation/#docker-installation",
+            )
+
+    @staticmethod
+    def check_docker_compose_install():
+        """Execute docker compose command to check if docker is available."""
+        try:
+            # Check Docker info
+            subprocess.check_call(  # nosec
+                ["docker", "compose", "version"],
+                stdout=subprocess.DEVNULL,
+            )
+
+        except subprocess.CalledProcessError:
+            sys.exit(
+                "Docker Compose is not installed or not running. Please make sure "
+                "Docker Compose is installed."
+                "Find more details on the Docker installation here: "
+                "https://fondant.ai/en/latest/guides/installation/#docker-installation",
+            )
 
 
 class KubeflowRunner(Runner):
