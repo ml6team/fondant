@@ -13,15 +13,15 @@ def test_pdf_reader():
     the papers from Arxiv.
     """
     with open(Path(__file__).with_name("fondant_component.yaml")) as f:
-        print(f.name)
         spec = ComponentSpec(yaml.safe_load(f))
+
     spec = OperationSpec(spec)
 
     pdf_path = ["tests/test_file/dummy.pdf", "tests/test_folder"]
 
     for path in pdf_path:
         component = PDFReader(
-            spec=spec,
+            produces=dict(spec.inner_produces),
             pdf_path=path,
             n_rows_to_load=None,
             index_column=None,
