@@ -1,4 +1,4 @@
-name: Evalute ragas
+name: Evaluate ragas
 description: Component that evaluates the retriever using RAGAS
 image: fndnt/evaluate_ragas:dev
 tags:
