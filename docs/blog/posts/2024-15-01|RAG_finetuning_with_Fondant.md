@@ -11,7 +11,7 @@ Retrieval Augmented Generation (RAG) has quickly become the go-to architecture f
 language models (LLM) with specific knowledge. Optimizing a custom setup requires days to find the
 right set of parameters and system configuration.
 
-We have created an example use case to showcase how you can enhance your RAG setup by using Fondant.
+We have created an example use case to show how you can enhance your RAG setup by using Fondant.
 Checkout out the resources:
 
 - [GitHub repository](https://github.com/ml6team/fondant-usecase-RAG)
