@@ -2,7 +2,8 @@
 
 import typing as t
 
-from fondant.core.schema import Field
+import pyarrow as pa
+from fondant.core.schema import Field, Type
 
 
 def get_fields_by_types(
@@ -41,3 +42,7 @@ def get_numeric_fields(fields: t.Dict[str, Field]) -> t.List[str]:
         "float64",
     ]
     return get_fields_by_types(fields, numeric_types)
+
+
+def is_nested_string_array(field: Field):
+    return field.type == Type(pa.list_(pa.string()))
