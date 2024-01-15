@@ -15,7 +15,7 @@ We have created an example use case to showcase how you can enhance your RAG set
 Checkout out the resources:
 
 - [GitHub repository](https://github.com/ml6team/fondant-usecase-RAG)
-- [Blogpost](https://medium.com/)
+- [Blog post](https://medium.com/)
 
 <!-- more -->
 
@@ -29,7 +29,9 @@ you in finding the optimal combinations of parameters for your unique setup.
 
 ![RAG finetuning pipelines](../../art/posts/rag_finetuning.png)
 
-
+In the [example repository](https://github.com/ml6team/fondant-usecase-RAG), you can find notebooks
+that will help you customize your setup. More information can be found in 
+the [blog post](https://medium.com/).
 
 
 
