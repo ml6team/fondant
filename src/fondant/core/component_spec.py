@@ -61,11 +61,54 @@ class ComponentSpec:
     Class representing a Fondant component specification.
 
     Args:
-        specification: The fondant component specification as a Python dict
+        name: The name of the component
+        image: The docker image uri to use for the component
+        description: The description of the component
+            consumes: A mapping containing the fields consumed by the operation. The keys are the
+            names of the fields to be received by the component, while the values are the
+            type of the field.
+
+
+            produces: A mapping containing the fields produced by the operation. The keys are the
+                names of the fields to be produced by the component, while the values are the
+                type of the field to be written
+
+            arguments: A dictionary containing the argument name and value for the operation.
+
     """
 
-    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
-        self._specification = copy.deepcopy(specification)
+    def __init__(
+        self,
+        name: str,
+        image: str,
+        *,
+        description: t.Optional[str] = None,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+    ):
+        spec_dict: t.Dict[str, t.Any] = {
+            "name": name,
+            "image": image,
+        }
+
+        if description:
+            spec_dict["description"] = description
+
+        if consumes:
+            spec_dict["consumes"] = consumes
+        else:
+            spec_dict["consumes"] = {"additionalProperties": True}
+
+        if produces:
+            spec_dict["produces"] = produces
+        else:
+            spec_dict["produces"] = {"additionalProperties": True}
+
+        if arguments:
+            spec_dict["args"] = arguments
+
+        self._specification = spec_dict
         self._validate_spec()
 
     def _validate_spec(self) -> None:
@@ -102,7 +145,7 @@ class ComponentSpec:
         """Load the component spec from the file specified by the provided path."""
         with open(path, encoding="utf-8") as file_:
             specification = yaml.safe_load(file_)
-            return cls(specification)
+            return cls.from_dict(specification)
 
     def to_file(self, path) -> None:
         """Dump the component spec to the file specified by the provided path."""
@@ -112,44 +155,7 @@ class ComponentSpec:
     @classmethod
     def from_dict(cls, component_spec_dict: t.Dict[str, t.Any]) -> "ComponentSpec":
         """Load the component spec from a dictionary."""
-        return cls(component_spec_dict)
-
-    @classmethod
-    def from_args(
-        cls,
-        name: str,
-        image: str,
-        *,
-        description: t.Optional[str] = None,
-        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
-        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
-        arguments: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> "ComponentSpec":
-        """Load the component spec from arguments."""
-        # TODO make this the __init__ method
-
-        spec_dict = {
-            "name": name,
-            "image": image,
-        }
-
-        if description:
-            spec_dict["description"] = description
-
-        if consumes:
-            spec_dict["consumes"] = consumes
-        else:
-            spec_dict["consumes"] = {"additionalProperties": True}
-
-        if produces:
-            spec_dict["produces"] = produces
-        else:
-            spec_dict["produces"] = {"additionalProperties": True}
-
-        if arguments:
-            spec_dict["args"] = arguments
-
-        return cls(spec_dict)
+        return cls(**component_spec_dict)
 
     @property
     def name(self):
@@ -376,7 +382,9 @@ class OperationSpec:
             return json_mapping
 
         return cls(
-            component_spec=ComponentSpec(operation_spec_dict["specification"]),
+            component_spec=ComponentSpec.from_dict(
+                operation_spec_dict["specification"],
+            ),
             consumes=_parse_mapping(operation_spec_dict["consumes"]),
             produces=_parse_mapping(operation_spec_dict["produces"]),
         )

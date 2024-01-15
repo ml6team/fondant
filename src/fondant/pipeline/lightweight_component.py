@@ -17,10 +17,12 @@ def lightweight_component(
     """Decorator to enable a python component."""
 
     def wrapper(cls):
-        image = Image(
-            base_image=base_image,
-            extra_requires=extra_requires,
-        )
+        kwargs = {}
+        if base_image:
+            kwargs["base_image"] = base_image
+        if extra_requires:
+            kwargs["extra_requires"] = extra_requires
+        image = Image(**kwargs)
 
         # updated=() is needed to prevent an attempt to update the class's __dict__
         @wraps(cls, updated=())

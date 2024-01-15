@@ -227,10 +227,13 @@ class ComponentOp:
 
         return cache
 
-    @property
-    def dockerfile_path(self) -> t.Optional[Path]:
-        path = self.component_dir / "Dockerfile"
-        return path if path.exists() else None
+    def dockerfile_path(self, path: t.Union[str, Path]) -> t.Optional[Path]:
+        if self._is_custom_component(path):
+            component_dir = Path(path)
+        else:
+            component_dir = self._get_registry_path(str(path))
+        docker_path = component_dir / "Dockerfile"
+        return docker_path if docker_path.exists() else None
 
     @staticmethod
     def _is_custom_component(path_or_name: t.Union[str, Path]) -> bool:
@@ -339,7 +342,7 @@ class Pipeline:
 
     def read(
         self,
-        ref: t.Union[str, Path, t.Type["BaseComponent"]],
+        ref: t.Any,
         *,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
@@ -376,7 +379,7 @@ class Pipeline:
                 msg,
             )
 
-        if isinstance(ref(), BaseComponent):
+        if issubclass(ref, BaseComponent):
             if not ref.is_python_component():
                 err = """Only Python components are currently supported.
                 Make sure your class is decorated with the @python_component decorator."""
@@ -385,7 +388,7 @@ class Pipeline:
             image = ref.image()
             description = ref.__doc__ or "python component"
 
-            component_spec = ComponentSpec.from_args(
+            component_spec = ComponentSpec(
                 name,
                 image.base_image,  # TODO: revisit
                 description=description,
@@ -582,7 +585,7 @@ class Dataset:
 
     def apply(
         self,
-        name_or_path: t.Union[str, Path],
+        ref: t.Any,
         *,
         consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
@@ -597,8 +600,8 @@ class Dataset:
         Apply the provided component on the dataset.
 
         Args:
-            name_or_path: The name of a reusable component, or the path to the directory containing
-                a custom component.
+            ref: The name of a reusable component, or the path to the directory containing
+                a custom component, or a python component class.
             consumes: A mapping to update the fields consumed by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -682,22 +685,45 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        operation = ComponentOp(
-            name_or_path,
-            consumes=consumes,
-            produces=produces,
-            arguments=arguments,
-            input_partition_rows=input_partition_rows,
-            resources=resources,
-            cache=cache,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
-        )
+        if issubclass(ref, BaseComponent):
+            if not ref.is_python_component():
+                err = """Only Python components are currently supported.
+                Make sure your class is decorated with the @python_component decorator."""
+                raise ValueError(err)
+            name = ref.__name__
+            image = ref.image()
+            description = ref.__doc__ or "python component"
+
+            component_spec = ComponentSpec(
+                name,
+                image.base_image,  # TODO: revisit
+                description=description,
+                consumes={},
+                produces={},
+            )
+
+            operation = ComponentOp(
+                name,
+                image,
+                component_spec,
+                consumes=consumes,
+                produces=produces,
+                arguments=arguments,
+                input_partition_rows=input_partition_rows,
+                resources=resources,
+                cache=cache,
+                cluster_type=cluster_type,
+                client_kwargs=client_kwargs,
+            )
+
+        else:
+            operation = ComponentOp.from_component_yaml(ref)
+
         return self._apply(operation)
 
     def write(
         self,
-        name_or_path: t.Union[str, Path],
+        ref: t.Any,
         *,
         consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
@@ -711,8 +737,8 @@ class Dataset:
         Write the dataset using the provided component.
 
         Args:
-            name_or_path: The name of a reusable component, or the path to the directory containing
-                a custom component.
+            ref: The name of a reusable component, or the path to the directory containing
+                a custom component, or a python component class.
             consumes: A mapping to update the fields consumed by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -728,14 +754,36 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        operation = ComponentOp(
-            name_or_path,
-            consumes=consumes,
-            arguments=arguments,
-            input_partition_rows=input_partition_rows,
-            resources=resources,
-            cache=cache,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
-        )
+        if issubclass(ref, BaseComponent):
+            if not ref.is_python_component():
+                err = """Only Python components are currently supported.
+                Make sure your class is decorated with the @python_component decorator."""
+                raise ValueError(err)
+            name = ref.__name__
+            image = ref.image()
+            description = ref.__doc__ or "python component"
+
+            component_spec = ComponentSpec(
+                name,
+                image.base_image,  # TODO: revisit
+                description=description,
+                consumes={},
+                produces={},
+            )
+
+            operation = ComponentOp(
+                name,
+                image,
+                component_spec,
+                consumes=consumes,
+                arguments=arguments,
+                input_partition_rows=input_partition_rows,
+                resources=resources,
+                cache=cache,
+                cluster_type=cluster_type,
+                client_kwargs=client_kwargs,
+            )
+
+        else:
+            operation = ComponentOp.from_component_yaml(ref)
         self._apply(operation)

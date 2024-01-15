@@ -1,7 +1,7 @@
 import dask.dataframe as dd
 import pandas as pd
 import pyarrow as pa
-from fondant.component import DaskLoadComponent
+from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.pipeline import Pipeline, lightweight_component
 
 
@@ -26,7 +26,23 @@ def test_lightweight_component():
             )
             return dd.from_pandas(df, npartitions=1)
 
-    pipeline.read(
+    dataset = pipeline.read(
         ref=CreateData,
         produces={"x": pa.int32(), "y": pa.int32()},
+    )
+
+    @lightweight_component()
+    class AddN(PandasTransformComponent):
+        def __init__(self, n: int):
+            self.n = n
+
+        def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+            dataframe["x"] = dataframe["x"].map(lambda x: x + self.n)
+            return dataframe
+
+    _ = dataset.apply(
+        ref=AddN,
+        produces={"x": pa.int32(), "y": pa.int32()},
+        consumes={"x": pa.int32(), "y": pa.int32()},
+        arguments={"n": 1},
     )
