@@ -15,7 +15,7 @@ We have created an example use case to show how you can enhance your RAG setup b
 Checkout out the resources:
 
 - [GitHub repository](https://github.com/ml6team/fondant-usecase-RAG)
-- [Blog post](https://medium.com/)
+- [Blog post](https://medium.com/fondant-blog/lets-tune-rag-pipelines-with-fondant-902f7215e540)
 
 <!-- more -->
 
@@ -31,7 +31,7 @@ you in finding the optimal combinations of parameters for your unique setup.
 
 In the [example repository](https://github.com/ml6team/fondant-usecase-RAG), you can find notebooks
 that will help you customize your setup. More information can be found in 
-the [blog post](https://medium.com/).
+the [blog post](https://medium.com/fondant-blog/lets-tune-rag-pipelines-with-fondant-902f7215e540).
 
 
 
