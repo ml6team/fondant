@@ -77,19 +77,8 @@ def test_run_data_explorer_remote_base_path(
     tmp_path_factory,
 ):
     """Test that the data explorer can be run with a remote base path."""
-    for cloud_auth in CloudCredentialsMount:
-        auth_gcp, auth_aws, auth_azure = False, False, False
-
-        if cloud_auth.name == "GCP":
-            auth_gcp = True
-
-        if cloud_auth.name == "AWS":
-            auth_aws = True
-
-        if cloud_auth.name == "AZURE":
-            auth_azure = True
-
-        extra_auth_volume = cloud_auth.get_path()
+    for auth_provider in CloudCredentialsMount:
+        extra_auth_volume = auth_provider.get_path()
 
         with tmp_path_factory.mktemp("temp") as fn, patch(
             "subprocess.check_call",
@@ -101,9 +90,7 @@ def test_run_data_explorer_remote_base_path(
                 port=DEFAULT_PORT,
                 container=DEFAULT_CONTAINER,
                 tag=DEFAULT_TAG,
-                auth_gcp=auth_gcp,
-                auth_aws=auth_aws,
-                auth_azure=auth_azure,
+                auth_provider=auth_provider,
             )
 
             pipeline_configs = DockerComposeConfigs.from_spec(output_path)

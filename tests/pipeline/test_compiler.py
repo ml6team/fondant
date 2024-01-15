@@ -261,19 +261,8 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
     """Test that extra volumes are applied correctly."""
-    for cloud_auth in CloudCredentialsMount:
-        auth_gcp, auth_aws, auth_azure = False, False, False
-
-        if cloud_auth.name == "GCP":
-            auth_gcp = True
-
-        if cloud_auth.name == "AWS":
-            auth_aws = True
-
-        if cloud_auth.name == "AZURE":
-            auth_azure = True
-
-        cloud_auth.get_path()
+    for auth_provider in CloudCredentialsMount:
+        extra_auth_volume = auth_provider.get_path()
 
         with tmp_path_factory.mktemp("temp") as fn:
             # this is the directory mounted in the container
@@ -282,15 +271,14 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
             compiler = DockerCompiler()
             # define some extra volumes to be mounted
             extra_volumes = ["hello:there", "general:kenobi"]
+            extra_volumes.append(extra_auth_volume)
             output_path = str(fn / "docker-compose.yml")
 
             compiler.compile(
                 pipeline=pipeline,
                 output_path=output_path,
                 extra_volumes=extra_volumes,
-                auth_gcp=auth_gcp,
-                auth_aws=auth_aws,
-                auth_azure=auth_azure,
+                auth_provider=auth_provider,
             )
 
             pipeline_configs = DockerComposeConfigs.from_spec(output_path)

@@ -56,9 +56,7 @@ class DockerCompiler(Compiler):
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
-        auth_gcp: t.Optional[bool] = None,
-        auth_aws: t.Optional[bool] = None,
-        auth_azure: t.Optional[bool] = None,
+        auth_provider: t.Optional[CloudCredentialsMount] = None,
     ) -> None:
         """Compile a pipeline to docker-compose spec and save it to a specified output path.
 
@@ -69,24 +67,17 @@ class DockerCompiler(Compiler):
               https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
               to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
-            auth_gcp: Flag to enable authentication with GCP
-            auth_aws: Flag to enable authentication with AWS
-            auth_azure: Flag to enable authentication with Azure
-        """
-        cloud_creds = CloudCredentialsMount.get_cloud_credentials(
-            auth_gcp=auth_gcp,
-            auth_azure=auth_azure,
-            auth_aws=auth_aws,
-        )
+            auth_provider: The cloud provider to use for authentication. Default is None.
 
+        """
         if extra_volumes is None:
             extra_volumes = []
 
         if isinstance(extra_volumes, str):
             extra_volumes = [extra_volumes]
 
-        if cloud_creds:
-            extra_volumes.append(cloud_creds)
+        if auth_provider:
+            extra_volumes.append(auth_provider.get_path())
 
         logger.info(f"Compiling {pipeline.name} to {output_path}")
 

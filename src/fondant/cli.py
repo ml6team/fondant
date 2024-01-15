@@ -37,6 +37,14 @@ if t.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def cloud_credentials_arg(value):
+    try:
+        return CloudCredentialsMount[value.upper()]
+    except KeyError:
+        msg = f"Invalid CloudCredentialsMount value: {value}"
+        raise argparse.ArgumentTypeError(msg)
+
+
 def entrypoint():
     """Entrypoint for the fondant CLI."""
     parser = argparse.ArgumentParser(
@@ -106,8 +114,6 @@ def register_explore(parent_parser):
     start_parser = explore_subparser.add_parser(name="start", help="Start explorer app")
     stop_parser = explore_subparser.add_parser(name="stop", help="Stop explorer app")
 
-    auth_group = start_parser.add_mutually_exclusive_group()
-
     start_parser.add_argument(
         "--base_path",
         "-b",
@@ -143,28 +149,14 @@ def register_explore(parent_parser):
         help="The path to the Docker Compose specification.",
     )
 
-    auth_group.add_argument(
-        "--auth-gcp",
-        action="store_true",
-        help=f"Flag to authenticate with GCP. Uses the following mount command"
-        f" `{CloudCredentialsMount.GCP.value}`",
+    start_parser.add_argument(
+        "--auth-provider",
+        type=cloud_credentials_arg,
+        choices=list(CloudCredentialsMount),
+        help="Flag to authenticate with a cloud provider",
     )
 
-    auth_group.add_argument(
-        "--auth-azure",
-        action="store_true",
-        help="Flag to authenticate with Azure. Uses the following mount command"
-        f" `{CloudCredentialsMount.AZURE.value}`",
-    )
-
-    auth_group.add_argument(
-        "--auth-aws",
-        action="store_true",
-        help="Flag to authenticate with AWS. Uses the following mount command"
-        f" `{CloudCredentialsMount.AWS.value}`",
-    )
-
-    auth_group.add_argument(
+    start_parser.add_argument(
         "--extra-volumes",
         help="""Extra volumes to mount in containers. You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
         - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
@@ -202,9 +194,7 @@ def start_explore(args):
         tag=args.tag,
         port=args.port,
         extra_volumes=extra_volumes,
-        auth_gcp=args.auth_gcp,
-        auth_aws=args.auth_aws,
-        auth_azure=args.auth_azure,
+        auth_provider=args.auth_provider,
     )
 
 
@@ -316,7 +306,7 @@ def register_compile(parent_parser):
     compiler_subparser = parser.add_subparsers()
 
     local_parser = compiler_subparser.add_parser(name="local", help="Local compiler")
-    auth_group_local_parser = local_parser.add_mutually_exclusive_group()
+    local_parser.add_mutually_exclusive_group()
 
     kubeflow_parser = compiler_subparser.add_parser(
         name="kubeflow",
@@ -358,25 +348,11 @@ def register_compile(parent_parser):
         default=[],
     )
 
-    auth_group_local_parser.add_argument(
-        "--auth-gcp",
-        action="store_true",
-        help=f"Flag to authenticate with GCP. Uses the following mount command"
-        f" `{CloudCredentialsMount.GCP.value}`",
-    )
-
-    auth_group_local_parser.add_argument(
-        "--auth-azure",
-        action="store_true",
-        help="Flag to authenticate with Azure. Uses the following mount command"
-        f" `{CloudCredentialsMount.AZURE.value}`",
-    )
-
-    auth_group_local_parser.add_argument(
-        "--auth-aws",
-        action="store_true",
-        help="Flag to authenticate with AWS. Uses the following mount command"
-        f" `{CloudCredentialsMount.AWS.value}`",
+    local_parser.add_argument(
+        "--auth-provider",
+        type=cloud_credentials_arg,
+        choices=list(CloudCredentialsMount),
+        help="Flag to authenticate with a cloud provider",
     )
 
     # Kubeflow parser
@@ -447,9 +423,7 @@ def compile_local(args):
         extra_volumes=extra_volumes,
         output_path=args.output_path,
         build_args=args.build_arg,
-        auth_gcp=args.auth_gcp,
-        auth_aws=args.auth_aws,
-        auth_azure=args.auth_azure,
+        auth_provider=args.auth_provider,
     )
 
 
@@ -504,7 +478,6 @@ def register_run(parent_parser):
     runner_subparser = parser.add_subparsers()
 
     local_parser = runner_subparser.add_parser(name="local", help="Local runner")
-    auth_group_local_parser = local_parser.add_mutually_exclusive_group()
 
     kubeflow_parser = runner_subparser.add_parser(
         name="kubeflow",
@@ -559,25 +532,12 @@ def register_run(parent_parser):
         help="KubeFlow pipeline host url",
         required=True,
     )
-    auth_group_local_parser.add_argument(
-        "--auth-gcp",
-        action="store_true",
-        help=f"Flag to authenticate with GCP. Uses the following mount command"
-        f" `{CloudCredentialsMount.GCP.value}`",
-    )
 
-    auth_group_local_parser.add_argument(
-        "--auth-azure",
-        action="store_true",
-        help="Flag to authenticate with Azure. Uses the following mount command"
-        f" `{CloudCredentialsMount.AZURE.value}`",
-    )
-
-    auth_group_local_parser.add_argument(
-        "--auth-aws",
-        action="store_true",
-        help="Flag to authenticate with AWS. Uses the following mount command"
-        f" `{CloudCredentialsMount.AWS.value}`",
+    local_parser.add_argument(
+        "--auth-provider",
+        type=cloud_credentials_arg,
+        choices=list(CloudCredentialsMount),
+        help="Flag to authenticate with a cloud provider",
     )
 
     # Vertex runner parser
@@ -661,9 +621,7 @@ def run_local(args):
         input=ref,
         extra_volumes=extra_volumes,
         build_args=args.build_arg,
-        auth_gcp=args.auth_gcp,
-        auth_aws=args.auth_aws,
-        auth_azure=args.auth_azure,
+        auth_provider=args.auth_provider,
     )
 
 

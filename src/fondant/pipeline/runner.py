@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 
 import yaml
 
+from fondant.core.schema import CloudCredentialsMount
 from fondant.pipeline import Pipeline
 from fondant.pipeline.compiler import (
     DockerCompiler,
@@ -56,21 +57,17 @@ class DockerRunner(Runner):
         *,
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
-        auth_gcp: t.Optional[bool] = None,
-        auth_aws: t.Optional[bool] = None,
-        auth_azure: t.Optional[bool] = None,
+        auth_provider: t.Optional[CloudCredentialsMount] = None,
     ) -> None:
         """Run a pipeline, either from a compiled docker-compose spec or from a fondant pipeline.
 
         Args:
             input: the pipeline to compile or a path to a already compiled docker-compose spec
             extra_volumes: a list of extra volumes (using the Short syntax:
-            https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
-            to mount in the docker-compose spec.
+             https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
+             to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
-            auth_gcp: Flag to enable authentication with GCP
-            auth_aws: Flag to enable authentication with AWS
-            auth_azure: Flag to enable authentication with Azure
+            auth_provider: The cloud provider to use for authentication. Default is None.
         """
         self.check_docker_install()
         self.check_docker_compose_install()
@@ -87,9 +84,7 @@ class DockerRunner(Runner):
                 output_path=output_path,
                 extra_volumes=extra_volumes,
                 build_args=build_args,
-                auth_gcp=auth_gcp,
-                auth_aws=auth_aws,
-                auth_azure=auth_azure,
+                auth_provider=auth_provider,
             )
             self._run(output_path)
         else:

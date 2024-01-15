@@ -23,6 +23,7 @@ from fondant.cli import (
 )
 from fondant.component import DaskLoadComponent
 from fondant.component.executor import Executor, ExecutorFactory
+from fondant.core.schema import CloudCredentialsMount
 from fondant.pipeline import Pipeline
 from fondant.pipeline.runner import DockerRunner
 
@@ -195,9 +196,7 @@ def test_local_compile(tmp_path_factory):
             extra_volumes=[],
             build_arg=[],
             credentials=None,
-            auth_gcp=False,
-            auth_azure=False,
-            auth_aws=False,
+            auth_provider=None,
         )
         compile_local(args)
 
@@ -206,9 +205,7 @@ def test_local_compile(tmp_path_factory):
             extra_volumes=[],
             output_path=str(fn / "docker-compose.yml"),
             build_args=[],
-            auth_gcp=False,
-            auth_azure=False,
-            auth_aws=False,
+            auth_provider=None,
         )
 
 
@@ -275,9 +272,7 @@ def test_local_run(mock_docker_installation):
         local=True,
         ref="some/path",
         output_path=None,
-        auth_gcp=False,
-        auth_azure=False,
-        auth_aws=False,
+        auth_provider=None,
         credentials=None,
         extra_volumes=[],
         build_arg=[],
@@ -307,9 +302,7 @@ def test_local_run(mock_docker_installation):
             ref=__name__,
             extra_volumes=[],
             build_arg=[],
-            auth_gcp=False,
-            auth_azure=False,
-            auth_aws=False,
+            auth_provider=None,
             credentials=None,
         )
         run_local(args1)
@@ -330,13 +323,7 @@ def test_local_run(mock_docker_installation):
 
 
 def test_local_run_cloud_credentials(mock_docker_installation):
-    namespace_creds_kwargs = [
-        {"auth_gcp": True, "auth_azure": False, "auth_aws": False},
-        {"auth_gcp": False, "auth_azure": True, "auth_aws": False},
-        {"auth_gcp": False, "auth_azure": False, "auth_aws": True},
-    ]
-
-    for namespace_cred_kwargs in namespace_creds_kwargs:
+    for auth_provider in CloudCredentialsMount:
         with patch(
             "fondant.pipeline.compiler.DockerCompiler.compile",
         ) as mock_compiler, patch(
@@ -347,7 +334,7 @@ def test_local_run_cloud_credentials(mock_docker_installation):
                 vertex=False,
                 kubeflow=False,
                 ref=__name__,
-                **namespace_cred_kwargs,
+                auth_provider=auth_provider,
                 credentials=None,
                 extra_volumes=[],
                 build_arg=[],
@@ -359,7 +346,7 @@ def test_local_run_cloud_credentials(mock_docker_installation):
                 extra_volumes=[],
                 output_path=".fondant/compose.yaml",
                 build_args=[],
-                **namespace_cred_kwargs,
+                auth_provider=auth_provider,
             )
 
             mock_runner.assert_called_once_with(

@@ -10,7 +10,7 @@ from enum import Enum, auto
 
 import pyarrow as pa
 
-from fondant.core.exceptions import InvalidPipelineDefinition, InvalidTypeSchema
+from fondant.core.exceptions import InvalidTypeSchema
 
 
 @dataclass
@@ -48,35 +48,6 @@ class CloudCredentialsMount(Enum):
 
         if self == CloudCredentialsMount.AZURE:
             return f"{home_dir}/.azure:/root/.azure"
-
-        return None
-
-    @staticmethod
-    def get_cloud_credentials(
-        *,
-        auth_gcp: t.Optional[bool] = None,
-        auth_azure: t.Optional[bool] = None,
-        auth_aws: t.Optional[bool] = None,
-    ) -> t.Optional[str]:
-        """Get the appropriate cloud credentials based on authentication flags."""
-        auth_flags = [auth_gcp, auth_azure, auth_aws]
-        count_true = sum(flag is True for flag in auth_flags if flag is not None)
-
-        if count_true > 1:
-            msg = (
-                "You can only provide one of the following authentication flags:"
-                " auth_gcp, auth_aws, auth_azure"
-            )
-            raise InvalidPipelineDefinition(
-                msg,
-            )
-
-        if auth_gcp:
-            return CloudCredentialsMount.GCP.get_path()
-        if auth_aws:
-            return CloudCredentialsMount.AWS.get_path()
-        if auth_azure:
-            return CloudCredentialsMount.AZURE.get_path()
 
         return None
 
