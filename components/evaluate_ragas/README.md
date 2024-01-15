@@ -1,13 +1,13 @@
-# Evalute ragas
+# Evaluate ragas
 
-<a id="evalute_ragas#description"></a>
+<a id="evaluate_ragas#description"></a>
 ## Description
 Component that evaluates the retriever using RAGAS
 
-<a id="evalute_ragas#inputs_outputs"></a>
+<a id="evaluate_ragas#inputs_outputs"></a>
 ## Inputs / outputs 
 
-<a id="evalute_ragas#consumes"></a>
+<a id="evaluate_ragas#consumes"></a>
 ### Consumes 
 **This component consumes:**
 
@@ -17,7 +17,7 @@ Component that evaluates the retriever using RAGAS
 
 
 
-<a id="evalute_ragas#produces"></a>  
+<a id="evaluate_ragas#produces"></a>  
 ### Produces 
 
 **This component can produce additional fields**
@@ -27,7 +27,7 @@ The keys are the names of the fields to be produced by the component, while the 
 the type of the field that should be used to write the output dataset.
 
 
-<a id="evalute_ragas#arguments"></a>
+<a id="evaluate_ragas#arguments"></a>
 ## Arguments
 
 The component takes the following arguments to alter its behavior:
@@ -38,7 +38,7 @@ The component takes the following arguments to alter its behavior:
 | llm_class_name | str | Name of the selected llm | ChatOpenAI |
 | llm_kwargs | dict | Arguments of the selected llm | {'model_name': 'gpt-3.5-turbo'} |
 
-<a id="evalute_ragas#usage"></a>
+<a id="evaluate_ragas#usage"></a>
 ## Usage 
 
 You can add this component to your pipeline using the following code:
@@ -66,7 +66,7 @@ dataset = dataset.apply(
 )
 ```
 
-<a id="evalute_ragas#testing"></a>
+<a id="evaluate_ragas#testing"></a>
 ## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
