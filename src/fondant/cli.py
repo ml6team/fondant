@@ -37,17 +37,6 @@ if t.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def get_cloud_credentials(args) -> t.Optional[str]:
-    if args.auth_gcp:
-        return CloudCredentialsMount.GCP.value
-    if args.auth_aws:
-        return CloudCredentialsMount.AWS.value
-    if args.auth_azure:
-        return CloudCredentialsMount.AZURE.value
-
-    return None
-
-
 def entrypoint():
     """Entrypoint for the fondant CLI."""
     parser = argparse.ArgumentParser(
@@ -204,11 +193,6 @@ def start_explore(args):
 
     extra_volumes = []
 
-    cloud_cred = get_cloud_credentials(args)
-
-    if cloud_cred:
-        extra_volumes.append(cloud_cred)
-
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
 
@@ -218,6 +202,9 @@ def start_explore(args):
         tag=args.tag,
         port=args.port,
         extra_volumes=extra_volumes,
+        auth_gcp=args.auth_gcp,
+        auth_aws=args.auth_aws,
+        auth_azure=args.auth_azure,
     )
 
 
@@ -449,13 +436,9 @@ def compile_local(args):
     from fondant.pipeline.compiler import DockerCompiler
 
     extra_volumes = []
-    cloud_cred = get_cloud_credentials(args)
 
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
-
-    if cloud_cred:
-        extra_volumes.append(cloud_cred)
 
     pipeline = pipeline_from_string(args.ref)
     compiler = DockerCompiler()
@@ -464,6 +447,9 @@ def compile_local(args):
         extra_volumes=extra_volumes,
         output_path=args.output_path,
         build_args=args.build_arg,
+        auth_gcp=args.auth_gcp,
+        auth_aws=args.auth_aws,
+        auth_azure=args.auth_azure,
     )
 
 
@@ -661,13 +647,9 @@ def run_local(args):
     from fondant.pipeline.runner import DockerRunner
 
     extra_volumes = []
-    cloud_cred = get_cloud_credentials(args)
 
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
-
-    if cloud_cred:
-        extra_volumes.append(cloud_cred)
 
     try:
         ref = pipeline_from_string(args.ref)
@@ -679,6 +661,9 @@ def run_local(args):
         input=ref,
         extra_volumes=extra_volumes,
         build_args=args.build_arg,
+        auth_gcp=args.auth_gcp,
+        auth_aws=args.auth_aws,
+        auth_azure=args.auth_azure,
     )
 
 

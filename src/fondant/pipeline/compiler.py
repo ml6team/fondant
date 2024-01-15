@@ -12,7 +12,7 @@ import yaml
 
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Metadata
-from fondant.core.schema import DockerVolume
+from fondant.core.schema import CloudCredentialsMount, DockerVolume
 from fondant.pipeline import (
     VALID_ACCELERATOR_TYPES,
     VALID_VERTEX_ACCELERATOR_TYPES,
@@ -56,6 +56,9 @@ class DockerCompiler(Compiler):
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
+        auth_gcp: t.Optional[bool] = None,
+        auth_aws: t.Optional[bool] = None,
+        auth_azure: t.Optional[bool] = None,
     ) -> None:
         """Compile a pipeline to docker-compose spec and save it to a specified output path.
 
@@ -66,14 +69,27 @@ class DockerCompiler(Compiler):
               https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
               to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
+            auth_gcp: Flag to enable authentication with GCP
+            auth_aws: Flag to enable authentication with AWS
+            auth_azure: Flag to enable authentication with Azure
         """
+        cloud_creds = CloudCredentialsMount.get_cloud_credentials(
+            auth_gcp=auth_gcp,
+            auth_azure=auth_azure,
+            auth_aws=auth_aws,
+        )
+
         if extra_volumes is None:
             extra_volumes = []
 
         if isinstance(extra_volumes, str):
             extra_volumes = [extra_volumes]
 
+        if cloud_creds:
+            extra_volumes.append(cloud_creds)
+
         logger.info(f"Compiling {pipeline.name} to {output_path}")
+
         spec = self._generate_spec(
             pipeline,
             extra_volumes=extra_volumes,

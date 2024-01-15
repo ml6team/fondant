@@ -6,11 +6,11 @@ import os
 import re
 import typing as t
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 
 import pyarrow as pa
 
-from fondant.core.exceptions import InvalidTypeSchema
+from fondant.core.exceptions import InvalidPipelineDefinition, InvalidTypeSchema
 
 
 @dataclass
@@ -30,13 +30,55 @@ class DockerVolume:
 
 
 class CloudCredentialsMount(Enum):
-    home_directory = os.path.expanduser("~")
-    AWS = f"{home_directory}/credentials:/root/.aws/credentials"
-    GCP = (
-        f"{home_directory}/.config/gcloud/application_default_credentials.json:/root/.config/"
-        f"gcloud/application_default_credentials.json"
-    )
-    AZURE = f"{home_directory}/.azure:/root/.azure"
+    AWS = auto()
+    GCP = auto()
+    AZURE = auto()
+
+    def get_path(self):
+        home_dir = os.path.expanduser("~")
+
+        if self == CloudCredentialsMount.AWS:
+            return f"{home_dir}/credentials:/root/.aws/credentials"
+
+        if self == CloudCredentialsMount.GCP:
+            return (
+                f"{home_dir}/.config/gcloud/application_default_credentials.json:"
+                f"/root/.config/gcloud/application_default_credentials.json"
+            )
+
+        if self == CloudCredentialsMount.AZURE:
+            return f"{home_dir}/.azure:/root/.azure"
+
+        return None
+
+    @staticmethod
+    def get_cloud_credentials(
+        *,
+        auth_gcp: t.Optional[bool] = None,
+        auth_azure: t.Optional[bool] = None,
+        auth_aws: t.Optional[bool] = None,
+    ) -> t.Optional[str]:
+        """Get the appropriate cloud credentials based on authentication flags."""
+        auth_flags = [auth_gcp, auth_azure, auth_aws]
+        count_true = sum(flag is True for flag in auth_flags if flag is not None)
+
+        if count_true > 1:
+            msg = (
+                "You can only provide one of the following authentication flags:"
+                " auth_gcp, auth_aws, auth_azure"
+            )
+            raise InvalidPipelineDefinition(
+                msg,
+            )
+
+        if auth_gcp:
+            return CloudCredentialsMount.GCP.get_path()
+        if auth_aws:
+            return CloudCredentialsMount.AWS.get_path()
+        if auth_azure:
+            return CloudCredentialsMount.AZURE.get_path()
+
+        return None
 
 
 """

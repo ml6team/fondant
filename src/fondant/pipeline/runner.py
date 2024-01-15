@@ -56,6 +56,9 @@ class DockerRunner(Runner):
         *,
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
+        auth_gcp: t.Optional[bool] = None,
+        auth_aws: t.Optional[bool] = None,
+        auth_azure: t.Optional[bool] = None,
     ) -> None:
         """Run a pipeline, either from a compiled docker-compose spec or from a fondant pipeline.
 
@@ -65,6 +68,9 @@ class DockerRunner(Runner):
             https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
             to mount in the docker-compose spec.
             build_args: List of build arguments to pass to docker
+            auth_gcp: Flag to enable authentication with GCP
+            auth_aws: Flag to enable authentication with AWS
+            auth_azure: Flag to enable authentication with Azure
         """
         self.check_docker_install()
         self.check_docker_compose_install()
@@ -81,6 +87,9 @@ class DockerRunner(Runner):
                 output_path=output_path,
                 extra_volumes=extra_volumes,
                 build_args=build_args,
+                auth_gcp=auth_gcp,
+                auth_aws=auth_aws,
+                auth_azure=auth_azure,
             )
             self._run(output_path)
         else:

@@ -11,7 +11,7 @@ import fsspec.core
 import yaml
 from fsspec.implementations.local import LocalFileSystem
 
-from fondant.core.schema import DockerVolume
+from fondant.core.schema import CloudCredentialsMount, DockerVolume
 
 CONTAINER = "fndnt/data_explorer"
 PORT = 8501
@@ -29,16 +29,27 @@ def _generate_explorer_spec(
     container: str = CONTAINER,
     tag: t.Optional[str] = None,
     extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
+    auth_gcp: t.Optional[bool] = None,
+    auth_aws: t.Optional[bool] = None,
+    auth_azure: t.Optional[bool] = None,
 ) -> t.Dict[str, t.Any]:
     """Generate a Docker Compose specification for the Explorer App."""
     if tag is None:
         tag = version("fondant") if version("fondant") != "0.1.dev0" else "latest"
 
+    cloud_creds = CloudCredentialsMount.get_cloud_credentials(
+        auth_gcp=auth_gcp,
+        auth_azure=auth_azure,
+        auth_aws=auth_aws,
+    )
     if extra_volumes is None:
         extra_volumes = []
 
     if isinstance(extra_volumes, str):
         extra_volumes = [extra_volumes]
+
+    if cloud_creds:
+        extra_volumes.append(cloud_creds)
 
     # Mount extra volumes to the container
     volumes: t.List[t.Union[str, dict]] = []
@@ -105,6 +116,9 @@ def run_explorer_app(  # type: ignore  # noqa: PLR0913
     output_path: str = OUTPUT_PATH,
     tag: t.Optional[str] = None,
     extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
+    auth_gcp: t.Optional[bool] = None,
+    auth_aws: t.Optional[bool] = None,
+    auth_azure: t.Optional[bool] = None,
 ):  # type: ignore
     """
     Run an Explorer App in a Docker container.
@@ -121,6 +135,9 @@ def run_explorer_app(  # type: ignore  # noqa: PLR0913
         - to mount data directories to be used by the pipeline (note that if your pipeline's
             base_path is local it will already be mounted for you).
         - to mount cloud credentials
+      auth_gcp: Flag to enable authentication with GCP
+      auth_aws: Flag to enable authentication with AWS
+      auth_azure: Flag to enable authentication with Azure
     """
     os.makedirs(".fondant", exist_ok=True)
 
@@ -130,6 +147,9 @@ def run_explorer_app(  # type: ignore  # noqa: PLR0913
         container=container,
         tag=tag,
         extra_volumes=extra_volumes,
+        auth_gcp=auth_gcp,
+        auth_aws=auth_aws,
+        auth_azure=auth_azure,
     )
 
     with open(output_path, "w") as outfile:
