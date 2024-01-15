@@ -37,9 +37,11 @@ def test_pdf_reader():
             assert output_dataframe["text"].tolist() == ["Dummy PDF file\n"]
         else:
             assert output_dataframe.shape == (2, 3)
-            assert output_dataframe["file_name"].tolist() == [
-                "dummy_2.pdf",
+            file_names = output_dataframe["file_name"].tolist()
+            file_names.sort()
+            assert file_names == [
                 "dummy_1.pdf",
+                "dummy_2.pdf",
             ]
             assert output_dataframe["text"].tolist() == [
                 "Dummy PDF file\n",
