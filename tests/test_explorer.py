@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from fondant.core.schema import CloudCredentialsMount
 from fondant.explore import run_explorer_app, stop_explorer_app
 from fondant.testing import DockerComposeConfigs
 
@@ -22,14 +23,6 @@ def remote_path() -> str:
 
 
 @pytest.fixture()
-def extra_volumes() -> str:
-    return (
-        "$HOME/.config/gcloud/application_default_credentials.json:/root/.config/"
-        "gcloud/application_default_credentials.json"
-    )
-
-
-@pytest.fixture()
 def container_path() -> str:
     return "/source"
 
@@ -37,7 +30,6 @@ def container_path() -> str:
 def test_run_data_explorer_local_base_path(
     host_path,
     container_path,
-    extra_volumes,
     tmp_path_factory,
 ):
     """Test that the data explorer can be run with a local base path."""
@@ -51,7 +43,6 @@ def test_run_data_explorer_local_base_path(
             port=DEFAULT_PORT,
             container=DEFAULT_CONTAINER,
             tag=DEFAULT_TAG,
-            extra_volumes=extra_volumes,
         )
 
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
@@ -61,9 +52,8 @@ def test_run_data_explorer_local_base_path(
         assert data_explorer_config.arguments["base_path"] == container_path
         assert data_explorer_config.image == f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}"
         assert data_explorer_config.ports == [f"{DEFAULT_PORT}:8501"]
-        assert volumes[0] == extra_volumes
-        assert volumes[1]["source"] == str(Path(host_path).resolve())
-        assert volumes[1]["target"] == container_path
+        assert volumes[0]["source"] == str(Path(host_path).resolve())
+        assert volumes[0]["target"] == container_path
 
         mock_call.assert_called_once_with(
             [
@@ -84,52 +74,53 @@ def test_run_data_explorer_local_base_path(
 
 def test_run_data_explorer_remote_base_path(
     remote_path,
-    extra_volumes,
     tmp_path_factory,
 ):
     """Test that the data explorer can be run with a remote base path."""
-    with tmp_path_factory.mktemp("temp") as fn, patch(
-        "subprocess.check_call",
-    ) as mock_call:
-        output_path = str(fn / OUTPUT_FILE)
-        run_explorer_app(
-            base_path=remote_path,
-            output_path=output_path,
-            port=DEFAULT_PORT,
-            container=DEFAULT_CONTAINER,
-            tag=DEFAULT_TAG,
-            extra_volumes=extra_volumes,
-        )
+    for auth_provider in CloudCredentialsMount:
+        extra_auth_volume = auth_provider.get_path()
 
-        pipeline_configs = DockerComposeConfigs.from_spec(output_path)
-        data_explorer_config = pipeline_configs.component_configs["data_explorer"]
-        volumes = data_explorer_config.volumes
+        with tmp_path_factory.mktemp("temp") as fn, patch(
+            "subprocess.check_call",
+        ) as mock_call:
+            output_path = str(fn / OUTPUT_FILE)
+            run_explorer_app(
+                base_path=remote_path,
+                output_path=output_path,
+                port=DEFAULT_PORT,
+                container=DEFAULT_CONTAINER,
+                tag=DEFAULT_TAG,
+                auth_provider=auth_provider,
+            )
 
-        assert data_explorer_config.arguments["base_path"] == remote_path
-        assert data_explorer_config.image == f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}"
-        assert data_explorer_config.ports == [f"{DEFAULT_PORT}:8501"]
-        assert volumes[0] == extra_volumes
+            pipeline_configs = DockerComposeConfigs.from_spec(output_path)
+            data_explorer_config = pipeline_configs.component_configs["data_explorer"]
+            volumes = data_explorer_config.volumes
 
-        mock_call.assert_called_once_with(
-            [
-                "docker",
-                "compose",
-                "-f",
-                output_path,
-                "up",
-                "--build",
-                "--pull",
-                "always",
-                "--remove-orphans",
-                "--detach",
-            ],
-            stdout=-1,
-        )
+            assert data_explorer_config.arguments["base_path"] == remote_path
+            assert data_explorer_config.image == f"{DEFAULT_CONTAINER}:{DEFAULT_TAG}"
+            assert data_explorer_config.ports == [f"{DEFAULT_PORT}:8501"]
+            assert volumes[0] == extra_auth_volume
+
+            mock_call.assert_called_once_with(
+                [
+                    "docker",
+                    "compose",
+                    "-f",
+                    output_path,
+                    "up",
+                    "--build",
+                    "--pull",
+                    "always",
+                    "--remove-orphans",
+                    "--detach",
+                ],
+                stdout=-1,
+            )
 
 
 def test_stop_data_explorer(
     remote_path,
-    extra_volumes,
     tmp_path_factory,
 ):
     """Test that the data explorer can be run with a remote base path."""

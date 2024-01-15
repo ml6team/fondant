@@ -31,19 +31,19 @@ about this in the [installation](../guides/installation.md) guide.
     === "GCP"
     
         ```bash
-        fondant run local <pipeline_ref> --auth-gcp
+        fondant run local <pipeline_ref> --auth-provider gcp
         ```
 
     === "AWS"
     
         ```bash
-        fondant run local <pipeline_ref> --auth-aws
+        fondant run local <pipeline_ref> --auth-provider aws
         ```
 
     === "Azure"
     
         ```bash
-        fondant run local <pipeline_ref> --auth-azure
+        fondant run local <pipeline_ref> --auth-provider azure
         ```
 
     You can also use the `--extra-volumes` argument to mount extra credentials or additional files.
@@ -53,62 +53,43 @@ about this in the [installation](../guides/installation.md) guide.
 === "Python"
 
     ```python 
-    from fondant.pipeline.compiler import DockerCompiler
     from fondant.pipeline.runner import DockerRunner
-    
-    EXTRA_VOLUMES = <str_or_list_of_optional_extra_volumes_to_mount>
-    compiler = DockerCompiler(extra_volumes=EXTRA_VOLUMES)
-    compiler.compile(pipeline=<pipeline_object>)
 
     runner = DockerRunner()
-    runner.run(input_spec=<path_to_compiled_spec>)
+    runner.run(extra_volumes=<str_or_list_of_optional_extra_volumes_to_mount>)
     ```
 
-    If you want to use remote paths (GCS, S3, etc.) you can use pass the default local cloud credentials to the pipeline.
+    If you want to use remote paths (GCS, S3, etc.) you can use the authentification argument 
+    in your pipeline
 
     === "GCP"
     
         ```python
-        from fondant.pipeline.compiler import DockerCompiler
         from fondant.pipeline.runner import DockerRunner
         from fondant.core.schema import CloudCredentialsMount
-        
-        gcp_mount_dir = CloudCredentialsMount.GCP.value
-        compiler = DockerCompiler(extra_volumes=gcp_mount_dir)
-        compiler.compile(pipeline=<pipeline_object>)
 
         runner = DockerRunner()
-        runner.run(input_spec=<path_to_compiled_spec>)
+        runner.run(auth_provider=CloudCredentialsMount.GCP)
         ```
 
     === "AWS"
     
         ```python
-        from fondant.pipeline.compiler import DockerCompiler
         from fondant.pipeline.runner import DockerRunner
         from fondant.core.schema import CloudCredentialsMount
-        
-        aws_mount_dir = CloudCredentialsMount.AWS.value
-        compiler = DockerCompiler(extra_volumes=aws_mount_dir)
-        compiler.compile(pipeline=<pipeline_object>)
 
         runner = DockerRunner()
-        runner.run(input_spec=<path_to_compiled_spec>)
+        runner.run(auth_provider=CloudCredentialsMount.AWS)
         ```
 
     === "Azure"
     
         ```python
-        from fondant.pipeline.compiler import DockerCompiler
         from fondant.pipeline.runner import DockerRunner
         from fondant.core.schema import CloudCredentialsMount
-        
-        azure_mount_dir = CloudCredentialsMount.AZURE.value
-        compiler = DockerCompiler(extra_volumes=azure_mount_dir)
-        compiler.compile(pipeline=<pipeline_object>)
 
         runner = DockerRunner()
-        runner.run(input_spec=<path_to_compiled_spec>)
+        runner.run(auth_provider=CloudCredentialsMount.AZURE)
         ```
 
     This will mount your default local cloud credentials to the pipeline. Make sure you are authenticated locally before running the pipeline and

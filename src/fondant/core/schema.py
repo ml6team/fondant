@@ -6,7 +6,7 @@ import os
 import re
 import typing as t
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 
 import pyarrow as pa
 
@@ -30,13 +30,26 @@ class DockerVolume:
 
 
 class CloudCredentialsMount(Enum):
-    home_directory = os.path.expanduser("~")
-    AWS = f"{home_directory}/credentials:/root/.aws/credentials"
-    GCP = (
-        f"{home_directory}/.config/gcloud/application_default_credentials.json:/root/.config/"
-        f"gcloud/application_default_credentials.json"
-    )
-    AZURE = f"{home_directory}/.azure:/root/.azure"
+    AWS = auto()
+    GCP = auto()
+    AZURE = auto()
+
+    def get_path(self):
+        home_dir = os.path.expanduser("~")
+
+        if self == CloudCredentialsMount.AWS:
+            return f"{home_dir}/credentials:/root/.aws/credentials"
+
+        if self == CloudCredentialsMount.GCP:
+            return (
+                f"{home_dir}/.config/gcloud/application_default_credentials.json:"
+                f"/root/.config/gcloud/application_default_credentials.json"
+            )
+
+        if self == CloudCredentialsMount.AZURE:
+            return f"{home_dir}/.azure:/root/.azure"
+
+        return None
 
 
 """

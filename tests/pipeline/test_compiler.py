@@ -9,6 +9,7 @@ import pyarrow as pa
 import pytest
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest, Metadata
+from fondant.core.schema import CloudCredentialsMount
 from fondant.pipeline import ComponentOp, Dataset, Pipeline, Resources
 from fondant.pipeline.compiler import (
     DockerCompiler,
@@ -260,26 +261,31 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
     """Test that extra volumes are applied correctly."""
-    with tmp_path_factory.mktemp("temp") as fn:
-        # this is the directory mounted in the container
-        _, pipeline, _ = setup_pipeline
-        pipeline.base_path = str(fn)
-        compiler = DockerCompiler()
-        # define some extra volumes to be mounted
-        extra_volumes = ["hello:there", "general:kenobi"]
-        output_path = str(fn / "docker-compose.yml")
+    for auth_provider in CloudCredentialsMount:
+        extra_auth_volume = auth_provider.get_path()
 
-        compiler.compile(
-            pipeline=pipeline,
-            output_path=output_path,
-            extra_volumes=extra_volumes,
-        )
+        with tmp_path_factory.mktemp("temp") as fn:
+            # this is the directory mounted in the container
+            _, pipeline, _ = setup_pipeline
+            pipeline.base_path = str(fn)
+            compiler = DockerCompiler()
+            # define some extra volumes to be mounted
+            extra_volumes = ["hello:there", "general:kenobi"]
+            extra_volumes.append(extra_auth_volume)
+            output_path = str(fn / "docker-compose.yml")
 
-        pipeline_configs = DockerComposeConfigs.from_spec(output_path)
-        for _, service in pipeline_configs.component_configs.items():
-            assert all(
-                extra_volume in service.volumes for extra_volume in extra_volumes
+            compiler.compile(
+                pipeline=pipeline,
+                output_path=output_path,
+                extra_volumes=extra_volumes,
+                auth_provider=auth_provider,
             )
+
+            pipeline_configs = DockerComposeConfigs.from_spec(output_path)
+            for _, service in pipeline_configs.component_configs.items():
+                assert all(
+                    extra_volume in service.volumes for extra_volume in extra_volumes
+                )
 
 
 @pytest.mark.usefixtures("_freeze_time")
