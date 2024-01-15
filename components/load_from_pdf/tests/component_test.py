@@ -13,15 +13,15 @@ def test_pdf_reader():
     the papers from Arxiv.
     """
     with open(Path(__file__).with_name("fondant_component.yaml")) as f:
-        print(f.name)
         spec = ComponentSpec(yaml.safe_load(f))
+
     spec = OperationSpec(spec)
 
     pdf_path = ["tests/test_file/dummy.pdf", "tests/test_folder"]
 
     for path in pdf_path:
         component = PDFReader(
-            spec=spec,
+            produces=dict(spec.inner_produces),
             pdf_path=path,
             n_rows_to_load=None,
             index_column=None,
@@ -37,9 +37,11 @@ def test_pdf_reader():
             assert output_dataframe["text"].tolist() == ["Dummy PDF file\n"]
         else:
             assert output_dataframe.shape == (2, 3)
-            assert output_dataframe["file_name"].tolist() == [
-                "dummy_2.pdf",
+            file_names = output_dataframe["file_name"].tolist()
+            file_names.sort()
+            assert file_names == [
                 "dummy_1.pdf",
+                "dummy_2.pdf",
             ]
             assert output_dataframe["text"].tolist() == [
                 "Dummy PDF file\n",
