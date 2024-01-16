@@ -1,8 +1,10 @@
 # This file contains a sample pipeline. Loading data from a parquet file,
 # using the load_from_parquet component, chain a custom dummy component, and use
 # the reusable chunking component
-import pyarrow as pa
 from pathlib import Path
+
+import pyarrow as pa
+
 from fondant.pipeline import Pipeline
 
 BASE_PATH = Path("./.artifacts").resolve()
@@ -17,7 +19,7 @@ load_component_column_mapping = {
 }
 
 dataset = pipeline.read(
-    name_or_path="load_from_parquet",
+    "load_from_parquet",
     arguments={
         "dataset_uri": "/data/sample.parquet",
         "column_name_mapping": load_component_column_mapping,
@@ -27,11 +29,11 @@ dataset = pipeline.read(
 )
 
 dataset = dataset.apply(
-    name_or_path="./components/dummy_component",
+    "./components/dummy_component",
 )
 
 dataset.apply(
-    name_or_path="chunk_text",
+    "chunk_text",
     arguments={"chunk_size": 10, "chunk_overlap": 2},
     consumes={"text": "text_data"},
 )
