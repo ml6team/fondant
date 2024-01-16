@@ -1,6 +1,6 @@
 name: Example component
-description: This is an example component
 image: example_component:latest
+description: This is an example component
 tags:
   - Data loading
 

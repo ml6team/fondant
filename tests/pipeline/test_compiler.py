@@ -32,7 +32,7 @@ TEST_PIPELINES = [
         "example_1",
         [
             {
-                "component_op": ComponentOp(
+                "component_op": ComponentOp.from_component_yaml(
                     Path(COMPONENTS_PATH / "example_1" / "first_component"),
                     arguments={"storage_args": "a dummy string arg"},
                     input_partition_rows=10,
@@ -45,7 +45,7 @@ TEST_PIPELINES = [
                 "cache_key": "1",
             },
             {
-                "component_op": ComponentOp(
+                "component_op": ComponentOp.from_component_yaml(
                     Path(COMPONENTS_PATH / "example_1" / "second_component"),
                     arguments={"storage_args": "a dummy string arg"},
                     input_partition_rows=10,
@@ -53,7 +53,7 @@ TEST_PIPELINES = [
                 "cache_key": "2",
             },
             {
-                "component_op": ComponentOp(
+                "component_op": ComponentOp.from_component_yaml(
                     Path(COMPONENTS_PATH / "example_1" / "third_component"),
                     arguments={
                         "storage_args": "a dummy string arg",
@@ -67,7 +67,7 @@ TEST_PIPELINES = [
         "example_2",
         [
             {
-                "component_op": ComponentOp(
+                "component_op": ComponentOp.from_component_yaml(
                     Path(COMPONENTS_PATH / "example_1" / "first_component"),
                     arguments={"storage_args": "a dummy string arg"},
                     produces={"images_data": pa.binary()},
@@ -75,7 +75,7 @@ TEST_PIPELINES = [
                 "cache_key": "1",
             },
             {
-                "component_op": ComponentOp(
+                "component_op": ComponentOp.from_component_yaml(
                     "crop_images",
                     arguments={"cropping_threshold": 0, "padding": 0},
                 ),

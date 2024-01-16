@@ -1,6 +1,7 @@
 """This module defines classes to represent a Fondant Pipeline."""
 import datetime
 import hashlib
+import inspect
 import json
 import logging
 import re
@@ -16,12 +17,11 @@ except ImportError:
 
 import pyarrow as pa
 
-from fondant.component import BaseComponent
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
-from fondant.pipeline import Image
+from fondant.pipeline import Image, PythonComponent
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +145,7 @@ class ComponentOp:
         cluster_type: t.Optional[str] = "default",
         client_kwargs: t.Optional[dict] = None,
         resources: t.Optional[Resources] = None,
+        component_dir: t.Optional[Path] = None,
     ) -> None:
         self.name = name
         self.image = image
@@ -153,6 +154,7 @@ class ComponentOp:
         self.cache = self._configure_caching_from_image_tag(cache)
         self.cluster_type = cluster_type
         self.client_kwargs = client_kwargs
+        self.component_dir = component_dir
 
         self.operation_spec = OperationSpec(
             self.component_spec,
@@ -193,7 +195,13 @@ class ComponentOp:
         image = Image(
             base_image=component_spec.image,
         )
-        return cls(name=name, image=image, component_spec=component_spec, **kwargs)
+        return cls(
+            name=name,
+            image=image,
+            component_spec=component_spec,
+            component_dir=component_dir,
+            **kwargs,
+        )
 
     def _configure_caching_from_image_tag(
         self,
@@ -379,11 +387,7 @@ class Pipeline:
                 msg,
             )
 
-        if issubclass(ref, BaseComponent):
-            if not ref.is_python_component():
-                err = """Only Python components are currently supported.
-                Make sure your class is decorated with the @python_component decorator."""
-                raise ValueError(err)
+        if inspect.isclass(ref) and issubclass(ref, PythonComponent):
             name = ref.__name__
             image = ref.image()
             description = ref.__doc__ or "python component"
@@ -392,8 +396,8 @@ class Pipeline:
                 name,
                 image.base_image,  # TODO: revisit
                 description=description,
-                consumes={},
-                produces={},
+                consumes={"additionalProperties": True},
+                produces={"additionalProperties": True},
             )
 
             operation = ComponentOp(
@@ -410,7 +414,16 @@ class Pipeline:
             )
 
         else:
-            operation = ComponentOp.from_component_yaml(ref)
+            operation = ComponentOp.from_component_yaml(
+                ref,
+                produces=produces,
+                arguments=arguments,
+                input_partition_rows=input_partition_rows,
+                resources=resources,
+                cache=cache,
+                cluster_type=cluster_type,
+                client_kwargs=client_kwargs,
+            )
 
         manifest = Manifest.create(
             pipeline_name=self.name,
@@ -685,11 +698,7 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        if issubclass(ref, BaseComponent):
-            if not ref.is_python_component():
-                err = """Only Python components are currently supported.
-                Make sure your class is decorated with the @python_component decorator."""
-                raise ValueError(err)
+        if inspect.isclass(ref) and issubclass(ref, PythonComponent):
             name = ref.__name__
             image = ref.image()
             description = ref.__doc__ or "python component"
@@ -698,8 +707,8 @@ class Dataset:
                 name,
                 image.base_image,  # TODO: revisit
                 description=description,
-                consumes={},
-                produces={},
+                consumes={"additionalProperties": True},
+                produces={"additionalProperties": True},
             )
 
             operation = ComponentOp(
@@ -717,7 +726,17 @@ class Dataset:
             )
 
         else:
-            operation = ComponentOp.from_component_yaml(ref)
+            operation = ComponentOp.from_component_yaml(
+                ref,
+                consumes=consumes,
+                produces=produces,
+                arguments=arguments,
+                input_partition_rows=input_partition_rows,
+                resources=resources,
+                cache=cache,
+                cluster_type=cluster_type,
+                client_kwargs=client_kwargs,
+            )
 
         return self._apply(operation)
 
@@ -754,11 +773,7 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        if issubclass(ref, BaseComponent):
-            if not ref.is_python_component():
-                err = """Only Python components are currently supported.
-                Make sure your class is decorated with the @python_component decorator."""
-                raise ValueError(err)
+        if inspect.isclass(ref) and issubclass(ref, PythonComponent):
             name = ref.__name__
             image = ref.image()
             description = ref.__doc__ or "python component"
@@ -767,8 +782,8 @@ class Dataset:
                 name,
                 image.base_image,  # TODO: revisit
                 description=description,
-                consumes={},
-                produces={},
+                consumes={"additionalProperties": True},
+                produces={"additionalProperties": True},
             )
 
             operation = ComponentOp(
@@ -785,5 +800,14 @@ class Dataset:
             )
 
         else:
-            operation = ComponentOp.from_component_yaml(ref)
+            operation = ComponentOp.from_component_yaml(
+                ref,
+                consumes=consumes,
+                arguments=arguments,
+                input_partition_rows=input_partition_rows,
+                resources=resources,
+                cache=cache,
+                cluster_type=cluster_type,
+                client_kwargs=client_kwargs,
+            )
         self._apply(operation)

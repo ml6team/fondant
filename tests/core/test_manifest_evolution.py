@@ -86,7 +86,7 @@ def examples(manifest_examples):
 def test_evolution(input_manifest, component_spec, output_manifest, test_conditions):
     run_id = "custom_run_id"
     manifest = Manifest(input_manifest)
-    component_spec = ComponentSpec(component_spec)
+    component_spec = ComponentSpec.from_dict(component_spec)
     for test_condition in test_conditions:
         produces = test_condition["produces"]
         operation_spec = OperationSpec(component_spec, produces=produces)
@@ -109,7 +109,7 @@ def test_invalid_evolution_examples(
 ):
     run_id = "custom_run_id"
     manifest = Manifest(input_manifest)
-    component_spec = ComponentSpec(component_spec)
+    component_spec = ComponentSpec.from_dict(component_spec)
     for test_condition in test_conditions:
         produces = test_condition["produces"]
         with pytest.raises(InvalidPipelineDefinition):  # noqa: PT012
@@ -128,7 +128,7 @@ def test_component_spec_location_update():
         specification = yaml.safe_load(f)
 
     manifest = Manifest(input_manifest)
-    component_spec = ComponentSpec(specification)
+    component_spec = ComponentSpec.from_dict(specification)
     evolved_manifest = manifest.evolve(
         operation_spec=OperationSpec(component_spec),
         run_id="123",

@@ -85,7 +85,9 @@ class ComponentSpec:
         description: t.Optional[str] = None,
         consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
-        arguments: t.Optional[t.Dict[str, t.Any]] = None,
+        previous_index: t.Optional[str] = None,
+        args: t.Optional[t.Dict[str, t.Any]] = None,
+        tags: t.Optional[t.List[str]] = None,
     ):
         spec_dict: t.Dict[str, t.Any] = {
             "name": name,
@@ -95,18 +97,20 @@ class ComponentSpec:
         if description:
             spec_dict["description"] = description
 
+        if tags:
+            spec_dict["tags"] = tags
+
         if consumes:
             spec_dict["consumes"] = consumes
-        else:
-            spec_dict["consumes"] = {"additionalProperties": True}
 
         if produces:
             spec_dict["produces"] = produces
-        else:
-            spec_dict["produces"] = {"additionalProperties": True}
 
-        if arguments:
-            spec_dict["args"] = arguments
+        if previous_index:
+            spec_dict["previous_index"] = previous_index
+
+        if args:
+            spec_dict["args"] = args
 
         self._specification = spec_dict
         self._validate_spec()
@@ -155,7 +159,11 @@ class ComponentSpec:
     @classmethod
     def from_dict(cls, component_spec_dict: t.Dict[str, t.Any]) -> "ComponentSpec":
         """Load the component spec from a dictionary."""
-        return cls(**component_spec_dict)
+        try:
+            return cls(**component_spec_dict)
+        except TypeError as e:
+            msg = f"Invalid component spec: {e}"
+            raise InvalidComponentSpec(msg)
 
     @property
     def name(self):

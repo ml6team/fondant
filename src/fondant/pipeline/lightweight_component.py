@@ -5,9 +5,15 @@ from functools import wraps
 
 @dataclass
 class Image:
-    base_image: t.Optional[str] = "fondant:latest"
+    base_image: str = "fondant:latest"
     extra_requires: t.Optional[t.List[str]] = None
     script: t.Optional[str] = None
+
+
+class PythonComponent:
+    @classmethod
+    def image(cls) -> Image:
+        raise NotImplementedError
 
 
 def lightweight_component(
@@ -26,15 +32,11 @@ def lightweight_component(
 
         # updated=() is needed to prevent an attempt to update the class's __dict__
         @wraps(cls, updated=())
-        class PythonComponent(cls):
+        class AppliedPythonComponent(cls, PythonComponent):
             @classmethod
             def image(cls) -> Image:
                 return image
 
-            @classmethod
-            def is_python_component(cls) -> bool:
-                return True
-
-        return PythonComponent
+        return AppliedPythonComponent
 
     return wrapper

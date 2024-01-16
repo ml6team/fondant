@@ -468,7 +468,7 @@ def test_wrap_transform():
     - Trimming columns not specified in `produces`
     - Ordering columns according to specification (so `map_partitions` does not fail).
     """
-    spec = ComponentSpec(
+    spec = ComponentSpec.from_dict(
         {
             "name": "Test component",
             "description": "Component for testing",
