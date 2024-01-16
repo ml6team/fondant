@@ -33,7 +33,7 @@ def build_component(  # ruff: noqa: PLR0912, PLR0915
             msg,
         )
 
-    component_op = ComponentOp(component_dir)
+    component_op = ComponentOp.from_component_yaml(component_dir)
     component_spec = component_op.component_spec
 
     if component_op.dockerfile_path is None:

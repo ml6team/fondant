@@ -64,14 +64,14 @@ def valid_fondant_schema_generic_consumes_produces() -> dict:
 def test_component_spec_pkgutil_error(mock_get_data):
     """Test that FileNotFoundError is raised when pkgutil.get_data returns None."""
     with pytest.raises(FileNotFoundError):
-        ComponentSpec("example_component.yaml")
+        ComponentSpec.from_file("example_component.yaml")
 
 
 def test_component_spec_validation(valid_fondant_schema, invalid_fondant_schema):
     """Test that the component spec is validated correctly on instantiation."""
-    ComponentSpec(valid_fondant_schema)
+    ComponentSpec.from_dict(valid_fondant_schema)
     with pytest.raises(InvalidComponentSpec):
-        ComponentSpec(invalid_fondant_schema)
+        ComponentSpec.from_dict(invalid_fondant_schema)
 
 
 def test_component_spec_load_from_file(valid_fondant_schema, invalid_fondant_schema):
@@ -87,7 +87,7 @@ def test_attribute_access(valid_fondant_schema):
     - Fixed properties should be accessible as an attribute
     - Dynamic properties should be accessible by lookup.
     """
-    fondant_component = ComponentSpec(valid_fondant_schema)
+    fondant_component = ComponentSpec.from_dict(valid_fondant_schema)
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
@@ -99,14 +99,14 @@ def test_attribute_access(valid_fondant_schema):
 
 def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     """Test that the created kubeflow component matches the expected kubeflow component."""
-    fondant_component = ComponentSpec(valid_fondant_schema)
+    fondant_component = ComponentSpec.from_dict(valid_fondant_schema)
     kubeflow_component = fondant_component.kubeflow_specification
     assert kubeflow_component._specification == valid_kubeflow_schema
 
 
 def test_component_spec_no_args(valid_fondant_schema_no_args):
     """Test that a component spec without args is supported."""
-    fondant_component = ComponentSpec(valid_fondant_schema_no_args)
+    fondant_component = ComponentSpec.from_dict(valid_fondant_schema_no_args)
 
     assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
@@ -115,7 +115,7 @@ def test_component_spec_no_args(valid_fondant_schema_no_args):
 
 def test_component_spec_to_file(valid_fondant_schema):
     """Test that the ComponentSpec can be written to a file."""
-    component_spec = ComponentSpec(valid_fondant_schema)
+    component_spec = ComponentSpec.from_dict(valid_fondant_schema)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         file_path = os.path.join(temp_dir, "component_spec.yaml")
@@ -145,7 +145,7 @@ def test_kubeflow_component_spec_to_file(valid_kubeflow_schema):
 
 def test_component_spec_repr(valid_fondant_schema):
     """Test that the __repr__ method of ComponentSpec returns the expected string."""
-    fondant_component = ComponentSpec(valid_fondant_schema)
+    fondant_component = ComponentSpec.from_dict(valid_fondant_schema)
     expected_repr = f"ComponentSpec({valid_fondant_schema!r})"
     assert repr(fondant_component) == expected_repr
 
@@ -159,21 +159,23 @@ def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
 
 def test_component_spec_generic_consumes(valid_fondant_schema_generic_consumes):
     """Test that a component spec with generic consumes is detected."""
-    component_spec = ComponentSpec(valid_fondant_schema_generic_consumes)
+    component_spec = ComponentSpec.from_dict(valid_fondant_schema_generic_consumes)
     assert component_spec.is_generic("consumes") is True
     assert component_spec.is_generic("produces") is False
 
 
 def test_component_spec_generic_produces(valid_fondant_schema_generic_produces):
     """Test that a component spec with generic produces is detected."""
-    component_spec = ComponentSpec(valid_fondant_schema_generic_produces)
+    component_spec = ComponentSpec.from_dict(valid_fondant_schema_generic_produces)
     assert component_spec.is_generic("consumes") is False
     assert component_spec.is_generic("produces") is True
 
 
 def test_operation_spec_parsing(valid_fondant_schema_generic_consumes_produces):
     """Test that the operation spec is parsed correctly."""
-    component_spec = ComponentSpec(valid_fondant_schema_generic_consumes_produces)
+    component_spec = ComponentSpec.from_dict(
+        valid_fondant_schema_generic_consumes_produces,
+    )
     operation_spec = OperationSpec(
         component_spec=component_spec,
         consumes={

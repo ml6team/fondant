@@ -43,7 +43,7 @@ def test_component_op(
     example_dir, component_names = valid_pipeline_example
     components_path = Path(valid_pipeline_path / example_dir)
 
-    ComponentOp(
+    ComponentOp.from_component_yaml(
         Path(components_path / component_names[0]),
         arguments=component_args,
     )
@@ -83,17 +83,17 @@ def test_component_op_hash(
     example_dir, component_names = valid_pipeline_example
     components_path = Path(valid_pipeline_path / example_dir)
 
-    comp_0_op_spec_0 = ComponentOp(
+    comp_0_op_spec_0 = ComponentOp.from_component_yaml(
         Path(components_path / component_names[0]),
         arguments={"storage_args": "a dummy string arg"},
     )
 
-    comp_0_op_spec_1 = ComponentOp(
+    comp_0_op_spec_1 = ComponentOp.from_component_yaml(
         Path(components_path / component_names[0]),
         arguments={"storage_args": "a different string arg"},
     )
 
-    comp_1_op_spec_0 = ComponentOp(
+    comp_1_op_spec_0 = ComponentOp.from_component_yaml(
         Path(components_path / component_names[1]),
         arguments={"storage_args": "a dummy string arg"},
     )
@@ -122,7 +122,7 @@ def test_component_op_caching_strategy(monkeypatch):
             "image",
             f"fndnt/test_component:{tag}",
         )
-        comp_0_op_spec_0 = ComponentOp(
+        comp_0_op_spec_0 = ComponentOp.from_component_yaml(
             components_path,
             arguments={"storage_args": "a dummy string arg"},
             cache=True,
@@ -388,8 +388,8 @@ def test_invalid_pipeline_declaration(
 
 
 def test_reusable_component_op():
-    laion_retrieval_op = ComponentOp(
-        name_or_path="retrieve_laion_by_prompt",
+    laion_retrieval_op = ComponentOp.from_component_yaml(
+        "retrieve_laion_by_prompt",
         arguments={"num_images": 2, "aesthetic_score": 9, "aesthetic_weight": 0.5},
     )
     assert laion_retrieval_op.component_spec, "component_spec_path could not be loaded"
@@ -399,12 +399,12 @@ def test_reusable_component_op():
         ValueError,
         match=f"No reusable component with name {component_name} " "found.",
     ):
-        ComponentOp(component_name)
+        ComponentOp.from_component_yaml(component_name)
 
 
 def test_defining_reusable_component_op_with_custom_spec():
-    load_from_hub_default_op = ComponentOp(
-        name_or_path="load_from_hf_hub",
+    load_from_hub_default_op = ComponentOp.from_component_yaml(
+        "load_from_hf_hub",
         arguments={
             "dataset_name": "test_dataset",
             "column_name_mapping": {"foo": "bar"},
@@ -412,8 +412,8 @@ def test_defining_reusable_component_op_with_custom_spec():
         },
     )
 
-    load_from_hub_custom_op = ComponentOp(
-        name_or_path=load_from_hub_default_op.component_dir,
+    load_from_hub_custom_op = ComponentOp.from_component_yaml(
+        load_from_hub_default_op.component_dir,
         arguments={
             "dataset_name": "test_dataset",
             "column_name_mapping": {"foo": "bar"},
