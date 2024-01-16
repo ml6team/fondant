@@ -27,6 +27,8 @@ trap cleanup EXIT
 # Bind local data directory to pipeline
 data_dir=$(readlink -f "data")
 
+export FONDANT_VERSION=$GIT_HASH
+
 # Run pipeline
 poetry run fondant run local pipeline.py \
   --extra-volumes $data_dir:/data --build-arg FONDANT_VERSION=$GIT_HASH

@@ -1,3 +1,5 @@
+import textwrap
+
 import dask.dataframe as dd
 import pandas as pd
 import pyarrow as pa
@@ -5,17 +7,56 @@ from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.pipeline import Pipeline, lightweight_component
 
 
-def test_lightweight_component():
-    pipeline = Pipeline(name="dummy-pipeline", base_path="./data")
+def test_build_python_script():
+    @lightweight_component()
+    class CreateData(DaskLoadComponent):
+        def load(self) -> dd.DataFrame:
+            df = pd.DataFrame(
+                {
+                    "x": [1, 2, 3],
+                    "y": [4, 5, 6],
+                },
+                index=pd.Index(["a", "b", "c"], name="id"),
+            )
+            return dd.from_pandas(df, npartitions=1)
+
+    assert CreateData.image().script == textwrap.dedent(
+        """\
+        from typing import *
+        import typing as t
+
+        import dask.dataframe as dd
+        import fondant
+        import pandas as pd
+        from fondant.component import *
+        from fondant.core import *
+
+
+        class CreateData(DaskLoadComponent):
+            def load(self) -> dd.DataFrame:
+                df = pd.DataFrame(
+                    {
+                        "x": [1, 2, 3],
+                        "y": [4, 5, 6],
+                    },
+                    index=pd.Index(["a", "b", "c"], name="id"),
+                )
+                return dd.from_pandas(df, npartitions=1)
+    """,
+    )
+
+
+def test_lightweight_component(tmp_path_factory):
+    pipeline = Pipeline(
+        name="dummy-pipeline",
+        base_path="/home/robbe/workspace/fondant/tests/pipeline/data",
+    )
 
     @lightweight_component(
         base_image="python:3.8-slim-buster",
         extra_requires=["pandas", "dask"],
     )
     class CreateData(DaskLoadComponent):
-        def __init__(self, **kwargs):
-            pass
-
         def load(self) -> dd.DataFrame:
             df = pd.DataFrame(
                 {
@@ -44,5 +85,4 @@ def test_lightweight_component():
         ref=AddN,
         produces={"x": pa.int32(), "y": pa.int32()},
         consumes={"x": pa.int32(), "y": pa.int32()},
-        arguments={"n": 1},
     )

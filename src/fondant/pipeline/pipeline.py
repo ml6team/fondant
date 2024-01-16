@@ -235,12 +235,11 @@ class ComponentOp:
 
         return cache
 
-    def dockerfile_path(self, path: t.Union[str, Path]) -> t.Optional[Path]:
-        if self._is_custom_component(path):
-            component_dir = Path(path)
-        else:
-            component_dir = self._get_registry_path(str(path))
-        docker_path = component_dir / "Dockerfile"
+    @property
+    def dockerfile_path(self) -> t.Optional[Path]:
+        if not self.component_dir:
+            return None
+        docker_path = self.component_dir / "Dockerfile"
         return docker_path if docker_path.exists() else None
 
     @staticmethod
