@@ -3,6 +3,7 @@ import logging
 import os
 import shlex
 import tempfile
+import textwrap
 import typing as t
 from abc import ABC, abstractmethod
 from dataclasses import asdict
@@ -16,6 +17,7 @@ from fondant.core.schema import CloudCredentialsMount, DockerVolume
 from fondant.pipeline import (
     VALID_ACCELERATOR_TYPES,
     VALID_VERTEX_ACCELERATOR_TYPES,
+    Image,
     Pipeline,
 )
 
@@ -44,6 +46,37 @@ class Compiler(ABC):
                     f"Configuration `{config_name}` is set with `{config_value}` but has no effect"
                     f" for runner `{self.__class__.__name__}`.",
                 )
+
+    @staticmethod
+    def _build_entrypoint(image: Image) -> t.List[str]:
+        """Build the entrypoint to execute the provided image."""
+        if not image.script:
+            # Not a lightweight python component
+            return ["fondant", "execute", "main"]
+
+        command = ""
+        if image.extra_requires:
+            requirements = "\n".join(image.extra_requires)
+            command += textwrap.dedent(
+                f"""\
+                printf {shlex.quote(requirements)} > 'requirements.txt'
+                python3 -m pip install -r requirements.txt
+            """,
+            )
+
+        command += textwrap.dedent(
+            f"""\
+            printf {shlex.quote(image.script)} > 'main.py'
+            fondant execute main "$@"
+        """,
+        )
+
+        return [
+            "sh",
+            "-ec",
+            command,
+            "--",  # All arguments provided after this will be passed to `fondant execute main`
+        ]
 
 
 class DockerCompiler(Compiler):
@@ -157,6 +190,8 @@ class DockerCompiler(Compiler):
 
             logger.info(f"Compiling service for {component_name}")
 
+            entrypoint = self._build_entrypoint(component_op.image)
+
             # add metadata argument to command
             command = ["--metadata", metadata.to_json()]
 
@@ -204,6 +239,7 @@ class DockerCompiler(Compiler):
             )
 
             services[component_name] = {
+                "entrypoint": entrypoint,
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
