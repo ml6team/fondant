@@ -49,7 +49,7 @@ def test_build_python_script():
 def test_lightweight_component(tmp_path_factory):
     pipeline = Pipeline(
         name="dummy-pipeline",
-        base_path="/home/robbe/workspace/fondant/tests/pipeline/data",
+        base_path="./data",
     )
 
     @lightweight_component(
