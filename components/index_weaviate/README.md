@@ -9,10 +9,14 @@ Component that takes embeddings of text snippets and indexes them into a weaviat
 
 <a id="index_weaviate#consumes"></a>
 ### Consumes 
-**This component consumes:**
 
-- text: string
-- embedding: list<item: float>
+**This component can consume additional fields**
+- <field_name>: <dataset_field_name>
+This defines a mapping to update the fields consumed by the operation as defined in the component spec.
+The keys are the names of the fields to be received by the component, while the values are 
+the name of the field to map from the input dataset
+
+See the usage example below on how to define a field name for additional fields.
 
 
 
@@ -37,6 +41,7 @@ The component takes the following arguments to alter its behavior:
 | overwrite | bool | Whether to overwrite/ re-create the existing weaviate class and its embeddings. | / |
 | class_name | str | The name of the weaviate class that will be created and used to store the embeddings.Should follow the weaviate naming conventions. | / |
 | vectorizer | str | Which vectorizer to use. You can find the available vectorizers in the weaviate documentation: https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modulesSet this to None if you want to insert your own embeddings. | / |
+| module_config | dict | The configuration of the vectorizer module.You can find the available configuration options in the weaviate documentation: https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modulesSet this to None if you want to insert your own embeddings. | / |
 
 <a id="index_weaviate#usage"></a>
 ## Usage 
@@ -64,7 +69,12 @@ dataset.write(
         # "overwrite": False,
         # "class_name": ,
         # "vectorizer": ,
+        # "module_config": {},
     },
+    consumes={
+         <field_name>: <dataset_field_name>,
+         ..., # Add fields
+     },
 )
 ```
 
