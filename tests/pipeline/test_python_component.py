@@ -3,7 +3,11 @@ import textwrap
 import dask.dataframe as dd
 import pandas as pd
 import pyarrow as pa
-from fondant.component import DaskLoadComponent, PandasTransformComponent
+import pytest
+from fondant.component import (
+    DaskLoadComponent,
+    PandasTransformComponent,
+)
 from fondant.pipeline import Pipeline, lightweight_component
 
 
@@ -88,11 +92,7 @@ def test_lightweight_component(tmp_path_factory):
     )
 
 
-# to validate
-# LoadComponent has a LoadMethod
-# XTransformComponent has a transform method
-# WriteComponent has a write method
-def test_validation_supported_methods():
+def test_valid_load_component():
     @lightweight_component(
         base_image="python:3.8-slim-buster",
     )
@@ -108,4 +108,19 @@ def test_validation_supported_methods():
             return dd.from_pandas(df, npartitions=1)
 
     CreateData()
-    assert True
+
+
+def test_invalid_load_component():
+    @lightweight_component(
+        base_image="python:3.8-slim-buster",
+    )
+    class CreateData(DaskLoadComponent):
+        def load(self) -> int:
+            return 1
+
+    with pytest.raises(
+        ValueError,
+        match="Invalid function definition of function load."
+        "The return type has to be <class 'dask.dataframe.core.DataFrame'>",
+    ):
+        CreateData()
