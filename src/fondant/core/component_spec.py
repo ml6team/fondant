@@ -55,6 +55,17 @@ class Argument:
         }
         return lookup[self.type]
 
+    def to_spec(self):
+        return {
+            k: v
+            for k, v in {
+                "description": self.description,
+                "type": self.type.__name__,
+                "default": self.default,
+            }.items()
+            if v is not None
+        }
+
 
 class ComponentSpec:
     """
@@ -252,9 +263,9 @@ class ComponentSpec:
             {
                 name: Argument(
                     name=name,
-                    description=arg_info["description"],
+                    description=arg_info.get("description"),
                     type=pydoc.locate(arg_info["type"]),  # type: ignore
-                    default=arg_info["default"] if "default" in arg_info else None,
+                    default=arg_info.get("default"),
                     optional=arg_info.get("default") == "None",
                 )
                 for name, arg_info in self._specification.get("args", {}).items()

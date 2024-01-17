@@ -22,6 +22,7 @@ from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
 from fondant.pipeline import Image, PythonComponent
+from fondant.pipeline.argument_inference import infer_arguments
 
 logger = logging.getLogger(__name__)
 
@@ -397,6 +398,7 @@ class Pipeline:
                 description=description,
                 consumes={"additionalProperties": True},
                 produces={"additionalProperties": True},
+                args={k: v.to_spec() for k, v in infer_arguments(ref).items()},
             )
 
             operation = ComponentOp(
@@ -708,6 +710,7 @@ class Dataset:
                 description=description,
                 consumes={"additionalProperties": True},
                 produces={"additionalProperties": True},
+                args={k: v.to_spec() for k, v in infer_arguments(ref).items()},
             )
 
             operation = ComponentOp(
@@ -783,6 +786,7 @@ class Dataset:
                 description=description,
                 consumes={"additionalProperties": True},
                 produces={"additionalProperties": True},
+                args={k: v.to_spec() for k, v in infer_arguments(ref).items()},
             )
 
             operation = ComponentOp(

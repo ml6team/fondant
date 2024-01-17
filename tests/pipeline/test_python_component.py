@@ -74,7 +74,7 @@ def test_lightweight_component(tmp_path_factory):
 
     @lightweight_component()
     class AddN(PandasTransformComponent):
-        def __init__(self, n: int):
+        def __init__(self, n: int, **kwargs):
             self.n = n
 
         def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -85,4 +85,5 @@ def test_lightweight_component(tmp_path_factory):
         ref=AddN,
         produces={"x": pa.int32(), "y": pa.int32()},
         consumes={"x": pa.int32(), "y": pa.int32()},
+        arguments={"n": 1},
     )

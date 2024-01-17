@@ -5,7 +5,7 @@ import typing as t
 from dataclasses import dataclass
 from functools import wraps
 
-from fondant.component import Component
+from fondant.component import BaseComponent, Component
 
 
 @dataclass
@@ -20,7 +20,7 @@ class Image:
             self.base_image = "fondant:latest"
 
 
-class PythonComponent:
+class PythonComponent(BaseComponent):
     @classmethod
     def image(cls) -> Image:
         raise NotImplementedError
@@ -42,12 +42,12 @@ def lightweight_component(
 
         # updated=() is needed to prevent an attempt to update the class's __dict__
         @wraps(cls, updated=())
-        class AppliedPythonComponent(cls, PythonComponent):
+        class PythonComponentOp(cls, PythonComponent):
             @classmethod
             def image(cls) -> Image:
                 return image
 
-        return AppliedPythonComponent
+        return PythonComponentOp
 
     return wrapper
 
