@@ -86,3 +86,26 @@ def test_lightweight_component(tmp_path_factory):
         produces={"x": pa.int32(), "y": pa.int32()},
         consumes={"x": pa.int32(), "y": pa.int32()},
     )
+
+
+# to validate
+# LoadComponent has a LoadMethod
+# XTransformComponent has a transform method
+# WriteComponent has a write method
+def test_validation_supported_methods():
+    @lightweight_component(
+        base_image="python:3.8-slim-buster",
+    )
+    class CreateData(DaskLoadComponent):
+        def load(self) -> dd.DataFrame:
+            df = pd.DataFrame(
+                {
+                    "x": [1, 2, 3],
+                    "y": [4, 5, 6],
+                },
+                index=pd.Index(["a", "b", "c"], name="id"),
+            )
+            return dd.from_pandas(df, npartitions=1)
+
+    CreateData()
+    assert True

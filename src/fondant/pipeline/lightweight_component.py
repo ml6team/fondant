@@ -5,7 +5,32 @@ import typing as t
 from dataclasses import dataclass
 from functools import wraps
 
-from fondant.component import Component
+import dask.dataframe as dd
+import pandas as pd
+
+from fondant.component import (
+    Component,
+    DaskLoadComponent,
+    DaskTransformComponent,
+    DaskWriteComponent,
+    PandasTransformComponent,
+)
+
+# TODO: check if can be determined automatically
+REQUIRED_METHODS = {
+    DaskLoadComponent: {
+        "load": dd.DataFrame,
+    },
+    DaskTransformComponent: {
+        "transform": dd.DataFrame,
+    },
+    PandasTransformComponent: {
+        "transform": pd.DataFrame,
+    },
+    DaskWriteComponent: {
+        "write": None,
+    },
+}
 
 
 @dataclass
@@ -43,6 +68,23 @@ def lightweight_component(
         # updated=() is needed to prevent an attempt to update the class's __dict__
         @wraps(cls, updated=())
         class AppliedPythonComponent(cls, PythonComponent):
+            def __init__(self, *args, **kwargs):
+                for class_type, required_methods in REQUIRED_METHODS.items():
+                    if isinstance(self, class_type):
+                        for method, expected_return_type in required_methods.items():
+                            if not hasattr(self, method):
+                                msg = f"{self.__class__.__name__} Function is missing: {method}"
+                                raise AttributeError(msg)
+                            callable_method = self.__getattribute__(method)
+
+                            return_type = callable_method.__annotations__["return"]
+                            if return_type != expected_return_type:
+                                msg = (
+                                    f"{return_type} is wrong return type in: {callable_method}. "
+                                    f"Expected {expected_return_type}"
+                                )
+                                raise AttributeError(msg)
+
             @classmethod
             def image(cls) -> Image:
                 return image
