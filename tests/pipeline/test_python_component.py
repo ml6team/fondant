@@ -5,6 +5,7 @@ import pandas as pd
 import pyarrow as pa
 from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.pipeline import Pipeline, lightweight_component
+from fondant.pipeline.compiler import DockerCompiler
 
 
 def test_build_python_script():
@@ -46,15 +47,17 @@ def test_build_python_script():
     )
 
 
-def test_lightweight_component(tmp_path_factory):
+def test_compile_lightweight_component(tmp_path_factory):
     pipeline = Pipeline(
         name="dummy-pipeline",
         base_path="./data",
     )
 
     @lightweight_component(
-        base_image="python:3.8-slim-buster",
-        extra_requires=["pandas", "dask"],
+        base_image="python:3.8",
+        extra_requires=[
+            "fondant[component]@git+https://github.com/ml6team/fondant@main",
+        ],
     )
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -72,7 +75,12 @@ def test_lightweight_component(tmp_path_factory):
         produces={"x": pa.int32(), "y": pa.int32()},
     )
 
-    @lightweight_component()
+    @lightweight_component(
+        base_image="python:3.8",
+        extra_requires=[
+            "fondant[component]@git+https://github.com/ml6team/fondant@main",
+        ],
+    )
     class AddN(PandasTransformComponent):
         def __init__(self, n: int, **kwargs):
             self.n = n
@@ -87,3 +95,5 @@ def test_lightweight_component(tmp_path_factory):
         consumes={"x": pa.int32(), "y": pa.int32()},
         arguments={"n": 1},
     )
+
+    DockerCompiler().compile(pipeline)
