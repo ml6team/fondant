@@ -30,7 +30,6 @@ def get_written_objects(
 
 def test_index_weaviate_component(monkeypatch):
     client = weaviate.Client(embedded_options=EmbeddedOptions())
-    monkeypatch.setattr("weaviate.Client", lambda *args, **kwargs: client)
 
     pandas_df = pd.DataFrame(
         [
@@ -42,7 +41,7 @@ def test_index_weaviate_component(monkeypatch):
     dask_df = dd.from_pandas(pandas_df, npartitions=2)
 
     index_component = IndexWeaviateComponent(
-        weaviate_url="dummy_url",
+        weaviate_url="http://localhost:6666",  # local weaviate instance running on port 6666
         batch_size=10,
         dynamic=True,
         num_workers=2,
@@ -53,9 +52,6 @@ def test_index_weaviate_component(monkeypatch):
 
     index_component.write(dask_df)
     written_objects = get_written_objects(client, "TestClass")
-
-    # Assertions or further testing based on your specific use case
-    assert index_component.client == client
 
     for _object in written_objects:
         matching_row = pandas_df.loc[int(_object["id_"])]
