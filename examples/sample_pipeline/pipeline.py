@@ -50,8 +50,11 @@ dataset = dataset.apply(
     ],
 )
 class CalculateChunkLength(PandasTransformComponent):
+    def __init__(self, feature_name: str, **kwargs):
+        self.feature_name = feature_name
+
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        dataframe["chunk_length"] = dataframe["text"].apply(len)
+        dataframe[self.feature_name] = dataframe["text"].apply(len)
         return dataframe
 
 
@@ -59,4 +62,5 @@ _ = dataset.apply(
     ref=CalculateChunkLength,
     consumes={"text": pa.string()},
     produces={"chunk_length": pa.int32()},
+    arguments={"feature_name": "chunk_length"},
 )
