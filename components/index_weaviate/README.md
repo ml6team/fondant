@@ -68,3 +68,10 @@ dataset.write(
 )
 ```
 
+<a id="index_weaviate#testing"></a>
+## Testing
+
+You can run the tests using docker with BuildKit. From this directory, run:
+```
+docker build . --target test
+```
