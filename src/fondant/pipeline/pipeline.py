@@ -396,7 +396,6 @@ class Pipeline:
                 name,
                 image.base_image,  # TODO: revisit
                 description=description,
-                consumes={"additionalProperties": True},
                 produces={"additionalProperties": True},
                 args={k: v.to_spec() for k, v in infer_arguments(ref).items()},
             )
@@ -704,11 +703,16 @@ class Dataset:
             image = ref.image()
             description = ref.__doc__ or "python component"
 
+            consumes_spec = {k: v.type.to_json() for k, v in self.fields.items()}
+            if consumes:
+                for k, v in consumes.items():
+                    consumes_spec[k] = consumes_spec[v]
+
             component_spec = ComponentSpec(
                 name,
                 image.base_image,  # TODO: revisit
                 description=description,
-                consumes={"additionalProperties": True},
+                consumes=consumes_spec,
                 produces={"additionalProperties": True},
                 args={k: v.to_spec() for k, v in infer_arguments(ref).items()},
             )
@@ -780,11 +784,16 @@ class Dataset:
             image = ref.image()
             description = ref.__doc__ or "python component"
 
+            consumes_spec = {k: v.type.to_json() for k, v in self.fields.items()}
+            if consumes:
+                for k, v in consumes.items():
+                    consumes_spec[k] = consumes_spec[v]
+
             component_spec = ComponentSpec(
                 name,
                 image.base_image,  # TODO: revisit
                 description=description,
-                consumes={"additionalProperties": True},
+                consumes=consumes_spec,
                 produces={"additionalProperties": True},
                 args={k: v.to_spec() for k, v in infer_arguments(ref).items()},
             )
