@@ -1,9 +1,12 @@
+import json
 import textwrap
 
 import dask.dataframe as dd
 import pandas as pd
 import pyarrow as pa
+import pytest
 from fondant.component import DaskLoadComponent, PandasTransformComponent
+from fondant.core.exceptions import InvalidPythonComponent
 from fondant.pipeline import Pipeline, lightweight_component
 from fondant.pipeline.compiler import DockerCompiler
 
@@ -47,17 +50,15 @@ def test_build_python_script():
     )
 
 
-def test_compile_lightweight_component(tmp_path_factory):
+def test_lightweight_component_sdk():
     pipeline = Pipeline(
         name="dummy-pipeline",
         base_path="./data",
     )
 
     @lightweight_component(
-        base_image="python:3.8",
-        extra_requires=[
-            "fondant[component]@git+https://github.com/ml6team/fondant@main",
-        ],
+        base_image="python:3.8-slim-buster",
+        extra_requires=["pandas", "dask"],
     )
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -75,12 +76,21 @@ def test_compile_lightweight_component(tmp_path_factory):
         produces={"x": pa.int32(), "y": pa.int32()},
     )
 
-    @lightweight_component(
-        base_image="python:3.8",
-        extra_requires=[
-            "fondant[component]@git+https://github.com/ml6team/fondant@main",
-        ],
-    )
+    assert len(pipeline._graph.keys()) == 1
+    operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
+    assert json.loads(operation_spec) == {
+        "specification": {
+            "name": "CreateData",
+            "image": "python:3.8-slim-buster",
+            "description": "python component",
+            "consumes": {"additionalProperties": True},
+            "produces": {"additionalProperties": True},
+        },
+        "consumes": {},
+        "produces": {"x": {"type": "int32"}, "y": {"type": "int32"}},
+    }
+
+    @lightweight_component()
     class AddN(PandasTransformComponent):
         def __init__(self, n: int, **kwargs):
             self.n = n
@@ -95,5 +105,38 @@ def test_compile_lightweight_component(tmp_path_factory):
         consumes={"x": pa.int32(), "y": pa.int32()},
         arguments={"n": 1},
     )
+    assert len(pipeline._graph.keys()) == 1 + 1
+    assert pipeline._graph["AddN"]["dependencies"] == ["CreateData"]
+    operation_spec = pipeline._graph["AddN"]["operation"].operation_spec.to_json()
+    assert json.loads(operation_spec) == {
+        "specification": {
+            "name": "AddN",
+            "image": "fondant:latest",
+            "description": "python component",
+            "consumes": {"additionalProperties": True},
+            "produces": {"additionalProperties": True},
+            "args": {"n": {"type": "int"}},
+        },
+        "consumes": {"x": {"type": "int32"}, "y": {"type": "int32"}},
+        "produces": {"x": {"type": "int32"}, "y": {"type": "int32"}},
+    }
+    pipeline._validate_pipeline_definition(run_id="dummy-run-id")
 
     DockerCompiler().compile(pipeline)
+
+
+def test_lightweight_component_missing_decorator():
+    pipeline = Pipeline(
+        name="dummy-pipeline",
+        base_path="./data",
+    )
+
+    class Foo(DaskLoadComponent):
+        def load(self) -> str:
+            return "bar"
+
+    with pytest.raises(InvalidPythonComponent):
+        _ = pipeline.read(
+            ref=Foo,
+            produces={"x": pa.int32(), "y": pa.int32()},
+        )
