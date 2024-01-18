@@ -1,14 +1,130 @@
 name: retrieve_from_weaviate
-description: Component that retrieves chunks from a weaviate vectorDB
+description: |
+  Component that retrieves chunks from a Weaviate vector database.
+  The component can retrieve chunks based on a text search or based on a vector search.
+  Reranking is only supported for text search.
+  More info here [Cohere Ranking](https://github.com/weaviate/recipes/blob/main/ranking/cohere-ranking/cohere-ranking.ipynb)
+  [Weaviate Search Rerank](https://weaviate.io/developers/weaviate/search/rerank)
+
+  ### Running with text as input
+  
+  ```python
+  import pyarrow as pa
+  from fondant.pipeline import Pipeline
+  
+  pipeline = Pipeline(name="my_pipeline", base_path="path/to/pipeline")
+  
+  dataset = pipeline.read(
+      "load_from_csv",
+      arguments={
+          "dataset_uri": "path/to/dataset.csv",
+      },
+      produces={
+          "text": pa.string(),
+      }
+  )
+  
+  dataset = dataset.apply(
+      "index_weaviate",
+      arguments={
+          "weaviate_url": "http://localhost:8080",
+          "class_name": "my_class",
+          "vectorizer": "text2vec-openai",
+          "additional_headers": {
+              "X-OpenAI-Api-Key": "YOUR-OPENAI-API-KEY"
+          }
+      },
+      consumes={
+          "text": "text"
+      }
+  )
+  
+  dataset = dataset.apply(
+      "retrieve_from_weaviate",
+      arguments={
+          "weaviate_url": "http://localhost:8080",
+          "class_name": "my_class",
+          "top_k": 3,
+          "additional_headers": {
+              "X-OpenAI-Api-Key": "YOUR-OPENAI-API-KEY"
+          }
+      },
+      consumes={
+          "text": "text"
+      }
+  )
+  
+  ```python
+  import pyarrow as pa
+  from fondant.pipeline import Pipeline
+  
+  pipeline = Pipeline(name="my_pipeline", base_path="path/to/pipeline")
+  
+  dataset = pipeline.read(
+      "load_from_csv",
+      arguments={
+          "dataset_uri": "path/to/dataset.csv",
+      },
+      produces={
+          "text": pa.string(),
+      }
+  )
+  
+  dataset = dataset.apply(
+      "embed_text",
+      arguments={...},
+      consumes={
+          "text": "text",
+      },
+  )
+  
+  dataset = dataset.apply(
+      "index_weaviate",
+      arguments={
+          "weaviate_url": "http://localhost:8080",
+          "class_name": "my_class",
+      },
+      consumes={
+          "embedding": "embedding"
+      }
+  )
+  
+  dataset = pipeline.read(
+      "load_from_csv",
+      arguments={
+          "dataset_uri": "path/to/prompt_dataset.csv",
+      },
+      produces={
+          "prompts": pa.string(),
+      }
+  )
+  
+  dataset = dataset.apply(
+      "embed_text",
+      arguments={...},
+      consumes={
+          "prompts": "text",
+      },
+  )
+  
+  dataset = dataset.apply(
+      "retrieve_from_weaviate",
+      arguments={
+          "weaviate_url": "http://localhost:8080",
+          "class_name": "my_class",
+          "top_k": 3,
+      consumes={
+          "text": "text"
+      }
+  )
+  ```
+
 image: fndnt/retrieve_from_weaviate:dev
 tags:
   - Data retrieval
 
 consumes:
-  embedding:
-    type: array
-    items:
-      type: float32
+  additionalProperties: true
 
 produces:
   retrieved_chunks:
@@ -48,3 +164,11 @@ args:
       Argument to change how much each search affects the results. An alpha of 1 is a pure vector search. An alpha of 0 is a pure keyword search.
     type: float
     default: None
+  rerank:
+    description: |
+      Whether to rerank the results based on the hybrid query. Defaults to False.
+      Check this notebook for more information on reranking:
+      https://github.com/weaviate/recipes/blob/main/ranking/cohere-ranking/cohere-ranking.ipynb
+      https://weaviate.io/developers/weaviate/search/rerank.
+    type: bool
+    default: False
