@@ -48,7 +48,9 @@ def test_index_weaviate_component(monkeypatch):
         overwrite=True,
         class_name="TestClass",
         vectorizer=None,
-        module_config={},
+        additional_headers=None,
+        additional_config=None,
+        module_config=None,
     )
 
     index_component.write(dask_df)

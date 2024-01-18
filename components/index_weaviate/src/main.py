@@ -19,11 +19,17 @@ class IndexWeaviateComponent(DaskWriteComponent):
         num_workers: int,
         overwrite: bool,
         class_name: str,
+        additional_config: t.Optional[dict],
+        additional_headers: t.Optional[dict],
         vectorizer: t.Optional[str],
         module_config: t.Optional[dict],
         **kwargs,
     ):
-        self.client = weaviate.Client(weaviate_url)
+        self.client = weaviate.Client(
+            url=weaviate_url,
+            additional_config=additional_config if additional_config else None,
+            additional_headers=additional_headers if additional_headers else None,
+        )
 
         self.client.batch.configure(
             batch_size=batch_size,
@@ -49,7 +55,7 @@ class IndexWeaviateComponent(DaskWriteComponent):
                 msg,
             )
 
-        if self.vectorizer is not None and self.module_config is None:
+        if self.vectorizer is not None and not self.module_config:
             msg = "If vectorizer is specified, module_config must be specified as well."
             raise ValueError(
                 msg,

@@ -1,5 +1,81 @@
 name: Index Weaviate
-description: Component that takes embeddings of text snippets and indexes them into a weaviate vector database.
+description: |
+  Component that takes text or embeddings of text snippets and indexes them into a Weaviate vector database.
+
+  To run the component with text snippets as input, the component needs to be connected to a previous component that outputs text snippets.
+
+  ### Running with text as input
+
+  ```python
+  import pyarrow as pa
+  from fondant.pipeline import Pipeline
+
+  pipeline = Pipeline(name="my_pipeline", base_path="path/to/pipeline")
+
+  dataset = pipeline.read(
+      "load_from_csv",
+      arguments={
+          "dataset_uri": "path/to/dataset.csv",
+      },
+      produces={
+          "text": pa.string(),
+      }
+  )
+
+  dataset = dataset.apply(
+      "index_weaviate",
+      arguments={
+          "weaviate_url": "http://localhost:8080",
+          "class_name": "my_class",
+          "vectorizer": "text2vec-openai",
+          "additional_headers" : {
+              "X-OpenAI-Api-Key": "YOUR-OPENAI-API-KEY"
+          }
+      },
+      consumes={
+          "text": "text"
+      }
+  )
+  ```
+  
+  ### Running with embedding as input
+  
+  ```python
+  import pyarrow as pa
+  from fondant.pipeline import Pipeline
+  
+  pipeline = Pipeline(name="my_pipeline",base_path="path/to/pipeline")
+  
+  dataset = pipeline.read(
+      "load_from_csv",
+      arguments={
+          "dataset_uri": "path/to/dataset.csv",
+      },
+      produces={
+          "text": pa.string(),
+      }
+  )
+  
+  dataset = dataset.apply(
+      "embed_text",
+      arguments={...},
+      consumes={
+          "text": "text",
+      },
+  )
+  
+  dataset = dataset.apply(
+      "index_weaviate",
+      arguments={
+          "weaviate_url": "http://localhost:8080",
+          "class_name": "my_class",
+      },
+      consumes={
+          "embedding": "embedding"
+      }
+  )
+  ```
+
 image: fndnt/index_weaviate:dev
 tags:
   - Data writing
@@ -40,6 +116,16 @@ args:
       The name of the weaviate class that will be created and used to store the embeddings.
       Should follow the weaviate naming conventions.
     type: str
+  additional_config:
+    description: |
+      Additional configuration to pass to the weaviate client.
+    type: dict
+    default: None
+  additional_headers:
+    description: |
+      Additional headers to pass to the weaviate client.
+    type: dict
+    default: {}
   vectorizer:
     description: |
       Which vectorizer to use. 
@@ -47,7 +133,7 @@ args:
       .io/developers/weaviate/modules/retriever-vectorizer-modules
       Set this to None if you want to insert your own embeddings.
     type: str
-    default: None
+    default: {}
   module_config:
     description: |
         The configuration of the vectorizer module.
