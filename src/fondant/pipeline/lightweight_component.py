@@ -40,14 +40,30 @@ def lightweight_component(
             script=script,
         )
 
+        validate_required_functions_are_implemented(cls)
         base_component_cls = cls.__bases__[0]
+        validate_return_types(base_component_cls, cls)
 
-        for function_name in dir(cls):
+        # updated=() is needed to prevent an attempt to update the class's __dict__
+        @wraps(cls, updated=())
+        class AppliedPythonComponent(cls, PythonComponent):
+            @classmethod
+            def image(cls) -> Image:
+                return image
+
+        return AppliedPythonComponent
+
+    def validate_return_types(base_component_cls, cls_implementation):
+        """
+        Compare the return types of overridden methods in a class with their counterparts
+        in the BaseComponent classes.
+        """
+        for function_name in dir(cls_implementation):
             if not function_name.startswith("__") and function_name in dir(
                 base_component_cls,
             ):
                 type_cls_implementation = inspect.signature(
-                    getattr(cls, function_name, None),
+                    getattr(cls_implementation, function_name, None),
                 ).return_annotation
                 type_base_cls = inspect.signature(
                     getattr(base_component_cls, function_name, None),
@@ -61,14 +77,24 @@ def lightweight_component(
                         msg,
                     )
 
-        # updated=() is needed to prevent an attempt to update the class's __dict__
-        @wraps(cls, updated=())
-        class AppliedPythonComponent(cls, PythonComponent):
-            @classmethod
-            def image(cls) -> Image:
-                return image
-
-        return AppliedPythonComponent
+    def validate_required_functions_are_implemented(cls):
+        """
+        Function to validate that a class has overridden every required function marked as
+        abstract.
+        """
+        abstract_methods = [
+            name
+            for name, value in inspect.getmembers(cls)
+            if getattr(value, "__isabstractmethod__", False)
+        ]
+        if len(abstract_methods) >= 1:
+            msg = (
+                f"Every required function must be overridden in the PythonComponent. "
+                f"Missing implementations for the following functions: {abstract_methods}"
+            )
+            raise ValueError(
+                msg,
+            )
 
     return wrapper
 

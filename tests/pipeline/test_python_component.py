@@ -107,20 +107,38 @@ def test_valid_load_component():
             )
             return dd.from_pandas(df, npartitions=1)
 
-    CreateData()
+    CreateData(produces={}, consumes={})
 
 
 def test_invalid_load_component():
-    @lightweight_component(
-        base_image="python:3.8-slim-buster",
-    )
-    class CreateData(DaskLoadComponent):
-        def load(self) -> int:
-            return 1
-
-    with pytest.raises(
+    with pytest.raises(  # noqa: PT012
         ValueError,
-        match="Invalid function definition of function load."
-        "The return type has to be <class 'dask.dataframe.core.DataFrame'>",
+        match="Every required function must be overridden in the PythonComponent. "
+        "Missing implementations for the following functions: \\['load'\\]",
     ):
-        CreateData()
+
+        @lightweight_component(
+            base_image="python:3.8-slim-buster",
+        )
+        class CreateData(DaskLoadComponent):
+            def custom_load(self) -> int:
+                return 1
+
+        CreateData(produces={}, consumes={})
+
+
+def test_invalid_load_component_wrong_return_type():
+    with pytest.raises(  # noqa: PT012
+        ValueError,
+        match="Invalid function definition of function load. The return type "
+        "has to be <class 'dask.dataframe.core.DataFrame'>",
+    ):
+
+        @lightweight_component(
+            base_image="python:3.8-slim-buster",
+        )
+        class CreateData(DaskLoadComponent):
+            def load(self) -> int:
+                return 1
+
+        CreateData(produces={}, consumes={})
