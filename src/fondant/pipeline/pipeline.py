@@ -17,8 +17,9 @@ except ImportError:
 
 import pyarrow as pa
 
+from fondant.component import BaseComponent
 from fondant.core.component_spec import ComponentSpec, OperationSpec
-from fondant.core.exceptions import InvalidPipelineDefinition
+from fondant.core.exceptions import InvalidPipelineDefinition, InvalidPythonComponent
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
 from fondant.pipeline import Image, PythonComponent
@@ -182,7 +183,7 @@ class ComponentOp:
         self.resources = resources or Resources()
 
     @classmethod
-    def from_component_yaml(cls, path, **kwargs):
+    def from_component_yaml(cls, path, **kwargs) -> "ComponentOp":
         if cls._is_custom_component(path):
             component_dir = Path(path)
         else:
@@ -202,6 +203,48 @@ class ComponentOp:
             component_dir=component_dir,
             **kwargs,
         )
+
+    @classmethod
+    def from_ref(cls, ref: t.Any, **kwargs) -> "ComponentOp":
+        """Create a ComponentOp from a reference. The reference can
+        be a reusable component name, a path to a custom component,
+        or a python component class.
+        """
+        if inspect.isclass(ref) and issubclass(ref, BaseComponent):
+            if issubclass(ref, PythonComponent):
+                name = ref.__name__
+                image = ref.image()
+                description = ref.__doc__ or "python component"
+
+                component_spec = ComponentSpec(
+                    name,
+                    image.base_image,
+                    description=description,
+                    consumes={"additionalProperties": True},
+                    produces={"additionalProperties": True},
+                )
+
+                operation = cls(
+                    name,
+                    image,
+                    component_spec,
+                    **kwargs,
+                )
+            else:
+                msg = """Reference is not a valid Python component.
+                       Make sure the component is decorated properly."""
+                raise InvalidPythonComponent(msg)
+
+        elif isinstance(ref, (str, Path)):
+            operation = cls.from_component_yaml(
+                ref,
+                **kwargs,
+            )
+        else:
+            msg = f"""Invalid reference type: {type(ref)}.
+                Expected a string, Path, or a Python component class."""
+            raise ValueError(msg)
+        return operation
 
     def _configure_caching_from_image_tag(
         self,
@@ -386,44 +429,16 @@ class Pipeline:
                 msg,
             )
 
-        if inspect.isclass(ref) and issubclass(ref, PythonComponent):
-            name = ref.__name__
-            image = ref.image()
-            description = ref.__doc__ or "python component"
-
-            component_spec = ComponentSpec(
-                name,
-                image.base_image,  # TODO: revisit
-                description=description,
-                consumes={"additionalProperties": True},
-                produces={"additionalProperties": True},
-            )
-
-            operation = ComponentOp(
-                name,
-                image,
-                component_spec,
-                produces=produces,
-                arguments=arguments,
-                input_partition_rows=input_partition_rows,
-                resources=resources,
-                cache=cache,
-                cluster_type=cluster_type,
-                client_kwargs=client_kwargs,
-            )
-
-        else:
-            operation = ComponentOp.from_component_yaml(
-                ref,
-                produces=produces,
-                arguments=arguments,
-                input_partition_rows=input_partition_rows,
-                resources=resources,
-                cache=cache,
-                cluster_type=cluster_type,
-                client_kwargs=client_kwargs,
-            )
-
+        operation = ComponentOp.from_ref(
+            ref,
+            produces=produces,
+            arguments=arguments,
+            input_partition_rows=input_partition_rows,
+            resources=resources,
+            cache=cache,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
+        )
         manifest = Manifest.create(
             pipeline_name=self.name,
             base_path=self.base_path,
@@ -697,45 +712,17 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        if inspect.isclass(ref) and issubclass(ref, PythonComponent):
-            name = ref.__name__
-            image = ref.image()
-            description = ref.__doc__ or "python component"
-
-            component_spec = ComponentSpec(
-                name,
-                image.base_image,  # TODO: revisit
-                description=description,
-                consumes={"additionalProperties": True},
-                produces={"additionalProperties": True},
-            )
-
-            operation = ComponentOp(
-                name,
-                image,
-                component_spec,
-                consumes=consumes,
-                produces=produces,
-                arguments=arguments,
-                input_partition_rows=input_partition_rows,
-                resources=resources,
-                cache=cache,
-                cluster_type=cluster_type,
-                client_kwargs=client_kwargs,
-            )
-
-        else:
-            operation = ComponentOp.from_component_yaml(
-                ref,
-                consumes=consumes,
-                produces=produces,
-                arguments=arguments,
-                input_partition_rows=input_partition_rows,
-                resources=resources,
-                cache=cache,
-                cluster_type=cluster_type,
-                client_kwargs=client_kwargs,
-            )
+        operation = ComponentOp.from_ref(
+            ref,
+            produces=produces,
+            consumes=consumes,
+            arguments=arguments,
+            input_partition_rows=input_partition_rows,
+            resources=resources,
+            cache=cache,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
+        )
 
         return self._apply(operation)
 
@@ -772,41 +759,14 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        if inspect.isclass(ref) and issubclass(ref, PythonComponent):
-            name = ref.__name__
-            image = ref.image()
-            description = ref.__doc__ or "python component"
-
-            component_spec = ComponentSpec(
-                name,
-                image.base_image,  # TODO: revisit
-                description=description,
-                consumes={"additionalProperties": True},
-                produces={"additionalProperties": True},
-            )
-
-            operation = ComponentOp(
-                name,
-                image,
-                component_spec,
-                consumes=consumes,
-                arguments=arguments,
-                input_partition_rows=input_partition_rows,
-                resources=resources,
-                cache=cache,
-                cluster_type=cluster_type,
-                client_kwargs=client_kwargs,
-            )
-
-        else:
-            operation = ComponentOp.from_component_yaml(
-                ref,
-                consumes=consumes,
-                arguments=arguments,
-                input_partition_rows=input_partition_rows,
-                resources=resources,
-                cache=cache,
-                cluster_type=cluster_type,
-                client_kwargs=client_kwargs,
-            )
+        operation = ComponentOp.from_ref(
+            ref,
+            consumes=consumes,
+            arguments=arguments,
+            input_partition_rows=input_partition_rows,
+            resources=resources,
+            cache=cache,
+            cluster_type=cluster_type,
+            client_kwargs=client_kwargs,
+        )
         self._apply(operation)
