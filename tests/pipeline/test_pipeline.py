@@ -2,6 +2,8 @@
 import copy
 from pathlib import Path
 
+import dask.dataframe as dd
+import pandas as pd
 import pyarrow as pa
 import pytest
 import yaml
@@ -71,8 +73,15 @@ def test_component_op(
 def test_component_op_python_component(default_pipeline_args):
     @lightweight_component()
     class Foo(DaskLoadComponent):
-        def load(self) -> str:
-            return ["bar"]
+        def load(self) -> dd.DataFrame:
+            df = pd.DataFrame(
+                {
+                    "x": [1, 2, 3],
+                    "y": [4, 5, 6],
+                },
+                index=pd.Index(["a", "b", "c"], name="id"),
+            )
+            return dd.from_pandas(df, npartitions=1)
 
     component = ComponentOp.from_ref(Foo, produces={"bar": pa.string()})
     assert component.component_spec._specification == {
