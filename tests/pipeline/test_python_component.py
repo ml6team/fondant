@@ -8,6 +8,7 @@ import pytest
 from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.exceptions import InvalidPythonComponent
 from fondant.pipeline import Pipeline, lightweight_component
+from fondant.pipeline.compiler import DockerCompiler
 
 
 def test_build_python_script():
@@ -91,7 +92,7 @@ def test_lightweight_component_sdk():
 
     @lightweight_component()
     class AddN(PandasTransformComponent):
-        def __init__(self, n: int):
+        def __init__(self, n: int, **kwargs):
             self.n = n
 
         def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -102,6 +103,7 @@ def test_lightweight_component_sdk():
         ref=AddN,
         produces={"x": pa.int32(), "y": pa.int32()},
         consumes={"x": pa.int32(), "y": pa.int32()},
+        arguments={"n": 1},
     )
     assert len(pipeline._graph.keys()) == 1 + 1
     assert pipeline._graph["AddN"]["dependencies"] == ["CreateData"]
@@ -113,11 +115,14 @@ def test_lightweight_component_sdk():
             "description": "python component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
+            "args": {"n": {"type": "int"}},
         },
         "consumes": {"x": {"type": "int32"}, "y": {"type": "int32"}},
         "produces": {"x": {"type": "int32"}, "y": {"type": "int32"}},
     }
     pipeline._validate_pipeline_definition(run_id="dummy-run-id")
+
+    DockerCompiler().compile(pipeline)
 
 
 def test_lightweight_component_missing_decorator():
