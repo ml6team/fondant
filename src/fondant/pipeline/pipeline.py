@@ -223,7 +223,10 @@ class ComponentOp:
                     description=description,
                     consumes={"additionalProperties": True},
                     produces={"additionalProperties": True},
-                    args={k: v.to_spec() for k, v in infer_arguments(ref).items()},
+                    args={
+                        name: arg.to_spec()
+                        for name, arg in infer_arguments(ref).items()
+                    },
                 )
 
                 operation = cls(
