@@ -25,3 +25,7 @@ class InvalidTypeSchema(ValidationError, FondantException):
 
 class UnsupportedTypeAnnotation(FondantException):
     """Thrown when an unsupported type annotation is encountered during type inference."""
+
+
+class InvalidPythonComponent(FondantException):
+    """Thrown when a component is not a valid Python component."""
