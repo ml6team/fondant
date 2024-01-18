@@ -103,7 +103,7 @@ def test_lightweight_component_sdk():
         produces={"x": pa.int32(), "y": pa.int32()},
         consumes={"x": pa.int32(), "y": pa.int32()},
     )
-    
+
     assert len(pipeline._graph.keys()) == 1 + 1
     assert pipeline._graph["AddN"]["dependencies"] == ["CreateData"]
     operation_spec = pipeline._graph["AddN"]["operation"].operation_spec.to_json()
@@ -137,7 +137,8 @@ def test_lightweight_component_missing_decorator():
             produces={"x": pa.int32(), "y": pa.int32()},
         )
 
-        def test_valid_load_component():
+
+def test_valid_load_component():
     @lightweight_component(
         base_image="python:3.8-slim-buster",
     )
