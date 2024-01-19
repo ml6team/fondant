@@ -329,10 +329,6 @@ class ComponentSpec:
             ),
         }
 
-    @property
-    def kubeflow_specification(self) -> "KubeflowComponentSpec":
-        return KubeflowComponentSpec.from_fondant_component_spec(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r})"
 
@@ -598,7 +594,12 @@ class KubeflowComponentSpec:
         return args
 
     @classmethod
-    def from_fondant_component_spec(cls, fondant_component: ComponentSpec):
+    def from_fondant_component_spec(
+        cls,
+        fondant_component: ComponentSpec,
+        command: t.List[str],
+        image_uri: str,
+    ):
         """Generate a Kubeflow component spec from a Fondant component spec."""
         input_definitions = {
             "parameters": {
@@ -621,8 +622,8 @@ class KubeflowComponentSpec:
                     "exec-"
                     + cleaned_component_name: {
                         "container": {
-                            "command": ["fondant", "execute", "main"],
-                            "image": fondant_component.image,
+                            "command": command,
+                            "image": image_uri,
                         },
                     },
                 },

@@ -11,6 +11,7 @@ from pathlib import Path
 
 import yaml
 
+from fondant.core.component_spec import KubeflowComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Metadata
 from fondant.core.schema import CloudCredentialsMount, DockerVolume
@@ -378,8 +379,16 @@ class KubeFlowCompiler(Compiler):
 
                 component_op = component["operation"]
                 # convert ComponentOp to Kubeflow component
+                command = self._build_entrypoint(component_op.image)
+                image_uri = component_op.image.base_image
+                kubeflow_spec = KubeflowComponentSpec.from_fondant_component_spec(
+                    component_op.component_spec,
+                    command=command,
+                    image_uri=image_uri,
+                )
+
                 kubeflow_component_op = self.kfp.components.load_component_from_text(
-                    text=component_op.component_spec.kubeflow_specification.to_string(),
+                    text=kubeflow_spec.to_string(),
                 )
 
                 # Remove None values from arguments

@@ -100,7 +100,11 @@ def test_attribute_access(valid_fondant_schema):
 def test_kfp_component_creation(valid_fondant_schema, valid_kubeflow_schema):
     """Test that the created kubeflow component matches the expected kubeflow component."""
     fondant_component = ComponentSpec.from_dict(valid_fondant_schema)
-    kubeflow_component = fondant_component.kubeflow_specification
+    kubeflow_component = KubeflowComponentSpec.from_fondant_component_spec(
+        fondant_component,
+        command=["fondant", "execute", "main"],
+        image_uri="example_component:latest",
+    )
     assert kubeflow_component._specification == valid_kubeflow_schema
 
 
