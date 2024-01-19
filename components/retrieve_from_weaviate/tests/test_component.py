@@ -68,6 +68,7 @@ def test_component():
             additional_headers={},
             hybrid_query=None,
             hybrid_alpha=None,
+            rerank=False,
         )
 
         output_dataframe = component.transform(input_dataframe)
