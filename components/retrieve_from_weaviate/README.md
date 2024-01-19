@@ -55,6 +55,7 @@ dataset = dataset.apply(
         "text": "text"
     }
 )
+```
 
 ```python
 import pyarrow as pa

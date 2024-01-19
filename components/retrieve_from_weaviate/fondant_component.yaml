@@ -53,6 +53,7 @@ description: |
           "text": "text"
       }
   )
+  ```
   
   ```python
   import pyarrow as pa
