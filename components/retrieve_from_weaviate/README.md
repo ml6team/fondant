@@ -34,6 +34,10 @@ The component takes the following arguments to alter its behavior:
 | weaviate_url | str | The URL of the weaviate instance. | http://localhost:8080 |
 | class_name | str | The name of the weaviate class that will be queried | / |
 | top_k | int | Number of chunks to retrieve | / |
+| additional_config | dict | Additional configuration to pass to the weaviate client. | / |
+| additional_headers | dict | Additional headers to pass to the weaviate client. | / |
+| hybrid_query | str | The hybrid query to be used for retrieval. Optional parameter. | / |
+| hybrid_alpha | float | Argument to change how much each search affects the results. An alpha of 1 is a pure vector search. An alpha of 0 is a pure keyword search. | / |
 
 <a id="retrieve_from_weaviate#usage"></a>
 ## Usage 
@@ -55,6 +59,10 @@ dataset = dataset.apply(
         # "weaviate_url": "http://localhost:8080",
         # "class_name": ,
         # "top_k": 0,
+        # "additional_config": {},
+        # "additional_headers": {},
+        # "hybrid_query": ,
+        # "hybrid_alpha": 0.0,
     },
 )
 ```
