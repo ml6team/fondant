@@ -1,23 +1,45 @@
 import inspect
 import itertools
+import sys
 import textwrap
 import typing as t
 from dataclasses import dataclass
 from functools import wraps
+from importlib.metadata import version
 
 from fondant.component import Component
+
+MIN_PYTHON_VERSION = (3, 8)
+MAX_PYTHON_VERSION = (3, 10)
 
 
 @dataclass
 class Image:
-    base_image: str = "fondant:latest"
+    base_image: str
     extra_requires: t.Optional[t.List[str]] = None
     script: t.Optional[str] = None
 
     def __post_init__(self):
         if self.base_image is None:
-            # TODO: link to Fondant version
-            self.base_image = "fondant:latest"
+            self.base_image = self.resolve_fndnt_base_image()
+
+    @staticmethod
+    def resolve_fndnt_base_image(use_ecr_registry=False):
+        """Resolve the correct fndnt base image using python version and fondant version."""
+        # Set python version to latest supported version
+        python_version = sys.version_info
+        if MIN_PYTHON_VERSION <= python_version < MAX_PYTHON_VERSION:
+            python_version = "3.10"
+        else:
+            python_version = f"{python_version.major}.{python_version.minor}"
+
+        fondant_version = version("fondant")
+        basename = (
+            "fndnt/fondant-base"
+            if use_ecr_registry
+            else "public.ecr.aws/fndnt/fondant-base"
+        )
+        return f"{basename}:{fondant_version}-python{python_version}"
 
 
 class PythonComponent:
