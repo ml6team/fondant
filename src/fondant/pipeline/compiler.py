@@ -571,7 +571,7 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
                 msg,
             )
 
-    def _get_build_command(
+    def _build_command(
         self,
         metadata: Metadata,
         arguments: t.Dict[str, t.Any],
@@ -639,19 +639,24 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
     def _patch_uri(self, og_uri: str) -> str:
         full_ref, tag = og_uri.split(":")
 
-        ref, *_ = full_ref.split("/")
+        ref, *repo = full_ref.split("/")
 
-        if ref == "fndnt":
-            logging.info("Reusable component detected, patching URI")
-            # force pullthrough cache to be used
+        def pull_through(repository_name):
             _ = self.ecr_client.batch_get_image(
-                repositoryName=f"{self.ecr_namespace}/{full_ref}",
+                repositoryName=repository_name,
                 imageIds=[{"imageTag": tag}],
             )
             repo_response = self.ecr_client.describe_repositories(
-                repositoryNames=[f"{self.ecr_namespace}/{full_ref}"],
+                repositoryNames=[repository_name],
             )
-            uri = repo_response["repositories"][0]["repositoryUri"] + ":" + tag
+            return repo_response["repositories"][0]["repositoryUri"] + ":" + tag
+
+        if ref == "fndnt":
+            logging.info("Reusable component detected, patching URI")
+            uri = pull_through(f"{self.ecr_namespace}/{full_ref}")
+        elif ref == "public.ecr.aws":
+            logging.info("Public AWS ECR component detected, patching URI")
+            uri = pull_through(f"{self.ecr_namespace}/{'/'.join(repo)}")
         else:
             logging.info("Custom component detected")
             # the uri does not need patching
@@ -712,17 +717,21 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
 
                 logger.info(f"Compiling service for {component_name}")
 
-                command = self._get_build_command(
+                command = self._build_command(
                     metadata,
                     component_op.arguments,
                     component["dependencies"],
                 )
                 depends_on = [steps[-1]] if component["dependencies"] else []
 
+                image = component_op.image
+                entrypoint = self._build_entrypoint(image)
+
                 script_path = self.generate_component_script(
-                    component_name,
-                    command,
-                    tmpdirname,
+                    entrypoint=entrypoint,
+                    command=command,
+                    component_name=component_name,
+                    directory=tmpdirname,
                 )
 
                 if not role_arn:
@@ -733,7 +742,7 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
                 resources_dict = self._set_configuration(component_op)
 
                 processor = self.sagemaker.processing.ScriptProcessor(
-                    image_uri=self._patch_uri(component_op.component_spec.image),
+                    image_uri=self._patch_uri(image.base_image),
                     command=["bash"],
                     instance_count=1,
                     base_job_name=component_name,
@@ -785,23 +794,21 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
 
         return {"instance_type": instance_type}
 
+    @staticmethod
     def generate_component_script(
-        self,
-        component_name: str,
+        *,
+        entrypoint: t.List[str],
         command: t.List[str],
+        component_name: str,
         directory: str,
     ) -> str:
         """Generate a bash script for a component to be used as input in a
         sagemaker pipeline step. Returns the path to the script.
         """
-        content = ["fondant", "execute", "main"]
-
         # use shlex.quote to escape special bash chars
-        for c in command:
-            content.append(c.replace("'", ""))
-
-        cleaned_content = shlex.join(content)
+        command_string = [arg.replace("'", "") for arg in command]
+        cleaned_script = shlex.join([*entrypoint, *command_string])
 
         with open(f"{directory}/{component_name}.sh", "w") as f:
-            f.write(cleaned_content)
+            f.write(cleaned_script)
         return f"{directory}/{component_name}.sh"
