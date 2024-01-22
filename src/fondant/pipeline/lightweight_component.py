@@ -5,7 +5,10 @@ import typing as t
 from dataclasses import dataclass
 from functools import wraps
 
+import pyarrow as pa
+
 from fondant.component import BaseComponent, Component
+from fondant.core.schema import Field, Type
 
 
 @dataclass
@@ -25,11 +28,24 @@ class PythonComponent(BaseComponent):
     def image(cls) -> Image:
         raise NotImplementedError
 
+    @classmethod
+    def consumes(cls) -> t.Optional[t.Union[list, str]]:
+        pass
+
+    @classmethod
+    def get_consumes_spec(
+        cls,
+        dataset_fields: t.Mapping[str, Field],
+        apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
+    ):
+        pass
+
 
 def lightweight_component(
     *args,
     extra_requires: t.Optional[t.List[str]] = None,
     base_image: t.Optional[str] = None,
+    consumes: t.Optional[t.Union[list, str]] = None,
 ):
     """Decorator to enable a python component."""
 
@@ -117,6 +133,49 @@ def lightweight_component(
             @classmethod
             def image(cls) -> Image:
                 return image
+
+            @classmethod
+            def consumes(cls) -> t.Optional[t.Union[list, str]]:
+                return consumes
+
+            @classmethod
+            def get_consumes_spec(
+                cls,
+                dataset_fields: t.Mapping[str, Field],
+                apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
+            ):
+                decorator_consumes: t.Union[list, str, None] = cls.consumes()
+
+                if decorator_consumes == "generic":
+                    return {"additionalProperties": True}
+
+                # Get dataset fields
+                consumes_spec = {k: v.type.to_json() for k, v in dataset_fields.items()}
+
+                # Modify naming based on the 'apply' consumes
+                if apply_consumes:
+                    for k, v in apply_consumes.items():
+                        if isinstance(v, str):
+                            consumes_spec[k] = consumes_spec.pop(v)
+                        elif isinstance(v, pa.DataType):
+                            consumes_spec[k] = Type(v).to_json()
+
+                # Filter for values that are not in the user defined consumes
+                if decorator_consumes:
+                    for field_to_consume in decorator_consumes:
+                        if field_to_consume not in consumes_spec.keys():
+                            msg = f"Field `{field_to_consume}` is not available in the dataset."
+                            raise ValueError(
+                                msg,
+                            )
+
+                        consumes_spec = {
+                            k: v
+                            for k, v in consumes_spec.items()
+                            if k in decorator_consumes
+                        }
+
+                return consumes_spec
 
         return PythonComponentOp
 

@@ -206,7 +206,12 @@ class ComponentOp:
         )
 
     @classmethod
-    def from_ref(cls, ref: t.Any, **kwargs) -> "ComponentOp":
+    def from_ref(
+        cls,
+        ref: t.Any,
+        fields: t.Optional[t.Mapping[str, Field]] = None,
+        **kwargs,
+    ) -> "ComponentOp":
         """Create a ComponentOp from a reference. The reference can
         be a reusable component name, a path to a custom component,
         or a python component class.
@@ -217,11 +222,16 @@ class ComponentOp:
                 image = ref.image()
                 description = ref.__doc__ or "python component"
 
+                if fields:
+                    consumes_spec = ref.get_consumes_spec(fields, kwargs["consumes"])
+                else:
+                    consumes_spec = {"additionalProperties": True}
+
                 component_spec = ComponentSpec(
                     name,
                     image.base_image,
                     description=description,
-                    consumes={"additionalProperties": True},
+                    consumes=consumes_spec,
                     produces={"additionalProperties": True},
                     args={
                         name: arg.to_spec()
@@ -719,6 +729,7 @@ class Dataset:
         """
         operation = ComponentOp.from_ref(
             ref,
+            fields=self.fields,
             produces=produces,
             consumes=consumes,
             arguments=arguments,
@@ -766,6 +777,7 @@ class Dataset:
         """
         operation = ComponentOp.from_ref(
             ref,
+            fields=self.fields,
             consumes=consumes,
             arguments=arguments,
             input_partition_rows=input_partition_rows,

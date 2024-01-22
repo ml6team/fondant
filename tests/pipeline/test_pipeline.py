@@ -71,7 +71,7 @@ def test_component_op(
 
 
 def test_component_op_python_component(default_pipeline_args):
-    @lightweight_component()
+    @lightweight_component(consumes="generic")
     class Foo(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
             df = pd.DataFrame(
@@ -83,7 +83,7 @@ def test_component_op_python_component(default_pipeline_args):
             )
             return dd.from_pandas(df, npartitions=1)
 
-    component = ComponentOp.from_ref(Foo, produces={"bar": pa.string()})
+    component = ComponentOp.from_ref(Foo, consumes={"bar": pa.string()})
     assert component.component_spec._specification == {
         "name": "Foo",
         "image": "fondant:latest",
