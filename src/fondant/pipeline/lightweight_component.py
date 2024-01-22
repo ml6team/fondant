@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from functools import wraps
 from importlib.metadata import version
 
-from fondant.component import Component
+from fondant.component import BaseComponent, Component
 
 MIN_PYTHON_VERSION = (3, 8)
 MAX_PYTHON_VERSION = (3, 11)
@@ -42,7 +42,7 @@ class Image:
         return f"{basename}:{fondant_version}-python{python_version}"
 
 
-class PythonComponent:
+class PythonComponent(BaseComponent):
     @classmethod
     def image(cls) -> Image:
         raise NotImplementedError
@@ -64,12 +64,12 @@ def lightweight_component(
 
         # updated=() is needed to prevent an attempt to update the class's __dict__
         @wraps(cls, updated=())
-        class AppliedPythonComponent(cls, PythonComponent):
+        class PythonComponentOp(cls, PythonComponent):
             @classmethod
             def image(cls) -> Image:
                 return image
 
-        return AppliedPythonComponent
+        return PythonComponentOp
 
     return wrapper
 

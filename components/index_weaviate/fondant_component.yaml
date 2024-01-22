@@ -120,7 +120,7 @@ args:
     description: |
       Additional configuration to pass to the weaviate client.
     type: dict
-    default: None
+    default: {}
   additional_headers:
     description: |
       Additional headers to pass to the weaviate client.
@@ -133,7 +133,7 @@ args:
       .io/developers/weaviate/modules/retriever-vectorizer-modules
       Set this to None if you want to insert your own embeddings.
     type: str
-    default: {}
+    default: None
   module_config:
     description: |
         The configuration of the vectorizer module.
