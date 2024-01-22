@@ -10,7 +10,7 @@ from importlib.metadata import version
 from fondant.component import Component
 
 MIN_PYTHON_VERSION = (3, 8)
-MAX_PYTHON_VERSION = (3, 10)
+MAX_PYTHON_VERSION = (3, 11)
 
 
 @dataclass

@@ -17,7 +17,7 @@ esac; shift; done
 
 
 # Supported Python versions
-python_versions=("3.8" "3.9" "3.10")
+python_versions=("3.8" "3.9" "3.10", "3.11")
 
 
 for python_version in "${python_versions[@]}"; do
