@@ -29,14 +29,14 @@ class Image:
         # Set python version to latest supported version
         python_version = sys.version_info
         if MIN_PYTHON_VERSION <= python_version < MAX_PYTHON_VERSION:
-            python_version = f"{MAX_PYTHON_VERSION[0]}.{MAX_PYTHON_VERSION[1]}"
-        else:
             python_version = f"{python_version.major}.{python_version.minor}"
+        else:
+            python_version = f"{MAX_PYTHON_VERSION[0]}.{MAX_PYTHON_VERSION[1]}"
 
         fondant_version = version("fondant")
         basename = (
             "fndnt/fondant-base"
-            if use_ecr_registry
+            if not use_ecr_registry
             else "public.ecr.aws/fndnt/fondant-base"
         )
         return f"{basename}:{fondant_version}-python{python_version}"

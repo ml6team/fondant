@@ -1,5 +1,7 @@
 """Fondant pipelines test."""
 import copy
+import sys
+from importlib.metadata import version
 from pathlib import Path
 
 import pyarrow as pa
@@ -74,10 +76,16 @@ def test_component_op_python_component(default_pipeline_args):
         def load(self) -> str:
             return ["bar"]
 
+    basename = "fndnt/fondant-base"
+    fondant_version = version("fondant")
+    python_version = sys.version_info
+    python_version = f"{python_version.major}.{python_version.minor}"
+    fondant_image_name = f"{basename}:{fondant_version}-python{python_version}"
+
     component = ComponentOp.from_ref(Foo, produces={"bar": pa.string()})
     assert component.component_spec._specification == {
         "name": "Foo",
-        "image": "fondant:latest",
+        "image": fondant_image_name,
         "description": "python component",
         "consumes": {"additionalProperties": True},
         "produces": {"additionalProperties": True},

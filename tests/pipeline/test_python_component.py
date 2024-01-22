@@ -1,5 +1,7 @@
 import json
+import sys
 import textwrap
+from importlib.metadata import version
 
 import dask.dataframe as dd
 import pandas as pd
@@ -106,10 +108,17 @@ def test_lightweight_component_sdk():
     assert len(pipeline._graph.keys()) == 1 + 1
     assert pipeline._graph["AddN"]["dependencies"] == ["CreateData"]
     operation_spec = pipeline._graph["AddN"]["operation"].operation_spec.to_json()
+
+    basename = "fndnt/fondant-base"
+    fondant_version = version("fondant")
+    python_version = sys.version_info
+    python_version = f"{python_version.major}.{python_version.minor}"
+    fondant_image_name = f"{basename}:{fondant_version}-python{python_version}"
+
     assert json.loads(operation_spec) == {
         "specification": {
             "name": "AddN",
-            "image": "fondant:latest",
+            "image": fondant_image_name,
             "description": "python component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
