@@ -1,4 +1,5 @@
 import json
+import re
 import textwrap
 
 import dask.dataframe as dd
@@ -196,8 +197,11 @@ def test_invalid_load_transform_component():
 def test_invalid_load_component_wrong_return_type():
     with pytest.raises(  # noqa: PT012
         ValueError,
-        match="Invalid function definition of function load. The return type "
-        "has to be <class 'dask.dataframe.core.DataFrame'>",
+        match=re.escape(
+            "Invalid function definition of function load. "
+            "The expected function signature "
+            "is (self) -> dask.dataframe.core.DataFrame",
+        ),
     ):
 
         @lightweight_component(
@@ -208,3 +212,33 @@ def test_invalid_load_component_wrong_return_type():
                 return 1
 
         CreateData(produces={}, consumes={})
+
+
+def test_lightweight_component_decorator_without_parentheses():
+    @lightweight_component
+    class CreateData(DaskLoadComponent):
+        def load(self) -> dd.DataFrame:
+            return None
+
+    pipeline = Pipeline(
+        name="dummy-pipeline",
+        base_path="./data",
+    )
+
+    pipeline.read(
+        ref=CreateData,
+    )
+
+    assert len(pipeline._graph.keys()) == 1
+    operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
+    assert json.loads(operation_spec) == {
+        "specification": {
+            "name": "CreateData",
+            "image": "fondant:latest",
+            "description": "python component",
+            "consumes": {"additionalProperties": True},
+            "produces": {"additionalProperties": True},
+        },
+        "consumes": {},
+        "produces": {},
+    }
