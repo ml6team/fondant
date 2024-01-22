@@ -5,6 +5,7 @@ from abc import abstractmethod
 
 import dask.dataframe as dd
 import pandas as pd
+import pandera
 
 from fondant.core.schema import Field
 
@@ -13,7 +14,7 @@ class BaseComponent:
     """Base interface for each component, specifying only the constructor.
 
     Args:
-        consume: The schema the component should consume
+        consumes: The schema the component should consume
         produces: The schema the component should produce
         **kwargs: The provided user arguments are passed in as keyword arguments
     """
@@ -75,6 +76,24 @@ class PandasTransformComponent(BaseComponent):
         Args:
             dataframe: A Pandas dataframe containing a partition of the data
         """
+
+    @classmethod
+    def resolve_produces(cls, consumes):
+        """Simulate a transform function and collect schema information."""
+        # TODO: Convert consumes pyarrow dict into pandera types dict
+        input_schema = pandera.DataFrameSchema(
+            {
+                "context_precision": pandera.Column(float),
+                "context_relevancy": pandera.Column(float),
+            },
+        )
+
+        input_df = input_schema.example(size=2)
+        output_df = cls(consumes={}, produces={}).transform(dataframe=input_df)
+        output_schema = pandera.infer_schema(output_df)
+
+        # TODO: convert schema into pyarrow types and produces dict before returning
+        return output_schema  # noqa RET504
 
 
 Component = t.TypeVar("Component", bound=BaseComponent)

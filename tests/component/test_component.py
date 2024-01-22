@@ -566,3 +566,12 @@ def test_write_component(metadata):
     with mock.patch.object(MyWriteComponent, "write", write):
         executor.execute(MyWriteComponent)
         write.mock.assert_called_once()
+
+
+def test_resolve_schema_pandas_transform():
+    class MyPandasComponent(PandasTransformComponent):
+        def transform(self, dataframe):
+            assert isinstance(dataframe, pd.DataFrame)
+            return dataframe.rename(columns={"images": "embeddings"})
+
+    MyPandasComponent.resolve_produces({"x": pa.int32(), "y": pa.int32()})

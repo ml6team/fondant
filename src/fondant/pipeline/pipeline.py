@@ -217,12 +217,18 @@ class ComponentOp:
                 image = ref.image()
                 description = ref.__doc__ or "python component"
 
+                # Try to determine produce for TransformComponents
+                if hasattr(cls, "resolve_produce"):
+                    produces = cls.resolve_produce(consumes=kwargs["consumes"])
+                else:
+                    produces = kwargs["produces"] or {"additionalProperties": True}
+
                 component_spec = ComponentSpec(
                     name,
                     image.base_image,
                     description=description,
-                    consumes={"additionalProperties": True},
-                    produces={"additionalProperties": True},
+                    consumes=kwargs["consumes"] or {"additionalProperties": True},
+                    produces=produces,
                     args={
                         name: arg.to_spec()
                         for name, arg in infer_arguments(ref).items()
