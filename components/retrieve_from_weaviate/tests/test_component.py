@@ -64,6 +64,11 @@ def test_component():
             weaviate_url=url,
             class_name="Test",
             top_k=2,
+            additional_config={},
+            additional_headers={},
+            hybrid_query=None,
+            hybrid_alpha=None,
+            rerank=False,
         )
 
         output_dataframe = component.transform(input_dataframe)

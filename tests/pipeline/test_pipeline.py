@@ -2,13 +2,16 @@
 import copy
 from pathlib import Path
 
+import dask.dataframe as dd
+import pandas as pd
 import pyarrow as pa
 import pytest
 import yaml
+from fondant.component import DaskLoadComponent
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.schema import Field, Type
-from fondant.pipeline import ComponentOp, Pipeline, Resources
+from fondant.pipeline import ComponentOp, Pipeline, Resources, lightweight_component
 
 valid_pipeline_path = Path(__file__).parent / "examples/pipelines/valid_pipeline"
 invalid_pipeline_path = Path(__file__).parent / "examples/pipelines/invalid_pipeline"
@@ -65,6 +68,38 @@ def test_component_op(
                 accelerator_number=1,
             ),
         )
+
+
+def test_component_op_python_component(default_pipeline_args):
+    @lightweight_component(consumes="generic")
+    class Foo(DaskLoadComponent):
+        def load(self) -> dd.DataFrame:
+            df = pd.DataFrame(
+                {
+                    "x": [1, 2, 3],
+                    "y": [4, 5, 6],
+                },
+                index=pd.Index(["a", "b", "c"], name="id"),
+            )
+            return dd.from_pandas(df, npartitions=1)
+
+    component = ComponentOp.from_ref(Foo, consumes={"bar": pa.string()})
+    assert component.component_spec._specification == {
+        "name": "Foo",
+        "image": "fondant:latest",
+        "description": "python component",
+        "consumes": {"additionalProperties": True},
+        "produces": {"additionalProperties": True},
+    }
+
+
+def test_component_op_bad_ref():
+    with pytest.raises(
+        ValueError,
+        match="""Invalid reference type: <class 'int'>.
+                Expected a string, Path, or a Python component class.""",
+    ):
+        ComponentOp.from_ref(123)
 
 
 @pytest.mark.parametrize(
