@@ -29,7 +29,7 @@ class Image:
         # Set python version to latest supported version
         python_version = sys.version_info
         if MIN_PYTHON_VERSION <= python_version < MAX_PYTHON_VERSION:
-            python_version = "3.10"
+            python_version = f"{MAX_PYTHON_VERSION[0]}.{MAX_PYTHON_VERSION[1]}"
         else:
             python_version = f"{python_version.major}.{python_version.minor}"
 
