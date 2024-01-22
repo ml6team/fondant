@@ -703,10 +703,7 @@ class Dataset:
             image = ref.image()
             description = ref.__doc__ or "python component"
 
-            consumes_spec = {k: v.type.to_json() for k, v in self.fields.items()}
-            if consumes:
-                for k, v in consumes.items():
-                    consumes_spec[k] = consumes_spec[v]
+            consumes_spec = ref.get_consumes_spec(self.fields, consumes)
 
             component_spec = ComponentSpec(
                 name,
@@ -784,10 +781,7 @@ class Dataset:
             image = ref.image()
             description = ref.__doc__ or "python component"
 
-            consumes_spec = {k: v.type.to_json() for k, v in self.fields.items()}
-            if consumes:
-                for k, v in consumes.items():
-                    consumes_spec[k] = consumes_spec[v]
+            consumes_spec = ref.get_consumes_spec(self.fields, consumes)
 
             component_spec = ComponentSpec(
                 name,
