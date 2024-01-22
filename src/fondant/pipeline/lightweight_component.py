@@ -144,25 +144,33 @@ def lightweight_component(
                 dataset_fields: t.Mapping[str, Field],
                 apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
             ):
-                decorator_consumes: t.Union[list, str, None] = cls.consumes()
+                consumes: t.Union[list, str, None] = cls.consumes()
 
-                if decorator_consumes == "generic":
+                if consumes == "generic":
                     return {"additionalProperties": True}
 
-                # Get dataset fields
+                # Get consumes spec from the dataset
                 consumes_spec = {k: v.type.to_json() for k, v in dataset_fields.items()}
 
-                # Modify naming based on the 'apply' consumes
+                # Modify naming based on the consumes argument in the 'apply' method
                 if apply_consumes:
                     for k, v in apply_consumes.items():
                         if isinstance(v, str):
                             consumes_spec[k] = consumes_spec.pop(v)
                         elif isinstance(v, pa.DataType):
                             consumes_spec[k] = Type(v).to_json()
+                        else:
+                            msg = (
+                                f"Invalid data type for field `{k}` in the `apply_consumes` "
+                                f"argument. Only string and pa.DataType are allowed."
+                            )
+                            raise ValueError(
+                                msg,
+                            )
 
-                # Filter for values that are not in the user defined consumes
-                if decorator_consumes:
-                    for field_to_consume in decorator_consumes:
+                # Filter for values that are not in the user defined consumes list
+                if consumes:
+                    for field_to_consume in consumes:
                         if field_to_consume not in consumes_spec.keys():
                             msg = f"Field `{field_to_consume}` is not available in the dataset."
                             raise ValueError(
@@ -170,9 +178,7 @@ def lightweight_component(
                             )
 
                         consumes_spec = {
-                            k: v
-                            for k, v in consumes_spec.items()
-                            if k in decorator_consumes
+                            k: v for k, v in consumes_spec.items() if k in consumes
                         }
 
                 return consumes_spec
