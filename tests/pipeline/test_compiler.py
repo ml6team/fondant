@@ -1,7 +1,9 @@
 import datetime
 import json
+import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from unittest import mock
 
@@ -9,7 +11,9 @@ import dask.dataframe as dd
 import pandas as pd
 import pyarrow as pa
 import pytest
+import yaml
 from fondant.component import DaskLoadComponent
+from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest, Metadata
 from fondant.core.schema import CloudCredentialsMount
@@ -23,6 +27,7 @@ from fondant.pipeline import (
 from fondant.pipeline.compiler import (
     DockerCompiler,
     KubeFlowCompiler,
+    KubeflowComponentSpec,
     SagemakerCompiler,
     VertexCompiler,
 )
@@ -93,6 +98,28 @@ TEST_PIPELINES = [
         ],
     ),
 ]
+
+component_specs_path = Path("./tests/core/examples/component_specs")
+
+
+@pytest.fixture()
+def valid_kubeflow_schema() -> dict:
+    with open(component_specs_path / "kubeflow_component.yaml") as f:
+        return yaml.safe_load(f)
+
+
+@pytest.fixture()
+def valid_kubeflow_lightweight_pipeline() -> dict:
+    with open(
+        "tests/pipeline/examples/pipelines/compiled_pipeline/kubeflow_lightweight_pipeline.yml",
+    ) as f:
+        return yaml.safe_load(f)
+
+
+@pytest.fixture()
+def valid_fondant_schema() -> dict:
+    with open(component_specs_path / "valid_component.yaml") as f:
+        return yaml.safe_load(f)
 
 
 @pytest.fixture()
@@ -346,6 +373,86 @@ def test_invalid_docker_configuration(tmp_path_factory):
     compiler = DockerCompiler()
     with pytest.raises(InvalidPipelineDefinition):
         compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
+
+
+def test_kubeflow_component_creation(valid_fondant_schema, valid_kubeflow_schema):
+    """Test that the created kubeflow component matches the expected kubeflow component."""
+    fondant_component = ComponentSpec.from_dict(valid_fondant_schema)
+    kubeflow_component = KubeflowComponentSpec.from_fondant_component_spec(
+        fondant_component,
+        command=["fondant", "execute", "main"],
+        image_uri="example_component:latest",
+    )
+    assert kubeflow_component._specification == valid_kubeflow_schema
+
+
+def test_kubeflow_component_spec_to_file(valid_kubeflow_schema):
+    """Test that the KubeflowComponentSpec can be written to a file."""
+    kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file_path = os.path.join(temp_dir, "kubeflow_component_spec.yaml")
+        kubeflow_component_spec.to_file(file_path)
+
+        with open(file_path) as f:
+            written_data = yaml.safe_load(f)
+
+        # check if the written data is the same as the original data
+        assert written_data == valid_kubeflow_schema
+
+
+def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
+    """Test that the __repr__ method of KubeflowComponentSpec returns the expected string."""
+    kubeflow_component_spec = KubeflowComponentSpec(valid_kubeflow_schema)
+    expected_repr = f"KubeflowComponentSpec({valid_kubeflow_schema!r})"
+    assert repr(kubeflow_component_spec) == expected_repr
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_kubeflow_component_spec_from_lightweight_component(
+    valid_kubeflow_lightweight_pipeline,
+    tmp_path_factory,
+):
+    pipeline = Pipeline(
+        name="test-pipeline",
+        description="description of the test pipeline",
+        base_path="/foo/bar",
+    )
+
+    @lightweight_component(
+        base_image="python:3.8-slim-buster",
+        extra_requires=["pandas", "dask"],
+    )
+    class CreateData(DaskLoadComponent):
+        def load(self) -> dd.DataFrame:
+            df = pd.DataFrame(
+                {
+                    "x": [1, 2, 3],
+                    "y": [4, 5, 6],
+                },
+                index=pd.Index(["a", "b", "c"], name="id"),
+            )
+            return dd.from_pandas(df, npartitions=1)
+
+    _ = pipeline.read(
+        ref=CreateData,
+        produces={"x": pa.int32(), "y": pa.int32()},
+    )
+
+    compiler = KubeFlowCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "kubeflow_spec.yaml")
+        compiler.compile(pipeline=pipeline, output_path=output_path)
+        pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
+        assert pipeline_configs.component_configs["CreateData"].image == (
+            "python:3.8-slim-buster"
+        )
+        assert pipeline_configs.component_configs["CreateData"].command == [
+            "sh",
+            "-ec",
+            '                printf \'pandas\ndask\' > \'requirements.txt\'\n                python3 -m pip install -r requirements.txt\n            printf \'from typing import *\nimport typing as t\n\nimport dask.dataframe as dd\nimport fondant\nimport pandas as pd\nfrom fondant.component import *\nfrom fondant.core import *\n\n\nclass CreateData(DaskLoadComponent):\n    def load(self) -> dd.DataFrame:\n        df = pd.DataFrame(\n            {\n                "x": [1, 2, 3],\n                "y": [4, 5, 6],\n            },\n            index=pd.Index(["a", "b", "c"], name="id"),\n        )\n        return dd.from_pandas(df, npartitions=1)\n\' > \'main.py\'\n            fondant execute main "$@"\n',  # noqa E501
+            "--",
+        ]
 
 
 @pytest.mark.usefixtures("_freeze_time")

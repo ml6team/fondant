@@ -11,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from fondant.core.component_spec import KubeflowComponentSpec
+from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Metadata
 from fondant.core.schema import CloudCredentialsMount, DockerVolume
@@ -306,6 +306,115 @@ class DockerCompiler(Compiler):
                 raise NotImplementedError(msg)
 
         return services
+
+
+class KubeflowComponentSpec:
+    """
+    Class representing a Kubeflow component specification.
+
+    Args:
+        specification: The kubeflow component specification as a Python dict
+    """
+
+    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
+        self._specification = specification
+
+    @staticmethod
+    def convert_arguments(fondant_component: ComponentSpec):
+        args = {}
+        for arg in fondant_component.args.values():
+            arg_type_dict = {}
+
+            # Enable isOptional attribute in spec if arg is Optional and defaults to None
+            if arg.optional and arg.default is None:
+                arg_type_dict["isOptional"] = True
+            if arg.default is not None:
+                arg_type_dict["defaultValue"] = arg.default
+
+            args[arg.name] = {
+                "parameterType": arg.kubeflow_type,
+                "description": arg.description,
+                **arg_type_dict,  # type: ignore
+            }
+
+        return args
+
+    @classmethod
+    def from_fondant_component_spec(
+        cls,
+        fondant_component: ComponentSpec,
+        command: t.List[str],
+        image_uri: str,
+    ):
+        """Generate a Kubeflow component spec from a Fondant component spec."""
+        input_definitions = {
+            "parameters": {
+                **cls.convert_arguments(fondant_component),
+            },
+        }
+
+        cleaned_component_name = fondant_component.sanitized_component_name
+
+        specification = {
+            "components": {
+                "comp-"
+                + cleaned_component_name: {
+                    "executorLabel": "exec-" + cleaned_component_name,
+                    "inputDefinitions": input_definitions,
+                },
+            },
+            "deploymentSpec": {
+                "executors": {
+                    "exec-"
+                    + cleaned_component_name: {
+                        "container": {
+                            "command": command,
+                            "image": image_uri,
+                        },
+                    },
+                },
+            },
+            "pipelineInfo": {"name": cleaned_component_name},
+            "root": {
+                "dag": {
+                    "tasks": {
+                        cleaned_component_name: {
+                            "cachingOptions": {"enableCache": True},
+                            "componentRef": {"name": "comp-" + cleaned_component_name},
+                            "inputs": {
+                                "parameters": {
+                                    param: {"componentInputParameter": param}
+                                    for param in input_definitions["parameters"]
+                                },
+                            },
+                            "taskInfo": {"name": cleaned_component_name},
+                        },
+                    },
+                },
+                "inputDefinitions": input_definitions,
+            },
+            "schemaVersion": "2.1.0",
+            "sdkVersion": "kfp-2.0.1",
+        }
+        return cls(specification)
+
+    def to_file(self, path: t.Union[str, Path]) -> None:
+        """Dump the component specification to the file specified by the provided path."""
+        with open(path, "w", encoding="utf-8") as file_:
+            yaml.dump(
+                self._specification,
+                file_,
+                indent=4,
+                default_flow_style=False,
+                sort_keys=False,
+            )
+
+    def to_string(self) -> str:
+        """Return the component specification as a string."""
+        return json.dumps(self._specification)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._specification!r})"
 
 
 class KubeFlowCompiler(Compiler):

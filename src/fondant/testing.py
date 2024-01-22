@@ -39,6 +39,7 @@ class ComponentConfigs:
     """
 
     image: t.Optional[str] = None
+    command: t.Optional[t.List[str]] = None
     arguments: t.Optional[t.Dict[str, t.Any]] = None
     dependencies: t.Optional[t.List[str]] = None
     accelerators: t.Optional[t.List[Accelerator]] = None
@@ -249,6 +250,7 @@ class KubeflowPipelineConfigs(PipelineConfigs):
 
             component_config = KubeflowComponentConfig(
                 image=container_spec.get("image"),
+                command=container_spec.get("command"),
                 arguments=arguments,
                 dependencies=dependencies,
                 accelerators=accelerator_list,
