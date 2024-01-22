@@ -173,6 +173,26 @@ def test_invalid_load_component():
         CreateData(produces={}, consumes={})
 
 
+def test_invalid_load_transform_component():
+    with pytest.raises(  # noqa: PT012
+        ValueError,
+        match="Multiple base classes detected. Only one component should be inherited "
+        "or implemented.Found classes: DaskLoadComponent, PandasTransformComponent",
+    ):
+
+        @lightweight_component(
+            base_image="python:3.8-slim-buster",
+        )
+        class CreateData(DaskLoadComponent, PandasTransformComponent):
+            def load(self) -> dd.DataFrame:
+                pass
+
+            def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+                pass
+
+        CreateData(produces={}, consumes={})
+
+
 def test_invalid_load_component_wrong_return_type():
     with pytest.raises(  # noqa: PT012
         ValueError,

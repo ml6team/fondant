@@ -40,9 +40,9 @@ def lightweight_component(
             script=script,
         )
 
-        validate_required_functions_are_implemented(cls)
-        base_component_cls = cls.__bases__[0]
-        validate_return_types(base_component_cls, cls)
+        validate_abstract_methods_are_implemented(cls)
+        base_component_cls = get_base_cls(cls)
+        validate_signatures(base_component_cls, cls)
 
         # updated=() is needed to prevent an attempt to update the class's __dict__
         @wraps(cls, updated=())
@@ -53,9 +53,30 @@ def lightweight_component(
 
         return AppliedPythonComponent
 
-    def validate_return_types(base_component_cls, cls_implementation):
+    def get_base_cls(cls):
         """
-        Compare the return types of overridden methods in a class with their counterparts
+        Returns the BaseComponent. If the implementation inherits from several classes,
+        the Fondant base class is selected. If more than one Fondant base component
+        is implemented, an exception is raised.
+        """
+        base_component_module = inspect.getmodule(Component).__name__
+        base_component_cls_list = [
+            base for base in cls.__bases__ if base.__module__ == base_component_module
+        ]
+        if len(base_component_cls_list) > 1:
+            msg = (
+                f"Multiple base classes detected. Only one component should be inherited or"
+                f" implemented."
+                f"Found classes: {', '.join([cls.__name__ for cls in base_component_cls_list])}"
+            )
+            raise ValueError(
+                msg,
+            )
+        return base_component_cls_list[0]
+
+    def validate_signatures(base_component_cls, cls_implementation):
+        """
+        Compare the signature of overridden methods in a class with their counterparts
         in the BaseComponent classes.
         """
         for function_name in dir(cls_implementation):
@@ -64,20 +85,20 @@ def lightweight_component(
             ):
                 type_cls_implementation = inspect.signature(
                     getattr(cls_implementation, function_name, None),
-                ).return_annotation
+                )
                 type_base_cls = inspect.signature(
                     getattr(base_component_cls, function_name, None),
-                ).return_annotation
+                )
                 if type_cls_implementation != type_base_cls:
                     msg = (
-                        f"Invalid function definition of function {function_name}. The return type "
-                        f"has to be {type_base_cls}"
+                        f"Invalid function definition of function {function_name}. The expected "
+                        f"function signature is {type_base_cls}"
                     )
                     raise ValueError(
                         msg,
                     )
 
-    def validate_required_functions_are_implemented(cls):
+    def validate_abstract_methods_are_implemented(cls):
         """
         Function to validate that a class has overridden every required function marked as
         abstract.
