@@ -571,7 +571,24 @@ def test_write_component(metadata):
 def test_resolve_schema_pandas_transform():
     class MyPandasComponent(PandasTransformComponent):
         def transform(self, dataframe):
-            assert isinstance(dataframe, pd.DataFrame)
-            return dataframe.rename(columns={"images": "embeddings"})
+            dataframe["y_str"] = dataframe["y"].astype("string")
+            return dataframe
 
-    MyPandasComponent.resolve_produces({"x": pa.int32(), "y": pa.int32()})
+    produces = MyPandasComponent.resolve_produces(
+        consumes={"x": pa.string(), "y": pa.int32()},
+    )
+    assert produces == {
+        "x": pa.string(),
+        "y": pa.int32(),
+        "y_str": pa.string(),
+    }
+
+
+def test_expected_failure_resolve_schema_pandas_transform():
+    class MyPandasComponent(PandasTransformComponent):
+        def transform(self, dataframe):
+            dataframe["y_str"] = dataframe["y"].astype("string")
+            return dataframe
+
+    with pytest.raises(KeyError):
+        MyPandasComponent.resolve_produces(consumes={"column": pa.int32()})

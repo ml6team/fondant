@@ -219,7 +219,16 @@ class ComponentOp:
 
                 # Try to determine produce for TransformComponents
                 if hasattr(cls, "resolve_produce"):
-                    produces = cls.resolve_produce(consumes=kwargs["consumes"])
+                    try:
+                        produces = cls.resolve_produce(consumes=kwargs["consumes"])
+                    except KeyError as e:
+                        key_error_msg = str(e)
+                        msg = (
+                            f"Invalid consume definition. Please make sure all "
+                            f"fields in the defined consumes are available in the dataset."
+                            f"Key error on: {key_error_msg}"
+                        )
+                        raise ValueError(msg)
                 else:
                     produces = kwargs["produces"] or {"additionalProperties": True}
 
