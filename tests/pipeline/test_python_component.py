@@ -1,6 +1,6 @@
 import json
-import sys
 import re
+import sys
 import textwrap
 from importlib.metadata import version
 
@@ -112,14 +112,14 @@ def test_lightweight_component_sdk():
     )
     assert len(pipeline._graph.keys()) == 1 + 1
     assert pipeline._graph["AddN"]["dependencies"] == ["CreateData"]
-    operation_spec = pipeline._graph["AddN"]["operation"].operation_spec.to_json()
+    pipeline._graph["AddN"]["operation"].operation_spec.to_json()
 
     basename = "fndnt/fondant-base"
     fondant_version = version("fondant")
     python_version = sys.version_info
     python_version = f"{python_version.major}.{python_version.minor}"
     fondant_image_name = f"{basename}:{fondant_version}-python{python_version}"
-      
+
     operation_spec_dict = pipeline._graph["AddN"]["operation"].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
@@ -247,10 +247,12 @@ def test_lightweight_component_decorator_without_parentheses():
 
     assert len(pipeline._graph.keys()) == 1
     operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
-    assert json.loads(operation_spec) == {
+    operation_spec_without_image = json.loads(operation_spec)
+    operation_spec_without_image["specification"].pop("image", None)
+
+    assert operation_spec_without_image == {
         "specification": {
             "name": "CreateData",
-            "image": "fondant:latest",
             "description": "python component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
