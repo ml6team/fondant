@@ -52,7 +52,7 @@ def create_component_table(manifest: Manifest) -> str:
     component_name = manifest.component_id
 
     fields_with_schema = [
-        (field_name, field_schema.type.to_json()["type"])
+        (field_name, field_schema.type.to_dict()["type"])
         for field_name, field_schema in fields.items()
     ]
 

@@ -94,8 +94,8 @@ class ComponentSpec:
         image: str,
         *,
         description: t.Optional[str] = None,
-        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
-        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType, bool]]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType, bool]]] = None,
         previous_index: t.Optional[str] = None,
         args: t.Optional[t.Dict[str, t.Any]] = None,
         tags: t.Optional[t.List[str]] = None,
@@ -223,7 +223,7 @@ class ComponentSpec:
         """The fields consumed by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
-                name: Field(name=name, type=Type.from_json(field))
+                name: Field(name=name, type=Type.from_dict(field))
                 for name, field in self._specification.get("consumes", {}).items()
                 if name != "additionalProperties"
             },
@@ -234,7 +234,7 @@ class ComponentSpec:
         """The fields produced by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
-                name: Field(name=name, type=Type.from_json(field))
+                name: Field(name=name, type=Type.from_dict(field))
                 for name, field in self._specification.get("produces", {}).items()
                 if name != "additionalProperties"
             },
@@ -368,7 +368,7 @@ class OperationSpec:
         self._inner_produces: t.Optional[t.Mapping[str, Field]] = None
         self._outer_produces: t.Optional[t.Mapping[str, Field]] = None
 
-    def to_json(self) -> str:
+    def to_dict(self) -> dict:
         def _dump_mapping(
             mapping: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
         ) -> dict:
@@ -378,15 +378,17 @@ class OperationSpec:
             serialized_mapping: t.Dict[str, t.Any] = mapping.copy()
             for key, value in mapping.items():
                 if isinstance(value, pa.DataType):
-                    serialized_mapping[key] = Type(value).to_json()
+                    serialized_mapping[key] = Type(value).to_dict()
             return serialized_mapping
 
-        specification_dict = {
+        return {
             "specification": self._component_spec.specification,
             "consumes": _dump_mapping(self._mappings["consumes"]),
             "produces": _dump_mapping(self._mappings["produces"]),
         }
 
+    def to_json(self) -> str:
+        specification_dict = self.to_dict()
         return json.dumps(specification_dict)
 
     @classmethod
@@ -397,7 +399,7 @@ class OperationSpec:
             """Parse a json mapping to a Python mapping with Fondant types."""
             for key, value in json_mapping.items():
                 if isinstance(value, dict):
-                    json_mapping[key] = Type.from_json(value).value
+                    json_mapping[key] = Type.from_dict(value).value
             return json_mapping
 
         return cls(

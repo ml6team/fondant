@@ -2,7 +2,7 @@ import inspect
 import itertools
 import textwrap
 import typing as t
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from functools import wraps
 
 from fondant.component import BaseComponent, Component
@@ -18,6 +18,9 @@ class Image:
         if self.base_image is None:
             # TODO: link to Fondant version
             self.base_image = "fondant:latest"
+
+    def to_dict(self):
+        return asdict(self)
 
 
 class PythonComponent(BaseComponent):

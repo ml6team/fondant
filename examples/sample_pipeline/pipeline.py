@@ -26,7 +26,6 @@ dataset = pipeline.read(
     arguments={
         "dataset_uri": "/data/sample.parquet",
         "column_name_mapping": load_component_column_mapping,
-        "n_rows_to_load": 5,
     },
     produces={"text_data": pa.string()},
 )
