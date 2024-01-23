@@ -109,14 +109,6 @@ def valid_kubeflow_schema() -> dict:
 
 
 @pytest.fixture()
-def valid_kubeflow_lightweight_pipeline() -> dict:
-    with open(
-        "tests/pipeline/examples/pipelines/compiled_pipeline/kubeflow_lightweight_pipeline.yml",
-    ) as f:
-        return yaml.safe_load(f)
-
-
-@pytest.fixture()
 def valid_fondant_schema() -> dict:
     with open(component_specs_path / "valid_component.yaml") as f:
         return yaml.safe_load(f)
@@ -410,7 +402,6 @@ def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
 
 @pytest.mark.usefixtures("_freeze_time")
 def test_kubeflow_component_spec_from_lightweight_component(
-    valid_kubeflow_lightweight_pipeline,
     tmp_path_factory,
 ):
     pipeline = Pipeline(
