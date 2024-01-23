@@ -32,8 +32,8 @@ for python_version in "${python_versions[@]}"; do
     full_image_names+=("public.ecr.aws/${BASENAME}:${IMAGE_TAG}")
 
     # Add argument for each tag
-    for tag in "${full_image_names[@]}" ; do
-      args+=(-t "$tag")
+    for image_name in "${full_image_names[@]}" ; do
+      args+=(-t "$image_name")
     done
 
 
@@ -42,5 +42,5 @@ for python_version in "${python_versions[@]}"; do
     --build-arg="PYTHON_VERSION=${python_version}" \
     --build-arg="FONDANT_VERSION=${tag}" \
     -f "images/Dockerfile" \
-   .
+    .
 done
