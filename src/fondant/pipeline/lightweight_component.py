@@ -2,7 +2,7 @@ import inspect
 import itertools
 import textwrap
 import typing as t
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from functools import wraps
 
 import pyarrow as pa
@@ -21,6 +21,9 @@ class Image:
         if self.base_image is None:
             # TODO: link to Fondant version
             self.base_image = "fondant:latest"
+
+    def to_dict(self):
+        return asdict(self)
 
 
 class PythonComponent(BaseComponent):
@@ -150,7 +153,7 @@ def lightweight_component(
                     return {"additionalProperties": True}
 
                 # Get consumes spec from the dataset
-                consumes_spec = {k: v.type.to_json() for k, v in dataset_fields.items()}
+                consumes_spec = {k: v.type.to_dict() for k, v in dataset_fields.items()}
 
                 # Modify naming based on the consumes argument in the 'apply' method
                 if apply_consumes:
@@ -158,7 +161,7 @@ def lightweight_component(
                         if isinstance(v, str):
                             consumes_spec[k] = consumes_spec.pop(v)
                         elif isinstance(v, pa.DataType):
-                            consumes_spec[k] = Type(v).to_json()
+                            consumes_spec[k] = Type(v).to_dict()
                         else:
                             msg = (
                                 f"Invalid data type for field `{k}` in the `apply_consumes` "

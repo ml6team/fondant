@@ -80,8 +80,10 @@ def test_lightweight_component_sdk(load_pipeline):
     pipeline, dataset, load_script = load_pipeline
 
     assert len(pipeline._graph.keys()) == 1
-    operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
-    assert json.loads(operation_spec) == {
+    operation_spec_dict = pipeline._graph["CreateData"][
+        "operation"
+    ].operation_spec.to_dict()
+    assert operation_spec_dict == {
         "specification": {
             "name": "CreateData",
             "image": "python:3.8-slim-buster",
@@ -112,11 +114,10 @@ def test_lightweight_component_sdk(load_pipeline):
         consumes={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
         arguments={"n": 1},
     )
-
     assert len(pipeline._graph.keys()) == 1 + 1
     assert pipeline._graph["AddN"]["dependencies"] == ["CreateData"]
-    operation_spec = pipeline._graph["AddN"]["operation"].operation_spec.to_json()
-    assert json.loads(operation_spec) == {
+    operation_spec_dict = pipeline._graph["AddN"]["operation"].operation_spec.to_dict()
+    assert operation_spec_dict == {
         "specification": {
             "name": "AddN",
             "image": "fondant:latest",

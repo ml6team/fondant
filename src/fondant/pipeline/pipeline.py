@@ -342,18 +342,23 @@ class ComponentOp:
             hash_object = hashlib.md5(sorted_json_string.encode())  # nosec
             return hash_object.hexdigest()
 
-        component_spec_dict = self.component_spec.specification
+        operation_spec_dict = self.operation_spec.to_dict()
+        image_dict = self.image.to_dict()
+
         arguments = (
             get_nested_dict_hash(self.arguments) if self.arguments is not None else None
         )
 
         component_op_uid_dict = {
-            "component_spec_hash": get_nested_dict_hash(component_spec_dict),
+            "operation_spec_hash": get_nested_dict_hash(operation_spec_dict),
+            "image": get_nested_dict_hash(image_dict),
             "arguments": arguments,
             "input_partition_rows": self.input_partition_rows,
             "number_of_accelerators": self.resources.accelerator_number,
             "accelerator_name": self.resources.accelerator_name,
             "node_pool_name": self.resources.node_pool_name,
+            "cluster_type": self.cluster_type,
+            "client_kwargs": self.client_kwargs,
         }
 
         if previous_component_cache is not None:
