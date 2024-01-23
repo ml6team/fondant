@@ -22,10 +22,8 @@ def load_pipeline():
     )
 
     @lightweight_component(
-        base_image="python:3.8",
-        extra_requires=[
-            "fondant[component]@git+https://github.com/ml6team/fondant@main",
-        ],
+        base_image="python:3.8-slim-buster",
+        extra_requires=["pandas", "dask"],
     )
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -39,28 +37,19 @@ def load_pipeline():
             )
             return dd.from_pandas(df, npartitions=1)
 
+    load_script = CreateData.image().script
+
     dataset = pipeline.read(
         ref=CreateData,
         produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
     )
 
-    return pipeline, dataset
+    return pipeline, dataset, load_script
 
 
-def test_build_python_script():
-    @lightweight_component()
-    class CreateData(DaskLoadComponent):
-        def load(self) -> dd.DataFrame:
-            df = pd.DataFrame(
-                {
-                    "x": [1, 2, 3],
-                    "y": [4, 5, 6],
-                },
-                index=pd.Index(["a", "b", "c"], name="id"),
-            )
-            return dd.from_pandas(df, npartitions=1)
-
-    assert CreateData.image().script == textwrap.dedent(
+def test_build_python_script(load_pipeline):
+    _, _, load_script = load_pipeline
+    assert load_script == textwrap.dedent(
         """\
         from typing import *
         import typing as t
@@ -78,6 +67,7 @@ def test_build_python_script():
                     {
                         "x": [1, 2, 3],
                         "y": [4, 5, 6],
+                        "z": [7, 8, 9],
                     },
                     index=pd.Index(["a", "b", "c"], name="id"),
                 )
@@ -86,32 +76,8 @@ def test_build_python_script():
     )
 
 
-def test_lightweight_component_sdk():
-    pipeline = Pipeline(
-        name="dummy-pipeline",
-        base_path="./data",
-    )
-
-    @lightweight_component(
-        base_image="python:3.8-slim-buster",
-        extra_requires=["pandas", "dask"],
-        consumes="generic",
-    )
-    class CreateData(DaskLoadComponent):
-        def load(self) -> dd.DataFrame:
-            df = pd.DataFrame(
-                {
-                    "x": [1, 2, 3],
-                    "y": [4, 5, 6],
-                },
-                index=pd.Index(["a", "b", "c"], name="id"),
-            )
-            return dd.from_pandas(df, npartitions=1)
-
-    dataset = pipeline.read(
-        ref=CreateData,
-        produces={"x": pa.int32(), "y": pa.int32()},
-    )
+def test_lightweight_component_sdk(load_pipeline):
+    pipeline, dataset, load_script = load_pipeline
 
     assert len(pipeline._graph.keys()) == 1
     operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
@@ -124,10 +90,14 @@ def test_lightweight_component_sdk():
             "produces": {"additionalProperties": True},
         },
         "consumes": {},
-        "produces": {"x": {"type": "int32"}, "y": {"type": "int32"}},
+        "produces": {
+            "x": {"type": "int32"},
+            "y": {"type": "int32"},
+            "z": {"type": "int32"},
+        },
     }
 
-    @lightweight_component(consumes="generic")
+    @lightweight_component
     class AddN(PandasTransformComponent):
         def __init__(self, n: int, **kwargs):
             self.n = n
@@ -138,8 +108,8 @@ def test_lightweight_component_sdk():
 
     _ = dataset.apply(
         ref=AddN,
-        produces={"x": pa.int32(), "y": pa.int32()},
-        consumes={"x": pa.int32(), "y": pa.int32()},
+        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
+        consumes={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
         arguments={"n": 1},
     )
 
@@ -155,8 +125,16 @@ def test_lightweight_component_sdk():
             "produces": {"additionalProperties": True},
             "args": {"n": {"type": "int"}},
         },
-        "consumes": {"x": {"type": "int32"}, "y": {"type": "int32"}},
-        "produces": {"x": {"type": "int32"}, "y": {"type": "int32"}},
+        "consumes": {
+            "x": {"type": "int32"},
+            "y": {"type": "int32"},
+            "z": {"type": "int32"},
+        },
+        "produces": {
+            "x": {"type": "int32"},
+            "y": {"type": "int32"},
+            "z": {"type": "int32"},
+        },
     }
     pipeline._validate_pipeline_definition(run_id="dummy-run-id")
 
@@ -179,7 +157,7 @@ def test_valid_consumes_mapping(tmp_path_factory, load_pipeline):
             dataframe["a"] = dataframe["a"].map(lambda x: x + self.n)
             return dataframe
 
-    pipeline, dataset = load_pipeline
+    pipeline, dataset, _ = load_pipeline
 
     _ = dataset.apply(
         ref=AddN,
@@ -215,11 +193,11 @@ def test_invalid_consumes_mapping(tmp_path_factory, load_pipeline):
             dataframe["a"] = dataframe["a"].map(lambda x: x + self.n)
             return dataframe
 
-    _, dataset = load_pipeline
+    _, dataset, _ = load_pipeline
 
     with pytest.raises(
         ValueError,
-        match="Field `nonExistingField` is not available in" " the dataset.",
+        match="Field `nonExistingField` is not available in the dataset.",
     ):
         _ = dataset.apply(
             ref=AddN,
