@@ -15,7 +15,6 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
-
 # Supported Python versions
 python_versions=("3.8" "3.9" "3.10", "3.11")
 
@@ -42,5 +41,6 @@ for python_version in "${python_versions[@]}"; do
     docker build --push "${args[@]}" \
     --build-arg PYTHON_VERSION=$python_version \
     --build-arg FONDANT_VERSION=$tag \
+    -f "images/Dockerfile" \
    .
 done
