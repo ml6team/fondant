@@ -136,7 +136,7 @@ class Type:
         )
 
     @classmethod
-    def from_json(cls, json_schema: dict):
+    def from_dict(cls, json_schema: dict):
         """
         Creates a new `Type` instance based on a dictionary representation of the json schema
           of a data type (https://swagger.io/docs/specification/data-models/data-types/).
@@ -150,12 +150,12 @@ class Type:
         if json_schema["type"] == "array":
             items = json_schema["items"]
             if isinstance(items, dict):
-                return cls.list(cls.from_json(items))
+                return cls.list(cls.from_dict(items))
             return None
 
         return cls(json_schema["type"])
 
-    def to_json(self) -> dict:
+    def to_dict(self) -> dict:
         """
         Converts the `Type` instance to its JSON representation.
 
@@ -165,7 +165,7 @@ class Type:
         if isinstance(self.value, pa.ListType):
             items = self.value.value_type
             if isinstance(items, pa.DataType):
-                return {"type": "array", "items": Type(items).to_json()}
+                return {"type": "array", "items": Type(items).to_dict()}
 
         type_ = None
         for type_name, data_type in _TYPES.items():

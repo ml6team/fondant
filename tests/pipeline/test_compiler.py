@@ -540,7 +540,7 @@ def test_invalid_vertex_configuration(tmp_path_factory):
 
 
 def test_caching_dependency_docker(tmp_path_factory):
-    """Test that the component cache key changes when a depending component cache key change for
+    """Test that the component cache key changes when a dependant component cache key change for
     the docker compiler.
     """
     arg_list = ["dummy_arg_1", "dummy_arg_2"]

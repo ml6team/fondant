@@ -1,6 +1,7 @@
 """This module defines interfaces which components should implement to be executed by fondant."""
 
 import typing as t
+from abc import abstractmethod
 
 import dask.dataframe as dd
 import pandas as pd
@@ -33,13 +34,15 @@ class BaseComponent:
 class DaskLoadComponent(BaseComponent):
     """Component that loads data and returns a Dask DataFrame."""
 
+    @abstractmethod
     def load(self) -> dd.DataFrame:
-        raise NotImplementedError
+        pass
 
 
 class DaskTransformComponent(BaseComponent):
     """Component that transforms an incoming Dask DataFrame."""
 
+    @abstractmethod
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """
         Abstract method for applying data transformations to the input dataframe.
@@ -48,14 +51,14 @@ class DaskTransformComponent(BaseComponent):
             dataframe: A Dask dataframe containing the data specified in the `consumes` section
                 of the component specification
         """
-        raise NotImplementedError
 
 
 class DaskWriteComponent(BaseComponent):
     """Component that accepts a Dask DataFrame and writes its contents."""
 
+    @abstractmethod
     def write(self, dataframe: dd.DataFrame) -> None:
-        raise NotImplementedError
+        pass
 
 
 class PandasTransformComponent(BaseComponent):
@@ -63,6 +66,7 @@ class PandasTransformComponent(BaseComponent):
     DataFrame.
     """
 
+    @abstractmethod
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """
         Abstract method for applying data transformations to the input dataframe.
@@ -71,7 +75,6 @@ class PandasTransformComponent(BaseComponent):
         Args:
             dataframe: A Pandas dataframe containing a partition of the data
         """
-        raise NotImplementedError
 
 
 Component = t.TypeVar("Component", bound=BaseComponent)
