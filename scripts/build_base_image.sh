@@ -39,8 +39,8 @@ for python_version in "${python_versions[@]}"; do
 
     # Build docker images and push to docker hub
     docker build --push "${args[@]}" \
-    --build-arg PYTHON_VERSION=$python_version \
-    --build-arg FONDANT_VERSION=$tag \
+    --build-arg="PYTHON_VERSION=${python_version}" \
+    --build-arg="FONDANT_VERSION=${tag}" \
     -f "images/Dockerfile" \
    .
 done
