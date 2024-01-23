@@ -56,4 +56,4 @@ jobs:
       #  run: ./scripts/build_components.sh --cache -t $GITHUB_SHA -t dev
 
       - name: Build base image
-        run: ./scripts/build_base_image.sh -t dev
+        run: ./scripts/build_base_image.sh -t $GITHUB_SHA
