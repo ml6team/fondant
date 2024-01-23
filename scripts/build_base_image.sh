@@ -24,17 +24,23 @@ for python_version in "${python_versions[@]}"; do
     IMAGE_TAG=${tag}-python${python_version}
     full_image_names=()
 
-
-    full_image_names+=("fndnt/${BASENAME}:${IMAGE_TAG}")
-
     # create repo if not exists
-    aws ecr-public describe-repositories --region us-east-1 --repository-names ${BASENAME} || aws ecr-public create-repository --region us-east-1 --repository-name ${BASENAME}
-    full_image_names+=("public.ecr.aws/${BASENAME}:${IMAGE_TAG}")
+    #aws ecr-public describe-repositories --region us-east-1 --repository-names ${BASENAME} || aws ecr-public create-repository --region us-east-1 --repository-name ${BASENAME}
+    full_image_names+=("public.ecr.aws/fndnt/${BASENAME}:${IMAGE_TAG}")
+    full_image_names+=("fndnt/${BASENAME}:${IMAGE_TAG}")
 
     # Add argument for each tag
     for image_name in "${full_image_names[@]}" ; do
       args+=(-t "$image_name")
     done
+
+    for element in "${args[@]}"; do
+      echo "$element"
+    done
+
+    exit
+
+
 
 
     # Build docker images and push to docker hub
