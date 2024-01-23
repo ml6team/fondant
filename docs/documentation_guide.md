@@ -17,8 +17,9 @@ Learn how to use Fondant to build your own data processing pipeline.
 
 -> Design your own fondant [pipeline](pipeline.md) using the Fondant pipeline SDK.  
 -> Use existing [reusable components](components/hub.md) to build your pipeline.
--> Build your own [custom component](components/custom_component.md) using the Fondant component
-SDK.  
+-> Build your own custom [python component](components/custom_containerized_component.md) 
+or [containerized component](components/custom_containerized_component.md) using the Fondant component
+SDK.
 -> Learn how to publish your own [components](components/publishing_components.md) to a container
 registry so that you can reuse them in your pipelines.
 
