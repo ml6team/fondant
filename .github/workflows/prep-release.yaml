@@ -2,7 +2,7 @@ name: [TEST RUN] Pushing fondant base image
 on:
   push:
     branches:
-      - *
+      - "feature/build-fondant-base-image"
 
 env:
   AWS_REGION : us-east-1

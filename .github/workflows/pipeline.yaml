@@ -3,7 +3,7 @@ name: Test pipeline
 on:
   push:
     branches:
-      - "feature/build-fondant-base-image"
+      - main
   pull_request:
 
 jobs:
