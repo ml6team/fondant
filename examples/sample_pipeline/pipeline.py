@@ -47,7 +47,6 @@ dataset = dataset.apply(
         f"fondant[component]@git+https://github.com/ml6team/fondant@"
         f"{os.environ.get('FONDANT_VERSION', 'main')}",
     ],
-    consumes="generic",
 )
 class CalculateChunkLength(PandasTransformComponent):
     def __init__(self, arg_x: bool, **kwargs):
@@ -60,7 +59,7 @@ class CalculateChunkLength(PandasTransformComponent):
 
 _ = dataset.apply(
     ref=CalculateChunkLength,
-    consumes={"text": pa.string()},
+    consumes=None,
     produces={"chunk_length": pa.int32()},
     arguments={"arg_x": "value_x"},
 )

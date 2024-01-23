@@ -24,7 +24,6 @@ def load_pipeline():
     @lightweight_component(
         base_image="python:3.8-slim-buster",
         extra_requires=["pandas", "dask"],
-        consumes="generic",
     )
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -100,7 +99,7 @@ def test_lightweight_component_sdk(load_pipeline):
         },
     }
 
-    @lightweight_component(consumes="generic")
+    @lightweight_component
     class AddN(PandasTransformComponent):
         def __init__(self, n: int, **kwargs):
             self.n = n
@@ -112,7 +111,7 @@ def test_lightweight_component_sdk(load_pipeline):
     _ = dataset.apply(
         ref=AddN,
         produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
-        consumes={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
+        consumes=None,
         arguments={"n": 1},
     )
     assert len(pipeline._graph.keys()) == 1 + 1
@@ -123,15 +122,15 @@ def test_lightweight_component_sdk(load_pipeline):
             "name": "AddN",
             "image": "fondant:latest",
             "description": "python component",
-            "consumes": {"additionalProperties": True},
+            "consumes": {
+                "x": {"type": "int32"},
+                "y": {"type": "int32"},
+                "z": {"type": "int32"},
+            },
             "produces": {"additionalProperties": True},
             "args": {"n": {"type": "int"}},
         },
-        "consumes": {
-            "x": {"type": "int32"},
-            "y": {"type": "int32"},
-            "z": {"type": "int32"},
-        },
+        "consumes": {},
         "produces": {
             "x": {"type": "int32"},
             "y": {"type": "int32"},

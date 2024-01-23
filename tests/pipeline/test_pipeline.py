@@ -71,7 +71,7 @@ def test_component_op(
 
 
 def test_component_op_python_component(default_pipeline_args):
-    @lightweight_component(consumes="generic")
+    @lightweight_component()
     class Foo(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
             df = pd.DataFrame(

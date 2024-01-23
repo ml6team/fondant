@@ -8,7 +8,7 @@ from functools import wraps
 import pyarrow as pa
 
 from fondant.component import BaseComponent, Component
-from fondant.core.schema import Field, Type
+from fondant.core.schema import Field
 
 
 @dataclass
@@ -32,7 +32,7 @@ class PythonComponent(BaseComponent):
         raise NotImplementedError
 
     @classmethod
-    def consumes(cls) -> t.Optional[t.Union[list, str]]:
+    def consumes(cls) -> t.Optional[list]:
         pass
 
     @classmethod
@@ -48,7 +48,7 @@ def lightweight_component(
     *args,
     extra_requires: t.Optional[t.List[str]] = None,
     base_image: t.Optional[str] = None,
-    consumes: t.Optional[t.Union[list, str]] = None,
+    consumes: t.Optional[list] = None,
 ):
     """Decorator to enable a python component."""
 
@@ -126,6 +126,41 @@ def lightweight_component(
                     msg,
                 )
 
+        def modify_consumes_spec(apply_consumes, consumes_spec):
+            """Modify fields based on the consumes argument in the 'apply' method."""
+            if apply_consumes:
+                for k, v in apply_consumes.items():
+                    if isinstance(v, str):
+                        consumes_spec[k] = consumes_spec.pop(v)
+                    elif isinstance(v, pa.DataType):
+                        pass
+                    else:
+                        msg = (
+                            f"Invalid data type for field `{k}` in the `apply_consumes` "
+                            f"argument. Only string and pa.DataType are allowed."
+                        )
+                        raise ValueError(
+                            msg,
+                        )
+            return consumes_spec
+
+        def filter_consumes_spec(python_component_consumes, consumes_spec):
+            """Filter for values that are not in the user defined consumes list."""
+            if python_component_consumes:
+                for field_to_consume in python_component_consumes:
+                    if field_to_consume not in consumes_spec.keys():
+                        msg = f"Field `{field_to_consume}` is not available in the dataset."
+                        raise ValueError(
+                            msg,
+                        )
+
+                    consumes_spec = {
+                        k: v
+                        for k, v in consumes_spec.items()
+                        if k in python_component_consumes
+                    }
+            return consumes_spec
+
         validate_abstract_methods_are_implemented(cls)
         base_component_cls = get_base_cls(cls)
         validate_signatures(base_component_cls, cls)
@@ -138,7 +173,7 @@ def lightweight_component(
                 return image
 
             @classmethod
-            def consumes(cls) -> t.Optional[t.Union[list, str]]:
+            def consumes(cls) -> t.Optional[list]:
                 return consumes
 
             @classmethod
@@ -147,42 +182,19 @@ def lightweight_component(
                 dataset_fields: t.Mapping[str, Field],
                 apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
             ):
-                consumes = cls.consumes()
-
-                if consumes == "generic":
-                    return {"additionalProperties": True}
+                python_component_consumes = cls.consumes()
 
                 # Get consumes spec from the dataset
                 consumes_spec = {k: v.type.to_dict() for k, v in dataset_fields.items()}
 
                 # Modify naming based on the consumes argument in the 'apply' method
-                if apply_consumes:
-                    for k, v in apply_consumes.items():
-                        if isinstance(v, str):
-                            consumes_spec[k] = consumes_spec.pop(v)
-                        elif isinstance(v, pa.DataType):
-                            consumes_spec[k] = Type(v).to_dict()
-                        else:
-                            msg = (
-                                f"Invalid data type for field `{k}` in the `apply_consumes` "
-                                f"argument. Only string and pa.DataType are allowed."
-                            )
-                            raise ValueError(
-                                msg,
-                            )
+                consumes_spec = modify_consumes_spec(apply_consumes, consumes_spec)
 
                 # Filter for values that are not in the user defined consumes list
-                if consumes:
-                    for field_to_consume in consumes:
-                        if field_to_consume not in consumes_spec.keys():
-                            msg = f"Field `{field_to_consume}` is not available in the dataset."
-                            raise ValueError(
-                                msg,
-                            )
-
-                        consumes_spec = {
-                            k: v for k, v in consumes_spec.items() if k in consumes
-                        }
+                consumes_spec = filter_consumes_spec(
+                    python_component_consumes,
+                    consumes_spec,
+                )
 
                 return consumes_spec
 
