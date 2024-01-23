@@ -5,12 +5,21 @@ import sys
 from pathlib import Path
 from unittest import mock
 
+import dask.dataframe as dd
+import pandas as pd
 import pyarrow as pa
 import pytest
+from fondant.component import DaskLoadComponent
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Manifest, Metadata
 from fondant.core.schema import CloudCredentialsMount
-from fondant.pipeline import ComponentOp, Dataset, Pipeline, Resources
+from fondant.pipeline import (
+    ComponentOp,
+    Dataset,
+    Pipeline,
+    Resources,
+    lightweight_component,
+)
 from fondant.pipeline.compiler import (
     DockerCompiler,
     KubeFlowCompiler,
@@ -628,7 +637,7 @@ def test_sagemaker_build_command():
         cache_key="42",
     )
     args = {"foo": "bar", "baz": "qux"}
-    command = compiler._get_build_command(metadata, args)
+    command = compiler._build_command(metadata, args)
 
     assert command == [
         "--metadata",
@@ -646,7 +655,7 @@ def test_sagemaker_build_command():
     # with dependencies
     dependencies = ["component_1"]
 
-    command2 = compiler._get_build_command(metadata, args, dependencies=dependencies)
+    command2 = compiler._build_command(metadata, args, dependencies=dependencies)
 
     assert command2 == [
         *command,
@@ -659,7 +668,12 @@ def test_sagemaker_generate_script(tmp_path_factory):
     compiler = SagemakerCompiler()
     command = ["--metadata", '{"foo": "bar\'s"}']
     with tmp_path_factory.mktemp("temp") as fn:
-        script_path = compiler.generate_component_script("component_1", command, fn)
+        script_path = compiler.generate_component_script(
+            entrypoint=["fondant", "execute", "main"],
+            command=command,
+            component_name="component_1",
+            directory=fn,
+        )
 
         assert script_path == f"{fn}/component_1.sh"
 
@@ -670,6 +684,51 @@ def test_sagemaker_generate_script(tmp_path_factory):
                 f.read()
                 == 'fondant execute main --metadata \'{"foo": "bars"}\''  # E501
             )
+
+
+def test_sagemaker_generate_script_lightweight_component(tmp_path_factory):
+    @lightweight_component(
+        base_image="python:3.8-slim-buster",
+        extra_requires=["pandas", "dask"],
+    )
+    class CreateData(DaskLoadComponent):
+        def load(self) -> dd.DataFrame:
+            df = pd.DataFrame(
+                {
+                    "x": [1, 2, 3],
+                    "y": [4, 5, 6],
+                },
+                index=pd.Index(["a", "b", "c"], name="id"),
+            )
+            return dd.from_pandas(df, npartitions=1)
+
+    component_op = ComponentOp.from_ref(
+        ref=CreateData,
+        produces={"x": pa.int32(), "y": pa.int32()},
+    )
+
+    compiler = SagemakerCompiler()
+
+    metadata = Metadata(
+        pipeline_name="example_pipeline",
+        base_path="/foo/bar",
+        component_id="component_2",
+        run_id="example_pipeline_2024",
+        cache_key="42",
+    )
+    args = {}
+
+    with tmp_path_factory.mktemp("temp") as fn:
+        script_path = compiler.generate_component_script(
+            entrypoint=compiler._build_entrypoint(component_op.image),
+            command=compiler._build_command(metadata, args),
+            component_name=component_op.name,
+            directory=fn,
+        )
+
+        assert script_path == f"{fn}/{component_op.name}.sh"
+
+        assert not subprocess.check_call(["bash", "-n", script_path])  # nosec
 
 
 def test_sagemaker_base_path_validator():
