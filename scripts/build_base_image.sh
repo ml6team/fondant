@@ -16,7 +16,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 esac; shift; done
 
 # Supported Python versions
-python_versions=("3.8" "3.9" "3.10", "3.11")
+python_versions=("3.8" "3.9" "3.10" "3.11")
 
 
 for python_version in "${python_versions[@]}"; do
@@ -37,11 +37,6 @@ for python_version in "${python_versions[@]}"; do
     for element in "${args[@]}"; do
       echo "$element"
     done
-
-    exit
-
-
-
 
     # Build docker images and push to docker hub
     docker build --push "${args[@]}" \
