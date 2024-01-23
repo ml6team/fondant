@@ -25,7 +25,7 @@ for python_version in "${python_versions[@]}"; do
     full_image_names=()
 
     # create repo if not exists
-    #aws ecr-public describe-repositories --region us-east-1 --repository-names ${BASENAME} || aws ecr-public create-repository --region us-east-1 --repository-name ${BASENAME}
+    aws ecr-public describe-repositories --region us-east-1 --repository-names ${BASENAME} || aws ecr-public create-repository --region us-east-1 --repository-name ${BASENAME}
     full_image_names+=("public.ecr.aws/fndnt/${BASENAME}:${IMAGE_TAG}")
     full_image_names+=("fndnt/${BASENAME}:${IMAGE_TAG}")
 
