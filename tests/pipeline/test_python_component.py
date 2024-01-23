@@ -24,6 +24,7 @@ def load_pipeline():
     @lightweight_component(
         base_image="python:3.8-slim-buster",
         extra_requires=["pandas", "dask"],
+        consumes="generic",
     )
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -99,7 +100,7 @@ def test_lightweight_component_sdk(load_pipeline):
         },
     }
 
-    @lightweight_component
+    @lightweight_component(consumes="generic")
     class AddN(PandasTransformComponent):
         def __init__(self, n: int, **kwargs):
             self.n = n

@@ -32,7 +32,7 @@ class PythonComponent(BaseComponent):
         raise NotImplementedError
 
     @classmethod
-    def consumes(cls) -> t.Optional[list]:
+    def consumes(cls) -> t.Optional[t.Union[list, str]]:
         pass
 
     @classmethod
@@ -48,7 +48,7 @@ def lightweight_component(
     *args,
     extra_requires: t.Optional[t.List[str]] = None,
     base_image: t.Optional[str] = None,
-    consumes: t.Optional[list] = None,
+    consumes: t.Optional[t.Union[list, str]] = None,
 ):
     """Decorator to enable a python component."""
 
@@ -138,7 +138,7 @@ def lightweight_component(
                 return image
 
             @classmethod
-            def consumes(cls) -> t.Optional[list]:
+            def consumes(cls) -> t.Optional[t.Union[list, str]]:
                 return consumes
 
             @classmethod
@@ -149,7 +149,7 @@ def lightweight_component(
             ):
                 consumes = cls.consumes()
 
-                if consumes is None:
+                if consumes == "generic":
                     return {"additionalProperties": True}
 
                 # Get consumes spec from the dataset
