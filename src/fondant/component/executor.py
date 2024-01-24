@@ -598,8 +598,8 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
 
-    def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
-        pass
+    # def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
+    #     pass
 
 
 class ExecutorFactory:
