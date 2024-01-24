@@ -528,7 +528,7 @@ def test_wrap_transform():
     assert output_df.columns.tolist() == ["caption_text", "image_height"]
 
 
-@pytest.mark.usefixtures("_patched_data_loading")
+@pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
 def test_write_component(metadata):
     operation_spec = OperationSpec(
         ComponentSpec.from_file(components_path / "component.yaml"),
