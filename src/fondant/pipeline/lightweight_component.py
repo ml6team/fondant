@@ -28,7 +28,7 @@ class Image:
             self.base_image = self.resolve_fndnt_base_image()
 
         # log info when custom image without Fondant is defined
-        elif not any(
+        elif self.extra_requires and not any(
             dependency.startswith("fondant") for dependency in self.extra_requires
         ):
             msg = (
