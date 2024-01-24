@@ -117,3 +117,6 @@ datasets and want to avoid loading unnecessary data.
 
 If you want to publish your component to the Fondant Hub, you will need to convert 
 it to containerized component. See the [containerized component guide](../components/custom_containerized_component.md) for more info.
+
+**Note:** Python based components also support defining dynamic fields by default. See the [dynamic fields guide](../components/component_spec.md#dynamic-fields) for more info
+on dynamic fields.

@@ -71,12 +71,12 @@ We can distinguish two different types of components:
 
 - **Custom components** are completely defined and implemented by the user. There are two ways to 
   define a custom component:
-  - **Lightweight Python Components**: Create a component from a self-contained Python function.
-  This is the easiest way to create a custom component. It allows you to define a component without
-  having to build a custom docker image or defining a component specification.
-  - **Containerized Python Components**: You can build your code into a docker image
-   and write an accompanying component specification that refers to it. This is used for 
-  more complex components that require additional dependencies (e.g. GPU support). 
+    - **Lightweight Python Components**: Create a component from a self-contained Python function.
+    This is the easiest way to create a custom component. It allows you to define a component without
+    having to build a custom docker image or defining a component specification.
+    - **Containerized Python Components**: You can build your code into a docker image
+     and write an accompanying component specification that refers to it. This is used for 
+    more complex components that require additional dependencies (e.g. GPU support). 
 
 - **Reusable components** can be used out of the box and can be loaded from the Fondant Hub. They are containerized components that are defined by the Fondant team or
   the community.
