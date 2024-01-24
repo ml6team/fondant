@@ -78,8 +78,7 @@ We can distinguish two different types of components:
    and write an accompanying component specification that refers to it. This is used for 
   more complex components that require additional dependencies (e.g. GPU support). 
 
-- **Reusable components** can be used out of the box and can be loaded from the fondant 
-  component registry. They are containerized components that are defined by the Fondant team or
+- **Reusable components** can be used out of the box and can be loaded from the Fondant Hub. They are containerized components that are defined by the Fondant team or
   the community.
 
   
@@ -166,7 +165,7 @@ See our [best practices on creating a custom containerized component](../compone
 
 ### Reusable components
 
-Reusable components are out of the box containerized python components from the Fondant hub that you can easily add 
+Reusable components are out of the box containerized python components from the Fondant Hub that you can easily add 
 to your pipeline:
 
 ```python

@@ -4,12 +4,12 @@ Fondant makes it easy to build data preparation pipelines leveraging reusable co
 provides a lot of [components out of the box](https://github.com/ml6team/fondant/tree/main/components)
 , but you can also define your own custom containerized components.
 
-To make sure containerized components are reusable, they should implement a single logical data processing
+To make sure co2ntainerized components are reusable, they should implement a single logical data processing
 step (like captioning images or removing Personal Identifiable Information [PII] from text.)
 If a component grows too large, consider splitting it into multiple separate components each
 tackling one logical part.
 
-To implement a custom component, a couple of files need to be defined:
+To implement a custom containerized component, a couple of files need to be defined:
 
 - [Fondant component specification](#fondant-component-specification)
 - [`main.py` script in a `src` folder](#mainpy-script)
