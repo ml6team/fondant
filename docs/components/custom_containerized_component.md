@@ -1,9 +1,8 @@
 # Creating custom containerized components
 
 Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
-provides a lot of components out of the box
-([overview](https://github.com/ml6team/fondant/tree/main/components), but you can also define your
-own custom containerized components.
+provides a lot of [components out of the box](https://github.com/ml6team/fondant/tree/main/components)
+, but you can also define your own custom containerized components.
 
 To make sure containerized components are reusable, they should implement a single logical data processing
 step (like captioning images or removing Personal Identifiable Information [PII] from text.)
@@ -26,58 +25,9 @@ your component.
 
 ## Main.py script
 
-The core logic of the component should be implemented in a `main.py` script in a folder called
-`src`.
-The logic should be implemented as a class, inheriting from one of the base `Component` classes
-offered by Fondant.
-There are three large types of components:
-
-- **`LoadComponent`**: Load data into your pipeline from an external data source
-- **`TransformComponent`**: Implement a single transformation step in your pipeline
-- **`WriteComponent`**: Write the results of your pipeline to an external data sink
-
-The easiest way to implement a `TransformComponent` is to subclass the provided
-`PandasTransformComponent`. This component streams your data and offers it in memory-sized
-chunks as pandas dataframes.
-
-```python
-import pandas as pd
-from fondant.component import PandasTransformComponent
-
-
-class ExampleComponent(PandasTransformComponent):
-
-    def __init__(self, *, argument1, argument2, **kwargs) -> None:
-        """
-        Args:
-            argumentX: An argument passed to the component
-        """
-        # Initialize your component here based on the arguments
-
-    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        """Implement your custom logic in this single method
-        Args:
-            dataframe: A Pandas dataframe containing one partition of your data
-        Returns:
-            A pandas dataframe containing the transformed data
-        """
-```
-
-The `__init__` method is called once for each component class with custom arguments defined in the
-`args` section of the [component specification](../components/component_spec.md).) This is a good
-place to initialize resources and costly initializations such as network connections, models,
-parsing a config file, etc. By doing so, you can effectively prevent the redundant re-initialization
-of resources each time the `transform` method is invoked.
-
-The `transform` method is called multiple times, each time containing a pandas `dataframe`
-with a partition of your data loaded in memory.
-
-The `dataframes` passed to the `transform` method contains the data specified in the `consumes`
-section of the component specification. If a component defines that it consumes an `image` field, 
-this data can be accessed using `dataframe["image"]`.
-
-The `transform` method should return a single dataframe, with the columns complying to the
-schema defined by the `produces` section of the component specification.
+The component script should be implemented in a `main.py` script in a folder called `src`.
+Refer to the [main.py script](../components/components.md) section for more info on how to implement the
+script.
 
 Note that the `main.py` script can be split up into several Python scripts in case it would become
 prohibitively long. See the
