@@ -363,17 +363,23 @@ class Executor(t.Generic[Component]):
         """
         input_manifest = self._load_or_create_manifest()
 
+        print("sanity")
         if self.cache and self._is_previous_cached(input_manifest):
+            print("sanity 1")
             output_manifest = self._get_cached_manifest()
             if output_manifest is not None:
                 logger.info("Skipping component execution")
             else:
+                print("sanity 2")
                 output_manifest = self._run_execution(component_cls, input_manifest)
 
         else:
             logger.info("Caching disabled for the component")
+            print("sanity 3")
             output_manifest = self._run_execution(component_cls, input_manifest)
 
+        print("uploading manifest")
+        print(output_manifest)
         self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
     def _upload_cache_key(
