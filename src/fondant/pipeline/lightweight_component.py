@@ -1,5 +1,6 @@
 import inspect
 import itertools
+import logging
 import sys
 import textwrap
 import typing as t
@@ -8,6 +9,9 @@ from functools import wraps
 from importlib.metadata import version
 
 from fondant.component import BaseComponent, Component
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 MIN_PYTHON_VERSION = (3, 8)
 MAX_PYTHON_VERSION = (3, 11)
@@ -22,6 +26,21 @@ class Image:
     def __post_init__(self):
         if self.base_image is None:
             self.base_image = self.resolve_fndnt_base_image()
+
+        # log info when custom image without Fondant is defined
+        elif not any(
+            dependency.startswith("fondant") for dependency in self.extra_requires
+        ):
+            msg = (
+                "You are not using a Fondant default base image, and Fondant is not part of"
+                "your extra requirements. Please make sure that you have installed fondant "
+                "inside your container. Alternatively, you can should add Fondant to "
+                "the extra requirements. \n"
+                "E.g. \n"
+                '@lightweight_component(..., extra_requires=["fondant"])'
+            )
+
+            logger.info(msg)
 
     @staticmethod
     def resolve_fndnt_base_image(use_ecr_registry=False):
