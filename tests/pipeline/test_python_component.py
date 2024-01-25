@@ -1,6 +1,8 @@
 import json
 import re
+import sys
 import textwrap
+from importlib.metadata import version
 
 import dask.dataframe as dd
 import pandas as pd
@@ -10,6 +12,15 @@ from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.exceptions import InvalidPythonComponent
 from fondant.pipeline import Pipeline, lightweight_component
 from fondant.pipeline.compiler import DockerCompiler
+
+
+@pytest.fixture()
+def default_fondant_image():
+    basename = "fndnt/fondant"
+    fondant_version = version("fondant")
+    python_version = sys.version_info
+    python_version = f"{python_version.major}.{python_version.minor}"
+    return f"{basename}:{fondant_version}-py{python_version}"
 
 
 def test_build_python_script():
@@ -51,7 +62,7 @@ def test_build_python_script():
     )
 
 
-def test_lightweight_component_sdk():
+def test_lightweight_component_sdk(default_fondant_image, caplog):
     pipeline = Pipeline(
         name="dummy-pipeline",
         base_path="./data",
@@ -93,6 +104,18 @@ def test_lightweight_component_sdk():
         "produces": {"x": {"type": "int32"}, "y": {"type": "int32"}},
     }
 
+    # check warning: fondant is not part of the requirements
+    msg = (
+        "You are not using a Fondant default base image, and Fondant is not part of"
+        "your extra requirements. Please make sure that you have installed fondant "
+        "inside your container. Alternatively, you can should add Fondant to "
+        "the extra requirements. \n"
+        "E.g. \n"
+        '@lightweight_component(..., extra_requires=["fondant"])'
+    )
+
+    assert any(msg in record.message for record in caplog.records)
+
     @lightweight_component()
     class AddN(PandasTransformComponent):
         def __init__(self, n: int, **kwargs):
@@ -110,11 +133,13 @@ def test_lightweight_component_sdk():
     )
     assert len(pipeline._graph.keys()) == 1 + 1
     assert pipeline._graph["AddN"]["dependencies"] == ["CreateData"]
+    pipeline._graph["AddN"]["operation"].operation_spec.to_json()
+
     operation_spec_dict = pipeline._graph["AddN"]["operation"].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
             "name": "AddN",
-            "image": "fondant:latest",
+            "image": default_fondant_image,
             "description": "python component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
@@ -160,7 +185,30 @@ def test_valid_load_component():
             )
             return dd.from_pandas(df, npartitions=1)
 
-    CreateData(produces={}, consumes={})
+    pipeline = Pipeline(
+        name="dummy-pipeline",
+        base_path="./data",
+    )
+
+    pipeline.read(
+        ref=CreateData,
+    )
+
+    assert len(pipeline._graph.keys()) == 1
+    operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
+    operation_spec_without_image = json.loads(operation_spec)
+
+    assert operation_spec_without_image == {
+        "specification": {
+            "name": "CreateData",
+            "image": "python:3.8-slim-buster",
+            "description": "python component",
+            "consumes": {"additionalProperties": True},
+            "produces": {"additionalProperties": True},
+        },
+        "consumes": {},
+        "produces": {},
+    }
 
 
 def test_invalid_load_component():
@@ -220,7 +268,7 @@ def test_invalid_load_component_wrong_return_type():
         CreateData(produces={}, consumes={})
 
 
-def test_lightweight_component_decorator_without_parentheses():
+def test_lightweight_component_decorator_without_parentheses(default_fondant_image):
     @lightweight_component
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -237,10 +285,12 @@ def test_lightweight_component_decorator_without_parentheses():
 
     assert len(pipeline._graph.keys()) == 1
     operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
-    assert json.loads(operation_spec) == {
+    operation_spec_without_image = json.loads(operation_spec)
+
+    assert operation_spec_without_image == {
         "specification": {
             "name": "CreateData",
-            "image": "fondant:latest",
+            "image": default_fondant_image,
             "description": "python component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
