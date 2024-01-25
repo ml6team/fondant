@@ -495,7 +495,7 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load_from_hugging_face_hub",
+            location="/pipeline-id/load-from-hugging-face-hub",
         ),
     }
 
@@ -507,12 +507,12 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load_from_hugging_face_hub",
+            location="/pipeline-id/load-from-hugging-face-hub",
         ),
         "caption": Field(
             "caption",
             type=Type(pa.string()),
-            location="/pipeline-id/caption_images",
+            location="/pipeline-id/caption-images",
         ),
     }
 
@@ -527,12 +527,12 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load_from_hugging_face_hub",
+            location="/pipeline-id/load-from-hugging-face-hub",
         ),
         "caption": Field(
             "caption",
             type=Type(pa.string()),
-            location="/pipeline-id/caption_images",
+            location="/pipeline-id/caption-images",
         ),
     }
 
@@ -550,11 +550,11 @@ def test_schema_propagation():
         "chunks": Field(
             "chunks",
             type=Type(pa.string()),
-            location="/pipeline-id/chunk_text",
+            location="/pipeline-id/chunk-text",
         ),
         "original_document_id": Field(
             "original_document_id",
             type=Type(pa.string()),
-            location="/pipeline-id/chunk_text",
+            location="/pipeline-id/chunk-text",
         ),
     }
