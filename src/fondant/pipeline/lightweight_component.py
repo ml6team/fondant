@@ -40,10 +40,10 @@ class Image:
                 '@lightweight_component(..., extra_requires=["fondant"])'
             )
 
-            logger.info(msg)
+            logger.warning(msg)
 
     @staticmethod
-    def resolve_fndnt_base_image(use_ecr_registry=False):
+    def resolve_fndnt_base_image():
         """Resolve the correct fndnt base image using python version and fondant version."""
         # Set python version to latest supported version
         python_version = sys.version_info
@@ -53,12 +53,8 @@ class Image:
             python_version = f"{MAX_PYTHON_VERSION[0]}.{MAX_PYTHON_VERSION[1]}"
 
         fondant_version = version("fondant")
-        basename = (
-            "fndnt/fondant-base"
-            if not use_ecr_registry
-            else "public.ecr.aws/fndnt/fondant-base"
-        )
-        return f"{basename}:{fondant_version}-python{python_version}"
+        basename = "fndnt/fondant"
+        return f"{basename}:{fondant_version}-py{python_version}"
 
     def to_dict(self):
         return asdict(self)

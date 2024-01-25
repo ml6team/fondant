@@ -20,8 +20,8 @@ python_versions=("3.8" "3.9" "3.10" "3.11")
 
 
 for python_version in "${python_versions[@]}"; do
-    BASENAME=fondant-base
-    IMAGE_TAG=${tag}-python${python_version}
+    BASENAME=fondant
+    IMAGE_TAG=${tag}-py${python_version}
     full_image_names=()
 
     # create repo if not exists

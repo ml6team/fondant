@@ -16,11 +16,11 @@ from fondant.pipeline.compiler import DockerCompiler
 
 @pytest.fixture()
 def default_fondant_image():
-    basename = "fndnt/fondant-base"
+    basename = "fndnt/fondant"
     fondant_version = version("fondant")
     python_version = sys.version_info
     python_version = f"{python_version.major}.{python_version.minor}"
-    return f"{basename}:{fondant_version}-python{python_version}"
+    return f"{basename}:{fondant_version}-py{python_version}"
 
 
 def test_build_python_script():
