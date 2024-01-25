@@ -44,7 +44,7 @@ Schematically, it can be represented as follows:
 
 ![component architecture](https://github.com/ml6team/fondant/blob/main/docs/art/guides/component.png?raw=true)
 
-You can find a more detailed explanation [here](../components/custom_component.md).
+You can find a more detailed explanation [here](../components/custom_containerized_component.md).
 
 ### Creating the ComponentSpec
 
