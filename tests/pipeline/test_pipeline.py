@@ -9,7 +9,6 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 import yaml
-
 from fondant.component import DaskLoadComponent
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition

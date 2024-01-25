@@ -8,7 +8,6 @@ import dask.dataframe as dd
 import pandas as pd
 import pyarrow as pa
 import pytest
-
 from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.exceptions import InvalidPythonComponent
 from fondant.pipeline import Pipeline, lightweight_component
