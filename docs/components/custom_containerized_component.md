@@ -2,13 +2,13 @@
 
 Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
 provides a lot
-of [components out of the box](https://github.com/ml6team/fondant/tree/main/components)
-, but you can also define your own custom containerized components.
+of [components out of the box](https://fondant.ai/en/latest/components/hub/), but you can also
+define your own custom containerized components.
 
 Containerized components are useful when you want to share the components within your organization
 or community.
-If you need to implement the missing code to utilize reusable components, we recommend the
-implementation of [Python components](../components/custom_python_component.md).
+If you don't need your component to be shareable, we recommend starting 
+with a simpler [Python components](../components/custom_python_component.md) instead.
 
 To make sure containerized components are reusable, they should implement a single logical data
 processing
@@ -25,8 +25,7 @@ To implement a custom containerized component, a couple of files need to be defi
 
 ## Fondant component specification
 
-Each containerized Fondant component is defined by a specification which describes its interface.
-This
+Each containerized Fondant component  is defined by a specification which describes its interface. This
 specification is represented by a single `fondant_component.yaml` file. See the [component
 specification page](../components/component_spec.md) for info on how to write the specification for
 your component.
@@ -34,8 +33,7 @@ your component.
 ## Main.py script
 
 The component script should be implemented in a `main.py` script in a folder called `src`.
-Refer to the [main.py script](../components/components.md) section for more info on how to implement
-the
+Refer to the [main.py script](../components/components.md) section for more info on how to implement the
 script.
 
 Note that the `main.py` script can be split up into several Python scripts in case it would become
@@ -68,8 +66,8 @@ ENTRYPOINT ["fondant", "execute", "main"]
 ## Requirements.txt
 
 A `requirements.txt` file lists the Python dependencies of the component. Note that any Fondant
-component will always have `Fondant[component]` as the minimum requirement. It's important to also
-pin the version of each dependency to make sure the component remains working as expected. Below is
+component will always have `Fondant[component]` as the minimum requirement. It's important to also 
+pin the version of each dependency to make sure the component remains working as expected. Below is 
 an example of a component that relies on several Python libraries such as Pillow, PyTorch and
 Transformers.
 
@@ -80,8 +78,7 @@ torch==2.0.1
 transformers==4.29.2
 ```
 
-Refer to this [section](publishing_components.md) to find out how to build and publish your
-components to use them in
+Refer to this [section](publishing_components.md) to find out how to build and publish your components to use them in 
 your own pipelines.
 
 

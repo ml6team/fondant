@@ -42,7 +42,7 @@ dataset = pipeline.read(
     },
     produces={
         "alt_text": pa.string(),
-        "url": pa.string(),
+        "image_url": pa.string(),
         "license_location": pa.string(),
         "license_type": pa.string(),
         "webpage_url": pa.string(),
@@ -118,7 +118,7 @@ For instance we can put this component at the end of our pipeline.
 
 ```python
 
-upercase_alt_text = english_images.apply(
+uppercase_alt_text = english_images.apply(
     UpperCaseTextComponent
 )
 
