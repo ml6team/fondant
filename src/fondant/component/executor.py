@@ -336,6 +336,7 @@ class Executor(t.Generic[Component]):
             component,
             manifest=input_manifest,
         )
+
         output_manifest = input_manifest.evolve(
             operation_spec=self.operation_spec,
             run_id=self.metadata.run_id,
@@ -354,6 +355,8 @@ class Executor(t.Generic[Component]):
             component_cls: The class of the component to execute
         """
         input_manifest = self._load_or_create_manifest()
+        base_path = input_manifest.base_path
+        pipeline_name = input_manifest.pipeline_name
 
         if self.cache and self._is_previous_cached(input_manifest):
             cache_reference_content = self._get_cache_reference_content()
@@ -381,36 +384,46 @@ class Executor(t.Generic[Component]):
         if output_manifest:
             self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
-    def _upload_cache_key(
+        self._upload_cache_reference_content(
+            base_path=base_path,
+            pipeline_name=pipeline_name,
+        )
+
+    def _upload_cache_reference_content(
         self,
-        manifest: Manifest,
-        manifest_save_path: t.Union[str, Path],
+        base_path: str,
+        pipeline_name: str,
     ):
         """
-        Write the cache key containing the reference to the location of the written manifest..
+        Write the cache key containing the reference to the location of the written manifest.
 
         This function creates a file with the format "<cache_key>.txt" at the specified
         'manifest_save_path' to store the manifest location for future retrieval of
         cached component executions.
 
         Args:
-            manifest: The reference manifest.
-            manifest_save_path (str): The path where the manifest is saved.
+            base_path: The base path of the pipeline.
+            pipeline_name: The name of the pipeline.
         """
-        manifest_reference_path = (
-            f"{manifest.base_path}/{manifest.pipeline_name}/cache/"
-            f"{self.metadata.cache_key}.txt"
+        cache_reference_path = (
+            f"{base_path}/{pipeline_name}/cache/{self.metadata.cache_key}.txt"
         )
 
-        logger.info(f"Writing cache key to {manifest_reference_path}")
+        logger.info(
+            f"Writing cache key with manifest reference to {cache_reference_path}",
+        )
 
         with fs_open(
-            manifest_reference_path,
+            cache_reference_path,
             mode="wt",
             encoding="utf-8",
             auto_mkdir=True,
         ) as file_:
-            file_.write(str(manifest_save_path))
+            file_.write(self.cache_reference_content)
+
+    @property
+    def cache_reference_content(self) -> str:
+        return str(self.output_manifest_path)
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         """
@@ -424,7 +437,6 @@ class Executor(t.Generic[Component]):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         manifest.to_file(save_path)
         logger.info(f"Saving output manifest to {save_path}")
-        self._upload_cache_key(manifest=manifest, manifest_save_path=save_path)
 
 
 class DaskLoadExecutor(Executor[DaskLoadComponent]):
@@ -463,6 +475,7 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
 class TransformExecutor(Executor[Component]):
     """Base class for a Fondant transform component."""
 
+    # inherit from Executor[Component] to allow for both Dask and Pandas transform components
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.from_file(self.input_manifest_path)
 
@@ -605,6 +618,10 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
         pass
+
+    @property
+    def cache_reference_content(self) -> str:
+        return ""
 
 
 class ExecutorFactory:
