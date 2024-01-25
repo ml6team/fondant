@@ -215,6 +215,12 @@ class ComponentOp:
         """Create a ComponentOp from a reference. The reference can
         be a reusable component name, a path to a custom component,
         or a python component class.
+
+        Args:
+            ref: The name of a reusable component, or the path to the directory containing
+                a custom component, or a python component class.
+            fields: The fields of the dataset available to the component.
+            **kwargs: The provided user arguments are passed in as keyword arguments
         """
         if inspect.isclass(ref) and issubclass(ref, BaseComponent):
             if issubclass(ref, PythonComponent):
