@@ -111,7 +111,6 @@ def test_lightweight_component_sdk(load_pipeline):
     _ = dataset.apply(
         ref=AddN,
         produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
-        consumes=None,
         arguments={"n": 1},
     )
     assert len(pipeline._graph.keys()) == 1 + 1

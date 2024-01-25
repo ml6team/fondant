@@ -462,7 +462,7 @@ class OperationSpec:
                 else:
                     msg = (
                         f"Received pyarrow DataType value {value} for key {key} in the "
-                        f"`{name}` argument passed to the operation, but {key} is "
+                        f"`{name}` argument passed to the operation, but `{key}` is "
                         f"already defined in the `{name}` section of the component spec "
                         f"with type {spec_type}"
                     )
@@ -494,8 +494,8 @@ class OperationSpec:
                 mapping[value] = Field(name=value, type=mapping.pop(key).type)
             else:
                 msg = (
-                    f"Received a string value for key {key} in the `{name}` "
-                    f"argument passed to the operation, but {key} is not defined in "
+                    f"Received a string value for key `{key}` in the `{name}` "
+                    f"argument passed to the operation, but `{key}` is not defined in "
                     f"the `{name}` section of the component spec."
                 )
                 raise InvalidPipelineDefinition(msg)

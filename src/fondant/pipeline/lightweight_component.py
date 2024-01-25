@@ -36,12 +36,63 @@ class PythonComponent(BaseComponent):
         pass
 
     @classmethod
+    def filter_consumes_spec(cls, python_component_consumes, consumes_spec):
+        """Filter for values that are not in the user defined consumes list."""
+        if python_component_consumes:
+            for field_to_consume in python_component_consumes:
+                if field_to_consume not in consumes_spec.keys():
+                    msg = f"Field `{field_to_consume}` is not available in the dataset."
+                    raise ValueError(
+                        msg,
+                    )
+
+                consumes_spec = {
+                    k: v
+                    for k, v in consumes_spec.items()
+                    if k in python_component_consumes
+                }
+        return consumes_spec
+
+    @classmethod
+    def modify_consumes_spec(cls, apply_consumes, consumes_spec):
+        """Modify fields based on the consumes argument in the 'apply' method."""
+        if apply_consumes:
+            for k, v in apply_consumes.items():
+                if isinstance(v, str):
+                    consumes_spec[k] = consumes_spec.pop(v)
+                elif isinstance(v, pa.DataType):
+                    pass
+                else:
+                    msg = (
+                        f"Invalid data type for field `{k}` in the `apply_consumes` "
+                        f"argument. Only string and pa.DataType are allowed."
+                    )
+                    raise ValueError(
+                        msg,
+                    )
+        return consumes_spec
+
+    @classmethod
     def get_consumes_spec(
         cls,
         dataset_fields: t.Mapping[str, Field],
         apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
     ):
-        pass
+        python_component_consumes = cls.consumes()
+
+        # Get consumes spec from the dataset
+        consumes_spec = {k: v.type.to_dict() for k, v in dataset_fields.items()}
+
+        # Modify naming based on the consumes argument in the 'apply' method
+        consumes_spec = cls.modify_consumes_spec(apply_consumes, consumes_spec)
+
+        # Filter for values that are not in the user defined consumes list
+        consumes_spec = cls.filter_consumes_spec(
+            python_component_consumes,
+            consumes_spec,
+        )
+
+        return consumes_spec
 
 
 def lightweight_component(
@@ -126,41 +177,6 @@ def lightweight_component(
                     msg,
                 )
 
-        def modify_consumes_spec(apply_consumes, consumes_spec):
-            """Modify fields based on the consumes argument in the 'apply' method."""
-            if apply_consumes:
-                for k, v in apply_consumes.items():
-                    if isinstance(v, str):
-                        consumes_spec[k] = consumes_spec.pop(v)
-                    elif isinstance(v, pa.DataType):
-                        pass
-                    else:
-                        msg = (
-                            f"Invalid data type for field `{k}` in the `apply_consumes` "
-                            f"argument. Only string and pa.DataType are allowed."
-                        )
-                        raise ValueError(
-                            msg,
-                        )
-            return consumes_spec
-
-        def filter_consumes_spec(python_component_consumes, consumes_spec):
-            """Filter for values that are not in the user defined consumes list."""
-            if python_component_consumes:
-                for field_to_consume in python_component_consumes:
-                    if field_to_consume not in consumes_spec.keys():
-                        msg = f"Field `{field_to_consume}` is not available in the dataset."
-                        raise ValueError(
-                            msg,
-                        )
-
-                    consumes_spec = {
-                        k: v
-                        for k, v in consumes_spec.items()
-                        if k in python_component_consumes
-                    }
-            return consumes_spec
-
         validate_abstract_methods_are_implemented(cls)
         base_component_cls = get_base_cls(cls)
         validate_signatures(base_component_cls, cls)
@@ -175,28 +191,6 @@ def lightweight_component(
             @classmethod
             def consumes(cls) -> t.Optional[list]:
                 return consumes
-
-            @classmethod
-            def get_consumes_spec(
-                cls,
-                dataset_fields: t.Mapping[str, Field],
-                apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
-            ):
-                python_component_consumes = cls.consumes()
-
-                # Get consumes spec from the dataset
-                consumes_spec = {k: v.type.to_dict() for k, v in dataset_fields.items()}
-
-                # Modify naming based on the consumes argument in the 'apply' method
-                consumes_spec = modify_consumes_spec(apply_consumes, consumes_spec)
-
-                # Filter for values that are not in the user defined consumes list
-                consumes_spec = filter_consumes_spec(
-                    python_component_consumes,
-                    consumes_spec,
-                )
-
-                return consumes_spec
 
         return PythonComponentOp
 
