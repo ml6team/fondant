@@ -3,7 +3,6 @@ import copy
 import json
 import pkgutil
 import pydoc
-import re
 import types
 import typing as t
 from dataclasses import dataclass
@@ -181,20 +180,8 @@ class ComponentSpec:
         return self._specification["name"]
 
     def sanitized_component_name(self, name) -> str:
-        """Cleans and converts a component name.
-
-        Taken from https://github.com/kubeflow/pipelines/blob/
-        cfe671c485d4ee8514290ee81ca2785e8bda5c9b/sdk/python/kfp/dsl/utils.py#L52
-        """
-        return (
-            re.sub(
-                "-+",
-                "-",
-                re.sub("[^-0-9a-z]+", "-", name.lower()),
-            )
-            .lstrip("-")
-            .rstrip("-")
-        )
+        """Cleans and converts a component name."""
+        return name.lower().replace(" ", "_")
 
     @property
     def description(self):

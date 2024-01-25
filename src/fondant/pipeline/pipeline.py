@@ -301,7 +301,7 @@ class ComponentOp:
         return component_dir
 
     @property
-    def component_id(self) -> str:
+    def component_name(self) -> str:
         return self.component_spec.name
 
     def get_component_cache_key(
@@ -389,11 +389,11 @@ class Pipeline:
         output_dataset: t.Optional["Dataset"],
     ) -> None:
         dependencies = []
-        for component_id, info in self._graph.items():
+        for component_name, info in self._graph.items():
             if info["output_dataset"] == input_dataset:
-                dependencies.append(component_id)
+                dependencies.append(component_name)
 
-        self._graph[operation.component_id] = {
+        self._graph[operation.component_name] = {
             "operation": operation,
             "dependencies": dependencies,
             "output_dataset": output_dataset,
@@ -452,7 +452,7 @@ class Pipeline:
             pipeline_name=self.name,
             base_path=self.base_path,
             run_id=self.get_run_id(),
-            component_id=operation.component_id,
+            component_id=operation.component_name,
         )
         dataset = Dataset(manifest, pipeline=self)
 
@@ -545,8 +545,8 @@ class Pipeline:
                 ) in operation_spec.outer_consumes.items():
                     if component_field_name not in manifest.fields:
                         msg = (
-                            f"Component '{component_op.component_id}' is trying to invoke the field"
-                            f"'{component_field_name}', which has not been defined or created "
+                            f"Component '{component_op.component_name}' is trying to invoke the"
+                            f"field '{component_field_name}', which has not been defined or created"
                             f"in the previous components. \n"
                             f"Available field names: {list(manifest.fields.keys())}"
                         )

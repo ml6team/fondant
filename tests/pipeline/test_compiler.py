@@ -154,7 +154,7 @@ def setup_pipeline(request, tmp_path, monkeypatch):
             lambda cache_key=cache_key, previous_component_cache=None: cache_key,
         )
         dataset = dataset._apply(component)
-        cache_dict[component.name] = cache_key
+        cache_dict[component.component_name] = cache_key
 
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
@@ -820,11 +820,11 @@ def test_sagemaker_generate_script_lightweight_component(tmp_path_factory):
         script_path = compiler.generate_component_script(
             entrypoint=compiler._build_entrypoint(component_op.image),
             command=compiler._build_command(metadata, args),
-            component_name=component_op.name,
+            component_name=component_op.component_name,
             directory=fn,
         )
 
-        assert script_path == f"{fn}/{component_op.name}.sh"
+        assert script_path == f"{fn}/{component_op.component_name}.sh"
 
         assert not subprocess.check_call(["bash", "-n", script_path])  # nosec
 

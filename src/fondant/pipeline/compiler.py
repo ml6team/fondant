@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import shlex
 import tempfile
 import textwrap
@@ -352,18 +353,28 @@ class KubeflowComponentSpec:
                 **cls.convert_arguments(fondant_component),
             },
         }
+
+        kfp_safe_name = (
+            re.sub(
+                "-+",
+                "-",
+                re.sub("[^-0-9a-z]+", "-", fondant_component.name.lower()),
+            )
+            .lstrip("-")
+            .rstrip("-")
+        )
         specification = {
             "components": {
                 "comp-"
-                + fondant_component.name: {
-                    "executorLabel": "exec-" + fondant_component.name,
+                + kfp_safe_name: {
+                    "executorLabel": "exec-" + kfp_safe_name,
                     "inputDefinitions": input_definitions,
                 },
             },
             "deploymentSpec": {
                 "executors": {
                     "exec-"
-                    + fondant_component.name: {
+                    + kfp_safe_name: {
                         "container": {
                             "command": command,
                             "image": image_uri,
@@ -371,27 +382,27 @@ class KubeflowComponentSpec:
                     },
                 },
             },
-            "pipelineInfo": {"name": fondant_component.name},
+            "pipelineInfo": {"name": kfp_safe_name},
             "root": {
                 "dag": {
                     "tasks": {
-                        fondant_component.name: {
+                        kfp_safe_name: {
                             "cachingOptions": {"enableCache": True},
-                            "componentRef": {"name": "comp-" + fondant_component.name},
+                            "componentRef": {"name": "comp-" + kfp_safe_name},
                             "inputs": {
                                 "parameters": {
                                     param: {"componentInputParameter": param}
                                     for param in input_definitions["parameters"]
                                 },
                             },
-                            "taskInfo": {"name": fondant_component.name},
+                            "taskInfo": {"name": kfp_safe_name},
                         },
                     },
                 },
                 "inputDefinitions": input_definitions,
             },
             "schemaVersion": "2.1.0",
-            "sdkVersion": "kfp-2.0.1",
+            "sdkVersion": "kfp-2.6.0",
         }
         return cls(specification)
 

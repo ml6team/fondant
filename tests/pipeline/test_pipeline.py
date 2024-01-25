@@ -9,6 +9,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 import yaml
+
 from fondant.component import DaskLoadComponent
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
@@ -93,7 +94,7 @@ def test_component_op_python_component(default_pipeline_args):
 
     component = ComponentOp.from_ref(Foo, produces={"bar": pa.string()})
     assert component.component_spec._specification == {
-        "name": "Foo",
+        "name": "foo",
         "image": fondant_image_name,
         "description": "python component",
         "consumes": {"additionalProperties": True},
@@ -495,7 +496,7 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load-from-hugging-face-hub",
+            location="/pipeline-id/load_from_hugging_face_hub",
         ),
     }
 
@@ -507,12 +508,12 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load-from-hugging-face-hub",
+            location="/pipeline-id/load_from_hugging_face_hub",
         ),
         "caption": Field(
             "caption",
             type=Type(pa.string()),
-            location="/pipeline-id/caption-images",
+            location="/pipeline-id/caption_images",
         ),
     }
 
@@ -527,12 +528,12 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load-from-hugging-face-hub",
+            location="/pipeline-id/load_from_hugging_face_hub",
         ),
         "caption": Field(
             "caption",
             type=Type(pa.string()),
-            location="/pipeline-id/caption-images",
+            location="/pipeline-id/caption_images",
         ),
     }
 
@@ -550,11 +551,11 @@ def test_schema_propagation():
         "chunks": Field(
             "chunks",
             type=Type(pa.string()),
-            location="/pipeline-id/chunk-text",
+            location="/pipeline-id/chunk_text",
         ),
         "original_document_id": Field(
             "original_document_id",
             type=Type(pa.string()),
-            location="/pipeline-id/chunk-text",
+            location="/pipeline-id/chunk_text",
         ),
     }
