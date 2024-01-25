@@ -264,15 +264,13 @@ class Executor(t.Generic[Component]):
 
         data_writer.write_dataframe(dataframe, self.client)
 
-    def _get_cached_manifest(self) -> t.Union[Manifest, None]:
+    def _get_cache_reference_content(self) -> t.Union[str, None]:
         """
-        Find and return the matching execution's Manifest for the component, if it exists.
-
-        This function searches for previous execution manifests that match the component's metadata.
+        Get the content of the cache reference file. This file contains the path to the cached
+        manifest or empty string if the component is cached without producing any manifest.
 
         Returns:
-            The Manifest object representing the most recent matching execution,
-            or None if no matching execution is found.
+            The content of the cache reference file.
         """
         manifest_reference_path = (
             f"{self.metadata.base_path}/{self.metadata.pipeline_name}/cache/"
@@ -285,13 +283,7 @@ class Executor(t.Generic[Component]):
                 mode="rt",
                 encoding="utf-8",
             ) as file_:
-                cached_manifest_path = file_.read()
-                manifest = Manifest.from_file(cached_manifest_path)
-                logger.info(
-                    f"Matching execution detected for component. The last execution of the"
-                    f" component originated from `{manifest.run_id}`.",
-                )
-                return manifest
+                return file_.read()
 
         except FileNotFoundError:
             logger.info("No matching execution for component detected")
@@ -364,9 +356,21 @@ class Executor(t.Generic[Component]):
         input_manifest = self._load_or_create_manifest()
 
         if self.cache and self._is_previous_cached(input_manifest):
-            output_manifest = self._get_cached_manifest()
-            if output_manifest is not None:
+            cache_reference_content = self._get_cache_reference_content()
+
+            if cache_reference_content is not None:
                 logger.info("Skipping component execution")
+
+                if cache_reference_content:
+                    output_manifest = Manifest.from_file(cache_reference_content)
+
+                    logger.info(
+                        f"Matching execution detected for component. The last execution of the"
+                        f" component originated from `{output_manifest.run_id}`.",
+                    )
+                else:
+                    logger.info("Component is cached without producing a manifest")
+                    output_manifest = None
             else:
                 output_manifest = self._run_execution(component_cls, input_manifest)
 
@@ -374,7 +378,8 @@ class Executor(t.Generic[Component]):
             logger.info("Caching disabled for the component")
             output_manifest = self._run_execution(component_cls, input_manifest)
 
-        self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
+        if output_manifest:
+            self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
     def _upload_cache_key(
         self,
@@ -597,6 +602,9 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
 
     def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
         """Create a data writer given a manifest and writes out the index and subsets."""
+
+    def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):
+        pass
 
 
 class ExecutorFactory:
