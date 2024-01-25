@@ -9,15 +9,14 @@ Fondant pipeline. While the example demonstrates how to build a pipeline from re
 this is only the beginning.
 
 Reusable components consume data in a specific format, defined in a data contract.
-Therefore, it is often necessary to implement glue code to connect the reusable components to your
-specific data. The easiest way to do this is to implement a **Python component**.
+Therefore, it is often necessary to implement custom components to connect the reusable components to your
+specific data. The easiest way to do this is to implement a **Lightweight Component**. 
 
 In this tutorial, we will guide you through the process of implementing your very own custom
-component. We will illustrate this by building a transform component that filters images based on
-file type.
+component. We will illustrate this by building a transform component that uppercases the `alt_text` of the image dataset.
 
-If you want to share the component within your organization or even the community, take a look at
-how to build [reusable components](../components/custom_containerized_component.md).
+If you want to build a complex custom component or share the component within your organization or even the community, 
+take a look at how to build [reusable components](../components/custom_containerized_component.md).
 
 This pipeline is an extension of the one introduced in
 the [previous tutorial](../guides/build_a_simple_pipeline.md).
@@ -68,7 +67,7 @@ We want to extend the pipeline and apply a simple text transformation to the `al
 consider that the `alt_text` is so important that the text has to be transformed into uppercase
 letters.
 
-## Implement your Python component
+## Implement your  Lightweight component
 
 Now, it's time to implement the component logic.
 
