@@ -85,11 +85,11 @@ def test_component_op_python_component(default_pipeline_args):
             )
             return dd.from_pandas(df, npartitions=1)
 
-    basename = "fndnt/fondant-base"
+    basename = "fndnt/fondant"
     fondant_version = version("fondant")
     python_version = sys.version_info
     python_version = f"{python_version.major}.{python_version.minor}"
-    fondant_image_name = f"{basename}:{fondant_version}-python{python_version}"
+    fondant_image_name = f"{basename}:{fondant_version}-py{python_version}"
 
     component = ComponentOp.from_ref(Foo, produces={"bar": pa.string()})
     assert component.component_spec._specification == {
