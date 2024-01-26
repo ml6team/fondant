@@ -21,7 +21,6 @@ class LAIONRetrievalComponent(PandasTransformComponent):
         aesthetic_score: int,
         aesthetic_weight: float,
         url: str,
-        **kwargs,
     ) -> None:
         """
 
@@ -32,7 +31,6 @@ class LAIONRetrievalComponent(PandasTransformComponent):
             aesthetic_weight: weight of the aesthetic embedding to add to the query,
                 between 0 and 1.
             url: The url of the backend clip retrieval service, defaults to the public clip url.
-            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.client = ClipClient(
             url=url,

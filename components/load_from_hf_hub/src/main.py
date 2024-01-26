@@ -24,7 +24,6 @@ class LoadFromHubComponent(DaskLoadComponent):
     ) -> None:
         """
         Args:
-            produces: The schema the component should produce
             dataset_name: name of the dataset to load.
             column_name_mapping: Mapping of the consumed hub dataset to fondant column names
             image_column_names: A list containing the original hub image column names. Used to
@@ -33,7 +32,6 @@ class LoadFromHubComponent(DaskLoadComponent):
               testing pipeline runs on a small scale.
             index_column: Column to set index to in the load component, if not specified a default
                 globally unique index will be set.
-            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.dataset_name = dataset_name
         self.column_name_mapping = column_name_mapping

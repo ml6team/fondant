@@ -46,7 +46,6 @@ class DownloadImagesComponent(PandasTransformComponent):
             resize_only_if_bigger: If True, resize only if image is bigger than image_size.
             min_image_size: Minimum size of the images.
             max_aspect_ratio: Maximum aspect ratio of the images.
-            kwargs: Unhandled keyword arguments passed in by Fondant
 
         Returns:
             Dask dataframe

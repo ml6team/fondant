@@ -18,8 +18,6 @@ class BaseComponent:
 
     def __init__(
         self,
-        # consumes: t.Mapping[str, Field],
-        # produces: t.Mapping[str, Field],
         **kwargs,
     ):
         self.consumes = None
