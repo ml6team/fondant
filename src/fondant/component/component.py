@@ -18,12 +18,9 @@ class BaseComponent:
 
     def __init__(
         self,
-        # consumes: t.Mapping[str, Field],
-        # produces: t.Mapping[str, Field],
         **kwargs,
     ):
-        self.consumes = None
-        self.produces = None
+        pass
 
     def teardown(self) -> None:
         """Method called after the component has been executed."""
