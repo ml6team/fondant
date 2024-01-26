@@ -6,8 +6,6 @@ from abc import abstractmethod
 import dask.dataframe as dd
 import pandas as pd
 
-from fondant.core.schema import Field
-
 
 class BaseComponent:
     """Base interface for each component, specifying only the constructor.
@@ -20,12 +18,12 @@ class BaseComponent:
 
     def __init__(
         self,
-        *,
-        consumes: t.Mapping[str, Field],
-        produces: t.Mapping[str, Field],
+        # consumes: t.Mapping[str, Field],
+        # produces: t.Mapping[str, Field],
         **kwargs,
     ):
-        pass
+        self.consumes = None
+        self.produces = None
 
     def teardown(self) -> None:
         """Method called after the component has been executed."""

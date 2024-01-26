@@ -275,7 +275,7 @@ def test_load_component(metadata):
     ]
 
     class MyLoadComponent(DaskLoadComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             self.flag = flag
             self.value = value
 
@@ -334,7 +334,7 @@ def test_teardown_method(metadata):
     client = MockClient()
 
     class MyLoadComponent(DaskLoadComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             self.flag = flag
             self.value = value
             self.client = client
@@ -389,7 +389,7 @@ def test_dask_transform_component(metadata):
     ]
 
     class MyDaskComponent(DaskTransformComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             self.flag = flag
             self.value = value
 
@@ -439,7 +439,7 @@ def test_pandas_transform_component(metadata):
     ]
 
     class MyPandasComponent(PandasTransformComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             assert flag == "success"
             assert value == 1
 
@@ -551,7 +551,7 @@ def test_write_component(metadata):
     ]
 
     class MyWriteComponent(DaskWriteComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             self.flag = flag
             self.value = value
 
