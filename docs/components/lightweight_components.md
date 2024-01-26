@@ -1,11 +1,11 @@
-# Creating custom python components
+# Creating lightweight components
 
-Python components are a great way to implement custom data processing steps in your pipeline. 
+Lightweight components are a great way to implement custom data processing steps in your pipeline. 
 They are easy to implement and can be reused across different pipelines. If you want to 
 build more complex components that require additional dependencies (e.g. GPU support), you can
-also build a containerized component. See the [containerized component guide](../components/custom_containerized_component.md) for more info.
+also build a containerized component. See the [containerized component guide](../components/containerized_components.md) for more info.
 
-To implement a custom python component, you simply need to create a python script that implements 
+To implement a lightweight component, you simply need to create a python script that implements 
 the component logic. Here is an example of a pipeline composed of two custom components,
 one that creates a dataset and one that adds a number to a column of the dataset:
 
@@ -116,7 +116,7 @@ This will omit the `y` column from the loaded data, which can be useful if you a
 datasets and want to avoid loading unnecessary data.
 
 If you want to publish your component to the Fondant Hub, you will need to convert 
-it to containerized component. See the [containerized component guide](../components/custom_containerized_component.md) for more info.
+it to containerized component. See the [containerized component guide](../components/containerized_components.md) for more info.
 
 **Note:** Python based components also support defining dynamic fields by default. See the [dynamic fields guide](../components/component_spec.md#dynamic-fields) for more info
 on dynamic fields.
