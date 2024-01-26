@@ -43,7 +43,6 @@ class ChunkTextComponent(PandasTransformComponent):
         chunk_strategy: t.Optional[str],
         chunk_kwargs: t.Optional[dict],
         language_text_splitter: t.Optional[str],
-        **kwargs,
     ):
         """
         Args:

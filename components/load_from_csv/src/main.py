@@ -19,7 +19,6 @@ class CSVReader(DaskLoadComponent):
         column_name_mapping: t.Optional[dict],
         n_rows_to_load: t.Optional[int],
         index_column: t.Optional[str],
-        **kwargs,
     ) -> None:
         """
         Args:

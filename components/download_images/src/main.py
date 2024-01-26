@@ -32,7 +32,6 @@ class DownloadImagesComponent(PandasTransformComponent):
         resize_only_if_bigger: bool,
         min_image_size: int,
         max_aspect_ratio: float,
-        **kwargs,
     ):
         """Component that downloads images from a list of URLs and executes filtering and resizing.
 

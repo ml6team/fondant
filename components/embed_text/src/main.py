@@ -29,7 +29,6 @@ class EmbedTextComponent(PandasTransformComponent):
         model: str,
         api_keys: dict,
         auth_kwargs: dict,
-        **kwargs,
     ):
         to_env_vars(api_keys)
 

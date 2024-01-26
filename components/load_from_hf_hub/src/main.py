@@ -6,7 +6,6 @@ import dask
 import dask.dataframe as dd
 import pandas as pd
 from fondant.component import DaskLoadComponent
-from fondant.core.schema import Field
 
 logger = logging.getLogger(__name__)
 
@@ -17,13 +16,11 @@ class LoadFromHubComponent(DaskLoadComponent):
     def __init__(
         self,
         *,
-        produces: t.Dict[str, Field],
         dataset_name: str,
         column_name_mapping: t.Optional[dict],
         image_column_names: t.Optional[list],
         n_rows_to_load: t.Optional[int],
         index_column: t.Optional[str],
-        **kwargs,
     ) -> None:
         """
         Args:
@@ -43,7 +40,6 @@ class LoadFromHubComponent(DaskLoadComponent):
         self.image_column_names = image_column_names
         self.n_rows_to_load = n_rows_to_load
         self.index_column = index_column
-        self.produces = produces
 
     def get_columns_to_keep(self) -> t.List[str]:
         # Only read required columns

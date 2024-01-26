@@ -15,7 +15,6 @@ class RetrieverEval(PandasTransformComponent):
         llm_class_name: str,
         llm_kwargs: dict,
         produces: t.Dict[str, t.Any],
-        **kwargs,
     ) -> None:
         """
         Args:
