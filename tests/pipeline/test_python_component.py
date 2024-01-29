@@ -118,7 +118,7 @@ def test_lightweight_component_sdk(default_fondant_image, caplog):
 
     @lightweight_component()
     class AddN(PandasTransformComponent):
-        def __init__(self, n: int, **kwargs):
+        def __init__(self, n: int):
             self.n = n
 
         def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:

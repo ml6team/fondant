@@ -29,7 +29,7 @@ class CreateData(DaskLoadComponent):
 
 @lightweight_component
 class AddNumber(PandasTransformComponent):
-    def __init__(self, n: int, **kwargs):
+    def __init__(self, n: int):
         self.n = n
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -104,7 +104,7 @@ by specifying the `x` column in the `consumes` argument:
 ```python title="pipeline.py"
 @lightweight_component(consumes={"x"})
 class AddNumber(PandasTransformComponent):
-    def __init__(self, n: int, **kwargs):
+    def __init__(self, n: int):
         self.n = n
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:

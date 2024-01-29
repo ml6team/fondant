@@ -335,11 +335,12 @@ class Executor(t.Generic[Component]):
         input_manifest: Manifest,
     ) -> Manifest:
         logging.info("Executing component")
-        component: Component = component_cls(
-            consumes=self.operation_spec.inner_consumes,
-            produces=self.operation_spec.inner_produces,
-            **self.user_arguments,
-        )
+
+        component: Component = component_cls(**self.user_arguments)
+
+        component.consumes = self.operation_spec.inner_consumes
+        component.produces = self.operation_spec.inner_produces
+
         output_df = self._execute_component(
             component,
             manifest=input_manifest,

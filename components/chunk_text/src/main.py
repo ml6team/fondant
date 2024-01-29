@@ -43,7 +43,6 @@ class ChunkTextComponent(PandasTransformComponent):
         chunk_strategy: t.Optional[str],
         chunk_kwargs: t.Optional[dict],
         language_text_splitter: t.Optional[str],
-        **kwargs,
     ):
         """
         Args:
@@ -59,7 +58,6 @@ class ChunkTextComponent(PandasTransformComponent):
             https://python.langchain.com/docs/modules/data_connection/document_transformers/
             code_splitter
             for more information on supported languages.
-            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.chunk_strategy = chunk_strategy
         self.chunk_kwargs = chunk_kwargs

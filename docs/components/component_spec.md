@@ -285,7 +285,7 @@ from fondant.component import PandasTransformComponent
 
 class ExampleComponent(PandasTransformComponent):
 
-  def __init__(self, *, custom_argument, default_argument, **kwargs) -> None:
+  def __init__(self, *, custom_argument, default_argument) -> None:
     """
     Args:
         x_argument: An argument passed to the component
@@ -314,7 +314,7 @@ import pandas as pd
 from fondant.component import PandasTransformComponent
 from my_library import Client
 
-  def __init__(self, *, client_url, **kwargs) -> None:
+  def __init__(self, *, client_url) -> None:
     """
     Args:
         x_argument: An argument passed to the component

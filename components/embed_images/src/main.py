@@ -71,7 +71,6 @@ class EmbedImagesComponent(PandasTransformComponent):
         *,
         model_id: str,
         batch_size: int,
-        **kwargs,
     ):
         """
         Args:

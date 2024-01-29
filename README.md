@@ -190,7 +190,7 @@ from fondant.component import PandasTransformComponent
 
 class ExampleComponent(PandasTransformComponent):
 
-    def __init__(self, *, argument1, argument2, **kwargs) -> None:
+    def __init__(self, *, argument1, argument2) -> None:
         """
         Args:
             argumentX: An argument passed to the component

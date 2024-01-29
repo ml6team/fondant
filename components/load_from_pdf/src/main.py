@@ -7,7 +7,6 @@ import fitz
 import fsspec as fs
 import pandas as pd
 from fondant.component import DaskLoadComponent
-from fondant.core.schema import Field
 
 logger = logging.getLogger(__name__)
 
@@ -15,17 +14,14 @@ logger = logging.getLogger(__name__)
 class PDFReader(DaskLoadComponent):
     def __init__(
         self,
-        produces: t.Dict[str, Field],
         *,
         pdf_path: str,
         n_rows_to_load: t.Optional[int] = None,
         index_column: t.Optional[str] = None,
         n_partitions: t.Optional[int] = None,
-        **kwargs,
     ) -> None:
         """
         Args:
-            produces: The schema the component should produce
             pdf_path: Path to the PDF file
             n_rows_to_load: optional argument that defines the number of rows to load.
                 Useful for testing pipeline runs on a small scale.
@@ -34,9 +30,7 @@ class PDFReader(DaskLoadComponent):
             n_partitions: Number of partitions of the dask dataframe. If not specified, the number
                 of partitions will be equal to the number of CPU cores. Set to high values if
                 the data is large and the pipeline is running out of memory.
-            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
-        self.produces = produces
         self.pdf_path = pdf_path
         self.n_rows_to_load = n_rows_to_load
         self.index_column = index_column
