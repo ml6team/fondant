@@ -71,10 +71,10 @@ We can distinguish two different types of components:
 
 - **Custom components** are completely defined and implemented by the user. There are two ways to 
   define a custom component:
-    - **Lightweight Python Components**: Create a component from a self-contained Python function.
+    - **Lightweight Components**: Create a component from a self-contained Python function.
     This is the easiest way to create a custom component. It allows you to define a component without
     having to build a custom docker image or defining a component specification.
-    - **Containerized Python Components**: You can build your code into a docker image
+    - **Containerized Components**: You can build your code into a docker image
      and write an accompanying component specification that refers to it. This is used for 
     more complex components that require additional dependencies (e.g. GPU support). 
 
@@ -85,8 +85,8 @@ We can distinguish two different types of components:
 ### Custom components
 
 
-#### Lightweight Python Components
-To define a lightweight python component, you can create a self-contained python function that
+#### Lightweight Components
+To define a lightweight component, you can create a self-contained python function that
 implements the logic of your component.
 
 
@@ -119,11 +119,11 @@ _ = dataset.apply(
 )
 ```
 
-See our [best practices on creating a custom python component](../components/custom_python_component.md).
+See our [best practices on creating a lightweight component](../components/lightweight_components.md).
 
 
-#### Containerized Python Components
-To define your own containerized custom component, you can build your code into a docker image and write an 
+#### Containerized Components
+To define your own containerized component, you can build your code into a docker image and write an 
 accompanying component specification that refers to it.
 
 A typical file structure for a custom component looks like this:
@@ -160,12 +160,12 @@ dataset = dataset.apply(
 )
 ```
 
-See our [best practices on creating a custom containerized component](../components/custom_containerized_component.md).
+See our [best practices on creating a containerized component](../components/containerized_components.md).
 
 
 ### Reusable components
 
-Reusable components are out of the box containerized python components from the Fondant Hub that you can easily add 
+Reusable components are out of the box containerized components from the Fondant Hub that you can easily add 
 to your pipeline:
 
 ```python

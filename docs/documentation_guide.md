@@ -16,12 +16,12 @@ own [custom components](guides/implement_custom_components.md).
 Learn how to use Fondant to build your own data processing pipeline.
 
 -> Design your own fondant [pipeline](pipeline.md) using the Fondant pipeline SDK.  
--> Use existing [reusable components](components/hub.md) to build your pipeline.
--> Build your own custom [python component](components/custom_containerized_component.md) 
-and share them by packaging them into [containerized component](components/custom_containerized_component.md) using the Fondant component
-SDK.
+-> Use existing [reusable components](components/hub.md) to build your pipeline.  
+-> Build your own custom [lightweight component](components/lightweight_components.md) 
+and share them by packaging them into [containerized component](components/containerized_components.md) using the Fondant component
+SDK.  
 -> Learn how to publish your own [components](components/publishing_components.md) to a container
-registry so that you can reuse them in your pipelines.
+registry so that you can reuse them in your pipelines.  
 
 ## Components hub
 
@@ -80,7 +80,7 @@ Learn about some of the more advanced concepts in Fondant.
 hood.  
 -> Learn how Fondant uses [caching](caching.md) to speed up your pipeline development.  
 -> Find out how Fondant uses [partitions](partitions.md) to parallelize and scale your pipeline and
-how you can use it to your advantage.
+how you can use it to your advantage.  
 -> Learn how to setup a Kubeflow to run your Fondant pipeline on a [Kubeflow cluster](runners/kfp_infrastructure.md).
 
 ## Contributing

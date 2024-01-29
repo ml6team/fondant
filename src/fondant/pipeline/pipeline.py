@@ -19,10 +19,13 @@ import pyarrow as pa
 
 from fondant.component import BaseComponent
 from fondant.core.component_spec import ComponentSpec, OperationSpec
-from fondant.core.exceptions import InvalidPipelineDefinition, InvalidPythonComponent
+from fondant.core.exceptions import (
+    InvalidLightweightComponent,
+    InvalidPipelineDefinition,
+)
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
-from fondant.pipeline import Image, PythonComponent
+from fondant.pipeline import Image, LightweightComponent
 from fondant.pipeline.argument_inference import infer_arguments
 
 logger = logging.getLogger(__name__)
@@ -212,10 +215,10 @@ class ComponentOp:
         or a python component class.
         """
         if inspect.isclass(ref) and issubclass(ref, BaseComponent):
-            if issubclass(ref, PythonComponent):
+            if issubclass(ref, LightweightComponent):
                 name = ref.__name__
                 image = ref.image()
-                description = ref.__doc__ or "python component"
+                description = ref.__doc__ or "lightweight component"
 
                 component_spec = ComponentSpec(
                     name,
@@ -236,9 +239,9 @@ class ComponentOp:
                     **kwargs,
                 )
             else:
-                msg = """Reference is not a valid Python component.
+                msg = """Reference is not a valid lightweight component.
                        Make sure the component is decorated properly."""
-                raise InvalidPythonComponent(msg)
+                raise InvalidLightweightComponent(msg)
 
         elif isinstance(ref, (str, Path)):
             operation = cls.from_component_yaml(
@@ -247,7 +250,7 @@ class ComponentOp:
             )
         else:
             msg = f"""Invalid reference type: {type(ref)}.
-                Expected a string, Path, or a Python component class."""
+                Expected a string, Path, or a lightweight component class."""
             raise ValueError(msg)
         return operation
 
@@ -417,7 +420,7 @@ class Pipeline:
 
         Args:
             ref: The name of a reusable component, or the path to the directory containing
-                a custom component, or a python component class.
+                a containerized component, or a lightweight component class.
             produces: A mapping to update the fields produced by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -638,7 +641,7 @@ class Dataset:
 
         Args:
             ref: The name of a reusable component, or the path to the directory containing
-                a custom component, or a python component class.
+                a custom component, or a lightweight component class.
             consumes: A mapping to update the fields consumed by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -753,7 +756,7 @@ class Dataset:
 
         Args:
             ref: The name of a reusable component, or the path to the directory containing
-                a custom component, or a python component class.
+                a custom component, or a lightweight component class.
             consumes: A mapping to update the fields consumed by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
