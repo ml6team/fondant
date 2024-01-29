@@ -62,6 +62,9 @@ jobs:
       - name: Build data explorer
         run: ./scripts/build_explorer.sh -t $GITHUB_REF_NAME
 
+      - name: Build base image
+        run: ./scripts/build_base_image.sh -t $GITHUB_REF_NAME
+
       - name: Update version in pyproject.toml with tag version
         run: sed -i "s/^version = .*/version = '${{github.ref_name}}'/" pyproject.toml
 

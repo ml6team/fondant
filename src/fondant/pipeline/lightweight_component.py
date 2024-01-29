@@ -1,26 +1,66 @@
 import inspect
 import itertools
+import logging
+import sys
 import textwrap
 import typing as t
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from functools import wraps
+from importlib.metadata import version
 
 from fondant.component import BaseComponent, Component
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+MIN_PYTHON_VERSION = (3, 8)
+MAX_PYTHON_VERSION = (3, 11)
 
 
 @dataclass
 class Image:
-    base_image: str = "fondant:latest"
+    base_image: str
     extra_requires: t.Optional[t.List[str]] = None
     script: t.Optional[str] = None
 
     def __post_init__(self):
         if self.base_image is None:
-            # TODO: link to Fondant version
-            self.base_image = "fondant:latest"
+            self.base_image = self.resolve_fndnt_base_image()
+
+        # log info when custom image without Fondant is defined
+        elif self.extra_requires and not any(
+            dependency.startswith("fondant") for dependency in self.extra_requires
+        ):
+            msg = (
+                "You are not using a Fondant default base image, and Fondant is not part of"
+                "your extra requirements. Please make sure that you have installed fondant "
+                "inside your container. Alternatively, you can should add Fondant to "
+                "the extra requirements. \n"
+                "E.g. \n"
+                '@lightweight_component(..., extra_requires=["fondant"])'
+            )
+
+            logger.warning(msg)
+
+    @staticmethod
+    def resolve_fndnt_base_image():
+        """Resolve the correct fndnt base image using python version and fondant version."""
+        # Set python version to latest supported version
+        python_version = sys.version_info
+        if MIN_PYTHON_VERSION <= python_version < MAX_PYTHON_VERSION:
+            python_version = f"{python_version.major}.{python_version.minor}"
+        else:
+            python_version = f"{MAX_PYTHON_VERSION[0]}.{MAX_PYTHON_VERSION[1]}"
+
+        fondant_version = version("fondant")
+        basename = "fndnt/fondant"
+        return f"{basename}:{fondant_version}-py{python_version}"
+
+    def to_dict(self):
+        return asdict(self)
 
 
-class PythonComponent(BaseComponent):
+class LightweightComponent(BaseComponent):
     @classmethod
     def image(cls) -> Image:
         raise NotImplementedError
@@ -31,7 +71,7 @@ def lightweight_component(
     extra_requires: t.Optional[t.List[str]] = None,
     base_image: t.Optional[str] = None,
 ):
-    """Decorator to enable a python component."""
+    """Decorator to enable a lightweight component."""
 
     def wrapper(cls):
         script = build_python_script(cls)
@@ -100,7 +140,7 @@ def lightweight_component(
             ]
             if len(abstract_methods) >= 1:
                 msg = (
-                    f"Every required function must be overridden in the PythonComponent. "
+                    f"Every required function must be overridden in the LightweightComponent. "
                     f"Missing implementations for the following functions: {abstract_methods}"
                 )
                 raise ValueError(
@@ -113,12 +153,12 @@ def lightweight_component(
 
         # updated=() is needed to prevent an attempt to update the class's __dict__
         @wraps(cls, updated=())
-        class PythonComponentOp(cls, PythonComponent):
+        class LightweightComponentOp(cls, LightweightComponent):
             @classmethod
             def image(cls) -> Image:
                 return image
 
-        return PythonComponentOp
+        return LightweightComponentOp
 
     # Call wrapper with function (`args[0]`) when no additional arguments were passed
     if args:

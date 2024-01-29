@@ -94,8 +94,8 @@ class ComponentSpec:
         image: str,
         *,
         description: t.Optional[str] = None,
-        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
-        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType, bool]]] = None,
+        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType, bool]]] = None,
         previous_index: t.Optional[str] = None,
         args: t.Optional[t.Dict[str, t.Any]] = None,
         tags: t.Optional[t.List[str]] = None,
@@ -223,7 +223,7 @@ class ComponentSpec:
         """The fields consumed by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
-                name: Field(name=name, type=Type.from_json(field))
+                name: Field(name=name, type=Type.from_dict(field))
                 for name, field in self._specification.get("consumes", {}).items()
                 if name != "additionalProperties"
             },
@@ -234,7 +234,7 @@ class ComponentSpec:
         """The fields produced by the component as an immutable mapping."""
         return types.MappingProxyType(
             {
-                name: Field(name=name, type=Type.from_json(field))
+                name: Field(name=name, type=Type.from_dict(field))
                 for name, field in self._specification.get("produces", {}).items()
                 if name != "additionalProperties"
             },
@@ -329,10 +329,6 @@ class ComponentSpec:
             ),
         }
 
-    @property
-    def kubeflow_specification(self) -> "KubeflowComponentSpec":
-        return KubeflowComponentSpec.from_fondant_component_spec(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r})"
 
@@ -368,7 +364,7 @@ class OperationSpec:
         self._inner_produces: t.Optional[t.Mapping[str, Field]] = None
         self._outer_produces: t.Optional[t.Mapping[str, Field]] = None
 
-    def to_json(self) -> str:
+    def to_dict(self) -> dict:
         def _dump_mapping(
             mapping: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
         ) -> dict:
@@ -378,15 +374,17 @@ class OperationSpec:
             serialized_mapping: t.Dict[str, t.Any] = mapping.copy()
             for key, value in mapping.items():
                 if isinstance(value, pa.DataType):
-                    serialized_mapping[key] = Type(value).to_json()
+                    serialized_mapping[key] = Type(value).to_dict()
             return serialized_mapping
 
-        specification_dict = {
+        return {
             "specification": self._component_spec.specification,
             "consumes": _dump_mapping(self._mappings["consumes"]),
             "produces": _dump_mapping(self._mappings["produces"]),
         }
 
+    def to_json(self) -> str:
+        specification_dict = self.to_dict()
         return json.dumps(specification_dict)
 
     @classmethod
@@ -397,7 +395,7 @@ class OperationSpec:
             """Parse a json mapping to a Python mapping with Fondant types."""
             for key, value in json_mapping.items():
                 if isinstance(value, dict):
-                    json_mapping[key] = Type.from_json(value).value
+                    json_mapping[key] = Type.from_dict(value).value
             return json_mapping
 
         return cls(
@@ -564,107 +562,3 @@ class OperationSpec:
             return False
 
         return True
-
-
-class KubeflowComponentSpec:
-    """
-    Class representing a Kubeflow component specification.
-
-    Args:
-        specification: The kubeflow component specification as a Python dict
-    """
-
-    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
-        self._specification = specification
-
-    @staticmethod
-    def convert_arguments(fondant_component: ComponentSpec):
-        args = {}
-        for arg in fondant_component.args.values():
-            arg_type_dict = {}
-
-            # Enable isOptional attribute in spec if arg is Optional and defaults to None
-            if arg.optional and arg.default is None:
-                arg_type_dict["isOptional"] = True
-            if arg.default is not None:
-                arg_type_dict["defaultValue"] = arg.default
-
-            args[arg.name] = {
-                "parameterType": arg.kubeflow_type,
-                "description": arg.description,
-                **arg_type_dict,  # type: ignore
-            }
-
-        return args
-
-    @classmethod
-    def from_fondant_component_spec(cls, fondant_component: ComponentSpec):
-        """Generate a Kubeflow component spec from a Fondant component spec."""
-        input_definitions = {
-            "parameters": {
-                **cls.convert_arguments(fondant_component),
-            },
-        }
-
-        cleaned_component_name = fondant_component.sanitized_component_name
-
-        specification = {
-            "components": {
-                "comp-"
-                + cleaned_component_name: {
-                    "executorLabel": "exec-" + cleaned_component_name,
-                    "inputDefinitions": input_definitions,
-                },
-            },
-            "deploymentSpec": {
-                "executors": {
-                    "exec-"
-                    + cleaned_component_name: {
-                        "container": {
-                            "command": ["fondant", "execute", "main"],
-                            "image": fondant_component.image,
-                        },
-                    },
-                },
-            },
-            "pipelineInfo": {"name": cleaned_component_name},
-            "root": {
-                "dag": {
-                    "tasks": {
-                        cleaned_component_name: {
-                            "cachingOptions": {"enableCache": True},
-                            "componentRef": {"name": "comp-" + cleaned_component_name},
-                            "inputs": {
-                                "parameters": {
-                                    param: {"componentInputParameter": param}
-                                    for param in input_definitions["parameters"]
-                                },
-                            },
-                            "taskInfo": {"name": cleaned_component_name},
-                        },
-                    },
-                },
-                "inputDefinitions": input_definitions,
-            },
-            "schemaVersion": "2.1.0",
-            "sdkVersion": "kfp-2.0.1",
-        }
-        return cls(specification)
-
-    def to_file(self, path: t.Union[str, Path]) -> None:
-        """Dump the component specification to the file specified by the provided path."""
-        with open(path, "w", encoding="utf-8") as file_:
-            yaml.dump(
-                self._specification,
-                file_,
-                indent=4,
-                default_flow_style=False,
-                sort_keys=False,
-            )
-
-    def to_string(self) -> str:
-        """Return the component specification as a string."""
-        return json.dumps(self._specification)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r})"

@@ -3,7 +3,7 @@
 # Building your own pipeline
 
 This guide will teach you how to build and run your own pipeline using components available on 
-the Fondant hub.
+the Fondant Hub.
 
 ## Overview
 

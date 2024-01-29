@@ -188,7 +188,7 @@ class Manifest:
             {
                 name: Field(
                     name=name,
-                    type=Type.from_json(field),
+                    type=Type.from_dict(field),
                     location=field["location"],
                 )
                 for name, field in self._specification["fields"].items()
@@ -208,7 +208,7 @@ class Manifest:
         else:
             self._specification["fields"][field.name] = {
                 "location": field.location,
-                **field.type.to_json(),
+                **field.type.to_dict(),
             }
 
     def _add_or_update_index(self, field: Field, overwrite: bool = True):

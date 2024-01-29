@@ -13,7 +13,7 @@ def get_fields_by_types(
     filtered_fields = []
 
     for field, f_type in fields.items():
-        if any(ftype in f_type.type.to_json()["type"] for ftype in field_types):
+        if any(ftype in f_type.type.to_dict()["type"] for ftype in field_types):
             filtered_fields.append(field)
 
     return filtered_fields
