@@ -9,7 +9,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 from fondant.component import DaskLoadComponent, PandasTransformComponent
-from fondant.core.exceptions import InvalidPythonComponent
+from fondant.core.exceptions import InvalidLightweightComponent
 from fondant.pipeline import Pipeline, lightweight_component
 from fondant.pipeline.compiler import DockerCompiler
 
@@ -96,7 +96,7 @@ def test_lightweight_component_sdk(default_fondant_image, caplog):
         "specification": {
             "name": "createdata",
             "image": "python:3.8-slim-buster",
-            "description": "python component",
+            "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
         },
@@ -140,7 +140,7 @@ def test_lightweight_component_sdk(default_fondant_image, caplog):
         "specification": {
             "name": "addn",
             "image": default_fondant_image,
-            "description": "python component",
+            "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
             "args": {"n": {"type": "int"}},
@@ -163,7 +163,7 @@ def test_lightweight_component_missing_decorator():
         def load(self) -> str:
             return "bar"
 
-    with pytest.raises(InvalidPythonComponent):
+    with pytest.raises(InvalidLightweightComponent):
         _ = pipeline.read(
             ref=Foo,
             produces={"x": pa.int32(), "y": pa.int32()},
@@ -202,7 +202,7 @@ def test_valid_load_component():
         "specification": {
             "name": "createdata",
             "image": "python:3.8-slim-buster",
-            "description": "python component",
+            "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
         },
@@ -214,7 +214,7 @@ def test_valid_load_component():
 def test_invalid_load_component():
     with pytest.raises(  # noqa: PT012
         ValueError,
-        match="Every required function must be overridden in the PythonComponent. "
+        match="Every required function must be overridden in the LightweightComponent. "
         "Missing implementations for the following functions: \\['load'\\]",
     ):
 
@@ -291,7 +291,7 @@ def test_lightweight_component_decorator_without_parentheses(default_fondant_ima
         "specification": {
             "name": "createdata",
             "image": default_fondant_image,
-            "description": "python component",
+            "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
         },

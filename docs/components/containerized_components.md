@@ -1,15 +1,22 @@
-# Creating custom containerized components
+# Creating containerized components
 
 Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
-provides a lot of [components out of the box](https://github.com/ml6team/fondant/tree/main/components)
-, but you can also define your own custom containerized components.
+provides a lot
+of [components out of the box](https://fondant.ai/en/latest/components/hub/), but you can also
+define your own containerized components.
 
-To make sure co2ntainerized components are reusable, they should implement a single logical data processing
+Containerized components are useful when you want to share the components within your organization
+or community.
+If you don't need your component to be shareable, we recommend starting 
+with a simpler [lightweight components](../components/lightweight_components.md) instead.
+
+To make sure containerized components are reusable, they should implement a single logical data
+processing
 step (like captioning images or removing Personal Identifiable Information [PII] from text.)
 If a component grows too large, consider splitting it into multiple separate components each
 tackling one logical part.
 
-To implement a custom containerized component, a couple of files need to be defined:
+To implement a containerized component, a couple of files need to be defined:
 
 - [Fondant component specification](#fondant-component-specification)
 - [`main.py` script in a `src` folder](#mainpy-script)

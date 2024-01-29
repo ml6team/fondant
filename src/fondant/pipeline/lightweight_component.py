@@ -60,7 +60,7 @@ class Image:
         return asdict(self)
 
 
-class PythonComponent(BaseComponent):
+class LightweightComponent(BaseComponent):
     @classmethod
     def image(cls) -> Image:
         raise NotImplementedError
@@ -71,7 +71,7 @@ def lightweight_component(
     extra_requires: t.Optional[t.List[str]] = None,
     base_image: t.Optional[str] = None,
 ):
-    """Decorator to enable a python component."""
+    """Decorator to enable a lightweight component."""
 
     def wrapper(cls):
         script = build_python_script(cls)
@@ -140,7 +140,7 @@ def lightweight_component(
             ]
             if len(abstract_methods) >= 1:
                 msg = (
-                    f"Every required function must be overridden in the PythonComponent. "
+                    f"Every required function must be overridden in the LightweightComponent. "
                     f"Missing implementations for the following functions: {abstract_methods}"
                 )
                 raise ValueError(
@@ -153,12 +153,12 @@ def lightweight_component(
 
         # updated=() is needed to prevent an attempt to update the class's __dict__
         @wraps(cls, updated=())
-        class PythonComponentOp(cls, PythonComponent):
+        class LightweightComponentOp(cls, LightweightComponent):
             @classmethod
             def image(cls) -> Image:
                 return image
 
-        return PythonComponentOp
+        return LightweightComponentOp
 
     # Call wrapper with function (`args[0]`) when no additional arguments were passed
     if args:
