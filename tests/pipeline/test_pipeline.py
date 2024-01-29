@@ -95,7 +95,7 @@ def test_component_op_python_component(default_pipeline_args):
     assert component.component_spec._specification == {
         "name": "Foo",
         "image": fondant_image_name,
-        "description": "python component",
+        "description": "lightweight component",
         "consumes": {"additionalProperties": True},
         "produces": {"additionalProperties": True},
     }
@@ -105,7 +105,7 @@ def test_component_op_bad_ref():
     with pytest.raises(
         ValueError,
         match="""Invalid reference type: <class 'int'>.
-                Expected a string, Path, or a Python component class.""",
+                Expected a string, Path, or a lightweight component class.""",
     ):
         ComponentOp.from_ref(123)
 
