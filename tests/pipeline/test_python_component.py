@@ -18,6 +18,9 @@ from fondant.pipeline.compiler import DockerCompiler
 def default_fondant_image():
     basename = "fndnt/fondant"
     fondant_version = version("fondant")
+    if fondant_version == "0.1.dev0":
+        fondant_version = "dev"
+
     python_version = sys.version_info
     python_version = f"{python_version.major}.{python_version.minor}"
     return f"{basename}:{fondant_version}-py{python_version}"

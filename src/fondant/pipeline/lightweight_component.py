@@ -53,6 +53,8 @@ class Image:
             python_version = f"{MAX_PYTHON_VERSION[0]}.{MAX_PYTHON_VERSION[1]}"
 
         fondant_version = version("fondant")
+        if fondant_version == "0.1.dev0":
+            fondant_version = "dev"
         basename = "fndnt/fondant"
         return f"{basename}:{fondant_version}-py{python_version}"
 
