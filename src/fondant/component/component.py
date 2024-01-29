@@ -49,9 +49,19 @@ class BaseComponent:
         cls,
         output_schema: pandera.DataFrameSchema,
     ) -> t.Dict[str, t.Union[str, pa.DataType]]:
+        """Converts pandera schema into a produce dict. Creating a pandas dataframe from pandera
+        schema,
+        infer pyarrow types of the pandas dataframe and create produce mapping containing
+        correct pyarrow data types.
+        """
         produces = {}
-        for key, value in output_schema.columns.items():
-            produces[key] = value.dtype  # TODO: change to pyarrow type
+        df = pd.DataFrame(columns=output_schema.dtypes.keys()).astype(
+            {col: str(dtype) for col, dtype in output_schema.dtypes.items()},
+        )
+        output_schema = pa.Table.from_pandas(df=df).schema
+
+        for index, column in enumerate(output_schema.names):
+            produces[column] = output_schema.types[index]
         return produces
 
 
@@ -108,9 +118,20 @@ class PandasTransformComponent(BaseComponent):
         """Simulate a transform function and collect schema information."""
         input_schema = cls.convert_consumes_to_dataframe_schema(consumes)
 
-        input_df = input_schema.example(size=5)
-        output_df = cls(consumes=consumes, produces={}).transform(dataframe=input_df)
-        output_schema = pandera.infer_schema(output_df)
+        input_df = input_schema.example(size=3)
+
+        try:
+            output_df = cls(consumes=consumes, produces={}).transform(
+                dataframe=input_df,
+            )
+            output_schema = pandera.infer_schema(output_df)
+        except ModuleNotFoundError as e:
+            msg = (
+                f"Not possible to infer produce schema before compile time automatically due"
+                f"to a missing module. Please provide the produces manually."
+                f"Module not found: {str(e)}"
+            )
+            raise ValueError(msg)
 
         return cls.convert_dataframe_schema_to_produces(output_schema)
 

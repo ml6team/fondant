@@ -239,7 +239,7 @@ class ComponentOp:
                     name,
                     image.base_image,
                     description=description,
-                    consumes=kwargs["consumes"] or {"additionalProperties": True},
+                    consumes=kwargs.get("consumes", {"additionalProperties": True}),
                     produces=produces,
                     args={
                         name: arg.to_spec()
