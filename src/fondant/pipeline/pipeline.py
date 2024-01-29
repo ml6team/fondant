@@ -138,7 +138,6 @@ class ComponentOp:
 
     def __init__(
         self,
-        name: str,
         image: Image,
         component_spec: ComponentSpec,
         *,
@@ -152,7 +151,6 @@ class ComponentOp:
         resources: t.Optional[Resources] = None,
         component_dir: t.Optional[Path] = None,
     ) -> None:
-        self.name = name
         self.image = image
         self.component_spec = component_spec
         self.input_partition_rows = input_partition_rows
@@ -195,13 +193,11 @@ class ComponentOp:
         component_spec = ComponentSpec.from_file(
             component_dir / cls.COMPONENT_SPEC_NAME,
         )
-        name = component_spec.component_folder_name
 
         image = Image(
             base_image=component_spec.image,
         )
         return cls(
-            name=name,
             image=image,
             component_spec=component_spec,
             component_dir=component_dir,
@@ -233,7 +229,6 @@ class ComponentOp:
                 )
 
                 operation = cls(
-                    name,
                     image,
                     component_spec,
                     **kwargs,
@@ -278,7 +273,7 @@ class ComponentOp:
 
             if image_tag == "latest":
                 logger.warning(
-                    f"Component `{self.name}` has an image tag set to latest. "
+                    f"Component `{self.component_spec.name}` has an image tag set to latest. "
                     f"Caching for the component will be disabled to prevent"
                     f" unpredictable behavior due to images updates",
                 )
@@ -307,6 +302,10 @@ class ComponentOp:
             msg = f"No reusable component with name {name} found."
             raise ValueError(msg)
         return component_dir
+
+    @property
+    def component_name(self) -> str:
+        return self.component_spec.name
 
     def get_component_cache_key(
         self,
@@ -393,11 +392,11 @@ class Pipeline:
         output_dataset: t.Optional["Dataset"],
     ) -> None:
         dependencies = []
-        for operation_name, info in self._graph.items():
+        for component_name, info in self._graph.items():
             if info["output_dataset"] == input_dataset:
-                dependencies.append(operation_name)
+                dependencies.append(component_name)
 
-        self._graph[operation.name] = {
+        self._graph[operation.component_name] = {
             "operation": operation,
             "dependencies": dependencies,
             "output_dataset": output_dataset,
@@ -456,7 +455,7 @@ class Pipeline:
             pipeline_name=self.name,
             base_path=self.base_path,
             run_id=self.get_run_id(),
-            component_id=operation.name,
+            component_id=operation.component_name,
         )
         dataset = Dataset(manifest, pipeline=self)
 
@@ -549,8 +548,8 @@ class Pipeline:
                 ) in operation_spec.outer_consumes.items():
                     if component_field_name not in manifest.fields:
                         msg = (
-                            f"Component '{component_op.name}' is trying to invoke the field "
-                            f"'{component_field_name}', which has not been defined or created "
+                            f"Component '{component_op.component_name}' is trying to invoke the"
+                            f"field '{component_field_name}', which has not been defined or created"
                             f"in the previous components. \n"
                             f"Available field names: {list(manifest.fields.keys())}"
                         )

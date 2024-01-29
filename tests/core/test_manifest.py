@@ -196,7 +196,7 @@ def test_evolve_manifest():
 
     assert output_manifest.base_path == input_manifest.base_path
     assert output_manifest.run_id == run_id
-    assert output_manifest.index.location == f"/{run_id}/{spec.component_folder_name}"
+    assert output_manifest.index.location == f"/{run_id}/{spec.name}"
     assert output_manifest.fields["captions"].type.name == "string"
 
 

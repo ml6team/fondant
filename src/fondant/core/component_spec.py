@@ -3,7 +3,6 @@ import copy
 import json
 import pkgutil
 import pydoc
-import re
 import types
 import typing as t
 from dataclasses import dataclass
@@ -101,7 +100,7 @@ class ComponentSpec:
         tags: t.Optional[t.List[str]] = None,
     ):
         spec_dict: t.Dict[str, t.Any] = {
-            "name": name,
+            "name": self.sanitized_component_name(name),
             "image": image,
         }
 
@@ -180,27 +179,9 @@ class ComponentSpec:
     def name(self):
         return self._specification["name"]
 
-    @property
-    def component_folder_name(self):
-        """Cleans and converts a name to a proper folder name."""
-        return self._specification["name"].lower().replace(" ", "_")
-
-    @property
-    def sanitized_component_name(self):
-        """Cleans and converts a name to be kfp V2 compatible.
-
-        Taken from https://github.com/kubeflow/pipelines/blob/
-        cfe671c485d4ee8514290ee81ca2785e8bda5c9b/sdk/python/kfp/dsl/utils.py#L52
-        """
-        return (
-            re.sub(
-                "-+",
-                "-",
-                re.sub("[^-0-9a-z]+", "-", self._specification["name"].lower()),
-            )
-            .lstrip("-")
-            .rstrip("-")
-        )
+    def sanitized_component_name(self, name) -> str:
+        """Cleans and converts a component name."""
+        return name.lower().replace(" ", "_")
 
     @property
     def description(self):
@@ -536,8 +517,8 @@ class OperationSpec:
 
     @property
     def component_folder_name(self) -> str:
-        """Cleans and converts a name to a proper folder name."""
-        return self._component_spec.component_folder_name
+        """Get the component folder name."""
+        return self._component_spec.name
 
     @property
     def previous_index(self) -> t.Optional[str]:

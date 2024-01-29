@@ -89,12 +89,12 @@ def test_lightweight_component_sdk(default_fondant_image, caplog):
     )
 
     assert len(pipeline._graph.keys()) == 1
-    operation_spec_dict = pipeline._graph["CreateData"][
+    operation_spec_dict = pipeline._graph["createdata"][
         "operation"
     ].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
-            "name": "CreateData",
+            "name": "createdata",
             "image": "python:3.8-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
@@ -132,13 +132,13 @@ def test_lightweight_component_sdk(default_fondant_image, caplog):
         arguments={"n": 1},
     )
     assert len(pipeline._graph.keys()) == 1 + 1
-    assert pipeline._graph["AddN"]["dependencies"] == ["CreateData"]
-    pipeline._graph["AddN"]["operation"].operation_spec.to_json()
+    assert pipeline._graph["addn"]["dependencies"] == ["createdata"]
+    pipeline._graph["addn"]["operation"].operation_spec.to_json()
 
-    operation_spec_dict = pipeline._graph["AddN"]["operation"].operation_spec.to_dict()
+    operation_spec_dict = pipeline._graph["addn"]["operation"].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
-            "name": "AddN",
+            "name": "addn",
             "image": default_fondant_image,
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
@@ -195,12 +195,12 @@ def test_valid_load_component():
     )
 
     assert len(pipeline._graph.keys()) == 1
-    operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
+    operation_spec = pipeline._graph["createdata"]["operation"].operation_spec.to_json()
     operation_spec_without_image = json.loads(operation_spec)
 
     assert operation_spec_without_image == {
         "specification": {
-            "name": "CreateData",
+            "name": "createdata",
             "image": "python:3.8-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
@@ -284,12 +284,12 @@ def test_lightweight_component_decorator_without_parentheses(default_fondant_ima
     )
 
     assert len(pipeline._graph.keys()) == 1
-    operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
+    operation_spec = pipeline._graph["createdata"]["operation"].operation_spec.to_json()
     operation_spec_without_image = json.loads(operation_spec)
 
     assert operation_spec_without_image == {
         "specification": {
-            "name": "CreateData",
+            "name": "createdata",
             "image": default_fondant_image,
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
