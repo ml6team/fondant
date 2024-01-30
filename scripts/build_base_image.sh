@@ -5,14 +5,12 @@ function usage {
   echo "Usage: $0 [options]"
   echo "Options:"
   echo "  -t, --tag <value>        Set the tag (default: latest)"
-  echo "  -v, --version <value>    Fondant version"
   echo "  -h, --help               Display this help message"
 }
 
 # Parse the arguments
 while [[ "$#" -gt 0 ]]; do case $1 in
-  -t|--tag) tag="$2"; shift;;
-  -v|--version) version="$2"; shift;;
+  -t|--tag) tags+=("$2"); shift;;
   -h|--help) usage; exit;;
   *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
@@ -20,8 +18,8 @@ esac; shift; done
 # Supported Python versions
 python_versions=("3.8" "3.9" "3.10" "3.11")
 
-
-for python_version in "${python_versions[@]}"; do
+for tag in "${tags[@]}"; do
+  for python_version in "${python_versions[@]}"; do
     BASENAME=fondant
     IMAGE_TAG=${tag}-py${python_version}
     full_image_names=()
@@ -43,7 +41,8 @@ for python_version in "${python_versions[@]}"; do
     # Build docker images and push to docker hub
     docker build --push "${args[@]}" \
     --build-arg="PYTHON_VERSION=${python_version}" \
-    --build-arg="FONDANT_VERSION=${version}" \
+    --build-arg="FONDANT_VERSION=${tags[0]}" \
     -f "images/Dockerfile" \
     .
+  done
 done
