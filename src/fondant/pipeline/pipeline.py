@@ -228,7 +228,7 @@ class ComponentOp:
                 description = ref.__doc__ or "lightweight component"
 
                 consumes_spec = (
-                    ref.get_consumes_spec(fields, kwargs["consumes"])
+                    ref.get_spec_consumes(fields, kwargs["consumes"])
                     if fields
                     else {"additionalProperties": True}
                 )

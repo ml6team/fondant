@@ -73,35 +73,50 @@ class LightweightComponent(BaseComponent):
         pass
 
     @classmethod
-    def modify_consumes_spec(cls, apply_consumes, consumes_spec):
+    def modify_spec_consumes(
+        cls,
+        spec_consumes: t.Dict[str, t.Any],
+        apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
+    ):
         """Modify fields based on the consumes argument in the 'apply' method."""
         if apply_consumes:
             for k, v in apply_consumes.items():
                 if isinstance(v, str):
-                    consumes_spec[k] = consumes_spec.pop(v)
+                    spec_consumes[k] = spec_consumes.pop(v)
                 else:
                     msg = (
                         f"Invalid data type for field `{k}` in the `apply_consumes` "
-                        f"argument. Only string and pa.DataType are allowed."
+                        f"argument. Only string types are allowed."
                     )
                     raise ValueError(
                         msg,
                     )
-        return consumes_spec
+        return spec_consumes
 
     @classmethod
-    def get_consumes_spec(
+    def get_spec_consumes(
         cls,
         dataset_fields: t.Mapping[str, Field],
         apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
     ):
+        """
+        Function that get the consumes spec for the component based on the dataset fields and
+        the apply_consumes argument.
+
+        Args:
+            dataset_fields: The fields of the dataset.
+            apply_consumes: The consumes argument in the apply method.
+
+        Returns:
+            The consumes spec for the component.
+        """
         consumes = cls.consumes()
 
         if consumes is None:
             # Get consumes spec from the dataset
             spec_consumes = {k: v.type.to_dict() for k, v in dataset_fields.items()}
 
-            spec_consumes = cls.modify_consumes_spec(apply_consumes, spec_consumes)
+            spec_consumes = cls.modify_spec_consumes(spec_consumes, apply_consumes)
 
             logger.warning(
                 "No consumes defined. Consumes will be inferred from the dataset."
