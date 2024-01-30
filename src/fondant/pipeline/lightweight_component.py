@@ -8,6 +8,8 @@ from dataclasses import asdict, dataclass
 from functools import wraps
 from importlib.metadata import version
 
+import pyarrow as pa
+
 from fondant.component import BaseComponent, Component
 from fondant.core.schema import Field, Type
 
@@ -71,15 +73,35 @@ class LightweightComponent(BaseComponent):
         pass
 
     @classmethod
+    def modify_consumes_spec(cls, apply_consumes, consumes_spec):
+        """Modify fields based on the consumes argument in the 'apply' method."""
+        if apply_consumes:
+            for k, v in apply_consumes.items():
+                if isinstance(v, str):
+                    consumes_spec[k] = consumes_spec.pop(v)
+                else:
+                    msg = (
+                        f"Invalid data type for field `{k}` in the `apply_consumes` "
+                        f"argument. Only string and pa.DataType are allowed."
+                    )
+                    raise ValueError(
+                        msg,
+                    )
+        return consumes_spec
+
+    @classmethod
     def get_consumes_spec(
         cls,
         dataset_fields: t.Mapping[str, Field],
+        apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
     ):
         consumes = cls.consumes()
 
         if consumes is None:
             # Get consumes spec from the dataset
             spec_consumes = {k: v.type.to_dict() for k, v in dataset_fields.items()}
+
+            spec_consumes = cls.modify_consumes_spec(apply_consumes, spec_consumes)
 
             logger.warning(
                 "No consumes defined. Consumes will be inferred from the dataset."

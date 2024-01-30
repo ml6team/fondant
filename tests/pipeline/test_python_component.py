@@ -168,7 +168,7 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
         ],
     )
     class AddN(PandasTransformComponent):
-        def __init__(self, n: int, **kwargs):
+        def __init__(self, n: int):
             self.n = n
 
         def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -189,7 +189,7 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
         DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
-            pipeline_configs.component_configs["AddN"].arguments["operation_spec"],
+            pipeline_configs.component_configs["addn"].arguments["operation_spec"],
         )
         assert all(k in ["a", "y", "z"] for k in operation_spec.inner_consumes)
         assert "x" in operation_spec.outer_consumes
@@ -204,7 +204,7 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
         consumes={"a": pa.int32()},
     )
     class AddN(PandasTransformComponent):
-        def __init__(self, n: int, **kwargs):
+        def __init__(self, n: int):
             self.n = n
 
         def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -241,7 +241,7 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
         consumes={"additionalProperties": True},
     )
     class AddN(PandasTransformComponent):
-        def __init__(self, n: int, **kwargs):
+        def __init__(self, n: int):
             self.n = n
 
         def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
