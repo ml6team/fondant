@@ -97,7 +97,7 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
     ].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
-            "name": "createdata",
+            "name": "CreateData",
             "image": "python:3.8-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
@@ -137,7 +137,7 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
     operation_spec_dict = pipeline._graph["addn"]["operation"].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
-            "name": "addn",
+            "name": "AddN",
             "image": default_fondant_image,
             "description": "lightweight component",
             "consumes": {
@@ -316,7 +316,7 @@ def test_valid_load_component():
 
     assert operation_spec_without_image == {
         "specification": {
-            "name": "createdata",
+            "name": "CreateData",
             "image": "python:3.8-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
@@ -405,7 +405,7 @@ def test_lightweight_component_decorator_without_parentheses(default_fondant_ima
 
     assert operation_spec_without_image == {
         "specification": {
-            "name": "createdata",
+            "name": "CreateData",
             "image": default_fondant_image,
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},

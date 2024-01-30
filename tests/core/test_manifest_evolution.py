@@ -135,5 +135,5 @@ def test_component_spec_location_update():
     )
 
     assert evolved_manifest.index.location.endswith(
-        component_spec.name,
+        component_spec.safe_name,
     )

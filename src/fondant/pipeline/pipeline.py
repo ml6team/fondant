@@ -322,7 +322,7 @@ class ComponentOp:
 
     @property
     def component_name(self) -> str:
-        return self.component_spec.name
+        return self.component_spec.safe_name
 
     def get_component_cache_key(
         self,
