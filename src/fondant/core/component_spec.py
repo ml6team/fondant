@@ -93,8 +93,8 @@ class ComponentSpec:
         image: str,
         *,
         description: t.Optional[str] = None,
-        consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType, bool]]] = None,
-        produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType, bool]]] = None,
+        consumes: t.Optional[t.Mapping[str, t.Union[str, pa.DataType, bool]]] = None,
+        produces: t.Optional[t.Mapping[str, t.Union[str, pa.DataType, bool]]] = None,
         previous_index: t.Optional[str] = None,
         args: t.Optional[t.Dict[str, t.Any]] = None,
         tags: t.Optional[t.List[str]] = None,
@@ -443,7 +443,7 @@ class OperationSpec:
                 else:
                     msg = (
                         f"Received pyarrow DataType value {value} for key {key} in the "
-                        f"`{name}` argument passed to the operation, but {key} is "
+                        f"`{name}` argument passed to the operation, but `{key}` is "
                         f"already defined in the `{name}` section of the component spec "
                         f"with type {spec_type}"
                     )
@@ -475,8 +475,8 @@ class OperationSpec:
                 mapping[value] = Field(name=value, type=mapping.pop(key).type)
             else:
                 msg = (
-                    f"Received a string value for key {key} in the `{name}` "
-                    f"argument passed to the operation, but {key} is not defined in "
+                    f"Received a string value for key `{key}` in the `{name}` "
+                    f"argument passed to the operation, but `{key}` is not defined in "
                     f"the `{name}` section of the component spec."
                 )
                 raise InvalidPipelineDefinition(msg)
