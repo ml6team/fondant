@@ -59,7 +59,6 @@ class CalculateChunkLength(PandasTransformComponent):
 
 _ = dataset.apply(
     ref=CalculateChunkLength,
-    consumes={"text": pa.string()},
     produces={"chunk_length": pa.int32()},
     arguments={"arg_x": "value_x"},
 )

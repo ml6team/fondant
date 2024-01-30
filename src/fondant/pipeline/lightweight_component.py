@@ -8,10 +8,13 @@ from dataclasses import asdict, dataclass
 from functools import wraps
 from importlib import metadata
 
+import pyarrow as pa
+
 from fondant.component import BaseComponent, Component
+from fondant.core.schema import Field, Type
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
 
 MIN_PYTHON_VERSION = (3, 8)
 MAX_PYTHON_VERSION = (3, 11)
@@ -67,11 +70,77 @@ class LightweightComponent(BaseComponent):
     def image(cls) -> Image:
         raise NotImplementedError
 
+    @classmethod
+    def consumes(cls) -> t.Optional[t.Dict[str, t.Any]]:
+        pass
+
+    @classmethod
+    def modify_spec_consumes(
+        cls,
+        spec_consumes: t.Dict[str, t.Any],
+        apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
+    ):
+        """Modify fields based on the consumes argument in the 'apply' method."""
+        if apply_consumes:
+            for k, v in apply_consumes.items():
+                if isinstance(v, str):
+                    spec_consumes[k] = spec_consumes.pop(v)
+                else:
+                    msg = (
+                        f"Invalid data type for field `{k}` in the `apply_consumes` "
+                        f"argument. Only string types are allowed."
+                    )
+                    raise ValueError(
+                        msg,
+                    )
+        return spec_consumes
+
+    @classmethod
+    def get_spec_consumes(
+        cls,
+        dataset_fields: t.Mapping[str, Field],
+        apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
+    ):
+        """
+        Function that get the consumes spec for the component based on the dataset fields and
+        the apply_consumes argument.
+
+        Args:
+            dataset_fields: The fields of the dataset.
+            apply_consumes: The consumes argument in the apply method.
+
+        Returns:
+            The consumes spec for the component.
+        """
+        consumes = cls.consumes()
+
+        if consumes is None:
+            # Get consumes spec from the dataset
+            spec_consumes = {k: v.type.to_dict() for k, v in dataset_fields.items()}
+
+            spec_consumes = cls.modify_spec_consumes(spec_consumes, apply_consumes)
+
+            logger.warning(
+                "No consumes defined. Consumes will be inferred from the dataset."
+                "All field will be consumed which may lead to additional computation,"
+                "Consider defining consumes in the component.\n Consumes: %s",
+                spec_consumes,
+            )
+
+        else:
+            spec_consumes = {
+                k: (Type(v).to_dict() if k != "additionalProperties" else v)
+                for k, v in consumes.items()
+            }
+
+        return spec_consumes
+
 
 def lightweight_component(
     *args,
     extra_requires: t.Optional[t.List[str]] = None,
     base_image: t.Optional[str] = None,
+    consumes: t.Optional[t.Dict[str, t.Any]] = None,
 ):
     """Decorator to enable a lightweight component."""
 
@@ -159,6 +228,10 @@ def lightweight_component(
             @classmethod
             def image(cls) -> Image:
                 return image
+
+            @classmethod
+            def consumes(cls) -> t.Optional[t.Dict[str, t.Dict[t.Any, t.Any]]]:
+                return consumes
 
         return LightweightComponentOp
 
