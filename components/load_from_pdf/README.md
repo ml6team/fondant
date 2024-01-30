@@ -1,4 +1,4 @@
-# load_from_pdf
+# Load from pdf
 
 <a id="load_from_pdf#description"></a>
 ## Description

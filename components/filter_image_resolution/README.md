@@ -1,4 +1,4 @@
-# filter_image_resolution
+# Filter image resolution
 
 <a id="filter_image_resolution#description"></a>
 ## Description

@@ -1,4 +1,4 @@
-# load_from_hugging_face_hub
+# Load from Hugging Face hub
 
 <a id="load_from_hugging_face_hub#description"></a>
 ## Description

@@ -1,4 +1,4 @@
-# filter_language
+# Filter language
 
 <a id="filter_language#description"></a>
 ## Description

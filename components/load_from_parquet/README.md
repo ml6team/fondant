@@ -1,4 +1,4 @@
-# load_from_parquet
+# Load from parquet
 
 <a id="load_from_parquet#description"></a>
 ## Description

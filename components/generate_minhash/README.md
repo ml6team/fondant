@@ -1,4 +1,4 @@
-# generate_minhash
+# Generate minhash
 
 <a id="generate_minhash#description"></a>
 ## Description

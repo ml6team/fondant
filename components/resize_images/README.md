@@ -1,4 +1,4 @@
-# resize_images
+# Resize images
 
 <a id="resize_images#description"></a>
 ## Description

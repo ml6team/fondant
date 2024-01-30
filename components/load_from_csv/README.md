@@ -1,4 +1,4 @@
-# load_from_csv
+# Load from csv
 
 <a id="load_from_csv#description"></a>
 ## Description

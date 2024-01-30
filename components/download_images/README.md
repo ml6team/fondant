@@ -1,4 +1,4 @@
-# download_images
+# Download images
 
 <a id="download_images#description"></a>
 ## Description

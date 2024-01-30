@@ -1,4 +1,4 @@
-# load_from_files
+# Load from files
 
 <a id="load_from_files#description"></a>
 ## Description

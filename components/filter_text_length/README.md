@@ -1,4 +1,4 @@
-# filter_text_length
+# Filter text length
 
 <a id="filter_text_length#description"></a>
 ## Description

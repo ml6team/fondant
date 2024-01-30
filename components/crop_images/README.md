@@ -1,4 +1,4 @@
-# crop_images
+# Crop images
 
 <a id="crop_images#description"></a>
 ## Description

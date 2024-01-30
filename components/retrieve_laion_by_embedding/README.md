@@ -1,4 +1,4 @@
-# retrieve_laion_by_embedding
+# Retrieve LAION by embedding
 
 <a id="retrieve_laion_by_embedding#description"></a>
 ## Description

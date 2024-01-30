@@ -1,4 +1,4 @@
-# caption_images
+# Caption images
 
 <a id="caption_images#description"></a>
 ## Description

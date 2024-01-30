@@ -1,4 +1,4 @@
-# embed_text
+# Embed text
 
 <a id="embed_text#description"></a>
 ## Description
