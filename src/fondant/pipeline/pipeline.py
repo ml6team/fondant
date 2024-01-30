@@ -228,10 +228,11 @@ class ComponentOp:
                 image = ref.image()
                 description = ref.__doc__ or "python component"
 
-                if fields:
-                    consumes_spec = ref.get_consumes_spec(fields, kwargs["consumes"])
-                else:
-                    consumes_spec = {"additionalProperties": True}
+                consumes_spec = (
+                    ref.get_consumes_spec(fields)
+                    if fields
+                    else {"additionalProperties": True}
+                )
 
                 component_spec = ComponentSpec(
                     name,

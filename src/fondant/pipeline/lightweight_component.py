@@ -1,14 +1,15 @@
 import inspect
 import itertools
+import logging
 import textwrap
 import typing as t
 from dataclasses import asdict, dataclass
 from functools import wraps
 
-import pyarrow as pa
-
 from fondant.component import BaseComponent, Component
-from fondant.core.schema import Field
+from fondant.core.schema import Field, Type
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -32,74 +33,41 @@ class PythonComponent(BaseComponent):
         raise NotImplementedError
 
     @classmethod
-    def consumes(cls) -> t.Optional[list]:
+    def consumes(cls) -> t.Optional[t.Dict[str, t.Any]]:
         pass
-
-    @classmethod
-    def filter_consumes_spec(cls, python_component_consumes, consumes_spec):
-        """Filter for values that are not in the user defined consumes list."""
-        if python_component_consumes:
-            for field_to_consume in python_component_consumes:
-                if field_to_consume not in consumes_spec.keys():
-                    msg = f"Field `{field_to_consume}` is not available in the dataset."
-                    raise ValueError(
-                        msg,
-                    )
-
-                consumes_spec = {
-                    k: v
-                    for k, v in consumes_spec.items()
-                    if k in python_component_consumes
-                }
-        return consumes_spec
-
-    @classmethod
-    def modify_consumes_spec(cls, apply_consumes, consumes_spec):
-        """Modify fields based on the consumes argument in the 'apply' method."""
-        if apply_consumes:
-            for k, v in apply_consumes.items():
-                if isinstance(v, str):
-                    consumes_spec[k] = consumes_spec.pop(v)
-                elif isinstance(v, pa.DataType):
-                    pass
-                else:
-                    msg = (
-                        f"Invalid data type for field `{k}` in the `apply_consumes` "
-                        f"argument. Only string and pa.DataType are allowed."
-                    )
-                    raise ValueError(
-                        msg,
-                    )
-        return consumes_spec
 
     @classmethod
     def get_consumes_spec(
         cls,
         dataset_fields: t.Mapping[str, Field],
-        apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
     ):
-        python_component_consumes = cls.consumes()
+        consumes = cls.consumes()
 
-        # Get consumes spec from the dataset
-        consumes_spec = {k: v.type.to_dict() for k, v in dataset_fields.items()}
+        if consumes is None:
+            # Get consumes spec from the dataset
+            spec_consumes = {k: v.type.to_dict() for k, v in dataset_fields.items()}
 
-        # Modify naming based on the consumes argument in the 'apply' method
-        consumes_spec = cls.modify_consumes_spec(apply_consumes, consumes_spec)
+            logger.warning(
+                "No consumes defined. Consumes will be inferred from the dataset."
+                "All field will be consumed which may lead to additional computation,"
+                "Consider defining consumes in the component.\n Consumes: %s",
+                spec_consumes,
+            )
 
-        # Filter for values that are not in the user defined consumes list
-        consumes_spec = cls.filter_consumes_spec(
-            python_component_consumes,
-            consumes_spec,
-        )
+        elif consumes == {"additionalProperties": True}:
+            spec_consumes = consumes
 
-        return consumes_spec
+        else:
+            spec_consumes = {k: Type(v).to_dict() for k, v in consumes.items()}
+
+        return spec_consumes
 
 
 def lightweight_component(
     *args,
     extra_requires: t.Optional[t.List[str]] = None,
     base_image: t.Optional[str] = None,
-    consumes: t.Optional[list] = None,
+    consumes: t.Optional[t.Dict[str, t.Any]] = None,
 ):
     """Decorator to enable a python component."""
 
@@ -189,7 +157,7 @@ def lightweight_component(
                 return image
 
             @classmethod
-            def consumes(cls) -> t.Optional[list]:
+            def consumes(cls) -> t.Optional[t.Dict[str, t.Dict[t.Any, t.Any]]]:
                 return consumes
 
         return PythonComponentOp

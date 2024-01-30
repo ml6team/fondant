@@ -141,13 +141,12 @@ def test_lightweight_component_sdk(load_pipeline):
     DockerCompiler().compile(pipeline)
 
 
-def test_valid_consumes_mapping(tmp_path_factory, load_pipeline):
+def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
         base_image="python:3.8",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
-        consumes=["a", "y"],
     )
     class AddN(PandasTransformComponent):
         def __init__(self, n: int, **kwargs):
@@ -173,17 +172,17 @@ def test_valid_consumes_mapping(tmp_path_factory, load_pipeline):
         operation_spec = OperationSpec.from_json(
             pipeline_configs.component_configs["AddN"].arguments["operation_spec"],
         )
-        assert all(k in ["a", "y"] for k in operation_spec.inner_consumes)
-        assert "z" not in operation_spec.inner_consumes
+        assert all(k in ["a", "y", "z"] for k in operation_spec.inner_consumes)
+        assert "x" in operation_spec.outer_consumes
 
 
-def test_invalid_consumes_mapping(tmp_path_factory, load_pipeline):
+def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
         base_image="python:3.8",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
-        consumes=["nonExistingField"],
+        consumes={"a": pa.int32()},
     )
     class AddN(PandasTransformComponent):
         def __init__(self, n: int, **kwargs):
@@ -193,18 +192,62 @@ def test_invalid_consumes_mapping(tmp_path_factory, load_pipeline):
             dataframe["a"] = dataframe["a"].map(lambda x: x + self.n)
             return dataframe
 
-    _, dataset, _ = load_pipeline
+    pipeline, dataset, _ = load_pipeline
 
-    with pytest.raises(
-        ValueError,
-        match="Field `nonExistingField` is not available in the dataset.",
-    ):
-        _ = dataset.apply(
-            ref=AddN,
-            consumes={"a": "x"},
-            produces={"a": pa.int32()},
-            arguments={"n": 1},
+    _ = dataset.apply(
+        ref=AddN,
+        consumes={"a": "x"},
+        produces={"a": pa.int32()},
+        arguments={"n": 1},
+    )
+
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "kubeflow_pipeline.yml")
+        DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
+        pipeline_configs = DockerComposeConfigs.from_spec(output_path)
+        operation_spec = OperationSpec.from_json(
+            pipeline_configs.component_configs["AddN"].arguments["operation_spec"],
         )
+        assert "a" in operation_spec.inner_consumes
+        assert "x" in operation_spec.outer_consumes
+        assert "z" not in operation_spec.inner_consumes
+
+
+def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
+    @lightweight_component(
+        base_image="python:3.8",
+        extra_requires=[
+            "fondant[component]@git+https://github.com/ml6team/fondant@main",
+        ],
+        consumes={"additionalProperties": True},
+    )
+    class AddN(PandasTransformComponent):
+        def __init__(self, n: int, **kwargs):
+            self.n = n
+
+        def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+            dataframe["a"] = dataframe["x"].map(lambda x: x + self.n)
+            return dataframe
+
+    pipeline, dataset, _ = load_pipeline
+
+    _ = dataset.apply(
+        ref=AddN,
+        consumes={"x": pa.int32()},
+        produces={"a": pa.int32()},
+        arguments={"n": 1},
+    )
+
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "kubeflow_pipeline.yml")
+        DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
+        pipeline_configs = DockerComposeConfigs.from_spec(output_path)
+        operation_spec = OperationSpec.from_json(
+            pipeline_configs.component_configs["AddN"].arguments["operation_spec"],
+        )
+        assert "x" in operation_spec.inner_consumes
+        assert "a" in operation_spec.inner_produces
+        assert "z" not in operation_spec.inner_consumes
 
 
 def test_lightweight_component_missing_decorator():
