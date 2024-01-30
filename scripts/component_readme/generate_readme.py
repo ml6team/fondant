@@ -2,7 +2,6 @@ import argparse
 from pathlib import Path
 
 import jinja2
-
 from fondant.core.component_spec import ComponentSpec
 
 
