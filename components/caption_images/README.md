@@ -49,7 +49,7 @@ pipeline = Pipeline(...)
 dataset = pipeline.read(...)
 
 dataset = dataset.apply(
-    "",
+    "caption_images",
     arguments={
         # Add arguments
         # "model_id": "Salesforce/blip-image-captioning-base",
