@@ -23,7 +23,7 @@ class WriteToFile(DaskWriteComponent):
             dataframe.to_parquet(self.path)
         else:
             msg = (
-                f"Not supported file format {self.format}. Write to file only "
-                f"supports csv and parquet."
+                f"Not supported file format {self.format}. Writing to file is only "
+                f"supported for csv and parquet."
             )
             raise ValueError(msg)
