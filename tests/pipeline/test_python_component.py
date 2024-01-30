@@ -1,6 +1,8 @@
 import json
 import re
+import sys
 import textwrap
+from importlib.metadata import version
 
 import dask.dataframe as dd
 import pandas as pd
@@ -8,14 +10,23 @@ import pyarrow as pa
 import pytest
 from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.component_spec import OperationSpec
-from fondant.core.exceptions import InvalidPythonComponent
+from fondant.core.exceptions import InvalidLightweightComponent
 from fondant.pipeline import Pipeline, lightweight_component
 from fondant.pipeline.compiler import DockerCompiler
 from fondant.testing import DockerComposeConfigs
 
 
 @pytest.fixture()
-def load_pipeline():
+def default_fondant_image():
+    basename = "fndnt/fondant"
+    fondant_version = version("fondant")
+    python_version = sys.version_info
+    python_version = f"{python_version.major}.{python_version.minor}"
+    return f"{basename}:{fondant_version}-py{python_version}"
+
+
+@pytest.fixture()
+def load_pipeline(caplog):
     pipeline = Pipeline(
         name="dummy-pipeline",
         base_path="./data",
@@ -44,11 +55,12 @@ def load_pipeline():
         produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
     )
 
-    return pipeline, dataset, load_script
+    caplog_records = caplog.records
+    return pipeline, dataset, load_script, caplog_records
 
 
 def test_build_python_script(load_pipeline):
-    _, _, load_script = load_pipeline
+    _, _, load_script, _ = load_pipeline
     assert load_script == textwrap.dedent(
         """\
         from typing import *
@@ -76,18 +88,18 @@ def test_build_python_script(load_pipeline):
     )
 
 
-def test_lightweight_component_sdk(load_pipeline):
-    pipeline, dataset, load_script = load_pipeline
+def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
+    pipeline, dataset, load_script, caplog_records = load_pipeline
 
     assert len(pipeline._graph.keys()) == 1
-    operation_spec_dict = pipeline._graph["CreateData"][
+    operation_spec_dict = pipeline._graph["createdata"][
         "operation"
     ].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
-            "name": "CreateData",
+            "name": "createdata",
             "image": "python:3.8-slim-buster",
-            "description": "python component",
+            "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
         },
@@ -99,9 +111,14 @@ def test_lightweight_component_sdk(load_pipeline):
         },
     }
 
+    # check warning: fondant is not part of the requirements
+    msg = "You are not using a Fondant default base image"
+
+    assert any(msg in record.message for record in caplog_records)
+
     @lightweight_component
     class AddN(PandasTransformComponent):
-        def __init__(self, n: int, **kwargs):
+        def __init__(self, n: int):
             self.n = n
 
         def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -114,13 +131,15 @@ def test_lightweight_component_sdk(load_pipeline):
         arguments={"n": 1},
     )
     assert len(pipeline._graph.keys()) == 1 + 1
-    assert pipeline._graph["AddN"]["dependencies"] == ["CreateData"]
-    operation_spec_dict = pipeline._graph["AddN"]["operation"].operation_spec.to_dict()
+    assert pipeline._graph["addn"]["dependencies"] == ["createdata"]
+    pipeline._graph["addn"]["operation"].operation_spec.to_json()
+
+    operation_spec_dict = pipeline._graph["addn"]["operation"].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
-            "name": "AddN",
-            "image": "fondant:latest",
-            "description": "python component",
+            "name": "addn",
+            "image": default_fondant_image,
+            "description": "lightweight component",
             "consumes": {
                 "x": {"type": "int32"},
                 "y": {"type": "int32"},
@@ -156,7 +175,7 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
             dataframe["a"] = dataframe["a"].map(lambda x: x + self.n)
             return dataframe
 
-    pipeline, dataset, _ = load_pipeline
+    pipeline, dataset, _, _ = load_pipeline
 
     _ = dataset.apply(
         ref=AddN,
@@ -192,7 +211,7 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
             dataframe["a"] = dataframe["a"].map(lambda x: x + self.n)
             return dataframe
 
-    pipeline, dataset, _ = load_pipeline
+    pipeline, dataset, _, _ = load_pipeline
 
     _ = dataset.apply(
         ref=AddN,
@@ -206,7 +225,7 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
         DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
-            pipeline_configs.component_configs["AddN"].arguments["operation_spec"],
+            pipeline_configs.component_configs["addn"].arguments["operation_spec"],
         )
         assert "a" in operation_spec.inner_consumes
         assert "x" in operation_spec.outer_consumes
@@ -229,7 +248,7 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
             dataframe["a"] = dataframe["x"].map(lambda x: x + self.n)
             return dataframe
 
-    pipeline, dataset, _ = load_pipeline
+    pipeline, dataset, _, _ = load_pipeline
 
     _ = dataset.apply(
         ref=AddN,
@@ -243,7 +262,7 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
         DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
-            pipeline_configs.component_configs["AddN"].arguments["operation_spec"],
+            pipeline_configs.component_configs["addn"].arguments["operation_spec"],
         )
         assert "x" in operation_spec.inner_consumes
         assert "a" in operation_spec.inner_produces
@@ -260,7 +279,7 @@ def test_lightweight_component_missing_decorator():
         def load(self) -> str:
             return "bar"
 
-    with pytest.raises(InvalidPythonComponent):
+    with pytest.raises(InvalidLightweightComponent):
         _ = pipeline.read(
             ref=Foo,
             produces={"x": pa.int32(), "y": pa.int32()},
@@ -282,13 +301,36 @@ def test_valid_load_component():
             )
             return dd.from_pandas(df, npartitions=1)
 
-    CreateData(produces={}, consumes={})
+    pipeline = Pipeline(
+        name="dummy-pipeline",
+        base_path="./data",
+    )
+
+    pipeline.read(
+        ref=CreateData,
+    )
+
+    assert len(pipeline._graph.keys()) == 1
+    operation_spec = pipeline._graph["createdata"]["operation"].operation_spec.to_json()
+    operation_spec_without_image = json.loads(operation_spec)
+
+    assert operation_spec_without_image == {
+        "specification": {
+            "name": "createdata",
+            "image": "python:3.8-slim-buster",
+            "description": "lightweight component",
+            "consumes": {"additionalProperties": True},
+            "produces": {"additionalProperties": True},
+        },
+        "consumes": {},
+        "produces": {},
+    }
 
 
 def test_invalid_load_component():
     with pytest.raises(  # noqa: PT012
         ValueError,
-        match="Every required function must be overridden in the PythonComponent. "
+        match="Every required function must be overridden in the LightweightComponent. "
         "Missing implementations for the following functions: \\['load'\\]",
     ):
 
@@ -342,7 +384,7 @@ def test_invalid_load_component_wrong_return_type():
         CreateData(produces={}, consumes={})
 
 
-def test_lightweight_component_decorator_without_parentheses():
+def test_lightweight_component_decorator_without_parentheses(default_fondant_image):
     @lightweight_component
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -358,12 +400,14 @@ def test_lightweight_component_decorator_without_parentheses():
     )
 
     assert len(pipeline._graph.keys()) == 1
-    operation_spec = pipeline._graph["CreateData"]["operation"].operation_spec.to_json()
-    assert json.loads(operation_spec) == {
+    operation_spec = pipeline._graph["createdata"]["operation"].operation_spec.to_json()
+    operation_spec_without_image = json.loads(operation_spec)
+
+    assert operation_spec_without_image == {
         "specification": {
-            "name": "CreateData",
-            "image": "fondant:latest",
-            "description": "python component",
+            "name": "createdata",
+            "image": default_fondant_image,
+            "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
         },

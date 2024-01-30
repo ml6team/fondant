@@ -22,7 +22,6 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
         use_ssl: Optional[bool],
         verify_certs: Optional[bool],
         pool_maxsize: Optional[int],
-        **kwargs,
     ):
         session = boto3.Session()
         credentials = session.get_credentials()
@@ -35,7 +34,6 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
             verify_certs=verify_certs,
             connection_class=RequestsHttpConnection,
             pool_maxsize=pool_maxsize,
-            **kwargs,
         )
         self.create_index(index_body)
 

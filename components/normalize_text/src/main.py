@@ -52,7 +52,6 @@ class NormalizeTextComponent(PandasTransformComponent):
         normalize_lines: bool,
         do_lowercase: bool,
         remove_punctuation: bool,
-        **kwargs,
     ):
         self.remove_additional_whitespaces = remove_additional_whitespaces
         self.apply_nfc = apply_nfc

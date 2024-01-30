@@ -1,5 +1,7 @@
 """Fondant pipelines test."""
 import copy
+import sys
+from importlib.metadata import version
 from pathlib import Path
 
 import dask.dataframe as dd
@@ -83,11 +85,17 @@ def test_component_op_python_component(default_pipeline_args):
             )
             return dd.from_pandas(df, npartitions=1)
 
+    basename = "fndnt/fondant"
+    fondant_version = version("fondant")
+    python_version = sys.version_info
+    python_version = f"{python_version.major}.{python_version.minor}"
+    fondant_image_name = f"{basename}:{fondant_version}-py{python_version}"
+
     component = ComponentOp.from_ref(Foo, produces={"bar": pa.string()})
     assert component.component_spec._specification == {
-        "name": "Foo",
-        "image": "fondant:latest",
-        "description": "python component",
+        "name": "foo",
+        "image": fondant_image_name,
+        "description": "lightweight component",
         "consumes": {"additionalProperties": True},
         "produces": {"additionalProperties": True},
     }
@@ -97,7 +105,7 @@ def test_component_op_bad_ref():
     with pytest.raises(
         ValueError,
         match="""Invalid reference type: <class 'int'>.
-                Expected a string, Path, or a Python component class.""",
+                Expected a string, Path, or a lightweight component class.""",
     ):
         ComponentOp.from_ref(123)
 

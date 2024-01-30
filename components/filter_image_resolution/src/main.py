@@ -18,13 +18,11 @@ class FilterImageResolutionComponent(PandasTransformComponent):
         *,
         min_image_dim: int,
         max_aspect_ratio: float,
-        **kwargs,
     ) -> None:
         """
         Args:
             min_image_dim: minimum image dimension.
             max_aspect_ratio: maximum aspect ratio.
-            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.min_image_dim = min_image_dim
         self.max_aspect_ratio = max_aspect_ratio

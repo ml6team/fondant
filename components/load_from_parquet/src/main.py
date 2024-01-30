@@ -6,7 +6,6 @@ import dask
 import dask.dataframe as dd
 import pandas as pd
 from fondant.component import DaskLoadComponent
-from fondant.core.schema import Field
 
 logger = logging.getLogger(__name__)
 
@@ -17,12 +16,10 @@ class LoadFromParquet(DaskLoadComponent):
     def __init__(
         self,
         *,
-        produces: t.Dict[str, Field],
         dataset_uri: str,
         column_name_mapping: t.Optional[dict],
         n_rows_to_load: t.Optional[int],
         index_column: t.Optional[str],
-        **kwargs,
     ) -> None:
         """
         Args:
@@ -33,13 +30,11 @@ class LoadFromParquet(DaskLoadComponent):
               testing pipeline runs on a small scale.
             index_column: Column to set index to in the load component, if not specified a default
                 globally unique index will be set.
-            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.dataset_uri = dataset_uri
         self.column_name_mapping = column_name_mapping
         self.n_rows_to_load = n_rows_to_load
         self.index_column = index_column
-        self.produces = produces
 
     def get_columns_to_keep(self) -> t.List[str]:
         # Only read required columns

@@ -70,6 +70,11 @@ def _patched_data_writing(monkeypatch):
         "upload_manifest",
         lambda self, manifest, save_path: None,
     )
+    monkeypatch.setattr(
+        Executor,
+        "_upload_cache_reference_content",
+        lambda self, base_path, pipeline_name: None,
+    )
 
 
 def patch_method_class(method):
@@ -195,9 +200,9 @@ def test_run_with_cache(metadata, monkeypatch):
             pass
 
     executor = MyExecutor.from_args()
-    matching_execution_manifest = executor._get_cached_manifest()
+    cache_reference_content = executor._get_cache_reference_content()
     # Check that the latest manifest is returned
-    assert matching_execution_manifest.run_id == "example_pipeline_2023"
+    assert Manifest.from_file(cache_reference_content).run_id == "example_pipeline_2023"
     # Check that the previous component is cached due to similar run IDs
     assert executor._is_previous_cached(Manifest.from_file(input_manifest_path)) is True
 
@@ -244,7 +249,7 @@ def test_run_with_no_cache(metadata):
             pass
 
     executor = MyExecutor.from_args()
-    matching_execution_manifest = executor._get_cached_manifest()
+    matching_execution_manifest = executor._get_cache_reference_content()
     # Check that the latest manifest is returned
     assert matching_execution_manifest is None
 
@@ -275,7 +280,7 @@ def test_load_component(metadata):
     ]
 
     class MyLoadComponent(DaskLoadComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             self.flag = flag
             self.value = value
 
@@ -334,7 +339,7 @@ def test_teardown_method(metadata):
     client = MockClient()
 
     class MyLoadComponent(DaskLoadComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             self.flag = flag
             self.value = value
             self.client = client
@@ -389,7 +394,7 @@ def test_dask_transform_component(metadata):
     ]
 
     class MyDaskComponent(DaskTransformComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             self.flag = flag
             self.value = value
 
@@ -439,7 +444,7 @@ def test_pandas_transform_component(metadata):
     ]
 
     class MyPandasComponent(PandasTransformComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             assert flag == "success"
             assert value == 1
 
@@ -528,7 +533,7 @@ def test_wrap_transform():
     assert output_df.columns.tolist() == ["caption_text", "image_height"]
 
 
-@pytest.mark.usefixtures("_patched_data_loading")
+@pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
 def test_write_component(metadata):
     operation_spec = OperationSpec(
         ComponentSpec.from_file(components_path / "component.yaml"),
@@ -551,7 +556,7 @@ def test_write_component(metadata):
     ]
 
     class MyWriteComponent(DaskWriteComponent):
-        def __init__(self, *, flag, value, **kwargs):
+        def __init__(self, *, flag, value):
             self.flag = flag
             self.value = value
 

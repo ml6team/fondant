@@ -49,7 +49,7 @@ dataset = dataset.apply(
     ],
 )
 class CalculateChunkLength(PandasTransformComponent):
-    def __init__(self, arg_x: bool, **kwargs):
+    def __init__(self, arg_x: bool):
         self.arg_x = arg_x
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:

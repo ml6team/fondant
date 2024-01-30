@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class DummyComponent(PandasTransformComponent):
     """Dummy component that returns the dataframe as it is."""
 
-    def __init__(self, *_, **kwargs):
+    def __init__(self, *_):
         pass
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:

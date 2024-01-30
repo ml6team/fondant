@@ -23,7 +23,6 @@ class IndexWeaviateComponent(DaskWriteComponent):
         additional_headers: t.Optional[dict],
         vectorizer: t.Optional[str],
         module_config: t.Optional[dict],
-        **kwargs,
     ):
         self.client = weaviate.Client(
             url=weaviate_url,

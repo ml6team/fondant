@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import shlex
 import tempfile
 import textwrap
@@ -11,6 +12,7 @@ from pathlib import Path
 
 import yaml
 
+from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Metadata
 from fondant.core.schema import CloudCredentialsMount, DockerVolume
@@ -173,7 +175,7 @@ class DockerCompiler(Compiler):
 
         component_cache_key = None
 
-        for component_name, component in pipeline._graph.items():
+        for component_id, component in pipeline._graph.items():
             component_op = component["operation"]
 
             component_cache_key = component_op.get_component_cache_key(
@@ -184,11 +186,11 @@ class DockerCompiler(Compiler):
                 pipeline_name=pipeline.name,
                 run_id=run_id,
                 base_path=path,
-                component_id=component_name,
+                component_id=component_id,
                 cache_key=component_cache_key,
             )
 
-            logger.info(f"Compiling service for {component_name}")
+            logger.info(f"Compiling service for {component_id}")
 
             entrypoint = self._build_entrypoint(component_op.image)
 
@@ -200,7 +202,7 @@ class DockerCompiler(Compiler):
                 [
                     "--output_manifest_path",
                     f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
-                    f"{component_name}/manifest.json",
+                    f"{component_id}/manifest.json",
                 ],
             )
 
@@ -238,7 +240,7 @@ class DockerCompiler(Compiler):
                 f"{DASK_DIAGNOSTIC_DASHBOARD_PORT}:{DASK_DIAGNOSTIC_DASHBOARD_PORT}",
             )
 
-            services[component_name] = {
+            services[component_id] = {
                 "entrypoint": entrypoint,
                 "command": command,
                 "depends_on": depends_on,
@@ -249,18 +251,18 @@ class DockerCompiler(Compiler):
                 },
             }
 
-            self._set_configuration(services, component_op, component_name)
+            self._set_configuration(services, component_op, component_id)
 
             if component_op.dockerfile_path is not None:
                 logger.info(
-                    f"Found Dockerfile for {component_name}, adding build step.",
+                    f"Found Dockerfile for {component_id}, adding build step.",
                 )
-                services[component_name]["build"] = {
+                services[component_id]["build"] = {
                     "context": str(component_op.component_dir.absolute()),
                     "args": build_args,
                 }
             else:
-                services[component_name]["image"] = component_op.component_spec.image
+                services[component_id]["image"] = component_op.component_spec.image
 
         return {
             "name": pipeline.name,
@@ -268,7 +270,7 @@ class DockerCompiler(Compiler):
             "services": services,
         }
 
-    def _set_configuration(self, services, fondant_component_operation, component_name):
+    def _set_configuration(self, services, fondant_component_operation, component_id):
         resources_dict = fondant_component_operation.resources.to_dict()
 
         accelerator_name = resources_dict.pop("accelerator_name")
@@ -287,7 +289,7 @@ class DockerCompiler(Compiler):
                 raise InvalidPipelineDefinition(msg)
 
             if accelerator_name == "GPU":
-                services[component_name]["deploy"] = {
+                services[component_id]["deploy"] = {
                     "resources": {
                         "reservations": {
                             "devices": [
@@ -305,6 +307,122 @@ class DockerCompiler(Compiler):
                 raise NotImplementedError(msg)
 
         return services
+
+
+class KubeflowComponentSpec:
+    """
+    Class representing a Kubeflow component specification.
+
+    Args:
+        specification: The kubeflow component specification as a Python dict
+    """
+
+    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
+        self._specification = specification
+
+    @staticmethod
+    def convert_arguments(fondant_component: ComponentSpec):
+        args = {}
+        for arg in fondant_component.args.values():
+            arg_type_dict = {}
+
+            # Enable isOptional attribute in spec if arg is Optional and defaults to None
+            if arg.optional and arg.default is None:
+                arg_type_dict["isOptional"] = True
+            if arg.default is not None:
+                arg_type_dict["defaultValue"] = arg.default
+
+            args[arg.name] = {
+                "parameterType": arg.kubeflow_type,
+                "description": arg.description,
+                **arg_type_dict,  # type: ignore
+            }
+
+        return args
+
+    @classmethod
+    def from_fondant_component_spec(
+        cls,
+        fondant_component: ComponentSpec,
+        command: t.List[str],
+        image_uri: str,
+    ):
+        """Generate a Kubeflow component spec from a Fondant component spec."""
+        input_definitions = {
+            "parameters": {
+                **cls.convert_arguments(fondant_component),
+            },
+        }
+
+        kfp_safe_name = (
+            re.sub(
+                "-+",
+                "-",
+                re.sub("[^-0-9a-z]+", "-", fondant_component.name.lower()),
+            )
+            .lstrip("-")
+            .rstrip("-")
+        )
+        specification = {
+            "components": {
+                "comp-"
+                + kfp_safe_name: {
+                    "executorLabel": "exec-" + kfp_safe_name,
+                    "inputDefinitions": input_definitions,
+                },
+            },
+            "deploymentSpec": {
+                "executors": {
+                    "exec-"
+                    + kfp_safe_name: {
+                        "container": {
+                            "command": command,
+                            "image": image_uri,
+                        },
+                    },
+                },
+            },
+            "pipelineInfo": {"name": kfp_safe_name},
+            "root": {
+                "dag": {
+                    "tasks": {
+                        kfp_safe_name: {
+                            "cachingOptions": {"enableCache": True},
+                            "componentRef": {"name": "comp-" + kfp_safe_name},
+                            "inputs": {
+                                "parameters": {
+                                    param: {"componentInputParameter": param}
+                                    for param in input_definitions["parameters"]
+                                },
+                            },
+                            "taskInfo": {"name": kfp_safe_name},
+                        },
+                    },
+                },
+                "inputDefinitions": input_definitions,
+            },
+            "schemaVersion": "2.1.0",
+            "sdkVersion": "kfp-2.6.0",
+        }
+        return cls(specification)
+
+    def to_file(self, path: t.Union[str, Path]) -> None:
+        """Dump the component specification to the file specified by the provided path."""
+        with open(path, "w", encoding="utf-8") as file_:
+            yaml.dump(
+                self._specification,
+                file_,
+                indent=4,
+                default_flow_style=False,
+                sort_keys=False,
+            )
+
+    def to_string(self) -> str:
+        """Return the component specification as a string."""
+        return json.dumps(self._specification)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._specification!r})"
 
 
 class KubeFlowCompiler(Compiler):
@@ -378,8 +496,16 @@ class KubeFlowCompiler(Compiler):
 
                 component_op = component["operation"]
                 # convert ComponentOp to Kubeflow component
+                command = self._build_entrypoint(component_op.image)
+                image_uri = component_op.image.base_image
+                kubeflow_spec = KubeflowComponentSpec.from_fondant_component_spec(
+                    component_op.component_spec,
+                    command=command,
+                    image_uri=image_uri,
+                )
+
                 kubeflow_component_op = self.kfp.components.load_component_from_text(
-                    text=component_op.component_spec.kubeflow_specification.to_string(),
+                    text=kubeflow_spec.to_string(),
                 )
 
                 # Remove None values from arguments

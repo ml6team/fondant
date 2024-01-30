@@ -3,7 +3,6 @@ import copy
 import json
 import pkgutil
 import pydoc
-import re
 import types
 import typing as t
 from dataclasses import dataclass
@@ -101,7 +100,7 @@ class ComponentSpec:
         tags: t.Optional[t.List[str]] = None,
     ):
         spec_dict: t.Dict[str, t.Any] = {
-            "name": name,
+            "name": self.sanitized_component_name(name),
             "image": image,
         }
 
@@ -180,27 +179,9 @@ class ComponentSpec:
     def name(self):
         return self._specification["name"]
 
-    @property
-    def component_folder_name(self):
-        """Cleans and converts a name to a proper folder name."""
-        return self._specification["name"].lower().replace(" ", "_")
-
-    @property
-    def sanitized_component_name(self):
-        """Cleans and converts a name to be kfp V2 compatible.
-
-        Taken from https://github.com/kubeflow/pipelines/blob/
-        cfe671c485d4ee8514290ee81ca2785e8bda5c9b/sdk/python/kfp/dsl/utils.py#L52
-        """
-        return (
-            re.sub(
-                "-+",
-                "-",
-                re.sub("[^-0-9a-z]+", "-", self._specification["name"].lower()),
-            )
-            .lstrip("-")
-            .rstrip("-")
-        )
+    def sanitized_component_name(self, name) -> str:
+        """Cleans and converts a component name."""
+        return name.lower().replace(" ", "_")
 
     @property
     def description(self):
@@ -328,10 +309,6 @@ class ComponentSpec:
                 type=str,
             ),
         }
-
-    @property
-    def kubeflow_specification(self) -> "KubeflowComponentSpec":
-        return KubeflowComponentSpec.from_fondant_component_spec(self)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r})"
@@ -540,8 +517,8 @@ class OperationSpec:
 
     @property
     def component_folder_name(self) -> str:
-        """Cleans and converts a name to a proper folder name."""
-        return self._component_spec.component_folder_name
+        """Get the component folder name."""
+        return self._component_spec.name
 
     @property
     def previous_index(self) -> t.Optional[str]:
@@ -566,107 +543,3 @@ class OperationSpec:
             return False
 
         return True
-
-
-class KubeflowComponentSpec:
-    """
-    Class representing a Kubeflow component specification.
-
-    Args:
-        specification: The kubeflow component specification as a Python dict
-    """
-
-    def __init__(self, specification: t.Dict[str, t.Any]) -> None:
-        self._specification = specification
-
-    @staticmethod
-    def convert_arguments(fondant_component: ComponentSpec):
-        args = {}
-        for arg in fondant_component.args.values():
-            arg_type_dict = {}
-
-            # Enable isOptional attribute in spec if arg is Optional and defaults to None
-            if arg.optional and arg.default is None:
-                arg_type_dict["isOptional"] = True
-            if arg.default is not None:
-                arg_type_dict["defaultValue"] = arg.default
-
-            args[arg.name] = {
-                "parameterType": arg.kubeflow_type,
-                "description": arg.description,
-                **arg_type_dict,  # type: ignore
-            }
-
-        return args
-
-    @classmethod
-    def from_fondant_component_spec(cls, fondant_component: ComponentSpec):
-        """Generate a Kubeflow component spec from a Fondant component spec."""
-        input_definitions = {
-            "parameters": {
-                **cls.convert_arguments(fondant_component),
-            },
-        }
-
-        cleaned_component_name = fondant_component.sanitized_component_name
-
-        specification = {
-            "components": {
-                "comp-"
-                + cleaned_component_name: {
-                    "executorLabel": "exec-" + cleaned_component_name,
-                    "inputDefinitions": input_definitions,
-                },
-            },
-            "deploymentSpec": {
-                "executors": {
-                    "exec-"
-                    + cleaned_component_name: {
-                        "container": {
-                            "command": ["fondant", "execute", "main"],
-                            "image": fondant_component.image,
-                        },
-                    },
-                },
-            },
-            "pipelineInfo": {"name": cleaned_component_name},
-            "root": {
-                "dag": {
-                    "tasks": {
-                        cleaned_component_name: {
-                            "cachingOptions": {"enableCache": True},
-                            "componentRef": {"name": "comp-" + cleaned_component_name},
-                            "inputs": {
-                                "parameters": {
-                                    param: {"componentInputParameter": param}
-                                    for param in input_definitions["parameters"]
-                                },
-                            },
-                            "taskInfo": {"name": cleaned_component_name},
-                        },
-                    },
-                },
-                "inputDefinitions": input_definitions,
-            },
-            "schemaVersion": "2.1.0",
-            "sdkVersion": "kfp-2.0.1",
-        }
-        return cls(specification)
-
-    def to_file(self, path: t.Union[str, Path]) -> None:
-        """Dump the component specification to the file specified by the provided path."""
-        with open(path, "w", encoding="utf-8") as file_:
-            yaml.dump(
-                self._specification,
-                file_,
-                indent=4,
-                default_flow_style=False,
-                sort_keys=False,
-            )
-
-    def to_string(self) -> str:
-        """Return the component specification as a string."""
-        return json.dumps(self._specification)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._specification!r})"
