@@ -4,7 +4,8 @@ set -e
 function usage {
   echo "Usage: $0 [options]"
   echo "Options:"
-  echo "  -t, --tag <value>        Set the tag (default: latest)"
+  echo "  -t,  --tag <value>                 Tag to add to image, repeatable
+                                             The first tag defines the fondant version to install"
   echo "  -h, --help               Display this help message"
 }
 
