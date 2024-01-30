@@ -35,6 +35,7 @@ def load_pipeline(caplog):
     @lightweight_component(
         base_image="python:3.8-slim-buster",
         extra_requires=["pandas", "dask"],
+        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
     )
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -52,7 +53,6 @@ def load_pipeline(caplog):
 
     dataset = pipeline.read(
         ref=CreateData,
-        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
     )
 
     caplog_records = caplog.records
@@ -101,14 +101,14 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
             "image": "python:3.8-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
-            "produces": {"additionalProperties": True},
+            "produces": {
+                "x": {"type": "int32"},
+                "y": {"type": "int32"},
+                "z": {"type": "int32"},
+            },
         },
         "consumes": {},
-        "produces": {
-            "x": {"type": "int32"},
-            "y": {"type": "int32"},
-            "z": {"type": "int32"},
-        },
+        "produces": {},
     }
 
     # check warning: fondant is not part of the requirements
@@ -116,7 +116,7 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
 
     assert any(msg in record.message for record in caplog_records)
 
-    @lightweight_component
+    @lightweight_component(produces={"x": pa.int32()})
     class AddN(PandasTransformComponent):
         def __init__(self, n: int):
             self.n = n
@@ -127,7 +127,6 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
 
     _ = dataset.apply(
         ref=AddN,
-        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
         arguments={"n": 1},
     )
     assert len(pipeline._graph.keys()) == 1 + 1
@@ -145,15 +144,11 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
                 "y": {"type": "int32"},
                 "z": {"type": "int32"},
             },
-            "produces": {"additionalProperties": True},
+            "produces": {"x": {"type": "int32"}},
             "args": {"n": {"type": "int"}},
         },
         "consumes": {},
-        "produces": {
-            "x": {"type": "int32"},
-            "y": {"type": "int32"},
-            "z": {"type": "int32"},
-        },
+        "produces": {},
     }
     pipeline._validate_pipeline_definition(run_id="dummy-run-id")
 
@@ -166,6 +161,7 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
+        produces={"a": pa.int32()},
     )
     class AddN(PandasTransformComponent):
         def __init__(self, n: int):
@@ -180,7 +176,6 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
     _ = dataset.apply(
         ref=AddN,
         consumes={"a": "x"},
-        produces={"a": pa.int32()},
         arguments={"n": 1},
     )
 
@@ -202,6 +197,7 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
         consumes={"a": pa.int32()},
+        produces={"a": pa.int32()},
     )
     class AddN(PandasTransformComponent):
         def __init__(self, n: int):
@@ -216,7 +212,6 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
     _ = dataset.apply(
         ref=AddN,
         consumes={"a": "x"},
-        produces={"a": pa.int32()},
         arguments={"n": 1},
     )
 
@@ -239,6 +234,7 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
         consumes={"additionalProperties": True},
+        produces={"a": pa.int32()},
     )
     class AddN(PandasTransformComponent):
         def __init__(self, n: int):
@@ -253,7 +249,6 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
     _ = dataset.apply(
         ref=AddN,
         consumes={"x": pa.int32()},
-        produces={"a": pa.int32()},
         arguments={"n": 1},
     )
 
@@ -267,6 +262,44 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
         assert "x" in operation_spec.inner_consumes
         assert "a" in operation_spec.inner_produces
         assert "z" not in operation_spec.inner_consumes
+
+
+def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
+    @lightweight_component(
+        base_image="python:3.8",
+        extra_requires=[
+            "fondant[component]@git+https://github.com/ml6team/fondant@main",
+        ],
+        consumes={"additionalProperties": True},
+        produces={"additionalProperties": True},
+    )
+    class AddN(PandasTransformComponent):
+        def __init__(self, n: int):
+            self.n = n
+
+        def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+            dataframe["a"] = dataframe["x"].map(lambda x: x + self.n)
+            dataframe["b"] = dataframe["x"].map(lambda x: x + self.n)
+            dataframe["c"] = dataframe["x"].map(lambda x: x + self.n)
+            return dataframe
+
+    pipeline, dataset, _, _ = load_pipeline
+
+    _ = dataset.apply(
+        ref=AddN,
+        consumes={"x": pa.int32()},
+        produces={"a": pa.int32(), "b": pa.int32(), "c": pa.int32()},
+        arguments={"n": 1},
+    )
+
+    with tmp_path_factory.mktemp("temp") as fn:
+        output_path = str(fn / "kubeflow_pipeline.yml")
+        DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
+        pipeline_configs = DockerComposeConfigs.from_spec(output_path)
+        operation_spec = OperationSpec.from_json(
+            pipeline_configs.component_configs["addn"].arguments["operation_spec"],
+        )
+        assert all(k in ["a", "b", "c"] for k in operation_spec.inner_produces)
 
 
 def test_lightweight_component_missing_decorator():
@@ -320,7 +353,6 @@ def test_valid_load_component():
             "image": "python:3.8-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
-            "produces": {"additionalProperties": True},
         },
         "consumes": {},
         "produces": {},
@@ -409,7 +441,6 @@ def test_lightweight_component_decorator_without_parentheses(default_fondant_ima
             "image": default_fondant_image,
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
-            "produces": {"additionalProperties": True},
         },
         "consumes": {},
         "produces": {},

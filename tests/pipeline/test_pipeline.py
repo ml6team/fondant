@@ -97,7 +97,6 @@ def test_component_op_python_component(default_pipeline_args):
         "image": fondant_image_name,
         "description": "lightweight component",
         "consumes": {"additionalProperties": True},
-        "produces": {"additionalProperties": True},
     }
 
 

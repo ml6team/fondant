@@ -73,10 +73,14 @@ class LightweightComponent(BaseComponent):
         pass
 
     @classmethod
+    def produces(cls) -> t.Optional[t.Dict[str, t.Any]]:
+        pass
+
+    @classmethod
     def modify_spec_consumes(
         cls,
         spec_consumes: t.Dict[str, t.Any],
-        apply_consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]],
+        apply_consumes: t.Optional[t.Dict[str, pa.DataType]],
     ):
         """Modify fields based on the consumes argument in the 'apply' method."""
         if apply_consumes:
@@ -133,12 +137,26 @@ class LightweightComponent(BaseComponent):
 
         return spec_consumes
 
+    @classmethod
+    def get_spec_produces(cls):
+        """Get the produces spec for the component."""
+        produces = cls.produces()
+
+        if produces is None:
+            return produces
+
+        return {
+            k: (Type(v).to_dict() if k != "additionalProperties" else v)
+            for k, v in produces.items()
+        }
+
 
 def lightweight_component(
     *args,
     extra_requires: t.Optional[t.List[str]] = None,
     base_image: t.Optional[str] = None,
     consumes: t.Optional[t.Dict[str, t.Any]] = None,
+    produces: t.Optional[t.Dict[str, t.Any]] = None,
 ):
     """Decorator to enable a lightweight component."""
 
@@ -228,8 +246,12 @@ def lightweight_component(
                 return image
 
             @classmethod
-            def consumes(cls) -> t.Optional[t.Dict[str, t.Dict[t.Any, t.Any]]]:
+            def consumes(cls) -> t.Optional[t.Dict[str, pa.DataType]]:
                 return consumes
+
+            @classmethod
+            def produces(cls) -> t.Optional[t.Dict[str, pa.DataType]]:
+                return produces
 
         return LightweightComponentOp
 
