@@ -14,8 +14,9 @@ from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.pipeline import lightweight_component
 import dask.dataframe as dd
 import pandas as pd
+import pyarrow as pa
 
-@lightweight_component
+@lightweight_component(produces={"x": pa.int32(), "y": pa.int32()})
 class CreateData(DaskLoadComponent):
     def load(self) -> dd.DataFrame:
         df = pd.DataFrame(
@@ -27,7 +28,7 @@ class CreateData(DaskLoadComponent):
         )
         return dd.from_pandas(df, npartitions=1)
 
-@lightweight_component
+@lightweight_component(produces={"z": pa.int32()})
 class AddNumber(PandasTransformComponent):
     def __init__(self, n: int):
         self.n = n
@@ -45,7 +46,6 @@ To register those components to a pipeline, we can use the `read` and `apply` me
 first and second component respectively:
 
 ```python title="pipeline.py"
-import pyarrow as pa
 from fondant.pipeline import Pipeline
 
 pipeline = Pipeline(
@@ -55,12 +55,10 @@ pipeline = Pipeline(
 
 dataset = pipeline.read(
     ref=CreateData,
-    produces={"x": pa.int32(), "y": pa.int32()},
 )
 
 _ = dataset.apply(
     ref=AddNumber,
-    produces={"z": pa.int32()},
     arguments={"n": 1},
 )
 ```
@@ -137,11 +135,13 @@ the `x` and `z` columns into a new column `score`:
 ```python
 import dask.dataframe as dd
 from fondant.component import PandasTransformComponent
+from fondant.pipeline import lightweight_component
 
 @lightweight_component(
     consumes={
     "additionalProperties": True
-    }
+    },
+    produces={"score": pa.int32()},
 )
 class AggregateResults(PandasTransformComponent):
     def __init__(self):
@@ -157,7 +157,6 @@ class AggregateResults(PandasTransformComponent):
 _ = dataset.apply(
     ref=AggregateResults,
     consumes={"x": pa.int32(), "z": pa.int32()},
-    produces={"score": pa.int32()},
 )
 ```
 
