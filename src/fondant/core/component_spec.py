@@ -100,7 +100,7 @@ class ComponentSpec:
         tags: t.Optional[t.List[str]] = None,
     ):
         spec_dict: t.Dict[str, t.Any] = {
-            "name": self.sanitized_component_name(name),
+            "name": name,
             "image": image,
         }
 
@@ -178,6 +178,10 @@ class ComponentSpec:
     @property
     def name(self):
         return self._specification["name"]
+
+    @property
+    def safe_name(self):
+        return self.sanitized_component_name(self._specification["name"])
 
     def sanitized_component_name(self, name) -> str:
         """Cleans and converts a component name."""
@@ -516,9 +520,9 @@ class OperationSpec:
         return self._outer_produces
 
     @property
-    def component_folder_name(self) -> str:
-        """Get the component folder name."""
-        return self._component_spec.name
+    def component_name(self) -> str:
+        """Get the component name."""
+        return self._component_spec.safe_name
 
     @property
     def previous_index(self) -> t.Optional[str]:

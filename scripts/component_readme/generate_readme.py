@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 import jinja2
+
 from fondant.core.component_spec import ComponentSpec
 
 
@@ -11,24 +12,25 @@ def read_component_spec(component_spec_path: Path) -> ComponentSpec:
 
 def generate_readme(component_spec: ComponentSpec, *, component_dir: Path) -> str:
     env = jinja2.Environment(
-        loader=jinja2.loaders.FileSystemLoader(Path(__file__).parent),
-        trim_blocks=True
+        loader=jinja2.loaders.FileSystemLoader(Path(__file__).parent), trim_blocks=True
     )
     env.filters["eval"] = eval
 
     template = env.get_template("readme_template.md")
 
     return template.render(
-        id=component_dir.name,
+        component_id=component_spec.safe_name,
         name=component_spec.name,
-        component_folder_name=component_spec.component_folder_name,
         description=component_spec.description,
         consumes=component_spec.consumes,
         produces=component_spec.produces,
         is_consumes_generic=component_spec.is_generic("consumes"),
         is_produces_generic=component_spec.is_generic("produces"),
-        arguments=[arg for arg in component_spec.args.values()
-                   if arg.name not in component_spec.default_arguments],
+        arguments=[
+            arg
+            for arg in component_spec.args.values()
+            if arg.name not in component_spec.default_arguments
+        ],
         tests=(component_dir / "tests").exists(),
         tags=component_spec.tags,
     )
@@ -48,10 +50,12 @@ def main(component_spec_path: Path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("component_specs",
-                        nargs="+",
-                        type=Path,
-                        help="Path to the component spec to generate a readme from")
+    parser.add_argument(
+        "component_specs",
+        nargs="+",
+        type=Path,
+        help="Path to the component spec to generate a readme from",
+    )
     args = parser.parse_args()
 
     for spec in args.component_specs:
