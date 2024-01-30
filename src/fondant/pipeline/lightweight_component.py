@@ -88,11 +88,11 @@ class LightweightComponent(BaseComponent):
                 spec_consumes,
             )
 
-        elif consumes == {"additionalProperties": True}:
-            spec_consumes = consumes
-
         else:
-            spec_consumes = {k: Type(v).to_dict() for k, v in consumes.items()}
+            spec_consumes = {
+                k: (Type(v).to_dict() if k != "additionalProperties" else v)
+                for k, v in consumes.items()
+            }
 
         return spec_consumes
 
