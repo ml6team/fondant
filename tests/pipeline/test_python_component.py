@@ -1,6 +1,9 @@
 import json
 import re
+import sys
 import textwrap
+from dataclasses import dataclass
+from unittest import mock
 
 import dask.dataframe as dd
 import pandas as pd
@@ -287,3 +290,32 @@ def test_lightweight_component_decorator_without_parentheses():
         "consumes": {},
         "produces": {},
     }
+
+
+@dataclass
+class MockSysVersionInfo:
+    major: int
+    minor: int
+    micro: int
+
+    def __lt__(self, other):
+        return (self.major, self.minor, self.micro) <= other
+
+    def __ge__(self, other):
+        return other < (self.major, self.minor, self.micro)
+
+
+def test_fndnt_base_image_resolution():
+    # Base image version is set to python version
+    with mock.patch.object(sys, "version_info", MockSysVersionInfo(3, 10, 0)):
+        base_image_name = Image.resolve_fndnt_base_image()
+        assert base_image_name == "fndnt/fondant:dev-py3.10"
+
+    # Local python version is not supported
+    with mock.patch.object(sys, "version_info", MockSysVersionInfo(3, 12, 0)):
+        base_image_name = Image.resolve_fndnt_base_image()
+        assert base_image_name == "fndnt/fondant:dev-py3.11"
+
+    with mock.patch.object(sys, "version_info", MockSysVersionInfo(3, 7, 0)):
+        base_image_name = Image.resolve_fndnt_base_image()
+        assert base_image_name == "fndnt/fondant:dev-py3.11"
