@@ -1,8 +1,6 @@
 import json
 import re
-import sys
 import textwrap
-from importlib.metadata import version
 
 import dask.dataframe as dd
 import pandas as pd
@@ -10,20 +8,8 @@ import pyarrow as pa
 import pytest
 from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.exceptions import InvalidLightweightComponent
-from fondant.pipeline import Pipeline, lightweight_component
+from fondant.pipeline import Image, Pipeline, lightweight_component
 from fondant.pipeline.compiler import DockerCompiler
-
-
-@pytest.fixture()
-def default_fondant_image():
-    basename = "fndnt/fondant"
-    fondant_version = version("fondant")
-    if fondant_version == "0.1.dev0":
-        fondant_version = "dev"
-
-    python_version = sys.version_info
-    python_version = f"{python_version.major}.{python_version.minor}"
-    return f"{basename}:{fondant_version}-py{python_version}"
 
 
 def test_build_python_script():
@@ -65,7 +51,7 @@ def test_build_python_script():
     )
 
 
-def test_lightweight_component_sdk(default_fondant_image, caplog):
+def test_lightweight_component_sdk(caplog):
     pipeline = Pipeline(
         name="dummy-pipeline",
         base_path="./data",
@@ -142,7 +128,7 @@ def test_lightweight_component_sdk(default_fondant_image, caplog):
     assert operation_spec_dict == {
         "specification": {
             "name": "addn",
-            "image": default_fondant_image,
+            "image": Image.resolve_fndnt_base_image(),
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
@@ -271,7 +257,7 @@ def test_invalid_load_component_wrong_return_type():
         CreateData(produces={}, consumes={})
 
 
-def test_lightweight_component_decorator_without_parentheses(default_fondant_image):
+def test_lightweight_component_decorator_without_parentheses():
     @lightweight_component
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -293,7 +279,7 @@ def test_lightweight_component_decorator_without_parentheses(default_fondant_ima
     assert operation_spec_without_image == {
         "specification": {
             "name": "createdata",
-            "image": default_fondant_image,
+            "image": Image.resolve_fndnt_base_image(),
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
