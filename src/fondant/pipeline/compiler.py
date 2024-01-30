@@ -358,7 +358,7 @@ class KubeflowComponentSpec:
             re.sub(
                 "-+",
                 "-",
-                re.sub("[^-0-9a-z]+", "-", fondant_component.name.lower()),
+                re.sub("[^-0-9a-z]+", "-", fondant_component.safe_name.lower()),
             )
             .lstrip("-")
             .rstrip("-")

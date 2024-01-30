@@ -91,7 +91,7 @@ def test_component_spec_no_args(valid_fondant_schema_no_args):
     """Test that a component spec without args is supported."""
     fondant_component = ComponentSpec.from_dict(valid_fondant_schema_no_args)
 
-    assert fondant_component.name == "example_component"
+    assert fondant_component.name == "Example component"
     assert fondant_component.description == "This is an example component"
     assert fondant_component.args == fondant_component.default_arguments
 
