@@ -2,7 +2,6 @@ import argparse
 from pathlib import Path
 
 import jinja2
-
 from fondant.core.component_spec import ComponentSpec
 
 
@@ -19,7 +18,7 @@ def generate_readme(component_spec: ComponentSpec, *, component_dir: Path) -> st
     template = env.get_template("readme_template.md")
 
     return template.render(
-        component_id=component_spec.safe_name,
+        component_id=component_dir.name,
         name=component_spec.name,
         description=component_spec.description,
         consumes=component_spec.consumes,
