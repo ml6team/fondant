@@ -130,7 +130,7 @@ def test_lightweight_component_sdk(caplog):
     operation_spec_dict = pipeline._graph["addn"]["operation"].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
-            "name": "addn",
+            "name": "AddN",
             "image": Image.resolve_fndnt_base_image(),
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
@@ -281,7 +281,7 @@ def test_lightweight_component_decorator_without_parentheses():
 
     assert operation_spec_without_image == {
         "specification": {
-            "name": "createdata",
+            "name": "CreateData",
             "image": Image.resolve_fndnt_base_image(),
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},

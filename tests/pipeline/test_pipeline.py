@@ -91,7 +91,7 @@ def test_component_op_python_component(default_pipeline_args):
 
     component = ComponentOp.from_ref(Foo, produces={"bar": pa.string()})
     assert component.component_spec._specification == {
-        "name": "foo",
+        "name": "Foo",
         "image": Image.resolve_fndnt_base_image(),
         "description": "lightweight component",
         "consumes": {"additionalProperties": True},
