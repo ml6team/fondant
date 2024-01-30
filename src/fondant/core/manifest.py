@@ -256,7 +256,7 @@ class Manifest:
         evolved_manifest = self.copy()
 
         # Update `run_id` and `component_id` in the metadata
-        component_id = operation_spec.component_folder_name
+        component_id = operation_spec.component_name
         evolved_manifest.update_metadata(key="component_id", value=component_id)
         evolved_manifest.update_metadata(key="run_id", value=run_id)
 
