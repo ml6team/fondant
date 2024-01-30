@@ -94,7 +94,7 @@ dataset = dataset.apply(...)
 dataset.write(
 {% endif %}
 {% endif %}
-    "{{ id }}",
+    "{{ component_id }}",
     arguments={
         # Add arguments
 {% for argument in arguments %}
