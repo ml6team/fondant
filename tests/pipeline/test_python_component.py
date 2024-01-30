@@ -86,7 +86,7 @@ def test_lightweight_component_sdk(caplog):
     ].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
-            "name": "createdata",
+            "name": "CreateData",
             "image": "python:3.8-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
@@ -192,7 +192,7 @@ def test_valid_load_component():
 
     assert operation_spec_without_image == {
         "specification": {
-            "name": "createdata",
+            "name": "CreateData",
             "image": "python:3.8-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},

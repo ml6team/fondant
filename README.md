@@ -105,9 +105,6 @@ An end-to-end Fondant pipeline to collect and process data for the fine-tuning o
 🖼️ [**Filter creative common license images**](https://github.com/ml6team/fondant-usecase-filter-creative-commons)  
 An end-to-end Fondant pipeline that starts from our Fondant-CC-25M creative commons image dataset and filters and downloads the desired images.
 
-🔢 [**Datacomp pipeline**](https://github.com/ml6team/fondant-usecase-datacomp)  
-An end-to-end Fondant pipeline filtering image-text data to train a CLIP model for the DataComp competition.
-
 ## ⚒️ Installation
 
 Fondant can be installed using pip:
