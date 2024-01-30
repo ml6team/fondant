@@ -18,14 +18,12 @@ class RetrieveFromWeaviateComponent(PandasTransformComponent):
         hybrid_query: t.Optional[str],
         hybrid_alpha: t.Optional[float],
         rerank: bool,
-        **kwargs,
     ) -> None:
         """
         Args:
             weaviate_url: An argument passed to the component.
             class_name: Name of class to query
             top_k: Amount of context to return.
-            kwargs: Unhandled keyword arguments passed in by Fondant.
             additional_config: Additional configuration passed to the weaviate client.
             additional_headers: Additional headers passed to the weaviate client.
             hybrid_query: The hybrid query to be used for retrieval. Optional parameter.

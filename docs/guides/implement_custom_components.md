@@ -16,7 +16,7 @@ In this tutorial, we will guide you through the process of implementing your ver
 component. We will illustrate this by building a transform component that uppercases the `alt_text` of the image dataset.
 
 If you want to build a complex custom component or share the component within your organization or even the community, 
-take a look at how to build [reusable components](../components/custom_containerized_component.md).
+take a look at how to build [reusable components](../components/containerized_components.md).
 
 This pipeline is an extension of the one introduced in
 the [previous tutorial](../guides/build_a_simple_pipeline.md).
@@ -97,22 +97,22 @@ class UpperCaseTextComponent(PandasTransformComponent):
 !!! note "IMPORTANT"
 
     Note that we have used a decorator `@lightweight_component`. This decorator is necessary to inform
-    Fondant that this class is a Python component and can be used as a component in your pipeline.
+    Fondant that this class is a lightweight component and can be used as a component in your pipeline.
 
 We apply the uppercase transformation to the `alt_text` column of the dataframe. Afterward, we
 return the transformed dataframe from the `transform` method, which Fondant will use to
 automatically update the index.
 
-The Python components provide an easy way to start with your component implementation. However, the
-Python component implementation still allows you to define all advanced component configurations,
+The lightweight components provide an easy way to start with your component implementation. However, the
+lightweight component implementation still allows you to define all advanced component configurations,
 including installing extra arguments or defining component arguments. These concepts are more
 advanced and not needed for quick exploration and experiments. You can find more information on
 these topics in
-the [documentation of the Python components](../components/custom_python_component.md).
+the [documentation of the lightweight components](../components/lightweight_components.md).
 
 ### Using the component
 
-Now were we have defined our Python component we can start using it in our pipeline.
+Now were we have defined our lightweight component we can start using it in our pipeline.
 For instance we can put this component at the end of our pipeline.
 
 ```python
@@ -130,7 +130,7 @@ Now, you can execute the pipeline once more and examine the results. In the fina
 the `alt_text` is in uppercase.
 
 Of course, it is debatable whether uppercasing the alt_text is genuinely useful. This is just a
-constructive and simple example to showcase how to use Python components as glue code within your
+constructive and simple example to showcase how to use lightweight components as glue code within your
 pipeline, helping you connect reusable components to each other.
 
 ## Next steps

@@ -46,12 +46,11 @@ class LanguageIdentification:
 class LanguageFilterComponent(PandasTransformComponent):
     """Component that filter columns based on provided language."""
 
-    def __init__(self, *, language, **kwargs):
+    def __init__(self, *, language):
         """Setup language filter component.
 
         Args:
             language: Only keep text passages which are in the provided language.
-            kwargs: Unhandled keyword arguments passed in by Fondant
         """
         self.lang_detector = LanguageIdentification(language)
 

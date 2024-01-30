@@ -33,12 +33,11 @@ def compute_minhash(shingles: list) -> np.ndarray:
 class MinHashGeneratorComponent(PandasTransformComponent):
     """Component generates minhashes of text."""
 
-    def __init__(self, *, shingle_ngram_size: int, **kwargs):
+    def __init__(self, *, shingle_ngram_size: int):
         """Setup component.
 
         Args:
             shingle_ngram_size: Defines size of ngram used for the shingle generation.
-            kwargs: Unhandled keyword arguments passed in by Fondant
         """
         self.shingle_ngram_size = shingle_ngram_size
 

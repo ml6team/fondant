@@ -76,7 +76,6 @@ class CaptionImagesComponent(PandasTransformComponent):
         model_id: str,
         batch_size: int,
         max_new_tokens: int,
-        **kwargs,
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Device: {self.device}")

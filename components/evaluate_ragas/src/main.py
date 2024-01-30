@@ -15,17 +15,14 @@ class RetrieverEval(PandasTransformComponent):
         llm_class_name: str,
         llm_kwargs: dict,
         produces: t.Dict[str, t.Any],
-        **kwargs,
     ) -> None:
         """
         Args:
             llm_module_name: Module from which the LLM is imported. Defaults to
              langchain.chat_models
             llm_class_name: Name of the selected llm. Defaults to ChatOpenAI
-            module: Module from which the LLM is imported. Defaults to langchain.llms
             llm_kwargs: Arguments of the selected llm
             produces: RAGAS metrics to compute.
-            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.llm = self.extract_llm(
             llm_module_name=llm_module_name,

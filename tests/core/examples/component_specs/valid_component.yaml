@@ -1,4 +1,4 @@
-name: Example component
+name: example_component
 image: example_component:latest
 description: This is an example component
 tags:

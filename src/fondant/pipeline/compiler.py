@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import shlex
 import tempfile
 import textwrap
@@ -174,7 +175,7 @@ class DockerCompiler(Compiler):
 
         component_cache_key = None
 
-        for component_name, component in pipeline._graph.items():
+        for component_id, component in pipeline._graph.items():
             component_op = component["operation"]
 
             component_cache_key = component_op.get_component_cache_key(
@@ -185,11 +186,11 @@ class DockerCompiler(Compiler):
                 pipeline_name=pipeline.name,
                 run_id=run_id,
                 base_path=path,
-                component_id=component_name,
+                component_id=component_id,
                 cache_key=component_cache_key,
             )
 
-            logger.info(f"Compiling service for {component_name}")
+            logger.info(f"Compiling service for {component_id}")
 
             entrypoint = self._build_entrypoint(component_op.image)
 
@@ -201,7 +202,7 @@ class DockerCompiler(Compiler):
                 [
                     "--output_manifest_path",
                     f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
-                    f"{component_name}/manifest.json",
+                    f"{component_id}/manifest.json",
                 ],
             )
 
@@ -239,7 +240,7 @@ class DockerCompiler(Compiler):
                 f"{DASK_DIAGNOSTIC_DASHBOARD_PORT}:{DASK_DIAGNOSTIC_DASHBOARD_PORT}",
             )
 
-            services[component_name] = {
+            services[component_id] = {
                 "entrypoint": entrypoint,
                 "command": command,
                 "depends_on": depends_on,
@@ -250,18 +251,18 @@ class DockerCompiler(Compiler):
                 },
             }
 
-            self._set_configuration(services, component_op, component_name)
+            self._set_configuration(services, component_op, component_id)
 
             if component_op.dockerfile_path is not None:
                 logger.info(
-                    f"Found Dockerfile for {component_name}, adding build step.",
+                    f"Found Dockerfile for {component_id}, adding build step.",
                 )
-                services[component_name]["build"] = {
+                services[component_id]["build"] = {
                     "context": str(component_op.component_dir.absolute()),
                     "args": build_args,
                 }
             else:
-                services[component_name]["image"] = component_op.component_spec.image
+                services[component_id]["image"] = component_op.component_spec.image
 
         return {
             "name": pipeline.name,
@@ -269,7 +270,7 @@ class DockerCompiler(Compiler):
             "services": services,
         }
 
-    def _set_configuration(self, services, fondant_component_operation, component_name):
+    def _set_configuration(self, services, fondant_component_operation, component_id):
         resources_dict = fondant_component_operation.resources.to_dict()
 
         accelerator_name = resources_dict.pop("accelerator_name")
@@ -288,7 +289,7 @@ class DockerCompiler(Compiler):
                 raise InvalidPipelineDefinition(msg)
 
             if accelerator_name == "GPU":
-                services[component_name]["deploy"] = {
+                services[component_id]["deploy"] = {
                     "resources": {
                         "reservations": {
                             "devices": [
@@ -353,20 +354,27 @@ class KubeflowComponentSpec:
             },
         }
 
-        cleaned_component_name = fondant_component.sanitized_component_name
-
+        kfp_safe_name = (
+            re.sub(
+                "-+",
+                "-",
+                re.sub("[^-0-9a-z]+", "-", fondant_component.name.lower()),
+            )
+            .lstrip("-")
+            .rstrip("-")
+        )
         specification = {
             "components": {
                 "comp-"
-                + cleaned_component_name: {
-                    "executorLabel": "exec-" + cleaned_component_name,
+                + kfp_safe_name: {
+                    "executorLabel": "exec-" + kfp_safe_name,
                     "inputDefinitions": input_definitions,
                 },
             },
             "deploymentSpec": {
                 "executors": {
                     "exec-"
-                    + cleaned_component_name: {
+                    + kfp_safe_name: {
                         "container": {
                             "command": command,
                             "image": image_uri,
@@ -374,27 +382,27 @@ class KubeflowComponentSpec:
                     },
                 },
             },
-            "pipelineInfo": {"name": cleaned_component_name},
+            "pipelineInfo": {"name": kfp_safe_name},
             "root": {
                 "dag": {
                     "tasks": {
-                        cleaned_component_name: {
+                        kfp_safe_name: {
                             "cachingOptions": {"enableCache": True},
-                            "componentRef": {"name": "comp-" + cleaned_component_name},
+                            "componentRef": {"name": "comp-" + kfp_safe_name},
                             "inputs": {
                                 "parameters": {
                                     param: {"componentInputParameter": param}
                                     for param in input_definitions["parameters"]
                                 },
                             },
-                            "taskInfo": {"name": cleaned_component_name},
+                            "taskInfo": {"name": kfp_safe_name},
                         },
                     },
                 },
                 "inputDefinitions": input_definitions,
             },
             "schemaVersion": "2.1.0",
-            "sdkVersion": "kfp-2.0.1",
+            "sdkVersion": "kfp-2.6.0",
         }
         return cls(specification)
 

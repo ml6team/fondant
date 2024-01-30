@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class ResizeImagesComponent(PandasTransformComponent):
     """Component that resizes images based on a given width and height."""
 
-    def __init__(self, *, resize_width: int, resize_height: int, **kwargs) -> None:
+    def __init__(self, *, resize_width: int, resize_height: int) -> None:
         self.resize_width = resize_width
         self.resize_height = resize_height
 

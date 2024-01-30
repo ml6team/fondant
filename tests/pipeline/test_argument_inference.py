@@ -17,7 +17,7 @@ def test_no_init():
 
 def test_no_arguments():
     class TestComponent(PandasTransformComponent):
-        def __init__(self, **kwargs):
+        def __init__(self):
             pass
 
     assert infer_arguments(TestComponent) == {}
@@ -25,7 +25,7 @@ def test_no_arguments():
 
 def test_missing_types():
     class TestComponent(PandasTransformComponent):
-        def __init__(self, *, argument, **kwargs):
+        def __init__(self, *, argument):
             pass
 
     assert infer_arguments(TestComponent) == {
@@ -48,7 +48,6 @@ def test_types():
             bool_argument: bool,
             dict_argument: dict,
             list_argument: list,
-            **kwargs,
         ):
             pass
 
@@ -97,7 +96,6 @@ def test_optional_types():
             bool_argument: t.Optional[bool] = False,
             dict_argument: t.Optional[dict] = None,
             list_argument: t.Optional[list] = None,
-            **kwargs,
         ):
             pass
 
@@ -148,7 +146,6 @@ def test_parametrized_types_old():
             *,
             dict_argument: t.Dict[str, t.Any],
             list_argument: t.Optional[t.List[int]] = None,
-            **kwargs,
         ):
             pass
 
@@ -176,7 +173,6 @@ def test_parametrized_types_new():
             *,
             dict_argument: dict[str, t.Any],
             list_argument: list[int] | None = None,
-            **kwargs,
         ):
             pass
 
@@ -202,7 +198,6 @@ def test_unsupported_complex_type():
             self,
             *,
             union_argument: t.Union[str, int],
-            **kwargs,
         ):
             pass
 
@@ -222,7 +217,6 @@ def test_unsupported_custom_type():
             self,
             *,
             class_argument: CustomClass,
-            **kwargs,
         ):
             pass
 
@@ -235,7 +229,7 @@ def test_unsupported_custom_type():
 
 def test_consumes_produces():
     class TestComponent(PandasTransformComponent):
-        def __init__(self, *, argument, consumes, **kwargs):
+        def __init__(self, *, argument, consumes):
             pass
 
     assert infer_arguments(TestComponent) == {

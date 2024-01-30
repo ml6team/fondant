@@ -19,10 +19,13 @@ import pyarrow as pa
 
 from fondant.component import BaseComponent
 from fondant.core.component_spec import ComponentSpec, OperationSpec
-from fondant.core.exceptions import InvalidPipelineDefinition, InvalidPythonComponent
+from fondant.core.exceptions import (
+    InvalidLightweightComponent,
+    InvalidPipelineDefinition,
+)
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
-from fondant.pipeline import Image, PythonComponent
+from fondant.pipeline import Image, LightweightComponent
 from fondant.pipeline.argument_inference import infer_arguments
 
 logger = logging.getLogger(__name__)
@@ -135,7 +138,6 @@ class ComponentOp:
 
     def __init__(
         self,
-        name: str,
         image: Image,
         component_spec: ComponentSpec,
         *,
@@ -149,7 +151,6 @@ class ComponentOp:
         resources: t.Optional[Resources] = None,
         component_dir: t.Optional[Path] = None,
     ) -> None:
-        self.name = name
         self.image = image
         self.component_spec = component_spec
         self.input_partition_rows = input_partition_rows
@@ -192,13 +193,11 @@ class ComponentOp:
         component_spec = ComponentSpec.from_file(
             component_dir / cls.COMPONENT_SPEC_NAME,
         )
-        name = component_spec.component_folder_name
 
         image = Image(
             base_image=component_spec.image,
         )
         return cls(
-            name=name,
             image=image,
             component_spec=component_spec,
             component_dir=component_dir,
@@ -212,10 +211,10 @@ class ComponentOp:
         or a python component class.
         """
         if inspect.isclass(ref) and issubclass(ref, BaseComponent):
-            if issubclass(ref, PythonComponent):
+            if issubclass(ref, LightweightComponent):
                 name = ref.__name__
                 image = ref.image()
-                description = ref.__doc__ or "python component"
+                description = ref.__doc__ or "lightweight component"
 
                 component_spec = ComponentSpec(
                     name,
@@ -230,15 +229,14 @@ class ComponentOp:
                 )
 
                 operation = cls(
-                    name,
                     image,
                     component_spec,
                     **kwargs,
                 )
             else:
-                msg = """Reference is not a valid Python component.
+                msg = """Reference is not a valid lightweight component.
                        Make sure the component is decorated properly."""
-                raise InvalidPythonComponent(msg)
+                raise InvalidLightweightComponent(msg)
 
         elif isinstance(ref, (str, Path)):
             operation = cls.from_component_yaml(
@@ -247,7 +245,7 @@ class ComponentOp:
             )
         else:
             msg = f"""Invalid reference type: {type(ref)}.
-                Expected a string, Path, or a Python component class."""
+                Expected a string, Path, or a lightweight component class."""
             raise ValueError(msg)
         return operation
 
@@ -275,7 +273,7 @@ class ComponentOp:
 
             if image_tag == "latest":
                 logger.warning(
-                    f"Component `{self.name}` has an image tag set to latest. "
+                    f"Component `{self.component_spec.name}` has an image tag set to latest. "
                     f"Caching for the component will be disabled to prevent"
                     f" unpredictable behavior due to images updates",
                 )
@@ -304,6 +302,10 @@ class ComponentOp:
             msg = f"No reusable component with name {name} found."
             raise ValueError(msg)
         return component_dir
+
+    @property
+    def component_name(self) -> str:
+        return self.component_spec.name
 
     def get_component_cache_key(
         self,
@@ -390,11 +392,11 @@ class Pipeline:
         output_dataset: t.Optional["Dataset"],
     ) -> None:
         dependencies = []
-        for operation_name, info in self._graph.items():
+        for component_name, info in self._graph.items():
             if info["output_dataset"] == input_dataset:
-                dependencies.append(operation_name)
+                dependencies.append(component_name)
 
-        self._graph[operation.name] = {
+        self._graph[operation.component_name] = {
             "operation": operation,
             "dependencies": dependencies,
             "output_dataset": output_dataset,
@@ -417,7 +419,7 @@ class Pipeline:
 
         Args:
             ref: The name of a reusable component, or the path to the directory containing
-                a custom component, or a python component class.
+                a containerized component, or a lightweight component class.
             produces: A mapping to update the fields produced by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -453,7 +455,7 @@ class Pipeline:
             pipeline_name=self.name,
             base_path=self.base_path,
             run_id=self.get_run_id(),
-            component_id=operation.name,
+            component_id=operation.component_name,
         )
         dataset = Dataset(manifest, pipeline=self)
 
@@ -546,8 +548,8 @@ class Pipeline:
                 ) in operation_spec.outer_consumes.items():
                     if component_field_name not in manifest.fields:
                         msg = (
-                            f"Component '{component_op.name}' is trying to invoke the field "
-                            f"'{component_field_name}', which has not been defined or created "
+                            f"Component '{component_op.component_name}' is trying to invoke the"
+                            f"field '{component_field_name}', which has not been defined or created"
                             f"in the previous components. \n"
                             f"Available field names: {list(manifest.fields.keys())}"
                         )
@@ -638,7 +640,7 @@ class Dataset:
 
         Args:
             ref: The name of a reusable component, or the path to the directory containing
-                a custom component, or a python component class.
+                a custom component, or a lightweight component class.
             consumes: A mapping to update the fields consumed by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -753,7 +755,7 @@ class Dataset:
 
         Args:
             ref: The name of a reusable component, or the path to the directory containing
-                a custom component, or a python component class.
+                a custom component, or a lightweight component class.
             consumes: A mapping to update the fields consumed by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to

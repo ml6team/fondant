@@ -79,4 +79,4 @@ root:
           name: example-component
   inputDefinitions: *id001
 schemaVersion: 2.1.0
-sdkVersion: kfp-2.0.1
+sdkVersion: kfp-2.6.0

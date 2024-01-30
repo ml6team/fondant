@@ -137,10 +137,7 @@ def test_write_dataset(
         data_writer.write_dataframe(dataframe, dask_client)
         # read written data and assert
         dataframe = dd.read_parquet(
-            temp_dir
-            / manifest.pipeline_name
-            / manifest.run_id
-            / component_spec.component_folder_name,
+            temp_dir / manifest.pipeline_name / manifest.run_id / component_spec.name,
         )
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert list(dataframe.columns) == columns
@@ -181,7 +178,7 @@ def test_write_dataset_custom_produces(
             temp_dir
             / manifest.pipeline_name
             / manifest.run_id
-            / component_spec_produces.component_folder_name,
+            / component_spec_produces.name,
         )
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert list(dataframe.columns) == expected_columns

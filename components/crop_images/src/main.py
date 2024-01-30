@@ -35,13 +35,11 @@ class ImageCroppingComponent(PandasTransformComponent):
         *,
         cropping_threshold: int,
         padding: int,
-        **kwargs,
     ) -> None:
         """
         Args:
             cropping_threshold (int): threshold parameter used for detecting borders
             padding (int): padding for the image cropping.
-            kwargs: Unhandled keyword arguments passed in by Fondant.
         """
         self.cropping_threshold = cropping_threshold
         self.padding = padding
