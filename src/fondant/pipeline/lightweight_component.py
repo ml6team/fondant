@@ -6,7 +6,7 @@ import textwrap
 import typing as t
 from dataclasses import asdict, dataclass
 from functools import wraps
-from importlib.metadata import version
+from importlib import metadata
 
 from fondant.component import BaseComponent, Component
 
@@ -52,7 +52,7 @@ class Image:
         else:
             python_version = f"{MAX_PYTHON_VERSION[0]}.{MAX_PYTHON_VERSION[1]}"
 
-        fondant_version = version("fondant")
+        fondant_version = metadata.version("fondant")
         if fondant_version == "0.1.dev0":
             fondant_version = "dev"
         basename = "fndnt/fondant"

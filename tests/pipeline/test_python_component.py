@@ -319,3 +319,12 @@ def test_fndnt_base_image_resolution():
     with mock.patch.object(sys, "version_info", MockSysVersionInfo(3, 7, 0)):
         base_image_name = Image.resolve_fndnt_base_image()
         assert base_image_name == "fndnt/fondant:dev-py3.11"
+
+    with mock.patch.object(
+        sys,
+        "version_info",
+        MockSysVersionInfo(3, 9, 0),
+    ), mock.patch("importlib.metadata.version") as mock_call:
+        mock_call.return_value = "0.9"
+        base_image_name = Image.resolve_fndnt_base_image()
+        assert base_image_name == "fndnt/fondant:0.9-py3.9"
