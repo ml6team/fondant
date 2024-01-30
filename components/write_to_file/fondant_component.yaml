@@ -14,6 +14,8 @@ args:
     description: >- 
       Path to store the dataset, whether it's a local path or a cloud storage bucket, 
       must be specified. A separate filename will be generated for each partition.
+      If you are using the local runner and export the data to a local directory, 
+      ensure that you mount the path to the directory using the `--extra-volumes` argument.
     type: str
   format:
     description: Format for storing the dataframe can be either csv or parquet.
