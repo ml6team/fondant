@@ -6,7 +6,7 @@ import textwrap
 import typing as t
 from dataclasses import asdict, dataclass
 from functools import wraps
-from importlib.metadata import version
+from importlib import metadata
 
 import pyarrow as pa
 
@@ -55,7 +55,9 @@ class Image:
         else:
             python_version = f"{MAX_PYTHON_VERSION[0]}.{MAX_PYTHON_VERSION[1]}"
 
-        fondant_version = version("fondant")
+        fondant_version = metadata.version("fondant")
+        if fondant_version == "0.1.dev0":
+            fondant_version = "dev"
         basename = "fndnt/fondant"
         return f"{basename}:{fondant_version}-py{python_version}"
 
@@ -246,12 +248,12 @@ def lightweight_component(
                 return image
 
             @classmethod
-            def consumes(cls) -> t.Optional[t.Dict[str, pa.DataType]]:
-                return consumes
-
-            @classmethod
             def produces(cls) -> t.Optional[t.Dict[str, pa.DataType]]:
                 return produces
+
+            @classmethod
+            def consumes(cls) -> t.Optional[t.Dict[str, t.Dict[t.Any, t.Any]]]:
+                return consumes
 
         return LightweightComponentOp
 
