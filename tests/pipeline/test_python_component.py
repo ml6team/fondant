@@ -2,7 +2,9 @@ import json
 import re
 import sys
 import textwrap
+from dataclasses import dataclass
 from importlib.metadata import version
+from unittest import mock
 
 import dask.dataframe as dd
 import pandas as pd
@@ -11,7 +13,7 @@ import pytest
 from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.component_spec import OperationSpec
 from fondant.core.exceptions import InvalidLightweightComponent
-from fondant.pipeline import Pipeline, lightweight_component
+from fondant.pipeline import Image, Pipeline, lightweight_component
 from fondant.pipeline.compiler import DockerCompiler
 from fondant.testing import DockerComposeConfigs
 
@@ -138,7 +140,7 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
     assert operation_spec_dict == {
         "specification": {
             "name": "AddN",
-            "image": default_fondant_image,
+            "image": Image.resolve_fndnt_base_image(),
             "description": "lightweight component",
             "consumes": {
                 "x": {"type": "int32"},
@@ -384,7 +386,7 @@ def test_invalid_load_component_wrong_return_type():
         CreateData(produces={}, consumes={})
 
 
-def test_lightweight_component_decorator_without_parentheses(default_fondant_image):
+def test_lightweight_component_decorator_without_parentheses():
     @lightweight_component
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -406,7 +408,7 @@ def test_lightweight_component_decorator_without_parentheses(default_fondant_ima
     assert operation_spec_without_image == {
         "specification": {
             "name": "CreateData",
-            "image": default_fondant_image,
+            "image": Image.resolve_fndnt_base_image(),
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
@@ -414,3 +416,41 @@ def test_lightweight_component_decorator_without_parentheses(default_fondant_ima
         "consumes": {},
         "produces": {},
     }
+
+
+@dataclass
+class MockSysVersionInfo:
+    major: int
+    minor: int
+    micro: int
+
+    def __lt__(self, other):
+        return (self.major, self.minor, self.micro) <= other
+
+    def __ge__(self, other):
+        return other < (self.major, self.minor, self.micro)
+
+
+def test_fndnt_base_image_resolution():
+    # Base image version is set to python version
+    with mock.patch.object(sys, "version_info", MockSysVersionInfo(3, 10, 0)):
+        base_image_name = Image.resolve_fndnt_base_image()
+        assert base_image_name == "fndnt/fondant:dev-py3.10"
+
+    # Local python version is not supported
+    with mock.patch.object(sys, "version_info", MockSysVersionInfo(3, 12, 0)):
+        base_image_name = Image.resolve_fndnt_base_image()
+        assert base_image_name == "fndnt/fondant:dev-py3.11"
+
+    with mock.patch.object(sys, "version_info", MockSysVersionInfo(3, 7, 0)):
+        base_image_name = Image.resolve_fndnt_base_image()
+        assert base_image_name == "fndnt/fondant:dev-py3.11"
+
+    with mock.patch.object(
+        sys,
+        "version_info",
+        MockSysVersionInfo(3, 9, 0),
+    ), mock.patch("importlib.metadata.version") as mock_call:
+        mock_call.return_value = "0.9"
+        base_image_name = Image.resolve_fndnt_base_image()
+        assert base_image_name == "fndnt/fondant:0.9-py3.9"
