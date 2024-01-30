@@ -1,4 +1,4 @@
-# Index AWS OpenSearch
+# index_aws_opensearch
 
 <a id="index_aws_opensearch#description"></a>
 ## Description

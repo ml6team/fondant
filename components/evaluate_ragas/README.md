@@ -1,4 +1,4 @@
-# Evaluate ragas
+# evaluate_ragas
 
 <a id="evaluate_ragas#description"></a>
 ## Description

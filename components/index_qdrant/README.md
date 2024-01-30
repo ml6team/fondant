@@ -1,4 +1,4 @@
-# Index Qdrant
+# index_qdrant
 
 <a id="index_qdrant#description"></a>
 ## Description

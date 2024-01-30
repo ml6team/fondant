@@ -1,4 +1,4 @@
-# Normalize text
+# normalize_text
 
 <a id="normalize_text#description"></a>
 ## Description

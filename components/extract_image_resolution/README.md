@@ -1,4 +1,4 @@
-# Extract image resolution
+# extract_image_resolution
 
 <a id="extract_image_resolution#description"></a>
 ## Description

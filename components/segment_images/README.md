@@ -1,4 +1,4 @@
-# Segment images
+# segment_images
 
 <a id="segment_images#description"></a>
 ## Description

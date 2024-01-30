@@ -1,4 +1,4 @@
-# Embed images
+# embed_images
 
 <a id="embed_images#description"></a>
 ## Description

@@ -1,4 +1,4 @@
-# Load with LlamaHub
+# load_with_llamahub
 
 <a id="load_with_llamahub#description"></a>
 ## Description

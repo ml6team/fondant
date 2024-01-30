@@ -1,4 +1,4 @@
-# Retrieve LAION by prompt
+# retrieve_laion_by_prompt
 
 <a id="retrieve_laion_by_prompt#description"></a>
 ## Description

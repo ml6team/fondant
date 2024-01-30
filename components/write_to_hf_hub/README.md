@@ -1,4 +1,4 @@
-# Write to Hugging Face hub
+# write_to_hugging_face_hub
 
 <a id="write_to_hugging_face_hub#description"></a>
 ## Description

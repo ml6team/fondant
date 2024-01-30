@@ -1,4 +1,4 @@
-# Index Weaviate
+# index_weaviate
 
 <a id="index_weaviate#description"></a>
 ## Description
