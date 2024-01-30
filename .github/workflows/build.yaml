@@ -52,8 +52,8 @@ jobs:
         with:
           registry-type: public
 
-      - name: Build components
-        run: ./scripts/build_components.sh --cache -t $GITHUB_SHA -t dev
+      #- name: Build components
+      #  run: ./scripts/build_components.sh --cache -t $GITHUB_SHA -t dev
 
       - name: Build base image
         run: ./scripts/build_base_image.sh -t $GITHUB_SHA -t dev -v $GITHUB_SHA
