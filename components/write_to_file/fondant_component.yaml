@@ -1,17 +1,20 @@
-name: Index Qdrant
+name: Write to file
 description: >-
-  A Fondant component to load textual data and embeddings into a Qdrant database.
-  NOTE: A Qdrant collection has to be created in advance with the appropriate configurations. https://qdrant.tech/documentation/concepts/collections/
+  A Fondant component to write a dataset to file on your local machine or to a cloud storage bucket.
+  The dataset can be written as csv or parquet directly.
 image: 'fndnt/index_qdrant:dev'
 tags:
   - Data writing
 
 consumes:
-  additionalFields: true
+  additionalProperties: true
 
 args:
   path:
-    description: Path to store the dataset, either local path or a cloud storage bucket
+    description: >- 
+      Path to store the dataset, either local path or a cloud storage bucket.
+      One filename per partition will be created. You can specify the filenames in 
+      a variety of ways, using globstrings e.g. '/path/to/data/export-*.csv'.
     type: str
   format:
     description: Format to store the dataframe, can be csv or parquet.

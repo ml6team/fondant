@@ -1,11 +1,10 @@
-from typing import List
 import dask.dataframe as dd
 from fondant.component import DaskWriteComponent
 
 
 class WriteToFile(DaskWriteComponent):
     def __init__(self, *, path: str, format: str):
-        """Initialize the write to file component"""
+        """Initialize the write to file component."""
         self.path = path
         self.format = format
 
@@ -17,5 +16,14 @@ class WriteToFile(DaskWriteComponent):
         Args:
             dataframe (dd.DataFrame): The Dask DataFrame containing the data to be written.
         """
-       # get dataframe and write to path
-
+        if self.format.lower() == "csv":
+            self.path = self.path + "/export-*.csv"
+            dataframe.to_csv(self.path)
+        elif self.format.lower() == "parquet":
+            dataframe.to_parquet(self.path)
+        else:
+            msg = (
+                f"Not supported file format {self.format}. Write to file only "
+                f"supports csv and parquet."
+            )
+            raise ValueError(msg)

@@ -1,18 +1,15 @@
 import tempfile
-import uuid
 
 import dask.dataframe as dd
+import pandas as pd
 
-from src.main import IndexQdrantComponent, QdrantClient, models
+from src.main import WriteToFile
 
 
 def test_write_to_csv():
-    """
-    Test case for write to file component
-    """
+    """Test case for write to file component."""
     with tempfile.TemporaryDirectory() as tmpdir:
         entries = 10
-
 
         dask_dataframe = dd.DataFrame.from_dict(
             {
@@ -20,13 +17,42 @@ def test_write_to_csv():
                     "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo",
                 ]
                 * entries,
-                "embedding": [[0.1, 0.2, 0.3, 0.4, 0.5]] * entries,
             },
             npartitions=1,
         )
 
-        component.write(dask_dataframe)
-        del component
+        component = WriteToFile(
+            path=tmpdir,
+            format="csv",
+        )
 
-        client = QdrantClient(path=str(tmpdir))
-        assert client.count(collection_name).count == entries
+        component.write(dask_dataframe)
+
+        df = pd.read_csv(tmpdir + "/export-0.csv")
+        assert len(df) == entries
+
+
+def test_write_to_parquet():
+    """Test case for write to file component."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        entries = 10
+
+        dask_dataframe = dd.DataFrame.from_dict(
+            {
+                "text": [
+                    "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo",
+                ]
+                * entries,
+            },
+            npartitions=1,
+        )
+
+        component = WriteToFile(
+            path=tmpdir,
+            format="parquet",
+        )
+
+        component.write(dask_dataframe)
+
+        ddf = dd.read_parquet(tmpdir)
+        assert len(ddf) == entries
