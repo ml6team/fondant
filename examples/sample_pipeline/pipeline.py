@@ -57,11 +57,11 @@ class CalculateChunkLength(PandasTransformComponent):
         return dataframe
 
 
-_ = dataset.apply(
+dataset = dataset.apply(
     ref=CalculateChunkLength,
     consumes={"text": pa.string()},
     produces={"chunk_length": pa.int32()},
     arguments={"arg_x": "value_x"},
 )
 
-_.write(ref="write_to_file", arguments={"path": "./tmp"})
+dataset.write(ref="write_to_file", arguments={"path": "./tmp"})
