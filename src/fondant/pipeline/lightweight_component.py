@@ -9,12 +9,13 @@ from functools import wraps
 from importlib import metadata
 
 import pyarrow as pa
+from IPython import get_ipython
+from IPython.core.magics.code import extract_symbols
 
 from fondant.component import BaseComponent, Component
 from fondant.core.schema import Field, Type
 
 logger = logging.getLogger(__name__)
-
 
 MIN_PYTHON_VERSION = (3, 8)
 MAX_PYTHON_VERSION = (3, 11)
@@ -264,6 +265,33 @@ def lightweight_component(
     return wrapper
 
 
+def new_getfile(_object, _old_getfile=inspect.getfile):
+    if not inspect.isclass(_object):
+        return _old_getfile(_object)
+
+    # Lookup by parent module (as in current inspect)
+    if hasattr(_object, "__module__"):
+        object_ = sys.modules.get(_object.__module__)
+        if hasattr(object_, "__file__"):
+            return object_.__file__
+
+    # If parent module is __main__, lookup by methods (NEW)
+    for name, member in inspect.getmembers(_object):
+        if (
+            inspect.isfunction(member)
+            and _object.__qualname__ + "." + member.__name__ == member.__qualname__
+        ):
+            return inspect.getfile(member)
+
+    msg = f"Source for {_object!r} not found"
+    raise TypeError(msg)
+
+
+def is_running_in_jupyter():
+    shell = get_ipython().__class__.__name__
+    return shell == "ZMQInteractiveShell"
+
+
 def build_python_script(component_cls: t.Type[Component]) -> str:
     """Build a self-contained python script for the provided component class, which will act as
     the `src/main.py` script to execute the component.
@@ -281,7 +309,19 @@ def build_python_script(component_cls: t.Type[Component]) -> str:
     """,
     )
 
-    component_source = inspect.getsource(component_cls)
+    if is_running_in_jupyter():
+        inspect.getfile = new_getfile
+        component_source = "".join(
+            inspect.linecache.getlines(  # type: ignore[attr-defined]
+                new_getfile(component_cls),
+            ),
+        )
+        component_source = extract_symbols(component_source, component_cls.__name__)[0][
+            0
+        ]
+    else:
+        component_source = inspect.getsource(component_cls)
+
     component_source = textwrap.dedent(component_source)
     component_source_lines = component_source.split("\n")
 
