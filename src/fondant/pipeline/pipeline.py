@@ -205,23 +205,41 @@ class ComponentOp:
         )
 
     @classmethod
-    def from_ref(cls, ref: t.Any, **kwargs) -> "ComponentOp":
+    def from_ref(
+        cls,
+        ref: t.Any,
+        fields: t.Optional[t.Mapping[str, Field]] = None,
+        **kwargs,
+    ) -> "ComponentOp":
         """Create a ComponentOp from a reference. The reference can
         be a reusable component name, a path to a custom component,
         or a python component class.
+
+        Args:
+            ref: The name of a reusable component, or the path to the directory containing
+                a custom component, or a python component class.
+            fields: The fields of the dataset available to the component.
+            **kwargs: The provided user arguments are passed in as keyword arguments
         """
         if inspect.isclass(ref) and issubclass(ref, BaseComponent):
             if issubclass(ref, LightweightComponent):
                 name = ref.__name__
                 image = ref.image()
                 description = ref.__doc__ or "lightweight component"
+                spec_produces = ref.get_spec_produces()
+
+                spec_consumes = (
+                    ref.get_spec_consumes(fields, kwargs["consumes"])
+                    if fields
+                    else {"additionalProperties": True}
+                )
 
                 component_spec = ComponentSpec(
                     name,
                     image.base_image,
                     description=description,
-                    consumes={"additionalProperties": True},
-                    produces={"additionalProperties": True},
+                    consumes=spec_consumes,
+                    produces=spec_produces,
                     args={
                         name: arg.to_spec()
                         for name, arg in infer_arguments(ref).items()
@@ -726,6 +744,7 @@ class Dataset:
         """
         operation = ComponentOp.from_ref(
             ref,
+            fields=self.fields,
             produces=produces,
             consumes=consumes,
             arguments=arguments,
@@ -773,6 +792,7 @@ class Dataset:
         """
         operation = ComponentOp.from_ref(
             ref,
+            fields=self.fields,
             consumes=consumes,
             arguments=arguments,
             input_partition_rows=input_partition_rows,

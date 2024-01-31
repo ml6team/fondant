@@ -413,6 +413,7 @@ def test_kubeflow_component_spec_from_lightweight_component(
     @lightweight_component(
         base_image="python:3.8-slim-buster",
         extra_requires=["pandas", "dask"],
+        produces={"x": pa.int32(), "y": pa.int32()},
     )
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -427,7 +428,6 @@ def test_kubeflow_component_spec_from_lightweight_component(
 
     _ = pipeline.read(
         ref=CreateData,
-        produces={"x": pa.int32(), "y": pa.int32()},
     )
 
     compiler = KubeFlowCompiler()
