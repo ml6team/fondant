@@ -95,6 +95,7 @@ def test_component_op_python_component(default_pipeline_args):
         "image": Image.resolve_fndnt_base_image(),
         "description": "lightweight component",
         "consumes": {"additionalProperties": True},
+        "produces": {"additionalProperties": True},
     }
 
 

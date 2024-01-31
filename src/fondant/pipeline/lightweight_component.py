@@ -145,7 +145,7 @@ class LightweightComponent(BaseComponent):
         produces = cls.produces()
 
         if produces is None:
-            return produces
+            return {"additionalProperties": True}
 
         return {
             k: (Type(v).to_dict() if k != "additionalProperties" else v)

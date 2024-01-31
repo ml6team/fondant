@@ -273,7 +273,6 @@ def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
         consumes={"additionalProperties": True},
-        produces={"additionalProperties": True},
     )
     class AddN(PandasTransformComponent):
         def __init__(self, n: int):
@@ -355,6 +354,7 @@ def test_valid_load_component():
             "image": "python:3.8-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
+            "produces": {"additionalProperties": True},
         },
         "consumes": {},
         "produces": {},
@@ -443,6 +443,7 @@ def test_lightweight_component_decorator_without_parentheses():
             "image": Image.resolve_fndnt_base_image(),
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
+            "produces": {"additionalProperties": True},
         },
         "consumes": {},
         "produces": {},
