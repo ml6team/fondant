@@ -1,6 +1,6 @@
 name: Write to file
 description: >-
-  A Fondant component to write a dataset to file on your local machine or to a cloud storage bucket.
+  A Fondant component to write a dataset to file on a local machine or to a cloud storage bucket.
   The dataset can be written as csv or parquet.
 image: 'fndnt/write_to_file:dev'
 tags:
