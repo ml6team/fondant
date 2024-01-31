@@ -7,7 +7,7 @@ returns the received dataframe.
 The pipeline can be executed with the Fondant cli:
 
 ```bash
-fondant run local pipeline.py
+fondant run local pipeline.py --extra-volumes $(readlink -f "data"):/data
 ```
 
 The automated integration test will use the `run.sh` script. 
