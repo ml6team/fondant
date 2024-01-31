@@ -226,8 +226,9 @@ class ComponentOp:
                 name = ref.__name__
                 image = ref.image()
                 description = ref.__doc__ or "lightweight component"
+                spec_produces = ref.get_spec_produces()
 
-                consumes_spec = (
+                spec_consumes = (
                     ref.get_spec_consumes(fields, kwargs["consumes"])
                     if fields
                     else {"additionalProperties": True}
@@ -237,8 +238,8 @@ class ComponentOp:
                     name,
                     image.base_image,
                     description=description,
-                    consumes=consumes_spec,
-                    produces={"additionalProperties": True},
+                    consumes=spec_consumes,
+                    produces=spec_produces,
                     args={
                         name: arg.to_spec()
                         for name, arg in infer_arguments(ref).items()
