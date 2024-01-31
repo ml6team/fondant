@@ -24,6 +24,6 @@ class WriteToFile(DaskWriteComponent):
         else:
             msg = (
                 f"Not supported file format {self.format}. Writing to file is only "
-                f"supported for csv and parquet."
+                f"supported for `csv` and `parquet`."
             )
             raise ValueError(msg)
