@@ -9,8 +9,6 @@ from functools import wraps
 from importlib import metadata
 
 import pyarrow as pa
-from IPython import get_ipython
-from IPython.core.magics.code import extract_symbols
 
 from fondant.component import BaseComponent, Component
 from fondant.core.schema import Field, Type
@@ -287,9 +285,15 @@ def new_getfile(_object, _old_getfile=inspect.getfile):
     raise TypeError(msg)
 
 
-def is_running_in_jupyter():
-    shell = get_ipython().__class__.__name__
-    return shell == "ZMQInteractiveShell"
+def is_running_in_notebook():
+    """Check if the code is running in a Jupyter notebook."""
+    try:
+        from IPython import get_ipython
+
+        shell = get_ipython().__class__.__name__
+        return shell == "ZMQInteractiveShell"
+    except ModuleNotFoundError:
+        return False
 
 
 def build_python_script(component_cls: t.Type[Component]) -> str:
@@ -309,7 +313,9 @@ def build_python_script(component_cls: t.Type[Component]) -> str:
     """,
     )
 
-    if is_running_in_jupyter():
+    if is_running_in_notebook():
+        from IPython.core.magics.code import extract_symbols
+
         inspect.getfile = new_getfile
         component_source = "".join(
             inspect.linecache.getlines(  # type: ignore[attr-defined]
