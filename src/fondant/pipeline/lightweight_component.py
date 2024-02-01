@@ -126,8 +126,8 @@ class LightweightComponent(BaseComponent):
 
             logger.warning(
                 "No consumes defined. Consumes will be inferred from the dataset."
-                "All field will be consumed which may lead to additional computation,"
-                "Consider defining consumes in the component.\n Consumes: %s",
+                " All field will be consumed which may lead to additional computation,"
+                " Consider defining consumes in the component.\n Consumes: %s",
                 spec_consumes,
             )
 

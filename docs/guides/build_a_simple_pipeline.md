@@ -83,7 +83,7 @@ dataset = pipeline.read(
     },
     produces={
       "alt_text": pa.string(),
-      "url": pa.string(),
+      "image_url": pa.string(),
       "license_location": pa.string(),
       "license_type": pa.string(),
       "webpage_url": pa.string(),
