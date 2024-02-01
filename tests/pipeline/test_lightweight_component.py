@@ -40,6 +40,13 @@ def load_pipeline(caplog):
         produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
     )
     class CreateData(DaskLoadComponent):
+        import numpy as np
+
+        def __init__(self):
+            import torch  # noqa: F401
+
+            pass
+
         def load(self) -> dd.DataFrame:
             df = pd.DataFrame(
                 {
@@ -74,8 +81,15 @@ def test_build_python_script(load_pipeline):
         from fondant.component import *
         from fondant.core import *
 
+        import numpy as np
+        import torch  # noqa: F401
 
         class CreateData(DaskLoadComponent):
+
+            def __init__(self):
+
+                pass
+
             def load(self) -> dd.DataFrame:
                 df = pd.DataFrame(
                     {

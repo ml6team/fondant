@@ -441,7 +441,7 @@ def test_kubeflow_component_spec_from_lightweight_component(
         assert pipeline_configs.component_configs["createdata"].command == [
             "sh",
             "-ec",
-            '                printf \'pandas\ndask\' > \'requirements.txt\'\n                python3 -m pip install -r requirements.txt\n            printf \'from typing import *\nimport typing as t\n\nimport dask.dataframe as dd\nimport fondant\nimport pandas as pd\nfrom fondant.component import *\nfrom fondant.core import *\n\n\nclass CreateData(DaskLoadComponent):\n    def load(self) -> dd.DataFrame:\n        df = pd.DataFrame(\n            {\n                "x": [1, 2, 3],\n                "y": [4, 5, 6],\n            },\n            index=pd.Index(["a", "b", "c"], name="id"),\n        )\n        return dd.from_pandas(df, npartitions=1)\n\' > \'main.py\'\n            fondant execute main "$@"\n',  # noqa E501
+            '                printf \'pandas\ndask\' > \'requirements.txt\'\n                python3 -m pip install -r requirements.txt\n            printf \'from typing import *\nimport typing as t\n\nimport dask.dataframe as dd\nimport fondant\nimport pandas as pd\nfrom fondant.component import *\nfrom fondant.core import *\n\n\n\nclass CreateData(DaskLoadComponent):\n    def load(self) -> dd.DataFrame:\n        df = pd.DataFrame(\n            {\n                "x": [1, 2, 3],\n                "y": [4, 5, 6],\n            },\n            index=pd.Index(["a", "b", "c"], name="id"),\n        )\n        return dd.from_pandas(df, npartitions=1)\n\' > \'main.py\'\n            fondant execute main "$@"\n',  # noqa E501
             "--",
         ]
 

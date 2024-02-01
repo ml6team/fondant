@@ -15,7 +15,6 @@ from fondant.core.schema import Field, Type
 
 logger = logging.getLogger(__name__)
 
-
 MIN_PYTHON_VERSION = (3, 8)
 MAX_PYTHON_VERSION = (3, 11)
 
@@ -264,6 +263,29 @@ def lightweight_component(
     return wrapper
 
 
+def detect_extra_imports(lines: t.List[str]) -> t.Tuple[t.List[str], t.List[str]]:
+    """
+    Detect and remove extra imports from the source code.
+
+    Args:
+        lines: The source code lines.
+
+    Returns:
+        The detected imports and the filtered source code.
+    """
+    detected_lines = []
+    filtered_lines = []
+
+    for line in lines:
+        stripped_line = line.strip()
+        if stripped_line.startswith(("from", "import")):
+            detected_lines.append(stripped_line)
+        else:
+            filtered_lines.append(line)
+
+    return detected_lines, filtered_lines
+
+
 def build_python_script(component_cls: t.Type[Component]) -> str:
     """Build a self-contained python script for the provided component class, which will act as
     the `src/main.py` script to execute the component.
@@ -303,6 +325,12 @@ def build_python_script(component_cls: t.Type[Component]) -> str:
             msg,
         )
 
+    extra_imports_sources, component_source_lines = detect_extra_imports(
+        component_source_lines,
+    )
+    additional_imports_sources = "\n".join(extra_imports_sources)
     component_source = "\n".join(component_source_lines)
 
-    return "\n\n".join([imports_source, component_source])
+    return "\n\n".join(
+        [imports_source + "\n" + additional_imports_sources, component_source],
+    )
