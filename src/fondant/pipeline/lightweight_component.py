@@ -285,13 +285,17 @@ def new_getfile(_object, _old_getfile=inspect.getfile):
     raise TypeError(msg)
 
 
-def is_running_in_notebook():
-    """Check if the code is running in a Jupyter notebook."""
+def is_running_interactively():
+    """Check if the code is running in an interactive environment."""
     try:
         from IPython import get_ipython
 
         shell = get_ipython().__class__.__name__
-        return shell == "ZMQInteractiveShell"
+        return shell in [
+            "ZMQInteractiveShell",
+            "TerminalInteractiveShell",
+            "PyDevTerminalInteractiveShell",
+        ]
     except ModuleNotFoundError:
         return False
 
@@ -313,18 +317,20 @@ def build_python_script(component_cls: t.Type[Component]) -> str:
     """,
     )
 
-    if is_running_in_notebook():
+    if is_running_interactively():
         from IPython.core.magics.code import extract_symbols
 
-        inspect.getfile = new_getfile
         component_source = "".join(
             inspect.linecache.getlines(  # type: ignore[attr-defined]
                 new_getfile(component_cls),
             ),
         )
-        component_source = extract_symbols(component_source, component_cls.__name__)[0][
-            0
-        ]
+        component_source = extract_symbols(
+            component_source,
+            component_cls.__name__,
+        )
+        component_source = component_source[0][0]
+
     else:
         component_source = inspect.getsource(component_cls)
 
