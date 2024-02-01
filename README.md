@@ -107,13 +107,21 @@ An end-to-end Fondant pipeline that starts from our Fondant-CC-25M creative comm
 
 ## ⚒️ Installation
 
-Fondant can be installed using pip:
+First, run the minimal Fondant installation:
 
 ```
 pip install fondant
 ```
 
-For more detailed installation options, check the [**installation page**](https://fondant.ai/en/latest/guides/installation/) on our documentation.
+Fondant also includes extra dependencies for specific runners, storage integrations and publishing 
+components to registries. 
+We can install the local runner to enable local pipeline execution:
+
+```
+pip install fondant[docker]
+```
+
+For more detailed installation options, check the [**installation page**](https://fondant.ai/en/latest/guides/installation/)on our documentation.
 
 
 ## 👨‍💻 Usage
