@@ -292,6 +292,7 @@ def is_running_interactively():
 
         shell = get_ipython().__class__.__name__
         return shell in [
+            "Shell",
             "ZMQInteractiveShell",
             "TerminalInteractiveShell",
             "PyDevTerminalInteractiveShell",
