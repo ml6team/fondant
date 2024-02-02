@@ -85,7 +85,7 @@ dataset.
 
 Each field defines the expected data type, which should match the
 [types defined by Fondant](https://github.com/ml6team/fondant/blob/main/src/fondant/core/schema.py),
-that correespond to [Arrow data types](https://arrow.apache.org/docs/python/api/datatypes.html).
+that correspond to [Arrow data types](https://arrow.apache.org/docs/python/api/datatypes.html).
 
 Note that you can always map a field from your dataset with a different name to a specific field name expected by the
 component provided they have the same data type. For example, suppose we have a component spec that

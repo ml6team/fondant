@@ -12,7 +12,7 @@ with a simpler [lightweight components](../components/lightweight_components.md)
 
 To make sure containerized components are reusable, they should implement a single logical data
 processing
-step (like captioning images or removing Personal Identifiable Information [PII] from text.)
+step (like captioning images or removing Personal Identifiable Information [PII] from text).
 If a component grows too large, consider splitting it into multiple separate components each
 tackling one logical part.
 
@@ -38,7 +38,7 @@ script.
 
 Note that the `main.py` script can be split up into several Python scripts in case it would become
 prohibitively long. See the
-[prompt based LAION retrieval component](https://github.com/ml6team/fondant/tree/main/components/prompt_based_laion_retrieval/src)
+[prompt based LAION retrieval component](https://github.com/ml6team/fondant/tree/main/components/retrieve_laion_by_prompt/src)
 as an example: the CLIP client itself is defined in a separate script called `clip_client`,
 which is then imported in the `main.py` script.
 
