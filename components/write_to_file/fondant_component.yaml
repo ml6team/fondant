@@ -1,0 +1,26 @@
+name: Write to file
+description: >-
+  A Fondant component to write a dataset to file on a local machine or to a cloud storage bucket.
+  The dataset can be written as csv or parquet.
+image: 'fndnt/write_to_file:dev'
+tags:
+  - Data writing
+
+consumes:
+  additionalProperties: true
+
+args:
+  path:
+    description: >- 
+      Path to store the dataset, whether it's a local path or a cloud storage bucket, 
+      must be specified. A separate filename will be generated for each partition.
+      If you are using the local runner and export the data to a local directory, 
+      ensure that you mount the path to the directory using the `--extra-volumes` argument.
+    type: str
+  format:
+    description: >- 
+      Format for storing the dataframe can be either `csv` or `parquet`. As default 
+      `parquet` is used.
+      The CSV files contain the column as a header and use a comma as a delimiter.
+    type: str
+    default: parquet

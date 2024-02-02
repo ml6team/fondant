@@ -7,7 +7,10 @@ returns the received dataframe.
 The pipeline can be executed with the Fondant cli:
 
 ```bash
-fondant run local pipeline.py
+fondant run local pipeline.py --extra-volumes ./data:/data
 ```
+
+> We are mounting the data folder using `--extra-volumes` to ensure that the component 
+> can load the sample data and write to the folder.
 
 The automated integration test will use the `run.sh` script. 
