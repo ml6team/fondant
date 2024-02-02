@@ -18,6 +18,8 @@ args:
       ensure that you mount the path to the directory using the `--extra-volumes` argument.
     type: str
   format:
-    description: Format for storing the dataframe can be either `csv` or `parquet`.
+    description: >- 
+      Format for storing the dataframe can be either `csv` or `parquet`. As default 
+      `parquet` is used.
     type: str
-    default: csv
+    default: parquet
