@@ -35,7 +35,7 @@ The component takes the following arguments to alter its behavior:
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
 | path | str | Path to store the dataset, whether it's a local path or a cloud storage bucket,  must be specified. A separate filename will be generated for each partition. If you are using the local runner and export the data to a local directory,  ensure that you mount the path to the directory using the `--extra-volumes` argument. | / |
-| format | str | Format for storing the dataframe can be either `csv` or `parquet`. As default  `parquet` is used. | parquet |
+| format | str | Format for storing the dataframe can be either `csv` or `parquet`. As default  `parquet` is used. The CSV files contain the column as a header and use a comma as a delimiter. | parquet |
 
 <a id="write_to_file#usage"></a>
 ## Usage 

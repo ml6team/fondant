@@ -21,5 +21,6 @@ args:
     description: >- 
       Format for storing the dataframe can be either `csv` or `parquet`. As default 
       `parquet` is used.
+      The CSV files contain the column as a header and use a comma as a delimiter.
     type: str
     default: parquet
