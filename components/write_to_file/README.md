@@ -2,7 +2,7 @@
 
 <a id="write_to_file#description"></a>
 ## Description
-A Fondant component to write a dataset to file on your local machine or to a cloud storage bucket. The dataset can be written as csv or parquet.
+A Fondant component to write a dataset to file on a local machine or to a cloud storage bucket. The dataset can be written as csv or parquet.
 
 <a id="write_to_file#inputs_outputs"></a>
 ## Inputs / outputs 
@@ -35,7 +35,7 @@ The component takes the following arguments to alter its behavior:
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
 | path | str | Path to store the dataset, whether it's a local path or a cloud storage bucket,  must be specified. A separate filename will be generated for each partition. If you are using the local runner and export the data to a local directory,  ensure that you mount the path to the directory using the `--extra-volumes` argument. | / |
-| format | str | Format for storing the dataframe can be either csv or parquet. | csv |
+| format | str | Format for storing the dataframe can be either `csv` or `parquet`. | csv |
 
 <a id="write_to_file#usage"></a>
 ## Usage 
