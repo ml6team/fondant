@@ -138,7 +138,13 @@ pipeline, helping you connect reusable components to each other.
 We now have a pipeline that downloads a dataset from the HuggingFace hub, filters the urls by
 image type, downloads the images, and filters them by alt text language.
 
-One final step still remaining, is to write the final dataset to its destination. You could for
-instance use the [`write_to_hf_hub`](../components/hub.md#write_to_hugging_face_hub#description)
-component to write it to
-the HuggingFace Hub, or create a custom `WriteComponent`.
+If you want to inspect your final dataset without using the data explorer or use the 
+dataset for further tasks, we recommend to write the final dataset to a destination. 
+We offer a write component to perform this task. You can leverage the `write_to_file` component, 
+which allows you to export the dataset either to a local file or a remote storage bucket.
+
+```python
+uppercase_alt_text.write(ref="write_to_file", arguments={"path": "/data/export"})
+```
+
+You can open the path and use any tools of your choice to inspect the resulting Parquet dataset.
