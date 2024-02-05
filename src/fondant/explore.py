@@ -156,7 +156,11 @@ def run_explorer_app(  # type: ignore  # noqa: PLR0913
     ]
 
     try:
-        subprocess.check_call(cmd, stdout=subprocess.PIPE)  # nosec
+        subprocess.check_call(  # nosec
+            cmd,
+            stdout=subprocess.PIPE,
+            env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
+        )
     except subprocess.CalledProcessError as e:
         raise SystemExit(e.returncode)
 

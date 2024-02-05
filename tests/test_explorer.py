@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -69,6 +70,7 @@ def test_run_data_explorer_local_base_path(
                 "--detach",
             ],
             stdout=-1,
+            env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
         )
 
 
@@ -116,6 +118,7 @@ def test_run_data_explorer_remote_base_path(
                     "--detach",
                 ],
                 stdout=-1,
+                env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
             )
 
 
