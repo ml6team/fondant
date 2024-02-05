@@ -22,7 +22,7 @@ description: |
       }
   )
 
-  dataset = dataset.apply(
+  dataset.write(
       "index_weaviate",
       arguments={
           "weaviate_url": "http://localhost:8080",
@@ -33,7 +33,7 @@ description: |
           }
       },
       consumes={
-          "text": "text"
+          "text": pa.string()
       }
   )
   ```
@@ -64,14 +64,14 @@ description: |
       },
   )
   
-  dataset = dataset.apply(
+  dataset.write(
       "index_weaviate",
       arguments={
           "weaviate_url": "http://localhost:8080",
           "class_name": "my_class",
       },
       consumes={
-          "embedding": "embedding"
+          "embedding": pa.list_(pa.float32())
       }
   )
   ```

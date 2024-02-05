@@ -24,7 +24,7 @@ dataset = pipeline.read(
     }
 )
 
-dataset = dataset.apply(
+dataset.write(
     "index_weaviate",
     arguments={
         "weaviate_url": "http://localhost:8080",
@@ -35,7 +35,7 @@ dataset = dataset.apply(
         }
     },
     consumes={
-        "text": "text"
+        "text": pa.string()
     }
 )
 ```
@@ -66,14 +66,14 @@ dataset = dataset.apply(
     },
 )
 
-dataset = dataset.apply(
+dataset.write(
     "index_weaviate",
     arguments={
         "weaviate_url": "http://localhost:8080",
         "class_name": "my_class",
     },
     consumes={
-        "embedding": "embedding"
+        "embedding": pa.list_(pa.float32())
     }
 )
 ```
