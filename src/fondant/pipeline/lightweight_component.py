@@ -290,13 +290,7 @@ def is_running_interactively():
     try:
         from IPython import get_ipython
 
-        shell = get_ipython().__class__.__name__
-        return shell in [
-            "Shell",
-            "ZMQInteractiveShell",
-            "TerminalInteractiveShell",
-            "PyDevTerminalInteractiveShell",
-        ]
+        return get_ipython() is not None
     except ModuleNotFoundError:
         return False
 
