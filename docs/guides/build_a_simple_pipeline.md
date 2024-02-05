@@ -192,7 +192,7 @@ We offer a write component to perform this task. You can leverage the `write_to_
 which allows you to export the dataset either to a local file or a remote storage bucket.
 
 ```python
-uppercase_alt_text.write(ref="write_to_file", arguments={"path": "/data/export"})
+english_images.write(ref="write_to_file", arguments={"path": "/data/export"})
 ```
 
 You can open the path and use any tools of your choice to inspect the resulting Parquet dataset.
