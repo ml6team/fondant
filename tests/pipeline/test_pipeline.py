@@ -1,5 +1,6 @@
 """Fondant pipelines test."""
 import copy
+import re
 from pathlib import Path
 
 import dask.dataframe as dd
@@ -556,3 +557,36 @@ def test_schema_propagation():
             location="/pipeline-id/chunk_text",
         ),
     }
+
+
+def test_invoked_field_schema_raise_exception():
+    """Test that check if the invoked field schema not matches the
+    current schema raise an InvalidPipelineDefinition.
+    """
+    pipeline = Pipeline(name="pipeline", base_path="base_path")
+
+    pipeline.get_run_id = lambda: "pipeline-id"
+
+    dataset = pipeline.read(
+        "load_from_hf_hub",
+        produces={
+            "image": pa.binary(),
+        },
+    )
+
+    dataset.write(
+        "write_to_file",
+        consumes={
+            "image": pa.string(),
+        },
+    )
+
+    expected_error_msg = re.escape(
+        "The invoked field 'image' of the 'write_to_file' component does not match the previously "
+        "created field type.\n The 'image' field is currently defined with the following "
+        "type:\nType(DataType(binary))\nThe current component to trying to invoke "
+        "it with this type:\nType(DataType(string))",
+    )
+
+    with pytest.raises(InvalidPipelineDefinition, match=expected_error_msg):
+        pipeline.validate("pipeline-id")
