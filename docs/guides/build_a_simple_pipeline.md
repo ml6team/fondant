@@ -188,7 +188,7 @@ you will be able to view the images that have been downloaded.
 
 If you want to inspect your final dataset without using the data explorer or use the 
 dataset for further tasks, we recommend to write the final dataset to a destination. 
-We offer a write component to perform this task. You can leverage the `write_to_file` component, 
+We offer [write components](../components//hub.md) to perform this task, for instance the `write_to_file` component, 
 which allows you to export the dataset either to a local file or a remote storage bucket.
 
 ```python
