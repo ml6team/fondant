@@ -582,7 +582,7 @@ class Pipeline:
                     if component_field.type != manifest_field.type:
                         msg = (
                             f"The invoked field '{component_field_name}' of the "
-                            f"'{component_op.name}' component does not match  the "
+                            f"'{component_op.component_name}' component does not match the "
                             f"previously created field type.\n The '{manifest_field.name}' "
                             f"field is currently defined with the following type:\n"
                             f"{manifest_field.type}\nThe current component to "
