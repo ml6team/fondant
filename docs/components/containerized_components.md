@@ -38,7 +38,7 @@ script.
 
 Note that the `main.py` script can be split up into several Python scripts in case it would become
 prohibitively long. See the
-[prompt based LAION retrieval component](https://github.com/ml6team/fondant/tree/main/components/retrieve_laion_by_prompt/src)
+[prompt based LAION retrieval component](https://github.com/ml6team/fondant/tree/main/src/fondant/components/retrieve_laion_by_prompt/src)
 as an example: the CLIP client itself is defined in a separate script called `clip_client`,
 which is then imported in the `main.py` script.
 
