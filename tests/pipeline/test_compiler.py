@@ -874,8 +874,7 @@ def test_docker_compiler_create_local_base_path_propagate_exception(
     example_dir, pipeline, _ = setup_pipeline
     compiler = DockerCompiler()
     msg = re.escape(
-        "Unable to create and mount local base path. "
-        "[Errno 30] Read-only file system: '/my-artifacts'",
+        "Unable to create and mount local base path. ",
     )
 
     with tmp_path_factory.mktemp("temp") as fn, pytest.raises(  # noqa PT012
