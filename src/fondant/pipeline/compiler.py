@@ -11,6 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 import yaml
+from fsspec.registry import known_implementations
 
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
@@ -137,23 +138,45 @@ class DockerCompiler(Compiler):
         if local it patches the base_path and prepares a bind mount
         Returns a tuple containing the path and volume.
         """
+
+        def is_remote_path(path: Path) -> bool:
+            """Check if the path is remote."""
+            _path = str(path)
+            prefixes = set(known_implementations.keys()) - {"local", "file"}
+            return any(_path.startswith(prefix) for prefix in prefixes)
+
+        def resolve_local_base_path(base_path: Path) -> Path:
+            """Resolve local base path and create base directory if it no exist."""
+            p_base_path = base_path.resolve()
+            try:
+                if p_base_path.exists():
+                    logger.info(
+                        f"Base path found on local system, setting up {base_path} as mount volume",
+                    )
+                else:
+                    p_base_path.mkdir(parents=True, exist_ok=True)
+                    logger.info(
+                        f"Base path not found on local system, created base path and setting up "
+                        f"{base_path} as mount volume",
+                    )
+            except Exception as e:
+                msg = f"Unable to create and mount local base path. {e}"
+                raise ValueError(msg)
+
+            return p_base_path
+
         p_base_path = Path(base_path)
-        # check if base path is an existing local folder
-        if p_base_path.exists():
-            logger.info(
-                f"Base path found on local system, setting up {base_path} as mount volume",
-            )
-            p_base_path = p_base_path.resolve()
-            volume = DockerVolume(
-                type="bind",
-                source=str(p_base_path),
-                target=f"/{p_base_path.stem}",
-            )
-            path = f"/{p_base_path.stem}"
-        else:
+        if is_remote_path(p_base_path):
             logger.info(f"Base path {base_path} is remote")
-            volume = None
-            path = base_path
+            return base_path, None
+
+        p_base_path = resolve_local_base_path(p_base_path)
+        volume = DockerVolume(
+            type="bind",
+            source=str(p_base_path),
+            target=f"/{p_base_path.stem}",
+        )
+        path = f"/{p_base_path.stem}"
         return path, volume
 
     def _generate_spec(

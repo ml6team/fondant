@@ -11,7 +11,6 @@ from fondant.component import PandasTransformComponent
 from fondant.pipeline import Pipeline, lightweight_component
 
 BASE_PATH = Path("./.artifacts").resolve()
-BASE_PATH.mkdir(parents=True, exist_ok=True)
 
 # Define pipeline
 pipeline = Pipeline(name="dummy-pipeline", base_path=str(BASE_PATH))

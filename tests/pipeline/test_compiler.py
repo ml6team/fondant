@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -168,6 +169,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
     example_dir, pipeline, _ = setup_pipeline
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
+        pipeline.base_path = str(fn)
         output_path = str(fn / "docker-compose.yml")
         compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
@@ -336,6 +338,7 @@ def test_docker_configuration(tmp_path_factory):
 
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
+        pipeline.base_path = str(fn)
         output_path = str(fn / "docker-compose.yaml")
         compiler.compile(pipeline=pipeline, output_path=output_path)
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
@@ -363,7 +366,10 @@ def test_invalid_docker_configuration(tmp_path_factory):
     )
 
     compiler = DockerCompiler()
-    with pytest.raises(InvalidPipelineDefinition):
+    with tmp_path_factory.mktemp("temp") as fn, pytest.raises(  # noqa PT012
+        InvalidPipelineDefinition,
+    ):
+        pipeline.base_path = str(fn)
         compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
 
 
@@ -663,6 +669,7 @@ def test_caching_dependency_docker(tmp_path_factory):
         )
 
         with tmp_path_factory.mktemp("temp") as fn:
+            pipeline.base_path = str(fn)
             output_path = str(fn / "docker-compose.yml")
             compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
             pipeline_configs = DockerComposeConfigs.from_spec(output_path)
@@ -844,3 +851,37 @@ def test_sagemaker_base_path_validator():
 
     # valid
     compiler.validate_base_path("s3://foo/bar")
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_docker_compiler_create_local_base_path(setup_pipeline, tmp_path_factory):
+    """Test compiling a pipeline to docker-compose."""
+    example_dir, pipeline, _ = setup_pipeline
+    compiler = DockerCompiler()
+    with tmp_path_factory.mktemp("temp") as fn:
+        pipeline.base_path = str(fn) + "/my-artifacts"
+        output_path = str(fn / "docker-compose.yml")
+        compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
+        assert Path(pipeline.base_path).exists()
+
+
+@pytest.mark.usefixtures("_freeze_time")
+def test_docker_compiler_create_local_base_path_propagate_exception(
+    setup_pipeline,
+    tmp_path_factory,
+):
+    """Test compiling a pipeline to docker-compose."""
+    example_dir, pipeline, _ = setup_pipeline
+    compiler = DockerCompiler()
+    msg = re.escape(
+        "Unable to create and mount local base path. "
+        "[Errno 30] Read-only file system: '/my-artifacts'",
+    )
+
+    with tmp_path_factory.mktemp("temp") as fn, pytest.raises(  # noqa PT012
+        ValueError,
+        match=msg,
+    ):
+        pipeline.base_path = "/my-artifacts"
+        output_path = str(fn / "docker-compose.yml")
+        compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
