@@ -270,7 +270,7 @@ def test_local_run(mock_docker_installation):
     """Test that the run command works with different arguments."""
     args = argparse.Namespace(
         local=True,
-        ref="some/path",
+        ref=__name__,
         output_path=None,
         auth_provider=None,
         credentials=None,
@@ -284,7 +284,7 @@ def test_local_run(mock_docker_installation):
                 "docker",
                 "compose",
                 "-f",
-                "some/path",
+                ".fondant/compose.yaml",
                 "up",
                 "--build",
                 "--pull",
@@ -372,7 +372,7 @@ def test_kfp_run(tmp_path_factory):
         local=False,
         vertex=False,
         output_path=None,
-        ref="some/path",
+        ref=__name__,
         host=None,
     )
     with pytest.raises(
@@ -386,7 +386,7 @@ def test_kfp_run(tmp_path_factory):
             local=False,
             output_path=None,
             host="localhost",
-            ref="some/path",
+            ref=__name__,
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost")
@@ -419,7 +419,7 @@ def test_vertex_run(tmp_path_factory):
             project_id="project-123",
             service_account=None,
             network=None,
-            ref="some/path",
+            ref=__name__,
         )
         run_vertex(args)
         mock_runner.assert_called_once_with(

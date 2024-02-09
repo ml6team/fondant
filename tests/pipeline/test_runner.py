@@ -59,9 +59,16 @@ def test_docker_runner(mock_docker_installation):
         )
 
 
-def test_docker_runner_from_pipeline(mock_docker_installation):
-    with mock.patch("subprocess.call") as mock_call:
-        DockerRunner().run(PIPELINE)
+def test_docker_runner_from_pipeline(mock_docker_installation, tmp_path_factory):
+    with mock.patch("subprocess.call") as mock_call, tmp_path_factory.mktemp(
+        "temp",
+    ) as fn:
+        pipeline = Pipeline(
+            name="testpipeline",
+            description="description of the test pipeline",
+            base_path=str(fn),
+        )
+        DockerRunner().run(pipeline)
         mock_call.assert_called_once_with(
             [
                 "docker",
