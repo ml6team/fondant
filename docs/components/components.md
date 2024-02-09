@@ -179,6 +179,6 @@ dataset = dataset.apply(
 ```
 
 You can find an overview of the available reusable components on the
-[Fondant hub](https://github.com/ml6team/fondant/tree/main/components). Check their 
+[Fondant hub](https://github.com/ml6team/fondant/tree/main/src/fondant/components). Check their 
 documentation for information on which arguments they accept and which data they consume and 
 produce.
