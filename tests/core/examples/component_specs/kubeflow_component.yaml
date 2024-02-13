@@ -19,14 +19,6 @@ components:
           parameterType: BOOLEAN
           description: Set to False to disable caching, True by default.
           defaultValue: true
-        cluster_type:
-          parameterType: STRING
-          description: The cluster type to use for the execution
-          defaultValue: default
-        client_kwargs:
-          parameterType: STRUCT
-          description: Keyword arguments to pass to the Dask client
-          defaultValue: {}
         metadata:
           parameterType: STRING
           description: Metadata arguments containing the run id and base path
@@ -65,10 +57,6 @@ root:
               componentInputParameter: input_partition_rows
             cache:
               componentInputParameter: cache
-            cluster_type:
-              componentInputParameter: cluster_type
-            client_kwargs:
-              componentInputParameter: client_kwargs
             metadata:
               componentInputParameter: metadata
             output_manifest_path:

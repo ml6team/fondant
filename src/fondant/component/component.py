@@ -1,10 +1,12 @@
 """This module defines interfaces which components should implement to be executed by fondant."""
-
+import os
 import typing as t
 from abc import abstractmethod
 
+import dask
 import dask.dataframe as dd
 import pandas as pd
+from dask.distributed import Client, LocalCluster
 
 
 class BaseComponent:
@@ -27,7 +29,28 @@ class BaseComponent:
         """Method called after the component has been executed."""
 
 
-class DaskLoadComponent(BaseComponent):
+class DaskComponent(BaseComponent):
+    """Component built on Dask."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.dask_client()
+
+    def dask_client(self) -> Client:
+        dask.config.set({"dataframe.convert-string": False})
+        # worker.daemon is set to false because creating a worker process in daemon
+        # mode is not possible in our docker container setup.
+        dask.config.set({"distributed.worker.daemon": False})
+
+        local_cluster = LocalCluster(
+            processes=True,
+            n_workers=os.cpu_count(),
+            threads_per_worker=1,
+        )
+        return Client(local_cluster)
+
+
+class DaskLoadComponent(DaskComponent):
     """Component that loads data and returns a Dask DataFrame."""
 
     @abstractmethod
@@ -35,7 +58,7 @@ class DaskLoadComponent(BaseComponent):
         pass
 
 
-class DaskTransformComponent(BaseComponent):
+class DaskTransformComponent(DaskComponent):
     """Component that transforms an incoming Dask DataFrame."""
 
     @abstractmethod
@@ -49,7 +72,7 @@ class DaskTransformComponent(BaseComponent):
         """
 
 
-class DaskWriteComponent(BaseComponent):
+class DaskWriteComponent(DaskComponent):
     """Component that accepts a Dask DataFrame and writes its contents."""
 
     @abstractmethod
@@ -57,7 +80,7 @@ class DaskWriteComponent(BaseComponent):
         pass
 
 
-class PandasTransformComponent(BaseComponent):
+class PandasTransformComponent(DaskComponent):
     """Component that transforms the incoming dataset partition per partition as a pandas
     DataFrame.
     """
