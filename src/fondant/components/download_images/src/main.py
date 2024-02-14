@@ -7,15 +7,12 @@ import io
 import logging
 import typing as t
 
-import dask
 import httpx
 import pandas as pd
 from fondant.component import PandasTransformComponent
 from resizer import Resizer
 
 logger = logging.getLogger(__name__)
-
-dask.config.set(scheduler="processes")
 
 
 class DownloadImagesComponent(PandasTransformComponent):
@@ -50,6 +47,7 @@ class DownloadImagesComponent(PandasTransformComponent):
         Returns:
             Dask dataframe
         """
+        super().__init__()
         self.timeout = timeout
         self.retries = retries
         self.n_connections = n_connections

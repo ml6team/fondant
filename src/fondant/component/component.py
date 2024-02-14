@@ -18,10 +18,7 @@ class BaseComponent:
         **kwargs: The provided user arguments are passed in as keyword arguments
     """
 
-    def __init__(
-        self,
-        **kwargs,
-    ):
+    def __init__(self):
         self.consumes = None
         self.produces = None
 
@@ -33,21 +30,23 @@ class DaskComponent(BaseComponent):
     """Component built on Dask."""
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.dask_client()
+        super().__init__()
 
-    def dask_client(self) -> Client:
+        # don't assume every object is a string
         dask.config.set({"dataframe.convert-string": False})
         # worker.daemon is set to false because creating a worker process in daemon
         # mode is not possible in our docker container setup.
         dask.config.set({"distributed.worker.daemon": False})
 
-        local_cluster = LocalCluster(
+        self.dask_client()
+
+    def dask_client(self) -> Client:
+        cluster = LocalCluster(
             processes=True,
             n_workers=os.cpu_count(),
             threads_per_worker=1,
         )
-        return Client(local_cluster)
+        return Client(cluster)
 
 
 class DaskLoadComponent(DaskComponent):

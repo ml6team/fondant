@@ -115,6 +115,7 @@ class SegmentImagesComponent(PandasTransformComponent):
             model_id: id of the model on the Hugging Face hub
             batch_size: batch size to use.
         """
+        super().__init__()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Device: {self.device}")
 

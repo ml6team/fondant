@@ -28,6 +28,7 @@ class IndexQdrantComponent(DaskWriteComponent):
         force_disable_check_same_thread: bool = False,
     ):
         """Initialize the IndexQdrantComponent with the component parameters."""
+        super().__init__()
         self.client = QdrantClient(
             location=location,
             url=url,

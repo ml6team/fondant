@@ -32,6 +32,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
                 between 0 and 1.
             url: The url of the backend clip retrieval service, defaults to the public clip url.
         """
+        super().__init__()
         self.client = ClipClient(
             url=url,
             indice_name="laion5B-L-14",

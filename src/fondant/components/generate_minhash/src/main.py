@@ -39,6 +39,7 @@ class MinHashGeneratorComponent(PandasTransformComponent):
         Args:
             shingle_ngram_size: Defines size of ngram used for the shingle generation.
         """
+        super().__init__()
         self.shingle_ngram_size = shingle_ngram_size
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:

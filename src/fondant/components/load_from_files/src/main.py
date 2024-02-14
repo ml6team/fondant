@@ -291,6 +291,7 @@ class LoadFromFiles(DaskLoadComponent):
     """Component that loads datasets from files."""
 
     def __init__(self, *_, directory_uri: str) -> None:
+        super().__init__()
         self.directory_uri = directory_uri
 
     def load(self) -> dd.DataFrame:
