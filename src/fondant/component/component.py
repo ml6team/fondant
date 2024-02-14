@@ -41,6 +41,7 @@ class DaskComponent(BaseComponent):
         self.dask_client()
 
     def dask_client(self) -> Client:
+        """Initialize the dask client to use for this component."""
         cluster = LocalCluster(
             processes=True,
             n_workers=os.cpu_count(),
