@@ -18,6 +18,7 @@ class FilterTextLengthComponent(PandasTransformComponent):
             min_characters_length: minimum number of characters
             min_words_length: minimum number of words.
         """
+        super().__init__()
         self.min_characters_length = min_characters_length
         self.min_words_length = min_words_length
 

@@ -126,8 +126,6 @@ class ComponentOp:
         input_partition_rows: The number of rows to load per partition. Set to override the
         automatic partitioning
         resources: The resources to assign to the operation.
-        cluster_type: The type of cluster to use for distributed execution (default is "local").
-        client_kwargs: Keyword arguments used to initialise the dask client.
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
@@ -146,8 +144,6 @@ class ComponentOp:
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         cache: t.Optional[bool] = True,
-        cluster_type: t.Optional[str] = "default",
-        client_kwargs: t.Optional[dict] = None,
         resources: t.Optional[Resources] = None,
         component_dir: t.Optional[Path] = None,
     ) -> None:
@@ -155,8 +151,6 @@ class ComponentOp:
         self.component_spec = component_spec
         self.input_partition_rows = input_partition_rows
         self.cache = self._configure_caching_from_image_tag(cache)
-        self.cluster_type = cluster_type
-        self.client_kwargs = client_kwargs
         self.component_dir = component_dir
 
         self.operation_spec = OperationSpec(
@@ -172,8 +166,6 @@ class ComponentOp:
                 for key, value in {
                     "input_partition_rows": input_partition_rows,
                     "cache": self.cache,
-                    "cluster_type": cluster_type,
-                    "client_kwargs": client_kwargs,
                     "operation_spec": self.operation_spec.to_json(),
                 }.items()
                 if value is not None
@@ -367,8 +359,6 @@ class ComponentOp:
             "number_of_accelerators": self.resources.accelerator_number,
             "accelerator_name": self.resources.accelerator_name,
             "node_pool_name": self.resources.node_pool_name,
-            "cluster_type": self.cluster_type,
-            "client_kwargs": self.client_kwargs,
         }
 
         if previous_component_cache is not None:
@@ -429,8 +419,6 @@ class Pipeline:
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
-        cluster_type: t.Optional[str] = "default",
-        client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
         """
         Read data using the provided component.
@@ -447,8 +435,6 @@ class Pipeline:
             automatic partitioning
             resources: The resources to assign to the operation.
             cache: Set to False to disable caching, True by default.
-            cluster_type: The type of cluster to use for distributed execution (default is "local").
-            client_kwargs: Keyword arguments used to initialise the Dask client.
 
         Returns:
             An intermediate dataset.
@@ -466,8 +452,6 @@ class Pipeline:
             input_partition_rows=input_partition_rows,
             resources=resources,
             cache=cache,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
         )
         manifest = Manifest.create(
             pipeline_name=self.name,
@@ -650,8 +634,6 @@ class Dataset:
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
-        cluster_type: t.Optional[str] = "default",
-        client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
         """
         Apply the provided component on the dataset.
@@ -736,8 +718,6 @@ class Dataset:
             automatic partitioning
             resources: The resources to assign to the operation.
             cache: Set to False to disable caching, True by default.
-            cluster_type: The type of cluster to use for distributed execution (default is "local").
-            client_kwargs: Keyword arguments used to initialise the Dask client.
 
         Returns:
             An intermediate dataset.
@@ -751,8 +731,6 @@ class Dataset:
             input_partition_rows=input_partition_rows,
             resources=resources,
             cache=cache,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
         )
 
         return self._apply(operation)
@@ -766,8 +744,6 @@ class Dataset:
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
-        cluster_type: t.Optional[str] = "default",
-        client_kwargs: t.Optional[dict] = None,
     ) -> None:
         """
         Write the dataset using the provided component.
@@ -784,8 +760,6 @@ class Dataset:
             automatic partitioning
             resources: The resources to assign to the operation.
             cache: Set to False to disable caching, True by default.
-            cluster_type: The type of cluster to use for distributed execution (default is "local").
-            client_kwargs: Keyword arguments used to initialise the Dask client.
 
         Returns:
             An intermediate dataset.
@@ -798,7 +772,5 @@ class Dataset:
             input_partition_rows=input_partition_rows,
             resources=resources,
             cache=cache,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
         )
         self._apply(operation)

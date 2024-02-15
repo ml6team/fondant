@@ -12,6 +12,7 @@ class ResizeImagesComponent(PandasTransformComponent):
     """Component that resizes images based on a given width and height."""
 
     def __init__(self, *, resize_width: int, resize_height: int) -> None:
+        super().__init__()
         self.resize_width = resize_width
         self.resize_height = resize_height
 

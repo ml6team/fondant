@@ -30,6 +30,7 @@ class EmbedTextComponent(PandasTransformComponent):
         api_keys: dict,
         auth_kwargs: dict,
     ):
+        super().__init__()
         to_env_vars(api_keys)
 
         self.embedding_model = self.get_embedding_model(

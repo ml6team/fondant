@@ -187,7 +187,6 @@ def test_run_with_cache(metadata, monkeypatch):
         "3.14",
         "--override_default_arg_with_none",
         "None",
-        "--cluster_type" "local" "--client_kwargs" "{}",
     ]
 
     class MyExecutor(Executor):

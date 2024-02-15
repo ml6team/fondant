@@ -23,6 +23,7 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
         verify_certs: Optional[bool],
         pool_maxsize: Optional[int],
     ):
+        super().__init__()
         session = boto3.Session()
         credentials = session.get_credentials()
         auth = AWSV4SignerAuth(credentials, region)

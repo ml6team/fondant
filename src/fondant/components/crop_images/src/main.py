@@ -41,6 +41,7 @@ class ImageCroppingComponent(PandasTransformComponent):
             cropping_threshold (int): threshold parameter used for detecting borders
             padding (int): padding for the image cropping.
         """
+        super().__init__()
         self.cropping_threshold = cropping_threshold
         self.padding = padding
 

@@ -59,6 +59,7 @@ class ChunkTextComponent(PandasTransformComponent):
             code_splitter
             for more information on supported languages.
         """
+        super().__init__()
         self.chunk_strategy = chunk_strategy
         self.chunk_kwargs = chunk_kwargs
         self.chunker = self._get_chunker_class(chunk_strategy)

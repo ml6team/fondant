@@ -5,6 +5,7 @@ from fondant.component import DaskWriteComponent
 class WriteToFile(DaskWriteComponent):
     def __init__(self, *, path: str, format: str):
         """Initialize the write to file component."""
+        super().__init__()
         self.path = path
         self.format = format
 

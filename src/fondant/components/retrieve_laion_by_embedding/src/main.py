@@ -30,6 +30,7 @@ class LAIONRetrievalComponent(PandasTransformComponent):
             aesthetic_weight: weight of the aesthetic embedding to add to the query,
                 between 0 and 1.
         """
+        super().__init__()
         self.client = ClipClient(
             url="https://knn.laion.ai/knn-service",
             indice_name="laion5B-L-14",

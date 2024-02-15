@@ -52,6 +52,7 @@ class WriteToHubComponent(DaskWriteComponent):
             column_name_mapping: Mapping of the consumed fondant column names to the written hub
              column names.
         """
+        super().__init__()
         huggingface_hub.login(token=hf_token)
 
         repo_id = f"{username}/{dataset_name}"

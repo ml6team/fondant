@@ -31,6 +31,7 @@ class PDFReader(DaskLoadComponent):
                 of partitions will be equal to the number of CPU cores. Set to high values if
                 the data is large and the pipeline is running out of memory.
         """
+        super().__init__()
         self.pdf_path = pdf_path
         self.n_rows_to_load = n_rows_to_load
         self.index_column = index_column
