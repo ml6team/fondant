@@ -95,10 +95,21 @@ class DockerRunner(Runner):
         """Execute docker command to check if docker is available."""
         try:
             # Check Docker info
-            subprocess.check_call(  # nosec
-                ["docker", "info"],
-                stdout=subprocess.DEVNULL,
+            res = (
+                subprocess.check_output(  # nosec
+                    ["docker", "version", "--format", "{{.Server.Version}}"],
+                )
+                .strip()
+                .decode("utf-8")
             )
+            docker_version = tuple(map(int, res.split(".")))
+
+            if docker_version <= (24, 0, 0):
+                sys.exit(
+                    "Docker version is not compatible. Please make sure "
+                    "You have Docker version 24.0.0 or higher installed. "
+                    "Your current version is: " + res,
+                )
 
         except subprocess.CalledProcessError:
             sys.exit(
@@ -113,10 +124,21 @@ class DockerRunner(Runner):
         """Execute docker compose command to check if docker is available."""
         try:
             # Check Docker info
-            subprocess.check_call(  # nosec
-                ["docker", "compose", "version"],
-                stdout=subprocess.DEVNULL,
+            res = (
+                subprocess.check_output(  # nosec
+                    ["docker", "compose", "version", "--short"],
+                )
+                .strip()
+                .decode("utf-8")
             )
+            compose_version = tuple(map(int, res.split(".")))
+
+            if compose_version <= (2, 20, 0):
+                sys.exit(
+                    "Docker Compose version is not compatible. Please make sure "
+                    "You have Docker Compose version 2.20.0 or higher installed. "
+                    "Your current version is: " + res,
+                )
 
         except subprocess.CalledProcessError:
             sys.exit(
