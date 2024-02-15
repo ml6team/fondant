@@ -24,6 +24,7 @@ class IndexWeaviateComponent(DaskWriteComponent):
         vectorizer: t.Optional[str],
         module_config: t.Optional[dict],
     ):
+        super().__init__()
         self.client = weaviate.Client(
             url=weaviate_url,
             additional_config=additional_config if additional_config else None,

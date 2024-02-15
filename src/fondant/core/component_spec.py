@@ -290,18 +290,6 @@ class ComponentSpec:
                 type=bool,
                 default=True,
             ),
-            "cluster_type": Argument(
-                name="cluster_type",
-                description="The cluster type to use for the execution",
-                type=str,
-                default="default",
-            ),
-            "client_kwargs": Argument(
-                name="client_kwargs",
-                description="Keyword arguments to pass to the Dask client",
-                type=dict,
-                default={},
-            ),
             "metadata": Argument(
                 name="metadata",
                 description="Metadata arguments containing the run id and base path",

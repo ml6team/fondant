@@ -33,6 +33,7 @@ class LoadFromHubComponent(DaskLoadComponent):
             index_column: Column to set index to in the load component, if not specified a default
                 globally unique index will be set.
         """
+        super().__init__()
         self.dataset_name = dataset_name
         self.column_name_mapping = column_name_mapping
         self.image_column_names = image_column_names

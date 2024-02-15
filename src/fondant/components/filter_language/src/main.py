@@ -21,6 +21,7 @@ class LanguageIdentification:
         Args:
            language (str): language to filter on
         """
+        super().__init__()
         self.language = language
         self.model = fasttext.load_model(MODEL_PATH)
 

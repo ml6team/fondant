@@ -31,6 +31,7 @@ class CSVReader(DaskLoadComponent):
                 if not specified a default globally unique index will
                 be set.
         """
+        super().__init__()
         self.dataset_uri = dataset_uri
         self.column_separator = column_separator
         self.column_name_mapping = column_name_mapping

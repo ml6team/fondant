@@ -24,6 +24,7 @@ class FilterImageResolutionComponent(PandasTransformComponent):
             min_image_dim: minimum image dimension.
             max_aspect_ratio: maximum aspect ratio.
         """
+        super().__init__()
         self.min_image_dim = min_image_dim
         self.max_aspect_ratio = max_aspect_ratio
 
