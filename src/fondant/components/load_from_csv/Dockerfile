@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.8-slim as base
+FROM --platform=linux/amd64 python:3.10-slim as base
 
 # System dependencies
 RUN apt-get update && \
