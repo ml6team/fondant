@@ -26,7 +26,6 @@ from fondant.core.exceptions import (
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
 from fondant.pipeline import Image, LightweightComponent
-from fondant.pipeline.argument_inference import infer_arguments
 
 logger = logging.getLogger(__name__)
 
@@ -195,24 +194,48 @@ class ComponentOp:
             component_dir / cls.COMPONENT_SPEC_NAME,
         )
 
-        spec_consumes = {
-            key: value.type.name for key, value in component_spec.consumes.items()
-        }
-        spec_consumes = BaseComponent.get_spec_consumes(
-            spec_consumes, fields, kwargs.get("consumes")
-        )
-        spec_consumes = {key: value["type"] for key, value in spec_consumes.items()}
+        # If consumes is not defined in the pipeline, we will try to infer it
+        if kwargs.get("consumes", None) is None:
+            kwargs["consumes"] = cls._infer_consumes(component_spec, fields)
 
-        kwargs["consumes"] = spec_consumes
         image = Image(
             base_image=component_spec.image,
         )
+
         return cls(
             image=image,
             component_spec=component_spec,
             component_dir=component_dir,
             **kwargs,
         )
+
+    @classmethod
+    def _infer_consumes(cls, component_spec, dataset_fields):
+        """Infer the consumes section of the component spec."""
+        if component_spec.consumes_is_defined is False:
+            msg = (
+                "The consumes section of the component spec is not defined. "
+                "Cannot infer consumes."
+            )
+            logger.info(msg)
+            return None
+
+        # Component has consumes and additionalProperties, we will load all dataset columns
+        if (
+            component_spec.consumes_is_defined
+            and component_spec.consumes_additional_properties
+        ):
+            if dataset_fields is None:
+                logger.info(
+                    "The dataset fields are not defined. Cannot infer consumes.",
+                )
+                return None
+
+            return {k: v.type.value for k, v in dataset_fields.items()}
+
+        # Component has consumes and no additionalProperties, we will load only the columns defined
+        # in the component spec
+        return {k: v.type.value for k, v in component_spec.consumes.items()}
 
     @classmethod
     def from_ref(
@@ -233,29 +256,14 @@ class ComponentOp:
         """
         if inspect.isclass(ref) and issubclass(ref, BaseComponent):
             if issubclass(ref, LightweightComponent):
-                name = ref.__name__
-                image = ref.image()
-                description = ref.__doc__ or "lightweight component"
-                spec_produces = ref.get_spec_produces()
+                component_spec = ref.get_component_spec()
 
-                spec_consumes = BaseComponent.get_spec_consumes(
-                    ref.consumes(), fields, kwargs.get("consumes", None)
-                )
-
-                component_spec = ComponentSpec(
-                    name,
-                    image.base_image,
-                    description=description,
-                    consumes=spec_consumes,
-                    produces=spec_produces,
-                    args={
-                        name: arg.to_spec()
-                        for name, arg in infer_arguments(ref).items()
-                    },
-                )
+                # If consumes is not defined in the pipeline, we will try to infer it
+                if kwargs.get("consumes", None) is None:
+                    kwargs["consumes"] = cls._infer_consumes(component_spec, fields)
 
                 operation = cls(
-                    image,
+                    ref.image(),
                     component_spec,
                     **kwargs,
                 )

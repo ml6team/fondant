@@ -11,7 +11,9 @@ from importlib import metadata
 import pyarrow as pa
 
 from fondant.component import BaseComponent, Component
+from fondant.core.component_spec import ComponentSpec
 from fondant.core.schema import Type
+from fondant.pipeline.argument_inference import infer_arguments
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +80,19 @@ class LightweightComponent(BaseComponent):
         pass
 
     @classmethod
-    def get_spec_produces(cls):
+    def _get_spec_consumes(cls) -> t.Mapping[str, t.Union[str, pa.DataType, bool]]:
+        """Get the consumes spec for the component."""
+        consumes = cls.consumes()
+        if consumes is None:
+            return {"additionalProperties": True}
+
+        return {
+            k: (Type(v).to_dict() if k != "additionalProperties" else v)
+            for k, v in consumes.items()
+        }
+
+    @classmethod
+    def _get_spec_produces(cls) -> t.Mapping[str, t.Union[str, pa.DataType, bool]]:
         """Get the produces spec for the component."""
         produces = cls.produces()
 
@@ -89,6 +103,18 @@ class LightweightComponent(BaseComponent):
             k: (Type(v).to_dict() if k != "additionalProperties" else v)
             for k, v in produces.items()
         }
+
+    @classmethod
+    def get_component_spec(cls) -> ComponentSpec:
+        """Return the component spec for the component."""
+        return ComponentSpec(
+            name=cls.__name__,
+            image=cls.image().base_image,
+            description=cls.__doc__ or "lightweight component",
+            consumes=cls._get_spec_consumes(),
+            produces=cls._get_spec_produces(),
+            args={name: arg.to_spec() for name, arg in infer_arguments(cls).items()},
+        )
 
 
 def lightweight_component(

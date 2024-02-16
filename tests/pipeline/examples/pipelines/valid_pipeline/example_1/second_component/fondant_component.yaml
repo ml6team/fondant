@@ -5,6 +5,7 @@ image: example_component:latest
 consumes:
   images_data:
     type: binary
+  additionalProperties: true
 
 produces:
   embeddings_data:
