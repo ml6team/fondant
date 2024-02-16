@@ -1,10 +1,16 @@
 """This module defines interfaces which components should implement to be executed by fondant."""
 
+import logging
 import typing as t
 from abc import abstractmethod
 
 import dask.dataframe as dd
 import pandas as pd
+import pyarrow as pa
+
+from fondant.core.schema import Field, Type
+
+logger = logging.getLogger(__name__)
 
 
 class BaseComponent:
@@ -25,6 +31,73 @@ class BaseComponent:
 
     def teardown(self) -> None:
         """Method called after the component has been executed."""
+
+    @staticmethod
+    def modify_spec_consumes(
+        spec_consumes: t.Dict[str, t.Any],
+        apply_consumes: t.Optional[t.Dict[str, pa.DataType]],
+    ):
+        """Modify fields based on the consumes argument in the 'apply' method."""
+        if apply_consumes:
+            for k, v in apply_consumes.items():
+                if isinstance(v, str):
+                    spec_consumes[k] = spec_consumes.pop(v)
+                else:
+                    msg = (
+                        f"Invalid data type for field `{k}` in the `apply_consumes` "
+                        f"argument. Only string types are allowed."
+                    )
+                    raise ValueError(
+                        msg,
+                    )
+        return spec_consumes
+
+    @staticmethod
+    def get_spec_consumes(
+        component_consumes: t.Dict[str, t.Any],
+        dataset_fields: t.Mapping[str, Field],
+        apply_consumes: t.Optional[t.Dict[str, t.Any]] = None,
+    ):
+        """
+        Function that get the consumes spec for the component based on the dataset fields and
+        the apply_consumes argument.
+
+        Args:
+            component_consumes: Component spec consumes.
+            dataset_fields: The fields of the dataset.
+            apply_consumes: The consumes argument in the apply method.
+
+        Returns:
+            The consumes spec for the component.
+        """
+        if dataset_fields and component_consumes is None:
+            # Get consumes spec from the dataset
+            spec_consumes = {k: v.type.to_dict() for k, v in dataset_fields.items()}
+
+            spec_consumes = BaseComponent.modify_spec_consumes(
+                spec_consumes,
+                apply_consumes,
+            )
+
+            logger.warning(
+                "No consumes defined. Consumes will be inferred from the dataset."
+                " All field will be consumed which may lead to additional computation,"
+                " Consider defining consumes in the component.\n Consumes: %s",
+                spec_consumes,
+            )
+            return None
+
+        elif dataset_fields:
+            spec_consumes = {
+                k: (Type(v).to_dict() if k != "additionalProperties" else v)
+                for k, v in component_consumes.items()
+            }
+            return spec_consumes
+        else:
+            return {}
+
+    def get_spec_produces(self) -> None:
+        pass
 
 
 class DaskLoadComponent(BaseComponent):

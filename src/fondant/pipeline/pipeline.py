@@ -185,15 +185,25 @@ class ComponentOp:
         self.resources = resources or Resources()
 
     @classmethod
-    def from_component_yaml(cls, path, **kwargs) -> "ComponentOp":
+    def from_component_yaml(cls, path, fields=None, **kwargs) -> "ComponentOp":
         if cls._is_custom_component(path):
             component_dir = Path(path)
         else:
             component_dir = cls._get_registry_path(str(path))
+
         component_spec = ComponentSpec.from_file(
             component_dir / cls.COMPONENT_SPEC_NAME,
         )
 
+        spec_consumes = {
+            key: value.type.name for key, value in component_spec.consumes.items()
+        }
+        spec_consumes = BaseComponent.get_spec_consumes(
+            spec_consumes, fields, kwargs.get("consumes")
+        )
+        spec_consumes = {key: value["type"] for key, value in spec_consumes.items()}
+
+        kwargs["consumes"] = spec_consumes
         image = Image(
             base_image=component_spec.image,
         )
@@ -228,10 +238,8 @@ class ComponentOp:
                 description = ref.__doc__ or "lightweight component"
                 spec_produces = ref.get_spec_produces()
 
-                spec_consumes = (
-                    ref.get_spec_consumes(fields, kwargs["consumes"])
-                    if fields
-                    else {"additionalProperties": True}
+                spec_consumes = BaseComponent.get_spec_consumes(
+                    ref.consumes(), fields, kwargs.get("consumes", None)
                 )
 
                 component_spec = ComponentSpec(
@@ -259,6 +267,7 @@ class ComponentOp:
         elif isinstance(ref, (str, Path)):
             operation = cls.from_component_yaml(
                 ref,
+                fields,
                 **kwargs,
             )
         else:
