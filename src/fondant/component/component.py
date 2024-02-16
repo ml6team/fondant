@@ -38,7 +38,7 @@ class DaskComponent(BaseComponent):
         # mode is not possible in our docker container setup.
         dask.config.set({"distributed.worker.daemon": False})
 
-        self.dask_client()
+        self.client = self.dask_client()
 
     def dask_client(self) -> Client:
         """Initialize the dask client to use for this component."""
@@ -48,6 +48,9 @@ class DaskComponent(BaseComponent):
             threads_per_worker=1,
         )
         return Client(cluster)
+
+    def teardown(self) -> None:
+        self.client.shutdown()
 
 
 class DaskLoadComponent(DaskComponent):
