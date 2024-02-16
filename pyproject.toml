@@ -51,6 +51,7 @@ pyarrow = ">= 11.0.0"
 pyyaml = ">= 5.3.1"
 
 dask = { version = ">= 2023.4.1", extras = ["dataframe", "distributed", "diagnostics"], optional = true }
+dask-cuda = { version = ">=2023.4.1", optional = true }
 
 gcsfs = { version = ">= 2023.10.0", optional = true }
 s3fs = { version = ">= 2023.4.0", optional = true }
@@ -64,6 +65,7 @@ boto3 = {version = "1.28.64", optional = true}
 
 [tool.poetry.extras]
 component = ["dask"]
+gpu = ["dask-cuda"]
 
 aws = ["s3fs"]
 azure = ["adlfs"]

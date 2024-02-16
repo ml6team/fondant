@@ -1,3 +1,2 @@
 Pillow==10.0.1
 transformers==4.28.0
-dask-cuda==23.12.0
