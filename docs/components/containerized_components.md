@@ -48,7 +48,7 @@ The `Dockerfile` defines how to build the component into a Docker image. An exam
 defined below.
 
 ```bash
-FROM --platform=linux/amd64 python:3.8-slim
+FROM --platform=linux/amd64 python:3.10-slim
 
 # install requirements
 COPY requirements.txt ./

@@ -41,7 +41,7 @@ dataset = dataset.apply(
 
 
 @lightweight_component(
-    base_image="python:3.8",
+    base_image="python:3.10",
     extra_requires=[
         f"fondant[component]@git+https://github.com/ml6team/fondant@"
         f"{os.environ.get('FONDANT_VERSION', 'main')}",

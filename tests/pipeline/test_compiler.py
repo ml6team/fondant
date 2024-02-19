@@ -417,7 +417,7 @@ def test_kubeflow_component_spec_from_lightweight_component(
     )
 
     @lightweight_component(
-        base_image="python:3.8-slim-buster",
+        base_image="python:3.10-slim-buster",
         extra_requires=["pandas", "dask"],
         produces={"x": pa.int32(), "y": pa.int32()},
     )
@@ -442,7 +442,7 @@ def test_kubeflow_component_spec_from_lightweight_component(
         compiler.compile(pipeline=pipeline, output_path=output_path)
         pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
         assert pipeline_configs.component_configs["createdata"].image == (
-            "python:3.8-slim-buster"
+            "python:3.10-slim-buster"
         )
         assert pipeline_configs.component_configs["createdata"].command == [
             "sh",
@@ -793,7 +793,7 @@ def test_sagemaker_generate_script(tmp_path_factory):
 
 def test_sagemaker_generate_script_lightweight_component(tmp_path_factory):
     @lightweight_component(
-        base_image="python:3.8-slim-buster",
+        base_image="python:3.10-slim-buster",
         extra_requires=["pandas", "dask"],
     )
     class CreateData(DaskLoadComponent):
