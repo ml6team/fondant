@@ -91,6 +91,15 @@ class DockerRunner(Runner):
             self._run(input)
 
     @staticmethod
+    def _versionify(version: str) -> t.Tuple[int, ...]:
+        """Convert a version string to a tuple of integers. Removing non-numeric characters."""
+        res: t.Tuple = ()
+        for seg in version.split("."):
+            res += (int("".join(c for c in seg if c.isdigit())),)
+
+        return res
+
+    @staticmethod
     def check_docker_install():
         """Execute docker command to check if docker is available."""
         try:
@@ -102,7 +111,7 @@ class DockerRunner(Runner):
                 .strip()
                 .decode("utf-8")
             )
-            docker_version = tuple(map(int, res.split(".")))
+            docker_version = DockerRunner._versionify(res)
 
             if docker_version <= (24, 0, 0):
                 sys.exit(
@@ -131,7 +140,8 @@ class DockerRunner(Runner):
                 .strip()
                 .decode("utf-8")
             )
-            compose_version = tuple(map(int, res.split(".")))
+
+            compose_version = DockerRunner._versionify(res)
 
             if compose_version <= (2, 20, 0):
                 sys.exit(
