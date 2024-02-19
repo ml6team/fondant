@@ -208,22 +208,23 @@ def test_valid_pipeline(
     dataset = pipeline.read(
         Path(components_path / component_names[0]),
         arguments=component_args,
-        produces={"images_data": pa.binary()},
+        produces={"images_array": pa.binary()},
     )
     dataset = dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
+        consumes={"images_data": "images_array"},
         produces={"embeddings_data": "embeddings_array"},
     )
     dataset = dataset.apply(
         Path(components_path / component_names[2]),
         arguments=component_args,
-        consumes={"images_data": "images_data", "embeddings_data": "embeddings_array"},
+        consumes={"images_data": "images_array", "embeddings_data": "embeddings_array"},
     )
     dataset.apply(
         Path(components_path / component_names[3]),
         arguments=component_args,
-        consumes={"images_data": pa.binary()},
+        consumes={"images_array": pa.binary()},
     )
 
     pipeline.sort_graph()

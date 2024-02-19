@@ -447,13 +447,6 @@ class OperationSpec:
             if not isinstance(value, pa.DataType):
                 continue
 
-            if not self._component_spec.is_generic(name):
-                msg = (
-                    f"Component {self._component_spec.name} does not allow specifying additional "
-                    f"fields but received {key}."
-                )
-                raise InvalidPipelineDefinition(msg)
-
             if key not in spec_mapping:
                 mapping[key] = Field(name=key, type=Type(value))
             else:
@@ -492,7 +485,7 @@ class OperationSpec:
             if not isinstance(value, str):
                 continue
 
-            if key in spec_mapping:
+            if key in spec_mapping:  # TODO: additionalFields true?
                 mapping[value] = Field(name=value, type=mapping.pop(key).type)
             else:
                 msg = (

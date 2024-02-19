@@ -142,14 +142,16 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
             "image": Image.resolve_fndnt_base_image(),
             "description": "lightweight component",
             "consumes": {
-                "x": {"type": "int32"},
-                "y": {"type": "int32"},
-                "z": {"type": "int32"},
+                "additionalProperties": True,
             },
             "produces": {"x": {"type": "int32"}},
             "args": {"n": {"type": "int"}},
         },
-        "consumes": {},
+        "consumes": {
+            "x": {"type": "int32"},
+            "y": {"type": "int32"},
+            "z": {"type": "int32"},
+        },
         "produces": {},
     }
     pipeline._validate_pipeline_definition(run_id="dummy-run-id")
@@ -163,6 +165,7 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
+        consumes={"a": pa.int32()},
         produces={"a": pa.int32()},
     )
     class AddN(PandasTransformComponent):
@@ -486,3 +489,45 @@ def test_fndnt_base_image_resolution():
         mock_call.return_value = "0.9"
         base_image_name = Image.resolve_fndnt_base_image()
         assert base_image_name == "fndnt/fondant:0.9-py3.9"
+
+
+def test_component_op_python_component__():
+    @lightweight_component(
+        base_image="python:3.8-slim-buster",
+        extra_requires=["pandas", "dask"],
+        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
+    )
+    class Foo(DaskLoadComponent):
+        def load(self) -> dd.DataFrame:
+            df = pd.DataFrame(
+                {
+                    "x": [1, 2, 3],
+                    "y": [4, 5, 6],
+                },
+                index=pd.Index(["a", "b", "c"], name="id"),
+            )
+            return dd.from_pandas(df, npartitions=1)
+
+    @lightweight_component(
+        base_image="python:3.8-slim-buster",
+        extra_requires=["pandas", "dask"],
+        consumes={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
+        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
+    )
+    class Bar(PandasTransformComponent):
+        def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+            return dataframe
+
+    pipeline = Pipeline(
+        name="dummy-pipeline",
+        base_path="./data",
+    )
+
+    dataset = pipeline.read(
+        ref=Foo,
+    )
+
+    dataset = dataset.apply(
+        ref=Bar,
+    )
+    assert True
