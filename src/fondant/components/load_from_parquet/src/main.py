@@ -68,14 +68,15 @@ class LoadFromParquet(DaskLoadComponent):
 
             def _set_unique_index(dataframe: pd.DataFrame, partition_info=None):
                 """Function that sets a unique index based on the partition and row number."""
+                n_digits = len(str(len(dataframe)))
+
                 dataframe["id"] = 1
                 dataframe["id"] = (
                     str(partition_info["number"])
                     + "_"
-                    + (dataframe.id.cumsum()).astype(str)
+                    + dataframe.id.cumsum().astype(str).str.zfill(n_digits)
                 )
-                dataframe.index = dataframe.pop("id")
-                return dataframe
+                return dataframe.set_index("id", drop=True)
 
             def _get_meta_df() -> pd.DataFrame:
                 meta_dict = {"id": pd.Series(dtype="object")}
