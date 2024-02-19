@@ -287,6 +287,8 @@ class Executor(t.Generic[Component]):
         component.consumes = self.operation_spec.inner_consumes
         component.produces = self.operation_spec.inner_produces
 
+        state = component.setup()
+
         output_df = self._execute_component(
             component,
             manifest=input_manifest,
@@ -298,7 +300,7 @@ class Executor(t.Generic[Component]):
         )
         self._write_data(dataframe=output_df, manifest=output_manifest)
 
-        component.teardown()
+        component.teardown(state)
 
         return output_manifest
 

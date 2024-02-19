@@ -38,7 +38,7 @@ class IndexAWSOpenSearchComponent(DaskWriteComponent):
         )
         self.create_index(index_body)
 
-    def teardown(self) -> None:
+    def teardown(self, _) -> None:
         self.client.close()
 
     def create_index(self, index_body: Dict[str, Any]):

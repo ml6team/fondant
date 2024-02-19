@@ -305,35 +305,53 @@ class ExampleComponent(PandasTransformComponent):
 
 Afterwards, we pass all keyword arguments to the `__init__()` method of the component.
 
+You can also use the `setup()` and `teardown()` methods to do setup and cleanup of component 
+configuration.
 
-You can also use the a `teardown()` method to perform any cleanup after the component has been executed.
-This is a good place to close any open connections or files.
+The `setup()` method is useful to set up any configuration that is not directly used by your 
+component, but by some of the underlying dependencies such as `Dask`. The advantage compared to 
+`__init__()` is that you can return a state which will be injected into the `teardown()` method, 
+so you don't need to store everything as an instance attribute, which can be a problem for 
+unpickleable objects when running in parallel across processes.
+
+You can use the `teardown()` method to clean up both instance variables from `__init__()` and 
+state from `setup()`. Eg. closing open connections or files.
 
 ```python
+import typing as t
+
 import pandas as pd
+from dask.distributed import Client
+from dask_cuda import LocalCUDACluster
 from fondant.component import PandasTransformComponent
-from my_library import Client
+from my_library import HTTPClient
 
-  def __init__(self, *, client_url) -> None:
-    """
-    Args:
-        x_argument: An argument passed to the component
-    """
-    # Initialize your component here based on the arguments
-    self.client = Client(client_url)
+class MyComponent(PandasTransformComponent):
+
+    def __init__(self, *, client_url) -> None:
+        """
+        Args:
+            client_url: An argument passed to the component
+        """
+        # Initialize your component here based on the arguments
+        self.http_client = HTTPClient(client_url)
+      
+    def setup(self) -> t.Any:
+        return Client(LocalCUDACluster)
     
-  def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-    """Implement your custom logic in this single method
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        """Implement your custom logic in this single method
 
-    Args:
-        dataframe: A Pandas dataframe containing the data
+        Args:
+            dataframe: A Pandas dataframe containing the data
 
-    Returns:
-        A pandas dataframe containing the transformed data
-    """
+        Returns:
+            A pandas dataframe containing the transformed data
+        """
     
-  def teardown(self):
-    """Perform any cleanup after the component has been executed
-    """
-    self.client.shutdown()
+    def teardown(self, dask_client):
+        """Perform any cleanup after the component has been executed
+        """
+        self.http_client.shutdown()
+        dask_client.shutdown()
 ```
