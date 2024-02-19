@@ -15,7 +15,7 @@ from fondant.core.schema import Field, Type
 
 logger = logging.getLogger(__name__)
 
-MIN_PYTHON_VERSION = (3, 8)
+MIN_PYTHON_VERSION = (3, 9)
 MAX_PYTHON_VERSION = (3, 11)
 
 
