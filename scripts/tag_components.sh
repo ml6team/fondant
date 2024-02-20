@@ -30,7 +30,7 @@ namespace="fndnt"
 # Get the component directory
 scripts_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 root_dir=$(dirname "$scripts_dir")
-component_dir=$root_dir/"components"
+component_dir=$root_dir/"src/fondant/components"
 
 # Loop through all subdirectories
 for dir in "$component_dir"/*/; do
