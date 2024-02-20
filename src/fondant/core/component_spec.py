@@ -215,6 +215,27 @@ class ComponentSpec:
         )
 
     @property
+    def consumes_additional_properties(self) -> bool:
+        """Returns a boolean indicating whether the component consumes additional properties."""
+        return self._specification.get("consumes", {}).get(
+            "additionalProperties",
+            False,
+        )
+
+    @property
+    def consumes_is_defined(self) -> bool:
+        """Returns a boolean indicating whether the component consumes is defined."""
+        return bool(self._specification.get("consumes", {}))
+
+    @property
+    def produces_additional_properties(self) -> bool:
+        """Returns a boolean indicating whether the component produces additional properties."""
+        return self._specification.get("produces", {}).get(
+            "additionalProperties",
+            False,
+        )
+
+    @property
     def produces(self) -> t.Mapping[str, Field]:
         """The fields produced by the component as an immutable mapping."""
         return types.MappingProxyType(
@@ -413,13 +434,6 @@ class OperationSpec:
         for key, value in args_mapping.items():
             if not isinstance(value, pa.DataType):
                 continue
-
-            if not self._component_spec.is_generic(name):
-                msg = (
-                    f"Component {self._component_spec.name} does not allow specifying additional "
-                    f"fields but received {key}."
-                )
-                raise InvalidPipelineDefinition(msg)
 
             if key not in spec_mapping:
                 mapping[key] = Field(name=key, type=Type(value))

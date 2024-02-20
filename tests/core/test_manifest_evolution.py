@@ -52,12 +52,6 @@ INVALID_EXAMPLES = {
             "images_array": "images_data",
         },
     },
-    "6": {
-        # Non-generic component that has a type in the produces mapping
-        "produces": {
-            "embedding_data": pa.list_(pa.float32()),
-        },
-    },
 }
 
 
