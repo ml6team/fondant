@@ -106,7 +106,7 @@ class DaskDataLoader(DataIO):
             DEFAULT_INDEX_NAME,
         )
 
-        for field_name in self.operation_spec.outer_consumes:
+        for field_name in self.operation_spec.consumes_of_dataset:
             location = self.manifest.get_field_location(field_name)
             field_mapping[location].append(field_name)
 
@@ -136,7 +136,7 @@ class DaskDataLoader(DataIO):
             msg = "No data could be loaded"
             raise RuntimeError(msg)
 
-        if consumes_mapping := self.operation_spec._mappings["consumes"]:
+        if consumes_mapping := self.operation_spec.operations_consumes:
             dataframe = dataframe.rename(
                 columns={
                     v: k for k, v in consumes_mapping.items() if isinstance(v, str)
@@ -167,7 +167,7 @@ class DaskDataWriter(DataIO):
         dataframe.index = dataframe.index.rename(DEFAULT_INDEX_NAME)
 
         # validation that all columns are in the dataframe
-        expected_columns = list(self.operation_spec.inner_produces)
+        expected_columns = list(self.operation_spec.operations_produces)
         self.validate_dataframe_columns(dataframe, expected_columns)
 
         dataframe = dataframe[expected_columns]
@@ -209,7 +209,7 @@ class DaskDataWriter(DataIO):
 
         schema = {
             field.name: field.type.value
-            for field in self.operation_spec.outer_produces.values()
+            for field in self.operation_spec.produces_to_dataset.values()
         }
         return self._create_write_task(dataframe, location=location, schema=schema)
 

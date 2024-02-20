@@ -353,10 +353,10 @@ class OperationSpec:
         }
         self._validate_mappings()
 
-        self._inner_consumes: t.Optional[t.Mapping[str, Field]] = None
-        self._outer_consumes: t.Optional[t.Mapping[str, Field]] = None
-        self._inner_produces: t.Optional[t.Mapping[str, Field]] = None
-        self._outer_produces: t.Optional[t.Mapping[str, Field]] = None
+        self._operation_consumes: t.Optional[t.Mapping[str, Field]] = None
+        self._consumes_of_dataset: t.Optional[t.Mapping[str, Field]] = None
+        self._operation_produces: t.Optional[t.Mapping[str, Field]] = None
+        self._produces_to_dataset: t.Optional[t.Mapping[str, Field]] = None
 
     def to_dict(self) -> dict:
         def _dump_mapping(
@@ -414,11 +414,14 @@ class OperationSpec:
                     msg = f"Unexpected type {type(value)} received for key {key} in {name} mapping"
                     raise InvalidPipelineDefinition(msg)
 
-    def _inner_mapping(self, name: str) -> t.Mapping[str, Field]:
-        """Calculate the "inner mapping" of the operation. This is the mapping that the component
+    def _dataset_to_operations_mapping(self, name: str) -> t.Mapping[str, Field]:
+        """Calculate the operations mapping.
+        Maps dataset fields to the fields that the operation will receive.
+        This is the mapping that the component
         `transform` (or equivalent) method will receive. This is calculated by starting from the
         component spec section, and updating it with any string to type mappings from the
         argument mapping.
+
 
         Args:
             name: "consumes" or "produces"
@@ -453,15 +456,16 @@ class OperationSpec:
 
         return types.MappingProxyType(mapping)
 
-    def _outer_mapping(self, name: str) -> t.Mapping[str, Field]:
-        """Calculate the "outer mapping" of the operation. This is the mapping that the dataIO
-        needs to read / write. This is calculated by starting from the "inner mapping" updating it
+    def _operation_to_dataset_mapping(self, name: str) -> t.Mapping[str, Field]:
+        """
+        Maps the operations fields to the dataset fields which will be written in DataIO.
+        This is calculated by starting from the "inner mapping" updating it
         with any string to string mappings from the argument mapping.
 
         Args:
             name: "consumes" or "produces"
         """
-        spec_mapping = getattr(self, f"inner_{name}")
+        spec_mapping = getattr(self, f"operations_{name}")
         args_mapping = self._mappings[name]
 
         if not args_mapping:
@@ -486,40 +490,40 @@ class OperationSpec:
         return types.MappingProxyType(mapping)
 
     @property
-    def inner_consumes(self) -> t.Mapping[str, Field]:
-        """The "inner" `consumes` mapping which the component `transform` (or equivalent) method
+    def operations_consumes(self) -> t.Mapping[str, Field]:
+        """The operations `consumes` mapping which the component `transform` (or equivalent) method
         will receive.
         """
-        if self._inner_consumes is None:
-            self._inner_consumes = self._inner_mapping("consumes")
+        if self._operation_consumes is None:
+            self._operation_consumes = self._dataset_to_operations_mapping("consumes")
 
-        return self._inner_consumes
-
-    @property
-    def outer_consumes(self) -> t.Mapping[str, Field]:
-        """The "outer" `consumes` mapping which the dataIO needs to read / write."""
-        if self._outer_consumes is None:
-            self._outer_consumes = self._outer_mapping("consumes")
-
-        return self._outer_consumes
+        return self._operation_consumes
 
     @property
-    def inner_produces(self) -> t.Mapping[str, Field]:
-        """The "inner" `produces` mapping which the component `transform` (or equivalent) method
+    def consumes_of_dataset(self) -> t.Mapping[str, Field]:
+        """Defines which fields of the dataset are consumed by the operation."""
+        if self._consumes_of_dataset is None:
+            self._consumes_of_dataset = self._operation_to_dataset_mapping("consumes")
+
+        return self._consumes_of_dataset
+
+    @property
+    def operations_produces(self) -> t.Mapping[str, Field]:
+        """The operations `produces` mapping which the component `transform` (or equivalent) method
         will receive.
         """
-        if self._inner_produces is None:
-            self._inner_produces = self._inner_mapping("produces")
+        if self._operation_produces is None:
+            self._operation_produces = self._dataset_to_operations_mapping("produces")
 
-        return self._inner_produces
+        return self._operation_produces
 
     @property
-    def outer_produces(self) -> t.Mapping[str, Field]:
-        """The "outer" `produces` mapping which the dataIO needs to read / write."""
-        if self._outer_produces is None:
-            self._outer_produces = self._outer_mapping("produces")
+    def produces_to_dataset(self) -> t.Mapping[str, Field]:
+        """The produces mapping that the dataIO needs write to the dataset fields."""
+        if self._produces_to_dataset is None:
+            self._produces_to_dataset = self._operation_to_dataset_mapping("produces")
 
-        return self._outer_produces
+        return self._produces_to_dataset
 
     @property
     def component_name(self) -> str:
