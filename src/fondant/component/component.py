@@ -22,8 +22,21 @@ class BaseComponent:
         self.consumes = None
         self.produces = None
 
-    def teardown(self) -> None:
-        """Method called after the component has been executed."""
+    def setup(self) -> t.Any:
+        """Method to do additional component setup. This method can return a state (any object),
+        which is passed into the `teardown` method.
+
+        There's two reasons to separate this from `__init__`:
+        - It can be overwritten separately
+        - The Fondant executor handles the state, which is a good alternative for instance
+          attributes if the state is only needed in `setup` / `teardown`, since instance
+          attributes need to be pickleable when executing a component method across processes.
+        """
+
+    def teardown(self, state: t.Any) -> None:
+        """Method called after the component has been executed. The Fondant executor injects the
+        state returned by the `setup` method.
+        """
 
 
 class DaskComponent(BaseComponent):
@@ -32,22 +45,19 @@ class DaskComponent(BaseComponent):
     def __init__(self, **kwargs):
         super().__init__()
 
-        # don't assume every object is a string
-        dask.config.set({"dataframe.convert-string": False})
+    def setup(self) -> t.Any:
         # worker.daemon is set to false because creating a worker process in daemon
         # mode is not possible in our docker container setup.
         dask.config.set({"distributed.worker.daemon": False})
-
-        self.dask_client()
-
-    def dask_client(self) -> Client:
-        """Initialize the dask client to use for this component."""
         cluster = LocalCluster(
             processes=True,
             n_workers=os.cpu_count(),
             threads_per_worker=1,
         )
         return Client(cluster)
+
+    def teardown(self, client: t.Any) -> None:
+        return client.shutdown()
 
 
 class DaskLoadComponent(DaskComponent):

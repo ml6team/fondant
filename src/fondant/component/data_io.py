@@ -3,6 +3,7 @@ import os
 import typing as t
 from collections import defaultdict
 
+import dask
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 from dask.distributed import Client
@@ -30,6 +31,10 @@ class DaskDataLoader(DataIO):
         input_partition_rows: t.Optional[int] = None,
     ):
         super().__init__(manifest=manifest, operation_spec=operation_spec)
+        # Don't assume every object is a string
+        # https://docs.dask.org/en/stable/changelog.html#v2023-7-1
+        dask.config.set({"dataframe.convert-string": False})
+
         self.input_partition_rows = input_partition_rows
 
     def partition_loaded_dataframe(self, dataframe: dd.DataFrame) -> dd.DataFrame:

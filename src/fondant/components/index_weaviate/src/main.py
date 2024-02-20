@@ -85,7 +85,7 @@ class IndexWeaviateComponent(DaskWriteComponent):
 
         return class_schema
 
-    def teardown(self) -> None:
+    def teardown(self, _) -> None:
         del self.client
 
     def write(self, dataframe: dd.DataFrame) -> None:

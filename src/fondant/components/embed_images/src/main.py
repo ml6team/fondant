@@ -40,12 +40,12 @@ class EmbedImagesComponent(PandasTransformComponent):
 
         super().__init__()
 
-    def dask_client(self) -> Client:
+    def setup(self) -> Client:
         if self.device == "cuda":
             cluster = LocalCUDACluster()
             return Client(cluster)
 
-        return super().dask_client()
+        return super().setup()
 
     def process_image_batch(self, images: np.ndarray) -> t.List[torch.Tensor]:
         """

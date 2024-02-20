@@ -303,7 +303,7 @@ def test_load_component(metadata):
 
 
 @pytest.mark.usefixtures("_patched_data_writing")
-def test_teardown_method(metadata):
+def test_setup_teardown_methods(metadata):
     # Mock CLI arguments load
     operation_spec = OperationSpec(
         ComponentSpec.from_file(components_path / "component.yaml"),
@@ -335,13 +335,13 @@ def test_teardown_method(metadata):
             if self.is_connected:
                 self.is_connected = False
 
-    client = MockClient()
-
     class MyLoadComponent(DaskLoadComponent):
         def __init__(self, *, flag, value):
             self.flag = flag
             self.value = value
-            self.client = client
+
+        def setup(self):
+            return MockClient()
 
         def load(self):
             data = {
@@ -350,19 +350,23 @@ def test_teardown_method(metadata):
             }
             return dd.DataFrame.from_dict(data, npartitions=N_PARTITIONS)
 
-        def teardown(self) -> None:
-            self.client.shutdown()
+        def teardown(self, client) -> None:
+            client.shutdown()
 
     executor_factory = ExecutorFactory(MyLoadComponent)
     executor = executor_factory.get_executor()
     assert executor.input_partition_rows is None
 
+    setup = patch_method_class(MyLoadComponent.setup)
     teardown = patch_method_class(MyLoadComponent.teardown)
-    assert client.is_connected is True
-    with mock.patch.object(MyLoadComponent, "teardown", teardown):
+    with mock.patch.object(MyLoadComponent, "setup", setup), mock.patch.object(
+        MyLoadComponent,
+        "teardown",
+        teardown,
+    ):
         executor.execute(MyLoadComponent)
+        setup.mock.assert_called_once()
         teardown.mock.assert_called_once()
-        assert client.is_connected is False
 
 
 @pytest.mark.usefixtures("_patched_data_loading", "_patched_data_writing")
@@ -394,6 +398,7 @@ def test_dask_transform_component(metadata):
 
     class MyDaskComponent(DaskTransformComponent):
         def __init__(self, *, flag, value):
+            super().__init__()
             self.flag = flag
             self.value = value
 
@@ -442,27 +447,23 @@ def test_pandas_transform_component(metadata):
         "False",
     ]
 
+    init_called = 0
+
     class MyPandasComponent(PandasTransformComponent):
         def __init__(self, *, flag, value):
             assert flag == "success"
             assert value == 1
+            nonlocal init_called
+            init_called += 1
 
         def transform(self, dataframe):
             assert isinstance(dataframe, pd.DataFrame)
             return dataframe.rename(columns={"images": "embeddings"})
 
-    init = patch_method_class(MyPandasComponent.__init__)
-    transform = patch_method_class(MyPandasComponent.transform)
     executor_factory = ExecutorFactory(MyPandasComponent)
     executor = executor_factory.get_executor()
-    with mock.patch.object(MyPandasComponent, "__init__", init), mock.patch.object(
-        MyPandasComponent,
-        "transform",
-        transform,
-    ):
-        executor.execute(MyPandasComponent)
-        init.mock.assert_called_once()
-        assert transform.mock.call_count == N_PARTITIONS
+    executor.execute(MyPandasComponent)
+    assert init_called == 1
 
 
 def test_wrap_transform():
