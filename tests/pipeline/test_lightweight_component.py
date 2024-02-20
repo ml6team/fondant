@@ -35,7 +35,7 @@ def load_pipeline(caplog):
     )
 
     @lightweight_component(
-        base_image="python:3.8-slim-buster",
+        base_image="python:3.10-slim-buster",
         extra_requires=["pandas", "dask"],
         produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
     )
@@ -100,7 +100,7 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
     assert operation_spec_dict == {
         "specification": {
             "name": "CreateData",
-            "image": "python:3.8-slim-buster",
+            "image": "python:3.10-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {
@@ -161,7 +161,7 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
 
 def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
-        base_image="python:3.8",
+        base_image="python:3.10",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
@@ -197,7 +197,7 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
 
 def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
-        base_image="python:3.8",
+        base_image="python:3.10",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
@@ -234,7 +234,7 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
 
 def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
-        base_image="python:3.8",
+        base_image="python:3.10",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
@@ -271,7 +271,7 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
 
 def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
-        base_image="python:3.8",
+        base_image="python:3.10",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
@@ -325,7 +325,7 @@ def test_lightweight_component_missing_decorator():
 
 def test_valid_load_component():
     @lightweight_component(
-        base_image="python:3.8-slim-buster",
+        base_image="python:3.10-slim-buster",
     )
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -354,7 +354,7 @@ def test_valid_load_component():
     assert operation_spec_without_image == {
         "specification": {
             "name": "CreateData",
-            "image": "python:3.8-slim-buster",
+            "image": "python:3.10-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
@@ -372,7 +372,7 @@ def test_invalid_load_component():
     ):
 
         @lightweight_component(
-            base_image="python:3.8-slim-buster",
+            base_image="python:3.10-slim-buster",
         )
         class CreateData(DaskLoadComponent):
             def custom_load(self) -> int:
@@ -389,7 +389,7 @@ def test_invalid_load_transform_component():
     ):
 
         @lightweight_component(
-            base_image="python:3.8-slim-buster",
+            base_image="python:3.10-slim-buster",
         )
         class CreateData(DaskLoadComponent, PandasTransformComponent):
             def load(self) -> dd.DataFrame:
@@ -412,7 +412,7 @@ def test_invalid_load_component_wrong_return_type():
     ):
 
         @lightweight_component(
-            base_image="python:3.8-slim-buster",
+            base_image="python:3.10-slim-buster",
         )
         class CreateData(DaskLoadComponent):
             def load(self) -> int:

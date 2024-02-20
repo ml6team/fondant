@@ -89,7 +89,7 @@ image instead of the default one. Make sure you install Fondant in the base imag
 in the `extra_requires` argument.
 
 ```python title="pipeline.py"
-@lightweight_component(base_image="python:3.8-slim")
+@lightweight_component(base_image="python:3.10-slim")
 ```
 
 ## Optimizing loaded data
