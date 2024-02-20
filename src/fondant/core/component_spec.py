@@ -485,7 +485,7 @@ class OperationSpec:
             if not isinstance(value, str):
                 continue
 
-            if key in spec_mapping:  # TODO: additionalFields true?
+            if key in spec_mapping:
                 mapping[value] = Field(name=value, type=mapping.pop(key).type)
             else:
                 msg = (

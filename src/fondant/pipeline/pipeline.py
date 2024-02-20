@@ -215,7 +215,8 @@ class ComponentOp:
         if component_spec.consumes_is_defined is False:
             msg = (
                 "The consumes section of the component spec is not defined. "
-                "Cannot infer consumes."
+                "Can not infer consumes of the OperationSpec. Please define a consumes section "
+                "in the dataset interface. "
             )
             logger.info(msg)
             return None
