@@ -271,7 +271,7 @@ class Manifest:
                 evolved_manifest.remove_field(field_name)
 
         # Add or update all produced fields defined in the component spec
-        for name, field in operation_spec.produces_to_dataset.items():
+        for name, field in operation_spec.produces_to_dataset_schema.items():
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.

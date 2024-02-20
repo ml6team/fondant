@@ -136,7 +136,9 @@ class DaskDataLoader(DataIO):
             msg = "No data could be loaded"
             raise RuntimeError(msg)
 
-        if consumes_mapping := self.operation_spec.operations_consumes:
+        if (
+            consumes_mapping := self.operation_spec.operations_consumes_to_dataset_consumes
+        ):
             dataframe = dataframe.rename(
                 columns={
                     v: k for k, v in consumes_mapping.items() if isinstance(v, str)
@@ -209,7 +211,7 @@ class DaskDataWriter(DataIO):
 
         schema = {
             field.name: field.type.value
-            for field in self.operation_spec.produces_to_dataset.values()
+            for field in self.operation_spec.produces_to_dataset_schema.values()
         }
         return self._create_write_task(dataframe, location=location, schema=schema)
 
