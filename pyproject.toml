@@ -75,6 +75,9 @@ vertex = ["docker", "kfp", "google-cloud-aiplatform"]
 sagemaker = ["sagemaker", "boto3"]
 docker = ["docker"]
 
+all = ["dask", "dask-cuda", "s3fs", "adlfs", "gcsfs", "docker", "kfp", "google-cloud-aiplatform",
+    "sagemaker", "boto3"]
+
 [tool.poetry.group.test]
 optional = true
 
