@@ -1,13 +1,10 @@
 """This module defines interfaces which components should implement to be executed by fondant."""
 
-import logging
 import typing as t
 from abc import abstractmethod
 
 import dask.dataframe as dd
 import pandas as pd
-
-logger = logging.getLogger(__name__)
 
 
 class BaseComponent:

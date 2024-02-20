@@ -491,25 +491,15 @@ def test_fndnt_base_image_resolution():
         assert base_image_name == "fndnt/fondant:0.9-py3.9"
 
 
-def test_component_op_python_component__():
-    @lightweight_component(
-        base_image="python:3.8-slim-buster",
-        extra_requires=["pandas", "dask"],
-        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
-    )
-    class Foo(DaskLoadComponent):
-        def load(self) -> dd.DataFrame:
-            df = pd.DataFrame(
-                {
-                    "x": [1, 2, 3],
-                    "y": [4, 5, 6],
-                },
-                index=pd.Index(["a", "b", "c"], name="id"),
-            )
-            return dd.from_pandas(df, npartitions=1)
+def test_infer_consumes_if_not_defined(load_pipeline):
+    """
+    Test that the consumes mapping is inferred when not defined in dataset interface.
+    All columns of the dataset are consumed.
+    """
+    _, dataset, _, _ = load_pipeline
 
     @lightweight_component(
-        base_image="python:3.8-slim-buster",
+        base_image="python:3.10-slim-buster",
         extra_requires=["pandas", "dask"],
         consumes={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
         produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
@@ -518,16 +508,77 @@ def test_component_op_python_component__():
         def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
             return dataframe
 
-    pipeline = Pipeline(
-        name="dummy-pipeline",
-        base_path="./data",
+    dataset = dataset.apply(
+        ref=Bar,
     )
 
-    dataset = pipeline.read(
-        ref=Foo,
+    operation_spec_dict = dataset.pipeline._graph["bar"][
+        "operation"
+    ].operation_spec.to_dict()
+    assert operation_spec_dict == {
+        "consumes": {
+            "x": {"type": "int32"},
+            "y": {"type": "int32"},
+            "z": {"type": "int32"},
+        },
+        "produces": {},
+        "specification": {
+            "consumes": {
+                "x": {"type": "int32"},
+                "y": {"type": "int32"},
+                "z": {"type": "int32"},
+            },
+            "description": "lightweight component",
+            "image": "python:3.10-slim-buster",
+            "name": "Bar",
+            "produces": {
+                "x": {"type": "int32"},
+                "y": {"type": "int32"},
+                "z": {"type": "int32"},
+            },
+        },
+    }
+
+
+def test_infer_consumes_if_additional_properties_true(load_pipeline):
+    """
+    Test when additional properties is true (no consumes defined in the lightweight component),
+    the consumes is inferred from the dataset interface.
+    """
+    _, dataset, _, _ = load_pipeline
+
+    @lightweight_component(
+        base_image="python:3.10-slim-buster",
+        extra_requires=["pandas", "dask"],
+        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
     )
+    class Bar(PandasTransformComponent):
+        def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+            return dataframe
 
     dataset = dataset.apply(
         ref=Bar,
     )
-    assert True
+
+    operation_spec_dict = dataset.pipeline._graph["bar"][
+        "operation"
+    ].operation_spec.to_dict()
+    assert operation_spec_dict == {
+        "consumes": {
+            "x": {"type": "int32"},
+            "y": {"type": "int32"},
+            "z": {"type": "int32"},
+        },
+        "produces": {},
+        "specification": {
+            "consumes": {"additionalProperties": True},
+            "description": "lightweight component",
+            "image": "python:3.10-slim-buster",
+            "name": "Bar",
+            "produces": {
+                "x": {"type": "int32"},
+                "y": {"type": "int32"},
+                "z": {"type": "int32"},
+            },
+        },
+    }

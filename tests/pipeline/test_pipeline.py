@@ -590,3 +590,87 @@ def test_invoked_field_schema_raise_exception():
 
     with pytest.raises(InvalidPipelineDefinition, match=expected_error_msg):
         pipeline.validate("pipeline-id")
+
+
+@pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+            "example_1",
+            [
+                "first_component",
+                "second_component",
+                "third_component",
+                "fourth_component",
+            ],
+        ),
+    ],
+)
+def test_infer_consumes_if_not_defined(
+    default_pipeline_args,
+    valid_pipeline_example,
+    tmp_path,
+    monkeypatch,
+):
+    """Test that a valid pipeline definition can be compiled without errors."""
+    example_dir, component_names = valid_pipeline_example
+    component_args = {"storage_args": "a dummy string arg"}
+    components_path = Path(valid_pipeline_path / example_dir)
+
+    pipeline = Pipeline(**default_pipeline_args)
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
+
+    dataset = pipeline.read(
+        Path(components_path / component_names[0]),
+        arguments=component_args,
+        produces={"images_array": pa.binary()},
+    )
+
+    # Empty consumes & additionalProperties=False -> infer component spec defined columns
+    assert list(dataset.fields.keys()) == ["images_array"]
+    dataset = dataset.apply(
+        Path(components_path / component_names[1]),
+        arguments=component_args,
+    )
+
+    assert dataset.pipeline._graph["second_component"][
+        "operation"
+    ].operation_spec.to_dict()["consumes"] == {
+        "images_data": {"type": "binary"},
+    }
+
+    # Empty consumes, additionalProperties=False, two consumes fields in component spec defined
+    assert list(dataset.fields.keys()) == ["images_array", "embeddings_data"]
+    dataset = dataset.apply(
+        Path(components_path / component_names[2]),
+        arguments=component_args,
+    )
+
+    assert dataset.pipeline._graph["third_component"][
+        "operation"
+    ].operation_spec.to_dict()["consumes"] == {
+        "images_data": {"type": "binary"},
+        "embeddings_data": {"items": {"type": "float32"}, "type": "array"},
+    }
+
+    # Additional properties is true, no consumes field in dataset apply
+    # -> infer operation spec, load all columns of dataset (images_data, embeddings_data)
+    assert list(dataset.fields.keys()) == [
+        "images_array",
+        "embeddings_data",
+        "images_data",
+    ]
+    dataset = dataset.apply(
+        Path(components_path / component_names[3]),
+        arguments=component_args,
+    )
+
+    assert dataset.pipeline._graph["fourth_component"][
+        "operation"
+    ].operation_spec.to_dict()["consumes"] == {
+        "images_data": {"type": "binary"},
+        "images_array": {"type": "binary"},
+        "embeddings_data": {"items": {"type": "float32"}, "type": "array"},
+    }

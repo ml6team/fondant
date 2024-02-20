@@ -195,7 +195,7 @@ class ComponentOp:
         )
 
         # If consumes is not defined in the pipeline, we will try to infer it
-        if kwargs.get("consumes", None) is None:
+        if kwargs.get("consumes") is None:
             kwargs["consumes"] = cls._infer_consumes(component_spec, fields)
 
         image = Image(
@@ -259,7 +259,7 @@ class ComponentOp:
                 component_spec = ref.get_component_spec()
 
                 # If consumes is not defined in the pipeline, we will try to infer it
-                if kwargs.get("consumes", None) is None:
+                if kwargs.get("consumes") is None:
                     kwargs["consumes"] = cls._infer_consumes(component_spec, fields)
 
                 operation = cls(
