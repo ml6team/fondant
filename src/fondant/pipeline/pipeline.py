@@ -565,7 +565,7 @@ class Pipeline:
                 for (
                     component_field_name,
                     component_field,
-                ) in operation_spec.consumes_of_dataset.items():
+                ) in operation_spec.consumes_from_dataset.items():
                     if component_field_name not in manifest.fields:
                         msg = (
                             f"Component '{component_op.component_name}' is trying to invoke the"

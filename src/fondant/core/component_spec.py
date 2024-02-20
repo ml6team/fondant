@@ -354,7 +354,7 @@ class OperationSpec:
         self._validate_mappings()
 
         self._operation_consumes: t.Optional[t.Mapping[str, Field]] = None
-        self._consumes_of_dataset: t.Optional[t.Mapping[str, Field]] = None
+        self._consumes_from_dataset: t.Optional[t.Mapping[str, Field]] = None
         self._operation_produces: t.Optional[t.Mapping[str, Field]] = None
         self._produces_to_dataset: t.Optional[t.Mapping[str, Field]] = None
 
@@ -500,12 +500,12 @@ class OperationSpec:
         return self._operation_consumes
 
     @property
-    def consumes_of_dataset(self) -> t.Mapping[str, Field]:
+    def consumes_from_dataset(self) -> t.Mapping[str, Field]:
         """Defines which fields of the dataset are consumed by the operation."""
-        if self._consumes_of_dataset is None:
-            self._consumes_of_dataset = self._operation_to_dataset_mapping("consumes")
+        if self._consumes_from_dataset is None:
+            self._consumes_from_dataset = self._operation_to_dataset_mapping("consumes")
 
-        return self._consumes_of_dataset
+        return self._consumes_from_dataset
 
     @property
     def operations_produces(self) -> t.Mapping[str, Field]:

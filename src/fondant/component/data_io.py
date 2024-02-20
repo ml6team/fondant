@@ -106,7 +106,7 @@ class DaskDataLoader(DataIO):
             DEFAULT_INDEX_NAME,
         )
 
-        for field_name in self.operation_spec.consumes_of_dataset:
+        for field_name in self.operation_spec.consumes_from_dataset:
             location = self.manifest.get_field_location(field_name)
             field_mapping[location].append(field_name)
 
