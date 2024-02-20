@@ -674,3 +674,50 @@ def test_infer_consumes_if_not_defined(
         "images_array": {"type": "binary"},
         "embeddings_data": {"items": {"type": "float32"}, "type": "array"},
     }
+
+
+@pytest.mark.parametrize(
+    "valid_pipeline_example",
+    [
+        (
+            "example_1",
+            [
+                "first_component",
+                "third_component",
+            ],
+        ),
+    ],
+)
+def test_consumes_name_to_name_mapping(
+    default_pipeline_args,
+    valid_pipeline_example,
+    tmp_path,
+    monkeypatch,
+):
+    """Test that a valid pipeline definition can be compiled without errors."""
+    example_dir, component_names = valid_pipeline_example
+    component_args = {"storage_args": "a dummy string arg"}
+    components_path = Path(valid_pipeline_path / example_dir)
+
+    pipeline = Pipeline(**default_pipeline_args)
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
+
+    dataset = pipeline.read(
+        Path(components_path / component_names[0]),
+        arguments=component_args,
+        produces={"images_data": pa.binary(), "second_field": pa.string()},
+    )
+
+    dataset.apply(
+        Path(components_path / component_names[1]),
+        arguments=component_args,
+        consumes={"images_data": "images_data"},
+    )
+
+    assert dataset.pipeline._graph["third_component"][
+        "operation"
+    ].operation_spec.to_dict()["consumes"] == {
+        "images_data": "images_data",
+    }
