@@ -21,8 +21,8 @@ maintainers = [
     "Niels Rogge <niels.rogge@ml6.eu>",
 ]
 repository = "https://github.com/ml6team/fondant"
-include = ["*.txt", "*.rst", "*.md", "src/fondant/components/**/*.yaml"]
-exclude = ["src/fondant/components"]  # Exclude everything except for component specs
+include = ["*.txt", "*.rst", "*.md", "fondant/components/**/*.yaml"]
+exclude = ["fondant/components"]  # Exclude everything except for component specs
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
@@ -74,6 +74,9 @@ kfp = ["docker", "kfp"]
 vertex = ["docker", "kfp", "google-cloud-aiplatform"]
 sagemaker = ["sagemaker", "boto3"]
 docker = ["docker"]
+
+all = ["dask", "dask-cuda", "s3fs", "adlfs", "gcsfs", "docker", "kfp", "google-cloud-aiplatform",
+    "sagemaker", "boto3"]
 
 [tool.poetry.group.test]
 optional = true
