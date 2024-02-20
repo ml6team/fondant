@@ -21,8 +21,8 @@ maintainers = [
     "Niels Rogge <niels.rogge@ml6.eu>",
 ]
 repository = "https://github.com/ml6team/fondant"
-include = ["*.txt", "*.rst", "*.md", "src/fondant/components/**/*.yaml"]
-exclude = ["src/fondant/components"]  # Exclude everything except for component specs
+include = ["*.txt", "*.rst", "*.md", "fondant/components/**/*.yaml"]
+exclude = ["fondant/components"]  # Exclude everything except for component specs
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
