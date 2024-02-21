@@ -1,4 +1,5 @@
 """This module defines interfaces which components should implement to be executed by fondant."""
+import logging
 import os
 import typing as t
 from abc import abstractmethod
@@ -57,7 +58,12 @@ class DaskComponent(BaseComponent):
         return Client(cluster)
 
     def teardown(self, client: t.Any) -> None:
-        return client.shutdown()
+        try:
+            client.shutdown()
+        except Exception:
+            msg = "Caught error while shutting down Client. Exiting anyway."
+            logging.exception(msg)
+            pass
 
 
 class DaskLoadComponent(DaskComponent):
