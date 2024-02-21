@@ -62,4 +62,6 @@ dataset = dataset.apply(
     arguments={"arg_x": "value_x"},
 )
 
-dataset.write(ref="write_to_file", arguments={"path": "/data/export"})
+dataset.write(
+    ref="write_to_file", arguments={"path": "/data/export"}, consumes={"text": "text"}
+)

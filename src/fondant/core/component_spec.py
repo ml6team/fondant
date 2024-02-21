@@ -464,25 +464,34 @@ class OperationSpec:
         Args:
             name: "consumes" or "produces"
         """
-        spec_mapping = getattr(self, f"operations_{name}")
-        args_mapping = self._mappings[name]
+        operations_schema = getattr(self, f"operations_{name}")
 
-        if not args_mapping:
-            return spec_mapping
+        # Dataset arguments mapping
+        column_mapping_args = self._mappings[name]
 
-        mapping = dict(spec_mapping)
+        if not column_mapping_args:
+            return operations_schema
 
-        for key, value in args_mapping.items():
-            if not isinstance(value, str):
+        mapping = dict(operations_schema)
+
+        for (
+            operations_column_name,
+            dataset_column_name_or_type,
+        ) in column_mapping_args.items():
+            # If the value is not a string, it means it's a type, so we skip it
+            if not isinstance(dataset_column_name_or_type, str):
                 continue
 
-            if key in spec_mapping:
-                mapping[value] = Field(name=value, type=mapping.pop(key).type)
+            if operations_column_name in operations_schema:
+                mapping[dataset_column_name_or_type] = Field(
+                    name=dataset_column_name_or_type,
+                    type=mapping.pop(operations_column_name).type,
+                )
             else:
                 msg = (
-                    f"Received a string value for key `{key}` in the `{name}` "
-                    f"argument passed to the operation, but `{key}` is not defined in "
-                    f"the `{name}` section of the component spec."
+                    f"Received a string value for key `{operations_column_name}` in the `{name}` "
+                    f"argument passed to the operation, but `{operations_column_name}` is not "
+                    f"defined in the `{name}` section of the component spec."
                 )
                 raise InvalidPipelineDefinition(msg)
 
