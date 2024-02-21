@@ -47,6 +47,9 @@ class DaskComponent(BaseComponent):
         super().__init__()
 
     def setup(self) -> t.Any:
+        # Don't assume every object is a string
+        # https://docs.dask.org/en/stable/changelog.html#v2023-7-1
+        dask.config.set({"dataframe.convert-string": False})
         # worker.daemon is set to false because creating a worker process in daemon
         # mode is not possible in our docker container setup.
         dask.config.set({"distributed.worker.daemon": False})
