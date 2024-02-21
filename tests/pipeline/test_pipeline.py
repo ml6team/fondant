@@ -332,28 +332,29 @@ def test_invalid_pipeline_schema(
             str(tmp_path / "test_pipeline.tgz"),
         )
 
-        dataset = pipeline.read(
-            Path(components_path / component_names[0]),
-            arguments=component_args,
-            produces=spec[0]["produces"],
-        )
-        dataset = dataset.apply(
-            Path(components_path / component_names[1]),
-            arguments=component_args,
-            consumes=spec[1]["consumes"],
-            produces=spec[1]["produces"],
-        )
-        dataset = dataset.apply(
-            Path(components_path / component_names[2]),
-            arguments=component_args,
-            consumes=spec[2]["consumes"],
-        )
-        dataset.apply(
-            Path(components_path / component_names[3]),
-            arguments=component_args,
-            consumes=spec[3]["consumes"],
-        )
-        with pytest.raises(InvalidPipelineDefinition):
+        with pytest.raises(InvalidPipelineDefinition):  # noqa: PT012
+            dataset = pipeline.read(
+                Path(components_path / component_names[0]),
+                arguments=component_args,
+                produces=spec[0]["produces"],
+            )
+            dataset = dataset.apply(
+                Path(components_path / component_names[1]),
+                arguments=component_args,
+                consumes=spec[1]["consumes"],
+                produces=spec[1]["produces"],
+            )
+            dataset = dataset.apply(
+                Path(components_path / component_names[2]),
+                arguments=component_args,
+                consumes=spec[2]["consumes"],
+            )
+            dataset.apply(
+                Path(components_path / component_names[3]),
+                arguments=component_args,
+                consumes=spec[3]["consumes"],
+            )
+
             pipeline._validate_pipeline_definition("test_pipeline")
 
 
