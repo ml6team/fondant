@@ -242,120 +242,57 @@ def test_valid_pipeline(
     pipeline._validate_pipeline_definition("test_pipeline")
 
 
-@pytest.mark.parametrize(
-    "valid_pipeline_example",
-    [
-        (
-            "example_1",
-            [
-                "first_component",
-                "second_component",
-                "third_component",
-                "fourth_component",
-            ],
-        ),
-    ],
-)
 def test_invalid_pipeline_schema(
     default_pipeline_args,
-    valid_pipeline_example,
     tmp_path,
     monkeypatch,
 ):
     """Test that valid pipeline errors are returned when defining invalid pipeline schemas."""
-    example_dir, component_names = valid_pipeline_example
     component_args = {"storage_args": "a dummy string arg"}
-    components_path = Path(valid_pipeline_path / example_dir)
+    components_path = Path(valid_pipeline_path / "example_1")
 
-    default_valid_spec = {
-        0: {
-            "produces": {"images_array": pa.binary()},
-        },
-        1: {
-            "consumes": {"images_array": "images_data"},
-            "produces": {"embeddings_data": "embeddings_array"},
-        },
-        2: {
-            "consumes": {
-                "images_array": "images_data",
-                "embeddings_array": "embeddings_data",
-            },
-        },
-        3: {
-            "consumes": {"images_array": "images_array"},
-        },
-    }
+    pipeline = Pipeline(**default_pipeline_args)
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(
+        pipeline,
+        "package_path",
+        str(tmp_path / "test_pipeline.tgz"),
+    )
 
-    invalid_specs = [
-        # "images_pictures" does not exist in the dataset
-        {
-            1: {
-                "consumes": {"images_pictures": "images_data"},
-                "produces": {"embeddings_data": "embeddings_array"},
-            },
-        },
-        # "images_array" does not exist in the component spec
-        {
-            1: {
-                "consumes": {"images_pictures": "images_array"},
-                "produces": {"embeddings_data": "embeddings_array"},
-            },
-        },
-        # Extra field in the produces mapping that does not have a corresponding field for a
-        # non-generic component
-        {
-            1: {
-                "consumes": {
-                    "images_pictures": "images_array",
-                    "non_existent_field": "non_existent_field",
-                },
-                "produces": {"embeddings_data": "embeddings_array"},
-            },
-        },
-        # A custom field is defined in the produced mapping of a generic component which
-        # already exists in the dataset
-        {
-            3: {
-                "consumes": {"embeddings_data": "embeddings_field"},
-            },
-        },
-    ]
+    dataset = pipeline.read(
+        Path(components_path / "first_component"),
+        arguments=component_args,
+        produces={"images_array": pa.binary()},
+    )
 
-    for invalid_spec in invalid_specs:
-        spec = copy.deepcopy(default_valid_spec)
-        spec.update(invalid_spec)
-        pipeline = Pipeline(**default_pipeline_args)
-        # override the default package_path with temporary path to avoid the creation of artifacts
-        monkeypatch.setattr(
-            pipeline,
-            "package_path",
-            str(tmp_path / "test_pipeline.tgz"),
+    # "images_pictures" does not exist in the dataset
+    with pytest.raises(InvalidPipelineDefinition):
+        dataset.apply(
+            Path(components_path / "second_component"),
+            arguments=component_args,
+            consumes={"images_pictures": "images_array"},
         )
 
-        with pytest.raises(InvalidPipelineDefinition):  # noqa: PT012
-            dataset = pipeline.read(
-                Path(components_path / component_names[0]),
-                arguments=component_args,
-                produces=spec[0]["produces"],
-            )
-            dataset = dataset.apply(
-                Path(components_path / component_names[1]),
-                arguments=component_args,
-                consumes=spec[1]["consumes"],
-                produces=spec[1]["produces"],
-            )
-            dataset = dataset.apply(
-                Path(components_path / component_names[2]),
-                arguments=component_args,
-                consumes=spec[2]["consumes"],
-            )
-            dataset.apply(
-                Path(components_path / component_names[3]),
-                arguments=component_args,
-                consumes=spec[3]["consumes"],
-            )
+    # "images_array" does not exist in the component spec
+    with pytest.raises(InvalidPipelineDefinition):
+        dataset.apply(
+            Path(components_path / "second_component"),
+            arguments=component_args,
+            consumes={"images_array": "images_array"},
+        )
 
-            pipeline._validate_pipeline_definition("test_pipeline")
+    # Extra field in the consumes mapping that does not have a corresponding field
+    # in the dataset
+    with pytest.raises(InvalidPipelineDefinition):
+        dataset.apply(
+            Path(components_path / "second_component"),
+            arguments=component_args,
+            consumes={
+                "images_pictures": "images_array",
+                "non_existent_field": "non_existent_field",
+            },
+            produces={"embeddings_data": "embeddings_array"},
+        )
 
 
 @pytest.mark.parametrize(
@@ -677,48 +614,33 @@ def test_infer_consumes_if_not_defined(
     }
 
 
-@pytest.mark.parametrize(
-    "valid_pipeline_example",
-    [
-        (
-            "example_1",
-            [
-                "first_component",
-                "third_component",
-            ],
-        ),
-    ],
-)
 def test_consumes_name_to_name_mapping(
     default_pipeline_args,
-    valid_pipeline_example,
     tmp_path,
     monkeypatch,
 ):
     """Test that a valid pipeline definition can be compiled without errors."""
-    example_dir, component_names = valid_pipeline_example
     component_args = {"storage_args": "a dummy string arg"}
-    components_path = Path(valid_pipeline_path / example_dir)
-
+    components_path = Path(valid_pipeline_path / "example_1")
     pipeline = Pipeline(**default_pipeline_args)
 
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
     dataset = pipeline.read(
-        Path(components_path / component_names[0]),
+        Path(components_path / "first_component"),
         arguments=component_args,
         produces={"images_data": pa.binary(), "second_field": pa.string()},
     )
 
     dataset.apply(
-        Path(components_path / component_names[1]),
+        Path(components_path / "fourth_component"),
         arguments=component_args,
         consumes={"images_data": "images_data"},
     )
 
-    assert dataset.pipeline._graph["third_component"][
+    assert dataset.pipeline._graph["fourth_component"][
         "operation"
     ].operation_spec.to_dict()["consumes"] == {
-        "images_data": "images_data",
+        "images_data": {"type": "binary"},
     }
