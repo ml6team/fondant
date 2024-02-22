@@ -21,7 +21,8 @@ class WriteToFile(DaskWriteComponent):
             self.path = self.path + "/export-*.csv"
             dataframe.to_csv(self.path)
         elif self.format.lower() == "parquet":
-            dataframe.to_parquet(self.path)
+            schema = {field.name: field.type.value for field in self.consumes.values()}
+            dataframe.to_parquet(self.path, schema=schema, write_metadata_file=True)
         else:
             msg = (
                 f"Not supported file format {self.format}. Writing to file is only "
