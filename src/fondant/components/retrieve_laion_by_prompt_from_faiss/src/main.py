@@ -1,5 +1,6 @@
 import typing as t
 
+import dask.dataframe as dd
 import faiss
 import fsspec
 import pandas as pd
@@ -13,6 +14,7 @@ class RetrieveFromLaionByPrompt(PandasTransformComponent):
     def __init__(
         self,
         index_url: str,
+        dataset_url: str,
         clip_model: str = "laion/CLIP-ViT-B-32-laion2B-s34B-b79K",
         num_images: int = 2,
     ):
@@ -28,7 +30,11 @@ class RetrieveFromLaionByPrompt(PandasTransformComponent):
             with open("faiss_index", "wb") as out:
                 out.write(file_contents)
 
-        self.ind = faiss.read_index("faiss_index")
+        self.search_index = faiss.read_index("faiss_index")
+        self.dataset_url = dataset_url
+
+        dataset_index = dd.read_parquet(dataset_url)
+        self.image_urls = dataset_index["url"].compute().to_list()
 
     def retrieve_from_index(
         self,
@@ -38,8 +44,8 @@ class RetrieveFromLaionByPrompt(PandasTransformComponent):
         inputs = self.tokenizer([prompt], padding=True, return_tensors="pt")
         outputs = self.model(**inputs)
         query = outputs.text_embeds.cpu().detach().numpy().astype("float64")
-        distances, indices = self.ind.search(query, number_of_images)
-        return indices
+        _, indices = self.search_index.search(query, number_of_images)
+        return indices.tolist()[0]
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         results = []
@@ -47,11 +53,13 @@ class RetrieveFromLaionByPrompt(PandasTransformComponent):
             prompt = row["prompt"]
             indices = self.retrieve_from_index(prompt, self.number_of_images)
             for i in indices:
-                results.append((index, i))
+                image_url = self.image_urls[i]
+                print(index, i)
+                results.append((index, prompt, i, image_url))
 
-        results_df = pd.DataFrame(results, columns=["prompt_id", "image_index"])
-
-        # TODO: retrieve image url for each image index
-        results_df = results_df.astype({"id": str, "prompt_id": str})
-        results_df = results_df.set_index("id")
+        results_df = pd.DataFrame(
+            results,
+            columns=["prompt_id", "prompt", "image_index", "image_url"],
+        )
+        results_df = results_df.astype({"prompt_id": str})
         return results_df
