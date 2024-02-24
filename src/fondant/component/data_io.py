@@ -5,7 +5,6 @@ from collections import defaultdict
 
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
-from dask.distributed import Client
 
 from fondant.core.component_spec import OperationSpec
 from fondant.core.manifest import Manifest
@@ -157,7 +156,6 @@ class DaskDataWriter(DataIO):
     def write_dataframe(
         self,
         dataframe: dd.DataFrame,
-        dask_client: t.Optional[Client] = None,
     ) -> None:
         dataframe.index = dataframe.index.rename(DEFAULT_INDEX_NAME)
 
@@ -176,7 +174,7 @@ class DaskDataWriter(DataIO):
 
         with ProgressBar():
             logging.info("Writing data...")
-            dd.compute(write_task, scheduler=dask_client)
+            dd.compute(write_task)
 
     @staticmethod
     def validate_dataframe_columns(dataframe: dd.DataFrame, columns: t.List[str]):
@@ -234,7 +232,6 @@ class DaskDataWriter(DataIO):
             schema=schema,
             overwrite=False,
             compute=False,
-            write_metadata_file=True,
         )
         logging.info(f"Creating write task for: {location}")
         return write_task
