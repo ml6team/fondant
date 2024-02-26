@@ -11,7 +11,7 @@ ID_MAPPING = "id_mapping"
 FAISS_INDEX = "faiss3"
 
 
-class RetrieveFromFaissIndex(DaskTransformComponent):
+class RetrieveImagesFromFaissIndex(DaskTransformComponent):
     """Retrieve images from a faiss index using CLIP embeddings."""
 
     def __init__(

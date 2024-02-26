@@ -1,7 +1,7 @@
 import dask.dataframe as dd
 import pandas as pd
 
-from src.main import RetrieveFromFaissIndex
+from src.main import RetrieveImagesFromFaissIndex
 
 
 def test_component():
@@ -22,7 +22,7 @@ def test_component():
         },
     )
 
-    component = RetrieveFromFaissIndex(
+    component = RetrieveImagesFromFaissIndex(
         dataset_url="./tests/resources",
     )
 
