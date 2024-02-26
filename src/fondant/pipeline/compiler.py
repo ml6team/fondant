@@ -28,11 +28,6 @@ logger = logging.getLogger(__name__)
 
 DASK_DIAGNOSTIC_DASHBOARD_PORT = 8787
 
-# Temporarily disabled exposing the Dask diagnostic dashboard port to the docker setup.
-# Executing docker containers after each other using docker compose,
-# leads sometimes to the case that the port is already in use.
-EXPOSING_DASK_DIAGNOSTIC_DASHBOARD = False
-
 KubeflowCommandArguments = t.List[t.Union[str, t.Dict[str, str]]]
 
 
@@ -264,17 +259,14 @@ class DockerCompiler(Compiler):
             if extra_volumes:
                 volumes.extend(extra_volumes)
 
-            ports: t.List[t.Union[str, dict]] = []
-            if EXPOSING_DASK_DIAGNOSTIC_DASHBOARD:
-                ports.append(
-                    f"{DASK_DIAGNOSTIC_DASHBOARD_PORT}:{DASK_DIAGNOSTIC_DASHBOARD_PORT}",
-                )
+            ports: t.List[int] = [DASK_DIAGNOSTIC_DASHBOARD_PORT]
 
             services[component_id] = {
                 "entrypoint": entrypoint,
                 "command": command,
                 "depends_on": depends_on,
                 "volumes": volumes,
+                "ports": ports,
                 "labels": {
                     "pipeline_description": pipeline.description,
                 },
