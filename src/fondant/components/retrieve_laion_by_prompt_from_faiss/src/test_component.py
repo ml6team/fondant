@@ -1,8 +1,10 @@
+import dask.dataframe as dd
 import pandas as pd
-from main import RetrieveFromLaionByPrompt
+
+from src.main import RetrieveFromFaissIndex
 
 
-def test_component(monkeypatch):
+def test_component():
     input_dataframe = pd.DataFrame.from_dict(
         {
             "id": ["1", "2"],
@@ -21,11 +23,15 @@ def test_component(monkeypatch):
     )
     expected_output_dataframe = expected_output_dataframe.set_index("id")
 
-    component = RetrieveFromLaionByPrompt(
-        dataset_url="gs://soy-audio-379412-embed-datacomp/estimate/index-datacomp-small-64/index-datacomp-small-64-20240215120946/id_mapping",
-        index_url="./faiss-idx",
+    component = RetrieveFromFaissIndex(
+        dataset_url="gs://soy-audio-379412-embed-datacomp/estimate/index-datacomp-small-64/index-datacomp-small-64-20240215120946",
     )
 
+    input_dataframe = dd.from_pandas(input_dataframe, npartitions=4)
     output_dataframe = component.transform(input_dataframe)
-
-    print(output_dataframe.head())
+    assert output_dataframe.columns.tolist() == [
+        "prompt_id",
+        "prompt",
+        "image_index",
+        "image_url",
+    ]
