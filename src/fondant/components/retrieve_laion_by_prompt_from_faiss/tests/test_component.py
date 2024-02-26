@@ -14,17 +14,16 @@ def test_component():
 
     input_dataframe = input_dataframe.set_index("id")
 
-    expected_output_dataframe = pd.DataFrame.from_dict(
+    pd.DataFrame.from_dict(
         {
             "id": ["a", "b", "c", "d"],
             "image_url": ["http://a", "http://b", "http://c", "http://d"],
             "prompt_id": ["1", "1", "2", "2"],
         },
     )
-    expected_output_dataframe = expected_output_dataframe.set_index("id")
 
     component = RetrieveFromFaissIndex(
-        dataset_url="gs://soy-audio-379412-embed-datacomp/estimate/index-datacomp-small-64/index-datacomp-small-64-20240215120946",
+        dataset_url="./tests/resources",
     )
 
     input_dataframe = dd.from_pandas(input_dataframe, npartitions=4)
