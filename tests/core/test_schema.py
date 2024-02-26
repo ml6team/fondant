@@ -15,6 +15,22 @@ def test_valid_type():
         "type": "array",
         "items": {"type": "float32"},
     }
+    assert Type.struct(
+        [
+            ("f1", "int32"),
+            ("f2", "string"),
+            ("f3", Type.list("int8")),
+            ("f4", Type.struct([("f5", "int32")])),
+        ],
+    ).to_dict() == {
+        "type": "object",
+        "properties": {
+            "f1": {"type": "int32"},
+            "f2": {"type": "string"},
+            "f3": {"type": "array", "items": {"type": "int8"}},
+            "f4": {"type": "object", "properties": {"f5": {"type": "int32"}}},
+        },
+    }
 
 
 def test_valid_json_schema():
@@ -26,6 +42,24 @@ def test_valid_json_schema():
     assert Type.from_dict(
         {"type": "array", "items": {"type": "array", "items": {"type": "int8"}}},
     ).value == pa.list_(pa.list_(pa.int8()))
+    assert Type.from_dict(
+        {
+            "type": "object",
+            "properties": {
+                "f1": {"type": "int32"},
+                "f2": {"type": "string"},
+                "f3": {"type": "array", "items": {"type": "int8"}},
+                "f4": {"type": "object", "properties": {"f5": {"type": "int32"}}},
+            },
+        },
+    ) == Type.struct(
+        [
+            ("f1", "int32"),
+            ("f2", "string"),
+            ("f3", Type.list("int8")),
+            ("f4", Type.struct([("f5", "int32")])),
+        ],
+    )
 
 
 @pytest.mark.parametrize(
