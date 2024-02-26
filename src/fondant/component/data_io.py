@@ -4,6 +4,7 @@ import typing as t
 from collections import defaultdict
 
 import dask.dataframe as dd
+import pandas as pd
 from dask.diagnostics import ProgressBar
 
 from fondant.core.component_spec import OperationSpec
@@ -237,4 +238,5 @@ class DaskDataWriter(DataIO):
         logging.info(f"Creating write task for: {location}")
         return dataframe.map_partitions(
             to_parquet,
+            meta=pd.DataFrame(),
         )
