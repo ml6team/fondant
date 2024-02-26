@@ -68,9 +68,6 @@ class DownloadImagesComponent(PandasTransformComponent):
         # worker.daemon is set to false because creating a worker process in daemon
         # mode is not possible in our docker container setup.
         dask.config.set({"distributed.worker.daemon": False})
-        dask.config.set({"distributed.worker.memory.target": False})
-        dask.config.set({"distributed.worker.memory.spill": False})
-        dask.config.set({"distributed.worker.memory.pause": 0.2})
         cluster = LocalCluster(
             processes=True,
             n_workers=64,
