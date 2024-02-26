@@ -14,6 +14,7 @@ from pathlib import Path
 
 import dask.dataframe as dd
 import pandas as pd
+from dask.distributed import Client
 from fsspec import open as fs_open
 
 from fondant.component import (
@@ -209,6 +210,7 @@ class Executor(t.Generic[Component]):
         dataframe: dd.DataFrame,
         *,
         manifest: Manifest,
+        client: Client,
     ):
         """Create a data writer given a manifest and writes out the index and subsets."""
         data_writer = DaskDataWriter(
@@ -216,7 +218,7 @@ class Executor(t.Generic[Component]):
             operation_spec=self.operation_spec,
         )
 
-        data_writer.write_dataframe(dataframe)
+        data_writer.write_dataframe(dataframe, client=client)
 
     def _get_cache_reference_content(self) -> t.Union[str, None]:
         """
@@ -287,7 +289,7 @@ class Executor(t.Generic[Component]):
         component.consumes = self.operation_spec.inner_consumes
         component.produces = self.operation_spec.inner_produces
 
-        state = component.setup()
+        client = component.setup()
 
         output_df = self._execute_component(
             component,
@@ -298,9 +300,9 @@ class Executor(t.Generic[Component]):
             operation_spec=self.operation_spec,
             run_id=self.metadata.run_id,
         )
-        self._write_data(dataframe=output_df, manifest=output_manifest)
+        self._write_data(dataframe=output_df, manifest=output_manifest, client=client)
 
-        component.teardown(state)
+        component.teardown(client)
 
         return output_manifest
 
@@ -569,7 +571,13 @@ class DaskWriteExecutor(Executor[DaskWriteComponent]):
         dataframe = data_loader.load_dataframe()
         component.write(dataframe)
 
-    def _write_data(self, dataframe: dd.DataFrame, *, manifest: Manifest):
+    def _write_data(
+        self,
+        dataframe: dd.DataFrame,
+        *,
+        manifest: Manifest,
+        client: Client,
+    ):
         """Create a data writer given a manifest and writes out the index and subsets."""
 
     def upload_manifest(self, manifest: Manifest, save_path: t.Union[str, Path]):

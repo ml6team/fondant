@@ -4,6 +4,7 @@ import typing as t
 from collections import defaultdict
 
 import dask.dataframe as dd
+from dask.distributed import Client
 
 from fondant.core.component_spec import OperationSpec
 from fondant.core.manifest import Manifest
@@ -155,6 +156,7 @@ class DaskDataWriter(DataIO):
     def write_dataframe(
         self,
         dataframe: dd.DataFrame,
+        client: Client,
     ) -> None:
         dataframe.index = dataframe.index.rename(DEFAULT_INDEX_NAME)
 
@@ -170,7 +172,7 @@ class DaskDataWriter(DataIO):
                 },
             )
 
-        self._write_dataframe(dataframe)
+        self._write_dataframe(dataframe, client=client)
 
     @staticmethod
     def validate_dataframe_columns(dataframe: dd.DataFrame, columns: t.List[str]):
@@ -189,7 +191,7 @@ class DaskDataWriter(DataIO):
                 msg,
             )
 
-    def _write_dataframe(self, dataframe: dd.DataFrame) -> dd.core.Scalar:
+    def _write_dataframe(self, dataframe: dd.DataFrame, client: Client) -> None:
         """Create dataframe writing task."""
         location = (
             f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
@@ -202,8 +204,11 @@ class DaskDataWriter(DataIO):
         }
 
         logging.info(f"Creating write task for: {location}")
-        dataframe.to_parquet(
+        write_task = dataframe.to_parquet(
             location,
             schema=schema,
             overwrite=False,
+            compute=False,
         )
+
+        client.compute(write_task)
