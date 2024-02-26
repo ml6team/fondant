@@ -101,7 +101,7 @@ def test_docker_is_not_available():
 def test_docker_version_is_not_supported():
     expected_msg = (
         "Docker version is not compatible. Please make sure "
-        "You have Docker version 24.0.0 or higher installed. "
+        "You have Docker version 20.10.0 or higher installed. "
         "Your current version is: "
     )
     with mock.patch(
