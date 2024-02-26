@@ -21,7 +21,7 @@ def test_pdf_reader():
 
     for path in pdf_path:
         component = PDFReader(
-            produces=dict(spec.operations_produces),
+            produces=dict(spec.operation_produces),
             pdf_path=path,
             n_rows_to_load=None,
             index_column=None,

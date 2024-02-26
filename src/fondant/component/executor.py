@@ -284,8 +284,8 @@ class Executor(t.Generic[Component]):
 
         component: Component = component_cls(**self.user_arguments)
 
-        component.consumes = self.operation_spec.operations_consumes
-        component.produces = self.operation_spec.operations_produces
+        component.consumes = self.operation_spec.operation_consumes
+        component.produces = self.operation_spec.operation_produces
 
         state = component.setup()
 
@@ -496,7 +496,7 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
 
             # Drop columns not in specification
             columns = [
-                name for name, field in operation_spec.operations_produces.items()
+                name for name, field in operation_spec.operation_produces.items()
             ]
 
             return dataframe[columns]
@@ -525,7 +525,7 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
 
         # Create meta dataframe with expected format
         meta_dict = {"id": pd.Series(dtype="object")}
-        for field_name, field in self.operation_spec.operations_produces.items():
+        for field_name, field in self.operation_spec.operation_produces.items():
             meta_dict[field_name] = pd.Series(dtype=pd.ArrowDtype(field.type.value))
         meta_df = pd.DataFrame(meta_dict).set_index("id")
 

@@ -137,7 +137,7 @@ class DaskDataLoader(DataIO):
             raise RuntimeError(msg)
 
         if (
-            consumes_mapping := self.operation_spec.operations_consumes_to_dataset_consumes
+            consumes_mapping := self.operation_spec.operation_consumes_to_dataset_consumes
         ):
             dataframe = dataframe.rename(
                 columns={
@@ -169,7 +169,7 @@ class DaskDataWriter(DataIO):
         dataframe.index = dataframe.index.rename(DEFAULT_INDEX_NAME)
 
         # validation that all columns are in the dataframe
-        expected_columns = list(self.operation_spec.operations_produces)
+        expected_columns = list(self.operation_spec.operation_produces)
         self.validate_dataframe_columns(dataframe, expected_columns)
 
         dataframe = dataframe[expected_columns]
@@ -211,7 +211,7 @@ class DaskDataWriter(DataIO):
 
         schema = {
             field.name: field.type.value
-            for field in self.operation_spec.produces_to_dataset_schema.values()
+            for field in self.operation_spec.produces_to_dataset.values()
         }
         return self._create_write_task(dataframe, location=location, schema=schema)
 

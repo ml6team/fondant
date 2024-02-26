@@ -414,7 +414,7 @@ class OperationSpec:
                     msg = f"Unexpected type {type(value)} received for key {key} in {name} mapping"
                     raise InvalidPipelineDefinition(msg)
 
-    def _dataset_schema_to_operations_schema(self, name: str) -> t.Mapping[str, Field]:
+    def _dataset_schema_to_operation_schema(self, name: str) -> t.Mapping[str, Field]:
         """Calculate the operations schema based on dataset schema.
         Maps dataset fields to the fields that the operation will receive.
         This is the mapping that the component
@@ -464,12 +464,12 @@ class OperationSpec:
         Args:
             name: "consumes" or "produces"
         """
-        operations_schema = getattr(self, f"operations_{name}")
+        operations_schema = getattr(self, f"operation_{name}")
 
         # Dataset arguments mapping
-        column_mapping_args = self._mappings[name]
+        operation_to_dataset_mapping = self._mappings[name]
 
-        if not column_mapping_args:
+        if not operation_to_dataset_mapping:
             return operations_schema
 
         mapping = dict(operations_schema)
@@ -477,7 +477,7 @@ class OperationSpec:
         for (
             operations_column_name,
             dataset_column_name_or_type,
-        ) in column_mapping_args.items():
+        ) in operation_to_dataset_mapping.items():
             # If the value is not a string, it means it's a type, so we skip it
             if not isinstance(dataset_column_name_or_type, str):
                 continue
@@ -498,12 +498,12 @@ class OperationSpec:
         return types.MappingProxyType(mapping)
 
     @property
-    def operations_consumes(self) -> t.Mapping[str, Field]:
+    def operation_consumes(self) -> t.Mapping[str, Field]:
         """The operations `consumes` mapping which the component `transform` (or equivalent) method
         will receive.
         """
         if self._operation_consumes is None:
-            self._operation_consumes = self._dataset_schema_to_operations_schema(
+            self._operation_consumes = self._dataset_schema_to_operation_schema(
                 "consumes",
             )
 
@@ -520,19 +520,19 @@ class OperationSpec:
         return self._consumes_from_dataset
 
     @property
-    def operations_produces(self) -> t.Mapping[str, Field]:
+    def operation_produces(self) -> t.Mapping[str, Field]:
         """The operations `produces` mapping which the component `transform` (or equivalent) method
         will receive.
         """
         if self._operation_produces is None:
-            self._operation_produces = self._dataset_schema_to_operations_schema(
+            self._operation_produces = self._dataset_schema_to_operation_schema(
                 "produces",
             )
 
         return self._operation_produces
 
     @property
-    def produces_to_dataset_schema(self) -> t.Mapping[str, Field]:
+    def produces_to_dataset(self) -> t.Mapping[str, Field]:
         """The produces schema used by data_io to write the dataset."""
         if self._produces_to_dataset is None:
             self._produces_to_dataset = self._operation_schema_to_dataset_schema(
@@ -542,7 +542,7 @@ class OperationSpec:
         return self._produces_to_dataset
 
     @property
-    def operations_consumes_to_dataset_consumes(self):
+    def operation_consumes_to_dataset_consumes(self):
         """
         The consumes name mapping. The key is the name of the field in the operation, value is the
         name of the field in the dataset.
