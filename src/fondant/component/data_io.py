@@ -226,12 +226,15 @@ class DaskDataWriter(DataIO):
              A delayed Dask task that uploads the DataFrame to the remote storage location when
               executed.
         """
-        write_task = dd.to_parquet(
-            dataframe,
-            location,
-            schema=schema,
-            overwrite=False,
-            compute=False,
-        )
+
+        def to_parquet(df, partition_info):
+            path = f"part.{partition_info['number']}.parquet"
+            df.to_parquet(
+                location.rstrip("/") + "/" + path,
+                schema=schema,
+            )
+
         logging.info(f"Creating write task for: {location}")
-        return write_task
+        return dataframe.map_partitions(
+            to_parquet,
+        )
