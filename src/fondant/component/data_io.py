@@ -4,6 +4,7 @@ import typing as t
 from collections import defaultdict
 
 import dask.dataframe as dd
+import pyarrow as pa
 from dask.distributed import Client, as_completed
 
 from fondant.core.component_spec import OperationSpec
@@ -208,7 +209,7 @@ class DaskDataWriter(DataIO):
         parquet_files = [
             d.to_parquet(
                 os.path.join(location, f"part.{i}.parquet"),
-                schema=schema,
+                schema=pa.schema(list(schema.items())),
             )
             for (i, d) in enumerate(dataframe.to_delayed())
         ]
