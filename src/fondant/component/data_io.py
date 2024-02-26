@@ -4,8 +4,6 @@ import typing as t
 from collections import defaultdict
 
 import dask.dataframe as dd
-import pandas as pd
-import pyarrow as pa
 from dask.diagnostics import ProgressBar
 
 from fondant.core.component_spec import OperationSpec
@@ -172,11 +170,9 @@ class DaskDataWriter(DataIO):
                     k: v for k, v in produces_mapping.items() if isinstance(v, str)
                 },
             )
-        write_task = self._write_dataframe(dataframe)
 
         with ProgressBar():
-            logging.info("Writing data...")
-            dd.compute(write_task)
+            self._write_dataframe(dataframe)
 
     @staticmethod
     def validate_dataframe_columns(dataframe: dd.DataFrame, columns: t.List[str]):
@@ -206,39 +202,10 @@ class DaskDataWriter(DataIO):
             field.name: field.type.value
             for field in self.operation_spec.outer_produces.values()
         }
-        return self._create_write_task(dataframe, location=location, schema=schema)
-
-    @staticmethod
-    def _create_write_task(
-        dataframe: dd.DataFrame,
-        *,
-        location: str,
-        schema: t.Dict[str, str],
-    ) -> dd.core.Scalar:
-        """
-        Creates a delayed Dask task to upload the given DataFrame to the remote storage location
-         specified in the manifest.
-
-        Args:
-            dataframe: The DataFrame to be uploaded.
-            location: the location to write the subset to
-            schema: the schema of the dataframe to write
-
-        Returns:
-             A delayed Dask task that uploads the DataFrame to the remote storage location when
-              executed.
-        """
-        pa_schema = pa.schema(list(schema.items()))
-
-        def to_parquet(df, partition_info):
-            path = f"part.{partition_info['number']}.parquet"
-            df.to_parquet(
-                location.rstrip("/") + "/" + path,
-                schema=pa_schema,
-            )
 
         logging.info(f"Creating write task for: {location}")
-        return dataframe.map_partitions(
-            to_parquet,
-            meta=pd.DataFrame(),
+        dataframe.to_parquet(
+            location,
+            schema=schema,
+            overwrite=False,
         )
