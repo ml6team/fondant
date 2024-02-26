@@ -7,8 +7,10 @@ import io
 import logging
 import typing as t
 
+import dask
 import httpx
 import pandas as pd
+from dask.distributed import Client, LocalCluster
 from fondant.component import PandasTransformComponent
 from resizer import Resizer
 
@@ -58,6 +60,23 @@ class DownloadImagesComponent(PandasTransformComponent):
             min_image_size=min_image_size,
             max_aspect_ratio=max_aspect_ratio,
         )
+
+    def setup(self) -> t.Any:
+        # Don't assume every object is a string
+        # https://docs.dask.org/en/stable/changelog.html#v2023-7-1
+        dask.config.set({"dataframe.convert-string": False})
+        # worker.daemon is set to false because creating a worker process in daemon
+        # mode is not possible in our docker container setup.
+        dask.config.set({"distributed.worker.daemon": False})
+        dask.config.set({"distributed.worker.memory.target": False})
+        dask.config.set({"distributed.worker.memory.spill": False})
+        dask.config.set({"distributed.worker.memory.pause": 0.2})
+        cluster = LocalCluster(
+            processes=True,
+            n_workers=64,
+            threads_per_worker=1,
+        )
+        return Client(cluster)
 
     async def download_image(
         self,
