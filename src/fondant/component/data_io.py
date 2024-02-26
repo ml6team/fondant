@@ -4,7 +4,7 @@ import typing as t
 from collections import defaultdict
 
 import dask.dataframe as dd
-from dask.distributed import Client
+from dask.distributed import Client, as_completed
 
 from fondant.core.component_spec import OperationSpec
 from fondant.core.manifest import Manifest
@@ -204,11 +204,18 @@ class DaskDataWriter(DataIO):
         }
 
         logging.info(f"Creating write task for: {location}")
-        write_task = dataframe.to_parquet(
-            location,
-            schema=schema,
-            overwrite=False,
-            compute=False,
-        )
 
-        client.compute(write_task)
+        parquet_files = [
+            d.to_parquet(
+                os.path.join(location, f"part.{i}.parquet"),
+                schema=schema,
+            )
+            for (i, d) in enumerate(dataframe.to_delayed())
+        ]
+
+        futures = client.compute(parquet_files)
+
+        for future in as_completed(futures):
+            # Release the results
+            future.result()
+            future.release()
