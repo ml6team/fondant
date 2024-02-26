@@ -53,12 +53,12 @@ class DaskComponent(BaseComponent):
         # worker.daemon is set to false because creating a worker process in daemon
         # mode is not possible in our docker container setup.
         dask.config.set({"distributed.worker.daemon": False})
-        dask.config.set({"distributed.worker.resources.network": 1})
-        cluster = LocalCluster(
-            processes=True,
-            n_workers=os.cpu_count(),
-            threads_per_worker=1,
-        )
+        with dask.config.set({"distributed.worker.resources.network": 1}):
+            cluster = LocalCluster(
+                processes=True,
+                n_workers=os.cpu_count(),
+                threads_per_worker=1,
+            )
         return Client(cluster)
 
     def teardown(self, client: t.Any) -> None:
