@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import dask.dataframe as dd
 import pandas as pd
+import pyarrow as pa
 from dask.diagnostics import ProgressBar
 
 from fondant.core.component_spec import OperationSpec
@@ -227,12 +228,13 @@ class DaskDataWriter(DataIO):
              A delayed Dask task that uploads the DataFrame to the remote storage location when
               executed.
         """
+        pa_schema = pa.schema(list(schema.items()))
 
         def to_parquet(df, partition_info):
             path = f"part.{partition_info['number']}.parquet"
             df.to_parquet(
                 location.rstrip("/") + "/" + path,
-                schema=schema,
+                schema=pa_schema,
             )
 
         logging.info(f"Creating write task for: {location}")
