@@ -113,10 +113,10 @@ class DockerRunner(Runner):
             )
             docker_version = DockerRunner._versionify(res)
 
-            if docker_version <= (24, 0, 0):
+            if docker_version <= (20, 10, 0):
                 sys.exit(
                     "Docker version is not compatible. Please make sure "
-                    "You have Docker version 24.0.0 or higher installed. "
+                    "You have Docker version 20.10.0 or higher installed. "
                     "Your current version is: " + res,
                 )
 
