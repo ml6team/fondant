@@ -3,6 +3,7 @@ import os
 import typing as t
 from collections import defaultdict
 
+import dask
 import dask.dataframe as dd
 import pyarrow as pa
 from dask.distributed import Client, as_completed
@@ -206,15 +207,16 @@ class DaskDataWriter(DataIO):
 
         logging.info(f"Creating write task for: {location}")
 
-        parquet_files = [
-            d.to_parquet(
-                os.path.join(location, f"part.{i}.parquet"),
-                schema=pa.schema(list(schema.items())),
-            )
-            for (i, d) in enumerate(dataframe.to_delayed())
-        ]
+        with dask.annotate(priority=1000000):
+            parquet_files = [
+                d.to_parquet(
+                    os.path.join(location, f"part.{i}.parquet"),
+                    schema=pa.schema(list(schema.items())),
+                )
+                for (i, d) in enumerate(dataframe.to_delayed())
+            ]
 
-        futures = client.compute(parquet_files)
+        futures = client.compute(parquet_files, optimize_graph=False)
 
         for future in as_completed(futures):
             # Release the results
