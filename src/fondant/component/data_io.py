@@ -4,7 +4,6 @@ import typing as t
 from collections import defaultdict
 
 import dask.dataframe as dd
-from dask.diagnostics import ProgressBar
 
 from fondant.core.component_spec import OperationSpec
 from fondant.core.manifest import Manifest
@@ -171,8 +170,7 @@ class DaskDataWriter(DataIO):
                 },
             )
 
-        with ProgressBar():
-            self._write_dataframe(dataframe)
+        self._write_dataframe(dataframe)
 
     @staticmethod
     def validate_dataframe_columns(dataframe: dd.DataFrame, columns: t.List[str]):
