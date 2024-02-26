@@ -214,7 +214,7 @@ class DaskDataWriter(DataIO):
             for (i, d) in enumerate(dataframe.to_delayed())
         ]
 
-        futures = client.compute(parquet_files, resources={"network": 1})
+        futures = client.compute(parquet_files)
 
         for future in as_completed(futures):
             # Release the results

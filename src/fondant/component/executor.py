@@ -12,7 +12,6 @@ from abc import abstractmethod
 from distutils.util import strtobool
 from pathlib import Path
 
-import dask
 import dask.dataframe as dd
 import pandas as pd
 from dask.distributed import Client
@@ -535,12 +534,11 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
             operation_spec=self.operation_spec,
         )
 
-        with dask.annotate(resources={"network": 1}):
-            # Call the component transform method for each partition
-            dataframe = dataframe.map_partitions(
-                wrapped_transform,
-                meta=meta_df,
-            )
+        # Call the component transform method for each partition
+        dataframe = dataframe.map_partitions(
+            wrapped_transform,
+            meta=meta_df,
+        )
 
         # Clear divisions if component spec indicates that the index is changed
         if self.previous_index is not None:
