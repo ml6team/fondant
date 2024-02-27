@@ -52,7 +52,22 @@ def _patched_data_loading(monkeypatch):
     """Mock data loading so no actual data is loaded."""
 
     def mocked_load_dataframe(self):
-        return dd.from_dict({"images_data": [1, 2, 3]}, npartitions=N_PARTITIONS)
+        return dd.from_dict(
+            {
+                "images_data": [1, 2, 3],
+                "element": [
+                    ("1", 1),
+                    ("2", 2),
+                    ("3", 3),
+                ],
+                "elements": [
+                    [("1", 1), ("2", 2), ("3", 3)],
+                    [("4", 4), ("5", 5), ("6", 6)],
+                    [("7", 7), ("8", 8), ("9", 9)],
+                ],
+            },
+            npartitions=N_PARTITIONS,
+        )
 
     monkeypatch.setattr(DaskDataLoader, "load_dataframe", mocked_load_dataframe)
 

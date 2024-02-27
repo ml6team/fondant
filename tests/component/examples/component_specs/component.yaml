@@ -12,6 +12,25 @@ produces:
     items:
       type: float32
 
+  element:
+    type: object
+    properties:
+      id:
+        type: string
+      number:
+        type: int32
+
+  elements:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: string
+        number:
+          type: int32
+
+
 args:
   flag:
     description: user argument

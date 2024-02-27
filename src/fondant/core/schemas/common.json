@@ -27,7 +27,8 @@
         "binary",
         "list",
         "struct",
-        "array"
+        "array",
+        "object"
       ]
     },
     "field": {
@@ -36,6 +37,16 @@
         "type": {
           "type": "string",
           "$ref": "#/definitions/subset_data_type"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "$ref": "#/definitions/subset_data_type"
+            }
+          },
+          "additionalProperties": true
         },
         "items": {
           "oneOf": [
