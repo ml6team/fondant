@@ -1,4 +1,5 @@
 """This module defines classes to represent a Fondant Pipeline."""
+import copy
 import datetime
 import hashlib
 import inspect
@@ -145,12 +146,17 @@ class ComponentOp:
         cache: t.Optional[bool] = True,
         resources: t.Optional[Resources] = None,
         component_dir: t.Optional[Path] = None,
+        dataset_fields: t.Optional[t.Mapping[str, Field]] = None,
     ) -> None:
         self.image = image
         self.component_spec = component_spec
         self.input_partition_rows = input_partition_rows
         self.cache = self._configure_caching_from_image_tag(cache)
         self.component_dir = component_dir
+
+        if consumes is None:
+            consumes = self._infer_consumes(component_spec, dataset_fields)
+        consumes = self._validate_consumes(consumes, component_spec, dataset_fields)
 
         self.operation_spec = OperationSpec(
             self.component_spec,
@@ -186,10 +192,6 @@ class ComponentOp:
             component_dir / cls.COMPONENT_SPEC_NAME,
         )
 
-        # If consumes is not defined in the pipeline, we will try to infer it
-        if kwargs.get("consumes") is None:
-            kwargs["consumes"] = cls._infer_consumes(component_spec, fields)
-
         image = Image(
             base_image=component_spec.image,
         )
@@ -198,11 +200,16 @@ class ComponentOp:
             image=image,
             component_spec=component_spec,
             component_dir=component_dir,
+            dataset_fields=fields,
             **kwargs,
         )
 
     @classmethod
-    def _infer_consumes(cls, component_spec, dataset_fields):
+    def _infer_consumes(
+        cls,
+        component_spec,
+        dataset_fields,
+    ) -> t.Union[t.Optional[t.Dict[str, str]], t.Optional[t.Dict[str, pa.DataType]]]:
         """Infer the consumes section of the component spec."""
         if component_spec.consumes_is_defined is False:
             msg = (
@@ -231,6 +238,57 @@ class ComponentOp:
         return {k: v.type.value for k, v in component_spec.consumes.items()}
 
     @classmethod
+    def _validate_consumes(
+        cls,
+        consumes: t.Optional[t.Dict[str, str]],
+        component_spec: ComponentSpec,
+        dataset_fields: t.Optional[t.Mapping[str, Field]],
+    ) -> t.Union[t.Optional[t.Dict[str, str]], t.Optional[t.Dict[str, pa.DataType]]]:
+        """
+        Validate the consumes of the component spec.
+        Every column in the consumes should be present in the dataset fields and in the
+        ComponentSpec. Except if additionalProperties is set to True in the ComponentSpec.
+        In that case, we will infer the type from the dataset fields.
+        """
+        if consumes is None or dataset_fields is None:
+            return consumes
+
+        validated_consumes = copy.deepcopy(consumes)
+
+        for operations_column_name, dataset_column_name_or_type in consumes.items():
+            # Dataset column name is part of the dataset fields
+            if (
+                isinstance(dataset_column_name_or_type, str)
+                and dataset_column_name_or_type not in dataset_fields.keys()
+            ):
+                msg = (
+                    f"The dataset does not contain the column {dataset_column_name_or_type} "
+                    f"required by the component {component_spec.name}."
+                )
+                raise InvalidPipelineDefinition(msg)
+
+            # If operations column name is not in the component spec, but additional properties
+            # are true we will infer the correct type from the dataset fields
+            if (
+                isinstance(dataset_column_name_or_type, str)
+                and operations_column_name not in component_spec.consumes.keys()
+            ):
+                if component_spec.consumes_additional_properties:
+                    validated_consumes[operations_column_name] = dataset_fields[
+                        operations_column_name
+                    ].type.value
+                else:
+                    msg = (
+                        f"Received a string value for key `{operations_column_name}` in the "
+                        f"`consumes` argument passed to the operation, "
+                        f"but `{operations_column_name}` is not defined in the `consumes` "
+                        f"section of the component spec."
+                    )
+                    raise InvalidPipelineDefinition(msg)
+
+        return validated_consumes
+
+    @classmethod
     def from_ref(
         cls,
         ref: t.Any,
@@ -251,13 +309,10 @@ class ComponentOp:
             if issubclass(ref, LightweightComponent):
                 component_spec = ref.get_component_spec()
 
-                # If consumes is not defined in the pipeline, we will try to infer it
-                if kwargs.get("consumes") is None:
-                    kwargs["consumes"] = cls._infer_consumes(component_spec, fields)
-
                 operation = cls(
                     ref.image(),
                     component_spec,
+                    dataset_fields=fields,
                     **kwargs,
                 )
             else:
@@ -565,7 +620,7 @@ class Pipeline:
                 for (
                     component_field_name,
                     component_field,
-                ) in operation_spec.outer_consumes.items():
+                ) in operation_spec.consumes_from_dataset.items():
                     if component_field_name not in manifest.fields:
                         msg = (
                             f"Component '{component_op.component_name}' is trying to invoke the"
