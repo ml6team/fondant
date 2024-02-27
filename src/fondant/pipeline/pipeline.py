@@ -26,7 +26,6 @@ from fondant.core.exceptions import (
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
 from fondant.pipeline import Image, LightweightComponent
-from fondant.pipeline.argument_inference import infer_arguments
 
 logger = logging.getLogger(__name__)
 
@@ -126,8 +125,6 @@ class ComponentOp:
         input_partition_rows: The number of rows to load per partition. Set to override the
         automatic partitioning
         resources: The resources to assign to the operation.
-        cluster_type: The type of cluster to use for distributed execution (default is "local").
-        client_kwargs: Keyword arguments used to initialise the dask client.
 
     Note:
         - A Fondant Component operation is created by defining a Fondant Component and its input
@@ -146,8 +143,6 @@ class ComponentOp:
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[str, int]] = None,
         cache: t.Optional[bool] = True,
-        cluster_type: t.Optional[str] = "default",
-        client_kwargs: t.Optional[dict] = None,
         resources: t.Optional[Resources] = None,
         component_dir: t.Optional[Path] = None,
     ) -> None:
@@ -155,8 +150,6 @@ class ComponentOp:
         self.component_spec = component_spec
         self.input_partition_rows = input_partition_rows
         self.cache = self._configure_caching_from_image_tag(cache)
-        self.cluster_type = cluster_type
-        self.client_kwargs = client_kwargs
         self.component_dir = component_dir
 
         self.operation_spec = OperationSpec(
@@ -172,8 +165,6 @@ class ComponentOp:
                 for key, value in {
                     "input_partition_rows": input_partition_rows,
                     "cache": self.cache,
-                    "cluster_type": cluster_type,
-                    "client_kwargs": client_kwargs,
                     "operation_spec": self.operation_spec.to_json(),
                 }.items()
                 if value is not None
@@ -185,24 +176,59 @@ class ComponentOp:
         self.resources = resources or Resources()
 
     @classmethod
-    def from_component_yaml(cls, path, **kwargs) -> "ComponentOp":
+    def from_component_yaml(cls, path, fields=None, **kwargs) -> "ComponentOp":
         if cls._is_custom_component(path):
             component_dir = Path(path)
         else:
             component_dir = cls._get_registry_path(str(path))
+
         component_spec = ComponentSpec.from_file(
             component_dir / cls.COMPONENT_SPEC_NAME,
         )
 
+        # If consumes is not defined in the pipeline, we will try to infer it
+        if kwargs.get("consumes") is None:
+            kwargs["consumes"] = cls._infer_consumes(component_spec, fields)
+
         image = Image(
             base_image=component_spec.image,
         )
+
         return cls(
             image=image,
             component_spec=component_spec,
             component_dir=component_dir,
             **kwargs,
         )
+
+    @classmethod
+    def _infer_consumes(cls, component_spec, dataset_fields):
+        """Infer the consumes section of the component spec."""
+        if component_spec.consumes_is_defined is False:
+            msg = (
+                "The consumes section of the component spec is not defined. "
+                "Can not infer consumes of the OperationSpec. Please define a consumes section "
+                "in the dataset interface. "
+            )
+            logger.info(msg)
+            return None
+
+        # Component has consumes and additionalProperties, we will load all dataset columns
+        if (
+            component_spec.consumes_is_defined
+            and component_spec.consumes_additional_properties
+        ):
+            if dataset_fields is None:
+                logger.info(
+                    "The dataset fields are not defined. Cannot infer consumes.",
+                )
+                return None
+
+            return {k: v.type.value for k, v in dataset_fields.items()}
+
+        # Component has consumes and no additionalProperties, we will load only the columns defined
+        # in the component spec
+        return {k: v.type.value for k, v in component_spec.consumes.items()}
 
     @classmethod
     def from_ref(
@@ -223,31 +249,14 @@ class ComponentOp:
         """
         if inspect.isclass(ref) and issubclass(ref, BaseComponent):
             if issubclass(ref, LightweightComponent):
-                name = ref.__name__
-                image = ref.image()
-                description = ref.__doc__ or "lightweight component"
-                spec_produces = ref.get_spec_produces()
+                component_spec = ref.get_component_spec()
 
-                spec_consumes = (
-                    ref.get_spec_consumes(fields, kwargs["consumes"])
-                    if fields
-                    else {"additionalProperties": True}
-                )
-
-                component_spec = ComponentSpec(
-                    name,
-                    image.base_image,
-                    description=description,
-                    consumes=spec_consumes,
-                    produces=spec_produces,
-                    args={
-                        name: arg.to_spec()
-                        for name, arg in infer_arguments(ref).items()
-                    },
-                )
+                # If consumes is not defined in the pipeline, we will try to infer it
+                if kwargs.get("consumes") is None:
+                    kwargs["consumes"] = cls._infer_consumes(component_spec, fields)
 
                 operation = cls(
-                    image,
+                    ref.image(),
                     component_spec,
                     **kwargs,
                 )
@@ -259,6 +268,7 @@ class ComponentOp:
         elif isinstance(ref, (str, Path)):
             operation = cls.from_component_yaml(
                 ref,
+                fields,
                 **kwargs,
             )
         else:
@@ -367,8 +377,6 @@ class ComponentOp:
             "number_of_accelerators": self.resources.accelerator_number,
             "accelerator_name": self.resources.accelerator_name,
             "node_pool_name": self.resources.node_pool_name,
-            "cluster_type": self.cluster_type,
-            "client_kwargs": self.client_kwargs,
         }
 
         if previous_component_cache is not None:
@@ -429,8 +437,6 @@ class Pipeline:
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
-        cluster_type: t.Optional[str] = "default",
-        client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
         """
         Read data using the provided component.
@@ -447,8 +453,6 @@ class Pipeline:
             automatic partitioning
             resources: The resources to assign to the operation.
             cache: Set to False to disable caching, True by default.
-            cluster_type: The type of cluster to use for distributed execution (default is "local").
-            client_kwargs: Keyword arguments used to initialise the Dask client.
 
         Returns:
             An intermediate dataset.
@@ -466,8 +470,6 @@ class Pipeline:
             input_partition_rows=input_partition_rows,
             resources=resources,
             cache=cache,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
         )
         manifest = Manifest.create(
             pipeline_name=self.name,
@@ -582,7 +584,7 @@ class Pipeline:
                     if component_field.type != manifest_field.type:
                         msg = (
                             f"The invoked field '{component_field_name}' of the "
-                            f"'{component_op.name}' component does not match  the "
+                            f"'{component_op.component_name}' component does not match the "
                             f"previously created field type.\n The '{manifest_field.name}' "
                             f"field is currently defined with the following type:\n"
                             f"{manifest_field.type}\nThe current component to "
@@ -650,8 +652,6 @@ class Dataset:
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
-        cluster_type: t.Optional[str] = "default",
-        client_kwargs: t.Optional[dict] = None,
     ) -> "Dataset":
         """
         Apply the provided component on the dataset.
@@ -736,8 +736,6 @@ class Dataset:
             automatic partitioning
             resources: The resources to assign to the operation.
             cache: Set to False to disable caching, True by default.
-            cluster_type: The type of cluster to use for distributed execution (default is "local").
-            client_kwargs: Keyword arguments used to initialise the Dask client.
 
         Returns:
             An intermediate dataset.
@@ -751,8 +749,6 @@ class Dataset:
             input_partition_rows=input_partition_rows,
             resources=resources,
             cache=cache,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
         )
 
         return self._apply(operation)
@@ -766,8 +762,6 @@ class Dataset:
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
-        cluster_type: t.Optional[str] = "default",
-        client_kwargs: t.Optional[dict] = None,
     ) -> None:
         """
         Write the dataset using the provided component.
@@ -784,8 +778,6 @@ class Dataset:
             automatic partitioning
             resources: The resources to assign to the operation.
             cache: Set to False to disable caching, True by default.
-            cluster_type: The type of cluster to use for distributed execution (default is "local").
-            client_kwargs: Keyword arguments used to initialise the Dask client.
 
         Returns:
             An intermediate dataset.
@@ -798,7 +790,5 @@ class Dataset:
             input_partition_rows=input_partition_rows,
             resources=resources,
             cache=cache,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
         )
         self._apply(operation)

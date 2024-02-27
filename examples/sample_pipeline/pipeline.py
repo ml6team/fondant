@@ -11,7 +11,6 @@ from fondant.component import PandasTransformComponent
 from fondant.pipeline import Pipeline, lightweight_component
 
 BASE_PATH = Path("./.artifacts").resolve()
-BASE_PATH.mkdir(parents=True, exist_ok=True)
 
 # Define pipeline
 pipeline = Pipeline(name="dummy-pipeline", base_path=str(BASE_PATH))
@@ -42,7 +41,7 @@ dataset = dataset.apply(
 
 
 @lightweight_component(
-    base_image="python:3.8",
+    base_image="python:3.10",
     extra_requires=[
         f"fondant[component]@git+https://github.com/ml6team/fondant@"
         f"{os.environ.get('FONDANT_VERSION', 'main')}",
@@ -57,8 +56,10 @@ class CalculateChunkLength(PandasTransformComponent):
         return dataframe
 
 
-_ = dataset.apply(
+dataset = dataset.apply(
     ref=CalculateChunkLength,
     produces={"chunk_length": pa.int32()},
     arguments={"arg_x": "value_x"},
 )
+
+dataset.write(ref="write_to_file", arguments={"path": "/data/export"})

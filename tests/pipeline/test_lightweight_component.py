@@ -35,7 +35,7 @@ def load_pipeline(caplog):
     )
 
     @lightweight_component(
-        base_image="python:3.8-slim-buster",
+        base_image="python:3.10-slim-buster",
         extra_requires=["pandas", "dask"],
         produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
     )
@@ -100,7 +100,7 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
     assert operation_spec_dict == {
         "specification": {
             "name": "CreateData",
-            "image": "python:3.8-slim-buster",
+            "image": "python:3.10-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {
@@ -142,14 +142,16 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
             "image": Image.resolve_fndnt_base_image(),
             "description": "lightweight component",
             "consumes": {
-                "x": {"type": "int32"},
-                "y": {"type": "int32"},
-                "z": {"type": "int32"},
+                "additionalProperties": True,
             },
             "produces": {"x": {"type": "int32"}},
             "args": {"n": {"type": "int"}},
         },
-        "consumes": {},
+        "consumes": {
+            "x": {"type": "int32"},
+            "y": {"type": "int32"},
+            "z": {"type": "int32"},
+        },
         "produces": {},
     }
     pipeline._validate_pipeline_definition(run_id="dummy-run-id")
@@ -159,10 +161,11 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
 
 def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
-        base_image="python:3.8",
+        base_image="python:3.10",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
+        consumes={"a": pa.int32()},
         produces={"a": pa.int32()},
     )
     class AddN(PandasTransformComponent):
@@ -194,7 +197,7 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
 
 def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
-        base_image="python:3.8",
+        base_image="python:3.10",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
@@ -231,7 +234,7 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
 
 def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
-        base_image="python:3.8",
+        base_image="python:3.10",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
@@ -268,7 +271,7 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
 
 def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
     @lightweight_component(
-        base_image="python:3.8",
+        base_image="python:3.10",
         extra_requires=[
             "fondant[component]@git+https://github.com/ml6team/fondant@main",
         ],
@@ -322,7 +325,7 @@ def test_lightweight_component_missing_decorator():
 
 def test_valid_load_component():
     @lightweight_component(
-        base_image="python:3.8-slim-buster",
+        base_image="python:3.10-slim-buster",
     )
     class CreateData(DaskLoadComponent):
         def load(self) -> dd.DataFrame:
@@ -351,7 +354,7 @@ def test_valid_load_component():
     assert operation_spec_without_image == {
         "specification": {
             "name": "CreateData",
-            "image": "python:3.8-slim-buster",
+            "image": "python:3.10-slim-buster",
             "description": "lightweight component",
             "consumes": {"additionalProperties": True},
             "produces": {"additionalProperties": True},
@@ -369,7 +372,7 @@ def test_invalid_load_component():
     ):
 
         @lightweight_component(
-            base_image="python:3.8-slim-buster",
+            base_image="python:3.10-slim-buster",
         )
         class CreateData(DaskLoadComponent):
             def custom_load(self) -> int:
@@ -386,7 +389,7 @@ def test_invalid_load_transform_component():
     ):
 
         @lightweight_component(
-            base_image="python:3.8-slim-buster",
+            base_image="python:3.10-slim-buster",
         )
         class CreateData(DaskLoadComponent, PandasTransformComponent):
             def load(self) -> dd.DataFrame:
@@ -409,7 +412,7 @@ def test_invalid_load_component_wrong_return_type():
     ):
 
         @lightweight_component(
-            base_image="python:3.8-slim-buster",
+            base_image="python:3.10-slim-buster",
         )
         class CreateData(DaskLoadComponent):
             def load(self) -> int:
@@ -486,3 +489,96 @@ def test_fndnt_base_image_resolution():
         mock_call.return_value = "0.9"
         base_image_name = Image.resolve_fndnt_base_image()
         assert base_image_name == "fndnt/fondant:0.9-py3.9"
+
+
+def test_infer_consumes_if_not_defined(load_pipeline):
+    """
+    Test that the consumes mapping is inferred when not defined in dataset interface.
+    All columns of the dataset are consumed.
+    """
+    _, dataset, _, _ = load_pipeline
+
+    @lightweight_component(
+        base_image="python:3.10-slim-buster",
+        extra_requires=["pandas", "dask"],
+        consumes={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
+        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
+    )
+    class Bar(PandasTransformComponent):
+        def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+            return dataframe
+
+    dataset = dataset.apply(
+        ref=Bar,
+    )
+
+    operation_spec_dict = dataset.pipeline._graph["bar"][
+        "operation"
+    ].operation_spec.to_dict()
+    assert operation_spec_dict == {
+        "consumes": {
+            "x": {"type": "int32"},
+            "y": {"type": "int32"},
+            "z": {"type": "int32"},
+        },
+        "produces": {},
+        "specification": {
+            "consumes": {
+                "x": {"type": "int32"},
+                "y": {"type": "int32"},
+                "z": {"type": "int32"},
+            },
+            "description": "lightweight component",
+            "image": "python:3.10-slim-buster",
+            "name": "Bar",
+            "produces": {
+                "x": {"type": "int32"},
+                "y": {"type": "int32"},
+                "z": {"type": "int32"},
+            },
+        },
+    }
+
+
+def test_infer_consumes_if_additional_properties_true(load_pipeline):
+    """
+    Test when additional properties is true (no consumes defined in the lightweight component),
+    the consumes is inferred from the dataset interface.
+    """
+    _, dataset, _, _ = load_pipeline
+
+    @lightweight_component(
+        base_image="python:3.10-slim-buster",
+        extra_requires=["pandas", "dask"],
+        produces={"x": pa.int32(), "y": pa.int32(), "z": pa.int32()},
+    )
+    class Bar(PandasTransformComponent):
+        def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+            return dataframe
+
+    dataset = dataset.apply(
+        ref=Bar,
+    )
+
+    operation_spec_dict = dataset.pipeline._graph["bar"][
+        "operation"
+    ].operation_spec.to_dict()
+    assert operation_spec_dict == {
+        "consumes": {
+            "x": {"type": "int32"},
+            "y": {"type": "int32"},
+            "z": {"type": "int32"},
+        },
+        "produces": {},
+        "specification": {
+            "consumes": {"additionalProperties": True},
+            "description": "lightweight component",
+            "image": "python:3.10-slim-buster",
+            "name": "Bar",
+            "produces": {
+                "x": {"type": "int32"},
+                "y": {"type": "int32"},
+                "z": {"type": "int32"},
+            },
+        },
+    }

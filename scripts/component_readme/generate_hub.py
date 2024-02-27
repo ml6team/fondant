@@ -8,7 +8,7 @@ from fondant.core.component_spec import ComponentSpec
 
 HUB_FILE = "docs/components/hub.md"
 HUB_TEMPLATE_FILE = "hub_template.md"
-COMPONENTS_DIR = "components"
+COMPONENTS_DIR = "src/fondant/components"
 COMPONENT_SPEC_FILE = "fondant_component.yaml"
 COMPONENT_TYPE_TAGS = [
     "Data loading",

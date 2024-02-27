@@ -20,7 +20,7 @@ function usage {
 
 # Parse the arguments
 while [[ "$#" -gt 0 ]]; do case $1 in
-  -r |--registry) registry="$2"; shift;;
+  -rg|--registry) registry="$2"; shift;;
   -n |--namespace) namespace="$2"; shift;;
   -d |--components-dir ) components_dir="$2"; shift;;
   -r |--repo) repo="$2"; shift;;
@@ -40,7 +40,7 @@ fi
 
 # Set default values for optional arguments if not passed
 component="${components:-all}"
-components_dir="${components_dir:-components}"
+components_dir="${components_dir:-src/fondant/components}"
 namespace="${namespace:-fndnt}"
 repo="${repo:-ml6team/fondant}"
 
@@ -107,7 +107,7 @@ for dir in "${components_to_build[@]}"; do
   echo "Freezing Fondant dependency version to ${tags[0]}"
   docker build --push "${args[@]}" \
    --build-arg="FONDANT_VERSION=${tags[0]}" \
-   --label org.opencontainers.image.source=https://github.com/${repo}/components/{BASENAME} \
+   --label org.opencontainers.image.source=https://github.com/${repo}/src/fondant/components/{BASENAME} \
    .
 
   docker pushrm ${full_image_name} | echo "

@@ -1,3 +1,5 @@
+from distributed import Client
+
 # Components
 
 Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
@@ -64,6 +66,36 @@ this data can be accessed using `dataframe["image"]`.
 
 The `transform` method should return a single dataframe, with the columns complying to the
 schema defined by the `produces` section of the component specification.
+
+### Configuring Dask
+
+You can configure the [Dask client](https://docs.dask.org/en/stable/scheduling.html) based on the 
+needs of your component by overriding the `dask_client` method:
+
+```python
+import os
+
+from dask.distributed import Client, LocalCluster
+from fondant.component import PandasTransformComponent
+
+class Component(PandasTransformComponent):
+  
+    def dask_client(self) -> Client:
+        """Initialize the dask client to use for this component."""
+        cluster = LocalCluster(
+            processes=True,
+            n_workers=os.cpu_count(),
+            threads_per_worker=1,
+        )
+        return Client(cluster)
+```
+
+The default configuration uses a `LocalCluster` which works with processes, the same amount of 
+workers as logical CPUs available, and one thread per worker.
+
+Some components might work more optimally using threads or a different combination of threads 
+and processes. To use multiple GPUs, you can use a 
+[`LocalCUDACluster`](https://docs.rapids.ai/api/dask-cuda/stable/quickstart/#localcudacluster). 
 
 ## Component types
 
@@ -179,6 +211,6 @@ dataset = dataset.apply(
 ```
 
 You can find an overview of the available reusable components on the
-[Fondant hub](https://github.com/ml6team/fondant/tree/main/components). Check their 
+[Fondant hub](https://github.com/ml6team/fondant/tree/main/src/fondant/components). Check their 
 documentation for information on which arguments they accept and which data they consume and 
 produce.

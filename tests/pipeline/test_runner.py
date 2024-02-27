@@ -59,9 +59,16 @@ def test_docker_runner(mock_docker_installation):
         )
 
 
-def test_docker_runner_from_pipeline(mock_docker_installation):
-    with mock.patch("subprocess.call") as mock_call:
-        DockerRunner().run(PIPELINE)
+def test_docker_runner_from_pipeline(mock_docker_installation, tmp_path_factory):
+    with mock.patch("subprocess.call") as mock_call, tmp_path_factory.mktemp(
+        "temp",
+    ) as fn:
+        pipeline = Pipeline(
+            name="testpipeline",
+            description="description of the test pipeline",
+            base_path=str(fn),
+        )
+        DockerRunner().run(pipeline)
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -85,10 +92,23 @@ def test_docker_is_not_available():
         "https://fondant.ai/en/latest/guides/installation/#docker-installation"
     )
     with mock.patch(
-        "subprocess.check_call",
+        "subprocess.check_output",
         side_effect=CalledProcessError(returncode=1, cmd=""),
-    ) as _, pytest.raises(SystemExit, match=expected_msg):
-        DockerRunner().run(PIPELINE)
+    ), pytest.raises(SystemExit, match=str(expected_msg)):
+        DockerRunner().check_docker_install()
+
+
+def test_docker_version_is_not_supported():
+    expected_msg = (
+        "Docker version is not compatible. Please make sure "
+        "You have Docker version 20.10.0 or higher installed. "
+        "Your current version is: "
+    )
+    with mock.patch(
+        "subprocess.check_output",
+        return_value=b"1.3.8",
+    ), pytest.raises(SystemExit, match=expected_msg):
+        DockerRunner().check_docker_install()
 
 
 def test_docker_compose_is_not_available():
@@ -98,16 +118,24 @@ def test_docker_compose_is_not_available():
         "https://fondant.ai/en/latest/guides/installation/#docker-installation"
     )
 
-    def side_effect(*args, **kwargs):
-        NUMBER_OF_CHECK_CALL_TO_FAIL = 2
-        if mock_check_call.call_count == NUMBER_OF_CHECK_CALL_TO_FAIL:
-            raise CalledProcessError(returncode=1, cmd="")
-
     with mock.patch(
-        "subprocess.check_call",
-        side_effect=side_effect,
-    ) as mock_check_call, pytest.raises(SystemExit, match=expected_msg):
-        DockerRunner().run(PIPELINE)
+        "subprocess.check_output",
+        side_effect=CalledProcessError(returncode=1, cmd=""),
+    ), pytest.raises(SystemExit, match=expected_msg):
+        DockerRunner().check_docker_compose_install()
+
+
+def test_docker_compose_version_is_not_supported():
+    expected_msg = (
+        "Docker Compose version is not compatible. Please make sure "
+        "You have Docker Compose version 2.20.0 or higher installed. "
+        "Your current version is: "
+    )
+    with mock.patch(
+        "subprocess.check_output",
+        return_value=b"1.24.5-desktop.1",
+    ), pytest.raises(SystemExit, match=expected_msg):
+        DockerRunner().check_docker_compose_install()
 
 
 class MockKfpClient:

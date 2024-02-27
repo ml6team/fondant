@@ -83,7 +83,7 @@ dataset = pipeline.read(
     },
     produces={
       "alt_text": pa.string(),
-      "url": pa.string(),
+      "image_url": pa.string(),
       "license_location": pa.string(),
       "license_type": pa.string(),
       "webpage_url": pa.string(),
@@ -182,6 +182,20 @@ Now, you can proceed to execute your pipeline once more and explore the results.
 you will be able to view the images that have been downloaded.
 
 ![explorer](../art/guides/explorer.png?raw=true)
+
+
+## Export the dataset
+
+If you want to inspect your final dataset without using the data explorer or use the 
+dataset for further tasks, we recommend to write the final dataset to a destination. 
+We offer [write components](../components//hub.md) to perform this task, for instance the `write_to_file` component, 
+which allows you to export the dataset either to a local file or a remote storage bucket.
+
+```python
+english_images.write(ref="write_to_file", arguments={"path": "/data/export"})
+```
+
+You can open the path and use any tools of your choice to inspect the resulting Parquet dataset.
 
 Well done! You have now acquired the skills to construct a simple Fondant pipeline by leveraging 
 reusable components. In the [next tutorial](implement_custom_components.md), we'll demonstrate how 

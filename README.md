@@ -107,13 +107,21 @@ An end-to-end Fondant pipeline that starts from our Fondant-CC-25M creative comm
 
 ## ⚒️ Installation
 
-Fondant can be installed using pip:
+First, run the minimal Fondant installation:
 
 ```
 pip install fondant
 ```
 
-For more detailed installation options, check the [**installation page**](https://fondant.ai/en/latest/guides/installation/) on our documentation.
+Fondant also includes extra dependencies for specific runners, storage integrations and publishing 
+components to registries. 
+We can install the local runner to enable local pipeline execution:
+
+```
+pip install fondant[docker]
+```
+
+For more detailed installation options, check the [**installation page**](https://fondant.ai/en/latest/guides/installation/)on our documentation.
 
 
 ## 👨‍💻 Usage
@@ -126,10 +134,10 @@ to load a dataset from the Hugging Face Hub and process it using a custom compon
 
 **_pipeline.py_**
 ```python
+
 from fondant.pipeline import Pipeline
 
-
-pipeline = Pipeline(pipeline_name="example pipeline", base_path="fs://bucket")
+pipeline = Pipeline(name="example pipeline", base_path="./data")
 
 dataset = pipeline.read(
     "load_from_hf_hub",
@@ -139,71 +147,16 @@ dataset = pipeline.read(
 )
 
 dataset = dataset.apply(
-    "components/custom_component",
+    "resize_images",
     arguments={
-        "min_width": 600,
-        "min_height": 600,
+        "resize_width": 128,
+        "resize_height": 128,
     },
 )
 ```
 
-#### Component
-
-To create a custom component, you first need to describe its contract as a yaml specification.
-It defines the data consumed and produced by the component and any arguments it takes.
-
-**_fondant_component.yaml_**
-```yaml
-name: Custom component
-description: This is a custom component
-image: custom_component:latest
-
-consumes:
-  image:
-    type: binary
-
-produces:
-  caption:
-    type: utf8
-
-args:
-  argument1:
-    description: An argument passed to the component at runtime
-    type: str
-  argument2:
-    description: Another argument passed to the component at runtime
-    type: str
-```
-
-Once you have your component specification, all you need to do is implement a constructor
-and a single `.transform` method and Fondant will do the rest. You will get the data defined in
-your specification partition by partition as a Pandas dataframe.
-
-**_component/src/main.py_**
-```python
-import pandas as pd
-from fondant.component import PandasTransformComponent
-
-
-class ExampleComponent(PandasTransformComponent):
-
-    def __init__(self, *, argument1, argument2) -> None:
-        """
-        Args:
-            argumentX: An argument passed to the component
-        """
-        # Initialize your component here based on the arguments
-
-    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
-        """Implement your custom logic in this single method
-        Args:
-            dataframe: A Pandas dataframe containing the data
-        Returns:
-            A pandas dataframe containing the transformed data
-        """
-```
-
-For more advanced use cases, you can use the `DaskTransformComponent` instead.
+Custom use cases require the creation of custom components. Check out our [getting started page](https://fondant.ai/en/latest/guides/first_pipeline/) to learn
+more about how to build custom pipelines and components.
 
 ### Running your pipeline
 
@@ -236,7 +189,7 @@ We welcome contributions of different kinds:
 | **Issues**                       | If you encounter any issue or bug, please submit them as a [Github issue](https://github.com/ml6team/fondant/issues). You can also submit a pull request directly to fix any clear bugs.                                                                                                                                                                                                                                                                                      |
 | **Suggestions and feedback**     | Our roadmap and priorities are defined based on community feedback. To provide input, you can join [our discord](https://discord.gg/HnTdWhydGp) or submit an idea in our [Github Discussions](https://github.com/ml6team/fondant/discussions/categories/ideas).                                                                                                                                                                                                               |
 | **Framework code contributions** | If you want to help with the development of the Fondant framework, have a look at the issues marked with the [good first issue](https://github.com/ml6team/fondant/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label. If you want to add additional functionality, please submit an issue for it first.                                                                                                                                                     |
-| **Reusable components**          | Extending our library of reusable components is a great way to contribute. If you built a component which would be useful for other users, please submit a PR adding them to the [components/](https://github.com/ml6team/fondant/tree/main/components) directory. You can find a list of possible contributable components [here](https://github.com/ml6team/fondant/issues?q=is%3Aissue+is%3Aopen+label%3A%22Components%22) or your own ideas are also welcome! |
+| **Reusable components**          | Extending our library of reusable components is a great way to contribute. If you built a component which would be useful for other users, please submit a PR adding them to the [components/](https://github.com/ml6team/fondant/tree/main/src/fondant/components) directory. You can find a list of possible contributable components [here](https://github.com/ml6team/fondant/issues?q=is%3Aissue+is%3Aopen+label%3A%22Components%22) or your own ideas are also welcome! |
 
 For a detailed view on the roadmap and day to day development, you can check our [github project
 board](https://github.com/orgs/ml6team/projects/1).

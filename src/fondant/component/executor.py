@@ -7,16 +7,13 @@ components take care of processing, filtering and extending the data.
 import argparse
 import json
 import logging
-import os
 import typing as t
 from abc import abstractmethod
 from distutils.util import strtobool
 from pathlib import Path
 
-import dask
 import dask.dataframe as dd
 import pandas as pd
-from dask.distributed import Client, LocalCluster
 from fsspec import open as fs_open
 
 from fondant.component import (
@@ -30,7 +27,6 @@ from fondant.component.data_io import DaskDataLoader, DaskDataWriter
 from fondant.core.component_spec import Argument, OperationSpec
 from fondant.core.manifest import Manifest, Metadata
 
-dask.config.set({"dataframe.convert-string": False})
 logger = logging.getLogger(__name__)
 
 
@@ -49,9 +45,6 @@ class Executor(t.Generic[Component]):
         partition of dataframe.
         Partitions are divided based on this number (n rows per partition).
         Set to None for no row limit.
-        cluster_type: The type of cluster to use for distributed execution
-        (default is "local").
-        client_kwargs: Additional keyword arguments dict which will be used to
         initialise the dask client, allowing for advanced configuration.
         previous_index: The name of the index column of the previous component.
             Used to remove all previous fields if the component changes the index
@@ -67,8 +60,6 @@ class Executor(t.Generic[Component]):
         metadata: t.Dict[str, t.Any],
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: int,
-        cluster_type: t.Optional[str] = None,
-        client_kwargs: t.Optional[dict] = None,
         previous_index: t.Optional[str] = None,
     ) -> None:
         self.operation_spec = operation_spec
@@ -80,33 +71,6 @@ class Executor(t.Generic[Component]):
         self.input_partition_rows = input_partition_rows
         self.previous_index = previous_index
 
-        if cluster_type == "local":
-            client_kwargs = client_kwargs or {
-                "processes": True,
-                "n_workers": os.cpu_count(),
-                "threads_per_worker": 1,
-            }
-
-            logger.info(f"Initialize local dask cluster with arguments {client_kwargs}")
-
-            # Additional dask configuration have to be set before initialising the client
-            # worker.daemon is set to false because creating a worker process in daemon
-            # mode is not possible in our docker container setup.
-            dask.config.set({"distributed.worker.daemon": False})
-
-            local_cluster = LocalCluster(**client_kwargs, silence_logs=logging.ERROR)
-            self.client = Client(local_cluster)
-
-        elif cluster_type == "distributed":
-            msg = "The usage of the Dask distributed client is not supported yet."
-            raise NotImplementedError(msg)
-        else:
-            logger.info(
-                "Dask default local mode will be used for further executions."
-                "Our current supported options are limited to 'local' and 'default'.",
-            )
-            self.client = None
-
     @classmethod
     def from_args(cls) -> "Executor":
         """Create an executor from a passed argument containing the specification as a dict."""
@@ -114,8 +78,6 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--operation_spec", type=json.loads)
         parser.add_argument("--cache", type=lambda x: bool(strtobool(x)))
         parser.add_argument("--input_partition_rows", type=int)
-        parser.add_argument("--cluster_type", type=str)
-        parser.add_argument("--client_kwargs", type=json.loads)
         args, _ = parser.parse_known_args()
 
         if "operation_spec" not in args:
@@ -128,8 +90,6 @@ class Executor(t.Generic[Component]):
             operation_spec,
             cache=args.cache,
             input_partition_rows=args.input_partition_rows,
-            cluster_type=args.cluster_type,
-            client_kwargs=args.client_kwargs,
         )
 
     @classmethod
@@ -139,8 +99,6 @@ class Executor(t.Generic[Component]):
         *,
         cache: bool,
         input_partition_rows: int,
-        cluster_type: t.Optional[str],
-        client_kwargs: t.Optional[dict],
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(operation_spec))
@@ -149,8 +107,6 @@ class Executor(t.Generic[Component]):
             "operation_spec",
             "input_partition_rows",
             "cache",
-            "cluster_type",
-            "client_kwargs",
             "consumes",
             "produces",
         ]:
@@ -169,8 +125,6 @@ class Executor(t.Generic[Component]):
             metadata=metadata,
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
-            cluster_type=cluster_type,
-            client_kwargs=client_kwargs,
             previous_index=operation_spec.previous_index,
         )
 
@@ -262,7 +216,7 @@ class Executor(t.Generic[Component]):
             operation_spec=self.operation_spec,
         )
 
-        data_writer.write_dataframe(dataframe, self.client)
+        data_writer.write_dataframe(dataframe)
 
     def _get_cache_reference_content(self) -> t.Union[str, None]:
         """
@@ -333,6 +287,8 @@ class Executor(t.Generic[Component]):
         component.consumes = self.operation_spec.inner_consumes
         component.produces = self.operation_spec.inner_produces
 
+        state = component.setup()
+
         output_df = self._execute_component(
             component,
             manifest=input_manifest,
@@ -344,7 +300,7 @@ class Executor(t.Generic[Component]):
         )
         self._write_data(dataframe=output_df, manifest=output_manifest)
 
-        component.teardown()
+        component.teardown(state)
 
         return output_manifest
 
