@@ -205,6 +205,12 @@ class DaskDataWriter(DataIO):
             for field in self.operation_spec.outer_produces.values()
         }
 
+        schema.update(
+            {
+                "id": pa.string(),
+            },
+        )
+
         logging.info(f"Creating write task for: {location}")
 
         with dask.annotate(priority=1000000):
