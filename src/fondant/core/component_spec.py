@@ -55,15 +55,18 @@ class Argument:
         return lookup[self.type]
 
     def to_spec(self):
-        return {
-            k: v
-            for k, v in {
-                "description": self.description,
-                "type": self.type.__name__,
-                "default": self.default,
-            }.items()
-            if v is not None
+        spec = {
+            "type": self.type.__name__,
+            "description": str(self.description),
         }
+        if self.optional:
+            spec["default"] = (
+                self.default
+                if type(self.default) in [dict, list, int]
+                else str(self.default)
+            )
+
+        return spec
 
 
 class ComponentSpec:

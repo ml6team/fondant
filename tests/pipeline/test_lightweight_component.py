@@ -120,8 +120,19 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
 
     @lightweight_component(produces={"x": pa.int32()})
     class AddN(PandasTransformComponent):
-        def __init__(self, n: int):
+        import typing as t
+
+        def __init__(
+            self,
+            n: int,
+            y: t.Optional[int] = None,
+            b: t.Optional[int] = 10,
+            z: t.Optional[dict] = [],
+        ):
             self.n = n
+            self.b = b
+            self.y = y
+            self.z = z
 
         def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
             dataframe["x"] = dataframe["x"].map(lambda x: x + self.n)
@@ -145,7 +156,12 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
                 "additionalProperties": True,
             },
             "produces": {"x": {"type": "int32"}},
-            "args": {"n": {"type": "int"}},
+            "args": {
+                "b": {"default": 10, "description": "None", "type": "int"},
+                "n": {"description": "None", "type": "int"},
+                "y": {"default": "None", "description": "None", "type": "int"},
+                "z": {"default": [], "description": "None", "type": "dict"},
+            },
         },
         "consumes": {
             "x": {"type": "int32"},
