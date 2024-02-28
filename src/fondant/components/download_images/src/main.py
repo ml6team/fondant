@@ -70,7 +70,7 @@ class DownloadImagesComponent(PandasTransformComponent):
         dask.config.set({"distributed.worker.daemon": False})
         cluster = LocalCluster(
             processes=True,
-            n_workers=60,
+            n_workers=32,
             threads_per_worker=1,
         )
         return Client(cluster)
