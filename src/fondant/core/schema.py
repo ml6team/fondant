@@ -78,6 +78,7 @@ _TYPES: t.Dict[str, pa.DataType] = {
     "date64": pa.date64(),
     "duration": pa.duration("us"),
     "string": pa.string(),
+    "struct": pa.struct([]),
     "utf8": pa.utf8(),
     "binary": pa.binary(),
     "large_binary": pa.large_binary(),
@@ -136,6 +137,31 @@ class Type:
         )
 
     @classmethod
+    def struct(
+        cls,
+        fields: t.List[t.Tuple[str, t.Union[str, pa.DataType, "Type"]]],
+    ) -> "Type":
+        """
+        Creates a new `Type` instance representing a struct with the specified fields.
+
+        Args:
+            fields: A list of tuples where each tuple contains the name and type of a field.
+
+        Returns:
+            A new `Type` instance representing a struct with the specified fields.
+        """
+        validated_fields = []
+        for name, data_type in fields:
+            if isinstance(data_type, Type):
+                type_ = data_type.value
+            elif isinstance(data_type, pa.DataType):
+                type_ = data_type
+            else:
+                type_ = cls._validate_data_type(data_type)
+            validated_fields.append(pa.field(name, type_))
+        return cls(pa.struct(validated_fields))
+
+    @classmethod
     def from_dict(cls, json_schema: dict):
         """
         Creates a new `Type` instance based on a dictionary representation of the json schema
@@ -147,13 +173,35 @@ class Type:
         Returns:
             A new `Type` instance representing the specified data type.
         """
-        if json_schema["type"] == "array":
-            items = json_schema["items"]
+        type_name = json_schema.get("type")
+
+        if type_name is None:
+            msg = "Invalid or missing 'type' key in the schema."
+            raise InvalidTypeSchema(msg)
+
+        if type_name == "array":
+            items = json_schema.get("items")
             if isinstance(items, dict):
                 return cls.list(cls.from_dict(items))
-            return None
+            if isinstance(items, str):
+                return cls.list(items)
 
-        return cls(json_schema["type"])
+            msg = "Invalid 'items' type in array schema."
+            raise InvalidTypeSchema(msg)
+
+        if type_name == "object":
+            properties = json_schema.get("properties")
+            if not isinstance(properties, dict):
+                msg = "Invalid 'properties' type in object schema."
+                raise InvalidTypeSchema(msg)
+            fields = [(name, cls.from_dict(prop)) for name, prop in properties.items()]
+            return cls.struct(fields)
+
+        if isinstance(type_name, str):
+            return cls(type_name)
+
+        msg = f"Invalid 'type' value: {type_name}"
+        raise InvalidTypeSchema(msg)
 
     def to_dict(self) -> dict:
         """
@@ -166,6 +214,9 @@ class Type:
             items = self.value.value_type
             if isinstance(items, pa.DataType):
                 return {"type": "array", "items": Type(items).to_dict()}
+        elif isinstance(self.value, pa.StructType):
+            fields = [(field.name, Type(field.type).to_dict()) for field in self.value]
+            return {"type": "object", "properties": dict(fields)}
 
         type_ = None
         for type_name, data_type in _TYPES.items():
