@@ -191,8 +191,8 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
         operation_spec = OperationSpec.from_json(
             pipeline_configs.component_configs["addn"].arguments["operation_spec"],
         )
-        assert all(k in ["a", "y", "z"] for k in operation_spec.inner_consumes)
-        assert "x" in operation_spec.outer_consumes
+        assert all(k in ["a", "y", "z"] for k in operation_spec.operation_consumes)
+        assert "x" in operation_spec.consumes_from_dataset
 
 
 def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
@@ -227,9 +227,9 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
         operation_spec = OperationSpec.from_json(
             pipeline_configs.component_configs["addn"].arguments["operation_spec"],
         )
-        assert "a" in operation_spec.inner_consumes
-        assert "x" in operation_spec.outer_consumes
-        assert "z" not in operation_spec.inner_consumes
+        assert "a" in operation_spec.operation_consumes
+        assert "x" in operation_spec.consumes_from_dataset
+        assert "z" not in operation_spec.operation_consumes
 
 
 def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
@@ -264,9 +264,9 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
         operation_spec = OperationSpec.from_json(
             pipeline_configs.component_configs["addn"].arguments["operation_spec"],
         )
-        assert "x" in operation_spec.inner_consumes
-        assert "a" in operation_spec.inner_produces
-        assert "z" not in operation_spec.inner_consumes
+        assert "x" in operation_spec.operation_consumes
+        assert "a" in operation_spec.operation_produces
+        assert "z" not in operation_spec.operation_consumes
 
 
 def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
@@ -303,7 +303,7 @@ def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
         operation_spec = OperationSpec.from_json(
             pipeline_configs.component_configs["addn"].arguments["operation_spec"],
         )
-        assert all(k in ["a", "b", "c"] for k in operation_spec.inner_produces)
+        assert all(k in ["a", "b", "c"] for k in operation_spec.operation_produces)
 
 
 def test_lightweight_component_missing_decorator():
