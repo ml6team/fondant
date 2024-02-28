@@ -9,6 +9,7 @@ import typing as t
 from abc import ABC, abstractmethod
 from dataclasses import asdict
 from pathlib import Path
+from urllib.parse import urlparse
 
 import yaml
 from fsspec.registry import known_implementations
@@ -141,9 +142,11 @@ class DockerCompiler(Compiler):
 
         def is_remote_path(path: Path) -> bool:
             """Check if the path is remote."""
-            _path = str(path)
-            prefixes = set(known_implementations.keys()) - {"local", "file"}
-            return any(_path.startswith(prefix) for prefix in prefixes)
+            scheme = urlparse(str(path)).scheme
+
+            fsspec_schemes = set(known_implementations.keys()) - {"local", "file"}
+
+            return scheme in fsspec_schemes
 
         def resolve_local_base_path(base_path: Path) -> Path:
             """Resolve local base path and create base directory if it no exist."""
