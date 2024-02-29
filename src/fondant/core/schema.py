@@ -197,7 +197,13 @@ class Type:
             fields = [(name, cls.from_dict(prop)) for name, prop in properties.items()]
             return cls.struct(fields)
 
+        if type_name == "timestamp":
+            return cls(type_name)
+
         if isinstance(type_name, str):
+            type_format = json_schema.get("format", None)
+            if type_format == "date-time":
+                return cls(pa.timestamp("us", tz="UTC"))
             return cls(type_name)
 
         msg = f"Invalid 'type' value: {type_name}"
@@ -217,6 +223,9 @@ class Type:
         elif isinstance(self.value, pa.StructType):
             fields = [(field.name, Type(field.type).to_dict()) for field in self.value]
             return {"type": "object", "properties": dict(fields)}
+
+        elif isinstance(self.value, pa.TimestampType):
+            return {"type": "string", "format": "date-time"}
 
         type_ = None
         for type_name, data_type in _TYPES.items():

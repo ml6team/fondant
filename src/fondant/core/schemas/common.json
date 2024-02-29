@@ -38,6 +38,10 @@
           "type": "string",
           "$ref": "#/definitions/subset_data_type"
         },
+        "format": {
+          "type": "string",
+          "description": "additional format information for the field"
+        },
         "properties": {
           "type": "object",
           "properties": {
