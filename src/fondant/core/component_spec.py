@@ -60,11 +60,7 @@ class Argument:
             "description": str(self.description),
         }
         if self.optional:
-            spec["default"] = (
-                self.default
-                if type(self.default) in [dict, list, int]
-                else str(self.default)
-            )
+            spec["default"] = self.default if self.default is not None else "None"
 
         return spec
 
