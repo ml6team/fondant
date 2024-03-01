@@ -159,6 +159,7 @@ class Type:
             else:
                 type_ = cls._validate_data_type(data_type)
             validated_fields.append(pa.field(name, type_))
+
         return cls(pa.struct(validated_fields))
 
     @classmethod
@@ -194,16 +195,17 @@ class Type:
             if not isinstance(properties, dict):
                 msg = "Invalid 'properties' type in object schema."
                 raise InvalidTypeSchema(msg)
-            fields = [(name, cls.from_dict(prop)) for name, prop in properties.items()]
-            return cls.struct(fields)
 
-        if type_name == "timestamp":
-            return cls(type_name)
+            fields = [(name, cls.from_dict(prop)) for name, prop in properties.items()]
+
+            return cls.struct(fields)
 
         if isinstance(type_name, str):
             type_format = json_schema.get("format", None)
+
             if type_format == "date-time":
                 return cls(pa.timestamp("us", tz="UTC"))
+
             return cls(type_name)
 
         msg = f"Invalid 'type' value: {type_name}"
@@ -220,6 +222,7 @@ class Type:
             items = self.value.value_type
             if isinstance(items, pa.DataType):
                 return {"type": "array", "items": Type(items).to_dict()}
+
         elif isinstance(self.value, pa.StructType):
             fields = [(field.name, Type(field.type).to_dict()) for field in self.value]
             return {"type": "object", "properties": dict(fields)}
