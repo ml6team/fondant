@@ -55,6 +55,11 @@ def _patched_data_loading(monkeypatch):
         return dd.from_dict(
             {
                 "images_data": [1, 2, 3],
+                "date": [
+                    "2024-02-29T12:30:45",
+                    "2024-02-29T12:30:45",
+                    "2024-02-29T12:30:45",
+                ],
                 "element": [
                     ("1", 1),
                     ("2", 2),

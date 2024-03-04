@@ -11,6 +11,10 @@ def test_valid_type():
     assert Type.list(Type("int8")).value == pa.list_(pa.int8())
     assert Type.list(Type.list(Type("string"))).value == pa.list_(pa.list_(pa.string()))
     assert Type("int8").to_dict() == {"type": "int8"}
+    assert Type(pa.timestamp("us", tz="UTC")).to_dict() == {
+        "type": "string",
+        "format": "date-time",
+    }
     assert Type.list("float32").to_dict() == {
         "type": "array",
         "items": {"type": "float32"},
@@ -42,6 +46,9 @@ def test_valid_json_schema():
     assert Type.from_dict(
         {"type": "array", "items": {"type": "array", "items": {"type": "int8"}}},
     ).value == pa.list_(pa.list_(pa.int8()))
+    assert Type.from_dict(
+        {"type": "string", "format": "date-time"},
+    ).value == pa.timestamp("us", tz="UTC")
     assert Type.from_dict(
         {
             "type": "object",

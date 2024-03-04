@@ -30,6 +30,9 @@ produces:
         number:
           type: int32
 
+  date:
+    type: string
+    format: date-time
 
 args:
   flag:
