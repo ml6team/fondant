@@ -37,6 +37,8 @@ The component takes the following arguments to alter its behavior:
 | argument | type | description | default |
 | -------- | ---- | ----------- | ------- |
 | dataset_url | str | Url of the dataset | / |
+| faiss_index_path | str | Url of the dataset | / |
+| image_index_column_name | str | Name of the column in the dataset that contains the image index | / |
 | clip_model | str | Clip model name to use for the retrieval | laion/CLIP-ViT-B-32-laion2B-s34B-b79K |
 | num_images | int | Number of images that will be retrieved for each prompt | 2 |
 
@@ -58,6 +60,8 @@ dataset = dataset.apply(
     arguments={
         # Add arguments
         # "dataset_url": ,
+        # "faiss_index_path": ,
+        # "image_index_column_name": ,
         # "clip_model": "laion/CLIP-ViT-B-32-laion2B-s34B-b79K",
         # "num_images": 2,
     },
