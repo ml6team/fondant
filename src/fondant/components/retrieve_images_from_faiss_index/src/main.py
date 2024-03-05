@@ -6,6 +6,7 @@ import dask.dataframe as dd
 import faiss
 import fsspec
 import pandas as pd
+import pyarrow as pa
 import torch
 from dask.distributed import Client, get_worker
 from dask_cuda import LocalCUDACluster
@@ -39,8 +40,6 @@ class RetrieveImagesFromFaissIndex(DaskTransformComponent):
             with open("faiss_index", "wb") as out:
                 out.write(file_contents)
 
-        self.search_index = faiss.read_index("faiss_index")
-
         dataset = dd.read_parquet(url_mapping_path)
         if "url" not in dataset.columns:
             msg = "Dataset does not contain column 'url'"
@@ -61,6 +60,7 @@ class RetrieveImagesFromFaissIndex(DaskTransformComponent):
         if worker and hasattr(worker, "model"):
             tokenizer = worker.tokenizer
             model = worker.model
+
         else:
             logger.info("Initializing model '%s' on worker '%s", self.model_id, worker)
             tokenizer = AutoTokenizer.from_pretrained(self.model_id)
@@ -82,34 +82,40 @@ class RetrieveImagesFromFaissIndex(DaskTransformComponent):
         number_of_images: int = 2,
     ) -> t.List[str]:
         """Retrieve images from faiss index."""
-        _, indices = self.search_index.search(query, number_of_images)
+        search_index = faiss.read_index("faiss_index")
+        _, indices = search_index.search(query, number_of_images)
         return indices.tolist()[0]
 
     def transform_partition(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Transform partition of dataframe."""
         results = []
+        prompts = dataframe["prompt"]
 
-        for index, row in dataframe.iterrows():
-            if "prompt" in dataframe.columns:
-                prompt = row["prompt"]
-                query = self.embed_prompt(prompt)
-            else:
-                msg = "Dataframe does not contain a prompt column."
-                raise ValueError(msg)
-
+        for prompt in prompts:
+            query = self.embed_prompt(prompt)
             indices = self.retrieve_from_index(query, self.number_of_images)
             for i in indices:
                 url = self.image_urls[i]
-                row_to_add = (index, prompt, i, url)
+                row_to_add = (prompt, url)
+                print(row_to_add)
                 results.append(row_to_add)
 
-        results_df = pd.DataFrame(
+        return pd.DataFrame(
             results,
-            columns=["prompt_id", "prompt", "image_index", "image_url"],
+            columns=["prompt", "image_url"],
         )
-        results_df = results_df.astype({"prompt_id": str})
-        return results_df
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """Transform dataframe."""
-        return dataframe.map_partitions(self.transform_partition)
+        meta_dict = {
+            "id": pd.Series(dtype="object"),
+            "prompt": pd.Series(dtype=pd.ArrowDtype(pa.string())),
+            "image_url": pd.Series(dtype=pd.ArrowDtype(pa.string())),
+        }
+
+        meta_df = pd.DataFrame(meta_dict).set_index("id")
+
+        return dataframe.map_partitions(
+            self.transform_partition,
+            meta=meta_df,
+        )
