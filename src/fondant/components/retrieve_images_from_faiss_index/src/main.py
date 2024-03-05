@@ -94,21 +94,22 @@ class RetrieveImagesFromFaissIndex(DaskTransformComponent):
         for prompt in prompts:
             query = self.embed_prompt(prompt)
             indices = self.retrieve_from_index(query, self.number_of_images)
-            for i in indices:
-                url = self.image_urls[i]
-                row_to_add = (prompt, url)
-                print(row_to_add)
+            for i, idx in enumerate(indices):
+                url = self.image_urls[idx]
+                row_to_add = (f"{prompt}_{i}", prompt, url)
                 results.append(row_to_add)
 
-        return pd.DataFrame(
+        results_df = pd.DataFrame(
             results,
-            columns=["prompt", "image_url"],
+            columns=["id", "prompt", "image_url"],
         )
+        results_df = results_df.set_index("id")
+        return results_df
 
     def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
         """Transform dataframe."""
         meta_dict = {
-            "id": pd.Series(dtype="object"),
+            "id": pd.Series(dtype=pd.ArrowDtype(pa.string())),
             "prompt": pd.Series(dtype=pd.ArrowDtype(pa.string())),
             "image_url": pd.Series(dtype=pd.ArrowDtype(pa.string())),
         }
