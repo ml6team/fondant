@@ -100,7 +100,7 @@ class RetrieveImagesFromFaissIndex(DaskTransformComponent):
             indices = self.retrieve_from_index(query, self.number_of_images)
             for i in indices:
                 url = self.image_urls[i]
-                row_to_add = (index, prompt, i, url) if prompt else (index, i, url)
+                row_to_add = (index, prompt, i, url)
                 results.append(row_to_add)
 
         results_df = pd.DataFrame(
