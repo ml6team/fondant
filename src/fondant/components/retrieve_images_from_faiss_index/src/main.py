@@ -93,15 +93,8 @@ class RetrieveImagesFromFaissIndex(DaskTransformComponent):
             if "prompt" in dataframe.columns:
                 prompt = row["prompt"]
                 query = self.embed_prompt(prompt)
-
-            elif "embedding" in dataframe.columns:
-                prompt = None
-                query = row["embedding"]
             else:
-                msg = (
-                    "Dataframe does not contain a prompt or embedding column. "
-                    "Please provide one of both."
-                )
+                msg = "Dataframe does not contain a prompt column."
                 raise ValueError(msg)
 
             indices = self.retrieve_from_index(query, self.number_of_images)
