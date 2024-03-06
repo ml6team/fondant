@@ -23,6 +23,6 @@ def test_component():
     component.setup()
     output_dataframe = component.transform(input_dataframe)
     assert output_dataframe.columns.tolist() == [
-        "prompt_id",
+        "prompt",
         "image_url",
     ]
