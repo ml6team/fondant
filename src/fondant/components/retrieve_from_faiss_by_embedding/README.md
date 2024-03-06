@@ -1,4 +1,4 @@
-# Retrieve images from FAISS index
+# Retrieve from FAISS by embedding
 
 <a id="retrieve_from_faiss_by_embedding#description"></a>
 ## Description

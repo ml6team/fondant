@@ -1,4 +1,4 @@
-name: Retrieve images from FAISS index
+name: Retrieve from FAISS by embedding
 description: |
  Retrieve images from a Faiss index. The component should reference a Faiss image dataset, 
   which includes both the Faiss index and a dataset of image URLs. The input dataset contains 
