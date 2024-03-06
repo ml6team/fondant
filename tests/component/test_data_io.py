@@ -4,6 +4,7 @@ from pathlib import Path
 import dask.dataframe as dd
 import pyarrow as pa
 import pytest
+from dask.distributed import Client
 from fondant.component.data_io import DaskDataLoader, DaskDataWriter
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.manifest import Manifest
@@ -50,22 +51,8 @@ def dataframe(manifest, component_spec):
 
 
 @pytest.fixture()
-async def client():
-    """Start a Dask client running everything in a single thread. This is necessary to work with
-    temp directories, which are not available to other processes.
-    """
-    from dask.distributed import Client, Scheduler, Worker
-    from tornado.concurrent import DummyExecutor
-    from tornado.ioloop import IOLoop
-
-    loop = IOLoop()
-    e = DummyExecutor()
-    s = Scheduler(loop=loop)
-    await s.start()
-    w = Worker(s.address, loop=loop, executor=e)
-    loop.add_callback(w._start)
-
-    return Client(s.address)
+def client():
+    return Client()
 
 
 def test_load_dataframe(manifest, component_spec):
@@ -127,7 +114,7 @@ def test_load_dataframe_rows(manifest, component_spec):
     assert dataframe.npartitions == expected_partitions
 
 
-async def test_write_dataset(
+def test_write_dataset(
     tmp_path_factory,
     dataframe,
     manifest,
@@ -144,6 +131,7 @@ async def test_write_dataset(
             manifest=manifest,
             operation_spec=OperationSpec(component_spec),
         )
+
         # write dataframe to temp dir
         data_writer.write_dataframe(dataframe)
         # read written data and assert
@@ -158,7 +146,7 @@ async def test_write_dataset(
         assert dataframe.index.name == "id"
 
 
-async def test_write_dataset_custom_produces(
+def test_write_dataset_custom_produces(
     tmp_path_factory,
     dataframe,
     manifest,
@@ -200,7 +188,7 @@ async def test_write_dataset_custom_produces(
 
 
 # TODO: check if this is still needed?
-async def test_write_reset_index(
+def test_write_reset_index(
     tmp_path_factory,
     dataframe,
     manifest,
@@ -224,7 +212,7 @@ async def test_write_reset_index(
 
 
 @pytest.mark.parametrize("partitions", list(range(1, 5)))
-async def test_write_divisions(  # noqa: PLR0913
+def test_write_divisions(  # noqa: PLR0913
     tmp_path_factory,
     dataframe,
     manifest,

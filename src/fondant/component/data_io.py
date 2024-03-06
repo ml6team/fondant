@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import dask.dataframe as dd
 import dask.distributed
+import fsspec
 import pyarrow as pa
 from dask.distributed import as_completed
 
@@ -193,12 +194,18 @@ class DaskDataWriter(DataIO):
                 msg,
             )
 
-    def _write_dataframe(self, dataframe: dd.DataFrame):
+    def _write_dataframe(self, dataframe: dd.DataFrame) -> None:
         """Create dataframe writing task."""
         location = (
             f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
             f"{self.manifest.run_id}/{self.operation_spec.component_name}"
         )
+
+        # Create directory the dataframe will be written to, since this is not handled by Pandas
+        # `to_parquet` method.
+        protocol = fsspec.utils.get_protocol(location)
+        fs = fsspec.get_filesystem_class(protocol)
+        fs().makedirs(location)
 
         schema = {
             field.name: field.type.value
@@ -225,8 +232,15 @@ class DaskDataWriter(DataIO):
             for (i, d) in enumerate(dataframe.to_delayed())
         ]
 
+        self._compute_write_tasks(to_parquet_tasks)
+
+    @staticmethod
+    def _compute_write_tasks(
+        write_tasks: t.List[dask.delayed],
+    ) -> None:  # pragma: no cover
+        """This method is split so it can be mocked during tests."""
         client: dask.distributed.Client = dask.distributed.get_client()
-        futures = client.compute(to_parquet_tasks)
+        futures = client.compute(write_tasks)
 
         # As each future completes, release it so the memory can be reclaimed
         for future in as_completed(futures):

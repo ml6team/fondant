@@ -131,3 +131,6 @@ skips = ["**/test_*.py", "**/*_test.py"]
 [[tool.mypy.overrides]]
 module = "referencing.jsonschema.*"
 follow_imports = "skip"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
