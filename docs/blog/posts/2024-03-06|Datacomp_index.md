@@ -29,11 +29,19 @@ why we built an index for the Datacomp-12M dataset. While it is a lot smaller th
 should already enable a lot of use cases again, and can hopefully be the start towards building
 indices for more and larger datasets.
 
-You can access the index directly on the Hugging Face Hub
-[here](https://huggingface.co/datasets/fondant-ai/datacomp-small-clip/blob/main/faiss), or read on 
-below on how to use it with Fondant.
-
 <!-- more -->
+
+The resulting embedded dataset and index have been published on the Hugging Face Hub
+[here](https://huggingface.co/datasets/fondant-ai/datacomp-small-clip). The data repository is
+structured as follows:
+- [data/](https://huggingface.co/datasets/fondant-ai/datacomp-small-clip/viewer): The dataset
+  containing ids, urls, and CLIP embeddings
+- [faiss](https://huggingface.co/datasets/fondant-ai/datacomp-small-clip/blob/main/faiss):
+  The faiss index
+- [id_mapping/](https://huggingface.co/datasets/fondant-ai/datacomp-small-clip/tree/main/id_mapping):
+  The mapping of the faiss ids to the original urls
+
+Read on below on how to use it with Fondant.
 
 ## Using the index
 
