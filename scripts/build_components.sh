@@ -113,7 +113,7 @@ for dir in "${components_to_build[@]}"; do
   docker pushrm ${full_image_name}
   
   # Delete the image to get free space on device
-  docker rm ${full_image_name}
+  docker rmi ${full_image_name}
   popd
 
 done
