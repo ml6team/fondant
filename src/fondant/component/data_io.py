@@ -5,7 +5,6 @@ from collections import defaultdict
 
 import dask.dataframe as dd
 import dask.distributed
-import fsspec
 import pyarrow as pa
 from dask.diagnostics import ProgressBar
 from dask.distributed import as_completed
@@ -205,12 +204,6 @@ class DaskDataWriter(DataIO):
             f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
             f"{self.manifest.run_id}/{self.operation_spec.component_name}"
         )
-
-        # Create directory the dataframe will be written to, since this is not handled by Pandas
-        # `to_parquet` method.
-        protocol = fsspec.utils.get_protocol(location)
-        fs = fsspec.get_filesystem_class(protocol)
-        fs().makedirs(location)
 
         schema = {
             field.name: field.type.value
