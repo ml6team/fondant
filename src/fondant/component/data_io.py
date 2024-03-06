@@ -4,7 +4,10 @@ import typing as t
 from collections import defaultdict
 
 import dask.dataframe as dd
+import dask.distributed
+import pyarrow as pa
 from dask.diagnostics import ProgressBar
+from dask.distributed import as_completed
 
 from fondant.core.component_spec import OperationSpec
 from fondant.core.manifest import Manifest
@@ -206,7 +209,34 @@ class DaskDataWriter(DataIO):
             field.name: field.type.value
             for field in self.operation_spec.produces_to_dataset.values()
         }
-        return self._create_write_task(dataframe, location=location, schema=schema)
+
+        # The id needs to be added explicitly since we will convert this to a PyArrow schema
+        # later and use it in the `pandas.to_parquet` method.
+        schema.update(
+            {
+                "id": pa.string(),
+            },
+        )
+
+        # Convert to delayed since computing a dataframe tries to return the complete result,
+        # keeping references to all completed tasks, and preventing release of memory.
+        # https://distributed.dask.org/en/stable/memory.html#difference-with-dask-compute
+        # https://dask.discourse.group/t/improving-pipeline-resilience-when-using-to-parquet-and-preemptible-workers/2141
+        to_parquet_tasks = [
+            d.to_parquet(
+                os.path.join(location, f"part.{i}.parquet"),
+                schema=pa.schema(list(schema.items())),
+            )
+            for (i, d) in enumerate(dataframe.to_delayed())
+        ]
+
+        client: dask.distributed.Client = dask.distributed.get_client()
+        futures = client.compute(to_parquet_tasks)
+
+        # As each future completes, release it so the memory can be reclaimed
+        for future in as_completed(futures):
+            future.result()
+            future.release()
 
     @staticmethod
     def _create_write_task(
