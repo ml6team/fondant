@@ -6,17 +6,16 @@ import dask.dataframe as dd
 import faiss
 import fsspec
 import pandas as pd
-import pyarrow as pa
 import torch
 from dask.distributed import Client, get_worker
 from dask_cuda import LocalCUDACluster
-from fondant.component import DaskTransformComponent
+from fondant.component import PandasTransformComponent
 from transformers import AutoTokenizer, CLIPTextModelWithProjection
 
 logger = logging.getLogger(__name__)
 
 
-class RetrieveImagesFromFaissIndex(DaskTransformComponent):
+class RetrieveImagesFromFaissIndexByPrompt(PandasTransformComponent):
     """Retrieve images from a faiss index using CLIP embeddings."""
 
     def __init__(  # PLR0913
@@ -86,7 +85,7 @@ class RetrieveImagesFromFaissIndex(DaskTransformComponent):
         _, indices = search_index.search(query, number_of_images)
         return indices.tolist()[0]
 
-    def transform_partition(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+    def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Transform partition of dataframe."""
         results = []
         prompts = dataframe["prompt"]
@@ -105,18 +104,3 @@ class RetrieveImagesFromFaissIndex(DaskTransformComponent):
         )
         results_df = results_df.set_index("id")
         return results_df
-
-    def transform(self, dataframe: dd.DataFrame) -> dd.DataFrame:
-        """Transform dataframe."""
-        meta_dict = {
-            "id": pd.Series(dtype=pd.ArrowDtype(pa.string())),
-            "prompt": pd.Series(dtype=pd.ArrowDtype(pa.string())),
-            "image_url": pd.Series(dtype=pd.ArrowDtype(pa.string())),
-        }
-
-        meta_df = pd.DataFrame(meta_dict).set_index("id")
-
-        return dataframe.map_partitions(
-            self.transform_partition,
-            meta=meta_df,
-        )
