@@ -124,8 +124,7 @@ for dir in "${components_to_build[@]}"; do
 
 
   # Delete old docker images to free up space
-  echo "Deleting old docker images to free up space ..."
-  echo "y" | docker system prune -a --filter "until=2m"
+  docker rmi -f ${full_image_name}
   popd
 
 done
