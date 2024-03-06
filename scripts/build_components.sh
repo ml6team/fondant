@@ -124,8 +124,7 @@ for dir in "${components_to_build[@]}"; do
 
 
   # Delete old docker images to free up space
-  image_id=$(docker images -q ${full_image_name})
-  docker rmi -f ${image_id}
+  docker rmi -f $(docker images -aq)
   popd
 
 done
