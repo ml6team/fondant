@@ -1,10 +1,13 @@
 """Module holding implementation to build Fondant components, used by the `fondant build`
 command.
 """
+
 import logging
 import re
 import typing as t
 from pathlib import Path
+
+import docker
 
 from fondant.pipeline import ComponentOp
 
@@ -22,17 +25,6 @@ def build_component(  # ruff: noqa: PLR0912, PLR0915
     pull: bool = False,
     target: t.Optional[str] = None,
 ) -> None:
-    try:
-        import docker
-    except ImportError:
-        msg = (
-            "You need to install `docker` to use the `fondant build` command, you can install "
-            "it with `pip install fondant[docker]`"
-        )
-        raise SystemExit(
-            msg,
-        )
-
     component_op = ComponentOp.from_component_yaml(component_dir)
     component_spec = component_op.component_spec
 

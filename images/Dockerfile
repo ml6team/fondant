@@ -8,5 +8,5 @@ RUN apt-get update && \
 
 # Install Fondant
 ARG FONDANT_VERSION=main
-RUN pip3 install fondant[component,aws,azure,gcp]@git+https://github.com/ml6team/fondant@${FONDANT_VERSION}
+RUN pip3 install fondant[aws,azure,gcp]@git+https://github.com/ml6team/fondant@${FONDANT_VERSION}
 

@@ -114,12 +114,7 @@ pip install fondant
 ```
 
 Fondant also includes extra dependencies for specific runners, storage integrations and publishing 
-components to registries. 
-We can install the local runner to enable local pipeline execution:
-
-```
-pip install fondant[docker]
-```
+components to registries. The dependencies for the local runner (docker) is included by default.
 
 For more detailed installation options, check the [**installation page**](https://fondant.ai/en/latest/guides/installation/)on our documentation.
 

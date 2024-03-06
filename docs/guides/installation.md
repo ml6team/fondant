@@ -51,13 +51,7 @@ Fondant also includes extra dependencies for specific runners, storage integrati
 
 ### Publishing components dependencies
 
-For publishing components to registries: 
-
-```bash
-pip install fondant[docker]
-```
-
-Check out the [guide](../components/publishing_components.md) on publishing components to registries.
+For publishing components to registries check out the [guide](../components/publishing_components.md) on publishing components to registries.
 
 ### Runner specific dependencies
 
