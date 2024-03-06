@@ -27,7 +27,9 @@ from fondant.pipeline import (
 
 logger = logging.getLogger(__name__)
 
-DASK_DIAGNOSTIC_DASHBOARD_PORT = 8787
+# export DASK_DIAGNOSTICS_PORT="" to get a dynamic port assigned
+DASK_DIAGNOSTICS_PORT = os.environ.get("DASK_DIAGNOSTICS_PORT", ":8787")
+
 KubeflowCommandArguments = t.List[t.Union[str, t.Dict[str, str]]]
 
 
@@ -261,10 +263,7 @@ class DockerCompiler(Compiler):
             if extra_volumes:
                 volumes.extend(extra_volumes)
 
-            ports: t.List[t.Union[str, dict]] = []
-            ports.append(
-                f"{DASK_DIAGNOSTIC_DASHBOARD_PORT}:{DASK_DIAGNOSTIC_DASHBOARD_PORT}",
-            )
+            ports = [f"8787{DASK_DIAGNOSTICS_PORT}"]
 
             services[component_id] = {
                 "entrypoint": entrypoint,
