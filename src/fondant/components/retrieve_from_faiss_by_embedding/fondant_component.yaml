@@ -1,0 +1,31 @@
+name: Retrieve from FAISS by embedding
+description: |
+ Retrieve images from a Faiss index. The component should reference a Faiss image dataset, 
+  which includes both the Faiss index and a dataset of image URLs. The input dataset contains 
+  embeddings which will be use to retrieve similar images. 
+
+image: fndnt/retrieve_from_faiss_by_embedding:dev
+tags:
+  - Data retrieval
+
+consumes:
+  embedding:
+    type: array
+    items:
+      type: float32
+
+produces:
+  image_url:
+    type: string
+
+args:
+  url_mapping_path:
+    description: Url of the image mapping dataset
+    type: str
+  faiss_index_path:
+    description: Url of the dataset
+    type: str
+  num_images:
+    description: Number of images that will be retrieved for each prompt
+    type: int
+    default: 2
