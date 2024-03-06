@@ -121,6 +121,10 @@ for dir in "${components_to_build[@]}"; do
   And validate by running:
   \`docker pushrm --help\`
   "
+
+
+  # Delete old docker images to free up space
+  docker system prune -a --filter "until=2m"
   popd
 
 done
