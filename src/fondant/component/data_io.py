@@ -4,7 +4,10 @@ import typing as t
 from collections import defaultdict
 
 import dask.dataframe as dd
-from dask.diagnostics import ProgressBar
+import dask.distributed
+import fsspec
+import pyarrow as pa
+from dask.distributed import as_completed
 
 from fondant.core.component_spec import OperationSpec
 from fondant.core.manifest import Manifest
@@ -172,11 +175,7 @@ class DaskDataWriter(DataIO):
                     k: v for k, v in produces_mapping.items() if isinstance(v, str)
                 },
             )
-        write_task = self._write_dataframe(dataframe)
-
-        with ProgressBar():
-            logging.info("Writing data...")
-            dd.compute(write_task)
+        self._write_dataframe(dataframe)
 
     @staticmethod
     def validate_dataframe_columns(dataframe: dd.DataFrame, columns: t.List[str]):
@@ -195,45 +194,49 @@ class DaskDataWriter(DataIO):
                 msg,
             )
 
-    def _write_dataframe(self, dataframe: dd.DataFrame) -> dd.core.Scalar:
+    def _write_dataframe(self, dataframe: dd.DataFrame) -> None:
         """Create dataframe writing task."""
         location = (
             f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
             f"{self.manifest.run_id}/{self.operation_spec.component_name}"
         )
 
+        # Create directory the dataframe will be written to, since this is not handled by Pandas
+        # `to_parquet` method.
+        protocol = fsspec.utils.get_protocol(location)
+        fs = fsspec.get_filesystem_class(protocol)
+        fs().makedirs(location)
+
         schema = {
             field.name: field.type.value
             for field in self.operation_spec.produces_to_dataset.values()
         }
-        return self._create_write_task(dataframe, location=location, schema=schema)
 
-    @staticmethod
-    def _create_write_task(
-        dataframe: dd.DataFrame,
-        *,
-        location: str,
-        schema: t.Dict[str, str],
-    ) -> dd.core.Scalar:
-        """
-        Creates a delayed Dask task to upload the given DataFrame to the remote storage location
-         specified in the manifest.
-
-        Args:
-            dataframe: The DataFrame to be uploaded.
-            location: the location to write the subset to
-            schema: the schema of the dataframe to write
-
-        Returns:
-             A delayed Dask task that uploads the DataFrame to the remote storage location when
-              executed.
-        """
-        write_task = dd.to_parquet(
-            dataframe,
-            location,
-            schema=schema,
-            overwrite=False,
-            compute=False,
+        # The id needs to be added explicitly since we will convert this to a PyArrow schema
+        # later and use it in the `pandas.to_parquet` method.
+        schema.update(
+            {
+                "id": pa.from_numpy_dtype(dataframe.index.dtype),
+            },
         )
-        logging.info(f"Creating write task for: {location}")
-        return write_task
+
+        # Convert to delayed since computing a dataframe tries to return the complete result,
+        # keeping references to all completed tasks, and preventing release of memory.
+        # https://distributed.dask.org/en/stable/memory.html#difference-with-dask-compute
+        # https://dask.discourse.group/t/improving-pipeline-resilience-when-using-to-parquet-and-preemptible-workers/2141
+        to_parquet_tasks = [
+            d.to_parquet(
+                os.path.join(location, f"part.{i}.parquet"),
+                schema=pa.schema(list(schema.items())),
+                index=True,
+            )
+            for (i, d) in enumerate(dataframe.to_delayed())
+        ]
+
+        client: dask.distributed.Client = dask.distributed.get_client()
+        futures = client.compute(to_parquet_tasks)
+
+        # As each future completes, release it so the memory can be reclaimed
+        for future in as_completed(futures):
+            future.result()
+            future.release()

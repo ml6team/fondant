@@ -4,6 +4,7 @@ from pathlib import Path
 import dask.dataframe as dd
 import pyarrow as pa
 import pytest
+from dask.distributed import Client
 from fondant.component.data_io import DaskDataLoader, DaskDataWriter
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.manifest import Manifest
@@ -47,6 +48,11 @@ def dataframe(manifest, component_spec):
         operation_spec=OperationSpec(component_spec),
     )
     return data_loader.load_dataframe()
+
+
+@pytest.fixture()
+def client():
+    return Client()
 
 
 def test_load_dataframe(manifest, component_spec):
@@ -113,6 +119,7 @@ def test_write_dataset(
     dataframe,
     manifest,
     component_spec,
+    client,
 ):
     """Test writing out subsets."""
     # Dictionary specifying the expected subsets to write and their column names
@@ -124,6 +131,7 @@ def test_write_dataset(
             manifest=manifest,
             operation_spec=OperationSpec(component_spec),
         )
+
         # write dataframe to temp dir
         data_writer.write_dataframe(dataframe)
         # read written data and assert
@@ -143,6 +151,7 @@ def test_write_dataset_custom_produces(
     dataframe,
     manifest,
     component_spec_produces,
+    client,
 ):
     """Test writing out subsets."""
     produces = {
@@ -174,7 +183,7 @@ def test_write_dataset_custom_produces(
             / component_spec_produces.safe_name,
         )
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
-        assert list(dataframe.columns) == expected_columns
+        assert sorted(dataframe.columns) == sorted(expected_columns)
         assert dataframe.index.name == "id"
 
 
@@ -184,6 +193,7 @@ def test_write_reset_index(
     dataframe,
     manifest,
     component_spec,
+    client,
 ):
     """Test writing out the index and fields that have no dask index and checking
     if the id index was created.
@@ -202,12 +212,13 @@ def test_write_reset_index(
 
 
 @pytest.mark.parametrize("partitions", list(range(1, 5)))
-def test_write_divisions(
+def test_write_divisions(  # noqa: PLR0913
     tmp_path_factory,
     dataframe,
     manifest,
     component_spec,
     partitions,
+    client,
 ):
     """Test writing out index and subsets and asserting they have the divisions of the dataframe."""
     # repartition the dataframe (default is 3 partitions)
