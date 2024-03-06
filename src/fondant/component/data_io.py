@@ -6,7 +6,6 @@ from collections import defaultdict
 import dask.dataframe as dd
 import dask.distributed
 import pyarrow as pa
-from dask.diagnostics import ProgressBar
 from dask.distributed import as_completed
 
 from fondant.core.component_spec import OperationSpec
@@ -175,11 +174,7 @@ class DaskDataWriter(DataIO):
                     k: v for k, v in produces_mapping.items() if isinstance(v, str)
                 },
             )
-        write_task = self._write_dataframe(dataframe)
-
-        with ProgressBar():
-            logging.info("Writing data...")
-            dd.compute(write_task)
+        self._write_dataframe(dataframe)
 
     @staticmethod
     def validate_dataframe_columns(dataframe: dd.DataFrame, columns: t.List[str]):
@@ -198,7 +193,7 @@ class DaskDataWriter(DataIO):
                 msg,
             )
 
-    def _write_dataframe(self, dataframe: dd.DataFrame) -> dd.core.Scalar:
+    def _write_dataframe(self, dataframe: dd.DataFrame):
         """Create dataframe writing task."""
         location = (
             f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
