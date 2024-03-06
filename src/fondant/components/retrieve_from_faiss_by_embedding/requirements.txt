@@ -1,0 +1,2 @@
+faiss-cpu==1.7.4
+huggingface_hub==0.21.3
