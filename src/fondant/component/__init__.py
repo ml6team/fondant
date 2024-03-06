@@ -1,19 +1,6 @@
-try:
-    pass
-except ImportError:
-    msg = (
-        "You need to install fondant using the `component` extra to develop or run a component."
-        "You can install it with `pip install fondant[component]`"
-    )
-    raise SystemExit(
-        msg,
-    )
+# fmt: off
+from .component import (BaseComponent, Component, DaskLoadComponent,  # noqa
+                        DaskTransformComponent, DaskWriteComponent,
+                        PandasTransformComponent)
 
-from .component import (  # noqa
-    BaseComponent,
-    Component,
-    DaskLoadComponent,
-    DaskTransformComponent,
-    DaskWriteComponent,
-    PandasTransformComponent,
-)
+# fmt: on
