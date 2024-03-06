@@ -15,7 +15,7 @@ from transformers import AutoTokenizer, CLIPTextModelWithProjection
 logger = logging.getLogger(__name__)
 
 
-class RetrieveImagesFromFaissIndexByPrompt(PandasTransformComponent):
+class RetrieveFromFaissByPrompt(PandasTransformComponent):
     """Retrieve images from a faiss index using CLIP embeddings."""
 
     def __init__(  # PLR0913

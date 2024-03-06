@@ -5,7 +5,7 @@ description: |
   of a list of prompts. These prompts will be embedded using a CLIP model, and similar 
   images will be retrieved from the index.
 
-image: fndnt/retrieve_images_from_faiss_index_by_prompt:dev
+image: fndnt/retrieve_from_faiss_by_prompt:dev
 tags:
   - Data retrieval
 

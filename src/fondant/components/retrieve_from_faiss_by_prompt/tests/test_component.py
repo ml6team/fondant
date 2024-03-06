@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.main import RetrieveImagesFromFaissIndexByPrompt
+from src.main import RetrieveFromFaissByPrompt
 
 
 def test_component():
@@ -15,7 +15,7 @@ def test_component():
     input_dataframe["prompt"] = input_dataframe["prompt"].astype(str)
 
     # Run component
-    component = RetrieveImagesFromFaissIndexByPrompt(
+    component = RetrieveFromFaissByPrompt(
         url_mapping_path="gs://soy-audio-379412-embed-datacomp/12M/id_mapping",
         faiss_index_path="gs://soy-audio-379412-embed-datacomp/12M/faiss",
     )

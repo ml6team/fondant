@@ -1,6 +1,6 @@
 # Retrieve images from FAISS index
 
-<a id="retrieve_images_from_faiss_index_by_prompt#description"></a>
+<a id="retrieve_from_faiss_by_prompt#description"></a>
 ## Description
 Retrieve images from a Faiss index. The component should reference a Faiss image dataset, 
  which includes both the Faiss index and a dataset of image URLs. The input dataset consists 
@@ -8,10 +8,10 @@ Retrieve images from a Faiss index. The component should reference a Faiss image
  images will be retrieved from the index.
 
 
-<a id="retrieve_images_from_faiss_index_by_prompt#inputs_outputs"></a>
+<a id="retrieve_from_faiss_by_prompt#inputs_outputs"></a>
 ## Inputs / outputs 
 
-<a id="retrieve_images_from_faiss_index_by_prompt#consumes"></a>
+<a id="retrieve_from_faiss_by_prompt#consumes"></a>
 ### Consumes 
 **This component consumes:**
 
@@ -20,7 +20,7 @@ Retrieve images from a Faiss index. The component should reference a Faiss image
 
 
 
-<a id="retrieve_images_from_faiss_index_by_prompt#produces"></a>  
+<a id="retrieve_from_faiss_by_prompt#produces"></a>  
 ### Produces 
 **This component produces:**
 
@@ -29,7 +29,7 @@ Retrieve images from a Faiss index. The component should reference a Faiss image
 
 
 
-<a id="retrieve_images_from_faiss_index_by_prompt#arguments"></a>
+<a id="retrieve_from_faiss_by_prompt#arguments"></a>
 ## Arguments
 
 The component takes the following arguments to alter its behavior:
@@ -41,7 +41,7 @@ The component takes the following arguments to alter its behavior:
 | clip_model | str | Clip model name to use for the retrieval | laion/CLIP-ViT-B-32-laion2B-s34B-b79K |
 | num_images | int | Number of images that will be retrieved for each prompt | 2 |
 
-<a id="retrieve_images_from_faiss_index_by_prompt#usage"></a>
+<a id="retrieve_from_faiss_by_prompt#usage"></a>
 ## Usage 
 
 You can add this component to your pipeline using the following code:
@@ -55,7 +55,7 @@ pipeline = Pipeline(...)
 dataset = pipeline.read(...)
 
 dataset = dataset.apply(
-    "retrieve_images_from_faiss_index_by_prompt",
+    "retrieve_from_faiss_by_prompt",
     arguments={
         # Add arguments
         # "url_mapping_path": ,
@@ -66,7 +66,7 @@ dataset = dataset.apply(
 )
 ```
 
-<a id="retrieve_images_from_faiss_index_by_prompt#testing"></a>
+<a id="retrieve_from_faiss_by_prompt#testing"></a>
 ## Testing
 
 You can run the tests using docker with BuildKit. From this directory, run:
