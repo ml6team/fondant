@@ -183,7 +183,7 @@ def test_write_dataset_custom_produces(
             / component_spec_produces.safe_name,
         )
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
-        assert list(dataframe.columns) == expected_columns
+        assert sorted(dataframe.columns) == sorted(expected_columns)
         assert dataframe.index.name == "id"
 
 

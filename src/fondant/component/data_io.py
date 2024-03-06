@@ -228,19 +228,13 @@ class DaskDataWriter(DataIO):
             d.to_parquet(
                 os.path.join(location, f"part.{i}.parquet"),
                 schema=pa.schema(list(schema.items())),
+                index=True,
             )
             for (i, d) in enumerate(dataframe.to_delayed())
         ]
 
-        self._compute_write_tasks(to_parquet_tasks)
-
-    @staticmethod
-    def _compute_write_tasks(
-        write_tasks: t.List[dask.delayed],
-    ) -> None:  # pragma: no cover
-        """This method is split so it can be mocked during tests."""
         client: dask.distributed.Client = dask.distributed.get_client()
-        futures = client.compute(write_tasks)
+        futures = client.compute(to_parquet_tasks)
 
         # As each future completes, release it so the memory can be reclaimed
         for future in as_completed(futures):
