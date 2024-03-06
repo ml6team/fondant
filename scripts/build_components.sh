@@ -122,6 +122,9 @@ for dir in "${components_to_build[@]}"; do
   \`docker pushrm --help\`
   "
 
+
+  # Delete old docker images to free up space
+  docker builder prune -f
   popd
 
 done
