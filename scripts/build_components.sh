@@ -121,7 +121,9 @@ for dir in "${components_to_build[@]}"; do
   And validate by running:
   \`docker pushrm --help\`
   "
-
+  
+  # Delete the image to get free space on device
+  docker rm ${full_image_name}
   popd
 
 done
