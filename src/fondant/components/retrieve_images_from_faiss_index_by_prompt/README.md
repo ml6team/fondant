@@ -25,7 +25,7 @@ Retrieve images from a Faiss index. The component should reference a Faiss image
 **This component produces:**
 
 - image_url: string
-- prompt_id: string
+- prompt: string
 
 
 

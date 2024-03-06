@@ -16,7 +16,7 @@ consumes:
 produces:
   image_url:
     type: string
-  prompt_id:
+  prompt:
     type: string
 
 previous_index: prompt_id
