@@ -124,7 +124,7 @@ for dir in "${components_to_build[@]}"; do
 
 
   # Delete old docker images to free up space
-  docker rmi -f $(docker images -aq)
+  docker builder prune
   popd
 
 done
