@@ -237,33 +237,3 @@ class DaskDataWriter(DataIO):
         for future in as_completed(futures):
             future.result()
             future.release()
-
-    @staticmethod
-    def _create_write_task(
-        dataframe: dd.DataFrame,
-        *,
-        location: str,
-        schema: t.Dict[str, str],
-    ) -> dd.core.Scalar:
-        """
-        Creates a delayed Dask task to upload the given DataFrame to the remote storage location
-         specified in the manifest.
-
-        Args:
-            dataframe: The DataFrame to be uploaded.
-            location: the location to write the subset to
-            schema: the schema of the dataframe to write
-
-        Returns:
-             A delayed Dask task that uploads the DataFrame to the remote storage location when
-              executed.
-        """
-        write_task = dd.to_parquet(
-            dataframe,
-            location,
-            schema=schema,
-            overwrite=False,
-            compute=False,
-        )
-        logging.info(f"Creating write task for: {location}")
-        return write_task
