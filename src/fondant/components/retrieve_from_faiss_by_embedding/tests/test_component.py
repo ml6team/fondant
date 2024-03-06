@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
-from main import RetrieveFromFaissByEmbedding
+
+from src.main import RetrieveFromFaissByEmbedding
 
 
-def test_component_from_embeddings():
+def test_component():
     input_dataframe = pd.DataFrame.from_dict(
         {
             "id": [1, 2],
