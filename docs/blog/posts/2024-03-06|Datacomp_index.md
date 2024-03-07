@@ -34,6 +34,7 @@ indices for more and larger datasets.
 The resulting embedded dataset and index have been published on the Hugging Face Hub
 [here](https://huggingface.co/datasets/fondant-ai/datacomp-small-clip). The data repository is 
 structured as follows:
+
 - [data/](https://huggingface.co/datasets/fondant-ai/datacomp-small-clip/viewer/embeddings): The 
   dataset containing ids, urls, and CLIP embeddings
 - [faiss](https://huggingface.co/datasets/fondant-ai/datacomp-small-clip/blob/main/faiss): 
@@ -49,6 +50,7 @@ Read on below on how to use it with Fondant.
 
 The easiest way to use the index, is using Fondant. Fondant offers reusable operations which 
 allow you to query the index with your data, either prompts or embeddings:
+
 - [By prompt](https://fondant.ai/en/latest/components/hub/#retrieve_from_faiss_by_prompt#description)
 - [By embedding](https://fondant.ai/en/latest/components/hub/#retrieve_from_faiss_by_embedding#description)
 
