@@ -217,7 +217,11 @@ class DaskDataWriter(DataIO):
         try:
             index_type = pa.from_numpy_dtype(dataframe.index.dtype)
         except pa.lib.ArrowNotImplementedError:
-            # The dtype of the index is `np._object`. Faal back on string instead.
+            # The dtype of the index is `np._object`. Fall back on string instead.
+            logging.warning(
+                "Failed to infer dtype of index column, falling back to `string`. "
+                "Specify the dtype explicitly to prevent this.",
+            )
             index_type = pa.string()
 
         schema.update(
