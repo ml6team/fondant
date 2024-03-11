@@ -81,6 +81,18 @@ install the package in the containerized component.
 @lightweight_component(extra_requires=["numpy"])
 ```
 
+Under the hood, we are injecting the source to a docker container. If you want to use additional 
+dependencies, you have to make sure to import the libaries inside a function directly.
+
+For example: 
+```python title="pipeline.py"
+...
+def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+    import numpy as np
+    # Your code here
+    ...
+```
+
 ## Changing the base image
 
 If you want to change the base image of the containerized component, you can do so by adding the
