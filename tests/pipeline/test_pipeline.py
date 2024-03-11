@@ -14,9 +14,10 @@ from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.schema import Field, Type
 from fondant.dataset import (
     ComponentOp,
+    Dataset,
     Image,
-    Pipeline,
     Resources,
+    Workspace,
     lightweight_component,
 )
 
@@ -200,7 +201,7 @@ def test_valid_pipeline(
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
 
-    pipeline = Pipeline(**default_pipeline_args)
+    pipeline = Dataset
 
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
@@ -210,6 +211,7 @@ def test_valid_pipeline(
         arguments=component_args,
         produces={"images_array": pa.binary()},
     )
+
     dataset = dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
@@ -251,7 +253,7 @@ def test_invalid_pipeline_schema(
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / "example_1")
 
-    pipeline = Pipeline(**default_pipeline_args)
+    pipeline = Dataset(**default_pipeline_args)
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(
         pipeline,
@@ -313,7 +315,7 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
     components_path = Path(valid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
 
-    pipeline = Pipeline(**default_pipeline_args)
+    pipeline = Dataset(**default_pipeline_args)
 
     dataset = pipeline.read(
         Path(components_path / component_names[0]),
@@ -351,7 +353,7 @@ def test_invalid_pipeline_declaration(
     components_path = Path(invalid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
 
-    pipeline = Pipeline(**default_pipeline_args)
+    pipeline = Dataset(**default_pipeline_args)
 
     dataset = pipeline.read(
         Path(components_path / component_names[0]),
@@ -408,16 +410,16 @@ def test_defining_reusable_component_op_with_custom_spec():
 
 
 def test_pipeline_name():
-    Pipeline(name="valid-name", base_path="base_path")
+    Dataset(name="valid-name", base_path="base_path")
     with pytest.raises(InvalidPipelineDefinition, match="The pipeline name violates"):
-        Pipeline(name="invalid name", base_path="base_path")
+        Dataset(name="invalid name", base_path="base_path")
 
 
 def test_schema_propagation():
     """Test that the schema is propagated correctly between datasets taking into account the
     component specs and `consumes` and `produces` arguments.
     """
-    pipeline = Pipeline(name="pipeline", base_path="base_path")
+    pipeline = Dataset(name="pipeline", base_path="base_path")
 
     pipeline.get_run_id = lambda: "pipeline-id"
 
@@ -501,7 +503,7 @@ def test_invoked_field_schema_raise_exception():
     """Test that check if the invoked field schema not matches the
     current schema raise an InvalidPipelineDefinition.
     """
-    pipeline = Pipeline(name="pipeline", base_path="base_path")
+    pipeline = Dataset(name="pipeline", base_path="base_path")
 
     pipeline.get_run_id = lambda: "pipeline-id"
 
@@ -555,7 +557,7 @@ def test_infer_consumes_if_not_defined(
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
 
-    pipeline = Pipeline(**default_pipeline_args)
+    pipeline = Dataset(**default_pipeline_args)
 
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
@@ -622,7 +624,7 @@ def test_consumes_name_to_name_mapping(
     """Test that a valid pipeline definition can be compiled without errors."""
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / "example_1")
-    pipeline = Pipeline(**default_pipeline_args)
+    pipeline = Dataset(**default_pipeline_args)
 
     # override the default package_path with temporary path to avoid the creation of artifacts
     monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
@@ -644,3 +646,18 @@ def test_consumes_name_to_name_mapping(
     ].operation_spec.to_dict()["consumes"] == {
         "images_data": {"type": "binary"},
     }
+
+
+def test_new_pipeline_interface():
+    Workspace.instance(name="workspace", description="...", base_path="...")
+    components_path = Path(valid_pipeline_path / "example_1")
+
+    dataset = Dataset.read(
+        Path(components_path / "first_component"),
+        produces={"images_data": pa.binary()},
+    )
+    dataset = dataset.apply(
+        Path(components_path / "second_component"),
+        consumes={"images_data": "images_data"},
+    )
+    assert len(dataset._graph) == 2

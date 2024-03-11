@@ -24,7 +24,7 @@ from fondant.cli import (
 from fondant.component import DaskLoadComponent
 from fondant.component.executor import Executor, ExecutorFactory
 from fondant.core.schema import CloudCredentialsMount
-from fondant.dataset import Pipeline
+from fondant.dataset import Dataset
 from fondant.dataset.runner import DockerRunner
 
 commands = [
@@ -68,7 +68,7 @@ def test_basic_invocation(command):
     assert process.returncode == 0
 
 
-TEST_PIPELINE = Pipeline("test_pipeline", base_path="some/path")
+TEST_PIPELINE = Dataset("test_pipeline", base_path="some/path")
 
 
 @pytest.mark.parametrize(

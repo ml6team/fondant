@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 import yaml
 
 from fondant.core.schema import CloudCredentialsMount
-from fondant.dataset import Pipeline
+from fondant.dataset import Dataset
 from fondant.dataset.compiler import (
     DockerCompiler,
     KubeFlowCompiler,
@@ -53,7 +53,7 @@ class DockerRunner(Runner):
 
     def run(
         self,
-        input: t.Union[Pipeline, str],
+        input: t.Union[Dataset, str],
         *,
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
@@ -72,7 +72,7 @@ class DockerRunner(Runner):
         self.check_docker_install()
         self.check_docker_compose_install()
 
-        if isinstance(input, Pipeline):
+        if isinstance(input, Dataset):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/compose.yaml"
             logging.info(
@@ -180,7 +180,7 @@ class KubeflowRunner(Runner):
 
     def run(
         self,
-        input: t.Union[Pipeline, str],
+        input: t.Union[Dataset, str],
         *,
         experiment_name: str = "Default",
     ):
@@ -190,7 +190,7 @@ class KubeflowRunner(Runner):
             input: the pipeline to compile or a path to a already compiled sagemaker spec
             experiment_name: the name of the experiment to create
         """
-        if isinstance(input, Pipeline):
+        if isinstance(input, Dataset):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/kubeflow-pipeline.yaml"
             logging.info(
@@ -263,14 +263,14 @@ class VertexRunner(Runner):
 
     def run(
         self,
-        input: t.Union[Pipeline, str],
+        input: t.Union[Dataset, str],
     ):
         """Run a pipeline, either from a compiled vertex spec or from a fondant pipeline.
 
         Args:
             input: the pipeline to compile or a path to a already compiled sagemaker spec
         """
-        if isinstance(input, Pipeline):
+        if isinstance(input, Dataset):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/vertex-pipeline.yaml"
             logging.info(
@@ -322,7 +322,7 @@ class SagemakerRunner(Runner):
 
     def run(
         self,
-        input: t.Union[Pipeline, str],
+        input: t.Union[Dataset, str],
         pipeline_name: str,
         role_arn: str,
     ):
@@ -334,7 +334,7 @@ class SagemakerRunner(Runner):
             role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
         """
-        if isinstance(input, Pipeline):
+        if isinstance(input, Dataset):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/sagemaker-pipeline.yaml"
             logging.info(

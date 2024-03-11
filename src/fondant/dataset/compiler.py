@@ -21,8 +21,8 @@ from fondant.core.schema import CloudCredentialsMount, DockerVolume
 from fondant.dataset import (
     VALID_ACCELERATOR_TYPES,
     VALID_VERTEX_ACCELERATOR_TYPES,
+    Dataset,
     Image,
-    Pipeline,
 )
 
 logger = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ class DockerCompiler(Compiler):
 
     def compile(
         self,
-        pipeline: Pipeline,
+        pipeline: Dataset,
         *,
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
@@ -186,7 +186,7 @@ class DockerCompiler(Compiler):
 
     def _generate_spec(
         self,
-        pipeline: Pipeline,
+        pipeline: Dataset,
         *,
         extra_volumes: t.List[str],
         build_args: t.List[str],
@@ -474,7 +474,7 @@ class KubeFlowCompiler(Compiler):
 
     def compile(
         self,
-        pipeline: Pipeline,
+        pipeline: Dataset,
         output_path: str,
     ) -> None:
         """Compile a pipeline to Kubeflow pipeline spec and save it to a specified output path.
@@ -825,7 +825,7 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
 
     def compile(
         self,
-        pipeline: Pipeline,
+        pipeline: Dataset,
         output_path: str,
         *,
         role_arn: t.Optional[str] = None,

@@ -21,7 +21,6 @@ from fondant.core.schema import CloudCredentialsMount
 from fondant.dataset import (
     ComponentOp,
     Dataset,
-    Pipeline,
     Resources,
     lightweight_component,
 )
@@ -131,17 +130,18 @@ def _freeze_time(monkeypatch):
 
 @pytest.fixture(params=TEST_PIPELINES)
 def setup_pipeline(request, tmp_path, monkeypatch):
-    pipeline = Pipeline(
+    dataset = Dataset(
         name="testpipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
     manifest = Manifest.create(
-        pipeline_name=pipeline.name,
-        base_path=pipeline.base_path,
-        run_id=pipeline.get_run_id(),
+        pipeline_name=dataset.name,
+        base_path=dataset.base_path,
+        run_id=dataset.get_run_id(),
     )
-    dataset = Dataset(manifest, pipeline=pipeline)
+
+    dataset = Dataset.evolve_dataset(manifest=manifest, dataset=dataset)
     cache_dict = {}
     example_dir, components = request.param
     for component_dict in components:
@@ -158,9 +158,9 @@ def setup_pipeline(request, tmp_path, monkeypatch):
         cache_dict[component.component_name] = cache_key
 
     # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
+    monkeypatch.setattr(dataset, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
-    return example_dir, pipeline, cache_dict
+    return example_dir, dataset, cache_dict
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -321,7 +321,7 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_docker_configuration(tmp_path_factory):
     """Test that extra volumes are applied correctly."""
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
@@ -350,7 +350,7 @@ def test_docker_configuration(tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_invalid_docker_configuration(tmp_path_factory):
     """Test that a valid error is returned when an unknown accelerator is set."""
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
@@ -410,7 +410,7 @@ def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
 def test_kubeflow_component_spec_from_lightweight_component(
     tmp_path_factory,
 ):
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="test-pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
@@ -495,7 +495,7 @@ def test_kubeflow_configuration(tmp_path_factory):
     node_pool_label = "dummy_label"
     node_pool_name = "dummy_label"
 
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
@@ -527,7 +527,7 @@ def test_kubeflow_configuration(tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_invalid_kubeflow_configuration(tmp_path_factory):
     """Test that an error is returned when an invalid resource is provided."""
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
@@ -596,7 +596,7 @@ def test_vertex_compiler(setup_pipeline, tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_vertex_configuration(tmp_path_factory):
     """Test that the kubeflow pipeline can be configured."""
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
@@ -624,7 +624,7 @@ def test_vertex_configuration(tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_invalid_vertex_configuration(tmp_path_factory):
     """Test that extra volumes are applied correctly."""
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
@@ -651,7 +651,7 @@ def test_caching_dependency_docker(tmp_path_factory):
     second_component_cache_key_dict = {}
 
     for arg in arg_list:
-        pipeline = Pipeline(
+        pipeline = Dataset(
             name="test_pipeline",
             description="description of the test pipeline",
             base_path="/foo/bar",
@@ -695,7 +695,7 @@ def test_caching_dependency_kfp(tmp_path_factory):
     second_component_cache_key_dict = {}
 
     for arg in arg_list:
-        pipeline = Pipeline(
+        pipeline = Dataset(
             name="test_pipeline",
             description="description of the test pipeline",
             base_path="/foo/bar",

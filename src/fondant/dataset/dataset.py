@@ -440,30 +440,74 @@ class ComponentOp:
         return get_nested_dict_hash(component_op_uid_dict)
 
 
-class Pipeline:
-    """Class representing a Fondant Pipeline."""
+class Workspace:
+    """Workspace holding environment information for a Fondants execution environment."""
+
+    _instance = None
 
     def __init__(
         self,
         name: str,
-        *,
+        description: str,
         base_path: str,
-        description: t.Optional[str] = None,
     ):
-        """
-        Args:
-            name: The name of the pipeline.
-            base_path: The base path for the pipeline to use to store artifacts and data. This
-                can be a local path or a remote path on one of the supported cloud storage
-                services. The path should already exist.
-            description: Optional description of the pipeline.
-        """
-        self.base_path = base_path
-        self.name = self._validate_pipeline_name(name)
+        if self._instance is None:
+            msg = (
+                "Singleton instance already exists. Use instance() method to access it."
+            )
+            raise RuntimeError(msg)
+        self.name = self._validate_workspace_name(name)
         self.description = description
-        self.package_path = f"{name}.tgz"
+        self.base_path = base_path
+        self.package_name = f"{name}.tgz"
+
+    @classmethod
+    def instance(
+        cls,
+        name: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        base_path: t.Optional[str] = None,
+    ):
+        if cls._instance is None:
+            # TODO default implementation of workspace in case no parameters are passed
+            cls._instance = cls.__new__(cls)
+            cls._instance.__init__(name, description, base_path)
+        return cls._instance
+
+    @classmethod
+    def get_workspace(cls) -> "Workspace":
+        return cls.instance()
+
+    @staticmethod
+    def _validate_workspace_name(name: str) -> str:
+        pattern = r"^[a-z0-9][a-z0-9_-]*$"
+        if not re.match(pattern, name):
+            msg = f"The workspace name violates the pattern {pattern}"
+            raise InvalidPipelineDefinition(msg)
+        return name
+
+    def get_run_id(self) -> str:
+        """Get a unique run ID for the pipeline."""
+        # TODO: eager execution: every execution a single run? or use the latest one?
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        return f"{self.name}-{timestamp}"
+
+
+class Dataset:
+    # TODO: prevent calling the init?
+    def __init__(
+        self,
+        manifest: t.Optional[Manifest] = None,
+    ):
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
+        self.manifest = manifest
+
+    @staticmethod
+    def load(manifest: Manifest) -> "Dataset":
+        """Load a dataset from a manifest."""
+        # TODO: fondant #885
+        raise NotImplementedError
 
     def register_operation(
         self,
@@ -472,6 +516,9 @@ class Pipeline:
         input_dataset: t.Optional["Dataset"],
         output_dataset: t.Optional["Dataset"],
     ) -> None:
+        if self._graph is None:
+            self._graph = OrderedDict()
+
         dependencies = []
         for component_name, info in self._graph.items():
             if info["output_dataset"] == input_dataset:
@@ -483,8 +530,8 @@ class Pipeline:
             "output_dataset": output_dataset,
         }
 
+    @staticmethod
     def read(
-        self,
         ref: t.Any,
         *,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
@@ -512,12 +559,7 @@ class Pipeline:
         Returns:
             An intermediate dataset.
         """
-        if self._graph:
-            msg = "For now, at most one read component can be applied per pipeline."
-            raise InvalidPipelineDefinition(
-                msg,
-            )
-
+        workspace = Workspace.get_workspace()
         operation = ComponentOp.from_ref(
             ref,
             produces=produces,
@@ -526,13 +568,15 @@ class Pipeline:
             resources=resources,
             cache=cache,
         )
+
         manifest = Manifest.create(
-            pipeline_name=self.name,
-            base_path=self.base_path,
-            run_id=self.get_run_id(),
+            pipeline_name=workspace.name,
+            base_path=workspace.base_path,
+            run_id=workspace.get_run_id(),
             component_id=operation.component_name,
         )
-        dataset = Dataset(manifest, pipeline=self)
+
+        dataset = Dataset(manifest)
 
         return dataset._apply(operation)
 
@@ -559,19 +603,6 @@ class Pipeline:
             depth_first_traversal(graph_node)
 
         self._graph = OrderedDict((node, self._graph[node]) for node in sorted_graph)
-
-    @staticmethod
-    def _validate_pipeline_name(pipeline_name: str) -> str:
-        pattern = r"^[a-z0-9][a-z0-9_-]*$"
-        if not re.match(pattern, pipeline_name):
-            msg = f"The pipeline name violates the pattern {pattern}"
-            raise InvalidPipelineDefinition(msg)
-        return pipeline_name
-
-    def get_run_id(self) -> str:
-        """Get a unique run ID for the pipeline."""
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        return f"{self.name}-{timestamp}"
 
     def validate(self, run_id: str):
         """Sort and run validation on the pipeline definition.
@@ -658,18 +689,6 @@ class Pipeline:
         """Return a string representation of the FondantPipeline object."""
         return f"{self.__class__.__name__}({self._graph!r}"
 
-
-class Dataset:
-    def __init__(self, manifest, *, pipeline: Pipeline) -> None:
-        """A class representing an intermediate dataset.
-
-        Args:
-            manifest: Manifest representing the dataset
-            pipeline: The pipeline this dataset is a part of.
-        """
-        self.manifest = manifest
-        self.pipeline = pipeline
-
     @property
     def fields(self) -> t.Mapping[str, Field]:
         """The fields of the manifest as an immutable mapping."""
@@ -682,18 +701,21 @@ class Dataset:
         Args:
             operation: The operation to apply.
         """
+        workspace = Workspace.get_workspace()
         evolved_manifest = self.manifest.evolve(
             operation.operation_spec,
-            run_id=self.pipeline.get_run_id(),
+            run_id=workspace.get_run_id(),  # TODO: to do use run idea of previous manifest?
         )
-        evolved_dataset = Dataset(evolved_manifest, pipeline=self.pipeline)
 
-        if self.pipeline is not None:
-            self.pipeline.register_operation(
-                operation,
-                input_dataset=self,
-                output_dataset=evolved_dataset,
-            )
+        # evolved_dataset = copy.deepcopy(self) -> can't pickle mappingproxy objects
+        evolved_dataset = self
+
+        evolved_dataset.manifest = evolved_manifest
+        evolved_dataset.register_operation(
+            operation,
+            input_dataset=self,  # using reference to manifests instead?
+            output_dataset=evolved_dataset,
+        )
 
         return evolved_dataset
 

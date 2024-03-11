@@ -1,4 +1,4 @@
-from fondant.dataset import Pipeline
+from fondant.dataset import Dataset
 
-TEST_PIPELINE = Pipeline(name="test_pipeline", base_path="some/path")
-TEST_PIPELINE_2 = Pipeline(name="test_pipeline", base_path="some/path")
+TEST_PIPELINE = Dataset(name="test_pipeline", base_path="some/path")
+TEST_PIPELINE_2 = Dataset(name="test_pipeline", base_path="some/path")

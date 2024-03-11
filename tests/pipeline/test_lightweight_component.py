@@ -13,7 +13,7 @@ import pytest
 from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.component_spec import OperationSpec
 from fondant.core.exceptions import InvalidLightweightComponent
-from fondant.dataset import Image, Pipeline, lightweight_component
+from fondant.dataset import Dataset, Image, lightweight_component
 from fondant.dataset.compiler import DockerCompiler
 from fondant.testing import DockerComposeConfigs
 
@@ -29,7 +29,7 @@ def default_fondant_image():
 
 @pytest.fixture()
 def load_pipeline(caplog):
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="dummy-pipeline",
         base_path="./data",
     )
@@ -323,7 +323,7 @@ def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
 
 
 def test_lightweight_component_missing_decorator():
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="dummy-pipeline",
         base_path="./data",
     )
@@ -354,7 +354,7 @@ def test_valid_load_component():
             )
             return dd.from_pandas(df, npartitions=1)
 
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="dummy-pipeline",
         base_path="./data",
     )
@@ -443,7 +443,7 @@ def test_lightweight_component_decorator_without_parentheses():
         def load(self) -> dd.DataFrame:
             return None
 
-    pipeline = Pipeline(
+    pipeline = Dataset(
         name="dummy-pipeline",
         base_path="./data",
     )

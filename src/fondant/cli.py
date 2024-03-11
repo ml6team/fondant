@@ -29,7 +29,7 @@ from pathlib import Path
 from types import ModuleType
 
 from fondant.core.schema import CloudCredentialsMount
-from fondant.dataset import Pipeline
+from fondant.dataset import Dataset
 
 if t.TYPE_CHECKING:
     from fondant.component import Component
@@ -761,7 +761,7 @@ def _called_with_wrong_args(f):
         del tb
 
 
-def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
+def pipeline_from_string(string_ref: str) -> Dataset:  # noqa: PLR0912
     """Get the pipeline from the provided string reference.
 
     Inspired by Flask:
@@ -847,7 +847,7 @@ def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
     else:
         app = attr
 
-    if isinstance(app, Pipeline):
+    if isinstance(app, Dataset):
         return app
 
     msg = f"A valid Fondant pipeline was not obtained from '{module.__name__}:{pipeline_str}'."
@@ -856,14 +856,14 @@ def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
     )
 
 
-def pipeline_from_module(module_str: str) -> Pipeline:
+def pipeline_from_module(module_str: str) -> Dataset:
     """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
-    from fondant.dataset import Pipeline
+    from fondant.dataset import Dataset
 
     module = get_module(module_str)
 
     pipeline_instances = [
-        obj for obj in module.__dict__.values() if isinstance(obj, Pipeline)
+        obj for obj in module.__dict__.values() if isinstance(obj, Dataset)
     ]
 
     if not pipeline_instances:

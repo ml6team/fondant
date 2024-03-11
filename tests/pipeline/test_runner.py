@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
-from fondant.dataset import Pipeline
+from fondant.dataset import Dataset
 from fondant.dataset.runner import (
     DockerRunner,
     KubeflowRunner,
@@ -16,7 +16,7 @@ from fondant.dataset.runner import (
 
 VALID_PIPELINE = Path("./tests/pipeline/examples/pipelines/compiled_pipeline/")
 
-PIPELINE = Pipeline(
+PIPELINE = Dataset(
     name="testpipeline",
     description="description of the test pipeline",
     base_path="/foo/bar",
