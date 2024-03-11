@@ -6,8 +6,8 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
-from fondant.pipeline import Pipeline
-from fondant.pipeline.runner import (
+from fondant.dataset import Pipeline
+from fondant.dataset.runner import (
     DockerRunner,
     KubeflowRunner,
     SagemakerRunner,
@@ -203,10 +203,10 @@ class MockKubeFlowCompiler:
 
 def test_kubeflow_runner_from_pipeline():
     with mock.patch(
-        "fondant.pipeline.runner.KubeFlowCompiler",
+        "fondant.dataset.runner.KubeFlowCompiler",
         new=MockKubeFlowCompiler,
     ), mock.patch(
-        "fondant.pipeline.runner.KubeflowRunner._run",
+        "fondant.dataset.runner.KubeflowRunner._run",
     ) as mock_run, mock.patch(
         "kfp.Client",
         new=MockKfpClient,
@@ -241,9 +241,9 @@ def test_vertex_runner():
 
 def test_vertex_runner_from_pipeline():
     with mock.patch(
-        "fondant.pipeline.runner.VertexCompiler",
+        "fondant.dataset.runner.VertexCompiler",
         new=MockKubeFlowCompiler,
-    ), mock.patch("fondant.pipeline.runner.VertexRunner._run") as mock_run, mock.patch(
+    ), mock.patch("fondant.dataset.runner.VertexRunner._run") as mock_run, mock.patch(
         "google.cloud.aiplatform.init",
         return_value=None,
     ):
@@ -324,7 +324,7 @@ class MockSagemakerCompiler:
 
 def test_sagemaker_runner_from_pipeline():
     with mock.patch(
-        "fondant.pipeline.runner.SagemakerCompiler",
+        "fondant.dataset.runner.SagemakerCompiler",
         new=MockSagemakerCompiler,
     ), mock.patch("boto3.client", spec=True):
         runner = SagemakerRunner()

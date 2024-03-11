@@ -29,7 +29,7 @@ from pathlib import Path
 from types import ModuleType
 
 from fondant.core.schema import CloudCredentialsMount
-from fondant.pipeline import Pipeline
+from fondant.dataset import Pipeline
 
 if t.TYPE_CHECKING:
     from fondant.component import Component
@@ -409,7 +409,7 @@ def register_compile(parent_parser):
 
 
 def compile_local(args):
-    from fondant.pipeline.compiler import DockerCompiler
+    from fondant.dataset.compiler import DockerCompiler
 
     extra_volumes = []
 
@@ -428,7 +428,7 @@ def compile_local(args):
 
 
 def compile_kfp(args):
-    from fondant.pipeline.compiler import KubeFlowCompiler
+    from fondant.dataset.compiler import KubeFlowCompiler
 
     pipeline = pipeline_from_string(args.ref)
     compiler = KubeFlowCompiler()
@@ -436,7 +436,7 @@ def compile_kfp(args):
 
 
 def compile_vertex(args):
-    from fondant.pipeline.compiler import VertexCompiler
+    from fondant.dataset.compiler import VertexCompiler
 
     pipeline = pipeline_from_string(args.ref)
     compiler = VertexCompiler()
@@ -444,7 +444,7 @@ def compile_vertex(args):
 
 
 def compile_sagemaker(args):
-    from fondant.pipeline.compiler import SagemakerCompiler
+    from fondant.dataset.compiler import SagemakerCompiler
 
     pipeline = pipeline_from_string(args.ref)
     compiler = SagemakerCompiler()
@@ -604,7 +604,7 @@ def register_run(parent_parser):
 
 
 def run_local(args):
-    from fondant.pipeline.runner import DockerRunner
+    from fondant.dataset.runner import DockerRunner
 
     extra_volumes = []
 
@@ -626,7 +626,7 @@ def run_local(args):
 
 
 def run_kfp(args):
-    from fondant.pipeline.runner import KubeflowRunner
+    from fondant.dataset.runner import KubeflowRunner
 
     if not args.host:
         msg = "--host argument is required for running on Kubeflow"
@@ -641,7 +641,7 @@ def run_kfp(args):
 
 
 def run_vertex(args):
-    from fondant.pipeline.runner import VertexRunner
+    from fondant.dataset.runner import VertexRunner
 
     try:
         ref = pipeline_from_string(args.ref)
@@ -658,7 +658,7 @@ def run_vertex(args):
 
 
 def run_sagemaker(args):
-    from fondant.pipeline.runner import SagemakerRunner
+    from fondant.dataset.runner import SagemakerRunner
 
     try:
         ref = pipeline_from_string(args.ref)
@@ -858,7 +858,7 @@ def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
 
 def pipeline_from_module(module_str: str) -> Pipeline:
     """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
-    from fondant.pipeline import Pipeline
+    from fondant.dataset import Pipeline
 
     module = get_module(module_str)
 

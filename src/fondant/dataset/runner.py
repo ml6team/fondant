@@ -8,8 +8,8 @@ from abc import ABC, abstractmethod
 import yaml
 
 from fondant.core.schema import CloudCredentialsMount
-from fondant.pipeline import Pipeline
-from fondant.pipeline.compiler import (
+from fondant.dataset import Pipeline
+from fondant.dataset.compiler import (
     DockerCompiler,
     KubeFlowCompiler,
     SagemakerCompiler,

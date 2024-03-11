@@ -13,8 +13,8 @@ import pytest
 from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.component_spec import OperationSpec
 from fondant.core.exceptions import InvalidLightweightComponent
-from fondant.pipeline import Image, Pipeline, lightweight_component
-from fondant.pipeline.compiler import DockerCompiler
+from fondant.dataset import Image, Pipeline, lightweight_component
+from fondant.dataset.compiler import DockerCompiler
 from fondant.testing import DockerComposeConfigs
 
 

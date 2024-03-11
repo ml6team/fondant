@@ -18,7 +18,7 @@ from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.manifest import Metadata
 from fondant.core.schema import CloudCredentialsMount, DockerVolume
-from fondant.pipeline import (
+from fondant.dataset import (
     VALID_ACCELERATOR_TYPES,
     VALID_VERTEX_ACCELERATOR_TYPES,
     Image,

@@ -24,8 +24,8 @@ from fondant.cli import (
 from fondant.component import DaskLoadComponent
 from fondant.component.executor import Executor, ExecutorFactory
 from fondant.core.schema import CloudCredentialsMount
-from fondant.pipeline import Pipeline
-from fondant.pipeline.runner import DockerRunner
+from fondant.dataset import Pipeline
+from fondant.dataset.runner import DockerRunner
 
 commands = [
     "fondant",
@@ -185,7 +185,7 @@ def test_execute_logic(monkeypatch):
 def test_local_compile(tmp_path_factory):
     """Test that the compile command works with arguments."""
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.pipeline.compiler.DockerCompiler.compile",
+        "fondant.dataset.compiler.DockerCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -211,7 +211,7 @@ def test_local_compile(tmp_path_factory):
 
 def test_kfp_compile(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.pipeline.compiler.KubeFlowCompiler.compile",
+        "fondant.dataset.compiler.KubeFlowCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -229,7 +229,7 @@ def test_kfp_compile(tmp_path_factory):
 
 def test_vertex_compile(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.pipeline.compiler.VertexCompiler.compile",
+        "fondant.dataset.compiler.VertexCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -247,7 +247,7 @@ def test_vertex_compile(tmp_path_factory):
 
 def test_sagemaker_compile(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.pipeline.compiler.SagemakerCompiler.compile",
+        "fondant.dataset.compiler.SagemakerCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -325,7 +325,7 @@ def test_local_run(mock_docker_installation):
 def test_local_run_cloud_credentials(mock_docker_installation):
     for auth_provider in CloudCredentialsMount:
         with patch(
-            "fondant.pipeline.compiler.DockerCompiler.compile",
+            "fondant.dataset.compiler.DockerCompiler.compile",
         ) as mock_compiler, patch(
             "subprocess.call",
         ) as mock_runner:
@@ -380,7 +380,7 @@ def test_kfp_run(tmp_path_factory):
         match="--host argument is required for running on Kubeflow",
     ):  # no host
         run_kfp(args)
-    with patch("fondant.pipeline.runner.KubeflowRunner") as mock_runner:
+    with patch("fondant.dataset.runner.KubeflowRunner") as mock_runner:
         args = argparse.Namespace(
             kubeflow=True,
             local=False,
@@ -390,8 +390,8 @@ def test_kfp_run(tmp_path_factory):
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost")
-    with patch("fondant.pipeline.runner.KubeflowRunner") as mock_runner, patch(
-        "fondant.pipeline.compiler.KubeFlowCompiler",
+    with patch("fondant.dataset.runner.KubeflowRunner") as mock_runner, patch(
+        "fondant.dataset.compiler.KubeFlowCompiler",
     ) as mock_compiler, tmp_path_factory.mktemp(
         "temp",
     ) as fn:
@@ -409,7 +409,7 @@ def test_kfp_run(tmp_path_factory):
 
 def test_vertex_run(tmp_path_factory):
     """Test that the run command works in different scenarios."""
-    with patch("fondant.pipeline.runner.VertexRunner") as mock_runner:
+    with patch("fondant.dataset.runner.VertexRunner") as mock_runner:
         args = argparse.Namespace(
             kubeflow=False,
             local=False,
@@ -429,8 +429,8 @@ def test_vertex_run(tmp_path_factory):
             network=None,
         )
 
-    with patch("fondant.pipeline.runner.VertexRunner") as mock_runner, patch(
-        "fondant.pipeline.compiler.VertexCompiler",
+    with patch("fondant.dataset.runner.VertexRunner") as mock_runner, patch(
+        "fondant.dataset.compiler.VertexCompiler",
     ) as mock_compiler, tmp_path_factory.mktemp(
         "temp",
     ) as fn:
