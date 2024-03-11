@@ -12,7 +12,7 @@ from fondant.component import DaskLoadComponent
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidPipelineDefinition
 from fondant.core.schema import Field, Type
-from fondant.pipeline import (
+from fondant.dataset import (
     ComponentOp,
     Image,
     Pipeline,

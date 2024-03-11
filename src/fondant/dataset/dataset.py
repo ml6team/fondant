@@ -26,7 +26,7 @@ from fondant.core.exceptions import (
 )
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
-from fondant.pipeline import Image, LightweightComponent
+from fondant.dataset import Image, LightweightComponent
 
 logger = logging.getLogger(__name__)
 

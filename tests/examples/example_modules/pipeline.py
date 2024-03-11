@@ -1,4 +1,4 @@
-from fondant.pipeline import Pipeline
+from fondant.dataset import Pipeline
 
 
 def create_pipeline_with_args(name):
