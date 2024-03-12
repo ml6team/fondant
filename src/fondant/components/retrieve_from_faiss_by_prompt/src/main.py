@@ -48,12 +48,13 @@ class RetrieveFromFaissByPrompt(PandasTransformComponent):
 
     def setup(self) -> Client:
         """Setup LocalCudaCluster if gpu is available."""
+        dask.config.set({"dataframe.convert-string": False})
+        dask.config.set({"distributed.worker.daemon": False})
+
         if self.device == "cuda":
             cluster = LocalCUDACluster()
             return Client(cluster)
 
-        dask.config.set({"dataframe.convert-string": False})
-        dask.config.set({"distributed.worker.daemon": False})
         total_memory = (os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")) / (
             1024**3
         )
