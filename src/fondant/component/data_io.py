@@ -214,9 +214,19 @@ class DaskDataWriter(DataIO):
 
         # The id needs to be added explicitly since we will convert this to a PyArrow schema
         # later and use it in the `pandas.to_parquet` method.
+        try:
+            index_type = pa.from_numpy_dtype(dataframe.index.dtype)
+        except pa.lib.ArrowNotImplementedError:
+            # The dtype of the index is `np._object`. Fall back on string instead.
+            logging.warning(
+                "Failed to infer dtype of index column, falling back to `string`. "
+                "Specify the dtype explicitly to prevent this.",
+            )
+            index_type = pa.string()
+
         schema.update(
             {
-                "id": pa.from_numpy_dtype(dataframe.index.dtype),
+                "id": index_type,
             },
         )
 
