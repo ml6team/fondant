@@ -7,6 +7,8 @@ import typing as t
 import numpy as np
 import pandas as pd
 import torch
+from dask.distributed import Client
+from dask_cuda import LocalCUDACluster
 from fondant.component import PandasTransformComponent
 from palette import palette
 from PIL import Image
@@ -126,6 +128,13 @@ class SegmentImagesComponent(PandasTransformComponent):
         )
 
         self.batch_size = batch_size
+
+    def setup(self) -> Client:
+        """Setup LocalCudaCluster if gpu is available."""
+        if self.device == "cuda":
+            cluster = LocalCUDACluster()
+            return Client(cluster)
+        return super().setup()
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         images = dataframe["image"]
