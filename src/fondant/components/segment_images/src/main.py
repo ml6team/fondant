@@ -131,6 +131,9 @@ class SegmentImagesComponent(PandasTransformComponent):
 
     def setup(self) -> Client:
         """Setup LocalCudaCluster if gpu is available."""
+        dask.config.set({"dataframe.convert-string": False})
+        dask.config.set({"distributed.worker.daemon": False})
+        
         if self.device == "cuda":
             cluster = LocalCUDACluster()
             return Client(cluster)
