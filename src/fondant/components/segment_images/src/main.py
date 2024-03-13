@@ -4,6 +4,7 @@ import logging
 import os
 import typing as t
 
+import dask
 import numpy as np
 import pandas as pd
 import torch
@@ -133,7 +134,7 @@ class SegmentImagesComponent(PandasTransformComponent):
         """Setup LocalCudaCluster if gpu is available."""
         dask.config.set({"dataframe.convert-string": False})
         dask.config.set({"distributed.worker.daemon": False})
-        
+
         if self.device == "cuda":
             cluster = LocalCUDACluster()
             return Client(cluster)
