@@ -2,12 +2,13 @@ import logging
 import os
 import typing as t
 
+import dask
 import dask.dataframe as dd
 import faiss
 import fsspec
 import pandas as pd
 import torch
-from dask.distributed import Client, get_worker
+from dask.distributed import Client, LocalCluster, get_worker
 from dask_cuda import LocalCUDACluster
 from fondant.component import PandasTransformComponent
 from transformers import AutoTokenizer, CLIPTextModelWithProjection
@@ -47,11 +48,27 @@ class RetrieveFromFaissByPrompt(PandasTransformComponent):
 
     def setup(self) -> Client:
         """Setup LocalCudaCluster if gpu is available."""
+        dask.config.set({"dataframe.convert-string": False})
+        dask.config.set({"distributed.worker.daemon": False})
+
         if self.device == "cuda":
             cluster = LocalCUDACluster()
             return Client(cluster)
 
-        return super().setup()
+        total_memory = (os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")) / (
+            1024**3
+        )
+        # We need at least 8Gb RAM for the datacomp small faiss index
+        # We should consider calculating the memory required for the index based on the faiss
+        # index size
+        cores_to_utilise = total_memory // 8
+        cluster = LocalCluster(
+            processes=True,
+            n_workers=cores_to_utilise,
+            threads_per_worker=1,
+            memory_limit="8 GiB",
+        )
+        return Client(cluster)
 
     def embed_prompt(self, prompt: str):
         """Embed prompt using CLIP model."""
