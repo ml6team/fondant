@@ -479,6 +479,7 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         operation_spec: OperationSpec,
     ) -> t.Callable:
         """Factory that creates a function to wrap the component transform function. The wrapper:
+        - Skips the transformation if the received partition is empty
         - Removes extra columns from the returned dataframe which are not defined in the component
           spec `produces` section
         - Sorts the columns from the returned dataframe according to the order in the component
@@ -492,6 +493,10 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
 
         def wrapped_transform(dataframe: pd.DataFrame) -> pd.DataFrame:
             # Call transform method
+            if dataframe.empty:
+                logger.info("Received empty partition, skipping transformation.")
+                return dataframe
+
             dataframe = transform(dataframe)
 
             # Drop columns not in specification
