@@ -617,5 +617,6 @@ def test_skipping_empty_partition():
             ),
         ),
     )
+
     output_df = wrapped_transform(input_df)
-    assert input_df.equals(output_df)
+    assert output_df.equals(pd.DataFrame())

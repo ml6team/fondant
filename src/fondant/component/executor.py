@@ -492,18 +492,19 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
         """
 
         def wrapped_transform(dataframe: pd.DataFrame) -> pd.DataFrame:
-            # Call transform method
-            if dataframe.empty:
-                logger.info("Received empty partition, skipping transformation.")
-                return dataframe
-
-            dataframe = transform(dataframe)
-
-            # Drop columns not in specification
+            # Columns of operation specification
             columns = [
                 name for name, field in operation_spec.operation_produces.items()
             ]
 
+            if dataframe.empty:
+                logger.info("Received empty partition, skipping transformation.")
+                return pd.DataFrame(columns=columns)
+
+            # Call transform method
+            dataframe = transform(dataframe)
+
+            # Drop columns not in specification
             return dataframe[columns]
 
         return wrapped_transform
