@@ -14,9 +14,9 @@ from fondant.cli import (
     compile_sagemaker,
     compile_vertex,
     component_from_module,
+    dataset_from_string,
     execute,
     get_module,
-    pipeline_from_string,
     run_kfp,
     run_local,
     run_vertex,
@@ -133,7 +133,7 @@ def test_component_from_module_error(module_str):
 )
 def test_pipeline_from_module(module_str):
     """Test that pipeline_from_string works."""
-    pipeline = pipeline_from_string(module_str)
+    pipeline = dataset_from_string(module_str)
     assert pipeline.name == "test_pipeline"
 
 
@@ -165,13 +165,13 @@ def test_pipeline_from_module(module_str):
 def test_pipeline_from_module_error(module_str):
     """Test different error cases for pipeline_from_string."""
     with pytest.raises(PipelineImportError):
-        pipeline_from_string(module_str)
+        dataset_from_string(module_str)
 
 
 def test_factory_error_propagated():
     """Test that an error in the factory method is correctly propagated."""
     with pytest.raises(NotImplementedError):
-        pipeline_from_string("examples.example_modules.pipeline:not_implemented")
+        dataset_from_string("examples.example_modules.pipeline:not_implemented")
 
 
 def test_execute_logic(monkeypatch):

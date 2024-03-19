@@ -416,7 +416,7 @@ def compile_local(args):
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
 
-    pipeline = pipeline_from_string(args.ref)
+    pipeline = dataset_from_string(args.ref)
     compiler = DockerCompiler()
     compiler.compile(
         pipeline=pipeline,
@@ -430,7 +430,7 @@ def compile_local(args):
 def compile_kfp(args):
     from fondant.dataset.compiler import KubeFlowCompiler
 
-    pipeline = pipeline_from_string(args.ref)
+    pipeline = dataset_from_string(args.ref)
     compiler = KubeFlowCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
@@ -438,7 +438,7 @@ def compile_kfp(args):
 def compile_vertex(args):
     from fondant.dataset.compiler import VertexCompiler
 
-    pipeline = pipeline_from_string(args.ref)
+    pipeline = dataset_from_string(args.ref)
     compiler = VertexCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
@@ -446,7 +446,7 @@ def compile_vertex(args):
 def compile_sagemaker(args):
     from fondant.dataset.compiler import SagemakerCompiler
 
-    pipeline = pipeline_from_string(args.ref)
+    pipeline = dataset_from_string(args.ref)
     compiler = SagemakerCompiler()
     compiler.compile(
         pipeline=pipeline,
@@ -612,7 +612,7 @@ def run_local(args):
         extra_volumes.extend(args.extra_volumes)
 
     try:
-        ref = pipeline_from_string(args.ref)
+        ref = dataset_from_string(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
 
@@ -632,7 +632,7 @@ def run_kfp(args):
         msg = "--host argument is required for running on Kubeflow"
         raise ValueError(msg)
     try:
-        ref = pipeline_from_string(args.ref)
+        ref = dataset_from_string(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
 
@@ -644,7 +644,7 @@ def run_vertex(args):
     from fondant.dataset.runner import VertexRunner
 
     try:
-        ref = pipeline_from_string(args.ref)
+        ref = dataset_from_string(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
 
@@ -661,7 +661,7 @@ def run_sagemaker(args):
     from fondant.dataset.runner import SagemakerRunner
 
     try:
-        ref = pipeline_from_string(args.ref)
+        ref = dataset_from_string(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
 
@@ -761,8 +761,8 @@ def _called_with_wrong_args(f):
         del tb
 
 
-def pipeline_from_string(string_ref: str) -> Dataset:  # noqa: PLR0912
-    """Get the pipeline from the provided string reference.
+def dataset_from_string(string_ref: str) -> Dataset:  # noqa: PLR0912
+    """Get the dataset from the provided string reference.
 
     Inspired by Flask:
         https://github.com/pallets/flask/blob/d611989/src/flask/cli.py#L112
@@ -776,7 +776,7 @@ def pipeline_from_string(string_ref: str) -> Dataset:  # noqa: PLR0912
         The pipeline obtained from the provided string
     """
     if ":" not in string_ref:
-        return pipeline_from_module(string_ref)
+        return dataset_from_module(string_ref)
 
     module_str, pipeline_str = string_ref.split(":")
 
@@ -856,8 +856,8 @@ def pipeline_from_string(string_ref: str) -> Dataset:  # noqa: PLR0912
     )
 
 
-def pipeline_from_module(module_str: str) -> Dataset:
-    """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
+def dataset_from_module(module_str: str) -> Dataset:
+    """Try to import a dataset from a string otherwise raise an ImportFromStringError."""
     from fondant.dataset import Dataset
 
     module = get_module(module_str)
