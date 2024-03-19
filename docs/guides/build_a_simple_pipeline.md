@@ -44,7 +44,7 @@ pipeline = Pipeline(
 
 ??? "View a detailed reference of the options accepted by the `Pipeline` class"
 
-    ::: fondant.pipeline.Pipeline.__init__
+    ::: fondant.dataset.Pipeline.__init__
         handler: python
         options:
             show_source: false
@@ -103,7 +103,7 @@ We provide three arguments to the `.read()` method:
 
 ??? "View a detailed reference of the `Pipeline.read()` method"
 
-    ::: fondant.pipeline.Pipeline.read
+    ::: fondant.dataset.Pipeline.read
         handler: python
         options:
             show_source: false
@@ -171,7 +171,7 @@ english_images = images.apply(
 
 ??? "View a detailed reference of the `Dataset.apply()` method"
 
-    ::: fondant.pipeline.pipeline.Dataset.apply
+    ::: fondant.dataset.Dataset.apply
         handler: python
         options:
             show_source: false
