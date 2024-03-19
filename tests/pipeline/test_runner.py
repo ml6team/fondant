@@ -166,7 +166,7 @@ def test_kubeflow_runner():
         new=MockKfpClient,
     ):
         runner = KubeflowRunner(host="some_host")
-        runner.run(dataset=input_spec_path)
+        runner.run(dataset=input_spec_path, workspace=WORKSPACE)
 
         assert runner.client.host == "some_host"
 
@@ -178,7 +178,11 @@ def test_kubeflow_runner_new_experiment():
         new=MockKfpClient,
     ):
         runner = KubeflowRunner(host="some_host")
-        runner.run(dataset=input_spec_path, experiment_name="NewExperiment")
+        runner.run(
+            dataset=input_spec_path,
+            experiment_name="NewExperiment",
+            workspace=WORKSPACE,
+        )
 
 
 def test_kfp_import():
@@ -196,7 +200,7 @@ def test_kfp_import():
 class MockKubeFlowCompiler:
     def compile(
         self,
-        pipeline,
+        dataset,
         output_path,
     ) -> None:
         with open(output_path, "w") as f:
@@ -217,6 +221,7 @@ def test_kubeflow_runner_from_pipeline():
         dataset = Dataset()
         runner.run(
             dataset=dataset,
+            workspace=WORKSPACE,
         )
 
         mock_run.assert_called_once_with(
@@ -231,7 +236,7 @@ def test_vertex_runner():
         "google.cloud.aiplatform.PipelineJob",
     ):
         runner = VertexRunner(project_id="some_project", region="some_region")
-        runner.run(input=input_spec_path)
+        runner.run(input=input_spec_path, workspace=WORKSPACE)
 
         # test with service account
         runner2 = VertexRunner(
@@ -239,7 +244,7 @@ def test_vertex_runner():
             region="some_region",
             service_account="some_account",
         )
-        runner2.run(input=input_spec_path)
+        runner2.run(input=input_spec_path, workspace=WORKSPACE)
 
 
 def test_vertex_runner_from_pipeline():
@@ -253,6 +258,7 @@ def test_vertex_runner_from_pipeline():
         runner = VertexRunner(project_id="some_project", region="some_region")
         runner.run(
             input=Dataset(),
+            workspace=WORKSPACE,
         )
 
         mock_run.assert_called_once_with(".fondant/vertex-pipeline.yaml")
@@ -269,6 +275,7 @@ def test_sagemaker_runner(tmp_path_factory):
 
         runner.run(
             dataset=tmpdir / "spec.json",
+            workspace=WORKSPACE,
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -295,6 +302,7 @@ def test_sagemaker_runner(tmp_path_factory):
 
         runner.run(
             dataset=tmpdir / "spec.json",
+            workspace=WORKSPACE,
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -333,6 +341,7 @@ def test_sagemaker_runner_from_pipeline():
         runner = SagemakerRunner()
         runner.run(
             dataset=Dataset(),
+            workspace=WORKSPACE,
             pipeline_name=WORKSPACE.name,
             role_arn="arn:something",
         )

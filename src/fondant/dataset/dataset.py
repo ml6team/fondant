@@ -473,11 +473,23 @@ class Dataset:
     # TODO: prevent calling the init?
     def __init__(
         self,
-        manifest: Manifest,
+        name: t.Optional[str] = None,
+        manifest: t.Optional[Manifest] = None,
     ):
+        if name is not None:
+            self.name = self._validate_dataset_name(name)
+
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
         self.manifest = manifest
+
+    @staticmethod
+    def _validate_dataset_name(name: str) -> str:
+        pattern = r"^[a-z0-9][a-z0-9_-]*$"
+        if not re.match(pattern, name):
+            msg = f"The workspace name violates the pattern {pattern}"
+            raise InvalidWorkspaceDefinition(msg)
+        return name
 
     @staticmethod
     def load(manifest: Manifest) -> "Dataset":
@@ -555,7 +567,7 @@ class Dataset:
             component_id=operation.component_name,
         )
 
-        dataset = Dataset(manifest)
+        dataset = Dataset(manifest=manifest)
 
         return dataset._apply(operation, workspace=workspace)
 
@@ -672,7 +684,10 @@ class Dataset:
     @property
     def fields(self) -> t.Mapping[str, Field]:
         """The fields of the manifest as an immutable mapping."""
-        return dict(self.manifest.fields)
+        if self.manifest:
+            return dict(self.manifest.fields)
+        msg = "No manifest found."
+        raise ValueError(msg)
 
     def _apply(self, operation: ComponentOp, workspace: Workspace) -> "Dataset":
         """
@@ -682,13 +697,17 @@ class Dataset:
             operation: The operation to apply.
             workspace: The workspace to operate in.
         """
+        if self.manifest is None:
+            msg = "No manifest found."
+            raise ValueError(msg)
+
         evolved_manifest = self.manifest.evolve(
             operation.operation_spec,
             run_id=workspace.get_run_id(),
         )
 
         evolved_dataset = Dataset(
-            evolved_manifest,
+            manifest=evolved_manifest,
         )
 
         evolved_dataset._graph = self._graph

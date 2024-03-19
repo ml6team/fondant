@@ -205,7 +205,6 @@ class KubeflowRunner(Runner):
             compiler = KubeFlowCompiler()
             compiler.compile(
                 dataset,
-                workspace=workspace,
                 output_path=output_path,
             )
             self._run(output_path, experiment_name=experiment_name)
@@ -288,7 +287,6 @@ class VertexRunner(Runner):
             compiler = VertexCompiler()
             compiler.compile(
                 input,
-                workspace=workspace,
                 output_path=output_path,
             )
             self._run(output_path)
@@ -356,7 +354,6 @@ class SagemakerRunner(Runner):
             compiler = SagemakerCompiler()
             compiler.compile(
                 dataset,
-                workspace=workspace,
                 output_path=output_path,
                 role_arn=role_arn,
             )

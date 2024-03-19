@@ -608,7 +608,7 @@ def run_local(args):
 
     extra_volumes = []
     workspace = Workspace(
-        name="",
+        name="dummy_workspace",
         base_path="",
     )  # TODO: handle in #887 -> retrieve global workspace, or cli command
 
@@ -872,7 +872,7 @@ def dataset_from_module(module_str: str) -> Dataset:
     ]
 
     if not dataset_instances:
-        msg = f"No workspace found in module {module_str}"
+        msg = f"No dataset found in module {module_str}"
         raise DatasetImportError(msg)
 
     # TODO: now there might be several dataset instances in a single module? how to handle?
