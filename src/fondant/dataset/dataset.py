@@ -22,7 +22,7 @@ from fondant.component import BaseComponent
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import (
     InvalidLightweightComponent,
-    InvalidPipelineDefinition,
+    InvalidWorkspaceDefinition,
 )
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
@@ -96,7 +96,7 @@ class Resources:
         """Validate the resources."""
         if bool(self.node_pool_label) != bool(self.node_pool_name):
             msg = "Both node_pool_label and node_pool_name must be specified or both must be None."
-            raise InvalidPipelineDefinition(
+            raise InvalidWorkspaceDefinition(
                 msg,
             )
 
@@ -105,7 +105,7 @@ class Resources:
                 "Both number of accelerators and accelerator name must be specified or both must"
                 " be None."
             )
-            raise InvalidPipelineDefinition(
+            raise InvalidWorkspaceDefinition(
                 msg,
             )
 
@@ -265,7 +265,7 @@ class ComponentOp:
                     f"The dataset does not contain the column {dataset_column_name_or_type} "
                     f"required by the component {component_spec.name}."
                 )
-                raise InvalidPipelineDefinition(msg)
+                raise InvalidWorkspaceDefinition(msg)
 
             # If operations column name is not in the component spec, but additional properties
             # are true we will infer the correct type from the dataset fields
@@ -284,7 +284,7 @@ class ComponentOp:
                         f"but `{operations_column_name}` is not defined in the `consumes` "
                         f"section of the component spec."
                     )
-                    raise InvalidPipelineDefinition(msg)
+                    raise InvalidWorkspaceDefinition(msg)
 
         return validated_consumes
 
@@ -443,47 +443,23 @@ class ComponentOp:
 class Workspace:
     """Workspace holding environment information for a Fondants execution environment."""
 
-    _instance = None
-
     def __init__(
         self,
         name: str,
-        description: str,
         base_path: str,
+        description: t.Optional[str] = None,
     ):
-        if self._instance is None:
-            msg = (
-                "Singleton instance already exists. Use instance() method to access it."
-            )
-            raise RuntimeError(msg)
         self.name = self._validate_workspace_name(name)
         self.description = description
         self.base_path = base_path
-        self.package_name = f"{name}.tgz"
-
-    @classmethod
-    def instance(
-        cls,
-        name: t.Optional[str] = None,
-        description: t.Optional[str] = None,
-        base_path: t.Optional[str] = None,
-    ):
-        if cls._instance is None:
-            # TODO default implementation of workspace in case no parameters are passed
-            cls._instance = cls.__new__(cls)
-            cls._instance.__init__(name, description, base_path)
-        return cls._instance
-
-    @classmethod
-    def get_workspace(cls) -> "Workspace":
-        return cls.instance()
+        self.package_path = f"{name}.tgz"
 
     @staticmethod
     def _validate_workspace_name(name: str) -> str:
         pattern = r"^[a-z0-9][a-z0-9_-]*$"
         if not re.match(pattern, name):
             msg = f"The workspace name violates the pattern {pattern}"
-            raise InvalidPipelineDefinition(msg)
+            raise InvalidWorkspaceDefinition(msg)
         return name
 
     def get_run_id(self) -> str:
@@ -497,7 +473,7 @@ class Dataset:
     # TODO: prevent calling the init?
     def __init__(
         self,
-        manifest: t.Optional[Manifest] = None,
+        manifest: Manifest,
     ):
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
@@ -534,6 +510,7 @@ class Dataset:
     def read(
         ref: t.Any,
         *,
+        workspace: Workspace,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
@@ -546,6 +523,7 @@ class Dataset:
         Args:
             ref: The name of a reusable component, or the path to the directory containing
                 a containerized component, or a lightweight component class.
+            workspace: The workspace to operate in
             produces: A mapping to update the fields produced by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -559,7 +537,8 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        workspace = Workspace.get_workspace()
+        # TODO: add method call to retrieve workspace context, and make passing workspace optional
+
         operation = ComponentOp.from_ref(
             ref,
             produces=produces,
@@ -578,7 +557,7 @@ class Dataset:
 
         dataset = Dataset(manifest)
 
-        return dataset._apply(operation)
+        return dataset._apply(operation, workspace=workspace)
 
     def sort_graph(self):
         """Sort the graph topologically based on task dependencies."""
@@ -604,19 +583,20 @@ class Dataset:
 
         self._graph = OrderedDict((node, self._graph[node]) for node in sorted_graph)
 
-    def validate(self, run_id: str):
+    def validate(self, run_id: str, workspace: Workspace):
         """Sort and run validation on the pipeline definition.
 
         Args:
             run_id: run identifier
+            workspace: workspace to operate in
 
         """
         self.sort_graph()
-        self._validate_pipeline_definition(run_id)
+        self._validate_workspace_definition(run_id, workspace)
 
-    def _validate_pipeline_definition(self, run_id: str):
+    def _validate_workspace_definition(self, run_id: str, workspace: Workspace):
         """
-        Validates the pipeline definition by ensuring that the consumed and produced subsets and
+        Validates the workspace definition by ensuring that the consumed and produced subsets and
         their associated fields match and are invoked in the correct order.
 
         Raises:
@@ -636,8 +616,8 @@ class Dataset:
 
         # Create initial manifest
         manifest = Manifest.create(
-            pipeline_name=self.name,
-            base_path=self.base_path,
+            pipeline_name=workspace.name,
+            base_path=workspace.base_path,
             run_id=run_id,
             component_id=load_component_name,
             cache_key="42",
@@ -659,7 +639,7 @@ class Dataset:
                             f"in the previous components. \n"
                             f"Available field names: {list(manifest.fields.keys())}"
                         )
-                        raise InvalidPipelineDefinition(
+                        raise InvalidWorkspaceDefinition(
                             msg,
                         )
 
@@ -676,7 +656,7 @@ class Dataset:
                             f"{manifest_field.type}\nThe current component to "
                             f"trying to invoke it with this type:\n{component_field.type}"
                         )
-                        raise InvalidPipelineDefinition(
+                        raise InvalidWorkspaceDefinition(
                             msg,
                         )
 
@@ -694,23 +674,25 @@ class Dataset:
         """The fields of the manifest as an immutable mapping."""
         return dict(self.manifest.fields)
 
-    def _apply(self, operation: ComponentOp) -> "Dataset":
+    def _apply(self, operation: ComponentOp, workspace: Workspace) -> "Dataset":
         """
         Apply the provided operation to the dataset.
 
         Args:
             operation: The operation to apply.
+            workspace: The workspace to operate in.
         """
-        workspace = Workspace.get_workspace()
         evolved_manifest = self.manifest.evolve(
             operation.operation_spec,
-            run_id=workspace.get_run_id(),  # TODO: to do use run idea of previous manifest?
+            run_id=workspace.get_run_id(),
         )
 
-        # evolved_dataset = copy.deepcopy(self) -> can't pickle mappingproxy objects
-        evolved_dataset = self
+        evolved_dataset = Dataset(
+            evolved_manifest,
+        )
 
-        evolved_dataset.manifest = evolved_manifest
+        evolved_dataset._graph = self._graph
+
         evolved_dataset.register_operation(
             operation,
             input_dataset=self,  # using reference to manifests instead?
@@ -723,6 +705,7 @@ class Dataset:
         self,
         ref: t.Any,
         *,
+        workspace: Workspace,
         consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
@@ -736,6 +719,7 @@ class Dataset:
         Args:
             ref: The name of a reusable component, or the path to the directory containing
                 a custom component, or a lightweight component class.
+            workspace: workspace to operate in
             consumes: A mapping to update the fields consumed by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -817,6 +801,8 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
+        # TODO: add method call to retrieve workspace context, and make passing workspace optional
+
         operation = ComponentOp.from_ref(
             ref,
             fields=self.fields,
@@ -828,12 +814,13 @@ class Dataset:
             cache=cache,
         )
 
-        return self._apply(operation)
+        return self._apply(operation, workspace=workspace)
 
     def write(
         self,
         ref: t.Any,
         *,
+        workspace: Workspace,
         consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
@@ -846,6 +833,7 @@ class Dataset:
         Args:
             ref: The name of a reusable component, or the path to the directory containing
                 a custom component, or a lightweight component class.
+            workspace: workspace to operate in
             consumes: A mapping to update the fields consumed by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -859,6 +847,8 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
+        # TODO: add method call to retrieve workspace context, and make passing workspace optional
+
         operation = ComponentOp.from_ref(
             ref,
             fields=self.fields,
@@ -868,4 +858,4 @@ class Dataset:
             resources=resources,
             cache=cache,
         )
-        self._apply(operation)
+        self._apply(operation, workspace)

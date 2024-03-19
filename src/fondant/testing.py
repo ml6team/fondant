@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import yaml
 
-from fondant.core.exceptions import InvalidPipelineDefinition
+from fondant.core.exceptions import InvalidWorkspaceDefinition
 
 
 @dataclass
@@ -196,7 +196,7 @@ class KubeflowPipelineConfigs(PipelineConfigs):
 
         if not specification:
             msg = "No component specification found in the pipeline specification"
-            raise InvalidPipelineDefinition(msg)
+            raise InvalidWorkspaceDefinition(msg)
         components_configs_dict = {}
 
         # Iterate through each service

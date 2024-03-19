@@ -15,13 +15,14 @@ import pytest
 import yaml
 from fondant.component import DaskLoadComponent
 from fondant.core.component_spec import ComponentSpec
-from fondant.core.exceptions import InvalidPipelineDefinition
+from fondant.core.exceptions import InvalidWorkspaceDefinition
 from fondant.core.manifest import Manifest, Metadata
 from fondant.core.schema import CloudCredentialsMount
 from fondant.dataset import (
     ComponentOp,
     Dataset,
     Resources,
+    Workspace,
     lightweight_component,
 )
 from fondant.dataset.compiler import (
@@ -130,18 +131,17 @@ def _freeze_time(monkeypatch):
 
 @pytest.fixture(params=TEST_PIPELINES)
 def setup_pipeline(request, tmp_path, monkeypatch):
-    dataset = Dataset(
+    workspace = Workspace(
         name="testpipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
     manifest = Manifest.create(
-        pipeline_name=dataset.name,
-        base_path=dataset.base_path,
-        run_id=dataset.get_run_id(),
+        pipeline_name=workspace.name,
+        base_path=workspace.base_path,
+        run_id=workspace.get_run_id(),
     )
-
-    dataset = Dataset.evolve_dataset(manifest=manifest, dataset=dataset)
+    dataset = Dataset(manifest)
     cache_dict = {}
     example_dir, components = request.param
     for component_dict in components:
@@ -154,33 +154,38 @@ def setup_pipeline(request, tmp_path, monkeypatch):
             "get_component_cache_key",
             lambda cache_key=cache_key, previous_component_cache=None: cache_key,
         )
-        dataset = dataset._apply(component)
+        dataset = dataset._apply(component, workspace=workspace)
         cache_dict[component.component_name] = cache_key
 
     # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(dataset, "package_path", str(tmp_path / "test_pipeline.tgz"))
+    monkeypatch.setattr(workspace, "package_path", str(tmp_path / "test_pipeline.tgz"))
 
-    return example_dir, dataset, cache_dict
+    return example_dir, workspace, dataset, cache_dict
 
 
 @pytest.mark.usefixtures("_freeze_time")
 def test_docker_compiler(setup_pipeline, tmp_path_factory):
     """Test compiling a pipeline to docker-compose."""
-    example_dir, pipeline, _ = setup_pipeline
+    example_dir, workspace, dataset, _ = setup_pipeline
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
-        pipeline.base_path = str(fn)
+        workspace.base_path = str(fn)
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
+        compiler.compile(
+            dataset=dataset,
+            workspace=workspace,
+            output_path=output_path,
+            build_args=[],
+        )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
-        assert pipeline_configs.pipeline_name == pipeline.name
-        assert pipeline_configs.pipeline_description == pipeline.description
+        assert pipeline_configs.pipeline_name == workspace.name
+        assert pipeline_configs.pipeline_description == workspace.description
         for (
             component_name,
             component_configs,
         ) in pipeline_configs.component_configs.items():
             # Get expected component configs
-            component = pipeline._graph[component_name]
+            component = dataset._graph[component_name]
             component_op = component["operation"]
 
             # Check that the component configs are correct
@@ -207,12 +212,12 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
     # volumes are only created for local existing directories
     with tmp_path_factory.mktemp("temp") as fn:
         # this is the directory mounted in the container
-        _, pipeline, cache_dict = setup_pipeline
+        _, workspace, dataset, cache_dict = setup_pipeline
         work_dir = f"/{fn.stem}"
-        pipeline.base_path = str(fn)
+        workspace.base_path = str(fn)
         compiler = DockerCompiler()
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(dataset=dataset, workspace=workspace, output_path=output_path)
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         expected_run_id = "testpipeline-20230101000000"
         for (
@@ -229,7 +234,7 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
                     "type": "bind",
                 },
             ]
-            cleaned_pipeline_name = pipeline.name.replace("_", "")
+            cleaned_pipeline_name = workspace.name.replace("_", "")
             # check if commands are patched to use the working dir
             expected_output_manifest_path = (
                 f"{work_dir}/{cleaned_pipeline_name}/{expected_run_id}"
@@ -251,13 +256,13 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_docker_remote_path(setup_pipeline, tmp_path_factory):
     """Test that a remote path is applied correctly in the arguments and no volume."""
-    _, pipeline, cache_dict = setup_pipeline
+    _, workspace, dataset, cache_dict = setup_pipeline
     remote_dir = "gs://somebucket/artifacts"
-    pipeline.base_path = remote_dir
+    workspace.base_path = remote_dir
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(dataset=dataset, workspace=workspace, output_path=output_path)
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         expected_run_id = "testpipeline-20230101000000"
         for (
@@ -268,7 +273,7 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
             # check that no volumes are created
             assert component_configs.volumes == []
             # check if commands are patched to use the remote dir
-            cleaned_pipeline_name = pipeline.name.replace("_", "")
+            cleaned_pipeline_name = workspace.name.replace("_", "")
 
             expected_output_manifest_path = (
                 f"{remote_dir}/{cleaned_pipeline_name}/{expected_run_id}"
@@ -296,8 +301,8 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
 
         with tmp_path_factory.mktemp("temp") as fn:
             # this is the directory mounted in the container
-            _, pipeline, _ = setup_pipeline
-            pipeline.base_path = str(fn)
+            _, workspace, dataset, _ = setup_pipeline
+            workspace.base_path = str(fn)
             compiler = DockerCompiler()
             # define some extra volumes to be mounted
             extra_volumes = ["hello:there", "general:kenobi"]
@@ -305,7 +310,8 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
             output_path = str(fn / "docker-compose.yml")
 
             compiler.compile(
-                pipeline=pipeline,
+                dataset=dataset,
+                workspace=workspace,
                 output_path=output_path,
                 extra_volumes=extra_volumes,
                 auth_provider=auth_provider,
@@ -321,12 +327,13 @@ def test_docker_extra_volumes(setup_pipeline, tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_docker_configuration(tmp_path_factory):
     """Test that extra volumes are applied correctly."""
-    pipeline = Dataset(
+    workspace = Workspace(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    pipeline.read(
+
+    dataset = Dataset.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -334,13 +341,14 @@ def test_docker_configuration(tmp_path_factory):
             accelerator_name="GPU",
         ),
         produces={"captions_data": pa.string()},
+        workspace=workspace,
     )
 
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
-        pipeline.base_path = str(fn)
+        workspace.base_path = str(fn)
         output_path = str(fn / "docker-compose.yaml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(dataset=dataset, workspace=workspace, output_path=output_path)
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         component_config = pipeline_configs.component_configs["first_component"]
         assert component_config.accelerators[0].type == "gpu"
@@ -350,12 +358,12 @@ def test_docker_configuration(tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_invalid_docker_configuration(tmp_path_factory):
     """Test that a valid error is returned when an unknown accelerator is set."""
-    pipeline = Dataset(
+    workspace = Workspace(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    pipeline.read(
+    dataset = Dataset.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -363,14 +371,19 @@ def test_invalid_docker_configuration(tmp_path_factory):
             accelerator_name="unknown resource",
         ),
         produces={"captions_data": pa.string()},
+        workspace=workspace,
     )
 
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn, pytest.raises(  # noqa PT012
-        InvalidPipelineDefinition,
+        InvalidWorkspaceDefinition,
     ):
-        pipeline.base_path = str(fn)
-        compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
+        workspace.base_path = str(fn)
+        compiler.compile(
+            dataset=dataset,
+            workspace=workspace,
+            output_path="kubeflow_pipeline.yml",
+        )
 
 
 def test_kubeflow_component_creation(valid_fondant_schema, valid_kubeflow_schema):
@@ -410,7 +423,7 @@ def test_kubeflow_component_spec_repr(valid_kubeflow_schema):
 def test_kubeflow_component_spec_from_lightweight_component(
     tmp_path_factory,
 ):
-    pipeline = Dataset(
+    workspace = Workspace(
         name="test-pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
@@ -432,14 +445,15 @@ def test_kubeflow_component_spec_from_lightweight_component(
             )
             return dd.from_pandas(df, npartitions=1)
 
-    _ = pipeline.read(
+    dataset = Dataset.read(
         ref=CreateData,
+        workspace=workspace,
     )
 
     compiler = KubeFlowCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_spec.yaml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(dataset=dataset, workspace=workspace, output_path=output_path)
         pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
         assert pipeline_configs.component_configs["createdata"].image == (
             "python:3.10-slim-buster"
@@ -455,20 +469,20 @@ def test_kubeflow_component_spec_from_lightweight_component(
 @pytest.mark.usefixtures("_freeze_time")
 def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
     """Test compiling a pipeline to kubeflow."""
-    example_dir, pipeline, _ = setup_pipeline
+    example_dir, workspace, dataset, _ = setup_pipeline
     compiler = KubeFlowCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(dataset=dataset, workspace=workspace, output_path=output_path)
         pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
-        assert pipeline_configs.pipeline_name == pipeline.name
-        assert pipeline_configs.pipeline_description == pipeline.description
+        assert pipeline_configs.pipeline_name == workspace.name
+        assert pipeline_configs.pipeline_description == workspace.description
         for (
             component_name,
             component_configs,
         ) in pipeline_configs.component_configs.items():
             # Get exepcted component configs
-            component = pipeline._graph[component_name]
+            component = dataset._graph[component_name]
             component_op = component["operation"]
 
             # Check that the component configs are correct
@@ -495,12 +509,12 @@ def test_kubeflow_configuration(tmp_path_factory):
     node_pool_label = "dummy_label"
     node_pool_name = "dummy_label"
 
-    pipeline = Dataset(
+    workspace = Workspace(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    pipeline.read(
+    dataset = Dataset.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -510,11 +524,12 @@ def test_kubeflow_configuration(tmp_path_factory):
             accelerator_name="GPU",
         ),
         produces={"captions_data": pa.string()},
+        workspace=workspace,
     )
     compiler = KubeFlowCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(dataset=dataset, workspace=workspace, output_path=output_path)
         pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
         component_configs = pipeline_configs.component_configs["first_component"]
         for accelerator in component_configs.accelerators:
@@ -527,12 +542,12 @@ def test_kubeflow_configuration(tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_invalid_kubeflow_configuration(tmp_path_factory):
     """Test that an error is returned when an invalid resource is provided."""
-    pipeline = Dataset(
+    workspace = Workspace(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    pipeline.read(
+    dataset = Dataset.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -540,11 +555,16 @@ def test_invalid_kubeflow_configuration(tmp_path_factory):
             accelerator_name="unknown resource",
         ),
         produces={"captions_data": pa.string()},
+        workspace=workspace,
     )
 
     compiler = KubeFlowCompiler()
-    with pytest.raises(InvalidPipelineDefinition):
-        compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
+    with pytest.raises(InvalidWorkspaceDefinition):
+        compiler.compile(
+            dataset=dataset,
+            workspace=workspace,
+            output_path="kubeflow_pipeline.yml",
+        )
 
 
 def test_kfp_import():
@@ -559,20 +579,20 @@ def test_kfp_import():
 @pytest.mark.usefixtures("_freeze_time")
 def test_vertex_compiler(setup_pipeline, tmp_path_factory):
     """Test compiling a pipeline to vertex."""
-    example_dir, pipeline, _ = setup_pipeline
+    example_dir, workspace, dataset, _ = setup_pipeline
     compiler = VertexCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(dataset=dataset, workspace=workspace, output_path=output_path)
         pipeline_configs = VertexPipelineConfigs.from_spec(output_path)
-        assert pipeline_configs.pipeline_name == pipeline.name
-        assert pipeline_configs.pipeline_description == pipeline.description
+        assert pipeline_configs.pipeline_name == workspace.name
+        assert pipeline_configs.pipeline_description == workspace.description
         for (
             component_name,
             component_configs,
         ) in pipeline_configs.component_configs.items():
             # Get exepcted component configs
-            component = pipeline._graph[component_name]
+            component = dataset._graph[component_name]
             component_op = component["operation"]
 
             # Check that the component configs are correct
@@ -596,12 +616,13 @@ def test_vertex_compiler(setup_pipeline, tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_vertex_configuration(tmp_path_factory):
     """Test that the kubeflow pipeline can be configured."""
-    pipeline = Dataset(
+    workspace = Workspace(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    pipeline.read(
+
+    dataset = Dataset.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -609,11 +630,12 @@ def test_vertex_configuration(tmp_path_factory):
             accelerator_name="NVIDIA_TESLA_K80",
         ),
         produces={"captions_data": pa.string()},
+        workspace=workspace,
     )
     compiler = VertexCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path)
+        compiler.compile(dataset=dataset, workspace=workspace, output_path=output_path)
         pipeline_configs = VertexPipelineConfigs.from_spec(output_path)
         component_configs = pipeline_configs.component_configs["first_component"]
         for accelerator in component_configs.accelerators:
@@ -624,12 +646,12 @@ def test_vertex_configuration(tmp_path_factory):
 @pytest.mark.usefixtures("_freeze_time")
 def test_invalid_vertex_configuration(tmp_path_factory):
     """Test that extra volumes are applied correctly."""
-    pipeline = Dataset(
+    workspace = Workspace(
         name="test_pipeline",
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
-    pipeline.read(
+    dataset = Dataset.read(
         Path(COMPONENTS_PATH / "example_1" / "first_component"),
         arguments={"storage_args": "a dummy string arg"},
         resources=Resources(
@@ -637,10 +659,15 @@ def test_invalid_vertex_configuration(tmp_path_factory):
             accelerator_name="unknown resource",
         ),
         produces={"captions_data": pa.string()},
+        workspace=workspace,
     )
     compiler = VertexCompiler()
-    with pytest.raises(InvalidPipelineDefinition):
-        compiler.compile(pipeline=pipeline, output_path="kubeflow_pipeline.yml")
+    with pytest.raises(InvalidWorkspaceDefinition):
+        compiler.compile(
+            dataset=dataset,
+            workspace=workspace,
+            output_path="kubeflow_pipeline.yml",
+        )
 
 
 def test_caching_dependency_docker(tmp_path_factory):
@@ -651,27 +678,34 @@ def test_caching_dependency_docker(tmp_path_factory):
     second_component_cache_key_dict = {}
 
     for arg in arg_list:
-        pipeline = Dataset(
+        workspace = Workspace(
             name="test_pipeline",
             description="description of the test pipeline",
             base_path="/foo/bar",
         )
         compiler = DockerCompiler()
 
-        dataset = pipeline.read(
+        dataset = Dataset.read(
             Path(COMPONENTS_PATH / "example_1" / "first_component"),
             arguments={"storage_args": f"{arg}"},
             produces={"images_data": pa.binary()},
+            workspace=workspace,
         )
         dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
             arguments={"storage_args": "a dummy string arg"},
+            workspace=workspace,
         )
 
         with tmp_path_factory.mktemp("temp") as fn:
-            pipeline.base_path = str(fn)
+            workspace.base_path = str(fn)
             output_path = str(fn / "docker-compose.yml")
-            compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
+            compiler.compile(
+                dataset=dataset,
+                workspace=workspace,
+                output_path=output_path,
+                build_args=[],
+            )
             pipeline_configs = DockerComposeConfigs.from_spec(output_path)
             metadata = json.loads(
                 pipeline_configs.component_configs["second_component"].arguments[
@@ -695,26 +729,32 @@ def test_caching_dependency_kfp(tmp_path_factory):
     second_component_cache_key_dict = {}
 
     for arg in arg_list:
-        pipeline = Dataset(
+        workspace = Workspace(
             name="test_pipeline",
             description="description of the test pipeline",
             base_path="/foo/bar",
         )
         compiler = KubeFlowCompiler()
 
-        dataset = pipeline.read(
+        dataset = Dataset.read(
             Path(COMPONENTS_PATH / "example_1" / "first_component"),
             arguments={"storage_args": f"{arg}"},
             produces={"images_data": pa.binary()},
+            workspace=workspace,
         )
         dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
             arguments={"storage_args": "a dummy string arg"},
+            workspace=workspace,
         )
 
         with tmp_path_factory.mktemp("temp") as fn:
             output_path = str(fn / "kubeflow_pipeline.yml")
-            compiler.compile(pipeline=pipeline, output_path=output_path)
+            compiler.compile(
+                dataset=dataset,
+                workspace=workspace,
+                output_path=output_path,
+            )
             pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
 
             metadata = json.loads(
@@ -856,13 +896,18 @@ def test_sagemaker_base_path_validator():
 @pytest.mark.usefixtures("_freeze_time")
 def test_docker_compiler_create_local_base_path(setup_pipeline, tmp_path_factory):
     """Test compiling a pipeline to docker-compose."""
-    example_dir, pipeline, _ = setup_pipeline
+    example_dir, workspace, dataset, _ = setup_pipeline
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn:
-        pipeline.base_path = str(fn) + "/my-artifacts"
+        workspace.base_path = str(fn) + "/my-artifacts"
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
-        assert Path(pipeline.base_path).exists()
+        compiler.compile(
+            dataset=dataset,
+            workspace=workspace,
+            output_path=output_path,
+            build_args=[],
+        )
+        assert Path(workspace.base_path).exists()
 
 
 @pytest.mark.usefixtures("_freeze_time")
@@ -871,7 +916,7 @@ def test_docker_compiler_create_local_base_path_propagate_exception(
     tmp_path_factory,
 ):
     """Test compiling a pipeline to docker-compose."""
-    example_dir, pipeline, _ = setup_pipeline
+    example_dir, workspace, dataset, _ = setup_pipeline
     compiler = DockerCompiler()
     msg = re.escape(
         "Unable to create and mount local base path. ",
@@ -881,6 +926,11 @@ def test_docker_compiler_create_local_base_path_propagate_exception(
         ValueError,
         match=msg,
     ):
-        pipeline.base_path = "/my-artifacts"
+        workspace.base_path = "/my-artifacts"
         output_path = str(fn / "docker-compose.yml")
-        compiler.compile(pipeline=pipeline, output_path=output_path, build_args=[])
+        compiler.compile(
+            dataset=dataset,
+            workspace=workspace,
+            output_path=output_path,
+            build_args=[],
+        )

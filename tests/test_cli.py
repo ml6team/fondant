@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 from fondant.cli import (
     ComponentImportError,
-    PipelineImportError,
+    DatasetImportError,
     build,
     compile_kfp,
     compile_local,
@@ -24,7 +24,7 @@ from fondant.cli import (
 from fondant.component import DaskLoadComponent
 from fondant.component.executor import Executor, ExecutorFactory
 from fondant.core.schema import CloudCredentialsMount
-from fondant.dataset import Dataset
+from fondant.dataset import Dataset, Workspace
 from fondant.dataset.runner import DockerRunner
 
 commands = [
@@ -68,7 +68,8 @@ def test_basic_invocation(command):
     assert process.returncode == 0
 
 
-TEST_PIPELINE = Dataset("test_pipeline", base_path="some/path")
+TEST_WORKSPACE = Workspace("test_workspace", base_path="some/path", description="")
+TEST_DATASET = Dataset()
 
 
 @pytest.mark.parametrize(
@@ -124,17 +125,17 @@ def test_component_from_module_error(module_str):
     "module_str",
     [
         __name__,
-        "examples.example_modules.pipeline",
-        "examples.example_modules.pipeline:pipeline",
-        "examples.example_modules.pipeline:create_pipeline",
-        "examples.example_modules.pipeline:create_pipeline_with_args('test_pipeline')",
-        "examples.example_modules.pipeline:create_pipeline_with_args(name='test_pipeline')",
+        "examples.example_modules.workspace",
+        "examples.example_modules.workspace:workspace",
+        "examples.example_modules.workspace:create_workspace",
+        "examples.example_modules.workspace:create_workspace_with_args('test_workspace')",
+        "examples.example_modules.workspace:create_workspace_with_args(name='test_workspace')",
     ],
 )
 def test_pipeline_from_module(module_str):
     """Test that pipeline_from_string works."""
     pipeline = dataset_from_string(module_str)
-    assert pipeline.name == "test_pipeline"
+    assert pipeline.name == "test_workspace"
 
 
 @pytest.mark.parametrize(
@@ -143,35 +144,35 @@ def test_pipeline_from_module(module_str):
         # module does not contain a pipeline instance
         "examples.example_modules.component",
         # module contains many pipeline instances
-        "examples.example_modules.invalid_double_pipeline",
+        "examples.example_modules.invalid_double_workspace",
         # Factory expects an argument
-        "examples.example_modules.pipeline:create_pipeline_with_args",
+        "examples.example_modules.workspace:create_pipeline_with_args",
         # Factory does not expect an argument
-        "examples.example_modules.pipeline:create_pipeline('test_pipeline')",
+        "examples.example_modules.workspace:create_pipeline('test_pipeline')",
         # Factory does not expect an argument
-        "examples.example_modules.pipeline:create_pipeline(name='test_pipeline')",
+        "examples.example_modules.workspace:create_pipeline(name='test_pipeline')",
         # Invalid argument
-        "examples.example_modules.pipeline:create_pipeline(name)",
+        "examples.example_modules.workspace:create_pipeline(name)",
         # Not a variable or function
-        "examples.example_modules.pipeline:[]",
+        "examples.example_modules.workspace:[]",
         # Attribute doesn't exist
-        "examples.example_modules.pipeline:no_pipeline",
+        "examples.example_modules.workspace:no_pipeline",
         # Attribute is not a valid python name
-        "examples.example_modules.pipeline:pipe;line",
+        "examples.example_modules.workspace:pipe;line",
         # Not a Pipeline
-        "examples.example_modules.pipeline:number",
+        "examples.example_modules.workspace:number",
     ],
 )
 def test_pipeline_from_module_error(module_str):
     """Test different error cases for pipeline_from_string."""
-    with pytest.raises(PipelineImportError):
+    with pytest.raises(DatasetImportError):
         dataset_from_string(module_str)
 
 
 def test_factory_error_propagated():
     """Test that an error in the factory method is correctly propagated."""
     with pytest.raises(NotImplementedError):
-        dataset_from_string("examples.example_modules.pipeline:not_implemented")
+        dataset_from_string("examples.example_modules.workspace:not_implemented")
 
 
 def test_execute_logic(monkeypatch):
@@ -201,7 +202,7 @@ def test_local_compile(tmp_path_factory):
         compile_local(args)
 
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_PIPELINE,
+            pipeline=TEST_WORKSPACE,
             extra_volumes=[],
             output_path=str(fn / "docker-compose.yml"),
             build_args=[],
@@ -222,7 +223,7 @@ def test_kfp_compile(tmp_path_factory):
         )
         compile_kfp(args)
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_PIPELINE,
+            pipeline=TEST_WORKSPACE,
             output_path=str(fn / "kubeflow_pipeline.yml"),
         )
 
@@ -240,7 +241,7 @@ def test_vertex_compile(tmp_path_factory):
         )
         compile_vertex(args)
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_PIPELINE,
+            pipeline=TEST_WORKSPACE,
             output_path=str(fn / "vertex_pipeline.yml"),
         )
 
@@ -260,7 +261,7 @@ def test_sagemaker_compile(tmp_path_factory):
         )
         compile_sagemaker(args)
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_PIPELINE,
+            pipeline=TEST_WORKSPACE,
             output_path=str(fn / "sagemaker_pipeline.json"),
             role_arn="some_role",
         )
@@ -342,9 +343,10 @@ def test_local_run_cloud_credentials(mock_docker_installation):
             run_local(args)
 
             mock_compiler.assert_called_once_with(
-                TEST_PIPELINE,
-                extra_volumes=[],
+                Dataset(),
+                workspace=TEST_WORKSPACE,
                 output_path=".fondant/compose.yaml",
+                extra_volumes=[],
                 build_args=[],
                 auth_provider=auth_provider,
             )
@@ -372,7 +374,7 @@ def test_kfp_run(tmp_path_factory):
         local=False,
         vertex=False,
         output_path=None,
-        ref=__name__,
+        ref="dataset",
         host=None,
     )
     with pytest.raises(
@@ -386,7 +388,7 @@ def test_kfp_run(tmp_path_factory):
             local=False,
             output_path=None,
             host="localhost",
-            ref=__name__,
+            ref="dataset",
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost")
@@ -401,7 +403,7 @@ def test_kfp_run(tmp_path_factory):
             local=False,
             host="localhost2",
             output_path=str(fn / "kubeflow_pipelines.yml"),
-            ref=__name__,
+            ref="dataset",
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost2")
@@ -419,7 +421,7 @@ def test_vertex_run(tmp_path_factory):
             project_id="project-123",
             service_account=None,
             network=None,
-            ref=__name__,
+            ref="dataset",
         )
         run_vertex(args)
         mock_runner.assert_called_once_with(
@@ -440,7 +442,7 @@ def test_vertex_run(tmp_path_factory):
             local=False,
             host="localhost2",
             output_path=str(fn / "kubeflow_pipelines.yml"),
-            ref=__name__,
+            ref="dataset",
             region="europe-west-1",
             project_id="project-123",
             service_account=None,
