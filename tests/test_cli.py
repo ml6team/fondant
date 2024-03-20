@@ -339,6 +339,7 @@ def test_local_run_cloud_credentials(mock_docker_installation):
                 credentials=None,
                 extra_volumes=[],
                 build_arg=[],
+                workspace=TEST_WORKSPACE,
             )
             run_local(args)
 

@@ -607,10 +607,15 @@ def run_local(args):
     from fondant.dataset.runner import DockerRunner
 
     extra_volumes = []
-    workspace = Workspace(
-        name="dummy_workspace",
-        base_path="",
-    )  # TODO: handle in #887 -> retrieve global workspace, or cli command
+    # use workspace from cli command
+    # if args.workspace exists
+
+    workspace = getattr(args, "workspace", None)
+    if workspace is None:
+        workspace = Workspace(
+            name="dummy_workspace",
+            base_path=".artifacts",
+        )  # TODO: handle in #887 -> retrieve global workspace or init default one
 
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
@@ -875,16 +880,14 @@ def dataset_from_module(module_str: str) -> Dataset:
         msg = f"No dataset found in module {module_str}"
         raise DatasetImportError(msg)
 
-    # TODO: now there might be several dataset instances in a single module? how to handle?
     # Skip this one and choose the first dataset instance?
     if len(dataset_instances) > 1:
         msg = (
-            f"Found multiple instantiated workspaces in {module_str}. Only one workspace "
-            f"can be present"
+            f"Found multiple instantiated datasets in {module_str}. Use the first dataset to start "
+            f"the execution."
         )
-        raise DatasetImportError(msg)
+        logger.info(msg)
 
-    logger.info(f"Dataset found in module {module_str}")
     return dataset_instances[0]
 
 

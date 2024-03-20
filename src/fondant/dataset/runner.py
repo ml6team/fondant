@@ -205,6 +205,7 @@ class KubeflowRunner(Runner):
             compiler = KubeFlowCompiler()
             compiler.compile(
                 dataset,
+                workspace,
                 output_path=output_path,
             )
             self._run(output_path, experiment_name=experiment_name)
@@ -269,16 +270,16 @@ class VertexRunner(Runner):
 
     def run(
         self,
-        input: t.Union[Dataset, str],
+        dataset: t.Union[Dataset, str],
         workspace: Workspace,
     ):
         """Run a pipeline, either from a compiled vertex spec or from a fondant pipeline.
 
         Args:
-            input: the pipeline to compile or a path to a already compiled sagemaker spec
+            dataset: the dataset to compile or a path to an already compiled sagemaker spec
             workspace: workspace to operate in
         """
-        if isinstance(input, Dataset):
+        if isinstance(dataset, Dataset):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/vertex-pipeline.yaml"
             logging.info(
@@ -286,12 +287,13 @@ class VertexRunner(Runner):
             )
             compiler = VertexCompiler()
             compiler.compile(
-                input,
+                dataset,
+                workspace,
                 output_path=output_path,
             )
             self._run(output_path)
         else:
-            self._run(input)
+            self._run(dataset)
 
     def _run(self, input_spec: str, *args, **kwargs):
         job = self.aip.PipelineJob(
@@ -353,7 +355,8 @@ class SagemakerRunner(Runner):
             )
             compiler = SagemakerCompiler()
             compiler.compile(
-                dataset,
+                dataset=dataset,
+                workspace=workspace,
                 output_path=output_path,
                 role_arn=role_arn,
             )

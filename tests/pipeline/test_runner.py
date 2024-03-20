@@ -201,6 +201,7 @@ class MockKubeFlowCompiler:
     def compile(
         self,
         dataset,
+        workspace,
         output_path,
     ) -> None:
         with open(output_path, "w") as f:
@@ -236,7 +237,7 @@ def test_vertex_runner():
         "google.cloud.aiplatform.PipelineJob",
     ):
         runner = VertexRunner(project_id="some_project", region="some_region")
-        runner.run(input=input_spec_path, workspace=WORKSPACE)
+        runner.run(dataset=input_spec_path, workspace=WORKSPACE)
 
         # test with service account
         runner2 = VertexRunner(
@@ -244,7 +245,7 @@ def test_vertex_runner():
             region="some_region",
             service_account="some_account",
         )
-        runner2.run(input=input_spec_path, workspace=WORKSPACE)
+        runner2.run(dataset=input_spec_path, workspace=WORKSPACE)
 
 
 def test_vertex_runner_from_pipeline():
@@ -257,7 +258,7 @@ def test_vertex_runner_from_pipeline():
     ):
         runner = VertexRunner(project_id="some_project", region="some_region")
         runner.run(
-            input=Dataset(),
+            dataset=Dataset(),
             workspace=WORKSPACE,
         )
 
@@ -324,7 +325,8 @@ def test_sagemaker_runner(tmp_path_factory):
 class MockSagemakerCompiler:
     def compile(
         self,
-        pipeline,
+        dataset,
+        workspace,
         output_path,
         *,
         role_arn,

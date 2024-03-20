@@ -141,7 +141,7 @@ def setup_pipeline(request, tmp_path, monkeypatch):
         base_path=workspace.base_path,
         run_id=workspace.get_run_id(),
     )
-    dataset = Dataset(manifest)
+    dataset = Dataset(manifest=manifest)
     cache_dict = {}
     example_dir, components = request.param
     for component_dict in components:

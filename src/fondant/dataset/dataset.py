@@ -463,22 +463,22 @@ class Workspace:
         return name
 
     def get_run_id(self) -> str:
-        """Get a unique run ID for the pipeline."""
-        # TODO: eager execution: every execution a single run? or use the latest one?
+        """Get a unique run ID for the workspace."""
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         return f"{self.name}-{timestamp}"
 
 
 class Dataset:
-    # TODO: prevent calling the init?
     def __init__(
         self,
         name: t.Optional[str] = None,
+        description: t.Optional[str] = None,
         manifest: t.Optional[Manifest] = None,
     ):
         if name is not None:
             self.name = self._validate_dataset_name(name)
 
+        self.description = description
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
         self.manifest = manifest
