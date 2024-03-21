@@ -142,7 +142,6 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
     _ = dataset.apply(
         ref=AddN,
         arguments={"n": 1},
-        workspace=workspace,
     )
     assert len(dataset._graph.keys()) == 1 + 1
     assert dataset._graph["addn"]["dependencies"] == ["createdata"]
@@ -200,7 +199,6 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
         ref=AddN,
         consumes={"a": "x"},
         arguments={"n": 1},
-        workspace=workspace,
     )
 
     with tmp_path_factory.mktemp("temp") as fn:
@@ -241,7 +239,6 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
         ref=AddN,
         consumes={"a": "x"},
         arguments={"n": 1},
-        workspace=workspace,
     )
 
     with tmp_path_factory.mktemp("temp") as fn:
@@ -283,7 +280,6 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
         ref=AddN,
         consumes={"x": pa.int32()},
         arguments={"n": 1},
-        workspace=workspace,
     )
 
     with tmp_path_factory.mktemp("temp") as fn:
@@ -327,7 +323,6 @@ def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
         consumes={"x": pa.int32()},
         produces={"a": pa.int32(), "b": pa.int32(), "c": pa.int32()},
         arguments={"n": 1},
-        workspace=workspace,
     )
 
     with tmp_path_factory.mktemp("temp") as fn:
@@ -551,7 +546,6 @@ def test_infer_consumes_if_not_defined(load_pipeline):
 
     dataset = dataset.apply(
         ref=Bar,
-        workspace=workspace,
     )
 
     operation_spec_dict = dataset._graph["bar"]["operation"].operation_spec.to_dict()
@@ -598,7 +592,6 @@ def test_infer_consumes_if_additional_properties_true(load_pipeline):
 
     dataset = dataset.apply(
         ref=Bar,
-        workspace=workspace,
     )
 
     operation_spec_dict = dataset._graph["bar"]["operation"].operation_spec.to_dict()

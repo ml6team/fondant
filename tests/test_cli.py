@@ -68,7 +68,7 @@ def test_basic_invocation(command):
     assert process.returncode == 0
 
 
-TEST_DATASET = Dataset("test_dataset")
+TEST_DATASET = Dataset(name="test_dataset", run_id="run-id-1")
 TEST_WORKSPACE = Workspace("test_workspace", base_path="/dummy/path")
 
 

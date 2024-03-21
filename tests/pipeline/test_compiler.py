@@ -136,12 +136,14 @@ def setup_pipeline(request, tmp_path, monkeypatch):
         description="description of the test pipeline",
         base_path="/foo/bar",
     )
+
+    run_id = workspace.get_run_id()
     manifest = Manifest.create(
         pipeline_name=workspace.name,
         base_path=workspace.base_path,
-        run_id=workspace.get_run_id(),
+        run_id=run_id,
     )
-    dataset = Dataset(manifest=manifest)
+    dataset = Dataset(manifest=manifest, run_id=run_id)
     cache_dict = {}
     example_dir, components = request.param
     for component_dict in components:
@@ -154,7 +156,7 @@ def setup_pipeline(request, tmp_path, monkeypatch):
             "get_component_cache_key",
             lambda cache_key=cache_key, previous_component_cache=None: cache_key,
         )
-        dataset = dataset._apply(component, workspace=workspace)
+        dataset = dataset._apply(component)
         cache_dict[component.component_name] = cache_key
 
     # override the default package_path with temporary path to avoid the creation of artifacts
@@ -694,7 +696,6 @@ def test_caching_dependency_docker(tmp_path_factory):
         dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
             arguments={"storage_args": "a dummy string arg"},
-            workspace=workspace,
         )
 
         with tmp_path_factory.mktemp("temp") as fn:
@@ -745,7 +746,6 @@ def test_caching_dependency_kfp(tmp_path_factory):
         dataset.apply(
             Path(COMPONENTS_PATH / "example_1" / "second_component"),
             arguments={"storage_args": "a dummy string arg"},
-            workspace=workspace,
         )
 
         with tmp_path_factory.mktemp("temp") as fn:

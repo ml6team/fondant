@@ -218,19 +218,16 @@ def test_valid_pipeline(
         arguments=component_args,
         consumes={"images_data": "images_array"},
         produces={"embeddings_data": "embeddings_array"},
-        workspace=workspace,
     )
     dataset = dataset.apply(
         Path(components_path / component_names[2]),
         arguments=component_args,
         consumes={"images_data": "images_array", "embeddings_data": "embeddings_array"},
-        workspace=workspace,
     )
     dataset.apply(
         Path(components_path / component_names[3]),
         arguments=component_args,
         consumes={"images_array": pa.binary()},
-        workspace=workspace,
     )
 
     dataset.sort_graph()
@@ -278,7 +275,6 @@ def test_invalid_pipeline_schema(
             Path(components_path / "second_component"),
             arguments=component_args,
             consumes={"images_pictures": "images_array"},
-            workspace=workspace,
         )
 
     # "images_array" does not exist in the component spec
@@ -287,7 +283,6 @@ def test_invalid_pipeline_schema(
             Path(components_path / "second_component"),
             arguments=component_args,
             consumes={"images_array": "images_array"},
-            workspace=workspace,
         )
 
     # Extra field in the consumes mapping that does not have a corresponding field
@@ -301,7 +296,6 @@ def test_invalid_pipeline_schema(
                 "non_existent_field": "non_existent_field",
             },
             produces={"embeddings_data": "embeddings_array"},
-            workspace=workspace,
         )
 
 
@@ -335,7 +329,6 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
     dataset = dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
-        workspace=workspace,
     )
 
 
@@ -369,7 +362,6 @@ def test_invalid_pipeline_declaration(
     dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
-        workspace=workspace,
     )
 
     with pytest.raises(InvalidWorkspaceDefinition):
@@ -448,7 +440,6 @@ def test_schema_propagation():
 
     dataset = dataset.apply(
         "caption_images",
-        workspace=workspace,
     )
 
     assert dataset.fields == {
@@ -469,7 +460,6 @@ def test_schema_propagation():
         consumes={
             "text": "caption",
         },
-        workspace=workspace,
     )
 
     assert dataset.fields == {
@@ -493,7 +483,6 @@ def test_schema_propagation():
         produces={
             "text": "chunks",
         },
-        workspace=workspace,
     )
 
     assert dataset.fields == {
@@ -531,7 +520,6 @@ def test_invoked_field_schema_raise_exception():
         consumes={
             "image": pa.string(),
         },
-        workspace=workspace,
     )
 
     expected_error_msg = re.escape(
@@ -587,7 +575,6 @@ def test_infer_consumes_if_not_defined(
     dataset = dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
-        workspace=workspace,
     )
 
     assert dataset._graph["second_component"]["operation"].operation_spec.to_dict()[
@@ -601,7 +588,6 @@ def test_infer_consumes_if_not_defined(
     dataset = dataset.apply(
         Path(components_path / component_names[2]),
         arguments=component_args,
-        workspace=workspace,
     )
 
     assert dataset._graph["third_component"]["operation"].operation_spec.to_dict()[
@@ -621,7 +607,6 @@ def test_infer_consumes_if_not_defined(
     dataset = dataset.apply(
         Path(components_path / component_names[3]),
         arguments=component_args,
-        workspace=workspace,
     )
 
     assert dataset._graph["fourth_component"]["operation"].operation_spec.to_dict()[
@@ -657,7 +642,6 @@ def test_consumes_name_to_name_mapping(
         Path(components_path / "fourth_component"),
         arguments=component_args,
         consumes={"images_data": "images_data"},
-        workspace=workspace,
     )
 
     assert dataset._graph["fourth_component"]["operation"].operation_spec.to_dict()[
@@ -681,6 +665,5 @@ def test_new_pipeline_interface():
     dataset = dataset.apply(
         Path(components_path / "second_component"),
         consumes={"images_data": "images_data"},
-        workspace=workspace,
     )
     assert len(dataset._graph) == 2  # noqa PLR2004

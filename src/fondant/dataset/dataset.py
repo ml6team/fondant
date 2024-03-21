@@ -474,6 +474,9 @@ class Dataset:
         name: t.Optional[str] = None,
         description: t.Optional[str] = None,
         manifest: t.Optional[Manifest] = None,
+        run_id: t.Optional[
+            str
+        ] = None,  # TODO: could be probably used as dataset version in the future!
     ):
         if name is not None:
             self.name = self._validate_dataset_name(name)
@@ -482,6 +485,12 @@ class Dataset:
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
         self.manifest = manifest
+
+        if run_id is None:
+            # TODO random generation of run id?
+            self.run_id = "run-id"
+        else:
+            self.run_id = run_id
 
     @staticmethod
     def _validate_dataset_name(name: str) -> str:
@@ -560,16 +569,17 @@ class Dataset:
             cache=cache,
         )
 
+        run_id = workspace.get_run_id()
         manifest = Manifest.create(
             pipeline_name=workspace.name,
             base_path=workspace.base_path,
-            run_id=workspace.get_run_id(),
+            run_id=run_id,
             component_id=operation.component_name,
         )
 
-        dataset = Dataset(manifest=manifest)
+        dataset = Dataset(manifest=manifest, run_id=run_id)
 
-        return dataset._apply(operation, workspace=workspace)
+        return dataset._apply(operation)
 
     def sort_graph(self):
         """Sort the graph topologically based on task dependencies."""
@@ -689,7 +699,7 @@ class Dataset:
         msg = "No manifest found."
         raise ValueError(msg)
 
-    def _apply(self, operation: ComponentOp, workspace: Workspace) -> "Dataset":
+    def _apply(self, operation: ComponentOp) -> "Dataset":
         """
         Apply the provided operation to the dataset.
 
@@ -703,11 +713,12 @@ class Dataset:
 
         evolved_manifest = self.manifest.evolve(
             operation.operation_spec,
-            run_id=workspace.get_run_id(),
+            run_id=self.run_id,
         )
 
         evolved_dataset = Dataset(
             manifest=evolved_manifest,
+            run_id=self.run_id,
         )
 
         evolved_dataset._graph = self._graph
@@ -724,7 +735,6 @@ class Dataset:
         self,
         ref: t.Any,
         *,
-        workspace: Workspace,
         consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
@@ -833,13 +843,12 @@ class Dataset:
             cache=cache,
         )
 
-        return self._apply(operation, workspace=workspace)
+        return self._apply(operation)
 
     def write(
         self,
         ref: t.Any,
         *,
-        workspace: Workspace,
         consumes: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
@@ -877,4 +886,4 @@ class Dataset:
             resources=resources,
             cache=cache,
         )
-        self._apply(operation, workspace)
+        self._apply(operation)
