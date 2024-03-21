@@ -33,7 +33,7 @@ pipeline = Pipeline(
     base_path="./data"
 )
 
-dataset = pipeline.read(
+dataset = Dataset.read(
     "load_from_hf_hub",
     arguments={
         "dataset_name": "fondant-ai/fondant-cc-25m",
