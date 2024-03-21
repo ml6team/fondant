@@ -8,6 +8,9 @@
         "dataset_name": {
           "type": "string"
         },
+        "manifest_location": {
+          "type": "string"
+        },
         "run_id": {
           "type": "string"
         },

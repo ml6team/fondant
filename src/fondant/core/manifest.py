@@ -24,13 +24,15 @@ class Metadata:
     Class representing the Metadata of the manifest.
 
     Args:
-        pipeline_name: the name of the pipeline
+        dataset_name: the name of the pipeline
+        manifest_location: path to the manifest file itself
         run_id: the run id of the pipeline
         component_id: the name of the component
         cache_key: the cache key of the component.
     """
 
     dataset_name: t.Optional[str]
+    manifest_location: t.Optional[str]
     run_id: str
     component_id: t.Optional[str]
     cache_key: t.Optional[str]
@@ -127,8 +129,12 @@ class Manifest:
 
     def to_file(self, path: t.Union[str, Path]) -> None:
         """Dump the manifest to the file specified by the provided path."""
+        self._specification["manifest_location"] = path
         with fs_open(path, "w", encoding="utf-8", auto_mkdir=True) as file_:
             json.dump(self._specification, file_)
+
+    def get_location(self):
+        return self._specification["metadata"]["manifest_location"]
 
     def copy(self) -> "Manifest":
         """Return a deep copy of itself."""
@@ -271,6 +277,12 @@ class Manifest:
             evolved_manifest.add_or_update_field(field, overwrite=True)
 
         return evolved_manifest
+
+    def contains_data(self) -> bool:
+        """Check if the manifest contains data. Checks if any dataset fields exists.
+        Is false in case the dataset manifest was initialised but no data added yet. In this case
+        the manifest only contains metadata like dataset name and run id."""
+        return bool(self._specification["fields"])
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r})"

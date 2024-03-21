@@ -92,8 +92,8 @@ class DockerCompiler(Compiler):
     def compile(
         self,
         dataset: Dataset,
-        workspace: Workspace,
         *,
+        working_directory: t.Optional[str],
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
@@ -103,7 +103,7 @@ class DockerCompiler(Compiler):
 
         Args:
             dataset: the dataset to compile
-            workspace: workspace to operate in
+            working_directory: working_directory to store local dataset artifacts
             output_path: the path where to save the docker-compose spec
             extra_volumes: a list of extra volumes (using the Short syntax:
               https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
@@ -112,7 +112,8 @@ class DockerCompiler(Compiler):
             auth_provider: The cloud provider to use for authentication. Default is None.
 
         """
-        # TODO: add method call to retrieve workspace context, and make passing workspace optional
+        if working_directory is None:
+            working_directory = "./.fndnt-local-workspace"
 
         if extra_volumes is None:
             extra_volumes = []
@@ -123,11 +124,9 @@ class DockerCompiler(Compiler):
         if auth_provider:
             extra_volumes.append(auth_provider.get_path())
 
-        logger.info(f"Compiling {workspace.name} to {output_path}")
-
         spec = self._generate_spec(
             dataset,
-            workspace,
+            working_directory=working_directory,
             extra_volumes=extra_volumes,
             build_args=build_args or [],
         )
@@ -193,7 +192,7 @@ class DockerCompiler(Compiler):
     def _generate_spec(
         self,
         dataset: Dataset,
-        workspace: Workspace,
+        working_directory: str,
         *,
         extra_volumes: t.List[str],
         build_args: t.List[str],
@@ -201,12 +200,12 @@ class DockerCompiler(Compiler):
         """Generate a docker-compose spec as a python dictionary,
         loops over the pipeline graph to create services and their dependencies.
         """
-        path, volume = self._patch_path(base_path=workspace.base_path)
-        run_id = workspace.get_run_id()
+        path, volume = self._patch_path(base_path=working_directory)
+        run_id = dataset.manifest.run_id
 
         services = {}
 
-        dataset.validate(run_id=run_id, workspace=workspace)
+        dataset.validate(run_id=run_id)
 
         component_cache_key = None
 
@@ -218,9 +217,8 @@ class DockerCompiler(Compiler):
             )
 
             metadata = Metadata(
-                pipeline_name=workspace.name,
+                dataset_name=dataset.name,
                 run_id=run_id,
-                base_path=path,
                 component_id=component_id,
                 cache_key=component_cache_key,
             )
@@ -236,7 +234,7 @@ class DockerCompiler(Compiler):
             command.extend(
                 [
                     "--output_manifest_path",
-                    f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                    f"{path}/{metadata.dataset_name}/{metadata.run_id}/"
                     f"{component_id}/manifest.json",
                 ],
             )
@@ -255,14 +253,22 @@ class DockerCompiler(Compiler):
                     depends_on[dependency] = {
                         "condition": "service_completed_successfully",
                     }
-                    # there is only an input manifest if the component has dependencies
+                    # there is an input manifest if the component has dependencies, use the manifest
+                    # from the previous component
                     command.extend(
                         [
                             "--input_manifest_path",
-                            f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                            f"{path}/{metadata.dataset_name}/{metadata.run_id}/"
                             f"{dependency}/manifest.json",
                         ],
                     )
+            if dataset.manifest.contains_data():
+                command.extend(
+                    [
+                        "--input_manifest_path",
+                        f"{dataset.manifest.get_location()}",
+                    ],
+                )
 
             volumes: t.List[t.Union[str, dict]] = []
             if volume:
@@ -279,7 +285,7 @@ class DockerCompiler(Compiler):
                 "volumes": volumes,
                 "ports": ports,
                 "labels": {
-                    "pipeline_description": workspace.description,
+                    "dataset_description": dataset.description,
                 },
             }
 
@@ -297,7 +303,7 @@ class DockerCompiler(Compiler):
                 services[component_id]["image"] = component_op.component_spec.image
 
         return {
-            "name": workspace.name,
+            "name": dataset.name,
             "version": "3.8",
             "services": services,
         }
