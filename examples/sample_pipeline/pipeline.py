@@ -30,13 +30,12 @@ dataset = Dataset.read(
     workspace=workspace,
 )
 
-dataset = dataset.apply("./components/dummy_component", workspace=workspace)
+dataset = dataset.apply("./components/dummy_component")
 
 dataset = dataset.apply(
     "chunk_text",
     arguments={"chunk_size": 10, "chunk_overlap": 2},
     consumes={"text": "text_data"},
-    workspace=workspace,
 )
 
 
@@ -60,12 +59,10 @@ dataset = dataset.apply(
     ref=CalculateChunkLength,
     produces={"chunk_length": pa.int32()},
     arguments={"arg_x": "value_x"},
-    workspace=workspace,
 )
 
 dataset.write(
     ref="write_to_file",
     arguments={"path": "/data/export"},
     consumes={"text": "text"},
-    workspace=workspace,
 )
