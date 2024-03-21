@@ -103,7 +103,7 @@ We provide three arguments to the `.read()` method:
 
 ??? "View a detailed reference of the `Pipeline.read()` method"
 
-    ::: fondant.dataset.Pipeline.read
+    ::: fondant.dataset.Dataset.read
         handler: python
         options:
             show_source: false
