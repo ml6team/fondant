@@ -44,7 +44,7 @@ pipeline = Pipeline(
 
 ??? "View a detailed reference of the options accepted by the `Pipeline` class"
 
-    ::: fondant.dataset.Pipeline.__init__
+    ::: fondant.dataset.Dataset.__init__
         handler: python
         options:
             show_source: false
