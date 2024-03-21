@@ -44,7 +44,7 @@ pipeline = Pipeline(
 
 ??? "View a detailed reference of the options accepted by the `Pipeline` class"
 
-    ::: fondant.dataset.Pipeline.__init__
+    ::: fondant.dataset.Dataset.__init__
         handler: python
         options:
             show_source: false
@@ -69,13 +69,13 @@ As a first step, we want to read data into our pipeline. In this case, we will l
 from the HuggingFace Hub. For this, we can use the reusable 
 [load_from_hf_hub](../components/hub.md#load_from_hugging_face_hub#description) component.
 
-We can read data into our pipeline using the `Pipeline.read()` method, which returns a (lazy) 
+We can read data into our pipeline using the `Dataset.read()` method, which returns a (lazy) 
 `Dataset`.
 
 ```python
 import pyarrow as pa
 
-dataset = pipeline.read(
+dataset = Dataset.read(
     "load_from_hf_hub",
     arguments={
         "dataset_name": "fondant-ai/fondant-cc-25m",
@@ -101,9 +101,9 @@ We provide three arguments to the `.read()` method:
   defined in the component [documentation](../components/hub.md#load_from_hugging_face_hub#inputs_outputs) with 
   `additionalProperties: true` under the produces section.
 
-??? "View a detailed reference of the `Pipeline.read()` method"
+??? "View a detailed reference of the `Dataset.read()` method"
 
-    ::: fondant.dataset.Pipeline.read
+    ::: fondant.dataset.Dataset.read
         handler: python
         options:
             show_source: false

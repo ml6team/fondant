@@ -10,12 +10,12 @@ components and custom components, and chain them together.
 
 Start by creating a `pipeline.py` file and adding the following code.
 ```python
-from fondant.pipeline import Pipeline
+from fondant.dataset import Dataset
 
-pipeline = Pipeline(
-    name="my-pipeline",
-    base_path="./data",
-)
+#dataset = Dataset.read(
+#    ..
+#)
+
 ```
 
 We identify our pipeline with a name and provide a base path where the pipeline will store its 
@@ -49,7 +49,7 @@ dataset = Dataset.read(
 
 ??? "View a detailed reference of the `Dataset.read()` method"
 
-    ::: fondant.dataset.Pipeline.read
+    ::: fondant.dataset.Dataset.read
         handler: python
         options:
             show_source: false
