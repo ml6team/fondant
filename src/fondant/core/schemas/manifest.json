@@ -5,11 +5,7 @@
     "metadata": {
       "type": "object",
       "properties": {
-        "base_path": {
-          "type": "string",
-          "format": "uri"
-        },
-        "pipeline_name": {
+        "dataset_name": {
           "type": "string"
         },
         "run_id": {
@@ -20,8 +16,7 @@
         }
       },
       "required": [
-        "base_path",
-        "pipeline_name",
+        "dataset_name",
         "run_id"
       ]
     },

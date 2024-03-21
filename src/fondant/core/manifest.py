@@ -24,14 +24,12 @@ class Metadata:
     Class representing the Metadata of the manifest.
 
     Args:
-        base_path: the base path used to store the artifacts
         pipeline_name: the name of the pipeline
         run_id: the run id of the pipeline
         component_id: the name of the component
         cache_key: the cache key of the component.
     """
 
-    base_path: str
     pipeline_name: str
     run_id: str
     component_id: t.Optional[str]
@@ -94,7 +92,6 @@ class Manifest:
         cls,
         *,
         pipeline_name: str,
-        base_path: str,
         run_id: str,
         component_id: t.Optional[str] = None,
         cache_key: t.Optional[str] = None,
@@ -103,14 +100,12 @@ class Manifest:
 
         Args:
             pipeline_name: the name of the pipeline
-            base_path: The base path of the manifest
             run_id: The id of the current pipeline run
             component_id: The id of the current component being executed
             cache_key: The component cache key
         """
         metadata = Metadata(
             pipeline_name=pipeline_name,
-            base_path=base_path,
             run_id=run_id,
             component_id=component_id,
             cache_key=cache_key,
@@ -150,20 +145,16 @@ class Manifest:
     def update_metadata(self, key: str, value: t.Any) -> None:
         self.metadata[key] = value
 
-    @property
-    def base_path(self) -> str:
-        return self.metadata["base_path"]
-
     def get_field_location(self, field_name: str):
         """Return absolute path to the field location."""
         if field_name == "id":
-            return f"{self.base_path}/{self.pipeline_name}{self.index.location}"
+            return self.index.location
         if field_name not in self.fields:
             msg = f"Field {field_name} is not available in the manifest."
             raise ValueError(msg)
 
         field = self.fields[field_name]
-        return f"{self.base_path}/{self.pipeline_name}{field.location}"
+        return field.location
 
     @property
     def run_id(self) -> str:
@@ -174,8 +165,8 @@ class Manifest:
         return self.metadata["component_id"]
 
     @property
-    def pipeline_name(self) -> str:
-        return self.metadata["pipeline_name"]
+    def dataset_name(self) -> str:
+        return self.metadata["dataset_name"]
 
     @property
     def cache_key(self) -> str:
@@ -243,6 +234,7 @@ class Manifest:
         operation_spec: OperationSpec,
         *,
         run_id: str,
+        working_dir: str,
     ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
@@ -262,7 +254,7 @@ class Manifest:
 
         # Update index location as this is always rewritten
         evolved_manifest.add_or_update_field(
-            Field(name="index", location=f"/{run_id}/{component_id}"),
+            Field(name="index", location=f"{working_dir}/{self.dataset_name}/{run_id}/{component_id}"),
         )
 
         # Remove all previous fields if the component changes the index
@@ -275,7 +267,7 @@ class Manifest:
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.
-            field.location = f"/{run_id}/{component_id}"
+            field.location = f"{working_dir}/{self.dataset_name}/{run_id}/{component_id}"
             evolved_manifest.add_or_update_field(field, overwrite=True)
 
         return evolved_manifest
