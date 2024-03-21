@@ -49,7 +49,7 @@ dataset = Dataset.read(
 
 ??? "View a detailed reference of the `Dataset.read()` method"
 
-    ::: fondant.dataset.Pipeline.read
+    ::: fondant.dataset.Dataset.read
         handler: python
         options:
             show_source: false
