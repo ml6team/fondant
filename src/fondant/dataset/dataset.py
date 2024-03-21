@@ -469,9 +469,6 @@ class Dataset:
         name: t.Optional[str] = None,
         description: t.Optional[str] = None,
         manifest: t.Optional[Manifest] = None,
-        run_id: t.Optional[
-            str
-        ] = None,  # TODO: could be probably used as dataset version in the future!
     ):
         if name is not None:
             self.name = self._validate_dataset_name(name)
@@ -480,12 +477,6 @@ class Dataset:
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
         self.manifest = manifest
-
-        if run_id is None:
-            # TODO random generation of run id?
-            self.run_id = "run-id"
-        else:
-            self.run_id = run_id
 
     @staticmethod
     def _validate_dataset_name(name: str) -> str:
@@ -501,12 +492,6 @@ class Dataset:
         """Get a unique run ID for the workspace."""
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         return f"{self.name}-{timestamp}"
-
-    @staticmethod
-    def load(manifest: Manifest) -> "Dataset":
-        """Load a dataset from a manifest."""
-        # TODO: fondant #885
-        raise NotImplementedError
 
     def register_operation(
         self,
@@ -530,7 +515,12 @@ class Dataset:
         }
 
     @staticmethod
-    def read(
+    def read(manifest_path: str):
+        manifest = Manifest.from_file(manifest_path)
+        return Dataset(manifest=manifest)
+
+    @staticmethod
+    def create(
         ref: t.Any,
         *,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
@@ -539,6 +529,7 @@ class Dataset:
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
         dataset_name: t.Optional[str] = None,
+        manifest: t.Optional[Manifest] = None
     ) -> "Dataset":
         """
         Read data using the provided component.
@@ -569,14 +560,14 @@ class Dataset:
             cache=cache,
         )
 
-        run_id = Dataset.get_run_id()
-        manifest = Manifest.create(
-            dataset_name=dataset_name,
-            run_id=run_id,
-            component_id=operation.component_name,
-        )
+        if manifest is None:
+            manifest = Manifest.create(
+                dataset_name=dataset_name,
+                run_id=Dataset.get_run_id(),
+                component_id=operation.component_name,
+            )
 
-        dataset = Dataset(manifest=manifest, run_id=run_id)
+        dataset = Dataset(manifest=manifest)
 
         return dataset._apply(operation)
 
