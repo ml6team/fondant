@@ -462,11 +462,6 @@ class Workspace:
             raise InvalidWorkspaceDefinition(msg)
         return name
 
-    def get_run_id(self) -> str:
-        """Get a unique run ID for the workspace."""
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        return f"{self.name}-{timestamp}"
-
 
 class Dataset:
     def __init__(
@@ -500,6 +495,13 @@ class Dataset:
             raise InvalidWorkspaceDefinition(msg)
         return name
 
+
+    @staticmethod
+    def get_run_id(self) -> str:
+        """Get a unique run ID for the workspace."""
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        return f"{self.name}-{timestamp}"
+
     @staticmethod
     def load(manifest: Manifest) -> "Dataset":
         """Load a dataset from a manifest."""
@@ -531,12 +533,12 @@ class Dataset:
     def read(
         ref: t.Any,
         *,
-        workspace: Workspace,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
+        dataset_name: t.Optional[str] = None,
     ) -> "Dataset":
         """
         Read data using the provided component.
@@ -544,7 +546,6 @@ class Dataset:
         Args:
             ref: The name of a reusable component, or the path to the directory containing
                 a containerized component, or a lightweight component class.
-            workspace: The workspace to operate in
             produces: A mapping to update the fields produced by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -558,7 +559,6 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        # TODO: add method call to retrieve workspace context, and make passing workspace optional
 
         operation = ComponentOp.from_ref(
             ref,
@@ -569,10 +569,9 @@ class Dataset:
             cache=cache,
         )
 
-        run_id = workspace.get_run_id()
+        run_id = Dataset.get_run_id()
         manifest = Manifest.create(
-            pipeline_name=workspace.name,
-            base_path=workspace.base_path,
+            dataset_name=dataset_name,
             run_id=run_id,
             component_id=operation.component_name,
         )

@@ -30,7 +30,7 @@ class Metadata:
         cache_key: the cache key of the component.
     """
 
-    pipeline_name: str
+    dataset_name: t.Optional[str]
     run_id: str
     component_id: t.Optional[str]
     cache_key: t.Optional[str]
@@ -91,7 +91,7 @@ class Manifest:
     def create(
         cls,
         *,
-        pipeline_name: str,
+        dataset_name: t.Optional[str] = None,
         run_id: str,
         component_id: t.Optional[str] = None,
         cache_key: t.Optional[str] = None,
@@ -99,13 +99,13 @@ class Manifest:
         """Create an empty manifest.
 
         Args:
-            pipeline_name: the name of the pipeline
+            dataset_name: the name of the dataset
             run_id: The id of the current pipeline run
             component_id: The id of the current component being executed
             cache_key: The component cache key
         """
         metadata = Metadata(
-            pipeline_name=pipeline_name,
+            dataset_name=dataset_name,
             run_id=run_id,
             component_id=component_id,
             cache_key=cache_key,
@@ -113,7 +113,7 @@ class Manifest:
 
         specification = {
             "metadata": metadata.to_dict(),
-            "index": {"location": f"/{run_id}/{component_id}"},
+            "index": {},
             "fields": {},
         }
         return cls(specification)
