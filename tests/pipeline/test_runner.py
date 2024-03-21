@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
-from fondant.dataset import Pipeline
+from fondant.dataset import Dataset, Workspace
 from fondant.dataset.runner import (
     DockerRunner,
     KubeflowRunner,
@@ -16,7 +16,7 @@ from fondant.dataset.runner import (
 
 VALID_PIPELINE = Path("./tests/pipeline/examples/pipelines/compiled_pipeline/")
 
-PIPELINE = Pipeline(
+WORKSPACE = Workspace(
     name="testpipeline",
     description="description of the test pipeline",
     base_path="/foo/bar",
@@ -42,7 +42,7 @@ def mock_docker_installation(monkeypatch):  # noqa: PT004
 def test_docker_runner(mock_docker_installation):
     """Test that the docker runner while mocking subprocess.call."""
     with mock.patch("subprocess.call") as mock_call:
-        DockerRunner().run("some/path")
+        DockerRunner().run("some/path", workspace=WORKSPACE)
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -63,12 +63,14 @@ def test_docker_runner_from_pipeline(mock_docker_installation, tmp_path_factory)
     with mock.patch("subprocess.call") as mock_call, tmp_path_factory.mktemp(
         "temp",
     ) as fn:
-        pipeline = Pipeline(
+        workspace = Workspace(
             name="testpipeline",
             description="description of the test pipeline",
             base_path=str(fn),
         )
-        DockerRunner().run(pipeline)
+
+        dataset = Dataset()
+        DockerRunner().run(dataset, workspace)
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -164,7 +166,7 @@ def test_kubeflow_runner():
         new=MockKfpClient,
     ):
         runner = KubeflowRunner(host="some_host")
-        runner.run(input=input_spec_path)
+        runner.run(dataset=input_spec_path, workspace=WORKSPACE)
 
         assert runner.client.host == "some_host"
 
@@ -176,7 +178,11 @@ def test_kubeflow_runner_new_experiment():
         new=MockKfpClient,
     ):
         runner = KubeflowRunner(host="some_host")
-        runner.run(input=input_spec_path, experiment_name="NewExperiment")
+        runner.run(
+            dataset=input_spec_path,
+            experiment_name="NewExperiment",
+            workspace=WORKSPACE,
+        )
 
 
 def test_kfp_import():
@@ -194,7 +200,8 @@ def test_kfp_import():
 class MockKubeFlowCompiler:
     def compile(
         self,
-        pipeline,
+        dataset,
+        workspace,
         output_path,
     ) -> None:
         with open(output_path, "w") as f:
@@ -212,8 +219,10 @@ def test_kubeflow_runner_from_pipeline():
         new=MockKfpClient,
     ):
         runner = KubeflowRunner(host="some_host")
+        dataset = Dataset()
         runner.run(
-            input=PIPELINE,
+            dataset=dataset,
+            workspace=WORKSPACE,
         )
 
         mock_run.assert_called_once_with(
@@ -228,7 +237,7 @@ def test_vertex_runner():
         "google.cloud.aiplatform.PipelineJob",
     ):
         runner = VertexRunner(project_id="some_project", region="some_region")
-        runner.run(input=input_spec_path)
+        runner.run(dataset=input_spec_path, workspace=WORKSPACE)
 
         # test with service account
         runner2 = VertexRunner(
@@ -236,7 +245,7 @@ def test_vertex_runner():
             region="some_region",
             service_account="some_account",
         )
-        runner2.run(input=input_spec_path)
+        runner2.run(dataset=input_spec_path, workspace=WORKSPACE)
 
 
 def test_vertex_runner_from_pipeline():
@@ -249,7 +258,8 @@ def test_vertex_runner_from_pipeline():
     ):
         runner = VertexRunner(project_id="some_project", region="some_region")
         runner.run(
-            input=PIPELINE,
+            dataset=Dataset(),
+            workspace=WORKSPACE,
         )
 
         mock_run.assert_called_once_with(".fondant/vertex-pipeline.yaml")
@@ -265,7 +275,8 @@ def test_sagemaker_runner(tmp_path_factory):
         runner = SagemakerRunner()
 
         runner.run(
-            input=tmpdir / "spec.json",
+            dataset=tmpdir / "spec.json",
+            workspace=WORKSPACE,
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -291,7 +302,8 @@ def test_sagemaker_runner(tmp_path_factory):
         )
 
         runner.run(
-            input=tmpdir / "spec.json",
+            dataset=tmpdir / "spec.json",
+            workspace=WORKSPACE,
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -313,7 +325,8 @@ def test_sagemaker_runner(tmp_path_factory):
 class MockSagemakerCompiler:
     def compile(
         self,
-        pipeline,
+        dataset,
+        workspace,
         output_path,
         *,
         role_arn,
@@ -329,7 +342,8 @@ def test_sagemaker_runner_from_pipeline():
     ), mock.patch("boto3.client", spec=True):
         runner = SagemakerRunner()
         runner.run(
-            input=PIPELINE,
-            pipeline_name=PIPELINE.name,
+            dataset=Dataset(),
+            workspace=WORKSPACE,
+            pipeline_name=WORKSPACE.name,
             role_arn="arn:something",
         )

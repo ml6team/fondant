@@ -8,30 +8,29 @@ import pandas as pd
 import pyarrow as pa
 
 from fondant.component import PandasTransformComponent
-from fondant.pipeline import Pipeline, lightweight_component
+from fondant.dataset import Workspace, lightweight_component, Dataset
 
 BASE_PATH = Path("./.artifacts").resolve()
 
 # Define pipeline
-pipeline = Pipeline(name="dummy-pipeline", base_path=str(BASE_PATH))
+workspace = Workspace(name="dummy-pipeline", base_path=str(BASE_PATH))
 
 # Load from hub component
 load_component_column_mapping = {
     "text": "text_data",
 }
 
-dataset = pipeline.read(
+dataset = Dataset.read(
     "load_from_parquet",
     arguments={
         "dataset_uri": "/data/sample.parquet",
         "column_name_mapping": load_component_column_mapping,
     },
     produces={"text_data": pa.string()},
+    workspace=workspace,
 )
 
-dataset = dataset.apply(
-    "./components/dummy_component",
-)
+dataset = dataset.apply("./components/dummy_component")
 
 dataset = dataset.apply(
     "chunk_text",
@@ -63,5 +62,7 @@ dataset = dataset.apply(
 )
 
 dataset.write(
-    ref="write_to_file", arguments={"path": "/data/export"}, consumes={"text": "text"}
+    ref="write_to_file",
+    arguments={"path": "/data/export"},
+    consumes={"text": "text"},
 )

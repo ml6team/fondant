@@ -15,7 +15,7 @@ class InvalidComponentSpec(ValidationError, FondantException):
     """Thrown when a component spec cannot be validated against the schema."""
 
 
-class InvalidPipelineDefinition(ValidationError, FondantException):
+class InvalidWorkspaceDefinition(ValidationError, FondantException):
     """Thrown when a pipeline definition is invalid."""
 
 
