@@ -312,8 +312,6 @@ class Executor(t.Generic[Component]):
             component_cls: The class of the component to execute
         """
         input_manifest = self._load_or_create_manifest()
-        base_path = input_manifest.base_path
-        pipeline_name = input_manifest.pipeline_name
 
         if self.cache and self._is_previous_cached(input_manifest):
             cache_reference_content = self._get_cache_reference_content()
@@ -342,8 +340,8 @@ class Executor(t.Generic[Component]):
             self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
         self._upload_cache_reference_content(
-            base_path=base_path,
-            pipeline_name=pipeline_name,
+            base_path="todo",
+            pipeline_name="todo",
         )
 
     def _upload_cache_reference_content(
@@ -408,8 +406,7 @@ class DaskLoadExecutor(Executor[DaskLoadComponent]):
 
     def _load_or_create_manifest(self) -> Manifest:
         return Manifest.create(
-            pipeline_name=self.metadata.pipeline_name,
-            base_path=self.metadata.base_path,
+            dataset_name=self.metadata.dataset_name,
             run_id=self.metadata.run_id,
             component_id=self.metadata.component_id,
             cache_key=self.metadata.cache_key,

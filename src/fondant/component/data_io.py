@@ -196,10 +196,7 @@ class DaskDataWriter(DataIO):
 
     def _write_dataframe(self, dataframe: dd.DataFrame) -> None:
         """Create dataframe writing task."""
-        location = (
-            f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
-            f"{self.manifest.run_id}/{self.operation_spec.component_name}"
-        )
+        location = self.manifest.dataset_location
 
         # Create directory the dataframe will be written to, since this is not handled by Pandas
         # `to_parquet` method.

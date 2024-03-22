@@ -466,9 +466,9 @@ class Workspace:
 class Dataset:
     def __init__(
         self,
+        manifest: Manifest,
         name: t.Optional[str] = None,
         description: t.Optional[str] = None,
-        manifest: t.Optional[Manifest] = None,
     ):
         if name is not None:
             self.name = self._validate_dataset_name(name)
@@ -486,12 +486,11 @@ class Dataset:
             raise InvalidWorkspaceDefinition(msg)
         return name
 
-
     @staticmethod
-    def get_run_id(self) -> str:
+    def get_run_id(name) -> str:
         """Get a unique run ID for the workspace."""
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        return f"{self.name}-{timestamp}"
+        return f"{name}-{timestamp}"
 
     def register_operation(
         self,
@@ -529,7 +528,6 @@ class Dataset:
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
         dataset_name: t.Optional[str] = None,
-        manifest: t.Optional[Manifest] = None
     ) -> "Dataset":
         """
         Read data using the provided component.
@@ -546,11 +544,11 @@ class Dataset:
             automatic partitioning
             resources: The resources to assign to the operation.
             cache: Set to False to disable caching, True by default.
+            dataset_name: The name of the dataset.
 
         Returns:
             An intermediate dataset.
         """
-
         operation = ComponentOp.from_ref(
             ref,
             produces=produces,
@@ -560,12 +558,11 @@ class Dataset:
             cache=cache,
         )
 
-        if manifest is None:
-            manifest = Manifest.create(
-                dataset_name=dataset_name,
-                run_id=Dataset.get_run_id(),
-                component_id=operation.component_name,
-            )
+        manifest = Manifest.create(
+            dataset_name=dataset_name,
+            run_id=Dataset.get_run_id(dataset_name),
+            component_id=operation.component_name,
+        )
 
         dataset = Dataset(manifest=manifest)
 
@@ -595,7 +592,7 @@ class Dataset:
 
         self._graph = OrderedDict((node, self._graph[node]) for node in sorted_graph)
 
-    def validate(self, run_id: str, workspace: Workspace):
+    def validate(self, run_id: str):
         """Sort and run validation on the pipeline definition.
 
         Args:
@@ -604,9 +601,9 @@ class Dataset:
 
         """
         self.sort_graph()
-        self._validate_workspace_definition(run_id, workspace)
+        self._validate_dataset_definition(run_id)
 
-    def _validate_workspace_definition(self, run_id: str, workspace: Workspace):
+    def _validate_dataset_definition(self, run_id: str):
         """
         Validates the workspace definition by ensuring that the consumed and produced subsets and
         their associated fields match and are invoked in the correct order.
@@ -628,8 +625,6 @@ class Dataset:
 
         # Create initial manifest
         manifest = Manifest.create(
-            pipeline_name=workspace.name,
-            base_path=workspace.base_path,
             run_id=run_id,
             component_id=load_component_name,
             cache_key="42",
@@ -672,7 +667,13 @@ class Dataset:
                             msg,
                         )
 
-            manifest = manifest.evolve(operation_spec, run_id=run_id)
+            # Note: the manifest created here does not have to contain a valid working dir. The
+            # manifest information are only used for validation during.
+            manifest = manifest.evolve(
+                operation_spec,
+                run_id=run_id,
+                working_directory="dummy-dir",
+            )
             load_component = False
 
         logger.info("All pipeline component specifications match.")
@@ -703,12 +704,11 @@ class Dataset:
 
         evolved_manifest = self.manifest.evolve(
             operation.operation_spec,
-            run_id=self.run_id,
+            run_id=Dataset.get_run_id(self.name),
         )
 
         evolved_dataset = Dataset(
             manifest=evolved_manifest,
-            run_id=self.run_id,
         )
 
         evolved_dataset._graph = self._graph

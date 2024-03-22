@@ -242,7 +242,7 @@ def test_valid_pipeline(
     assert dataset._graph["third_component"]["dependencies"] == ["second_component"]
     assert dataset._graph["fourth_component"]["dependencies"] == ["third_component"]
 
-    dataset._validate_workspace_definition("test_pipeline", workspace)
+    dataset._validate_dataset_definition("test_pipeline", workspace)
 
 
 def test_invalid_pipeline_schema(
@@ -365,7 +365,7 @@ def test_invalid_pipeline_declaration(
     )
 
     with pytest.raises(InvalidWorkspaceDefinition):
-        dataset._validate_workspace_definition("test_pipeline", workspace)
+        dataset._validate_dataset_definition("test_pipeline", workspace)
 
 
 def test_reusable_component_op():
