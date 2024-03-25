@@ -234,6 +234,9 @@ class DaskDataWriter(DataIO):
         # keeping references to all completed tasks, and preventing release of memory.
         # https://distributed.dask.org/en/stable/memory.html#difference-with-dask-compute
         # https://dask.discourse.group/t/improving-pipeline-resilience-when-using-to-parquet-and-preemptible-workers/2141
+        print(dataframe)
+        print(dataframe.meta)
+
         to_parquet_tasks = [
             d.to_parquet(
                 os.path.join(location, f"part.{i}.parquet"),
