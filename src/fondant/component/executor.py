@@ -314,6 +314,8 @@ class Executor(t.Generic[Component]):
         input_manifest = self._load_or_create_manifest()
 
         if self.cache and self._is_previous_cached(input_manifest):
+            logger.info("Caching is currently temporarily disabled.")
+            """
             cache_reference_content = self._get_cache_reference_content()
 
             if cache_reference_content is not None:
@@ -331,7 +333,7 @@ class Executor(t.Generic[Component]):
                     output_manifest = None
             else:
                 output_manifest = self._run_execution(component_cls, input_manifest)
-
+            """
         else:
             logger.info("Caching disabled for the component")
             output_manifest = self._run_execution(component_cls, input_manifest)

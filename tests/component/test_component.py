@@ -180,6 +180,7 @@ def test_component_arguments(metadata):
     }
 
 
+@pytest.mark.skip(reason="The caching is temporarily disabled.")
 def test_run_with_cache(metadata, monkeypatch):
     input_manifest_path = str(components_path / "arguments/input_manifest.json")
 
@@ -227,6 +228,7 @@ def test_run_with_cache(metadata, monkeypatch):
     assert executor._is_previous_cached(Manifest.from_file(input_manifest_path)) is True
 
 
+@pytest.mark.skip(reason="The caching is temporarily disabled.")
 def test_run_with_no_cache(metadata):
     input_manifest_path = str(components_path / "arguments/input_manifest.json")
 
