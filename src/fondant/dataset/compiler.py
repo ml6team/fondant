@@ -508,8 +508,6 @@ class KubeFlowCompiler(Compiler):
             working_directory: path of the working directory
             output_path: the path where to save the Kubeflow pipeline spec
         """
-        # TODO: add method call to retrieve workspace context, and make passing workspace optional
-
         run_id = dataset.manifest.run_id
         dataset.validate(run_id=run_id)
         logger.info(f"Compiling {dataset.name} to {output_path}")
@@ -572,11 +570,14 @@ class KubeFlowCompiler(Compiler):
                     run_id=run_id,
                     component_id=component_name,
                     cache_key=component_cache_key,
+                    dataset_name="dataset",
+                    manifest_location=f"{working_directory}/{dataset.name}/{run_id}/{component_name}/manifest.json",
+                    dataset_location=f"{working_directory}/{dataset.name}/{run_id}/{component_name}/data",
                 )
 
                 output_manifest_path = (
                     f"{working_directory}/{metadata.dataset_name}/{metadata.run_id}/"
-                    f"{metadata.component_id}/manifest.json",
+                    f"{metadata.component_id}/manifest.json"
                 )
                 # Set the execution order of the component task to be after the previous
                 # component task.

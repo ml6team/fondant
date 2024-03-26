@@ -440,29 +440,6 @@ class ComponentOp:
         return get_nested_dict_hash(component_op_uid_dict)
 
 
-class Workspace:
-    """Workspace holding environment information for a Fondants execution environment."""
-
-    def __init__(
-        self,
-        name: str,
-        base_path: str,
-        description: t.Optional[str] = None,
-    ):
-        self.name = self._validate_workspace_name(name)
-        self.description = description
-        self.base_path = base_path
-        self.package_path = f"{name}.tgz"
-
-    @staticmethod
-    def _validate_workspace_name(name: str) -> str:
-        pattern = r"^[a-z0-9][a-z0-9_-]*$"
-        if not re.match(pattern, name):
-            msg = f"The workspace name violates the pattern {pattern}"
-            raise InvalidWorkspaceDefinition(msg)
-        return name
-
-
 class Dataset:
     def __init__(
         self,
@@ -492,6 +469,12 @@ class Dataset:
     def name(self) -> str:
         """The name of the dataset."""
         return self.manifest.dataset_name
+
+    @property
+    def package_path(self) -> t.Optional[str]:
+        if self.name:
+            return f"{self.name}.tgz"
+        return None
 
     def register_operation(
         self,
