@@ -121,9 +121,15 @@ class Manifest:
             dataset_location=dataset_location,
         )
 
+        index = (
+            {"location": f"{dataset_location}/index"}
+            if dataset_location is not None
+            else {}
+        )
+
         specification = {
             "metadata": metadata.to_dict(),
-            "index": {},
+            "index": index,
             "fields": {},
         }
         return cls(specification)
@@ -137,7 +143,7 @@ class Manifest:
 
     def to_file(self, path: t.Union[str, Path]) -> None:
         """Dump the manifest to the file specified by the provided path."""
-        self._specification["manifest_location"] = path
+        self._specification["metadata"]["manifest_location"] = path
         with fs_open(path, "w", encoding="utf-8", auto_mkdir=True) as file_:
             json.dump(self._specification, file_)
 
@@ -292,6 +298,7 @@ class Manifest:
     ):
         """Evolve the manifest index and field locations based on the component spec."""
         # Update index location as this is always rewritten
+        # TODO: handle index location - do we have to update/rewrite the index to the new location?
         if working_dir:
             field = Field.create(
                 name="index",

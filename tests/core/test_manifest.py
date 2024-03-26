@@ -30,14 +30,20 @@ def test_manifest_validation(valid_manifest, invalid_manifest):
         Manifest(invalid_manifest)
 
 
-def test_set_base_path(valid_manifest):
+def test_update_manifest_and_dataset_location(valid_manifest):
     """Test altering the base path in the manifest."""
     manifest = Manifest(valid_manifest)
-    tmp_path = "/tmp/base_path"
-    manifest.update_metadata(key="base_path", value=tmp_path)
+    tmp_path = "/foo/bar"
+    manifest.update_metadata(key="manifest_location", value=tmp_path + "/manifest.json")
+    manifest.update_metadata(key="dataset_location", value=tmp_path)
 
-    assert manifest.base_path == tmp_path
-    assert manifest._specification["metadata"]["base_path"] == tmp_path
+    assert manifest.manifest_location == tmp_path + "/manifest.json"
+    assert manifest.dataset_location == tmp_path
+    assert manifest._specification["metadata"]["dataset_location"] == tmp_path
+    assert (
+        manifest._specification["metadata"]["manifest_location"]
+        == tmp_path + "/manifest.json"
+    )
 
 
 def test_from_to_file(valid_manifest):
@@ -50,6 +56,9 @@ def test_from_to_file(valid_manifest):
     assert manifest.metadata == valid_manifest["metadata"]
 
     manifest.to_file(tmp_path)
+
+    # check that the file was written correctly and manifest_location was updated
+    valid_manifest["metadata"]["manifest_location"] = tmp_path
     with open(tmp_path, encoding="utf-8") as f:
         assert json.load(f) == valid_manifest
 
@@ -63,25 +72,27 @@ def test_attribute_access(valid_manifest):
     manifest = Manifest(valid_manifest)
 
     assert manifest.metadata == valid_manifest["metadata"]
-    assert manifest.index.location == "/component1"
-    assert manifest.fields["images"].location == "/component1"
+    assert manifest.index.location == "gs://bucket/component1"
+    assert manifest.fields["images"].location == "gs://bucket/component1"
     assert manifest.fields["images"].type == Type("binary")
 
 
 def test_manifest_creation():
     """Test the stepwise creation of a manifest via the Manifest class."""
-    base_path = "gs://bucket"
     run_id = "run_id"
-    pipeline_name = "pipeline_name"
+    dataset_name = "pipeline_name"
     component_id = "component_id"
     cache_key = "42"
+    manifest_location = "/manifest.json"
+    dataset_location = "/data"
 
     manifest = Manifest.create(
-        pipeline_name=pipeline_name,
-        base_path=base_path,
+        dataset_name=dataset_name,
         run_id=run_id,
         component_id=component_id,
         cache_key=cache_key,
+        manifest_location=manifest_location,
+        dataset_location=dataset_location,
     )
 
     location = f"/{run_id}/{component_id}"
@@ -98,13 +109,14 @@ def test_manifest_creation():
 
     assert manifest._specification == {
         "metadata": {
-            "pipeline_name": pipeline_name,
-            "base_path": base_path,
+            "dataset_name": dataset_name,
             "run_id": run_id,
             "component_id": component_id,
             "cache_key": cache_key,
+            "manifest_location": manifest_location,
+            "dataset_location": dataset_location,
         },
-        "index": {"location": location},
+        "index": {"location": f"{dataset_location}/index"},
         "fields": {
             "width": {
                 "type": "int32",
@@ -124,17 +136,16 @@ def test_manifest_creation():
 
 def test_manifest_repr():
     manifest = Manifest.create(
-        pipeline_name="NAME",
-        base_path="/",
+        dataset_name="NAME",
         run_id="A",
         component_id="1",
         cache_key="42",
     )
     assert (
         manifest.__repr__()
-        == "Manifest({'metadata': {'base_path': '/', 'pipeline_name': 'NAME', 'run_id': 'A',"
-        " 'component_id': '1', 'cache_key': '42'},"
-        " 'index': {'location': '/A/1'}, 'fields': {}})"
+        == "Manifest({'metadata': {'dataset_name': 'NAME', 'run_id': 'A', "
+        "'component_id': '1', 'cache_key': '42', 'manifest_location': None, "
+        "'dataset_location': None}, 'index': {}, 'fields': {}})"
     )
 
 
@@ -182,30 +193,32 @@ def test_evolve_manifest():
     run_id = "A"
     spec = ComponentSpec.from_file(component_specs_path / "valid_component.yaml")
     input_manifest = Manifest.create(
-        pipeline_name="NAME",
-        base_path="/base_path",
+        dataset_name="NAME",
         run_id=run_id,
         component_id="component_1",
         cache_key="42",
+        dataset_location="/foo",
     )
 
     output_manifest = input_manifest.evolve(
         operation_spec=OperationSpec(spec),
         run_id=run_id,
+        working_directory="/bar",
     )
 
-    assert output_manifest.base_path == input_manifest.base_path
     assert output_manifest.run_id == run_id
-    assert output_manifest.index.location == f"/{run_id}/{spec.name}"
+    assert output_manifest.index.location == "/bar/NAME/A/example_component"
     assert output_manifest.fields["captions"].type.name == "string"
+    assert (
+        output_manifest.fields["captions"].location == "/bar/NAME/A/example_component"
+    )
 
 
 def test_fields():
     """Test that the fields can added and updated as expected."""
     run_id = "A"
     manifest = Manifest.create(
-        pipeline_name="NAME",
-        base_path="/base_path",
+        dataset_name="NAME",
         run_id=run_id,
         component_id="component_1",
         cache_key="42",

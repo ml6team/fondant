@@ -166,7 +166,7 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
         },
         "produces": {},
     }
-    dataset._validate_dataset_definition(run_id="dummy-run-id")
+    dataset._validate_dataset_definition()
 
     DockerCompiler().compile(dataset=dataset)
 
