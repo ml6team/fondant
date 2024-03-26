@@ -95,7 +95,7 @@ class Manifest:
     def create(
         cls,
         *,
-        dataset_name: t.Optional[str] = None,
+        dataset_name: t.Optional[str] = "",
         run_id: str,
         component_id: t.Optional[str] = None,
         cache_key: t.Optional[str] = None,
@@ -272,33 +272,36 @@ class Manifest:
         evolved_manifest.update_metadata(key="component_id", value=component_id)
         evolved_manifest.update_metadata(key="run_id", value=run_id)
 
-        if working_directory:
-            evolved_manifest = self.evolve_manifest_index_and_field_locations(
-                component_id,
-                evolved_manifest,
-                operation_spec,
-                run_id,
-                working_directory,
-            )
+        evolved_manifest = self.evolve_manifest_index_and_field_locations(
+            component_id,
+            evolved_manifest,
+            operation_spec,
+            run_id,
+            working_directory,
+        )
 
         return evolved_manifest
 
     def evolve_manifest_index_and_field_locations(  # noqa PLR0913
         self,
-        component_id,
-        evolved_manifest,
-        operation_spec,
-        run_id,
-        working_dir,
+        component_id: str,
+        evolved_manifest: "Manifest",
+        operation_spec: OperationSpec,
+        run_id: str,
+        working_dir: t.Optional[str] = None,
     ):
-        # TODO: check when we should change the index?
+        """Evolve the manifest index and field locations based on the component spec."""
         # Update index location as this is always rewritten
-        evolved_manifest.add_or_update_field(
-            Field(
+        if working_dir:
+            field = Field.create(
                 name="index",
-                location=f"{working_dir}/{self.dataset_name}/{run_id}/{component_id}",
-            ),
-        )
+                working_dir=working_dir,
+                run_id=run_id,
+                component_id=component_id,
+                dataset_name=self.dataset_name,
+            )
+            evolved_manifest.add_or_update_field(field, overwrite=False)
+
         # Remove all previous fields if the component changes the index
         if operation_spec.previous_index:
             for field_name in evolved_manifest.fields:
@@ -308,10 +311,13 @@ class Manifest:
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.
-            field.location = (
-                f"{working_dir}/{self.dataset_name}/{run_id}/{component_id}"
+            evolved_field = field.update_location(
+                working_dir=working_dir,
+                run_id=run_id,
+                component_id=component_id,
+                dataset_name=self.dataset_name,
             )
-            evolved_manifest.add_or_update_field(field, overwrite=True)
+            evolved_manifest.add_or_update_field(evolved_field, overwrite=True)
 
         return evolved_manifest
 

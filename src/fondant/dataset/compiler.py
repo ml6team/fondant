@@ -92,7 +92,7 @@ class DockerCompiler(Compiler):
         self,
         dataset: Dataset,
         *,
-        working_directory: t.Optional[str],
+        working_directory: t.Optional[str] = None,
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
@@ -276,7 +276,7 @@ class DockerCompiler(Compiler):
                 command.extend(
                     [
                         "--input_manifest_path",
-                        f"{dataset.manifest.manifest_location()}",
+                        f"{dataset.manifest.manifest_location}",
                     ],
                 )
 

@@ -2,11 +2,11 @@ from fondant.dataset import Dataset
 
 
 def create_dataset_with_args(name):
-    return Dataset(name)
+    return Dataset.create("load_from_parquet", dataset_name=name)
 
 
 def create_dataset():
-    return Dataset("test_dataset")
+    return Dataset.create("load_from_parquet", dataset_name="test_dataset")
 
 
 def not_implemented():

@@ -6,13 +6,13 @@
       "type": "object",
       "properties": {
         "dataset_name": {
-          "type": "string"
+          "type": ["string", "null"]
         },
         "manifest_location": {
-          "type": "string"
+          "type": ["string", "null"]
         },
         "run_id": {
-          "type": "string"
+          "type": ["string", "null"]
         },
         "component_id": {
           "type": ["string", "null"]
@@ -29,10 +29,7 @@
         "location": {
           "type": "string"
         }
-      },
-      "required": [
-        "location"
-      ]
+      }
     },
     "fields": {
       "$ref": "#/definitions/fields"
@@ -40,7 +37,6 @@
   },
   "required": [
     "metadata",
-    "index",
     "fields"
   ],
   "definitions": {
@@ -48,12 +44,11 @@
       "type": "object",
       "properties": {
         "location": {
-          "type": "string",
+          "type": ["string", "null"],
           "pattern": "/.*"
         }
       },
       "required": [
-        "location",
         "type"
       ]
     },

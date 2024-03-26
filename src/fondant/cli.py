@@ -29,7 +29,7 @@ from pathlib import Path
 from types import ModuleType
 
 from fondant.core.schema import CloudCredentialsMount
-from fondant.dataset import Dataset, Workspace
+from fondant.dataset import Dataset
 
 if t.TYPE_CHECKING:
     from fondant.component import Component
@@ -610,12 +610,9 @@ def run_local(args):
     # use workspace from cli command
     # if args.workspace exists
 
-    workspace = getattr(args, "workspace", None)
-    if workspace is None:
-        workspace = Workspace(
-            name="dummy_workspace",
-            base_path=".artifacts",
-        )  # TODO: handle in #887 -> retrieve global workspace or init default one
+    working_directory = getattr(args, "working_directory", None)
+    if working_directory is None:
+        working_directory = "./.fondant"
 
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
@@ -628,7 +625,7 @@ def run_local(args):
     runner = DockerRunner()
     runner.run(
         dataset=dataset,
-        workspace=workspace,
+        working_directory=working_directory,
         extra_volumes=extra_volumes,
         build_args=args.build_arg,
         auth_provider=args.auth_provider,

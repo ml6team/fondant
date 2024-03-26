@@ -467,12 +467,8 @@ class Dataset:
     def __init__(
         self,
         manifest: Manifest,
-        name: t.Optional[str] = None,
         description: t.Optional[str] = None,
     ):
-        if name is not None:
-            self.name = self._validate_dataset_name(name)
-
         self.description = description
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
@@ -482,7 +478,7 @@ class Dataset:
     def _validate_dataset_name(name: str) -> str:
         pattern = r"^[a-z0-9][a-z0-9_-]*$"
         if not re.match(pattern, name):
-            msg = f"The workspace name violates the pattern {pattern}"
+            msg = f"The dataset name violates the pattern {pattern}"
             raise InvalidWorkspaceDefinition(msg)
         return name
 
@@ -491,6 +487,11 @@ class Dataset:
         """Get a unique run ID for the workspace."""
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         return f"{name}-{timestamp}"
+
+    @property
+    def name(self) -> str:
+        """The name of the dataset."""
+        return self.manifest.dataset_name
 
     def register_operation(
         self,
@@ -820,8 +821,6 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        # TODO: add method call to retrieve workspace context, and make passing workspace optional
-
         operation = ComponentOp.from_ref(
             ref,
             fields=self.fields,
