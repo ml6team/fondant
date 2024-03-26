@@ -576,7 +576,7 @@ class Dataset:
 
         self._graph = OrderedDict((node, self._graph[node]) for node in sorted_graph)
 
-    def validate(self, run_id: str):
+    def validate(self):
         """Sort and run validation on the pipeline definition.
 
         Args:
@@ -585,9 +585,9 @@ class Dataset:
 
         """
         self.sort_graph()
-        self._validate_dataset_definition(run_id)
+        self._validate_dataset_definition()
 
-    def _validate_dataset_definition(self, run_id: str):
+    def _validate_dataset_definition(self):
         """
         Validates the workspace definition by ensuring that the consumed and produced subsets and
         their associated fields match and are invoked in the correct order.
@@ -599,6 +599,7 @@ class Dataset:
             base_path: the base path where to store the pipelines artifacts
             run_id: the run id of the component
         """
+        run_id = self.manifest.run_id
         if len(self._graph.keys()) == 0:
             logger.info("No components defined in the pipeline. Nothing to validate.")
             return

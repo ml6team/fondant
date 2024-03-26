@@ -204,7 +204,7 @@ class DockerCompiler(Compiler):
 
         services = {}
 
-        dataset.validate(run_id=run_id)
+        dataset.validate()
 
         component_cache_key = None
 
@@ -509,7 +509,7 @@ class KubeFlowCompiler(Compiler):
             output_path: the path where to save the Kubeflow pipeline spec
         """
         run_id = dataset.manifest.run_id
-        dataset.validate(run_id=run_id)
+        dataset.validate()
         logger.info(f"Compiling {dataset.name} to {output_path}")
 
         def set_component_exec_args(
@@ -873,7 +873,7 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
         self._check_ecr_pull_through_rule()
 
         run_id = dataset.manifest.run_id
-        dataset.validate(run_id=run_id)
+        dataset.validate()
 
         component_cache_key = None
 

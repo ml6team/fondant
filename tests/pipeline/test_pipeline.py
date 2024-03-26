@@ -17,7 +17,6 @@ from fondant.dataset import (
     Dataset,
     Image,
     Resources,
-    Workspace,
     lightweight_component,
 )
 
@@ -201,16 +200,18 @@ def test_valid_pipeline(
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
 
-    workspace = Workspace(**default_pipeline_args)
-
-    # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(workspace, "package_path", str(tmp_path / "test_pipeline.tgz"))
-
-    dataset = Dataset.read(
+    dataset = Dataset.create(
         Path(components_path / component_names[0]),
         arguments=component_args,
         produces={"images_array": pa.binary()},
-        workspace=workspace,
+        dataset_name="my_dataset",
+    )
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(
+        dataset.__class__,
+        "package_path",
+        str(tmp_path / "my_dataset.tgz"),
     )
 
     dataset = dataset.apply(
@@ -242,7 +243,7 @@ def test_valid_pipeline(
     assert dataset._graph["third_component"]["dependencies"] == ["second_component"]
     assert dataset._graph["fourth_component"]["dependencies"] == ["third_component"]
 
-    dataset._validate_dataset_definition("test_pipeline", workspace)
+    dataset._validate_dataset_definition()
 
 
 def test_invalid_pipeline_schema(
@@ -254,19 +255,18 @@ def test_invalid_pipeline_schema(
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / "example_1")
 
-    workspace = Workspace(**default_pipeline_args)
-    # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(
-        workspace,
-        "package_path",
-        str(tmp_path / "test_pipeline.tgz"),
-    )
-
-    dataset = Dataset.read(
+    dataset = Dataset.create(
         Path(components_path / "first_component"),
         arguments=component_args,
         produces={"images_array": pa.binary()},
-        workspace=workspace,
+        dataset_name="my_dataset",
+    )
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(
+        dataset.__class__,
+        "package_path",
+        str(tmp_path / "my_dataset.tgz"),
     )
 
     # "images_pictures" does not exist in the dataset
@@ -317,13 +317,11 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
     components_path = Path(valid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
 
-    workspace = Workspace(**default_pipeline_args)
-
-    dataset = Dataset.read(
+    dataset = Dataset.create(
         Path(components_path / component_names[0]),
         arguments=component_args,
         produces={"image_data": pa.binary()},
-        workspace=workspace,
+        dataset_name="my_dataset",
     )
 
     dataset = dataset.apply(
@@ -351,13 +349,11 @@ def test_invalid_pipeline_declaration(
     components_path = Path(invalid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
 
-    workspace = Workspace(**default_pipeline_args)
-
-    dataset = Dataset.read(
+    dataset = Dataset.create(
         Path(components_path / component_names[0]),
         arguments=component_args,
         produces={"image_data": pa.binary()},
-        workspace=workspace,
+        dataset_name="my_dataset",
     )
     dataset.apply(
         Path(components_path / component_names[1]),
@@ -365,7 +361,7 @@ def test_invalid_pipeline_declaration(
     )
 
     with pytest.raises(InvalidWorkspaceDefinition):
-        dataset._validate_dataset_definition("test_pipeline", workspace)
+        dataset._validate_dataset_definition()
 
 
 def test_reusable_component_op():
@@ -408,33 +404,22 @@ def test_defining_reusable_component_op_with_custom_spec():
     )
 
 
-def test_workspace_name():
-    Workspace(name="valid-name", base_path="base_path")
-    with pytest.raises(InvalidWorkspaceDefinition, match="The workspace name violates"):
-        Workspace(name="invalid name", base_path="base_path")
-
-
 def test_schema_propagation():
     """Test that the schema is propagated correctly between datasets taking into account the
     component specs and `consumes` and `produces` arguments.
     """
-    workspace = Workspace(name="pipeline", base_path="base_path")
-
-    workspace.get_run_id = lambda: "pipeline-id"
-
-    dataset = Dataset.read(
+    dataset = Dataset.create(
         "load_from_hf_hub",
         produces={
             "image": pa.binary(),
         },
-        workspace=workspace,
+        dataset_name="my_dataset",
     )
 
     assert dataset.fields == {
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load_from_hugging_face_hub",
         ),
     }
 
@@ -446,12 +431,10 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load_from_hugging_face_hub",
         ),
         "caption": Field(
             "caption",
             type=Type(pa.string()),
-            location="/pipeline-id/caption_images",
         ),
     }
 
@@ -466,12 +449,10 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load_from_hugging_face_hub",
         ),
         "caption": Field(
             "caption",
             type=Type(pa.string()),
-            location="/pipeline-id/caption_images",
         ),
     }
 
@@ -489,12 +470,10 @@ def test_schema_propagation():
         "chunks": Field(
             "chunks",
             type=Type(pa.string()),
-            location="/pipeline-id/chunk_text",
         ),
         "original_document_id": Field(
             "original_document_id",
             type=Type(pa.string()),
-            location="/pipeline-id/chunk_text",
         ),
     }
 
@@ -503,16 +482,12 @@ def test_invoked_field_schema_raise_exception():
     """Test that check if the invoked field schema not matches the
     current schema raise an InvalidPipelineDefinition.
     """
-    workspace = Workspace(name="pipeline", base_path="base_path")
-
-    workspace.get_run_id = lambda: "pipeline-id"
-
-    dataset = Dataset.read(
+    dataset = Dataset.create(
         "load_from_hf_hub",
         produces={
             "image": pa.binary(),
         },
-        workspace=workspace,
+        dataset_name="my_dataset",
     )
 
     dataset.write(
@@ -530,7 +505,7 @@ def test_invoked_field_schema_raise_exception():
     )
 
     with pytest.raises(InvalidWorkspaceDefinition, match=expected_error_msg):
-        dataset.validate("pipeline-id", workspace=workspace)
+        dataset.validate()
 
 
 @pytest.mark.parametrize(
@@ -558,16 +533,18 @@ def test_infer_consumes_if_not_defined(
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
 
-    workspace = Workspace(**default_pipeline_args)
-
-    # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(workspace, "package_path", str(tmp_path / "test_pipeline.tgz"))
-
-    dataset = Dataset.read(
+    dataset = Dataset.create(
         Path(components_path / component_names[0]),
         arguments=component_args,
         produces={"images_array": pa.binary()},
-        workspace=workspace,
+        dataset_name="my_dataset",
+    )
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(
+        dataset.__class__,
+        "package_path",
+        str(tmp_path / "my_dataset.tgz"),
     )
 
     # Empty consumes & additionalProperties=False -> infer component spec defined columns
@@ -626,16 +603,19 @@ def test_consumes_name_to_name_mapping(
     """Test that a valid pipeline definition can be compiled without errors."""
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / "example_1")
-    workspace = Workspace(**default_pipeline_args)
 
-    # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(workspace, "package_path", str(tmp_path / "test_pipeline.tgz"))
-
-    dataset = Dataset.read(
+    dataset = Dataset.create(
         Path(components_path / "first_component"),
         arguments=component_args,
         produces={"images_data": pa.binary(), "second_field": pa.string()},
-        workspace=workspace,
+        dataset_name="my_dataset",
+    )
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(
+        dataset.__class__,
+        "package_path",
+        str(tmp_path / "my_dataset.tgz"),
     )
 
     dataset.apply(
@@ -652,14 +632,12 @@ def test_consumes_name_to_name_mapping(
 
 
 def test_new_pipeline_interface():
-    workspace = Workspace(name="test_workspace", base_path="some/path")
-
     components_path = Path(valid_pipeline_path / "example_1")
 
-    dataset = Dataset.read(
+    dataset = Dataset.create(
         Path(components_path / "first_component"),
         produces={"images_data": pa.binary()},
-        workspace=workspace,
+        dataset_name="my_dataset",
     )
 
     dataset = dataset.apply(

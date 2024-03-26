@@ -126,7 +126,7 @@ def test_write_dataset(
     columns = ["Name", "HP", "Type 1", "Type 2"]
     with tmp_path_factory.mktemp("temp") as temp_dir:
         # override the base path of the manifest with the temp dir
-        manifest.update_metadata("base_path", str(temp_dir))
+        manifest.update_metadata("dataset_location", str(temp_dir) + "/data")
         data_writer = DaskDataWriter(
             manifest=manifest,
             operation_spec=OperationSpec(component_spec),
@@ -136,10 +136,7 @@ def test_write_dataset(
         data_writer.write_dataframe(dataframe)
         # read written data and assert
         dataframe = dd.read_parquet(
-            temp_dir
-            / manifest.pipeline_name
-            / manifest.run_id
-            / component_spec.safe_name,
+            manifest.dataset_location,
         )
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert list(dataframe.columns) == columns
@@ -167,7 +164,7 @@ def test_write_dataset_custom_produces(
     expected_columns = ["LastName", "HealthPoints", "CustomFieldName", "Type 2"]
     with tmp_path_factory.mktemp("temp") as temp_dir:
         # override the base path of the manifest with the temp dir
-        manifest.update_metadata("base_path", str(temp_dir))
+        manifest.update_metadata("dataset_location", str(temp_dir) + "/data")
         data_writer = DaskDataWriter(
             manifest=manifest,
             operation_spec=OperationSpec(component_spec_produces, produces=produces),
@@ -177,10 +174,7 @@ def test_write_dataset_custom_produces(
         data_writer.write_dataframe(dataframe)
         # # read written data and assert
         dataframe = dd.read_parquet(
-            temp_dir
-            / manifest.pipeline_name
-            / manifest.run_id
-            / component_spec_produces.safe_name,
+            manifest.dataset_location,
         )
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert sorted(dataframe.columns) == sorted(expected_columns)
@@ -200,14 +194,14 @@ def test_write_reset_index(
     """
     dataframe = dataframe.reset_index(drop=True)
     with tmp_path_factory.mktemp("temp") as fn:
-        manifest.update_metadata("base_path", str(fn))
+        manifest.update_metadata("dataset_location", str(fn) + "/data")
 
         data_writer = DaskDataWriter(
             manifest=manifest,
             operation_spec=OperationSpec(component_spec),
         )
         data_writer.write_dataframe(dataframe)
-        dataframe = dd.read_parquet(fn)
+        dataframe = dd.read_parquet(manifest.dataset_location)
         assert dataframe.index.name == "id"
 
 
@@ -225,7 +219,7 @@ def test_write_divisions(  # noqa: PLR0913
     dataframe = dataframe.repartition(npartitions=partitions)
 
     with tmp_path_factory.mktemp("temp") as fn:
-        manifest.update_metadata("base_path", str(fn))
+        manifest.update_metadata("dataset_location", str(fn) + "/data")
 
         data_writer = DaskDataWriter(
             manifest=manifest,
@@ -234,7 +228,7 @@ def test_write_divisions(  # noqa: PLR0913
 
         data_writer.write_dataframe(dataframe)
 
-        dataframe = dd.read_parquet(fn)
+        dataframe = dd.read_parquet(manifest.dataset_location)
         assert dataframe.index.name == "id"
         assert dataframe.npartitions == partitions
 

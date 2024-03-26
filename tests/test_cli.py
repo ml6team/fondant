@@ -25,7 +25,7 @@ from fondant.component import DaskLoadComponent
 from fondant.component.executor import Executor, ExecutorFactory
 from fondant.core.manifest import Manifest
 from fondant.core.schema import CloudCredentialsMount
-from fondant.dataset import Dataset, Workspace
+from fondant.dataset import Dataset
 from fondant.dataset.runner import DockerRunner
 
 commands = [
@@ -71,7 +71,6 @@ def test_basic_invocation(command):
 
 TEST_MANIFEST = Manifest.create(dataset_name="test_dataset", run_id="test_run_id")
 TEST_DATASET = Dataset(manifest=TEST_MANIFEST)
-TEST_WORKSPACE = Workspace("test_workspace", base_path="/dummy/path")
 
 
 @pytest.mark.parametrize(
@@ -145,8 +144,6 @@ def test_pipeline_from_module(module_str):
     [
         # module does not contain a pipeline instance
         "examples.example_modules.component",
-        # module contains many pipeline instances
-        "examples.example_modules.invalid_double_workspace",
         # Factory expects an argument
         "examples.example_modules.dataset:create_pipeline_with_args",
         # Factory does not expect an argument
