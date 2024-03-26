@@ -37,7 +37,6 @@ class Metadata:
     component_id: t.Optional[str]
     cache_key: t.Optional[str]
     manifest_location: t.Optional[str]
-    dataset_location: t.Optional[str]
 
     def to_dict(self):
         return asdict(self)
@@ -100,7 +99,6 @@ class Manifest:
         component_id: t.Optional[str] = None,
         cache_key: t.Optional[str] = None,
         manifest_location: t.Optional[str] = None,
-        dataset_location: t.Optional[str] = None,
     ) -> "Manifest":
         """Create an empty manifest.
 
@@ -110,7 +108,6 @@ class Manifest:
             component_id: The id of the current component being executed
             cache_key: The component cache key
             manifest_location: location of the manifest.json file itself
-            dataset_location: location of the dataset parquet files
         """
         metadata = Metadata(
             dataset_name=dataset_name,
@@ -118,18 +115,11 @@ class Manifest:
             component_id=component_id,
             cache_key=cache_key,
             manifest_location=manifest_location,
-            dataset_location=dataset_location,
-        )
-
-        index = (
-            {"location": f"{dataset_location}/index"}
-            if dataset_location is not None
-            else {}
         )
 
         specification = {
             "metadata": metadata.to_dict(),
-            "index": index,
+            "index": {},
             "fields": {},
         }
         return cls(specification)
@@ -151,9 +141,12 @@ class Manifest:
     def manifest_location(self):
         return self._specification["metadata"]["manifest_location"]
 
-    @property
-    def dataset_location(self):
-        return self._specification["metadata"]["dataset_location"]
+    def get_dataset_locations(self, columns: t.List[str]) -> t.List[t.Optional[str]]:
+        """Select the fields which matching the column names and return the locations."""
+        relevant_fields = [
+            field for _, field in self.fields.items() if field.name in columns
+        ]
+        return [field.location for field in relevant_fields if isinstance(field, Field)]
 
     def copy(self) -> "Manifest":
         """Return a deep copy of itself."""

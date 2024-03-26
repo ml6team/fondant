@@ -196,7 +196,18 @@ class DaskDataWriter(DataIO):
 
     def _write_dataframe(self, dataframe: dd.DataFrame) -> None:
         """Create dataframe writing task."""
-        location = self.manifest.dataset_location
+        location = self.manifest.get_dataset_locations(columns=dataframe.columns)
+
+        if len(set(location)) > 1:
+            logger.warning(
+                "Writing to multiple locations is currently not supported. "
+                "Using the first location.",
+            )
+        location = location[0]
+
+        if location is None:
+            msg = "No location found to write the dataframe to."
+            raise ValueError(msg)
 
         # Create directory the dataframe will be written to, since this is not handled by Pandas
         # `to_parquet` method.

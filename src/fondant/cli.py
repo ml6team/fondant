@@ -607,12 +607,10 @@ def run_local(args):
     from fondant.dataset.runner import DockerRunner
 
     extra_volumes = []
-    # use workspace from cli command
-    # if args.workspace exists
 
     working_directory = getattr(args, "working_directory", None)
     if working_directory is None:
-        working_directory = "./.fondant"
+        working_directory = "./.artifacts/dataset"
 
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
@@ -644,7 +642,12 @@ def run_kfp(args):
         ref = args.ref
 
     runner = KubeflowRunner(host=args.host)
-    runner.run(dataset=ref)
+
+    working_directory = getattr(args, "working_directory", None)
+    if working_directory is None:
+        working_directory = "./.artifacts/dataset"
+
+    runner.run(dataset=ref, working_directory=working_directory)
 
 
 def run_vertex(args):
@@ -661,7 +664,12 @@ def run_vertex(args):
         service_account=args.service_account,
         network=args.network,
     )
-    runner.run(input=ref)
+
+    working_directory = getattr(args, "working_directory", None)
+    if working_directory is None:
+        working_directory = "./.artifacts/dataset"
+
+    runner.run(input=ref, working_directory=working_directory)
 
 
 def run_sagemaker(args):
@@ -673,10 +681,16 @@ def run_sagemaker(args):
         ref = args.ref
 
     runner = SagemakerRunner()
+
+    working_directory = getattr(args, "working_directory", None)
+    if working_directory is None:
+        working_directory = "./.artifacts/dataset"
+
     runner.run(
         input=ref,
         pipeline_name=args.pipeline_name,
         role_arn=args.role_arn,
+        working_directory=working_directory,
     )
 
 
@@ -702,6 +716,12 @@ def register_execute(parent_parser):
     )
     parser.add_argument(
         "ref",
+        help="""Reference to the module containing the component to run""",
+        action="store",
+    )
+
+    parser.add_argument(
+        "working_directory",
         help="""Reference to the module containing the component to run""",
         action="store",
     )

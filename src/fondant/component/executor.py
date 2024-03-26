@@ -61,6 +61,7 @@ class Executor(t.Generic[Component]):
         user_arguments: t.Dict[str, t.Any],
         input_partition_rows: int,
         previous_index: t.Optional[str] = None,
+        working_directory: str,
     ) -> None:
         self.operation_spec = operation_spec
         self.cache = cache
@@ -70,6 +71,7 @@ class Executor(t.Generic[Component]):
         self.user_arguments = user_arguments
         self.input_partition_rows = input_partition_rows
         self.previous_index = previous_index
+        self.working_directory = working_directory
 
     @classmethod
     def from_args(cls) -> "Executor":
@@ -78,6 +80,12 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--operation_spec", type=json.loads)
         parser.add_argument("--cache", type=lambda x: bool(strtobool(x)))
         parser.add_argument("--input_partition_rows", type=int)
+        parser.add_argument(
+            "--working_directory",
+            type=str,
+            default="./artifacts/dataset",
+        )
+
         args, _ = parser.parse_known_args()
 
         if "operation_spec" not in args:
@@ -116,6 +124,7 @@ class Executor(t.Generic[Component]):
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
         metadata = json.loads(metadata) if metadata else {}
+        working_directory = args_dict.pop("working_directory", None)
 
         return cls(
             operation_spec,
@@ -126,6 +135,7 @@ class Executor(t.Generic[Component]):
             user_arguments=args_dict,
             input_partition_rows=input_partition_rows,
             previous_index=operation_spec.previous_index,
+            working_directory=working_directory,
         )
 
     @classmethod
@@ -297,6 +307,7 @@ class Executor(t.Generic[Component]):
         output_manifest = input_manifest.evolve(
             operation_spec=self.operation_spec,
             run_id=self.metadata.run_id,
+            working_directory=self.working_directory,
         )
         self._write_data(dataframe=output_df, manifest=output_manifest)
 
@@ -310,6 +321,7 @@ class Executor(t.Generic[Component]):
 
         Args:
             component_cls: The class of the component to execute
+            working_directory: The working directory where the dataset artifacts will be stored
         """
         input_manifest = self._load_or_create_manifest()
 
@@ -335,8 +347,10 @@ class Executor(t.Generic[Component]):
                 output_manifest = self._run_execution(component_cls, input_manifest)
             """
         else:
-            logger.info("Caching disabled for the component")
-            output_manifest = self._run_execution(component_cls, input_manifest)
+            pass  # enable when caching is enabled again
+
+        logger.info("Caching disabled for the component")
+        output_manifest = self._run_execution(component_cls, input_manifest)
 
         if output_manifest:
             self.upload_manifest(output_manifest, save_path=self.output_manifest_path)

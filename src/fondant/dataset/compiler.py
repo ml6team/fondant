@@ -92,7 +92,7 @@ class DockerCompiler(Compiler):
         self,
         dataset: Dataset,
         *,
-        working_directory: t.Optional[str] = None,
+        working_directory: str,
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
@@ -111,9 +111,6 @@ class DockerCompiler(Compiler):
             auth_provider: The cloud provider to use for authentication. Default is None.
 
         """
-        if working_directory is None:
-            working_directory = "./.fndnt-local-workspace"
-
         if extra_volumes is None:
             extra_volumes = []
 
@@ -220,9 +217,6 @@ class DockerCompiler(Compiler):
                 f"{working_directory}/{dataset.name}/{run_id}/{component_id}"
                 f"/manifest.json"
             )
-            dataset_location = (
-                f"{working_directory}/{dataset.name}/{run_id}/{component_id}/data"
-            )
 
             metadata = Metadata(
                 dataset_name=dataset.name,
@@ -230,7 +224,6 @@ class DockerCompiler(Compiler):
                 component_id=component_id,
                 cache_key=component_cache_key,
                 manifest_location=manifest_location,
-                dataset_location=dataset_location,
             )
 
             logger.info(f"Compiling service for {component_id}")
@@ -246,6 +239,14 @@ class DockerCompiler(Compiler):
                     "--output_manifest_path",
                     f"{path}/{metadata.dataset_name}/{metadata.run_id}/"
                     f"{component_id}/manifest.json",
+                ],
+            )
+
+            # Add working directory to command
+            command.extend(
+                [
+                    "--working_directory",
+                    working_directory,
                 ],
             )
 
@@ -572,7 +573,6 @@ class KubeFlowCompiler(Compiler):
                     cache_key=component_cache_key,
                     dataset_name="dataset",
                     manifest_location=f"{working_directory}/{dataset.name}/{run_id}/{component_name}/manifest.json",
-                    dataset_location=f"{working_directory}/{dataset.name}/{run_id}/{component_name}/data",
                 )
 
                 output_manifest_path = (
@@ -786,6 +786,13 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
                     ],
                 )
 
+        command.extend(
+            [
+                "--working_directory",
+                working_directory,
+            ],
+        )
+
         return command
 
     def _check_ecr_pull_through_rule(self) -> None:
@@ -893,8 +900,6 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
                     dataset_name=dataset.name,
                     manifest_location=f"{working_directory}/{dataset.name}/{run_id}/"
                     f"{component_name}/manifest.json",
-                    dataset_location=f"{working_directory}/{dataset.name}/{run_id}/"
-                    f"{component_name}/data",
                 )
 
                 logger.info(f"Compiling service for {component_name}")
