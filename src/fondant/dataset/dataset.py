@@ -1,4 +1,5 @@
 """This module defines classes to represent a Fondant Pipeline."""
+
 import copy
 import datetime
 import hashlib
@@ -825,7 +826,7 @@ class Dataset:
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
-    ) -> None:
+    ) -> "Dataset":
         """
         Write the dataset using the provided component.
 
@@ -857,4 +858,4 @@ class Dataset:
             resources=resources,
             cache=cache,
         )
-        self._apply(operation)
+        return self._apply(operation)

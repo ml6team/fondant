@@ -523,7 +523,13 @@ class KubeFlowCompiler(Compiler):
             """Dump Fondant specification arguments to kfp command executor arguments."""
             dumped_args: KubeflowCommandArguments = []
 
-            component_args.extend(["output_manifest_path", "metadata"])
+            component_args.extend(
+                [
+                    "output_manifest_path",
+                    "metadata",
+                    "working_directory",
+                ],
+            )
             if input_manifest_path:
                 component_args.append("input_manifest_path")
 
