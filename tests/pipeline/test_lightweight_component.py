@@ -86,7 +86,11 @@ def test_build_python_script(load_pipeline):
     )
 
 
-def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
+def test_lightweight_component_sdk(
+    tmp_path_factory,
+    default_fondant_image,
+    load_pipeline,
+):
     dataset, load_script, caplog_records = load_pipeline
 
     assert len(dataset._graph.keys()) == 1
@@ -168,7 +172,8 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
     }
     dataset._validate_dataset_definition()
 
-    DockerCompiler().compile(dataset=dataset)
+    with tmp_path_factory.mktemp("temp") as fn:
+        DockerCompiler().compile(dataset=dataset, working_directory=str(fn))
 
 
 def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
@@ -201,6 +206,7 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
         DockerCompiler().compile(
             dataset=dataset,
             output_path=output_path,
+            working_directory=str(fn),
         )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
@@ -240,6 +246,7 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
         DockerCompiler().compile(
             dataset=dataset,
             output_path=output_path,
+            working_directory=str(fn),
         )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
@@ -280,6 +287,7 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
         DockerCompiler().compile(
             dataset=dataset,
             output_path=output_path,
+            working_directory=str(fn),
         )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
@@ -322,6 +330,7 @@ def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
         DockerCompiler().compile(
             dataset=dataset,
             output_path=output_path,
+            working_directory=str(fn),
         )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(

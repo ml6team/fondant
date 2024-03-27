@@ -41,7 +41,6 @@ def metadata():
     return Metadata(
         dataset_name="example_pipeline",
         manifest_location="/foo/bar/manifest.json",
-        dataset_location="/foo/bar/data",
         component_id="component_2",
         run_id="example_pipeline_2024",
         cache_key="42",

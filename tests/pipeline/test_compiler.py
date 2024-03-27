@@ -252,8 +252,6 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
                 "component_id": component_name,
                 "manifest_location": f"{working_directory}/{dataset.name}/"
                 f"{expected_run_id}/{component_name}/manifest.json",
-                "dataset_location": f"{working_directory}/{dataset.name}/"
-                f"{expected_run_id}/{component_name}/data",
             }
 
             assert (
@@ -302,8 +300,6 @@ def test_docker_remote_path(setup_pipeline, tmp_path_factory):
                 "component_id": component_name,
                 "manifest_location": f"{working_directory}/{dataset.name}/"
                 f"{expected_run_id}/{component_name}/manifest.json",
-                "dataset_location": f"{working_directory}/{dataset.name}/"
-                f"{expected_run_id}/{component_name}/data",
             }
 
             assert (
@@ -772,7 +768,6 @@ def test_sagemaker_build_command():
     compiler = SagemakerCompiler()
     metadata = Metadata(
         dataset_name="example_pipeline",
-        dataset_location="/foo/bar/data",
         manifest_location="/foo/bar/manifest.json",
         component_id="component_2",
         run_id="example_pipeline_2024",
@@ -789,15 +784,16 @@ def test_sagemaker_build_command():
         "--metadata",
         '\'{"dataset_name": "example_pipeline", "run_id": "example_pipeline_2024", '
         '"component_id": "component_2", "cache_key": "42", "manifest_location": '
-        '"/foo/bar/manifest.json", "dataset_location": "/foo/bar/data"}\'',
+        '"/foo/bar/manifest.json"}\'',
         "--output_manifest_path",
         "/foo/bar/example_pipeline/example_pipeline_2024/component_2/manifest.json",
         "--foo",
         "'bar'",
         "--baz",
         "'qux'",
+        "--working_directory",
+        "/foo/bar",
     ]
-
     # with dependencies
     dependencies = ["component_1"]
 
@@ -809,9 +805,20 @@ def test_sagemaker_build_command():
     )
 
     assert command2 == [
-        *command,
+        "--metadata",
+        '\'{"dataset_name": "example_pipeline", "run_id": "example_pipeline_2024", '
+        '"component_id": "component_2", "cache_key": "42", "manifest_location": '
+        '"/foo/bar/manifest.json"}\'',
+        "--output_manifest_path",
+        "/foo/bar/example_pipeline/example_pipeline_2024/component_2/manifest.json",
+        "--foo",
+        "'bar'",
+        "--baz",
+        "'qux'",
         "--input_manifest_path",
         "/foo/bar/example_pipeline/example_pipeline_2024/component_1/manifest.json",
+        "--working_directory",
+        "/foo/bar",
     ]
 
 
@@ -863,7 +870,6 @@ def test_sagemaker_generate_script_lightweight_component(tmp_path_factory):
     metadata = Metadata(
         dataset_name="example_pipeline",
         manifest_location="/foo/bar/manifest.json",
-        dataset_location="/foo/bar/data",
         component_id="component_2",
         run_id="example_pipeline_2024",
         cache_key="42",

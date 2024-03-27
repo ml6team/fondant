@@ -30,16 +30,13 @@ def test_manifest_validation(valid_manifest, invalid_manifest):
         Manifest(invalid_manifest)
 
 
-def test_update_manifest_and_dataset_location(valid_manifest):
+def test_update_manifest_location(valid_manifest):
     """Test altering the base path in the manifest."""
     manifest = Manifest(valid_manifest)
     tmp_path = "/foo/bar"
     manifest.update_metadata(key="manifest_location", value=tmp_path + "/manifest.json")
-    manifest.update_metadata(key="dataset_location", value=tmp_path)
 
     assert manifest.manifest_location == tmp_path + "/manifest.json"
-    assert manifest.dataset_location == tmp_path
-    assert manifest._specification["metadata"]["dataset_location"] == tmp_path
     assert (
         manifest._specification["metadata"]["manifest_location"]
         == tmp_path + "/manifest.json"
@@ -84,7 +81,6 @@ def test_manifest_creation():
     component_id = "component_id"
     cache_key = "42"
     manifest_location = "/manifest.json"
-    dataset_location = "/data"
 
     manifest = Manifest.create(
         dataset_name=dataset_name,
@@ -92,7 +88,6 @@ def test_manifest_creation():
         component_id=component_id,
         cache_key=cache_key,
         manifest_location=manifest_location,
-        dataset_location=dataset_location,
     )
 
     location = f"/{run_id}/{component_id}"
@@ -114,9 +109,8 @@ def test_manifest_creation():
             "component_id": component_id,
             "cache_key": cache_key,
             "manifest_location": manifest_location,
-            "dataset_location": dataset_location,
         },
-        "index": {"location": f"{dataset_location}/index"},
+        "index": {},
         "fields": {
             "width": {
                 "type": "int32",
@@ -144,8 +138,8 @@ def test_manifest_repr():
     assert (
         manifest.__repr__()
         == "Manifest({'metadata': {'dataset_name': 'NAME', 'run_id': 'A', "
-        "'component_id': '1', 'cache_key': '42', 'manifest_location': None, "
-        "'dataset_location': None}, 'index': {}, 'fields': {}})"
+        "'component_id': '1', 'cache_key': '42', 'manifest_location': None}, "
+        "'index': {}, 'fields': {}})"
     )
 
 
@@ -197,7 +191,6 @@ def test_evolve_manifest():
         run_id=run_id,
         component_id="component_1",
         cache_key="42",
-        dataset_location="/foo",
     )
 
     output_manifest = input_manifest.evolve(

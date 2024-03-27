@@ -141,12 +141,20 @@ class Manifest:
     def manifest_location(self):
         return self._specification["metadata"]["manifest_location"]
 
-    def get_dataset_locations(self, columns: t.List[str]) -> t.List[t.Optional[str]]:
-        """Select the fields which matching the column names and return the locations."""
+    def get_dataset_columns_locations(
+        self,
+        columns: t.List[str],
+    ) -> t.List[str]:
+        """Select the fields which matching the column names and return their locations."""
         relevant_fields = [
             field for _, field in self.fields.items() if field.name in columns
         ]
-        return [field.location for field in relevant_fields if isinstance(field, Field)]
+
+        return [
+            field.location
+            for field in relevant_fields
+            if isinstance(field, Field) and field.location
+        ]
 
     def copy(self) -> "Manifest":
         """Return a deep copy of itself."""
