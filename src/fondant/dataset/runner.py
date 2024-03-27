@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 import yaml
 
 from fondant.core.schema import CloudCredentialsMount
-from fondant.dataset import Dataset, Workspace
+from fondant.dataset import Dataset
 from fondant.dataset.compiler import (
     DockerCompiler,
     KubeFlowCompiler,
@@ -54,7 +54,7 @@ class DockerRunner(Runner):
     def run(
         self,
         dataset: t.Union[Dataset, str],
-        workspace: Workspace,
+        working_directory: str,
         *,
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
@@ -64,7 +64,7 @@ class DockerRunner(Runner):
 
         Args:
             dataset: the dataset to compile or a path to an already compiled docker-compose spec
-            workspace: The workspace to operate in
+            working_directory: path of the working directory
             extra_volumes: a list of extra volumes (using the Short syntax:
              https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
              to mount in the docker-compose spec.
@@ -83,7 +83,7 @@ class DockerRunner(Runner):
             compiler = DockerCompiler()
             compiler.compile(
                 dataset,
-                workspace=workspace,
+                working_directory=working_directory,
                 output_path=output_path,
                 extra_volumes=extra_volumes,
                 build_args=build_args,
@@ -185,7 +185,7 @@ class KubeflowRunner(Runner):
     def run(
         self,
         dataset: t.Union[Dataset, str],
-        workspace: Workspace,
+        working_directory: str,
         *,
         experiment_name: str = "Default",
     ):
@@ -193,7 +193,7 @@ class KubeflowRunner(Runner):
 
         Args:
             dataset: the dataset to compile or a path to an already compiled sagemaker spec
-            workspace: workspace to operate in
+            working_directory: path of the working directory
             experiment_name: the name of the experiment to create
         """
         if isinstance(dataset, Dataset):
@@ -205,7 +205,7 @@ class KubeflowRunner(Runner):
             compiler = KubeFlowCompiler()
             compiler.compile(
                 dataset,
-                workspace,
+                working_directory=working_directory,
                 output_path=output_path,
             )
             self._run(output_path, experiment_name=experiment_name)
@@ -271,13 +271,13 @@ class VertexRunner(Runner):
     def run(
         self,
         dataset: t.Union[Dataset, str],
-        workspace: Workspace,
+        working_directory: str,
     ):
         """Run a pipeline, either from a compiled vertex spec or from a fondant pipeline.
 
         Args:
             dataset: the dataset to compile or a path to an already compiled sagemaker spec
-            workspace: workspace to operate in
+            working_directory: path of the working directory
         """
         if isinstance(dataset, Dataset):
             os.makedirs(".fondant", exist_ok=True)
@@ -288,7 +288,7 @@ class VertexRunner(Runner):
             compiler = VertexCompiler()
             compiler.compile(
                 dataset,
-                workspace,
+                working_directory=working_directory,
                 output_path=output_path,
             )
             self._run(output_path)
@@ -333,7 +333,7 @@ class SagemakerRunner(Runner):
     def run(
         self,
         dataset: t.Union[Dataset, str],
-        workspace: Workspace,
+        working_directory: str,
         pipeline_name: str,
         role_arn: str,
     ):
@@ -342,7 +342,7 @@ class SagemakerRunner(Runner):
 
         Args:
             dataset: the dataset to compile or a path to a already compiled sagemaker spec
-            workspace: workspace to operate in
+            working_directory: path of the working directory
             pipeline_name: the name of the pipeline to create
             role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
@@ -356,7 +356,7 @@ class SagemakerRunner(Runner):
             compiler = SagemakerCompiler()
             compiler.compile(
                 dataset=dataset,
-                workspace=workspace,
+                working_directory=working_directory,
                 output_path=output_path,
                 role_arn=role_arn,
             )

@@ -8,26 +8,20 @@ import pandas as pd
 import pyarrow as pa
 
 from fondant.component import PandasTransformComponent
-from fondant.dataset import Workspace, lightweight_component, Dataset
-
-BASE_PATH = Path("./.artifacts").resolve()
-
-# Define pipeline
-workspace = Workspace(name="dummy-pipeline", base_path=str(BASE_PATH))
+from fondant.dataset import lightweight_component, Dataset
 
 # Load from hub component
 load_component_column_mapping = {
     "text": "text_data",
 }
 
-dataset = Dataset.read(
+dataset = Dataset.create(
     "load_from_parquet",
     arguments={
         "dataset_uri": "/data/sample.parquet",
         "column_name_mapping": load_component_column_mapping,
     },
     produces={"text_data": pa.string()},
-    workspace=workspace,
 )
 
 dataset = dataset.apply("./components/dummy_component")

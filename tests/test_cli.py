@@ -23,8 +23,9 @@ from fondant.cli import (
 )
 from fondant.component import DaskLoadComponent
 from fondant.component.executor import Executor, ExecutorFactory
+from fondant.core.manifest import Manifest
 from fondant.core.schema import CloudCredentialsMount
-from fondant.dataset import Dataset, Workspace
+from fondant.dataset import Dataset
 from fondant.dataset.runner import DockerRunner
 
 commands = [
@@ -68,8 +69,8 @@ def test_basic_invocation(command):
     assert process.returncode == 0
 
 
-TEST_DATASET = Dataset(name="test_dataset", run_id="run-id-1")
-TEST_WORKSPACE = Workspace("test_workspace", base_path="/dummy/path")
+TEST_MANIFEST = Manifest.create(dataset_name="test_dataset", run_id="test_run_id")
+TEST_DATASET = Dataset(manifest=TEST_MANIFEST)
 
 
 @pytest.mark.parametrize(
@@ -143,8 +144,6 @@ def test_pipeline_from_module(module_str):
     [
         # module does not contain a pipeline instance
         "examples.example_modules.component",
-        # module contains many pipeline instances
-        "examples.example_modules.invalid_double_workspace",
         # Factory expects an argument
         "examples.example_modules.dataset:create_pipeline_with_args",
         # Factory does not expect an argument
@@ -339,13 +338,13 @@ def test_local_run_cloud_credentials(mock_docker_installation):
                 credentials=None,
                 extra_volumes=[],
                 build_arg=[],
-                workspace=TEST_WORKSPACE,
+                working_directory="dummy-dir",
             )
             run_local(args)
 
             mock_compiler.assert_called_once_with(
                 TEST_DATASET,
-                workspace=TEST_WORKSPACE,
+                working_directory="dummy-dir",
                 output_path=".fondant/compose.yaml",
                 extra_volumes=[],
                 build_args=[],

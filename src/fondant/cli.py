@@ -29,7 +29,7 @@ from pathlib import Path
 from types import ModuleType
 
 from fondant.core.schema import CloudCredentialsMount
-from fondant.dataset import Dataset, Workspace
+from fondant.dataset import Dataset
 
 if t.TYPE_CHECKING:
     from fondant.component import Component
@@ -607,15 +607,10 @@ def run_local(args):
     from fondant.dataset.runner import DockerRunner
 
     extra_volumes = []
-    # use workspace from cli command
-    # if args.workspace exists
 
-    workspace = getattr(args, "workspace", None)
-    if workspace is None:
-        workspace = Workspace(
-            name="dummy_workspace",
-            base_path=".artifacts",
-        )  # TODO: handle in #887 -> retrieve global workspace or init default one
+    working_directory = getattr(args, "working_directory", None)
+    if working_directory is None:
+        working_directory = "./.artifacts/dataset"
 
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
@@ -628,7 +623,7 @@ def run_local(args):
     runner = DockerRunner()
     runner.run(
         dataset=dataset,
-        workspace=workspace,
+        working_directory=working_directory,
         extra_volumes=extra_volumes,
         build_args=args.build_arg,
         auth_provider=args.auth_provider,
@@ -647,7 +642,12 @@ def run_kfp(args):
         ref = args.ref
 
     runner = KubeflowRunner(host=args.host)
-    runner.run(dataset=ref)
+
+    working_directory = getattr(args, "working_directory", None)
+    if working_directory is None:
+        working_directory = "./.artifacts/dataset"
+
+    runner.run(dataset=ref, working_directory=working_directory)
 
 
 def run_vertex(args):
@@ -664,7 +664,12 @@ def run_vertex(args):
         service_account=args.service_account,
         network=args.network,
     )
-    runner.run(input=ref)
+
+    working_directory = getattr(args, "working_directory", None)
+    if working_directory is None:
+        working_directory = "./.artifacts/dataset"
+
+    runner.run(input=ref, working_directory=working_directory)
 
 
 def run_sagemaker(args):
@@ -676,10 +681,16 @@ def run_sagemaker(args):
         ref = args.ref
 
     runner = SagemakerRunner()
+
+    working_directory = getattr(args, "working_directory", None)
+    if working_directory is None:
+        working_directory = "./.artifacts/dataset"
+
     runner.run(
         input=ref,
         pipeline_name=args.pipeline_name,
         role_arn=args.role_arn,
+        working_directory=working_directory,
     )
 
 
@@ -705,6 +716,12 @@ def register_execute(parent_parser):
     )
     parser.add_argument(
         "ref",
+        help="""Reference to the module containing the component to run""",
+        action="store",
+    )
+
+    parser.add_argument(
+        "working_directory",
         help="""Reference to the module containing the component to run""",
         action="store",
     )

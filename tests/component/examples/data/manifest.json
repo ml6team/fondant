@@ -1,29 +1,28 @@
 {
   "metadata": {
-    "pipeline_name": "test_pipeline",
-    "base_path": "tests/component/examples/data",
+    "dataset_name": "test_pipeline",
     "run_id": "test_pipeline_12345",
     "component_id": "67890"
   },
   "index": {
-    "location": "/test_pipeline_12345/component_1"
+    "location": "tests/component/examples/data/test_pipeline/test_pipeline_12345/component_1"
   },
   "fields": {
     "Name": {
       "type": "string",
-      "location": "/test_pipeline_12345/component_1"
+      "location": "tests/component/examples/data/test_pipeline/test_pipeline_12345/component_1"
     },
     "HP": {
       "type": "int32",
-      "location": "/test_pipeline_12345/component_1"
+      "location": "tests/component/examples/data/test_pipeline/test_pipeline_12345/component_1"
     },
     "Type 1": {
       "type": "string",
-      "location": "/test_pipeline_12345/component_2"
+      "location": "tests/component/examples/data/test_pipeline/test_pipeline_12345/component_2"
     },
     "Type 2": {
       "type": "string",
-      "location": "/test_pipeline_12345/component_2"
+      "location": "tests/component/examples/data/test_pipeline/test_pipeline_12345/component_2"
     }
   }
 }

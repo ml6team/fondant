@@ -1,36 +1,36 @@
 {
    "metadata":{
-      "pipeline_name":"test_pipeline",
-      "base_path":"gs://bucket",
+      "dataset_name":"test_dataset",
+      "manifest_location":"gs://bucket/dataset",
       "run_id":"custom_run_id",
       "component_id":"example_component"
    },
    "index":{
-      "location":"/custom_run_id/example_component"
+      "location":"gs://bucket/dataset/test_dataset/custom_run_id/example_component"
    },
    "fields": {
-      "images_width": {
+       "images_width": {
          "type": "int32",
-         "location":"/custom_run_id/example_component"
+         "location":"gs://bucket/dataset/custom_run_id/example_component"
       },
       "images_height": {
          "type": "int32",
-         "location":"/custom_run_id/example_component"
+         "location":"gs://bucket/dataset/custom_run_id/example_component"
       },
       "images_data": {
          "type": "binary",
-         "location":"/custom_run_id/example_component"
+         "location":"gs://bucket/dataset/custom_run_id/example_component"
       },
       "captions_data": {
          "type": "binary",
-         "location":"/custom_run_id/example_component"
+         "location":"gs://bucket/dataset/custom_run_id/example_component"
       },
       "embeddings_data": {
         "type": "array",
         "items": {
            "type": "float32"
         },
-        "location":"/custom_run_id/example_component"
+        "location":"gs://bucket/dataset/test_dataset/custom_run_id/example_component"
       }
    }
 }
