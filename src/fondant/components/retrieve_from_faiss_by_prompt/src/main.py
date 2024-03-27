@@ -61,7 +61,7 @@ class RetrieveFromFaissByPrompt(PandasTransformComponent):
         # We need at least 8Gb RAM for the datacomp small faiss index
         # We should consider calculating the memory required for the index based on the faiss
         # index size
-        cores_to_utilise = total_memory // 8
+        cores_to_utilise = int(total_memory // 8)
         cluster = LocalCluster(
             processes=True,
             n_workers=cores_to_utilise,
