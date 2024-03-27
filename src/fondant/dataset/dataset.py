@@ -17,6 +17,7 @@ except ImportError:
     from importlib_resources import files  # type: ignore
 
 import pyarrow as pa
+from faker import Faker
 
 from fondant.component import BaseComponent
 from fondant.core.component_spec import ComponentSpec, OperationSpec
@@ -533,6 +534,10 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
+        if dataset_name is None:
+            fake = Faker()
+            dataset_name = f"{fake.word()}-{fake.word()}"
+
         operation = ComponentOp.from_ref(
             ref,
             produces=produces,

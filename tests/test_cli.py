@@ -276,6 +276,7 @@ def test_local_run(mock_docker_installation):
         credentials=None,
         extra_volumes=[],
         build_arg=[],
+        working_directory="./dummy-dir",
     )
     with patch("subprocess.call") as mock_call:
         run_local(args)
@@ -304,6 +305,7 @@ def test_local_run(mock_docker_installation):
             build_arg=[],
             auth_provider=None,
             credentials=None,
+            working_directory="./dummy-dir",
         )
         run_local(args1)
         mock_call.assert_called_once_with(

@@ -507,6 +507,12 @@ def register_run(parent_parser):
         - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
         - to mount cloud credentials""",
     )
+
+    local_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
+    )
+
     local_parser.add_argument(
         "--build-arg",
         action="append",
@@ -608,9 +614,9 @@ def run_local(args):
 
     extra_volumes = []
 
-    working_directory = getattr(args, "working_directory", None)
-    if working_directory is None:
-        working_directory = "./.artifacts/dataset"
+    working_directory = (
+        args.working_directory if args.working_directory else "./.artifacts/dataset"
+    )
 
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
@@ -721,9 +727,8 @@ def register_execute(parent_parser):
     )
 
     parser.add_argument(
-        "working_directory",
-        help="""Reference to the module containing the component to run""",
-        action="store",
+        "working-directory",
+        help="""Working directory where the component will be executed""",
     )
 
     parser.set_defaults(func=execute)
