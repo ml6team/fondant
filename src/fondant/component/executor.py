@@ -7,6 +7,7 @@ components take care of processing, filtering and extending the data.
 import argparse
 import json
 import logging
+import os
 import typing as t
 from abc import abstractmethod
 from distutils.util import strtobool
@@ -94,10 +95,17 @@ class Executor(t.Generic[Component]):
 
         operation_spec = OperationSpec.from_dict(args.operation_spec)
 
+        working_directory = (
+            args.working_directory
+            if hasattr(args, "working_directory")
+            else os.path.normpath("./artifacts/dataset")
+        )
+
         return cls.from_spec(
             operation_spec,
             cache=args.cache,
             input_partition_rows=args.input_partition_rows,
+            working_directory=working_directory,
         )
 
     @classmethod
@@ -107,6 +115,7 @@ class Executor(t.Generic[Component]):
         *,
         cache: bool,
         input_partition_rows: int,
+        working_directory: str,
     ) -> "Executor":
         """Create an executor from a component spec."""
         args_dict = vars(cls._add_and_parse_args(operation_spec))
@@ -124,7 +133,6 @@ class Executor(t.Generic[Component]):
         output_manifest_path = args_dict.pop("output_manifest_path")
         metadata = args_dict.pop("metadata")
         metadata = json.loads(metadata) if metadata else {}
-        working_directory = args_dict.pop("working_directory", None)
 
         return cls(
             operation_spec,
@@ -237,7 +245,7 @@ class Executor(t.Generic[Component]):
             The content of the cache reference file.
         """
         manifest_reference_path = (
-            f"{self.metadata.base_path}/{self.metadata.pipeline_name}/cache/"
+            f"{self.working_directory}/{self.metadata.dataset_name}/cache/"
             f"{self.metadata.cache_key}.txt"
         )
 
@@ -327,7 +335,6 @@ class Executor(t.Generic[Component]):
 
         if self.cache and self._is_previous_cached(input_manifest):
             logger.info("Caching is currently temporarily disabled.")
-            """
             cache_reference_content = self._get_cache_reference_content()
 
             if cache_reference_content is not None:
@@ -345,25 +352,22 @@ class Executor(t.Generic[Component]):
                     output_manifest = None
             else:
                 output_manifest = self._run_execution(component_cls, input_manifest)
-            """
         else:
-            pass  # enable when caching is enabled again
-
-        logger.info("Caching disabled for the component")
-        output_manifest = self._run_execution(component_cls, input_manifest)
+            logger.info("Caching disabled for the component")
+            output_manifest = self._run_execution(component_cls, input_manifest)
 
         if output_manifest:
             self.upload_manifest(output_manifest, save_path=self.output_manifest_path)
 
         self._upload_cache_reference_content(
-            base_path="todo",
-            pipeline_name="todo",
+            working_directory=self.working_directory,
+            dataset_name=self.metadata.dataset_name,
         )
 
     def _upload_cache_reference_content(
         self,
-        base_path: str,
-        pipeline_name: str,
+        working_directory: str,
+        dataset_name: str,
     ):
         """
         Write the cache key containing the reference to the location of the written manifest.
@@ -373,11 +377,11 @@ class Executor(t.Generic[Component]):
         cached component executions.
 
         Args:
-            base_path: The base path of the pipeline.
-            pipeline_name: The name of the pipeline.
+            working_directory: Working directory where the dataset artifacts are stored.
+            dataset_name: The name of the dataset.
         """
         cache_reference_path = (
-            f"{base_path}/{pipeline_name}/cache/{self.metadata.cache_key}.txt"
+            f"{working_directory}/{dataset_name}/cache/{self.metadata.cache_key}.txt"
         )
 
         logger.info(

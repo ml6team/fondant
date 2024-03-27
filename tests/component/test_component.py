@@ -93,7 +93,7 @@ def _patched_data_writing(monkeypatch):
     monkeypatch.setattr(
         Executor,
         "_upload_cache_reference_content",
-        lambda self, base_path, pipeline_name: None,
+        lambda self, working_directory, dataset_name: None,
     )
 
 
@@ -179,7 +179,6 @@ def test_component_arguments(metadata):
     }
 
 
-@pytest.mark.skip(reason="The caching is temporarily disabled.")
 def test_run_with_cache(metadata, monkeypatch):
     input_manifest_path = str(components_path / "arguments/input_manifest.json")
 
@@ -208,6 +207,8 @@ def test_run_with_cache(metadata, monkeypatch):
         "3.14",
         "--override_default_arg_with_none",
         "None",
+        "--working_directory",
+        str(base_path),
     ]
 
     class MyExecutor(Executor):
@@ -227,7 +228,6 @@ def test_run_with_cache(metadata, monkeypatch):
     assert executor._is_previous_cached(Manifest.from_file(input_manifest_path)) is True
 
 
-@pytest.mark.skip(reason="The caching is temporarily disabled.")
 def test_run_with_no_cache(metadata):
     input_manifest_path = str(components_path / "arguments/input_manifest.json")
 
