@@ -8,6 +8,5 @@ from .dataset import (  # noqa
     VALID_VERTEX_ACCELERATOR_TYPES,
     ComponentOp,
     Dataset,
-    Workspace,
     Resources,
 )

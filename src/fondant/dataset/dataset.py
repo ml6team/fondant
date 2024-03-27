@@ -440,71 +440,41 @@ class ComponentOp:
         return get_nested_dict_hash(component_op_uid_dict)
 
 
-class Workspace:
-    """Workspace holding environment information for a Fondants execution environment."""
-
-    def __init__(
-        self,
-        name: str,
-        base_path: str,
-        description: t.Optional[str] = None,
-    ):
-        self.name = self._validate_workspace_name(name)
-        self.description = description
-        self.base_path = base_path
-        self.package_path = f"{name}.tgz"
-
-    @staticmethod
-    def _validate_workspace_name(name: str) -> str:
-        pattern = r"^[a-z0-9][a-z0-9_-]*$"
-        if not re.match(pattern, name):
-            msg = f"The workspace name violates the pattern {pattern}"
-            raise InvalidWorkspaceDefinition(msg)
-        return name
-
-    def get_run_id(self) -> str:
-        """Get a unique run ID for the workspace."""
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        return f"{self.name}-{timestamp}"
-
-
 class Dataset:
     def __init__(
         self,
-        name: t.Optional[str] = None,
+        manifest: Manifest,
         description: t.Optional[str] = None,
-        manifest: t.Optional[Manifest] = None,
-        run_id: t.Optional[
-            str
-        ] = None,  # TODO: could be probably used as dataset version in the future!
     ):
-        if name is not None:
-            self.name = self._validate_dataset_name(name)
-
         self.description = description
         self._graph: t.OrderedDict[str, t.Any] = OrderedDict()
         self.task_without_dependencies_added = False
         self.manifest = manifest
 
-        if run_id is None:
-            # TODO random generation of run id?
-            self.run_id = "run-id"
-        else:
-            self.run_id = run_id
-
     @staticmethod
     def _validate_dataset_name(name: str) -> str:
         pattern = r"^[a-z0-9][a-z0-9_-]*$"
         if not re.match(pattern, name):
-            msg = f"The workspace name violates the pattern {pattern}"
+            msg = f"The dataset name violates the pattern {pattern}"
             raise InvalidWorkspaceDefinition(msg)
         return name
 
     @staticmethod
-    def load(manifest: Manifest) -> "Dataset":
-        """Load a dataset from a manifest."""
-        # TODO: fondant #885
-        raise NotImplementedError
+    def get_run_id(name) -> str:
+        """Get a unique run ID for the workspace."""
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        return f"{name}-{timestamp}"
+
+    @property
+    def name(self) -> str:
+        """The name of the dataset."""
+        return self.manifest.dataset_name
+
+    @property
+    def package_path(self) -> t.Optional[str]:
+        if self.name:
+            return f"{self.name}.tgz"
+        return None
 
     def register_operation(
         self,
@@ -528,15 +498,20 @@ class Dataset:
         }
 
     @staticmethod
-    def read(
+    def read(manifest_path: str):
+        manifest = Manifest.from_file(manifest_path)
+        return Dataset(manifest=manifest)
+
+    @staticmethod
+    def create(
         ref: t.Any,
         *,
-        workspace: Workspace,
         produces: t.Optional[t.Dict[str, t.Union[str, pa.DataType]]] = None,
         arguments: t.Optional[t.Dict[str, t.Any]] = None,
         input_partition_rows: t.Optional[t.Union[int, str]] = None,
         resources: t.Optional[Resources] = None,
         cache: t.Optional[bool] = True,
+        dataset_name: t.Optional[str] = None,
     ) -> "Dataset":
         """
         Read data using the provided component.
@@ -544,7 +519,6 @@ class Dataset:
         Args:
             ref: The name of a reusable component, or the path to the directory containing
                 a containerized component, or a lightweight component class.
-            workspace: The workspace to operate in
             produces: A mapping to update the fields produced by the operation as defined in the
                 component spec. The keys are the names of the fields to be received by the
                 component, while the values are the type of the field, or the name of the field to
@@ -554,12 +528,11 @@ class Dataset:
             automatic partitioning
             resources: The resources to assign to the operation.
             cache: Set to False to disable caching, True by default.
+            dataset_name: The name of the dataset.
 
         Returns:
             An intermediate dataset.
         """
-        # TODO: add method call to retrieve workspace context, and make passing workspace optional
-
         operation = ComponentOp.from_ref(
             ref,
             produces=produces,
@@ -569,15 +542,13 @@ class Dataset:
             cache=cache,
         )
 
-        run_id = workspace.get_run_id()
         manifest = Manifest.create(
-            pipeline_name=workspace.name,
-            base_path=workspace.base_path,
-            run_id=run_id,
+            dataset_name=dataset_name,
+            run_id=Dataset.get_run_id(dataset_name),
             component_id=operation.component_name,
         )
 
-        dataset = Dataset(manifest=manifest, run_id=run_id)
+        dataset = Dataset(manifest=manifest)
 
         return dataset._apply(operation)
 
@@ -605,7 +576,7 @@ class Dataset:
 
         self._graph = OrderedDict((node, self._graph[node]) for node in sorted_graph)
 
-    def validate(self, run_id: str, workspace: Workspace):
+    def validate(self):
         """Sort and run validation on the pipeline definition.
 
         Args:
@@ -614,9 +585,9 @@ class Dataset:
 
         """
         self.sort_graph()
-        self._validate_workspace_definition(run_id, workspace)
+        self._validate_dataset_definition()
 
-    def _validate_workspace_definition(self, run_id: str, workspace: Workspace):
+    def _validate_dataset_definition(self):
         """
         Validates the workspace definition by ensuring that the consumed and produced subsets and
         their associated fields match and are invoked in the correct order.
@@ -628,6 +599,7 @@ class Dataset:
             base_path: the base path where to store the pipelines artifacts
             run_id: the run id of the component
         """
+        run_id = self.manifest.run_id
         if len(self._graph.keys()) == 0:
             logger.info("No components defined in the pipeline. Nothing to validate.")
             return
@@ -638,8 +610,6 @@ class Dataset:
 
         # Create initial manifest
         manifest = Manifest.create(
-            pipeline_name=workspace.name,
-            base_path=workspace.base_path,
             run_id=run_id,
             component_id=load_component_name,
             cache_key="42",
@@ -682,7 +652,13 @@ class Dataset:
                             msg,
                         )
 
-            manifest = manifest.evolve(operation_spec, run_id=run_id)
+            # Note: the manifest created here does not have to contain a valid working dir. The
+            # manifest information are only used for validation during.
+            manifest = manifest.evolve(
+                operation_spec,
+                run_id=run_id,
+                working_directory="dummy-dir",
+            )
             load_component = False
 
         logger.info("All pipeline component specifications match.")
@@ -713,12 +689,11 @@ class Dataset:
 
         evolved_manifest = self.manifest.evolve(
             operation.operation_spec,
-            run_id=self.run_id,
+            run_id=Dataset.get_run_id(self.name),
         )
 
         evolved_dataset = Dataset(
             manifest=evolved_manifest,
-            run_id=self.run_id,
         )
 
         evolved_dataset._graph = self._graph
@@ -830,8 +805,6 @@ class Dataset:
         Returns:
             An intermediate dataset.
         """
-        # TODO: add method call to retrieve workspace context, and make passing workspace optional
-
         operation = ComponentOp.from_ref(
             ref,
             fields=self.fields,

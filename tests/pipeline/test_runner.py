@@ -6,7 +6,8 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
-from fondant.dataset import Dataset, Workspace
+from fondant.core.manifest import Manifest
+from fondant.dataset import Dataset
 from fondant.dataset.runner import (
     DockerRunner,
     KubeflowRunner,
@@ -15,12 +16,6 @@ from fondant.dataset.runner import (
 )
 
 VALID_PIPELINE = Path("./tests/pipeline/examples/pipelines/compiled_pipeline/")
-
-WORKSPACE = Workspace(
-    name="testpipeline",
-    description="description of the test pipeline",
-    base_path="/foo/bar",
-)
 
 
 @pytest.fixture()
@@ -42,7 +37,7 @@ def mock_docker_installation(monkeypatch):  # noqa: PT004
 def test_docker_runner(mock_docker_installation):
     """Test that the docker runner while mocking subprocess.call."""
     with mock.patch("subprocess.call") as mock_call:
-        DockerRunner().run("some/path", workspace=WORKSPACE)
+        DockerRunner().run("some/path", working_directory="/foo/bar")
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -63,14 +58,9 @@ def test_docker_runner_from_pipeline(mock_docker_installation, tmp_path_factory)
     with mock.patch("subprocess.call") as mock_call, tmp_path_factory.mktemp(
         "temp",
     ) as fn:
-        workspace = Workspace(
-            name="testpipeline",
-            description="description of the test pipeline",
-            base_path=str(fn),
-        )
-
-        dataset = Dataset()
-        DockerRunner().run(dataset, workspace)
+        manifest = Manifest.create(dataset_name="my_dataset", run_id="001")
+        dataset = Dataset(manifest)
+        DockerRunner().run(dataset, working_directory=str(fn))
         mock_call.assert_called_once_with(
             [
                 "docker",
@@ -166,7 +156,7 @@ def test_kubeflow_runner():
         new=MockKfpClient,
     ):
         runner = KubeflowRunner(host="some_host")
-        runner.run(dataset=input_spec_path, workspace=WORKSPACE)
+        runner.run(dataset=input_spec_path, working_directory="/foo/bar")
 
         assert runner.client.host == "some_host"
 
@@ -181,7 +171,7 @@ def test_kubeflow_runner_new_experiment():
         runner.run(
             dataset=input_spec_path,
             experiment_name="NewExperiment",
-            workspace=WORKSPACE,
+            working_directory="/foo/bar",
         )
 
 
@@ -201,7 +191,7 @@ class MockKubeFlowCompiler:
     def compile(
         self,
         dataset,
-        workspace,
+        working_directory,
         output_path,
     ) -> None:
         with open(output_path, "w") as f:
@@ -219,10 +209,11 @@ def test_kubeflow_runner_from_pipeline():
         new=MockKfpClient,
     ):
         runner = KubeflowRunner(host="some_host")
-        dataset = Dataset()
+        manifest = Manifest.create(dataset_name="my_dataset", run_id="001")
+        dataset = Dataset(manifest)
         runner.run(
             dataset=dataset,
-            workspace=WORKSPACE,
+            working_directory="/foo/bar",
         )
 
         mock_run.assert_called_once_with(
@@ -237,7 +228,7 @@ def test_vertex_runner():
         "google.cloud.aiplatform.PipelineJob",
     ):
         runner = VertexRunner(project_id="some_project", region="some_region")
-        runner.run(dataset=input_spec_path, workspace=WORKSPACE)
+        runner.run(dataset=input_spec_path, working_directory="/foo/bar")
 
         # test with service account
         runner2 = VertexRunner(
@@ -245,7 +236,7 @@ def test_vertex_runner():
             region="some_region",
             service_account="some_account",
         )
-        runner2.run(dataset=input_spec_path, workspace=WORKSPACE)
+        runner2.run(dataset=input_spec_path, working_directory="/foo/bar")
 
 
 def test_vertex_runner_from_pipeline():
@@ -257,9 +248,10 @@ def test_vertex_runner_from_pipeline():
         return_value=None,
     ):
         runner = VertexRunner(project_id="some_project", region="some_region")
+        manifest = Manifest.create(dataset_name="my_dataset", run_id="001")
         runner.run(
-            dataset=Dataset(),
-            workspace=WORKSPACE,
+            dataset=Dataset(manifest),
+            working_directory="/foo/bar",
         )
 
         mock_run.assert_called_once_with(".fondant/vertex-pipeline.yaml")
@@ -276,7 +268,7 @@ def test_sagemaker_runner(tmp_path_factory):
 
         runner.run(
             dataset=tmpdir / "spec.json",
-            workspace=WORKSPACE,
+            working_directory="/foo/bar",
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -303,7 +295,7 @@ def test_sagemaker_runner(tmp_path_factory):
 
         runner.run(
             dataset=tmpdir / "spec.json",
-            workspace=WORKSPACE,
+            working_directory="/foo/bar",
             pipeline_name="pipeline_1",
             role_arn="arn:something",
         )
@@ -326,7 +318,7 @@ class MockSagemakerCompiler:
     def compile(
         self,
         dataset,
-        workspace,
+        working_directory,
         output_path,
         *,
         role_arn,
@@ -341,9 +333,10 @@ def test_sagemaker_runner_from_pipeline():
         new=MockSagemakerCompiler,
     ), mock.patch("boto3.client", spec=True):
         runner = SagemakerRunner()
+        manifest = Manifest.create(dataset_name="my_dataset", run_id="001")
         runner.run(
-            dataset=Dataset(),
-            workspace=WORKSPACE,
-            pipeline_name=WORKSPACE.name,
+            dataset=Dataset(manifest),
+            working_directory="/foo/bar",
+            pipeline_name="my_dataset",
             role_arn="arn:something",
         )

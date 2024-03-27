@@ -126,20 +126,30 @@ def test_write_dataset(
     columns = ["Name", "HP", "Type 1", "Type 2"]
     with tmp_path_factory.mktemp("temp") as temp_dir:
         # override the base path of the manifest with the temp dir
-        manifest.update_metadata("base_path", str(temp_dir))
+        run_id = "01"
+        operation_spec = OperationSpec(component_spec)
+        output_manifest = manifest.evolve(
+            operation_spec=operation_spec,
+            run_id=run_id,
+            working_directory=str(temp_dir),
+        )
+
         data_writer = DaskDataWriter(
-            manifest=manifest,
-            operation_spec=OperationSpec(component_spec),
+            manifest=output_manifest,
+            operation_spec=operation_spec,
         )
 
         # write dataframe to temp dir
         data_writer.write_dataframe(dataframe)
         # read written data and assert
         dataframe = dd.read_parquet(
-            temp_dir
-            / manifest.pipeline_name
-            / manifest.run_id
-            / component_spec.safe_name,
+            str(temp_dir)
+            + "/"
+            + manifest.dataset_name
+            + "/"
+            + run_id
+            + "/"
+            + operation_spec.component_name,
         )
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert list(dataframe.columns) == columns
@@ -167,27 +177,36 @@ def test_write_dataset_custom_produces(
     expected_columns = ["LastName", "HealthPoints", "CustomFieldName", "Type 2"]
     with tmp_path_factory.mktemp("temp") as temp_dir:
         # override the base path of the manifest with the temp dir
-        manifest.update_metadata("base_path", str(temp_dir))
+        run_id = "01"
+        operation_spec = OperationSpec(component_spec_produces, produces=produces)
+        output_manifest = manifest.evolve(
+            operation_spec=operation_spec,
+            run_id=run_id,
+            working_directory=str(temp_dir),
+        )
+
         data_writer = DaskDataWriter(
-            manifest=manifest,
-            operation_spec=OperationSpec(component_spec_produces, produces=produces),
+            manifest=output_manifest,
+            operation_spec=operation_spec,
         )
 
         # write dataframe to temp dir
         data_writer.write_dataframe(dataframe)
         # # read written data and assert
         dataframe = dd.read_parquet(
-            temp_dir
-            / manifest.pipeline_name
-            / manifest.run_id
-            / component_spec_produces.safe_name,
+            str(temp_dir)
+            + "/"
+            + manifest.dataset_name
+            + "/"
+            + run_id
+            + "/"
+            + operation_spec.component_name,
         )
         assert len(dataframe) == NUMBER_OF_TEST_ROWS
         assert sorted(dataframe.columns) == sorted(expected_columns)
         assert dataframe.index.name == "id"
 
 
-# TODO: check if this is still needed?
 def test_write_reset_index(
     tmp_path_factory,
     dataframe,
@@ -200,14 +219,25 @@ def test_write_reset_index(
     """
     dataframe = dataframe.reset_index(drop=True)
     with tmp_path_factory.mktemp("temp") as fn:
-        manifest.update_metadata("base_path", str(fn))
+        operation_spec = OperationSpec(component_spec)
+        output_manifest = manifest.evolve(
+            operation_spec=operation_spec,
+            run_id="01",
+            working_directory=str(fn),
+        )
 
         data_writer = DaskDataWriter(
-            manifest=manifest,
-            operation_spec=OperationSpec(component_spec),
+            manifest=output_manifest,
+            operation_spec=operation_spec,
         )
         data_writer.write_dataframe(dataframe)
-        dataframe = dd.read_parquet(fn)
+        dataframe = dd.read_parquet(
+            str(fn)
+            + "/"
+            + manifest.dataset_name
+            + "/01/"
+            + operation_spec.component_name,
+        )
         assert dataframe.index.name == "id"
 
 
@@ -225,16 +255,27 @@ def test_write_divisions(  # noqa: PLR0913
     dataframe = dataframe.repartition(npartitions=partitions)
 
     with tmp_path_factory.mktemp("temp") as fn:
-        manifest.update_metadata("base_path", str(fn))
+        operation_spec = OperationSpec(component_spec)
+        output_manifest = manifest.evolve(
+            operation_spec=operation_spec,
+            run_id="01",
+            working_directory=str(fn),
+        )
 
         data_writer = DaskDataWriter(
-            manifest=manifest,
-            operation_spec=OperationSpec(component_spec),
+            manifest=output_manifest,
+            operation_spec=operation_spec,
         )
 
         data_writer.write_dataframe(dataframe)
 
-        dataframe = dd.read_parquet(fn)
+        dataframe = dd.read_parquet(
+            str(fn)
+            + "/"
+            + manifest.dataset_name
+            + "/01/"
+            + operation_spec.component_name,
+        )
         assert dataframe.index.name == "id"
         assert dataframe.npartitions == partitions
 

@@ -87,6 +87,7 @@ def test_evolution(input_manifest, component_spec, output_manifest, test_conditi
         evolved_manifest = manifest.evolve(
             operation_spec=operation_spec,
             run_id=run_id,
+            working_directory="gs://bucket/dataset",
         )
         assert evolved_manifest._specification == output_manifest
 
@@ -112,22 +113,3 @@ def test_invalid_evolution_examples(
                 operation_spec=operation_spec,
                 run_id=run_id,
             )
-
-
-def test_component_spec_location_update():
-    with open(EXAMPLES_PATH / "input_manifest.json") as f:
-        input_manifest = json.load(f)
-
-    with open(EXAMPLES_PATH / "4/component.yaml") as f:
-        specification = yaml.safe_load(f)
-
-    manifest = Manifest(input_manifest)
-    component_spec = ComponentSpec.from_dict(specification)
-    evolved_manifest = manifest.evolve(
-        operation_spec=OperationSpec(component_spec),
-        run_id="123",
-    )
-
-    assert evolved_manifest.index.location.endswith(
-        component_spec.safe_name,
-    )

@@ -24,18 +24,19 @@ class Metadata:
     Class representing the Metadata of the manifest.
 
     Args:
-        base_path: the base path used to store the artifacts
-        pipeline_name: the name of the pipeline
+        dataset_name: the name of the pipeline
         run_id: the run id of the pipeline
         component_id: the name of the component
         cache_key: the cache key of the component.
+        manifest_location: path to the manifest file itself
+        dataset_location: path to the stored parquet files
     """
 
-    base_path: str
-    pipeline_name: str
+    dataset_name: t.Optional[str]
     run_id: str
     component_id: t.Optional[str]
     cache_key: t.Optional[str]
+    manifest_location: t.Optional[str]
 
     def to_dict(self):
         return asdict(self)
@@ -93,32 +94,32 @@ class Manifest:
     def create(
         cls,
         *,
-        pipeline_name: str,
-        base_path: str,
+        dataset_name: t.Optional[str] = "",
         run_id: str,
         component_id: t.Optional[str] = None,
         cache_key: t.Optional[str] = None,
+        manifest_location: t.Optional[str] = None,
     ) -> "Manifest":
         """Create an empty manifest.
 
         Args:
-            pipeline_name: the name of the pipeline
-            base_path: The base path of the manifest
+            dataset_name: the name of the dataset
             run_id: The id of the current pipeline run
             component_id: The id of the current component being executed
             cache_key: The component cache key
+            manifest_location: location of the manifest.json file itself
         """
         metadata = Metadata(
-            pipeline_name=pipeline_name,
-            base_path=base_path,
+            dataset_name=dataset_name,
             run_id=run_id,
             component_id=component_id,
             cache_key=cache_key,
+            manifest_location=manifest_location,
         )
 
         specification = {
             "metadata": metadata.to_dict(),
-            "index": {"location": f"/{run_id}/{component_id}"},
+            "index": {},
             "fields": {},
         }
         return cls(specification)
@@ -132,8 +133,28 @@ class Manifest:
 
     def to_file(self, path: t.Union[str, Path]) -> None:
         """Dump the manifest to the file specified by the provided path."""
+        self._specification["metadata"]["manifest_location"] = path
         with fs_open(path, "w", encoding="utf-8", auto_mkdir=True) as file_:
             json.dump(self._specification, file_)
+
+    @property
+    def manifest_location(self):
+        return self._specification["metadata"]["manifest_location"]
+
+    def get_dataset_columns_locations(
+        self,
+        columns: t.List[str],
+    ) -> t.List[str]:
+        """Select the fields which matching the column names and return their locations."""
+        relevant_fields = [
+            field for _, field in self.fields.items() if field.name in columns
+        ]
+
+        return [
+            field.location
+            for field in relevant_fields
+            if isinstance(field, Field) and field.location
+        ]
 
     def copy(self) -> "Manifest":
         """Return a deep copy of itself."""
@@ -150,20 +171,16 @@ class Manifest:
     def update_metadata(self, key: str, value: t.Any) -> None:
         self.metadata[key] = value
 
-    @property
-    def base_path(self) -> str:
-        return self.metadata["base_path"]
-
     def get_field_location(self, field_name: str):
         """Return absolute path to the field location."""
         if field_name == "id":
-            return f"{self.base_path}/{self.pipeline_name}{self.index.location}"
+            return self.index.location
         if field_name not in self.fields:
             msg = f"Field {field_name} is not available in the manifest."
             raise ValueError(msg)
 
         field = self.fields[field_name]
-        return f"{self.base_path}/{self.pipeline_name}{field.location}"
+        return field.location
 
     @property
     def run_id(self) -> str:
@@ -174,8 +191,8 @@ class Manifest:
         return self.metadata["component_id"]
 
     @property
-    def pipeline_name(self) -> str:
-        return self.metadata["pipeline_name"]
+    def dataset_name(self) -> str:
+        return self.metadata["dataset_name"]
 
     @property
     def cache_key(self) -> str:
@@ -243,6 +260,7 @@ class Manifest:
         operation_spec: OperationSpec,
         *,
         run_id: str,
+        working_directory: t.Optional[str] = None,
     ) -> "Manifest":
         """Evolve the manifest based on the component spec. The resulting
         manifest is the expected result if the current manifest is provided
@@ -252,6 +270,7 @@ class Manifest:
             operation_spec: the operation spec
             run_id: the run id to include in the evolved manifest. If no run id is provided,
             the run id from the original manifest is propagated.
+            working_directory: path of the working directory
         """
         evolved_manifest = self.copy()
 
@@ -260,25 +279,62 @@ class Manifest:
         evolved_manifest.update_metadata(key="component_id", value=component_id)
         evolved_manifest.update_metadata(key="run_id", value=run_id)
 
-        # Update index location as this is always rewritten
-        evolved_manifest.add_or_update_field(
-            Field(name="index", location=f"/{run_id}/{component_id}"),
+        evolved_manifest = self.evolve_manifest_index_and_field_locations(
+            component_id,
+            evolved_manifest,
+            operation_spec,
+            run_id,
+            working_directory,
         )
+
+        return evolved_manifest
+
+    def evolve_manifest_index_and_field_locations(  # noqa PLR0913
+        self,
+        component_id: str,
+        evolved_manifest: "Manifest",
+        operation_spec: OperationSpec,
+        run_id: str,
+        working_dir: t.Optional[str] = None,
+    ):
+        """Evolve the manifest index and field locations based on the component spec."""
+        # Update index location as this is always rewritten
+        # TODO: handle index location - do we have to update/rewrite the index to the new location?
+        if working_dir:
+            field = Field.create(
+                name="index",
+                working_dir=working_dir,
+                run_id=run_id,
+                component_id=component_id,
+                dataset_name=self.dataset_name,
+            )
+            evolved_manifest.add_or_update_field(field, overwrite=False)
 
         # Remove all previous fields if the component changes the index
         if operation_spec.previous_index:
             for field_name in evolved_manifest.fields:
                 evolved_manifest.remove_field(field_name)
-
         # Add or update all produced fields defined in the component spec
         for name, field in operation_spec.produces_to_dataset.items():
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.
-            field.location = f"/{run_id}/{component_id}"
-            evolved_manifest.add_or_update_field(field, overwrite=True)
+            evolved_field = field.update_location(
+                working_dir=working_dir,
+                run_id=run_id,
+                component_id=component_id,
+                dataset_name=self.dataset_name,
+            )
+            evolved_manifest.add_or_update_field(evolved_field, overwrite=True)
 
         return evolved_manifest
+
+    def contains_data(self) -> bool:
+        """Check if the manifest contains data. Checks if any dataset fields exists.
+        Is false in case the dataset manifest was initialised but no data added yet. In this case
+        the manifest only contains metadata like dataset name and run id.
+        """
+        return bool(self._specification["fields"])
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._specification!r})"
