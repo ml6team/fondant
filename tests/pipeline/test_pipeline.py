@@ -10,7 +10,7 @@ import pytest
 import yaml
 from fondant.component import DaskLoadComponent
 from fondant.core.component_spec import ComponentSpec
-from fondant.core.exceptions import InvalidWorkspaceDefinition
+from fondant.core.exceptions import InvalidDatasetDefinition
 from fondant.core.schema import Field, Type
 from fondant.dataset import (
     ComponentOp,
@@ -58,7 +58,7 @@ def test_component_op(
         arguments=component_args,
     )
 
-    with pytest.raises(InvalidWorkspaceDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         ComponentOp(
             Path(components_path / component_names[0]),
             arguments=component_args,
@@ -67,7 +67,7 @@ def test_component_op(
             ),
         )
 
-    with pytest.raises(InvalidWorkspaceDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         ComponentOp(
             Path(components_path / component_names[0]),
             arguments=component_args,
@@ -270,7 +270,7 @@ def test_invalid_pipeline_schema(
     )
 
     # "images_pictures" does not exist in the dataset
-    with pytest.raises(InvalidWorkspaceDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         dataset.apply(
             Path(components_path / "second_component"),
             arguments=component_args,
@@ -278,7 +278,7 @@ def test_invalid_pipeline_schema(
         )
 
     # "images_array" does not exist in the component spec
-    with pytest.raises(InvalidWorkspaceDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         dataset.apply(
             Path(components_path / "second_component"),
             arguments=component_args,
@@ -287,7 +287,7 @@ def test_invalid_pipeline_schema(
 
     # Extra field in the consumes mapping that does not have a corresponding field
     # in the dataset
-    with pytest.raises(InvalidWorkspaceDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         dataset.apply(
             Path(components_path / "second_component"),
             arguments=component_args,
@@ -360,7 +360,7 @@ def test_invalid_pipeline_declaration(
         arguments=component_args,
     )
 
-    with pytest.raises(InvalidWorkspaceDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         dataset._validate_dataset_definition()
 
 
@@ -504,7 +504,7 @@ def test_invoked_field_schema_raise_exception():
         "it with this type:\nType(DataType(string))",
     )
 
-    with pytest.raises(InvalidWorkspaceDefinition, match=expected_error_msg):
+    with pytest.raises(InvalidDatasetDefinition, match=expected_error_msg):
         dataset.validate()
 
 

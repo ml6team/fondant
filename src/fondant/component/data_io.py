@@ -200,12 +200,6 @@ class DaskDataWriter(DataIO):
             columns=dataframe.columns,
         )
 
-        if len(set(location)) > 1:
-            msg = "Writing to multiple locations is currently not supported."
-            raise ValueError(
-                msg,
-            )
-
         output_location_path = location[0]
 
         # Create directory the dataframe will be written to, since this is not handled by Pandas

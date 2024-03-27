@@ -15,8 +15,8 @@ class InvalidComponentSpec(ValidationError, FondantException):
     """Thrown when a component spec cannot be validated against the schema."""
 
 
-class InvalidWorkspaceDefinition(ValidationError, FondantException):
-    """Thrown when a pipeline definition is invalid."""
+class InvalidDatasetDefinition(ValidationError, FondantException):
+    """Thrown when a dataset definition is invalid."""
 
 
 class InvalidTypeSchema(ValidationError, FondantException):

@@ -15,7 +15,7 @@ import pytest
 import yaml
 from fondant.component import DaskLoadComponent
 from fondant.core.component_spec import ComponentSpec
-from fondant.core.exceptions import InvalidWorkspaceDefinition
+from fondant.core.exceptions import InvalidDatasetDefinition
 from fondant.core.manifest import Manifest, Metadata
 from fondant.core.schema import CloudCredentialsMount
 from fondant.dataset import (
@@ -387,7 +387,7 @@ def test_invalid_docker_configuration(tmp_path_factory):
 
     compiler = DockerCompiler()
     with tmp_path_factory.mktemp("temp") as fn, pytest.raises(  # noqa PT012
-        InvalidWorkspaceDefinition,
+        InvalidDatasetDefinition,
     ):
         working_directory = str(fn)
         compiler.compile(
@@ -565,7 +565,7 @@ def test_invalid_kubeflow_configuration(tmp_path_factory):
     )
 
     compiler = KubeFlowCompiler()
-    with pytest.raises(InvalidWorkspaceDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         compiler.compile(
             dataset=dataset,
             working_directory="/foo/bar",
@@ -666,7 +666,7 @@ def test_invalid_vertex_configuration(tmp_path_factory):
         dataset_name="test_pipeline",
     )
     compiler = VertexCompiler()
-    with pytest.raises(InvalidWorkspaceDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         compiler.compile(
             dataset=dataset,
             working_directory="/foo/bar",
