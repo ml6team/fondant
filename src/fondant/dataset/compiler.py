@@ -273,7 +273,8 @@ class DockerCompiler(Compiler):
                             f"{dependency}/manifest.json",
                         ],
                     )
-            if dataset.manifest.contains_data():
+
+            elif dataset.manifest.contains_data():
                 command.extend(
                     [
                         "--input_manifest_path",
