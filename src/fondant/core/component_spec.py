@@ -15,7 +15,7 @@ from jsonschema import Draft4Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
-from fondant.core.exceptions import InvalidComponentSpec, InvalidWorkspaceDefinition
+from fondant.core.exceptions import InvalidComponentSpec, InvalidDatasetDefinition
 from fondant.core.schema import Field, Type
 
 
@@ -411,7 +411,7 @@ class OperationSpec:
             for key, value in mapping.items():
                 if not isinstance(value, (str, pa.DataType)):
                     msg = f"Unexpected type {type(value)} received for key {key} in {name} mapping"
-                    raise InvalidWorkspaceDefinition(msg)
+                    raise InvalidDatasetDefinition(msg)
 
     def _dataset_schema_to_operation_schema(self, name: str) -> t.Mapping[str, Field]:
         """Calculate the operations schema based on dataset schema.
@@ -450,7 +450,7 @@ class OperationSpec:
                         f"already defined in the `{name}` section of the component spec "
                         f"with type {spec_type}"
                     )
-                    raise InvalidWorkspaceDefinition(msg)
+                    raise InvalidDatasetDefinition(msg)
 
         return types.MappingProxyType(mapping)
 
@@ -492,7 +492,7 @@ class OperationSpec:
                     f"argument passed to the operation, but `{operations_column_name}` is not "
                     f"defined in the `{name}` section of the component spec."
                 )
-                raise InvalidWorkspaceDefinition(msg)
+                raise InvalidDatasetDefinition(msg)
 
         return types.MappingProxyType(mapping)
 

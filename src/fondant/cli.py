@@ -902,14 +902,6 @@ def dataset_from_module(module_str: str) -> Dataset:
         msg = f"No dataset found in module {module_str}"
         raise DatasetImportError(msg)
 
-    # Skip this one and choose the first dataset instance?
-    if len(dataset_instances) > 1:
-        msg = (
-            f"Found multiple instantiated datasets in {module_str}. Use the first dataset to start "
-            f"the execution."
-        )
-        logger.info(msg)
-
     return dataset_instances[0]
 
 

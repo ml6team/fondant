@@ -15,7 +15,7 @@ import yaml
 from fsspec.registry import known_implementations
 
 from fondant.core.component_spec import ComponentSpec
-from fondant.core.exceptions import InvalidWorkspaceDefinition
+from fondant.core.exceptions import InvalidDatasetDefinition
 from fondant.core.manifest import Metadata
 from fondant.core.schema import CloudCredentialsMount, DockerVolume
 from fondant.dataset import (
@@ -336,7 +336,7 @@ class DockerCompiler(Compiler):
                     f" is not a valid accelerator type for Docker Compose compiler."
                     f" Available options: {VALID_VERTEX_ACCELERATOR_TYPES}"
                 )
-                raise InvalidWorkspaceDefinition(msg)
+                raise InvalidDatasetDefinition(msg)
 
             if accelerator_name == "GPU":
                 services[component_id]["deploy"] = {
@@ -660,7 +660,7 @@ class KubeFlowCompiler(Compiler):
                     f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
                     f"for Kubeflow compiler. Available options: {VALID_ACCELERATOR_TYPES}"
                 )
-                raise InvalidWorkspaceDefinition(msg)
+                raise InvalidDatasetDefinition(msg)
 
             task.set_accelerator_limit(accelerator_number)
             if accelerator_name == "GPU":
@@ -719,7 +719,7 @@ class VertexCompiler(KubeFlowCompiler):
                     f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
                     f"for Vertex compiler. Available options: {VALID_VERTEX_ACCELERATOR_TYPES}"
                 )
-                raise InvalidWorkspaceDefinition(msg)
+                raise InvalidDatasetDefinition(msg)
 
             task.set_accelerator_type(accelerator_name)
 

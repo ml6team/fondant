@@ -23,8 +23,8 @@ import pyarrow as pa
 from fondant.component import BaseComponent
 from fondant.core.component_spec import ComponentSpec, OperationSpec
 from fondant.core.exceptions import (
+    InvalidDatasetDefinition,
     InvalidLightweightComponent,
-    InvalidWorkspaceDefinition,
 )
 from fondant.core.manifest import Manifest
 from fondant.core.schema import Field
@@ -98,7 +98,7 @@ class Resources:
         """Validate the resources."""
         if bool(self.node_pool_label) != bool(self.node_pool_name):
             msg = "Both node_pool_label and node_pool_name must be specified or both must be None."
-            raise InvalidWorkspaceDefinition(
+            raise InvalidDatasetDefinition(
                 msg,
             )
 
@@ -107,7 +107,7 @@ class Resources:
                 "Both number of accelerators and accelerator name must be specified or both must"
                 " be None."
             )
-            raise InvalidWorkspaceDefinition(
+            raise InvalidDatasetDefinition(
                 msg,
             )
 
@@ -267,7 +267,7 @@ class ComponentOp:
                     f"The dataset does not contain the column {dataset_column_name_or_type} "
                     f"required by the component {component_spec.name}."
                 )
-                raise InvalidWorkspaceDefinition(msg)
+                raise InvalidDatasetDefinition(msg)
 
             # If operations column name is not in the component spec, but additional properties
             # are true we will infer the correct type from the dataset fields
@@ -286,7 +286,7 @@ class ComponentOp:
                         f"but `{operations_column_name}` is not defined in the `consumes` "
                         f"section of the component spec."
                     )
-                    raise InvalidWorkspaceDefinition(msg)
+                    raise InvalidDatasetDefinition(msg)
 
         return validated_consumes
 
@@ -458,7 +458,7 @@ class Dataset:
         pattern = r"^[a-z0-9][a-z0-9_-]*$"
         if not re.match(pattern, name):
             msg = f"The dataset name violates the pattern {pattern}"
-            raise InvalidWorkspaceDefinition(msg)
+            raise InvalidDatasetDefinition(msg)
         return name
 
     @staticmethod
@@ -485,9 +485,7 @@ class Dataset:
         input_dataset: t.Optional["Dataset"],
         output_dataset: t.Optional["Dataset"],
     ) -> None:
-        if self._graph is None:
-            self._graph = OrderedDict()
-
+        """Register an operation in the dataset graph."""
         dependencies = []
         for component_name, info in self._graph.items():
             if info["output_dataset"] == input_dataset:
@@ -594,15 +592,13 @@ class Dataset:
 
     def _validate_dataset_definition(self):
         """
-        Validates the workspace definition by ensuring that the consumed and produced subsets and
+        Validates the dataset definition by ensuring that the consumed and produced subsets and
         their associated fields match and are invoked in the correct order.
 
         Raises:
-            InvalidPipelineDefinition: If a component is trying to invoke a subset that is not
+            InvalidDatasetDefinition: If a component is trying to invoke a subset that is not
              defined or created in previous components, or if an invoked subset's schema does not
-              match the previously created subset definition.
-            base_path: the base path where to store the pipelines artifacts
-            run_id: the run id of the component
+              match the previously created subset definition
         """
         run_id = self.manifest.run_id
         if len(self._graph.keys()) == 0:
@@ -636,7 +632,7 @@ class Dataset:
                             f"in the previous components. \n"
                             f"Available field names: {list(manifest.fields.keys())}"
                         )
-                        raise InvalidWorkspaceDefinition(
+                        raise InvalidDatasetDefinition(
                             msg,
                         )
 
@@ -653,7 +649,7 @@ class Dataset:
                             f"{manifest_field.type}\nThe current component to "
                             f"trying to invoke it with this type:\n{component_field.type}"
                         )
-                        raise InvalidWorkspaceDefinition(
+                        raise InvalidDatasetDefinition(
                             msg,
                         )
 

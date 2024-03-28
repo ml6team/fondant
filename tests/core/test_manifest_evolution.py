@@ -5,7 +5,7 @@ import pyarrow as pa
 import pytest
 import yaml
 from fondant.core.component_spec import ComponentSpec, OperationSpec
-from fondant.core.exceptions import InvalidWorkspaceDefinition
+from fondant.core.exceptions import InvalidDatasetDefinition
 from fondant.core.manifest import Manifest
 
 EXAMPLES_PATH = Path(__file__).parent / "examples/evolution_examples"
@@ -107,7 +107,7 @@ def test_invalid_evolution_examples(
     component_spec = ComponentSpec.from_dict(component_spec)
     for test_condition in test_conditions:
         produces = test_condition["produces"]
-        with pytest.raises(InvalidWorkspaceDefinition):  # noqa: PT012
+        with pytest.raises(InvalidDatasetDefinition):  # noqa: PT012
             operation_spec = OperationSpec(component_spec, produces=produces)
             manifest.evolve(
                 operation_spec=operation_spec,

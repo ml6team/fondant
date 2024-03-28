@@ -24,8 +24,8 @@ class Metadata:
     Class representing the Metadata of the manifest.
 
     Args:
-        dataset_name: the name of the pipeline
-        run_id: the run id of the pipeline
+        dataset_name: the name of the dataset
+        run_id: the run id of the dataset
         component_id: the name of the component
         cache_key: the cache key of the component.
         manifest_location: path to the manifest file itself
