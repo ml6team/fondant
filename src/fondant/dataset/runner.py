@@ -8,8 +8,8 @@ from abc import ABC, abstractmethod
 import yaml
 
 from fondant.core.schema import CloudCredentialsMount
-from fondant.pipeline import Pipeline
-from fondant.pipeline.compiler import (
+from fondant.dataset import Dataset
+from fondant.dataset.compiler import (
     DockerCompiler,
     KubeFlowCompiler,
     SagemakerCompiler,
@@ -53,7 +53,8 @@ class DockerRunner(Runner):
 
     def run(
         self,
-        input: t.Union[Pipeline, str],
+        dataset: t.Union[Dataset, str],
+        working_directory: str,
         *,
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
@@ -62,7 +63,8 @@ class DockerRunner(Runner):
         """Run a pipeline, either from a compiled docker-compose spec or from a fondant pipeline.
 
         Args:
-            input: the pipeline to compile or a path to a already compiled docker-compose spec
+            dataset: the dataset to compile or a path to an already compiled docker-compose spec
+            working_directory: path of the working directory
             extra_volumes: a list of extra volumes (using the Short syntax:
              https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
              to mount in the docker-compose spec.
@@ -72,7 +74,7 @@ class DockerRunner(Runner):
         self.check_docker_install()
         self.check_docker_compose_install()
 
-        if isinstance(input, Pipeline):
+        if isinstance(dataset, Dataset):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/compose.yaml"
             logging.info(
@@ -80,7 +82,8 @@ class DockerRunner(Runner):
             )
             compiler = DockerCompiler()
             compiler.compile(
-                input,
+                dataset,
+                working_directory=working_directory,
                 output_path=output_path,
                 extra_volumes=extra_volumes,
                 build_args=build_args,
@@ -88,7 +91,8 @@ class DockerRunner(Runner):
             )
             self._run(output_path)
         else:
-            self._run(input)
+            # TODO: use better naming for the case, initialising from existing docker compose spec
+            self._run(dataset)
 
     @staticmethod
     def _versionify(version: str) -> t.Tuple[int, ...]:
@@ -112,7 +116,8 @@ class DockerRunner(Runner):
                 .decode("utf-8")
             )
             docker_version = DockerRunner._versionify(res)
-
+            print("Docker version:")
+            print(docker_version)
             if docker_version <= (20, 10, 0):
                 sys.exit(
                     "Docker version is not compatible. Please make sure "
@@ -180,17 +185,19 @@ class KubeflowRunner(Runner):
 
     def run(
         self,
-        input: t.Union[Pipeline, str],
+        dataset: t.Union[Dataset, str],
+        working_directory: str,
         *,
         experiment_name: str = "Default",
     ):
         """Run a pipeline, either from a compiled kubeflow spec or from a fondant pipeline.
 
         Args:
-            input: the pipeline to compile or a path to a already compiled sagemaker spec
+            dataset: the dataset to compile or a path to an already compiled sagemaker spec
+            working_directory: path of the working directory
             experiment_name: the name of the experiment to create
         """
-        if isinstance(input, Pipeline):
+        if isinstance(dataset, Dataset):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/kubeflow-pipeline.yaml"
             logging.info(
@@ -198,12 +205,13 @@ class KubeflowRunner(Runner):
             )
             compiler = KubeFlowCompiler()
             compiler.compile(
-                input,
+                dataset,
+                working_directory=working_directory,
                 output_path=output_path,
             )
             self._run(output_path, experiment_name=experiment_name)
         else:
-            self._run(input, experiment_name=experiment_name)
+            self._run(dataset, experiment_name=experiment_name)
 
     def _run(
         self,
@@ -263,14 +271,16 @@ class VertexRunner(Runner):
 
     def run(
         self,
-        input: t.Union[Pipeline, str],
+        dataset: t.Union[Dataset, str],
+        working_directory: str,
     ):
         """Run a pipeline, either from a compiled vertex spec or from a fondant pipeline.
 
         Args:
-            input: the pipeline to compile or a path to a already compiled sagemaker spec
+            dataset: the dataset to compile or a path to an already compiled sagemaker spec
+            working_directory: path of the working directory
         """
-        if isinstance(input, Pipeline):
+        if isinstance(dataset, Dataset):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/vertex-pipeline.yaml"
             logging.info(
@@ -278,12 +288,13 @@ class VertexRunner(Runner):
             )
             compiler = VertexCompiler()
             compiler.compile(
-                input,
+                dataset,
+                working_directory=working_directory,
                 output_path=output_path,
             )
             self._run(output_path)
         else:
-            self._run(input)
+            self._run(dataset)
 
     def _run(self, input_spec: str, *args, **kwargs):
         job = self.aip.PipelineJob(
@@ -322,19 +333,22 @@ class SagemakerRunner(Runner):
 
     def run(
         self,
-        input: t.Union[Pipeline, str],
+        dataset: t.Union[Dataset, str],
+        working_directory: str,
         pipeline_name: str,
         role_arn: str,
     ):
-        """Run a pipeline, either from a compiled sagemaker spec or from a fondant pipeline.
+        """Run a dataset execution, either from a compiled sagemaker spec or from a fondant
+        pipeline.
 
         Args:
-            input: the pipeline to compile or a path to a already compiled sagemaker spec
+            dataset: the dataset to compile or a path to a already compiled sagemaker spec
+            working_directory: path of the working directory
             pipeline_name: the name of the pipeline to create
             role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
         """
-        if isinstance(input, Pipeline):
+        if isinstance(dataset, Dataset):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/sagemaker-pipeline.yaml"
             logging.info(
@@ -342,13 +356,14 @@ class SagemakerRunner(Runner):
             )
             compiler = SagemakerCompiler()
             compiler.compile(
-                input,
+                dataset=dataset,
+                working_directory=working_directory,
                 output_path=output_path,
                 role_arn=role_arn,
             )
             self._run(output_path, pipeline_name=pipeline_name, role_arn=role_arn)
         else:
-            self._run(input, pipeline_name=pipeline_name, role_arn=role_arn)
+            self._run(dataset, pipeline_name=pipeline_name, role_arn=role_arn)
 
     def _run(self, input_spec: str, pipeline_name: str, role_arn: str):
         """Creates/updates a sagemaker pipeline and execute it."""

@@ -8,7 +8,7 @@ description: |
 
   ```python
   import pyarrow as pa
-  from fondant.pipeline import Pipeline
+  from fondant.dataset import Pipeline
 
   pipeline = Pipeline(name="my_pipeline", base_path="path/to/pipeline")
 
@@ -42,7 +42,7 @@ description: |
   
   ```python
   import pyarrow as pa
-  from fondant.pipeline import Pipeline
+  from fondant.dataset import Pipeline
   
   pipeline = Pipeline(name="my_pipeline",base_path="path/to/pipeline")
   

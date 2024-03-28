@@ -10,7 +10,7 @@ To run the component with text snippets as input, the component needs to be conn
 
 ```python
 import pyarrow as pa
-from fondant.pipeline import Pipeline
+from fondant.dataset import Pipeline
 
 pipeline = Pipeline(name="my_pipeline", base_path="path/to/pipeline")
 
@@ -44,7 +44,7 @@ dataset.write(
 
 ```python
 import pyarrow as pa
-from fondant.pipeline import Pipeline
+from fondant.dataset import Pipeline
 
 pipeline = Pipeline(name="my_pipeline",base_path="path/to/pipeline")
 

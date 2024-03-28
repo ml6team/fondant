@@ -102,7 +102,7 @@ If your dataset has a field called `custom_text` with type `string`, you can map
 
 ```python 
 
-dataset = pipeline.read(...)
+dataset = Dataset.read(...)
 dataset = dataset.apply(
     "example_component",
     consumes={
@@ -127,7 +127,7 @@ so as follows:
 
 ```python 
 
-dataset = pipeline.read(...)
+dataset = Dataset.read(...)
 dataset = dataset.apply(
     "example_component",
     produces={
@@ -165,7 +165,7 @@ in the component specification, so we will need to specify the schema of the
 fields when defining the components
 
 ```python
-dataset = pipeline.read(
+dataset = Dataset.read(
     "load_from_csv",
     arguments={
         "dataset_uri": "path/to/dataset.csv",
@@ -196,7 +196,7 @@ by the next component. We can either load the `image` field:
 
 ```python 
 
-dataset = pipeline.read(
+dataset = Dataset.read(
     "load_from_csv",
     arguments={
         "dataset_uri": "path/to/dataset.csv",
@@ -219,7 +219,7 @@ or the `embedding` field:
 
 ```python 
 
-dataset = pipeline.read(
+dataset = Dataset.read(
     "load_from_csv",
     arguments={
         "dataset_uri": "path/to/dataset.csv",
@@ -268,7 +268,7 @@ These arguments are passed in when the component is instantiated.
 If an argument is not explicitly provided, the default value will be used instead if available.
 
 ```python
-dataset = pipeline.read(
+dataset = Dataset.read(
     "custom_component",
     arguments={
         "custom_argument": "foo"

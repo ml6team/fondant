@@ -13,8 +13,8 @@ import pytest
 from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.component_spec import OperationSpec
 from fondant.core.exceptions import InvalidLightweightComponent
-from fondant.pipeline import Image, Pipeline, lightweight_component
-from fondant.pipeline.compiler import DockerCompiler
+from fondant.dataset import Dataset, Image, lightweight_component
+from fondant.dataset.compiler import DockerCompiler
 from fondant.testing import DockerComposeConfigs
 
 
@@ -29,11 +29,6 @@ def default_fondant_image():
 
 @pytest.fixture()
 def load_pipeline(caplog):
-    pipeline = Pipeline(
-        name="dummy-pipeline",
-        base_path="./data",
-    )
-
     @lightweight_component(
         base_image="python:3.10-slim-buster",
         extra_requires=["pandas", "dask"],
@@ -53,16 +48,17 @@ def load_pipeline(caplog):
 
     load_script = CreateData.image().script
 
-    dataset = pipeline.read(
+    dataset = Dataset.create(
         ref=CreateData,
+        dataset_name="dummy-dataset",
     )
 
     caplog_records = caplog.records
-    return pipeline, dataset, load_script, caplog_records
+    return dataset, load_script, caplog_records
 
 
 def test_build_python_script(load_pipeline):
-    _, _, load_script, _ = load_pipeline
+    _, load_script, _ = load_pipeline
     assert load_script == textwrap.dedent(
         """\
         from typing import *
@@ -90,11 +86,15 @@ def test_build_python_script(load_pipeline):
     )
 
 
-def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
-    pipeline, dataset, load_script, caplog_records = load_pipeline
+def test_lightweight_component_sdk(
+    tmp_path_factory,
+    default_fondant_image,
+    load_pipeline,
+):
+    dataset, load_script, caplog_records = load_pipeline
 
-    assert len(pipeline._graph.keys()) == 1
-    operation_spec_dict = pipeline._graph["createdata"][
+    assert len(dataset._graph.keys()) == 1
+    operation_spec_dict = dataset._graph["createdata"][
         "operation"
     ].operation_spec.to_dict()
     assert operation_spec_dict == {
@@ -142,11 +142,11 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
         ref=AddN,
         arguments={"n": 1},
     )
-    assert len(pipeline._graph.keys()) == 1 + 1
-    assert pipeline._graph["addn"]["dependencies"] == ["createdata"]
-    pipeline._graph["addn"]["operation"].operation_spec.to_json()
+    assert len(dataset._graph.keys()) == 1 + 1
+    assert dataset._graph["addn"]["dependencies"] == ["createdata"]
+    dataset._graph["addn"]["operation"].operation_spec.to_json()
 
-    operation_spec_dict = pipeline._graph["addn"]["operation"].operation_spec.to_dict()
+    operation_spec_dict = dataset._graph["addn"]["operation"].operation_spec.to_dict()
     assert operation_spec_dict == {
         "specification": {
             "name": "AddN",
@@ -170,9 +170,10 @@ def test_lightweight_component_sdk(default_fondant_image, load_pipeline):
         },
         "produces": {},
     }
-    pipeline._validate_pipeline_definition(run_id="dummy-run-id")
+    dataset._validate_dataset_definition()
 
-    DockerCompiler().compile(pipeline)
+    with tmp_path_factory.mktemp("temp") as fn:
+        DockerCompiler().compile(dataset=dataset, working_directory=str(fn))
 
 
 def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
@@ -192,7 +193,7 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
             dataframe["a"] = dataframe["a"].map(lambda x: x + self.n)
             return dataframe
 
-    pipeline, dataset, _, _ = load_pipeline
+    dataset, _, _ = load_pipeline
 
     _ = dataset.apply(
         ref=AddN,
@@ -202,7 +203,11 @@ def test_consumes_mapping_all_fields(tmp_path_factory, load_pipeline):
 
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
+        DockerCompiler().compile(
+            dataset=dataset,
+            output_path=output_path,
+            working_directory=str(fn),
+        )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
             pipeline_configs.component_configs["addn"].arguments["operation_spec"],
@@ -228,9 +233,9 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
             dataframe["a"] = dataframe["a"].map(lambda x: x + self.n)
             return dataframe
 
-    pipeline, dataset, _, _ = load_pipeline
+    dataset, _, _ = load_pipeline
 
-    _ = dataset.apply(
+    dataset = dataset.apply(
         ref=AddN,
         consumes={"a": "x"},
         arguments={"n": 1},
@@ -238,7 +243,11 @@ def test_consumes_mapping_specific_fields(tmp_path_factory, load_pipeline):
 
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
+        DockerCompiler().compile(
+            dataset=dataset,
+            output_path=output_path,
+            working_directory=str(fn),
+        )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
             pipeline_configs.component_configs["addn"].arguments["operation_spec"],
@@ -265,9 +274,9 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
             dataframe["a"] = dataframe["x"].map(lambda x: x + self.n)
             return dataframe
 
-    pipeline, dataset, _, _ = load_pipeline
+    dataset, _, _ = load_pipeline
 
-    _ = dataset.apply(
+    dataset = dataset.apply(
         ref=AddN,
         consumes={"x": pa.int32()},
         arguments={"n": 1},
@@ -275,7 +284,11 @@ def test_consumes_mapping_additional_fields(tmp_path_factory, load_pipeline):
 
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
+        DockerCompiler().compile(
+            dataset=dataset,
+            output_path=output_path,
+            working_directory=str(fn),
+        )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
             pipeline_configs.component_configs["addn"].arguments["operation_spec"],
@@ -303,9 +316,9 @@ def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
             dataframe["c"] = dataframe["x"].map(lambda x: x + self.n)
             return dataframe
 
-    pipeline, dataset, _, _ = load_pipeline
+    dataset, _, _ = load_pipeline
 
-    _ = dataset.apply(
+    dataset = dataset.apply(
         ref=AddN,
         consumes={"x": pa.int32()},
         produces={"a": pa.int32(), "b": pa.int32(), "c": pa.int32()},
@@ -314,7 +327,11 @@ def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
 
     with tmp_path_factory.mktemp("temp") as fn:
         output_path = str(fn / "kubeflow_pipeline.yml")
-        DockerCompiler().compile(pipeline=pipeline, output_path=output_path)
+        DockerCompiler().compile(
+            dataset=dataset,
+            output_path=output_path,
+            working_directory=str(fn),
+        )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
         operation_spec = OperationSpec.from_json(
             pipeline_configs.component_configs["addn"].arguments["operation_spec"],
@@ -323,17 +340,12 @@ def test_produces_mapping_additional_fields(tmp_path_factory, load_pipeline):
 
 
 def test_lightweight_component_missing_decorator():
-    pipeline = Pipeline(
-        name="dummy-pipeline",
-        base_path="./data",
-    )
-
     class Foo(DaskLoadComponent):
         def load(self) -> str:
             return "bar"
 
     with pytest.raises(InvalidLightweightComponent):
-        _ = pipeline.read(
+        Dataset.create(
             ref=Foo,
             produces={"x": pa.int32(), "y": pa.int32()},
         )
@@ -354,17 +366,12 @@ def test_valid_load_component():
             )
             return dd.from_pandas(df, npartitions=1)
 
-    pipeline = Pipeline(
-        name="dummy-pipeline",
-        base_path="./data",
-    )
-
-    pipeline.read(
+    dataset = Dataset.create(
         ref=CreateData,
     )
 
-    assert len(pipeline._graph.keys()) == 1
-    operation_spec = pipeline._graph["createdata"]["operation"].operation_spec.to_json()
+    assert len(dataset._graph.keys()) == 1
+    operation_spec = dataset._graph["createdata"]["operation"].operation_spec.to_json()
     operation_spec_without_image = json.loads(operation_spec)
 
     assert operation_spec_without_image == {
@@ -443,17 +450,12 @@ def test_lightweight_component_decorator_without_parentheses():
         def load(self) -> dd.DataFrame:
             return None
 
-    pipeline = Pipeline(
-        name="dummy-pipeline",
-        base_path="./data",
-    )
-
-    pipeline.read(
+    dataset = Dataset.create(
         ref=CreateData,
     )
 
-    assert len(pipeline._graph.keys()) == 1
-    operation_spec = pipeline._graph["createdata"]["operation"].operation_spec.to_json()
+    assert len(dataset._graph.keys()) == 1
+    operation_spec = dataset._graph["createdata"]["operation"].operation_spec.to_json()
     operation_spec_without_image = json.loads(operation_spec)
 
     assert operation_spec_without_image == {
@@ -512,7 +514,7 @@ def test_infer_consumes_if_not_defined(load_pipeline):
     Test that the consumes mapping is inferred when not defined in dataset interface.
     All columns of the dataset are consumed.
     """
-    _, dataset, _, _ = load_pipeline
+    dataset, _, _ = load_pipeline
 
     @lightweight_component(
         base_image="python:3.10-slim-buster",
@@ -528,9 +530,7 @@ def test_infer_consumes_if_not_defined(load_pipeline):
         ref=Bar,
     )
 
-    operation_spec_dict = dataset.pipeline._graph["bar"][
-        "operation"
-    ].operation_spec.to_dict()
+    operation_spec_dict = dataset._graph["bar"]["operation"].operation_spec.to_dict()
     assert operation_spec_dict == {
         "consumes": {
             "x": {"type": "int32"},
@@ -561,7 +561,7 @@ def test_infer_consumes_if_additional_properties_true(load_pipeline):
     Test when additional properties is true (no consumes defined in the lightweight component),
     the consumes is inferred from the dataset interface.
     """
-    _, dataset, _, _ = load_pipeline
+    dataset, _, _ = load_pipeline
 
     @lightweight_component(
         base_image="python:3.10-slim-buster",
@@ -576,9 +576,7 @@ def test_infer_consumes_if_additional_properties_true(load_pipeline):
         ref=Bar,
     )
 
-    operation_spec_dict = dataset.pipeline._graph["bar"][
-        "operation"
-    ].operation_spec.to_dict()
+    operation_spec_dict = dataset._graph["bar"]["operation"].operation_spec.to_dict()
     assert operation_spec_dict == {
         "consumes": {
             "x": {"type": "int32"},

@@ -13,7 +13,7 @@ import pyarrow as pa
 from fondant.component import BaseComponent, Component
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.schema import Type
-from fondant.pipeline.argument_inference import infer_arguments
+from fondant.dataset.argument_inference import infer_arguments
 
 logger = logging.getLogger(__name__)
 

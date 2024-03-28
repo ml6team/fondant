@@ -5,7 +5,7 @@ import pytest
 from fondant.component import PandasTransformComponent
 from fondant.core.component_spec import Argument
 from fondant.core.exceptions import UnsupportedTypeAnnotation
-from fondant.pipeline.argument_inference import infer_arguments
+from fondant.dataset.argument_inference import infer_arguments
 
 
 def test_no_init():

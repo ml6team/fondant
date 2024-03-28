@@ -9,7 +9,7 @@ from pathlib import Path
 
 import docker
 
-from fondant.pipeline import ComponentOp
+from fondant.dataset import ComponentOp
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

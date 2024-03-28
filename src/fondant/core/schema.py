@@ -261,7 +261,7 @@ class Field:
         self,
         name: str,
         type: Type = Type("null"),
-        location: str = "",
+        location: t.Optional[str] = None,
     ) -> None:
         self.name = name
         self.type = type

@@ -37,10 +37,9 @@ At a high level, Fondant consists of three main parts:
       component type.
 
 
-* The `/pipeline` directory which contains the modules for implementing a Fondant pipeline.
-    * `pipeline.py`: Defines the `Pipeline` class which is used to define the pipeline graph and the
-      pipeline run. The
-      implemented class is then consumed by the compiler to compile to a specific pipeline runner.
+* The `/dataset` directory which contains the modules for implementing a Fondant pipeline.
+    * `dataset.py`: Defines the `Dataset` class which is used to define the graph. The
+      implemented class is then consumed by the compiler to compile to a specific runner.
       This module also implements the
       `ComponentOp` class which is used to define the component operation in the pipeline graph.
     * `compiler.py`: Defines the `Compiler` class which is used to define the compiler that
