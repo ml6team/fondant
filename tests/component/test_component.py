@@ -591,3 +591,32 @@ def test_write_component(metadata):
     with mock.patch.object(MyWriteComponent, "write", write):
         executor.execute(MyWriteComponent)
         write.mock.assert_called_once()
+
+
+def test_skipping_empty_partition():
+    # Create an empty dataframe to simulate empty partitions
+    input_df = pd.DataFrame.from_dict(
+        {
+            "image_height": [],
+            "image_width": [],
+            "caption_text": [],
+        },
+    )
+
+    def transform(dataframe: pd.DataFrame) -> pd.DataFrame:
+        msg = "This should not be called"
+        raise ValueError(msg)
+
+    wrapped_transform = PandasTransformExecutor.wrap_transform(
+        transform,
+        operation_spec=OperationSpec(
+            ComponentSpec(
+                name="dummy-spec",
+                image="dummy-image",
+                description="dummy-description",
+            ),
+        ),
+    )
+
+    output_df = wrapped_transform(input_df)
+    assert output_df.equals(pd.DataFrame())
