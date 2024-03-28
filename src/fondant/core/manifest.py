@@ -299,16 +299,15 @@ class Manifest:
     ):
         """Evolve the manifest index and field locations based on the component spec."""
         # Update index location as this is always rewritten
-        # TODO: handle index location - do we have to update/rewrite the index to the new location?
         if working_dir:
-            field = Field.create(
+            index = Field.create(
                 name="index",
                 working_dir=working_dir,
                 run_id=run_id,
                 component_id=component_id,
                 dataset_name=self.dataset_name,
             )
-            evolved_manifest.add_or_update_field(field, overwrite=False)
+            evolved_manifest.add_or_update_field(index, overwrite=False)
 
         # Remove all previous fields if the component changes the index
         if operation_spec.previous_index:
