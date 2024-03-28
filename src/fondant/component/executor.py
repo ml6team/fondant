@@ -497,12 +497,10 @@ class PandasTransformExecutor(TransformExecutor[PandasTransformComponent]):
                 name for name, field in operation_spec.operation_produces.items()
             ]
 
-            if dataframe.empty:
+            if not dataframe.empty:
+                dataframe = transform(dataframe)
+            else:
                 logger.info("Received empty partition, skipping transformation.")
-                return pd.DataFrame(columns=columns)
-
-            # Call transform method
-            dataframe = transform(dataframe)
 
             # Drop columns not in specification
             return dataframe[columns]
