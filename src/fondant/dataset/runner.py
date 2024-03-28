@@ -116,7 +116,8 @@ class DockerRunner(Runner):
                 .decode("utf-8")
             )
             docker_version = DockerRunner._versionify(res)
-
+            print("Docker version:")
+            print(docker_version)
             if docker_version <= (20, 10, 0):
                 sys.exit(
                     "Docker version is not compatible. Please make sure "
