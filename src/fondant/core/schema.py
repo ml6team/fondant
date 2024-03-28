@@ -274,33 +274,6 @@ class Field:
     def __eq__(self, other):
         return vars(self) == vars(other)
 
-    @classmethod
-    def create(  # noqa: PLR0913
-        cls,
-        name: str,
-        run_id: str,
-        component_id: str,
-        dataset_name: str,
-        working_dir: t.Optional[str] = None,
-    ):
-        """Create a Field instance with the correct location based on the provided parameters."""
-        if working_dir:
-            location = f"{working_dir}/{dataset_name}/{run_id}/{component_id}"
-            return Field(name=name, location=location)
-        return Field(name=name)
-
-    def update_location(
-        self,
-        run_id: str,
-        component_id: str,
-        dataset_name: str,
-        working_dir: t.Optional[str] = None,
-    ):
-        """Update the location of the field based on the provided parameters."""
-        if working_dir:
-            self.location = f"{working_dir}/{dataset_name}/{run_id}/{component_id}"
-        return self
-
 
 def validate_partition_size(arg_value):
     if arg_value in ["disable", None, "None"]:

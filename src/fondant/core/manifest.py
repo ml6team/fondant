@@ -280,53 +280,65 @@ class Manifest:
         evolved_manifest.update_metadata(key="run_id", value=run_id)
 
         evolved_manifest = self.evolve_manifest_index_and_field_locations(
-            component_id,
-            evolved_manifest,
-            operation_spec,
-            run_id,
-            working_directory,
+            evolved_manifest=evolved_manifest,
+            operation_spec=operation_spec,
+            working_directory=working_directory,
         )
 
         return evolved_manifest
 
-    def evolve_manifest_index_and_field_locations(  # noqa PLR0913
+    def evolve_manifest_index_and_field_locations(  # PLR0913
         self,
-        component_id: str,
         evolved_manifest: "Manifest",
         operation_spec: OperationSpec,
-        run_id: str,
-        working_dir: t.Optional[str] = None,
+        working_directory: t.Optional[str] = None,
     ):
         """Evolve the manifest index and field locations based on the component spec."""
         # Update index location as this is always rewritten
-        if working_dir:
-            index = Field.create(
+        if location := self.determine_field_location(
+            manifest=evolved_manifest,
+            operation_spec=operation_spec,
+            working_directory=working_directory,
+        ):
+            index = Field(
                 name="index",
-                working_dir=working_dir,
-                run_id=run_id,
-                component_id=component_id,
-                dataset_name=self.dataset_name,
+                location=location,
             )
-            evolved_manifest.add_or_update_field(index, overwrite=False)
+            evolved_manifest.add_or_update_field(index, overwrite=True)
 
         # Remove all previous fields if the component changes the index
         if operation_spec.previous_index:
             for field_name in evolved_manifest.fields:
                 evolved_manifest.remove_field(field_name)
+
         # Add or update all produced fields defined in the component spec
         for name, field in operation_spec.produces_to_dataset.items():
             # If field was not part of the input manifest, add field to output manifest.
             # If field was part of the input manifest and got produced by the component, update
             # the manifest field.
-            evolved_field = field.update_location(
-                working_dir=working_dir,
-                run_id=run_id,
-                component_id=component_id,
-                dataset_name=self.dataset_name,
+            location = self.determine_field_location(
+                manifest=evolved_manifest,
+                operation_spec=operation_spec,
+                working_directory=working_directory,
             )
-            evolved_manifest.add_or_update_field(evolved_field, overwrite=True)
+            field.location = location
+            evolved_manifest.add_or_update_field(field, overwrite=True)
 
         return evolved_manifest
+
+    def determine_field_location(
+        self,
+        manifest: "Manifest",
+        operation_spec: OperationSpec,
+        working_directory: t.Optional[str] = None,
+    ) -> t.Optional[str]:
+        """Determine the location of the field data."""
+        if working_directory:
+            return (
+                f"{working_directory}/{self.dataset_name}/{manifest.run_id}"
+                f"/{operation_spec.component_name}"
+            )
+        return None
 
     def contains_data(self) -> bool:
         """Check if the manifest contains data. Checks if any dataset fields exists.

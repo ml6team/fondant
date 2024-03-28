@@ -671,10 +671,7 @@ class Dataset:
     @property
     def fields(self) -> t.Mapping[str, Field]:
         """The fields of the manifest as an immutable mapping."""
-        if self.manifest:
-            return dict(self.manifest.fields)
-        msg = "No manifest found."
-        raise ValueError(msg)
+        return dict(self.manifest.fields)
 
     def _apply(self, operation: ComponentOp) -> "Dataset":
         """
