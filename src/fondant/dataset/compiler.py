@@ -602,6 +602,7 @@ class KubeFlowCompiler(Compiler):
                         component_task = kubeflow_component_op(
                             input_manifest_path=input_manifest_path,
                             output_manifest_path=output_manifest_path,
+                            working_directory=working_directory,
                             metadata=metadata.to_json(),
                             **component_args,
                         )
@@ -616,6 +617,7 @@ class KubeFlowCompiler(Compiler):
                     component_task = kubeflow_component_op(
                         metadata=metadata.to_json(),
                         output_manifest_path=output_manifest_path,
+                        working_directory=working_directory,
                         **component_args,
                     )
 
