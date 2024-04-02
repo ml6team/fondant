@@ -110,7 +110,10 @@ class DaskDataLoader(DataIO):
         for location, fields in field_mapping.items():
             if DEFAULT_INDEX_NAME in fields:
                 fields.remove(DEFAULT_INDEX_NAME)
-
+            logger.info(
+                f"Location to load: {location}, columns: {fields}, "
+                f"index: {DEFAULT_INDEX_NAME}",
+            )
             partial_df = dd.read_parquet(
                 location,
                 columns=fields,
