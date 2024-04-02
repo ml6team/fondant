@@ -217,10 +217,10 @@ class DaskDataWriter(DataIO):
         # later and use it in the `pandas.to_parquet` method.
 
         logger.info(f"Dtype of index: {dataframe.index.dtype}")
-
+        dataframe.index = dataframe.index.astype("string")
         schema.update(
             {
-                "id": pa.from_numpy_dtype(dataframe.index.dtype),
+                "id": pa.string(),
             },
         )
 
