@@ -110,6 +110,12 @@ class DaskDataLoader(DataIO):
         for location, fields in field_mapping.items():
             if DEFAULT_INDEX_NAME in fields:
                 fields.remove(DEFAULT_INDEX_NAME)
+
+            import pandas
+
+            logger.info(
+                f"Version of dask {dask.__version__}, pandas version: {pandas.__version__}",
+            )
             logger.info(
                 f"Location to load: {location}, columns: {fields}, "
                 f"index: {DEFAULT_INDEX_NAME}",
