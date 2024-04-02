@@ -7,7 +7,6 @@ components take care of processing, filtering and extending the data.
 import argparse
 import json
 import logging
-import os
 import typing as t
 from abc import abstractmethod
 from distutils.util import strtobool
@@ -81,11 +80,7 @@ class Executor(t.Generic[Component]):
         parser.add_argument("--operation_spec", type=json.loads)
         parser.add_argument("--cache", type=lambda x: bool(strtobool(x)))
         parser.add_argument("--input_partition_rows", type=int)
-        parser.add_argument(
-            "--working_directory",
-            type=str,
-            default="./artifacts/dataset",
-        )
+        parser.add_argument("--working_directory", type=str)
 
         args, _ = parser.parse_known_args()
 
@@ -95,11 +90,7 @@ class Executor(t.Generic[Component]):
 
         operation_spec = OperationSpec.from_dict(args.operation_spec)
 
-        working_directory = (
-            args.working_directory
-            if hasattr(args, "working_directory")
-            else os.path.normpath("./artifacts/dataset")
-        )
+        working_directory = args.working_directory
 
         return cls.from_spec(
             operation_spec,
