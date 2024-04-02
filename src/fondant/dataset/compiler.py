@@ -592,7 +592,7 @@ class KubeFlowCompiler(Compiler):
                     for dependency in component["dependencies"]:
                         input_manifest_path = (
                             f"{working_directory}/{metadata.dataset_name}/{metadata.run_id}"
-                            f"{run_id}/{dependency}/manifest.json"
+                            f"/{dependency}/manifest.json"
                         )
                         kubeflow_component_op = set_component_exec_args(
                             component_op=kubeflow_component_op,
