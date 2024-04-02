@@ -4,9 +4,12 @@ import logging
 import os
 import typing as t
 
+import dask
 import numpy as np
 import pandas as pd
 import torch
+from dask.distributed import Client
+from dask_cuda import LocalCUDACluster
 from fondant.component import PandasTransformComponent
 from PIL import Image
 from transformers import BatchEncoding, BlipForConditionalGeneration, BlipProcessor
@@ -89,6 +92,16 @@ class CaptionImagesComponent(PandasTransformComponent):
 
         self.batch_size = batch_size
         self.max_new_tokens = max_new_tokens
+
+    def setup(self) -> Client:
+        """Setup LocalCudaCluster if gpu is available."""
+        dask.config.set({"dataframe.convert-string": False})
+        dask.config.set({"distributed.worker.daemon": False})
+
+        if self.device == "cuda":
+            cluster = LocalCUDACluster()
+            return Client(cluster)
+        return super().setup()
 
     def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         images = dataframe["image"]
