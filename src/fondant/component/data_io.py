@@ -144,6 +144,7 @@ class DaskDataLoader(DataIO):
 
         dataframe = self.partition_loaded_dataframe(dataframe)
 
+        logging.info(f"Dtype of dataframe index: {dataframe.index.dtype}")
         logging.info(f"Columns of dataframe: {list(dataframe.columns)}")
 
         return dataframe
