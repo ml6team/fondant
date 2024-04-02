@@ -118,6 +118,8 @@ class DaskDataLoader(DataIO):
                 calculate_divisions=True,
             )
 
+            logging.info(f"Dtype of partial dataframe index: {partial_df.index.dtype}")
+
             if dataframe is None:
                 # ensure that the index is set correctly and divisions are known.
                 dataframe = partial_df
@@ -127,6 +129,10 @@ class DaskDataLoader(DataIO):
                     how="left",
                     left_index=True,
                     right_index=True,
+                )
+
+                logging.info(
+                    f"Dtype of partial after merge dataframe index: {partial_df.index.dtype}",
                 )
 
         if dataframe is None:
