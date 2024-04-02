@@ -615,7 +615,7 @@ def run_local(args):
     extra_volumes = []
 
     working_directory = (
-        args.working_directory if args.working_directory else "./.artifacts/dataset"
+        args.working_directory if args.working_directory else "./artifacts"
     )
 
     if args.extra_volumes:
