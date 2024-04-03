@@ -1,11 +1,11 @@
 ### SageMaker Runner
 
-Leverage [AWS SageMaker](https://aws.amazon.com/sagemaker/) to run your Fondant pipelines.
+Leverage [AWS SageMaker](https://aws.amazon.com/sagemaker/) to run your Fondant datasets.
 
-This makes it easy to scale up your pipelines in a serverless manner without worrying about infrastructure
+This makes it easy to scale up your datasets in a serverless manner without worrying about infrastructure
 deployment.
 
-The Fondant SageMaker runner will compile your pipeline to a SageMaker pipeline spec and submit it to SageMaker.
+The Fondant SageMaker runner will compile your Fondant dataset to a SageMaker pipeline spec and submit it to SageMaker.
 
 
 !!! note "IMPORTANT"
@@ -48,7 +48,8 @@ AWS with a role that has all the required permissions to launch a SageMaker pipe
 === "Console"
     
     ```bash 
-    fondant run sagemaker <pipeline_ref> \
+    fondant run sagemaker <dataset_ref> \
+     --working-dir $S3_BUCKET \
      --role-arn $SAGEMAKER_ROLE_ARN 
     ```
     
@@ -56,18 +57,19 @@ AWS with a role that has all the required permissions to launch a SageMaker pipe
 === "Python"
     
     ```python
-    from fondant.pipeline.runner import SageMakerRunner
+    from fondant.dataset.runner import SageMakerRunner
     
     runner = SageMakerRunner()
     runner.run(
-        input=<path_to_pipeline>,
+        input=<path_to_dataset>,
+        working_dir=<s3_bucket>,
         role_arn=<role_arn>,
-        pipeline_name=<pipeline_name>
+        pipeline_name=<sagemaker_pipeline_name>
     )
     ```
 
 
-Once your pipeline is running you can monitor it using the SageMaker [Studio](https://aws.amazon.com/sagemaker/studio/).
+Once your workflow is running you can monitor it using the SageMaker [Studio](https://aws.amazon.com/sagemaker/studio/).
 
 
 
@@ -98,7 +100,7 @@ The SageMaker runner supports assigning a specific `instance_type` to each compo
 If not specified, the default `instance_type` is `ml.t3.medium`. The `instance_type` needs to be a valid SageMaker instance type you can find more info [here](https://docs.aws.amazon.com/sagemaker/latest/dg/notebooks-available-instance-types.html).
 
 ```python
-from fondant.pipeline import Resources
+from fondant.dataset import Resources
 
 images = raw_data.apply(
     "download_images",

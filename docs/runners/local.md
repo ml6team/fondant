@@ -1,11 +1,11 @@
 ### Local Runner
 
 Leverages [docker compose](https://docs.docker.com/compose/). The local runner is mainly aimed
-at helping you develop fondant pipelines and components faster since it allows you to develop on
+at helping you develop fondant datasets and components faster since it allows you to develop on
 your local machine or a Virtual Machine. This enables you to quickly iterate on development. Once
-you have a pipeline developed, Switching to either the [Vertex](vertex.md) or [Kubeflow](kfp.md) runners 
+you have a dataset developed, Switching to either the [Vertex](vertex.md) or [Kubeflow](kfp.md) runners 
 offers many advantages such as the ability to assign specific hardware requirements, 
-better monitoring and pipeline reproducibility.
+better monitoring and reproducibility.
 
 In order to use the local runner, you need to have a recent version of [docker-compose](https://docs.docker.com/compose/install/) installed.
 
@@ -15,35 +15,37 @@ Make sure that you have installed Docker compose on your system. You can find mo
 about this in the [installation](../guides/installation.md) guide.
 
 
-### Running a pipeline with the local runner
+### Running a dataset with the local runner
+
+Fondant will create a default working directory (for intermediate artifacts) for the dataset in the current working directory called '/.artifacts'. You can override this by passing the `--working-dir` argument to the `run` command. Or by setting the `working_dir` argument in the `run` method of the `DockerRunner` class.
 
 === "Console"
 
     ```bash
-    fondant run local <pipeline_ref>
+    fondant run local <dataset_ref>
     ```
-    The pipeline ref is the path to the compiled pipeline spec or a reference to a fondant pipeline.
+    The dataset ref is the path to the compiled dataset spec or a reference to a fondant dataset.
 
-    If you want to use remote paths (GCS, S3, etc.) you can use pass the correct cloud credentials flag to the pipeline.
-    This will mount your default local cloud credentials to the pipeline. Make sure you are authenticated locally before running the pipeline and
-    that you have the correct permissions to access the `base_path` of the pipeline (read/write/create). 
+    If you want to use remote paths (GCS, S3, etc.) you can use pass the correct cloud credentials flag when invoking the runner.
+    This will mount your default local cloud credentials to the containers. Make sure you are authenticated locally before running the work and
+    that you have the correct permissions to access the folder (read/write/create). 
 
     === "GCP"
     
         ```bash
-        fondant run local <pipeline_ref> --auth-provider gcp
+        fondant run local <dataset_ref> --auth-provider gcp
         ```
 
     === "AWS"
     
         ```bash
-        fondant run local <pipeline_ref> --auth-provider aws
+        fondant run local <dataset_ref> --auth-provider aws
         ```
 
     === "Azure"
     
         ```bash
-        fondant run local <pipeline_ref> --auth-provider azure
+        fondant run local <dataset_ref> --auth-provider azure
         ```
 
     You can also use the `--extra-volumes` argument to mount extra credentials or additional files.
@@ -53,19 +55,19 @@ about this in the [installation](../guides/installation.md) guide.
 === "Python"
 
     ```python 
-    from fondant.pipeline.runner import DockerRunner
+    from fondant.dataset.runner import DockerRunner
 
     runner = DockerRunner()
     runner.run(extra_volumes=<str_or_list_of_optional_extra_volumes_to_mount>)
     ```
 
     If you want to use remote paths (GCS, S3, etc.) you can use the authentification argument 
-    in your pipeline
+    while invoking the runner.
 
     === "GCP"
     
         ```python
-        from fondant.pipeline.runner import DockerRunner
+        from fondant.dataset.runner import DockerRunner
         from fondant.core.schema import CloudCredentialsMount
 
         runner = DockerRunner()
@@ -75,7 +77,7 @@ about this in the [installation](../guides/installation.md) guide.
     === "AWS"
     
         ```python
-        from fondant.pipeline.runner import DockerRunner
+        from fondant.dataset.runner import DockerRunner
         from fondant.core.schema import CloudCredentialsMount
 
         runner = DockerRunner()
@@ -85,37 +87,35 @@ about this in the [installation](../guides/installation.md) guide.
     === "Azure"
     
         ```python
-        from fondant.pipeline.runner import DockerRunner
+        from fondant.dataset.runner import DockerRunner
         from fondant.core.schema import CloudCredentialsMount
 
         runner = DockerRunner()
         runner.run(auth_provider=CloudCredentialsMount.AZURE)
         ```
 
-    This will mount your default local cloud credentials to the pipeline. Make sure you are authenticated locally before running the pipeline and
-    that you have the correct permissions to access the `base_path` of the pipeline (read/write/create). 
+    This will mount your default local cloud credentials to the containers. Make sure you are authenticated locally before running the work and
+    that you have the correct permissions to access the folder (read/write/create). 
 
     You can also use the  optional `extra_volumes` argument to mount extra credentials or
     additional files.
     This volumes will be mounted to every component/service of the docker-compose spec.
 
 
-The Docker compiler will compile the pipeline to a docker compose specification before running the pipeline. 
-This will start the pipeline and provide logs per component (service).
+The Docker compiler will compile the dataset to a docker compose specification before running the workflow. 
+This will start the containers and provide logs per component (service).
 
 Components that are not located in the registry (local custom components) will be built on runtime. This allows for quicker iteration
 during component development. 
 
-The local runner will try to check if the `base_path` of the pipeline is a local or remote storage. If it's local, the `base_path` will be mounted as a bind volume on every service/component.
 
-
-#### Assigning custom resources to the pipeline
+#### Assigning custom resources to the execution
 
 The local runner uses the computation resources (RAM, CPU) of the host machine. In case a GPU is available and is needed for a component,
 it needs to be assigned explicitly. 
 
 ```python
-from fondant.pipeline import Resources
+from fondant.dataset import Resources
 
 dataset = dataset.apply(  
     "...",  

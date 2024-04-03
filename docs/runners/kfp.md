@@ -16,39 +16,40 @@ Make sure to install Fondant with the Kubeflow runner extra.
 pip install fondant[kfp]
 ```
 
-### Running a pipeline with Kubeflow
+### Running a dataset with Kubeflow
 
-You will need a Kubeflow cluster to run your pipeline on and specify the host of that cluster. More
+You will need a Kubeflow cluster to run your workflow on and specify the host of that cluster. More
 info on setting up a Kubeflow pipelines deployment and the host path can be found in
 the [kubeflow infrastructure documentation](kfp_infrastructure.md).
 
 === "Console"
     
     ```bash 
-    fondant run kubeflow <pipeline_ref> \
+    fondant run kubeflow <dataset_ref> \
+     --working-dir $WORKING_DIR \
      --host $KUBEFLOW_HOST
     ```
     
-    The pipeline ref is reference to a fondant pipeline (e.g. `pipeline.py`) where a pipeline instance
+    The dataset ref is reference to a fondant dataset (e.g. `pipeline.py`) where a dataset instance
     exists.
 
 
 === "Python"
     
     ```python
-    from fondant.pipeline.compiler import KubeFlowCompiler
-    from fondant.pipeline.runner import KubeFlowRunner
+    from fondant.dataset.compiler import KubeFlowCompiler
+    from fondant.dataset.runner import KubeFlowRunner
     
     compiler= KubeFlowCompiler()
-    compiler.compile(pipeline=<pipeline_object>)
+    compiler.compile(dataset=<dataset_object>)
 
     runner = KubeFlowRunner(host=<kubeflow_host>)
-    runner.run(input_spec=<path_to_compiled_spec>)
+    runner.run(input_spec=<path_to_compiled_spec>, working_dir=<working_dir>)
     ```
 
-Once your pipeline is running you can monitor it using the Kubeflow UI.
+Once your workflow is running you can monitor it using the Kubeflow UI.
 
-#### Assigning custom resources to the pipeline
+#### Assigning custom resources to your run
 
 Each component can optionally be constrained to run on particular node(s) using `node_pool_label`
 and `node_pool_name`. You can find these under the Kubernetes labels of your cluster.
@@ -58,7 +59,7 @@ needs to
 have an available GPU.
 
 ```python
-from fondant.pipeline import Resources
+from fondant.dataset import Resources
 
 dataset = dataset.apply(
     "...",
