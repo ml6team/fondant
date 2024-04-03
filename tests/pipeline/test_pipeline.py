@@ -8,7 +8,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 import yaml
-from fondant.component import DaskLoadComponent
+from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.component_spec import ComponentSpec
 from fondant.core.exceptions import InvalidDatasetDefinition
 from fondant.core.schema import Field, Type
@@ -631,17 +631,29 @@ def test_consumes_name_to_name_mapping(
     }
 
 
-def test_new_pipeline_interface():
-    components_path = Path(valid_pipeline_path / "example_1")
-
-    dataset = Dataset.create(
-        Path(components_path / "first_component"),
-        produces={"images_data": pa.binary()},
-        dataset_name="my_dataset",
+def test_init_dataset_from_manifest():
+    manifest_path = (
+        Path(__file__).parent.parent / "component/examples/data/manifest.json"
     )
+    Path(valid_pipeline_path / "example_1")
+
+    dataset = Dataset.read(str(manifest_path))
+    assert dataset.name == "test_pipeline"
+    assert list(dataset.fields) == ["Name", "HP", "Type 1", "Type 2"]
+
+    # Apply transformation
+    @lightweight_component(
+        consumes={"Name": pa.string(), "foo": pa.string()},
+        produces={"Name": pa.string(), "foo": pa.string()},
+    )
+    class Bar(PandasTransformComponent):
+        def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+            dataframe["foo"] = "bar"
+            return dataframe
 
     dataset = dataset.apply(
-        Path(components_path / "second_component"),
-        consumes={"images_data": "images_data"},
+        ref=Bar,
     )
-    assert len(dataset._graph) == 2  # noqa PLR2004
+
+    assert len(dataset._graph) == 1
+    assert list(dataset.fields) == ["Name", "HP", "Type 1", "Type 2", "foo"]
