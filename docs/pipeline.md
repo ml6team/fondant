@@ -1,60 +1,39 @@
 # Dataset
 
-A Fondant Dataset is a checkpoint in a Directed Acyclic Graph 
-(DAG) of one or more different components that need to be executed. With Fondant, you can use both reusable
-components and custom components, and chain them together.
+Fondant helps you build datasets by providing a set of operations to load, transform, 
+and write data. With Fondant, you can use both reusable components and custom components, 
+and chain them to create datasets.
 
+## Build a dataset
 
-[//]: # (TODO update this section once we have the workspace)
-## Composing a Pipeline
+Start by creating a `dataset.py` file and adding the following code.
 
-Start by creating a `pipeline.py` file and adding the following code.
 ```python
 from fondant.dataset import Dataset
 
-#dataset = Dataset.read(
-#    ..
-#)
-
-```
-
-We identify our pipeline with a name and provide a base path where the pipeline will store its 
-data and artifacts.
-
-The base path can be:
-
-* **A remote cloud location (S3, GCS, Azure Blob storage)**:  
-  For the **local runner**, make sure that your local credentials or service account have read/write
-  access to the designated base path and that you provide them to the pipeline.   
-  For the **Vertex**, **Sagemaker**, and **Kubeflow** runners, make sure that the service account 
-  attached to those runners has read/write access.
-* **A local directory**: only valid for the local runner, points to a local directory. This is
-  useful for local development.
-
-
-### Adding a load component
-
-You can read data into your pipeline by using the `Dataset.read()` method with a load component.
-
-```python
-dataset = Dataset.read(
+dataset = Dataset.create(
     "load_from_parquet",
     arguments={
         "dataset_uri": "path/to/dataset",
         "n_rows_to_load": 100,
     },
+    produces={
+        "text": pa.string()
+    },
+    dataset_name="my_dataset"
 )
 ```
-[//]: # (TODO: Add example of init from manifest)
 
-??? "View a detailed reference of the `Dataset.read()` method"
+This code initializes a `Dataset` instance with a load component. The load component reads data.
+
+??? "View a detailed reference of the `Dataset.create()` method"
 
     ::: fondant.dataset.Dataset.read
         handler: python
         options:
             show_source: false
 
-The read method does not execute your component yet, but adds the component to the pipeline 
+The create method does not execute your component yet, but adds the component to the execution 
 graph. It returns a lazy `Dataset` instance which you can use to chain transform components.
 
 ### Adding transform components
@@ -82,7 +61,7 @@ can choose the type of GPU as well.
 
 ??? "View a detailed reference of the `Dataset.apply()` method"
 
-    ::: fondant.dataset.Dataset.apply
+    ::: fondant.dataset.dataset.Dataset.apply
         handler: python
         options:
             show_source: false
@@ -104,22 +83,17 @@ dataset = dataset.write(
 
 ??? "View a detailed reference of the `Dataset.write()` method"
 
-    ::: fondant.dataset.Dataset.write
+    ::: fondant.dataset.dataset.Dataset.write
         handler: python
         options:
             show_source: false
 
-!!! note "IMPORTANT"  
-
-    Currently Fondant supports linear DAGs with single dependencies. Support for non-linear DAGs 
-    will be available in future releases.
-
 [//]: # (TODO: Add info on mapping fields between components)
 
-## Running a pipeline
+## Materialize the dataset
 
-Once all your components are added to your pipeline you can use different runners to run your
-pipeline.
+Once all your components are added to your dataset you can use different runners to materialize the 
+your dataset.
 
 !!! note "IMPORTANT"  
 
@@ -134,26 +108,28 @@ pipeline.
     === "Local"
     
         ```bash
-        fondant run local <pipeline_ref>
+        fondant run local <dataset_ref> --working_directory <path_to_working_directory>
         ```
     === "Vertex"
     
         ```bash 
-        fondant run vertex <pipeline_ref> \
+        fondant run vertex <dataset_ref> \
          --project-id $PROJECT_ID \
          --project-region $PROJECT_REGION \
-         --service-account $SERVICE_ACCOUNT
+         --service-account $SERVICE_ACCOUNT \
+         --working_directory <path_to_working_directory>
         ```
     === "SageMaker"
     
         ```bash
-        fondant run sagemaker <pipeline_ref> \
-         --role-arn <sagemaker_role_arn> 
+        fondant run sagemaker <dataset_ref> \
+         --role-arn <sagemaker_role_arn> \
+         --working_directory <path_to_working_directory>
         ```
     === "Kubeflow"
     
         ```bash
-        fondant run kubeflow <pipeline_ref>
+        fondant run kubeflow <dataset_ref> --working_directory <path_to_working_directory>
         ```
 
 === "Python"
@@ -161,35 +137,45 @@ pipeline.
     === "Local"
     
         ```python
-        from fondant.pipeline.runner import DockerRunner
+        from fondant.dataset.runner import DockerRunner
 
         runner = DockerRunner()
-        runner.run(input=<pipeline_ref>)
+        runner.run(input=<dataset_ref>, working_directory=<path_to_working_directory>)
         ```
     === "Vertex"
     
         ```python
-        from fondant.pipeline.runner import VertexRunner
+        from fondant.dataset.runner import VertexRunner
 
         runner = VertexRunner()
-        runner.run(input=<pipeline_ref>)
+        runner.run(input=<dataset_ref>, working_directory=<path_to_working_directory>)
         ```
     === "SageMaker"
     
         ```python
-        from fondant.pipeline.runner import SageMakerRunner
+        from fondant.dataset.runner import SageMakerRunner
 
         runner = SageMakerRunner()
-        runner.run(input=<pipeline_ref>, pipeline_name=<pipeline-name> role_arn=<sagemaker_role_arn>)        
+        runner.run(input=<dataset_ref>,role_arn=<sagemaker_role_arn>, 
+                  working_directory=<path_to_working_directory>)        
         ```
     === "KubeFlow"
     
         ```python
-        from fondant.pipeline.runner import KubeFlowRunner
+        from fondant.dataset.runner import KubeFlowRunner
 
         runner = KubeFlowRunner(host=<kubeflow_host>)
-        runner.run(input=<pipeline_ref>)        
+        runner.run(input=<dataset_ref>)        
         ```
     
-  The pipeline ref can be a reference to the file containing your pipeline, a variable 
-  containing your pipeline, or a factory function that will create your pipeline.
+  The dataset ref can be a reference to the file containing your dataset, a variable 
+  containing your dataset, or a factory function that will create your dataset.
+
+  The working directory can be:
+  - **A remote cloud location (S3, GCS, Azure Blob storage):**
+    For the local runner, make sure that your local credentials or service account have read/write 
+    access to the designated working directory and that you provide them to the dataset.
+    For the Vertex, Sagemaker, and Kubeflow runners, make sure that the service account 
+    attached to those runners has read/write access.
+  - **A local directory:** only valid for the local runner, points to a local directory. 
+    This is useful for local development.
