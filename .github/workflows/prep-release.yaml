@@ -60,8 +60,8 @@ jobs:
         run: ./scripts/build_components.sh -t $GITHUB_REF_NAME
 
       # In case the build runs longer as 1h we need to refresh the token
-      - name: Login to Amazon ECR Public
-        id: login-ecr-public
+      - name: Refresh login to Amazon ECR Public
+        id: refresh-ecr-public
         uses: aws-actions/amazon-ecr-login@v2
         with:
           registry-type: public
