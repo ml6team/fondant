@@ -519,6 +519,13 @@ def register_run(parent_parser):
         help="Build arguments for `docker build`",
     )
 
+    local_parser.add_argument(
+        "--auth-provider",
+        type=cloud_credentials_arg,
+        choices=list(CloudCredentialsMount),
+        help="Flag to authenticate with a cloud provider",
+    )
+
     # kubeflow runner parser
     kubeflow_parser.add_argument(
         "ref",
@@ -527,6 +534,12 @@ def register_run(parent_parser):
             """,
         action="store",
     )
+
+    kubeflow_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
+    )
+
     kubeflow_parser.add_argument(
         "--output-path",
         "-o",
@@ -539,13 +552,6 @@ def register_run(parent_parser):
         required=True,
     )
 
-    local_parser.add_argument(
-        "--auth-provider",
-        type=cloud_credentials_arg,
-        choices=list(CloudCredentialsMount),
-        help="Flag to authenticate with a cloud provider",
-    )
-
     # Vertex runner parser
     vertex_parser.add_argument(
         "ref",
@@ -553,6 +559,10 @@ def register_run(parent_parser):
             a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
             """,
         action="store",
+    )
+    vertex_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
     )
     vertex_parser.add_argument(
         "--project-id",
@@ -590,6 +600,10 @@ def register_run(parent_parser):
             a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
             """,
         action="store",
+    )
+    sagemaker_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
     )
     sagemaker_parser.add_argument(
         "--pipeline-name",
@@ -675,7 +689,7 @@ def run_vertex(args):
     if working_directory is None:
         working_directory = "./.artifacts/dataset"
 
-    runner.run(input=ref, working_directory=working_directory)
+    runner.run(dataset=ref, working_directory=working_directory)
 
 
 def run_sagemaker(args):
@@ -693,7 +707,7 @@ def run_sagemaker(args):
         working_directory = "./.artifacts/dataset"
 
     runner.run(
-        input=ref,
+        dataset=ref,
         pipeline_name=args.pipeline_name,
         role_arn=args.role_arn,
         working_directory=working_directory,
