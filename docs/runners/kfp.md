@@ -16,7 +16,7 @@ Make sure to install Fondant with the Kubeflow runner extra.
 pip install fondant[kfp]
 ```
 
-### Running a dataset with Kubeflow
+### Materialize a dataset with Kubeflow
 
 You will need a Kubeflow cluster to run your workflow on and specify the host of that cluster. More
 info on setting up a Kubeflow pipelines deployment and the host path can be found in
