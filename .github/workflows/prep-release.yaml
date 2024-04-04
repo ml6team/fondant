@@ -68,23 +68,23 @@ jobs:
           registry-type: public
 
       - name: Build data explorer
-        run: ./scripts/build_explorer.sh -t $GITHUB_REF_NAME
+        run: ./scripts/build_explorer.sh -t dev
 
       - name: Build base image
-        run: ./scripts/build_base_image.sh -t $GITHUB_REF_NAME
+        run: ./scripts/build_base_image.sh -t dev
 
-      - name: Update version in pyproject.toml with tag version
-        run: sed -i "s/^version = .*/version = '${{github.ref_name}}'/" pyproject.toml
+      #- name: Update version in pyproject.toml with tag version
+      #  run: sed -i "s/^version = .*/version = '${{github.ref_name}}'/" pyproject.toml
 
-      - name: Build a binary wheel and a source tarball
-        run: |
-          pip install poetry
-          ./scripts/pre-build.sh
-          poetry build
+      #- name: Build a binary wheel and a source tarball
+      #  run: |
+      #    pip install poetry
+      #    ./scripts/pre-build.sh
+      #    poetry build
 
-      - name: Publish distribution 📦 to Test PyPI
-        uses: pypa/gh-action-pypi-publish@v1.8.6
-        with:
-          name: testpypi
-          repository_url: https://test.pypi.org/legacy/
-          url: https://test.pypi.org/p/fondant
+      #- name: Publish distribution 📦 to Test PyPI
+      #  uses: pypa/gh-action-pypi-publish@v1.8.6
+      #  with:
+      #    name: testpypi
+      #    repository_url: https://test.pypi.org/legacy/
+      #    url: https://test.pypi.org/p/fondant
