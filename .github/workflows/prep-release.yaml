@@ -58,7 +58,7 @@ jobs:
           registry-type: public
 
       - name: Build components
-        run: ./scripts/build_components.sh -t $GITHUB_REF_NAME
+        run: ./scripts/build_components.sh -t dev
 
       # In case the build runs longer as 1h we need to refresh the token
       - name: Refresh login to Amazon ECR Public
