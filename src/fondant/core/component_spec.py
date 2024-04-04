@@ -1,4 +1,5 @@
 """This module defines classes to represent an Fondant component specification."""
+
 import copy
 import json
 import pkgutil
@@ -289,6 +290,12 @@ class ComponentSpec:
             "input_manifest_path": Argument(
                 name="input_manifest_path",
                 description="Path to the input manifest",
+                type=str,
+                optional=True,
+            ),
+            "working_directory": Argument(
+                name="working_directory",
+                description="The working directory",
                 type=str,
                 optional=True,
             ),

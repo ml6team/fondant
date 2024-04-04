@@ -377,6 +377,7 @@ def test_kfp_run(tmp_path_factory):
         vertex=False,
         output_path=None,
         ref="dataset",
+        working_directory="./dummy-dir",
         host=None,
     )
     with pytest.raises(
@@ -391,6 +392,7 @@ def test_kfp_run(tmp_path_factory):
             output_path=None,
             host="localhost",
             ref="dataset",
+            working_directory="./dummy-dir",
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost")
@@ -406,6 +408,7 @@ def test_kfp_run(tmp_path_factory):
             host="localhost2",
             output_path=str(fn / "kubeflow_pipelines.yml"),
             ref="dataset",
+            working_directory="./dummy-dir",
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost2")
@@ -424,6 +427,7 @@ def test_vertex_run(tmp_path_factory):
             service_account=None,
             network=None,
             ref="dataset",
+            working_directory="./dummy-dir",
         )
         run_vertex(args)
         mock_runner.assert_called_once_with(
@@ -449,6 +453,7 @@ def test_vertex_run(tmp_path_factory):
             project_id="project-123",
             service_account=None,
             network=None,
+            working_directory="./dummy-dir",
         )
         run_vertex(args)
         mock_runner.assert_called_once_with(

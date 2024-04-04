@@ -144,6 +144,8 @@ def test_component_arguments(metadata):
         "3.14",
         "--override_default_arg_with_none",
         "None",
+        "--working_directory",
+        "/foo/bar",
     ]
 
     class MyExecutor(Executor):
@@ -160,6 +162,7 @@ def test_component_arguments(metadata):
     assert executor.input_partition_rows == expected_partition_row_arg
     assert executor.cache is True
     assert executor.user_arguments == {
+        "working_directory": "/foo/bar",
         "integer_default_arg": 0,
         "float_default_arg": 3.14,
         "bool_false_default_arg": False,
@@ -301,7 +304,7 @@ def test_load_component(metadata):
     ]
 
     class MyLoadComponent(DaskLoadComponent):
-        def __init__(self, *, flag, value):
+        def __init__(self, *, flag, value, **kwargs):
             self.flag = flag
             self.value = value
 
@@ -358,7 +361,7 @@ def test_setup_teardown_methods(metadata):
                 self.is_connected = False
 
     class MyLoadComponent(DaskLoadComponent):
-        def __init__(self, *, flag, value):
+        def __init__(self, *, flag, value, **kwargs):
             self.flag = flag
             self.value = value
 
@@ -419,7 +422,7 @@ def test_dask_transform_component(metadata):
     ]
 
     class MyDaskComponent(DaskTransformComponent):
-        def __init__(self, *, flag, value):
+        def __init__(self, *, flag, value, **kwargs):
             super().__init__()
             self.flag = flag
             self.value = value
@@ -472,7 +475,7 @@ def test_pandas_transform_component(metadata):
     init_called = 0
 
     class MyPandasComponent(PandasTransformComponent):
-        def __init__(self, *, flag, value):
+        def __init__(self, *, flag, value, **kwargs):
             assert flag == "success"
             assert value == 1
             nonlocal init_called
@@ -578,7 +581,7 @@ def test_write_component(metadata):
     ]
 
     class MyWriteComponent(DaskWriteComponent):
-        def __init__(self, *, flag, value):
+        def __init__(self, *, flag, value, **kwargs):
             self.flag = flag
             self.value = value
 

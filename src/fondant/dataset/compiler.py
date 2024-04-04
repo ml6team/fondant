@@ -523,7 +523,13 @@ class KubeFlowCompiler(Compiler):
             """Dump Fondant specification arguments to kfp command executor arguments."""
             dumped_args: KubeflowCommandArguments = []
 
-            component_args.extend(["output_manifest_path", "metadata"])
+            component_args.extend(
+                [
+                    "output_manifest_path",
+                    "metadata",
+                    "working_directory",
+                ],
+            )
             if input_manifest_path:
                 component_args.append("input_manifest_path")
 
@@ -586,7 +592,7 @@ class KubeFlowCompiler(Compiler):
                     for dependency in component["dependencies"]:
                         input_manifest_path = (
                             f"{working_directory}/{metadata.dataset_name}/{metadata.run_id}"
-                            f"{run_id}/{dependency}/manifest.json"
+                            f"/{dependency}/manifest.json"
                         )
                         kubeflow_component_op = set_component_exec_args(
                             component_op=kubeflow_component_op,
@@ -596,6 +602,7 @@ class KubeFlowCompiler(Compiler):
                         component_task = kubeflow_component_op(
                             input_manifest_path=input_manifest_path,
                             output_manifest_path=output_manifest_path,
+                            working_directory=working_directory,
                             metadata=metadata.to_json(),
                             **component_args,
                         )
@@ -610,6 +617,7 @@ class KubeFlowCompiler(Compiler):
                     component_task = kubeflow_component_op(
                         metadata=metadata.to_json(),
                         output_manifest_path=output_manifest_path,
+                        working_directory=working_directory,
                         **component_args,
                     )
 

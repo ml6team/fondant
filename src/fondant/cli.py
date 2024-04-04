@@ -519,6 +519,13 @@ def register_run(parent_parser):
         help="Build arguments for `docker build`",
     )
 
+    local_parser.add_argument(
+        "--auth-provider",
+        type=cloud_credentials_arg,
+        choices=list(CloudCredentialsMount),
+        help="Flag to authenticate with a cloud provider",
+    )
+
     # kubeflow runner parser
     kubeflow_parser.add_argument(
         "ref",
@@ -527,6 +534,13 @@ def register_run(parent_parser):
             """,
         action="store",
     )
+
+    kubeflow_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
+        required=True,
+    )
+
     kubeflow_parser.add_argument(
         "--output-path",
         "-o",
@@ -539,13 +553,6 @@ def register_run(parent_parser):
         required=True,
     )
 
-    local_parser.add_argument(
-        "--auth-provider",
-        type=cloud_credentials_arg,
-        choices=list(CloudCredentialsMount),
-        help="Flag to authenticate with a cloud provider",
-    )
-
     # Vertex runner parser
     vertex_parser.add_argument(
         "ref",
@@ -553,6 +560,11 @@ def register_run(parent_parser):
             a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
             """,
         action="store",
+    )
+    vertex_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
+        required=True,
     )
     vertex_parser.add_argument(
         "--project-id",
@@ -590,6 +602,11 @@ def register_run(parent_parser):
             a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
             """,
         action="store",
+    )
+    sagemaker_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
+        required=True,
     )
     sagemaker_parser.add_argument(
         "--pipeline-name",
@@ -649,11 +666,7 @@ def run_kfp(args):
 
     runner = KubeflowRunner(host=args.host)
 
-    working_directory = getattr(args, "working_directory", None)
-    if working_directory is None:
-        working_directory = "./.artifacts/dataset"
-
-    runner.run(dataset=ref, working_directory=working_directory)
+    runner.run(dataset=ref, working_directory=args.working_directory)
 
 
 def run_vertex(args):
@@ -671,11 +684,7 @@ def run_vertex(args):
         network=args.network,
     )
 
-    working_directory = getattr(args, "working_directory", None)
-    if working_directory is None:
-        working_directory = "./.artifacts/dataset"
-
-    runner.run(input=ref, working_directory=working_directory)
+    runner.run(dataset=ref, working_directory=args.working_directory)
 
 
 def run_sagemaker(args):
@@ -688,15 +697,11 @@ def run_sagemaker(args):
 
     runner = SagemakerRunner()
 
-    working_directory = getattr(args, "working_directory", None)
-    if working_directory is None:
-        working_directory = "./.artifacts/dataset"
-
     runner.run(
-        input=ref,
+        dataset=ref,
         pipeline_name=args.pipeline_name,
         role_arn=args.role_arn,
-        working_directory=working_directory,
+        working_directory=args.working_directory,
     )
 
 
