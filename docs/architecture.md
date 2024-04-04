@@ -2,7 +2,7 @@
 
 ### Fondant architecture overview
 
-![data explorer](art/architecture.png)
+![fondant architecture](art/architecture.png)
 
 At a high level, Fondant consists of three main parts:
 
@@ -13,7 +13,7 @@ At a high level, Fondant consists of three main parts:
       specifications mainly include the component image location, arguments, columns it consumes and
       produces.
     * `manifest.py` Describes dataset content, facilitating reference passing between components.
-      It evolves during pipeline execution and aids static evaluation.
+      It evolves during a dataset materialization and aids static evaluation.
     * `schema.py`  Defines the Type class, used for dataset data type definition.
     * `/schema` Directory Containing JSON schema specifications for the component spec and manifest.
 
@@ -37,16 +37,16 @@ At a high level, Fondant consists of three main parts:
       component type.
 
 
-* The `/dataset` directory which contains the modules for implementing a Fondant pipeline.
-    * `dataset.py`: Defines the `Dataset` class which is used to define the graph. The
-      implemented class is then consumed by the compiler to compile to a specific runner.
-      This module also implements the
-      `ComponentOp` class which is used to define the component operation in the pipeline graph.
+* The `/dataset` directory which contains the modules for implementing a Fondant dataset.
+    * `dataset.py`: Defines the `Dataset` class which is used to define the workflow graph to 
+      materialize the dataset. The implemented class is then consumed by the compiler to compile  
+      to a specific workflow runner.
+      This module also implements the `ComponentOp` class which is used to define the component 
+      operation in the workflow graph.
     * `compiler.py`: Defines the `Compiler` class which is used to define the compiler that
-      compilers the pipeline graph for a specific
-      runner.
+      compilers the workflow graph for a specific runner.
     * `runner.py`: Defines the `Runner` class which is used to define the runner that executes the
-      compiled pipeline graph.
+      compiled workflow graph.
 
 ### Additional modules
 
@@ -54,8 +54,8 @@ Additional modules in Fondant include:
 
 * `cli.py`: Defines the CLI for interacting with Fondant. This includes the `fondant` command line
   tool which is used to build components,
-  compile and run pipelines and explore datasets.
+  compile and run workflows to materialize and explore datasets.
 * `explore.py`: Runs the explorer which is a web application that allows the user to explore the
   content of a dataset.
 * `build.py`: Defines the `build` command which is used to build and publish a component.
-* `testing.py`:  Contains common testing utilities for testing components and pipelines.
+* `testing.py`:  Contains common testing utilities for testing components and datasets.

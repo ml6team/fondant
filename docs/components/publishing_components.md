@@ -31,7 +31,7 @@ component is located.
 
 The tag arguments is used to specify the Docker container tag. When specified, the tag in the
 referenced component specification yaml will also be
-updated, ensuring that the next pipeline run correctly references the image.
+updated, ensuring that the next dataset workflow run correctly references the image.
 
 
 !!! note "IMPORTANT"   

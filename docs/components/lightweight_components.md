@@ -1,17 +1,17 @@
 # Creating lightweight components
 
-Lightweight components are a great way to implement custom data processing steps in your pipeline. 
-They are easy to implement and can be reused across different pipelines. If you want to 
+Lightweight components are a great way to implement custom data processing steps in your dataset workflows. 
+They are easy to implement and can be reused across different datasets. If you want to 
 build more complex components that require additional dependencies (e.g. GPU support), you can
 also build a containerized component. See the [containerized component guide](../components/containerized_components.md) for more info.
 
 To implement a lightweight component, you simply need to create a python script that implements 
-the component logic. Here is an example of a pipeline composed of two custom components,
+the component logic. Here is an example of a dataset composed of two custom components,
 one that creates a dataset and one that adds a number to a column of the dataset:
 
-```python title="pipeline.py"
+```python title="dataset.py"
 from fondant.component import DaskLoadComponent, PandasTransformComponent
-from fondant.pipeline import lightweight_component
+from fondant.dataset import lightweight_component
 import dask.dataframe as dd
 import pandas as pd
 import pyarrow as pa
@@ -42,31 +42,26 @@ Notice that we use the `@lightweight_component` decorator to define our componen
 is used to package the component into a containerized component and can also be used to 
 define additional functionalities.
 
-To register those components to a pipeline, we can use the `read` and `apply` method for the 
+To register those components to a dataset, we can use the `create` and `apply` method for the 
 first and second component respectively:
 
-```python title="pipeline.py"
-from fondant.pipeline import Pipeline
+```python title="datast.py"
+from fondant.dataset import Dataset
 
-pipeline = Pipeline(
-    name="dummy-pipeline",
-    base_path="./data",
-)
-
-dataset = Dataset.read(
+dataset = Dataset.create(
     ref=CreateData,
+    dataset_name="dummy-pipeline",
 )
-
 _ = dataset.apply(
     ref=AddNumber,
     arguments={"n": 1},
 )
 ```
 
-Here we are creating a pipeline that reads data from the `CreateData` component and then applies
+Here we are creating a dataset workflow that reads data from the `CreateData` component and then applies
 the `AddNumber` component to it. The `produces` argument is used to define the schema of the output
 of the component. This is used to validate the output of the component and to define the schema
-of the next component in the pipeline.
+of the next component in the dataset.
 
 Behind the scenes, Fondant will automatically package the component into a containerized component that
 uses a base image with the current installed Fondant and python version.
@@ -77,7 +72,7 @@ If you want to install additional requirements for your component, you can do so
 package to the `extra_requires` argument of the `@lightweight_component` decorator. This will
 install the package in the containerized component.
 
-```python title="pipeline.py"
+```python title="dataset.py"
 @lightweight_component(extra_requires=["numpy"])
 ```
 
@@ -85,7 +80,7 @@ Under the hood, we are injecting the source to a docker container. If you want t
 dependencies, you have to make sure to import the libaries inside a function directly.
 
 For example: 
-```python title="pipeline.py"
+```python title="dataset.py"
 ...
 def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
     import numpy as np
@@ -100,7 +95,7 @@ If you want to change the base image of the containerized component, you can do 
 image instead of the default one. Make sure you install Fondant in the base image or list it 
 in the `extra_requires` argument.
 
-```python title="pipeline.py"
+```python title="dataset.py"
 @lightweight_component(base_image="python:3.10-slim")
 ```
 
@@ -111,7 +106,7 @@ of the decorator.
 If we take the previous example, we can restrict the columns that are loaded by the `AddNumber` component
 by specifying the `x` column in the `consumes` argument:
 
-```python title="pipeline.py"
+```python title="dataset.py"
 @lightweight_component(
     consumes={
     "x": pa.int32()
@@ -136,7 +131,7 @@ it to containerized component. See the [containerized component guide](../compon
 
 You can also choose to load in dynamic fields by setting the `additionalProperties` argument to `True` in the `consumes` argument.   
 
-This will allow you to define an arbitrary number of columns to be loaded when applying your component to the pipeline.  
+This will allow you to define an arbitrary number of columns to be loaded when applying your component to the dataset.  
 
 This can be useful in scenarios when we want to dynamically load in fields from a dataset. For example, if we want to aggregate results 
 from multiple columns, we can define a component that loads in specific column from the previous component and then aggregates them.   
@@ -147,7 +142,7 @@ the `x` and `z` columns into a new column `score`:
 ```python
 import dask.dataframe as dd
 from fondant.component import PandasTransformComponent
-from fondant.pipeline import lightweight_component
+from fondant.dataset import lightweight_component
 
 @lightweight_component(
     consumes={

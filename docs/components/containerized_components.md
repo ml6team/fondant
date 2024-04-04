@@ -1,6 +1,6 @@
 # Creating containerized components
 
-Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
+Fondant makes it easy to build dataset collaborative leveraging reusable components. Fondant
 provides a lot
 of [components out of the box](https://fondant.ai/en/latest/components/hub/), but you can also
 define your own containerized components.
@@ -79,6 +79,6 @@ transformers==4.29.2
 ```
 
 Refer to this [section](publishing_components.md) to find out how to build and publish your components to use them in 
-your own pipelines.
+your own dataset workflows.
 
 
