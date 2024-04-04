@@ -1,11 +1,11 @@
 ### SageMaker Runner
 
-Leverage [AWS SageMaker](https://aws.amazon.com/sagemaker/) to run your Fondant datasets.
+Leverage [AWS SageMaker](https://aws.amazon.com/sagemaker/) to run your Fondant workflow.
 
-This makes it easy to scale up your datasets in a serverless manner without worrying about infrastructure
+This makes it easy to scale up your workflows in a serverless manner without worrying about infrastructure
 deployment.
 
-The Fondant SageMaker runner will compile your Fondant dataset to a SageMaker pipeline spec and submit it to SageMaker.
+The Fondant SageMaker runner will compile your Fondant workflow to a SageMaker pipeline spec and submit it to SageMaker.
 
 
 !!! note "IMPORTANT"

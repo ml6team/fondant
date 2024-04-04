@@ -8,8 +8,8 @@ pipelines without worrying about infrastructure
 deployment.
 
 Vertex AI pipelines leverages Kubeflow pipelines under the hood. The Vertex compiler will take your
-Fondant dataset and compile it to a Kubeflow pipeline spec.
-This spec can be used to run your dataset on Vertex.
+Fondant workflow and compile it to a Kubeflow pipeline spec.
+This spec can be used to run your workflow on Vertex.
 
 ### Installing the Vertex runner
 
