@@ -59,13 +59,6 @@ jobs:
       - name: Build components
         run: ./scripts/build_components.sh -t $GITHUB_REF_NAME
 
-      # In case the build runs longer as 1h we need to refresh the token
-      - name: Login to Amazon ECR Public
-        id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          registry-type: public
-
       - name: Build data explorer
         run: ./scripts/build_explorer.sh -t $GITHUB_REF_NAME
 
