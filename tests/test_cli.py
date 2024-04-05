@@ -7,25 +7,26 @@ from unittest.mock import patch
 import pytest
 from fondant.cli import (
     ComponentImportError,
-    PipelineImportError,
+    DatasetImportError,
     build,
     compile_kfp,
     compile_local,
     compile_sagemaker,
     compile_vertex,
     component_from_module,
+    dataset_from_string,
     execute,
     get_module,
-    pipeline_from_string,
     run_kfp,
     run_local,
     run_vertex,
 )
 from fondant.component import DaskLoadComponent
 from fondant.component.executor import Executor, ExecutorFactory
+from fondant.core.manifest import Manifest
 from fondant.core.schema import CloudCredentialsMount
-from fondant.pipeline import Pipeline
-from fondant.pipeline.runner import DockerRunner
+from fondant.dataset import Dataset
+from fondant.dataset.runner import DockerRunner
 
 commands = [
     "fondant",
@@ -68,7 +69,8 @@ def test_basic_invocation(command):
     assert process.returncode == 0
 
 
-TEST_PIPELINE = Pipeline("test_pipeline", base_path="some/path")
+TEST_MANIFEST = Manifest.create(dataset_name="test_dataset", run_id="test_run_id")
+TEST_DATASET = Dataset(manifest=TEST_MANIFEST)
 
 
 @pytest.mark.parametrize(
@@ -124,17 +126,17 @@ def test_component_from_module_error(module_str):
     "module_str",
     [
         __name__,
-        "examples.example_modules.pipeline",
-        "examples.example_modules.pipeline:pipeline",
-        "examples.example_modules.pipeline:create_pipeline",
-        "examples.example_modules.pipeline:create_pipeline_with_args('test_pipeline')",
-        "examples.example_modules.pipeline:create_pipeline_with_args(name='test_pipeline')",
+        "examples.example_modules.dataset",
+        "examples.example_modules.dataset:workspace",
+        "examples.example_modules.dataset:create_dataset",
+        "examples.example_modules.dataset:create_dataset_with_args('test_dataset')",
+        "examples.example_modules.dataset:create_dataset_with_args(name='test_dataset')",
     ],
 )
 def test_pipeline_from_module(module_str):
     """Test that pipeline_from_string works."""
-    pipeline = pipeline_from_string(module_str)
-    assert pipeline.name == "test_pipeline"
+    dataset = dataset_from_string(module_str)
+    assert dataset.name == "test_dataset"
 
 
 @pytest.mark.parametrize(
@@ -142,36 +144,34 @@ def test_pipeline_from_module(module_str):
     [
         # module does not contain a pipeline instance
         "examples.example_modules.component",
-        # module contains many pipeline instances
-        "examples.example_modules.invalid_double_pipeline",
         # Factory expects an argument
-        "examples.example_modules.pipeline:create_pipeline_with_args",
+        "examples.example_modules.dataset:create_pipeline_with_args",
         # Factory does not expect an argument
-        "examples.example_modules.pipeline:create_pipeline('test_pipeline')",
+        "examples.example_modules.dataset:create_pipeline('test_pipeline')",
         # Factory does not expect an argument
-        "examples.example_modules.pipeline:create_pipeline(name='test_pipeline')",
+        "examples.example_modules.dataset:create_pipeline(name='test_pipeline')",
         # Invalid argument
-        "examples.example_modules.pipeline:create_pipeline(name)",
+        "examples.example_modules.dataset:create_pipeline(name)",
         # Not a variable or function
-        "examples.example_modules.pipeline:[]",
+        "examples.example_modules.dataset:[]",
         # Attribute doesn't exist
-        "examples.example_modules.pipeline:no_pipeline",
+        "examples.example_modules.dataset:no_pipeline",
         # Attribute is not a valid python name
-        "examples.example_modules.pipeline:pipe;line",
+        "examples.example_modules.dataset:pipe;line",
         # Not a Pipeline
-        "examples.example_modules.pipeline:number",
+        "examples.example_modules.dataset:number",
     ],
 )
 def test_pipeline_from_module_error(module_str):
     """Test different error cases for pipeline_from_string."""
-    with pytest.raises(PipelineImportError):
-        pipeline_from_string(module_str)
+    with pytest.raises(DatasetImportError):
+        dataset_from_string(module_str)
 
 
 def test_factory_error_propagated():
     """Test that an error in the factory method is correctly propagated."""
     with pytest.raises(NotImplementedError):
-        pipeline_from_string("examples.example_modules.pipeline:not_implemented")
+        dataset_from_string("examples.example_modules.dataset:not_implemented")
 
 
 def test_execute_logic(monkeypatch):
@@ -185,7 +185,7 @@ def test_execute_logic(monkeypatch):
 def test_local_compile(tmp_path_factory):
     """Test that the compile command works with arguments."""
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.pipeline.compiler.DockerCompiler.compile",
+        "fondant.dataset.compiler.DockerCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -201,7 +201,7 @@ def test_local_compile(tmp_path_factory):
         compile_local(args)
 
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_PIPELINE,
+            pipeline=TEST_DATASET,
             extra_volumes=[],
             output_path=str(fn / "docker-compose.yml"),
             build_args=[],
@@ -211,7 +211,7 @@ def test_local_compile(tmp_path_factory):
 
 def test_kfp_compile(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.pipeline.compiler.KubeFlowCompiler.compile",
+        "fondant.dataset.compiler.KubeFlowCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -222,14 +222,14 @@ def test_kfp_compile(tmp_path_factory):
         )
         compile_kfp(args)
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_PIPELINE,
+            pipeline=TEST_DATASET,
             output_path=str(fn / "kubeflow_pipeline.yml"),
         )
 
 
 def test_vertex_compile(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.pipeline.compiler.VertexCompiler.compile",
+        "fondant.dataset.compiler.VertexCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -240,14 +240,14 @@ def test_vertex_compile(tmp_path_factory):
         )
         compile_vertex(args)
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_PIPELINE,
+            pipeline=TEST_DATASET,
             output_path=str(fn / "vertex_pipeline.yml"),
         )
 
 
 def test_sagemaker_compile(tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn, patch(
-        "fondant.pipeline.compiler.SagemakerCompiler.compile",
+        "fondant.dataset.compiler.SagemakerCompiler.compile",
     ) as mock_compiler:
         args = argparse.Namespace(
             ref=__name__,
@@ -260,7 +260,7 @@ def test_sagemaker_compile(tmp_path_factory):
         )
         compile_sagemaker(args)
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_PIPELINE,
+            pipeline=TEST_DATASET,
             output_path=str(fn / "sagemaker_pipeline.json"),
             role_arn="some_role",
         )
@@ -276,6 +276,7 @@ def test_local_run(mock_docker_installation):
         credentials=None,
         extra_volumes=[],
         build_arg=[],
+        working_directory="./dummy-dir",
     )
     with patch("subprocess.call") as mock_call:
         run_local(args)
@@ -304,6 +305,7 @@ def test_local_run(mock_docker_installation):
             build_arg=[],
             auth_provider=None,
             credentials=None,
+            working_directory="./dummy-dir",
         )
         run_local(args1)
         mock_call.assert_called_once_with(
@@ -325,7 +327,7 @@ def test_local_run(mock_docker_installation):
 def test_local_run_cloud_credentials(mock_docker_installation):
     for auth_provider in CloudCredentialsMount:
         with patch(
-            "fondant.pipeline.compiler.DockerCompiler.compile",
+            "fondant.dataset.compiler.DockerCompiler.compile",
         ) as mock_compiler, patch(
             "subprocess.call",
         ) as mock_runner:
@@ -338,13 +340,15 @@ def test_local_run_cloud_credentials(mock_docker_installation):
                 credentials=None,
                 extra_volumes=[],
                 build_arg=[],
+                working_directory="dummy-dir",
             )
             run_local(args)
 
             mock_compiler.assert_called_once_with(
-                TEST_PIPELINE,
-                extra_volumes=[],
+                TEST_DATASET,
+                working_directory="dummy-dir",
                 output_path=".fondant/compose.yaml",
+                extra_volumes=[],
                 build_args=[],
                 auth_provider=auth_provider,
             )
@@ -372,7 +376,8 @@ def test_kfp_run(tmp_path_factory):
         local=False,
         vertex=False,
         output_path=None,
-        ref=__name__,
+        ref="dataset",
+        working_directory="./dummy-dir",
         host=None,
     )
     with pytest.raises(
@@ -380,18 +385,19 @@ def test_kfp_run(tmp_path_factory):
         match="--host argument is required for running on Kubeflow",
     ):  # no host
         run_kfp(args)
-    with patch("fondant.pipeline.runner.KubeflowRunner") as mock_runner:
+    with patch("fondant.dataset.runner.KubeflowRunner") as mock_runner:
         args = argparse.Namespace(
             kubeflow=True,
             local=False,
             output_path=None,
             host="localhost",
-            ref=__name__,
+            ref="dataset",
+            working_directory="./dummy-dir",
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost")
-    with patch("fondant.pipeline.runner.KubeflowRunner") as mock_runner, patch(
-        "fondant.pipeline.compiler.KubeFlowCompiler",
+    with patch("fondant.dataset.runner.KubeflowRunner") as mock_runner, patch(
+        "fondant.dataset.compiler.KubeFlowCompiler",
     ) as mock_compiler, tmp_path_factory.mktemp(
         "temp",
     ) as fn:
@@ -401,7 +407,8 @@ def test_kfp_run(tmp_path_factory):
             local=False,
             host="localhost2",
             output_path=str(fn / "kubeflow_pipelines.yml"),
-            ref=__name__,
+            ref="dataset",
+            working_directory="./dummy-dir",
         )
         run_kfp(args)
         mock_runner.assert_called_once_with(host="localhost2")
@@ -409,7 +416,7 @@ def test_kfp_run(tmp_path_factory):
 
 def test_vertex_run(tmp_path_factory):
     """Test that the run command works in different scenarios."""
-    with patch("fondant.pipeline.runner.VertexRunner") as mock_runner:
+    with patch("fondant.dataset.runner.VertexRunner") as mock_runner:
         args = argparse.Namespace(
             kubeflow=False,
             local=False,
@@ -419,7 +426,8 @@ def test_vertex_run(tmp_path_factory):
             project_id="project-123",
             service_account=None,
             network=None,
-            ref=__name__,
+            ref="dataset",
+            working_directory="./dummy-dir",
         )
         run_vertex(args)
         mock_runner.assert_called_once_with(
@@ -429,8 +437,8 @@ def test_vertex_run(tmp_path_factory):
             network=None,
         )
 
-    with patch("fondant.pipeline.runner.VertexRunner") as mock_runner, patch(
-        "fondant.pipeline.compiler.VertexCompiler",
+    with patch("fondant.dataset.runner.VertexRunner") as mock_runner, patch(
+        "fondant.dataset.compiler.VertexCompiler",
     ) as mock_compiler, tmp_path_factory.mktemp(
         "temp",
     ) as fn:
@@ -440,11 +448,12 @@ def test_vertex_run(tmp_path_factory):
             local=False,
             host="localhost2",
             output_path=str(fn / "kubeflow_pipelines.yml"),
-            ref=__name__,
+            ref="dataset",
             region="europe-west-1",
             project_id="project-123",
             service_account=None,
             network=None,
+            working_directory="./dummy-dir",
         )
         run_vertex(args)
         mock_runner.assert_called_once_with(

@@ -1,4 +1,5 @@
 """This module defines classes to represent an Fondant component specification."""
+
 import copy
 import json
 import pkgutil
@@ -15,7 +16,7 @@ from jsonschema import Draft4Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT4
 
-from fondant.core.exceptions import InvalidComponentSpec, InvalidPipelineDefinition
+from fondant.core.exceptions import InvalidComponentSpec, InvalidDatasetDefinition
 from fondant.core.schema import Field, Type
 
 
@@ -292,6 +293,12 @@ class ComponentSpec:
                 type=str,
                 optional=True,
             ),
+            "working_directory": Argument(
+                name="working_directory",
+                description="The working directory",
+                type=str,
+                optional=True,
+            ),
             "operation_spec": Argument(
                 name="operation_spec",
                 description="The operation specification as a dictionary",
@@ -411,7 +418,7 @@ class OperationSpec:
             for key, value in mapping.items():
                 if not isinstance(value, (str, pa.DataType)):
                     msg = f"Unexpected type {type(value)} received for key {key} in {name} mapping"
-                    raise InvalidPipelineDefinition(msg)
+                    raise InvalidDatasetDefinition(msg)
 
     def _dataset_schema_to_operation_schema(self, name: str) -> t.Mapping[str, Field]:
         """Calculate the operations schema based on dataset schema.
@@ -450,7 +457,7 @@ class OperationSpec:
                         f"already defined in the `{name}` section of the component spec "
                         f"with type {spec_type}"
                     )
-                    raise InvalidPipelineDefinition(msg)
+                    raise InvalidDatasetDefinition(msg)
 
         return types.MappingProxyType(mapping)
 
@@ -492,7 +499,7 @@ class OperationSpec:
                     f"argument passed to the operation, but `{operations_column_name}` is not "
                     f"defined in the `{name}` section of the component spec."
                 )
-                raise InvalidPipelineDefinition(msg)
+                raise InvalidDatasetDefinition(msg)
 
         return types.MappingProxyType(mapping)
 

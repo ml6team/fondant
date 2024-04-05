@@ -196,16 +196,17 @@ class DaskDataWriter(DataIO):
 
     def _write_dataframe(self, dataframe: dd.DataFrame) -> None:
         """Create dataframe writing task."""
-        location = (
-            f"{self.manifest.base_path}/{self.manifest.pipeline_name}/"
-            f"{self.manifest.run_id}/{self.operation_spec.component_name}"
+        location = self.manifest.get_dataset_columns_locations(
+            columns=dataframe.columns,
         )
+
+        output_location_path = location[0]
 
         # Create directory the dataframe will be written to, since this is not handled by Pandas
         # `to_parquet` method.
-        protocol = fsspec.utils.get_protocol(location)
+        protocol = fsspec.utils.get_protocol(output_location_path)
         fs = fsspec.get_filesystem_class(protocol)
-        fs().makedirs(location)
+        fs().makedirs(output_location_path)
 
         schema = {
             field.name: field.type.value
@@ -236,7 +237,7 @@ class DaskDataWriter(DataIO):
         # https://dask.discourse.group/t/improving-pipeline-resilience-when-using-to-parquet-and-preemptible-workers/2141
         to_parquet_tasks = [
             d.to_parquet(
-                os.path.join(location, f"part.{i}.parquet"),
+                os.path.join(output_location_path, f"part.{i}.parquet"),
                 schema=pa.schema(list(schema.items())),
                 index=True,
             )

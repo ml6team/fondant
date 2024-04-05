@@ -15,14 +15,14 @@ import yaml
 from fsspec.registry import known_implementations
 
 from fondant.core.component_spec import ComponentSpec
-from fondant.core.exceptions import InvalidPipelineDefinition
+from fondant.core.exceptions import InvalidDatasetDefinition
 from fondant.core.manifest import Metadata
 from fondant.core.schema import CloudCredentialsMount, DockerVolume
-from fondant.pipeline import (
+from fondant.dataset import (
     VALID_ACCELERATOR_TYPES,
     VALID_VERTEX_ACCELERATOR_TYPES,
+    Dataset,
     Image,
-    Pipeline,
 )
 
 logger = logging.getLogger(__name__)
@@ -90,8 +90,9 @@ class DockerCompiler(Compiler):
 
     def compile(
         self,
-        pipeline: Pipeline,
+        dataset: Dataset,
         *,
+        working_directory: str,
         output_path: str = "docker-compose.yml",
         extra_volumes: t.Union[t.Optional[list], t.Optional[str]] = None,
         build_args: t.Optional[t.List[str]] = None,
@@ -100,7 +101,8 @@ class DockerCompiler(Compiler):
         """Compile a pipeline to docker-compose spec and save it to a specified output path.
 
         Args:
-            pipeline: the pipeline to compile
+            dataset: the dataset to compile
+            working_directory: working_directory to store local dataset artifacts
             output_path: the path where to save the docker-compose spec
             extra_volumes: a list of extra volumes (using the Short syntax:
               https://docs.docker.com/compose/compose-file/05-services/#short-syntax-5)
@@ -118,10 +120,9 @@ class DockerCompiler(Compiler):
         if auth_provider:
             extra_volumes.append(auth_provider.get_path())
 
-        logger.info(f"Compiling {pipeline.name} to {output_path}")
-
         spec = self._generate_spec(
-            pipeline,
+            dataset,
+            working_directory=working_directory,
             extra_volumes=extra_volumes,
             build_args=build_args or [],
         )
@@ -186,7 +187,8 @@ class DockerCompiler(Compiler):
 
     def _generate_spec(
         self,
-        pipeline: Pipeline,
+        dataset: Dataset,
+        working_directory: str,
         *,
         extra_volumes: t.List[str],
         build_args: t.List[str],
@@ -194,28 +196,34 @@ class DockerCompiler(Compiler):
         """Generate a docker-compose spec as a python dictionary,
         loops over the pipeline graph to create services and their dependencies.
         """
-        path, volume = self._patch_path(base_path=pipeline.base_path)
-        run_id = pipeline.get_run_id()
+        path, volume = self._patch_path(base_path=working_directory)
+        run_id = dataset.manifest.run_id
 
         services = {}
 
-        pipeline.validate(run_id=run_id)
+        dataset.validate()
 
         component_cache_key = None
 
-        for component_id, component in pipeline._graph.items():
+        for component_id, component in dataset._graph.items():
             component_op = component["operation"]
 
             component_cache_key = component_op.get_component_cache_key(
                 previous_component_cache=component_cache_key,
             )
 
+            # Generate default values for manifest and dataset location based on working_dir
+            manifest_location = (
+                f"{working_directory}/{dataset.name}/{run_id}/{component_id}"
+                f"/manifest.json"
+            )
+
             metadata = Metadata(
-                pipeline_name=pipeline.name,
+                dataset_name=dataset.name,
                 run_id=run_id,
-                base_path=path,
                 component_id=component_id,
                 cache_key=component_cache_key,
+                manifest_location=manifest_location,
             )
 
             logger.info(f"Compiling service for {component_id}")
@@ -229,8 +237,16 @@ class DockerCompiler(Compiler):
             command.extend(
                 [
                     "--output_manifest_path",
-                    f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                    f"{path}/{metadata.dataset_name}/{metadata.run_id}/"
                     f"{component_id}/manifest.json",
+                ],
+            )
+
+            # Add working directory to command
+            command.extend(
+                [
+                    "--working_directory",
+                    working_directory,
                 ],
             )
 
@@ -248,14 +264,23 @@ class DockerCompiler(Compiler):
                     depends_on[dependency] = {
                         "condition": "service_completed_successfully",
                     }
-                    # there is only an input manifest if the component has dependencies
+                    # there is an input manifest if the component has dependencies, use the manifest
+                    # from the previous component
                     command.extend(
                         [
                             "--input_manifest_path",
-                            f"{path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                            f"{path}/{metadata.dataset_name}/{metadata.run_id}/"
                             f"{dependency}/manifest.json",
                         ],
                     )
+
+            elif dataset.manifest.contains_data():
+                command.extend(
+                    [
+                        "--input_manifest_path",
+                        f"{dataset.manifest.manifest_location}",
+                    ],
+                )
 
             volumes: t.List[t.Union[str, dict]] = []
             if volume:
@@ -272,7 +297,7 @@ class DockerCompiler(Compiler):
                 "volumes": volumes,
                 "ports": ports,
                 "labels": {
-                    "pipeline_description": pipeline.description,
+                    "dataset_description": dataset.description,
                 },
             }
 
@@ -290,7 +315,7 @@ class DockerCompiler(Compiler):
                 services[component_id]["image"] = component_op.component_spec.image
 
         return {
-            "name": pipeline.name,
+            "name": dataset.name,
             "version": "3.8",
             "services": services,
         }
@@ -311,7 +336,7 @@ class DockerCompiler(Compiler):
                     f" is not a valid accelerator type for Docker Compose compiler."
                     f" Available options: {VALID_VERTEX_ACCELERATOR_TYPES}"
                 )
-                raise InvalidPipelineDefinition(msg)
+                raise InvalidDatasetDefinition(msg)
 
             if accelerator_name == "GPU":
                 services[component_id]["deploy"] = {
@@ -474,18 +499,20 @@ class KubeFlowCompiler(Compiler):
 
     def compile(
         self,
-        pipeline: Pipeline,
+        dataset: Dataset,
+        working_directory: str,
         output_path: str,
     ) -> None:
         """Compile a pipeline to Kubeflow pipeline spec and save it to a specified output path.
 
         Args:
-            pipeline: the pipeline to compile
+            dataset: the dataset to compile
+            working_directory: path of the working directory
             output_path: the path where to save the Kubeflow pipeline spec
         """
-        run_id = pipeline.get_run_id()
-        pipeline.validate(run_id=run_id)
-        logger.info(f"Compiling {pipeline.name} to {output_path}")
+        run_id = dataset.manifest.run_id
+        dataset.validate()
+        logger.info(f"Compiling {dataset.name} to {output_path}")
 
         def set_component_exec_args(
             *,
@@ -496,7 +523,13 @@ class KubeFlowCompiler(Compiler):
             """Dump Fondant specification arguments to kfp command executor arguments."""
             dumped_args: KubeflowCommandArguments = []
 
-            component_args.extend(["output_manifest_path", "metadata"])
+            component_args.extend(
+                [
+                    "output_manifest_path",
+                    "metadata",
+                    "working_directory",
+                ],
+            )
             if input_manifest_path:
                 component_args.append("input_manifest_path")
 
@@ -511,12 +544,12 @@ class KubeFlowCompiler(Compiler):
 
             return component_op
 
-        @self.kfp.dsl.pipeline(name=pipeline.name, description=pipeline.description)
+        @self.kfp.dsl.pipeline(name=dataset.name, description=dataset.description)
         def kfp_pipeline():
             previous_component_task = None
             component_cache_key = None
 
-            for component_name, component in pipeline._graph.items():
+            for component_name, component in dataset._graph.items():
                 logger.info(f"Compiling service for {component_name}")
 
                 component_op = component["operation"]
@@ -542,24 +575,24 @@ class KubeFlowCompiler(Compiler):
                     previous_component_cache=component_cache_key,
                 )
                 metadata = Metadata(
-                    pipeline_name=pipeline.name,
                     run_id=run_id,
-                    base_path=pipeline.base_path,
                     component_id=component_name,
                     cache_key=component_cache_key,
+                    dataset_name="dataset",
+                    manifest_location=f"{working_directory}/{dataset.name}/{run_id}/{component_name}/manifest.json",
                 )
 
                 output_manifest_path = (
-                    f"{pipeline.base_path}/{pipeline.name}/"
-                    f"{run_id}/{component_name}/manifest.json"
+                    f"{working_directory}/{metadata.dataset_name}/{metadata.run_id}/"
+                    f"{metadata.component_id}/manifest.json"
                 )
                 # Set the execution order of the component task to be after the previous
                 # component task.
                 if component["dependencies"]:
                     for dependency in component["dependencies"]:
                         input_manifest_path = (
-                            f"{pipeline.base_path}/{pipeline.name}/"
-                            f"{run_id}/{dependency}/manifest.json"
+                            f"{working_directory}/{metadata.dataset_name}/{metadata.run_id}"
+                            f"/{dependency}/manifest.json"
                         )
                         kubeflow_component_op = set_component_exec_args(
                             component_op=kubeflow_component_op,
@@ -569,6 +602,7 @@ class KubeFlowCompiler(Compiler):
                         component_task = kubeflow_component_op(
                             input_manifest_path=input_manifest_path,
                             output_manifest_path=output_manifest_path,
+                            working_directory=working_directory,
                             metadata=metadata.to_json(),
                             **component_args,
                         )
@@ -583,6 +617,7 @@ class KubeFlowCompiler(Compiler):
                     component_task = kubeflow_component_op(
                         metadata=metadata.to_json(),
                         output_manifest_path=output_manifest_path,
+                        working_directory=working_directory,
                         **component_args,
                     )
 
@@ -597,7 +632,7 @@ class KubeFlowCompiler(Compiler):
 
                 previous_component_task = component_task
 
-        logger.info(f"Compiling {pipeline.name} to {output_path}")
+        logger.info(f"Compiling {dataset.name} to {output_path}")
 
         self.kfp.compiler.Compiler().compile(kfp_pipeline, output_path)  # type: ignore
         logger.info("Pipeline compiled successfully")
@@ -633,7 +668,7 @@ class KubeFlowCompiler(Compiler):
                     f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
                     f"for Kubeflow compiler. Available options: {VALID_ACCELERATOR_TYPES}"
                 )
-                raise InvalidPipelineDefinition(msg)
+                raise InvalidDatasetDefinition(msg)
 
             task.set_accelerator_limit(accelerator_number)
             if accelerator_name == "GPU":
@@ -692,7 +727,7 @@ class VertexCompiler(KubeFlowCompiler):
                     f"Configured accelerator `{accelerator_name}` is not a valid accelerator type"
                     f"for Vertex compiler. Available options: {VALID_VERTEX_ACCELERATOR_TYPES}"
                 )
-                raise InvalidPipelineDefinition(msg)
+                raise InvalidDatasetDefinition(msg)
 
             task.set_accelerator_type(accelerator_name)
 
@@ -725,6 +760,7 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
     def _build_command(
         self,
         metadata: Metadata,
+        working_directory: str,
         arguments: t.Dict[str, t.Any],
         dependencies: t.List[str] = [],
     ) -> t.List[str]:
@@ -735,7 +771,7 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
         command.extend(
             [
                 "--output_manifest_path",
-                f"{metadata.base_path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                f"{working_directory}/{metadata.dataset_name}/{metadata.run_id}/"
                 f"{metadata.component_id}/manifest.json",
             ],
         )
@@ -754,10 +790,17 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
                 command.extend(
                     [
                         "--input_manifest_path",
-                        f"{metadata.base_path}/{metadata.pipeline_name}/{metadata.run_id}/"
+                        f"{working_directory}/{metadata.dataset_name}/{metadata.run_id}/"
                         f"{dependency}/manifest.json",
                     ],
                 )
+
+        command.extend(
+            [
+                "--working_directory",
+                working_directory,
+            ],
+        )
 
         return command
 
@@ -825,7 +868,8 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
 
     def compile(
         self,
-        pipeline: Pipeline,
+        dataset: Dataset,
+        working_directory: str,
         output_path: str,
         *,
         role_arn: t.Optional[str] = None,
@@ -834,44 +878,46 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
         to a specified output path.
 
         Args:
-            pipeline: the pipeline to compile
+            dataset: the dataset to compile
+            working_directory: path of the working directory
             output_path: the path where to save the sagemaker pipeline spec.
             role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
         """
         self.ecr_client = self.boto3.client("ecr")
-        self.validate_base_path(pipeline.base_path)
+        self.validate_base_path(working_directory)
         self._check_ecr_pull_through_rule()
 
-        run_id = pipeline.get_run_id()
-        path = pipeline.base_path
-        pipeline.validate(run_id=run_id)
+        run_id = dataset.manifest.run_id
+        dataset.validate()
 
         component_cache_key = None
 
         steps: t.List[t.Any] = []
 
         with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdirname:
-            for component_name, component in pipeline._graph.items():
+            for component_name, component in dataset._graph.items():
                 component_op = component["operation"]
                 component_cache_key = component_op.get_component_cache_key(
                     previous_component_cache=component_cache_key,
                 )
 
                 metadata = Metadata(
-                    pipeline_name=pipeline.name,
                     run_id=run_id,
-                    base_path=path,
                     component_id=component_name,
                     cache_key=component_cache_key,
+                    dataset_name=dataset.name,
+                    manifest_location=f"{working_directory}/{dataset.name}/{run_id}/"
+                    f"{component_name}/manifest.json",
                 )
 
                 logger.info(f"Compiling service for {component_name}")
 
                 command = self._build_command(
-                    metadata,
-                    component_op.arguments,
-                    component["dependencies"],
+                    metadata=metadata,
+                    working_directory=working_directory,
+                    arguments=component_op.arguments,
+                    dependencies=component["dependencies"],
                 )
                 depends_on = [steps[-1]] if component["dependencies"] else []
 
@@ -911,7 +957,7 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
                 steps.append(step)
 
             sagemaker_pipeline = self.sagemaker.workflow.pipeline.Pipeline(
-                name=pipeline.name,
+                name=dataset.name,
                 steps=steps,
             )
             with open(output_path, "w") as outfile:

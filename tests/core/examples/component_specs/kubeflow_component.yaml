@@ -3,31 +3,35 @@ components:
     executorLabel: exec-example-component
     inputDefinitions: &id001
       parameters:
+        cache:
+          defaultValue: true
+          description: Set to False to disable caching, True by default.
+          parameterType: BOOLEAN
         input_manifest_path:
-          parameterType: STRING
           description: Path to the input manifest
           isOptional: true
-        operation_spec:
           parameterType: STRING
-          description: The operation specification as a dictionary
         input_partition_rows:
-          parameterType: NUMBER_INTEGER
           description: The number of rows to load per partition.                         Set
             to override the automatic partitioning
           isOptional: true
-        cache:
-          parameterType: BOOLEAN
-          description: Set to False to disable caching, True by default.
-          defaultValue: true
+          parameterType: NUMBER_INTEGER
         metadata:
-          parameterType: STRING
           description: Metadata arguments containing the run id and base path
+          parameterType: STRING
+        operation_spec:
+          description: The operation specification as a dictionary
+          parameterType: STRING
         output_manifest_path:
-          parameterType: STRING
           description: Path to the output manifest
-        storage_args:
           parameterType: STRING
+        storage_args:
           description: Storage arguments
+          parameterType: STRING
+        working_directory:
+          description: The working directory
+          isOptional: true
+          parameterType: STRING
 deploymentSpec:
   executors:
     exec-example-component:
@@ -49,20 +53,22 @@ root:
           name: comp-example-component
         inputs:
           parameters:
-            input_manifest_path:
-              componentInputParameter: input_manifest_path
-            operation_spec:
-              componentInputParameter: operation_spec
-            input_partition_rows:
-              componentInputParameter: input_partition_rows
             cache:
               componentInputParameter: cache
+            input_manifest_path:
+              componentInputParameter: input_manifest_path
+            input_partition_rows:
+              componentInputParameter: input_partition_rows
             metadata:
               componentInputParameter: metadata
+            operation_spec:
+              componentInputParameter: operation_spec
             output_manifest_path:
               componentInputParameter: output_manifest_path
             storage_args:
               componentInputParameter: storage_args
+            working_directory:
+              componentInputParameter: working_directory
         taskInfo:
           name: example-component
   inputDefinitions: *id001

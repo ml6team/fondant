@@ -29,7 +29,7 @@ from pathlib import Path
 from types import ModuleType
 
 from fondant.core.schema import CloudCredentialsMount
-from fondant.pipeline import Pipeline
+from fondant.dataset import Dataset
 
 if t.TYPE_CHECKING:
     from fondant.component import Component
@@ -409,14 +409,14 @@ def register_compile(parent_parser):
 
 
 def compile_local(args):
-    from fondant.pipeline.compiler import DockerCompiler
+    from fondant.dataset.compiler import DockerCompiler
 
     extra_volumes = []
 
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
 
-    pipeline = pipeline_from_string(args.ref)
+    pipeline = dataset_from_string(args.ref)
     compiler = DockerCompiler()
     compiler.compile(
         pipeline=pipeline,
@@ -428,25 +428,25 @@ def compile_local(args):
 
 
 def compile_kfp(args):
-    from fondant.pipeline.compiler import KubeFlowCompiler
+    from fondant.dataset.compiler import KubeFlowCompiler
 
-    pipeline = pipeline_from_string(args.ref)
+    pipeline = dataset_from_string(args.ref)
     compiler = KubeFlowCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
 
 def compile_vertex(args):
-    from fondant.pipeline.compiler import VertexCompiler
+    from fondant.dataset.compiler import VertexCompiler
 
-    pipeline = pipeline_from_string(args.ref)
+    pipeline = dataset_from_string(args.ref)
     compiler = VertexCompiler()
     compiler.compile(pipeline=pipeline, output_path=args.output_path)
 
 
 def compile_sagemaker(args):
-    from fondant.pipeline.compiler import SagemakerCompiler
+    from fondant.dataset.compiler import SagemakerCompiler
 
-    pipeline = pipeline_from_string(args.ref)
+    pipeline = dataset_from_string(args.ref)
     compiler = SagemakerCompiler()
     compiler.compile(
         pipeline=pipeline,
@@ -507,10 +507,23 @@ def register_run(parent_parser):
         - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
         - to mount cloud credentials""",
     )
+
+    local_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
+    )
+
     local_parser.add_argument(
         "--build-arg",
         action="append",
         help="Build arguments for `docker build`",
+    )
+
+    local_parser.add_argument(
+        "--auth-provider",
+        type=cloud_credentials_arg,
+        choices=list(CloudCredentialsMount),
+        help="Flag to authenticate with a cloud provider",
     )
 
     # kubeflow runner parser
@@ -521,6 +534,13 @@ def register_run(parent_parser):
             """,
         action="store",
     )
+
+    kubeflow_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
+        required=True,
+    )
+
     kubeflow_parser.add_argument(
         "--output-path",
         "-o",
@@ -533,13 +553,6 @@ def register_run(parent_parser):
         required=True,
     )
 
-    local_parser.add_argument(
-        "--auth-provider",
-        type=cloud_credentials_arg,
-        choices=list(CloudCredentialsMount),
-        help="Flag to authenticate with a cloud provider",
-    )
-
     # Vertex runner parser
     vertex_parser.add_argument(
         "ref",
@@ -547,6 +560,11 @@ def register_run(parent_parser):
             a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
             """,
         action="store",
+    )
+    vertex_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
+        required=True,
     )
     vertex_parser.add_argument(
         "--project-id",
@@ -586,6 +604,11 @@ def register_run(parent_parser):
         action="store",
     )
     sagemaker_parser.add_argument(
+        "--working-directory",
+        help="""Working directory where the pipeline will be executed.""",
+        required=True,
+    )
+    sagemaker_parser.add_argument(
         "--pipeline-name",
         help="""the name of the sagemaker pipeline to create""",
         default="fondant-pipeline",
@@ -604,21 +627,26 @@ def register_run(parent_parser):
 
 
 def run_local(args):
-    from fondant.pipeline.runner import DockerRunner
+    from fondant.dataset.runner import DockerRunner
 
     extra_volumes = []
+
+    working_directory = (
+        args.working_directory if args.working_directory else "./artifacts"
+    )
 
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
 
     try:
-        ref = pipeline_from_string(args.ref)
+        dataset = dataset_from_string(args.ref)
     except ModuleNotFoundError:
-        ref = args.ref
+        dataset = args.ref
 
     runner = DockerRunner()
     runner.run(
-        input=ref,
+        dataset=dataset,
+        working_directory=working_directory,
         extra_volumes=extra_volumes,
         build_args=args.build_arg,
         auth_provider=args.auth_provider,
@@ -626,25 +654,26 @@ def run_local(args):
 
 
 def run_kfp(args):
-    from fondant.pipeline.runner import KubeflowRunner
+    from fondant.dataset.runner import KubeflowRunner
 
     if not args.host:
         msg = "--host argument is required for running on Kubeflow"
         raise ValueError(msg)
     try:
-        ref = pipeline_from_string(args.ref)
+        ref = dataset_from_string(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
 
     runner = KubeflowRunner(host=args.host)
-    runner.run(input=ref)
+
+    runner.run(dataset=ref, working_directory=args.working_directory)
 
 
 def run_vertex(args):
-    from fondant.pipeline.runner import VertexRunner
+    from fondant.dataset.runner import VertexRunner
 
     try:
-        ref = pipeline_from_string(args.ref)
+        ref = dataset_from_string(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
 
@@ -654,22 +683,25 @@ def run_vertex(args):
         service_account=args.service_account,
         network=args.network,
     )
-    runner.run(input=ref)
+
+    runner.run(dataset=ref, working_directory=args.working_directory)
 
 
 def run_sagemaker(args):
-    from fondant.pipeline.runner import SagemakerRunner
+    from fondant.dataset.runner import SagemakerRunner
 
     try:
-        ref = pipeline_from_string(args.ref)
+        ref = dataset_from_string(args.ref)
     except ModuleNotFoundError:
         ref = args.ref
 
     runner = SagemakerRunner()
+
     runner.run(
-        input=ref,
+        dataset=ref,
         pipeline_name=args.pipeline_name,
         role_arn=args.role_arn,
+        working_directory=args.working_directory,
     )
 
 
@@ -699,6 +731,11 @@ def register_execute(parent_parser):
         action="store",
     )
 
+    parser.add_argument(
+        "working-directory",
+        help="""Working directory where the component will be executed""",
+    )
+
     parser.set_defaults(func=execute)
 
 
@@ -715,7 +752,7 @@ class ComponentImportError(Exception):
     """Error raised when an import string is not valid."""
 
 
-class PipelineImportError(Exception):
+class DatasetImportError(Exception):
     """Error raised when an import from module is not valid."""
 
 
@@ -761,8 +798,8 @@ def _called_with_wrong_args(f):
         del tb
 
 
-def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
-    """Get the pipeline from the provided string reference.
+def dataset_from_string(string_ref: str) -> Dataset:  # noqa: PLR0912
+    """Get the workspace from the provided string reference.
 
     Inspired by Flask:
         https://github.com/pallets/flask/blob/d611989/src/flask/cli.py#L112
@@ -776,19 +813,19 @@ def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
         The pipeline obtained from the provided string
     """
     if ":" not in string_ref:
-        return pipeline_from_module(string_ref)
+        return dataset_from_module(string_ref)
 
-    module_str, pipeline_str = string_ref.split(":")
+    module_str, dataset_str = string_ref.split(":")
 
     module = get_module(module_str)
 
     # Parse `pipeline_str` as a single expression to determine if it's a valid
     # attribute name or function call.
     try:
-        expr = ast.parse(pipeline_str.strip(), mode="eval").body
+        expr = ast.parse(dataset_str.strip(), mode="eval").body
     except SyntaxError:
-        msg = f"Failed to parse {pipeline_str} as an attribute name or function call."
-        raise PipelineImportError(
+        msg = f"Failed to parse {dataset_str} as an attribute name or function call."
+        raise DatasetImportError(
             msg,
         ) from None
 
@@ -799,8 +836,8 @@ def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
     elif isinstance(expr, ast.Call):
         # Ensure the function name is an attribute name only.
         if not isinstance(expr.func, ast.Name):
-            msg = f"Function reference must be a simple name: {pipeline_str}."
-            raise PipelineImportError(
+            msg = f"Function reference must be a simple name: {dataset_str}."
+            raise DatasetImportError(
                 msg,
             )
 
@@ -813,13 +850,13 @@ def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
         except ValueError:
             # literal_eval gives cryptic error messages, show a generic
             # message with the full expression instead.
-            msg = f"Failed to parse arguments as literal values: {pipeline_str}."
-            raise PipelineImportError(
+            msg = f"Failed to parse arguments as literal values: {dataset_str}."
+            raise DatasetImportError(
                 msg,
             ) from None
     else:
-        msg = f"Failed to parse {pipeline_str} as an attribute name or function call."
-        raise PipelineImportError(
+        msg = f"Failed to parse {dataset_str} as an attribute name or function call."
+        raise DatasetImportError(
             msg,
         )
 
@@ -827,7 +864,7 @@ def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
         attr = getattr(module, name)
     except AttributeError as e:
         msg = f"Failed to find attribute {name} in {module.__name__}."
-        raise PipelineImportError(
+        raise DatasetImportError(
             msg,
         ) from e
 
@@ -840,47 +877,37 @@ def pipeline_from_string(string_ref: str) -> Pipeline:  # noqa: PLR0912
             if not _called_with_wrong_args(attr):
                 raise
 
-            msg = f"The factory {pipeline_str} in module {module.__name__} could not be called with the specified arguments."
-            raise PipelineImportError(
+            msg = f"The factory {dataset_str} in module {module.__name__} could not be called with the specified arguments."
+            raise DatasetImportError(
                 msg,
             ) from e
     else:
         app = attr
 
-    if isinstance(app, Pipeline):
+    if isinstance(app, Dataset):
         return app
 
-    msg = f"A valid Fondant pipeline was not obtained from '{module.__name__}:{pipeline_str}'."
-    raise PipelineImportError(
+    msg = f"A valid Fondant workspace was not obtained from '{module.__name__}:{dataset_str}'."
+    raise DatasetImportError(
         msg,
     )
 
 
-def pipeline_from_module(module_str: str) -> Pipeline:
-    """Try to import a pipeline from a string otherwise raise an ImportFromStringError."""
-    from fondant.pipeline import Pipeline
+def dataset_from_module(module_str: str) -> Dataset:
+    """Try to import a dataset from a string otherwise raise an ImportFromStringError."""
+    from fondant.dataset import Dataset
 
     module = get_module(module_str)
 
-    pipeline_instances = [
-        obj for obj in module.__dict__.values() if isinstance(obj, Pipeline)
+    dataset_instances = [
+        obj for obj in module.__dict__.values() if isinstance(obj, Dataset)
     ]
 
-    if not pipeline_instances:
-        msg = f"No pipeline found in module {module_str}"
-        raise PipelineImportError(msg)
+    if not dataset_instances:
+        msg = f"No dataset found in module {module_str}"
+        raise DatasetImportError(msg)
 
-    if len(pipeline_instances) > 1:
-        msg = (
-            f"Found multiple instantiated pipelines in {module_str}. Only one pipeline "
-            f"can be present"
-        )
-        raise PipelineImportError(msg)
-
-    pipeline = pipeline_instances[0]
-    logger.info(f"Pipeline `{pipeline.name}` found in module {module_str}")
-
-    return pipeline
+    return dataset_instances[0]
 
 
 def component_from_module(module_str: str) -> t.Type["Component"]:

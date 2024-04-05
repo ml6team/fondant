@@ -5,23 +5,21 @@
     "metadata": {
       "type": "object",
       "properties": {
-        "base_path": {
-          "type": "string",
-          "format": "uri"
+        "dataset_name": {
+          "type": ["string", "null"]
         },
-        "pipeline_name": {
-          "type": "string"
+        "manifest_location": {
+          "type": ["string", "null"]
         },
         "run_id": {
-          "type": "string"
+          "type": ["string", "null"]
         },
         "component_id": {
           "type": ["string", "null"]
         }
       },
       "required": [
-        "base_path",
-        "pipeline_name",
+        "dataset_name",
         "run_id"
       ]
     },
@@ -31,10 +29,7 @@
         "location": {
           "type": "string"
         }
-      },
-      "required": [
-        "location"
-      ]
+      }
     },
     "fields": {
       "$ref": "#/definitions/fields"
@@ -42,7 +37,6 @@
   },
   "required": [
     "metadata",
-    "index",
     "fields"
   ],
   "definitions": {
@@ -50,12 +44,11 @@
       "type": "object",
       "properties": {
         "location": {
-          "type": "string",
+          "type": ["string", "null"],
           "pattern": "/.*"
         }
       },
       "required": [
-        "location",
         "type"
       ]
     },

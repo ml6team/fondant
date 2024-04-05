@@ -1,28 +1,29 @@
 {
   "metadata": {
-    "pipeline_name": "test_pipeline",
-    "base_path": "gs://bucket",
+    "dataset_name": "test_pipeline",
     "run_id": "test_pipeline_12345",
-    "component_id": "67890"
+    "component_id": "67890",
+    "manifest_location": "gs://bucket/component1/manifest.json",
+    "dataset_location": "gs://bucket/component1"
   },
   "index": {
-    "location": "/component1"
+    "location": "gs://bucket/component1"
   },
   "fields":{
     "images": {
-      "location": "/component1",
+      "location": "gs://bucket/component1",
       "type": "binary"
     },
     "height": {
-      "location": "/component2",
+      "location": "gs://bucket/component2",
       "type": "int32"
     },
     "width": {
-      "location": "/component2",
+      "location": "gs://bucket/component2",
       "type": "int32"
     },
     "caption": {
-      "location": "/component3",
+      "location": "gs://bucket/component3",
       "type": "string"
     }
   }

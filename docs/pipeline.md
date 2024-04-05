@@ -1,20 +1,21 @@
-# Pipeline
+# Dataset
 
-A Fondant pipeline is a tool for building complex workflows by creating a Directed Acyclic Graph 
-(DAG) of different components that need to be executed. With Fondant, you can use both reusable
-components and custom components, and chain them into a pipeline.
+A Fondant Dataset is a checkpoint in a Directed Acyclic Graph 
+(DAG) of one or more different components that need to be executed. With Fondant, you can use both reusable
+components and custom components, and chain them together.
 
-## Composing a pipeline
+
+[//]: # (TODO update this section once we have the workspace)
+## Composing a Pipeline
 
 Start by creating a `pipeline.py` file and adding the following code.
-
 ```python
-from fondant.pipeline import Pipeline
+from fondant.dataset import Dataset
 
-pipeline = Pipeline(
-    name="my-pipeline",
-    base_path="./data",
-)
+#dataset = Dataset.read(
+#    ..
+#)
+
 ```
 
 We identify our pipeline with a name and provide a base path where the pipeline will store its 
@@ -30,23 +31,13 @@ The base path can be:
 * **A local directory**: only valid for the local runner, points to a local directory. This is
   useful for local development.
 
-!!! note "IMPORTANT"
-
-    Make sure the provided base_path already exists.
-
-??? "View a detailed reference of the options accepted by the `Pipeline` class"
-
-    ::: fondant.pipeline.Pipeline.__init__
-        handler: python
-        options:
-            show_source: false
 
 ### Adding a load component
 
-You can read data into your pipeline by using the `Pipeline.read()` method with a load component.
+You can read data into your pipeline by using the `Dataset.read()` method with a load component.
 
 ```python
-dataset = pipeline.read(
+dataset = Dataset.read(
     "load_from_parquet",
     arguments={
         "dataset_uri": "path/to/dataset",
@@ -54,10 +45,11 @@ dataset = pipeline.read(
     },
 )
 ```
+[//]: # (TODO: Add example of init from manifest)
 
-??? "View a detailed reference of the `Pipeline.read()` method"
+??? "View a detailed reference of the `Dataset.read()` method"
 
-    ::: fondant.pipeline.Pipeline.read
+    ::: fondant.dataset.Dataset.read
         handler: python
         options:
             show_source: false
@@ -68,7 +60,7 @@ graph. It returns a lazy `Dataset` instance which you can use to chain transform
 ### Adding transform components
 
 ```python
-from fondant.pipeline import Resources
+from fondant.dataset import Resources
 
 dataset = dataset.apply(
     "embed_text",
@@ -90,7 +82,7 @@ can choose the type of GPU as well.
 
 ??? "View a detailed reference of the `Dataset.apply()` method"
 
-    ::: fondant.pipeline.pipeline.Dataset.apply
+    ::: fondant.dataset.Dataset.apply
         handler: python
         options:
             show_source: false
@@ -112,7 +104,7 @@ dataset = dataset.write(
 
 ??? "View a detailed reference of the `Dataset.write()` method"
 
-    ::: fondant.pipeline.pipeline.Dataset.write
+    ::: fondant.dataset.Dataset.write
         handler: python
         options:
             show_source: false

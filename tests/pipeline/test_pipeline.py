@@ -8,14 +8,14 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 import yaml
-from fondant.component import DaskLoadComponent
+from fondant.component import DaskLoadComponent, PandasTransformComponent
 from fondant.core.component_spec import ComponentSpec
-from fondant.core.exceptions import InvalidPipelineDefinition
+from fondant.core.exceptions import InvalidDatasetDefinition
 from fondant.core.schema import Field, Type
-from fondant.pipeline import (
+from fondant.dataset import (
     ComponentOp,
+    Dataset,
     Image,
-    Pipeline,
     Resources,
     lightweight_component,
 )
@@ -58,7 +58,7 @@ def test_component_op(
         arguments=component_args,
     )
 
-    with pytest.raises(InvalidPipelineDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         ComponentOp(
             Path(components_path / component_names[0]),
             arguments=component_args,
@@ -67,7 +67,7 @@ def test_component_op(
             ),
         )
 
-    with pytest.raises(InvalidPipelineDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         ComponentOp(
             Path(components_path / component_names[0]),
             arguments=component_args,
@@ -200,16 +200,20 @@ def test_valid_pipeline(
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
 
-    pipeline = Pipeline(**default_pipeline_args)
-
-    # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
-
-    dataset = pipeline.read(
+    dataset = Dataset.create(
         Path(components_path / component_names[0]),
         arguments=component_args,
         produces={"images_array": pa.binary()},
+        dataset_name="my_dataset",
     )
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(
+        dataset.__class__,
+        "package_path",
+        str(tmp_path / "my_dataset.tgz"),
+    )
+
     dataset = dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
@@ -227,19 +231,19 @@ def test_valid_pipeline(
         consumes={"images_array": pa.binary()},
     )
 
-    pipeline.sort_graph()
-    assert list(pipeline._graph.keys()) == [
+    dataset.sort_graph()
+    assert list(dataset._graph.keys()) == [
         "first_component",
         "second_component",
         "third_component",
         "fourth_component",
     ]
-    assert pipeline._graph["first_component"]["dependencies"] == []
-    assert pipeline._graph["second_component"]["dependencies"] == ["first_component"]
-    assert pipeline._graph["third_component"]["dependencies"] == ["second_component"]
-    assert pipeline._graph["fourth_component"]["dependencies"] == ["third_component"]
+    assert dataset._graph["first_component"]["dependencies"] == []
+    assert dataset._graph["second_component"]["dependencies"] == ["first_component"]
+    assert dataset._graph["third_component"]["dependencies"] == ["second_component"]
+    assert dataset._graph["fourth_component"]["dependencies"] == ["third_component"]
 
-    pipeline._validate_pipeline_definition("test_pipeline")
+    dataset._validate_dataset_definition()
 
 
 def test_invalid_pipeline_schema(
@@ -251,22 +255,22 @@ def test_invalid_pipeline_schema(
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / "example_1")
 
-    pipeline = Pipeline(**default_pipeline_args)
-    # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(
-        pipeline,
-        "package_path",
-        str(tmp_path / "test_pipeline.tgz"),
-    )
-
-    dataset = pipeline.read(
+    dataset = Dataset.create(
         Path(components_path / "first_component"),
         arguments=component_args,
         produces={"images_array": pa.binary()},
+        dataset_name="my_dataset",
+    )
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(
+        dataset.__class__,
+        "package_path",
+        str(tmp_path / "my_dataset.tgz"),
     )
 
     # "images_pictures" does not exist in the dataset
-    with pytest.raises(InvalidPipelineDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         dataset.apply(
             Path(components_path / "second_component"),
             arguments=component_args,
@@ -274,7 +278,7 @@ def test_invalid_pipeline_schema(
         )
 
     # "images_array" does not exist in the component spec
-    with pytest.raises(InvalidPipelineDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         dataset.apply(
             Path(components_path / "second_component"),
             arguments=component_args,
@@ -283,7 +287,7 @@ def test_invalid_pipeline_schema(
 
     # Extra field in the consumes mapping that does not have a corresponding field
     # in the dataset
-    with pytest.raises(InvalidPipelineDefinition):
+    with pytest.raises(InvalidDatasetDefinition):
         dataset.apply(
             Path(components_path / "second_component"),
             arguments=component_args,
@@ -313,23 +317,17 @@ def test_invalid_pipeline_dependencies(default_pipeline_args, valid_pipeline_exa
     components_path = Path(valid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
 
-    pipeline = Pipeline(**default_pipeline_args)
-
-    dataset = pipeline.read(
+    dataset = Dataset.create(
         Path(components_path / component_names[0]),
         arguments=component_args,
         produces={"image_data": pa.binary()},
+        dataset_name="my_dataset",
     )
+
     dataset = dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
     )
-    with pytest.raises(InvalidPipelineDefinition):
-        pipeline.read(
-            Path(components_path / component_names[2]),
-            arguments=component_args,
-            produces={"image_data": pa.binary()},
-        )
 
 
 @pytest.mark.parametrize(
@@ -351,20 +349,19 @@ def test_invalid_pipeline_declaration(
     components_path = Path(invalid_pipeline_path / example_dir)
     component_args = {"storage_args": "a dummy string arg"}
 
-    pipeline = Pipeline(**default_pipeline_args)
-
-    dataset = pipeline.read(
+    dataset = Dataset.create(
         Path(components_path / component_names[0]),
         arguments=component_args,
         produces={"image_data": pa.binary()},
+        dataset_name="my_dataset",
     )
     dataset.apply(
         Path(components_path / component_names[1]),
         arguments=component_args,
     )
 
-    with pytest.raises(InvalidPipelineDefinition):
-        pipeline._validate_pipeline_definition("test_pipeline")
+    with pytest.raises(InvalidDatasetDefinition):
+        dataset._validate_dataset_definition()
 
 
 def test_reusable_component_op():
@@ -407,32 +404,22 @@ def test_defining_reusable_component_op_with_custom_spec():
     )
 
 
-def test_pipeline_name():
-    Pipeline(name="valid-name", base_path="base_path")
-    with pytest.raises(InvalidPipelineDefinition, match="The pipeline name violates"):
-        Pipeline(name="invalid name", base_path="base_path")
-
-
 def test_schema_propagation():
     """Test that the schema is propagated correctly between datasets taking into account the
     component specs and `consumes` and `produces` arguments.
     """
-    pipeline = Pipeline(name="pipeline", base_path="base_path")
-
-    pipeline.get_run_id = lambda: "pipeline-id"
-
-    dataset = pipeline.read(
+    dataset = Dataset.create(
         "load_from_hf_hub",
         produces={
             "image": pa.binary(),
         },
+        dataset_name="my_dataset",
     )
 
     assert dataset.fields == {
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load_from_hugging_face_hub",
         ),
     }
 
@@ -444,12 +431,10 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load_from_hugging_face_hub",
         ),
         "caption": Field(
             "caption",
             type=Type(pa.string()),
-            location="/pipeline-id/caption_images",
         ),
     }
 
@@ -464,12 +449,10 @@ def test_schema_propagation():
         "image": Field(
             "image",
             type=Type(pa.binary()),
-            location="/pipeline-id/load_from_hugging_face_hub",
         ),
         "caption": Field(
             "caption",
             type=Type(pa.string()),
-            location="/pipeline-id/caption_images",
         ),
     }
 
@@ -487,12 +470,10 @@ def test_schema_propagation():
         "chunks": Field(
             "chunks",
             type=Type(pa.string()),
-            location="/pipeline-id/chunk_text",
         ),
         "original_document_id": Field(
             "original_document_id",
             type=Type(pa.string()),
-            location="/pipeline-id/chunk_text",
         ),
     }
 
@@ -501,15 +482,12 @@ def test_invoked_field_schema_raise_exception():
     """Test that check if the invoked field schema not matches the
     current schema raise an InvalidPipelineDefinition.
     """
-    pipeline = Pipeline(name="pipeline", base_path="base_path")
-
-    pipeline.get_run_id = lambda: "pipeline-id"
-
-    dataset = pipeline.read(
+    dataset = Dataset.create(
         "load_from_hf_hub",
         produces={
             "image": pa.binary(),
         },
+        dataset_name="my_dataset",
     )
 
     dataset.write(
@@ -526,8 +504,8 @@ def test_invoked_field_schema_raise_exception():
         "it with this type:\nType(DataType(string))",
     )
 
-    with pytest.raises(InvalidPipelineDefinition, match=expected_error_msg):
-        pipeline.validate("pipeline-id")
+    with pytest.raises(InvalidDatasetDefinition, match=expected_error_msg):
+        dataset.validate()
 
 
 @pytest.mark.parametrize(
@@ -555,15 +533,18 @@ def test_infer_consumes_if_not_defined(
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / example_dir)
 
-    pipeline = Pipeline(**default_pipeline_args)
-
-    # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
-
-    dataset = pipeline.read(
+    dataset = Dataset.create(
         Path(components_path / component_names[0]),
         arguments=component_args,
         produces={"images_array": pa.binary()},
+        dataset_name="my_dataset",
+    )
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(
+        dataset.__class__,
+        "package_path",
+        str(tmp_path / "my_dataset.tgz"),
     )
 
     # Empty consumes & additionalProperties=False -> infer component spec defined columns
@@ -573,9 +554,9 @@ def test_infer_consumes_if_not_defined(
         arguments=component_args,
     )
 
-    assert dataset.pipeline._graph["second_component"][
-        "operation"
-    ].operation_spec.to_dict()["consumes"] == {
+    assert dataset._graph["second_component"]["operation"].operation_spec.to_dict()[
+        "consumes"
+    ] == {
         "images_data": {"type": "binary"},
     }
 
@@ -586,9 +567,9 @@ def test_infer_consumes_if_not_defined(
         arguments=component_args,
     )
 
-    assert dataset.pipeline._graph["third_component"][
-        "operation"
-    ].operation_spec.to_dict()["consumes"] == {
+    assert dataset._graph["third_component"]["operation"].operation_spec.to_dict()[
+        "consumes"
+    ] == {
         "images_data": {"type": "binary"},
         "embeddings_data": {"items": {"type": "float32"}, "type": "array"},
     }
@@ -605,9 +586,9 @@ def test_infer_consumes_if_not_defined(
         arguments=component_args,
     )
 
-    assert dataset.pipeline._graph["fourth_component"][
-        "operation"
-    ].operation_spec.to_dict()["consumes"] == {
+    assert dataset._graph["fourth_component"]["operation"].operation_spec.to_dict()[
+        "consumes"
+    ] == {
         "images_data": {"type": "binary"},
         "images_array": {"type": "binary"},
         "embeddings_data": {"items": {"type": "float32"}, "type": "array"},
@@ -622,15 +603,19 @@ def test_consumes_name_to_name_mapping(
     """Test that a valid pipeline definition can be compiled without errors."""
     component_args = {"storage_args": "a dummy string arg"}
     components_path = Path(valid_pipeline_path / "example_1")
-    pipeline = Pipeline(**default_pipeline_args)
 
-    # override the default package_path with temporary path to avoid the creation of artifacts
-    monkeypatch.setattr(pipeline, "package_path", str(tmp_path / "test_pipeline.tgz"))
-
-    dataset = pipeline.read(
+    dataset = Dataset.create(
         Path(components_path / "first_component"),
         arguments=component_args,
         produces={"images_data": pa.binary(), "second_field": pa.string()},
+        dataset_name="my_dataset",
+    )
+
+    # override the default package_path with temporary path to avoid the creation of artifacts
+    monkeypatch.setattr(
+        dataset.__class__,
+        "package_path",
+        str(tmp_path / "my_dataset.tgz"),
     )
 
     dataset.apply(
@@ -639,8 +624,36 @@ def test_consumes_name_to_name_mapping(
         consumes={"images_data": "images_data"},
     )
 
-    assert dataset.pipeline._graph["fourth_component"][
-        "operation"
-    ].operation_spec.to_dict()["consumes"] == {
+    assert dataset._graph["fourth_component"]["operation"].operation_spec.to_dict()[
+        "consumes"
+    ] == {
         "images_data": {"type": "binary"},
     }
+
+
+def test_init_dataset_from_manifest():
+    manifest_path = (
+        Path(__file__).parent.parent / "component/examples/data/manifest.json"
+    )
+    Path(valid_pipeline_path / "example_1")
+
+    dataset = Dataset.read(str(manifest_path))
+    assert dataset.name == "test_pipeline"
+    assert list(dataset.fields) == ["Name", "HP", "Type 1", "Type 2"]
+
+    # Apply transformation
+    @lightweight_component(
+        consumes={"Name": pa.string(), "foo": pa.string()},
+        produces={"Name": pa.string(), "foo": pa.string()},
+    )
+    class Bar(PandasTransformComponent):
+        def transform(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+            dataframe["foo"] = "bar"
+            return dataframe
+
+    dataset = dataset.apply(
+        ref=Bar,
+    )
+
+    assert len(dataset._graph) == 1
+    assert list(dataset.fields) == ["Name", "HP", "Type 1", "Type 2", "foo"]

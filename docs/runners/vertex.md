@@ -3,13 +3,13 @@
 Uses Google
 cloud's [Vertex AI pipelines](https://cloud.google.com/vertex-ai/docs/pipelines/introduction) to
 help you
-orchestrate your Fondant pipelines in a serverless manner. This makes it easy to scale up your
+orchestrate your Fondant workflows in a serverless manner. This makes it easy to scale up your
 pipelines without worrying about infrastructure
 deployment.
 
 Vertex AI pipelines leverages Kubeflow pipelines under the hood. The Vertex compiler will take your
-pipeline and compile it to a Kubeflow pipeline spec.
-This spec can be used to run your pipeline on Vertex.
+Fondant workflow and compile it to a Kubeflow pipeline spec.
+This spec can be used to run your workflow on Vertex.
 
 ### Installing the Vertex runner
 
@@ -19,7 +19,7 @@ Make sure to install Fondant with the Vertex runner extra.
 pip install fondant[vertex]
 ```
 
-### Running a pipeline with Vertex
+### Running a dataset with Vertex
 
 You will first need to make sure that your Google Cloud environment is properly setup. More
 info [here](https://codelabs.developers.google.com/vertex-pipelines-intro#2)
@@ -27,41 +27,42 @@ info [here](https://codelabs.developers.google.com/vertex-pipelines-intro#2)
 === "Console"
     
     ```bash 
-    fondant run vertex <pipeline_ref> \
+    fondant run vertex <dataset_ref> \
+     --working-dir $GCP_BUCKET \ 
      --project-id $PROJECT_ID \
      --region $PROJECT_REGION \
      --service-account $SERVICE_ACCOUNT
     ```
-    
-    The pipeline ref is reference to a fondant pipeline (e.g. `pipeline.py`) where a pipeline instance
+
+    The dataset ref is reference to a fondant dataset (e.g. `pipeline.py`) where a dataset instance
     exists.
 
 
 === "Python"
     
     ```python
-    from fondant.pipeline.compiler import VertexCompiler
-    from fondant.pipeline.runner import VertexRunner
+    from fondant.dataset.compiler import VertexCompiler
+    from fondant.dataset.runner import VertexRunner
     
     project_id = <the_gcp_project_id>
-    project_region = <the_region_where_the_pipeline_will_run>
-    service_account = <the_service_account_to_run_the_pipeline_with>
+    project_region = <vertex_region>
+    service_account = <the_service_account_to_be_used_by_vertex>
 
     compiler= VertexCompiler()
-    compiler.compile(pipeline=<pipeline_object>)
+    compiler.compile(dataset=<dataset_object>)
 
     runner = VertexRunner(
         project_id=project_id,
         region=project_region,
         service_account=service_account)
     )
-    runner.run(input_spec=<path_to_compiled_spec>)
+    runner.run(input_spec=<path_to_compiled_spec>, working_dir=<working_dir>)
     ```
 
 
 Once your pipeline is running you can monitor it using the Vertex UI.
 
-#### Assigning custom resources to the pipeline
+#### Assigning custom resources to the vertex pipeline
 
 The computation resources needs to be assigned explicitly, Vertex will then randomly attempt to
 allocate
@@ -71,7 +72,7 @@ for a list of available GPU resources. Make sure to check that the chosen GPU is
 region where the pipeline will be run.
 
 ```python
-from fondant.pipeline import Resources
+from fondant.dataset import Resources
 
 dataset = dataset.apply(
     "...",

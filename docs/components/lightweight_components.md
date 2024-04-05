@@ -53,7 +53,7 @@ pipeline = Pipeline(
     base_path="./data",
 )
 
-dataset = pipeline.read(
+dataset = Dataset.read(
     ref=CreateData,
 )
 
