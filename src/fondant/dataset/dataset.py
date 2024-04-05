@@ -500,6 +500,12 @@ class Dataset:
 
     @staticmethod
     def read(manifest_path: str):
+        """
+        Read a dataset from a manifest file.
+
+        Args:
+            manifest_path: The path to the manifest file.
+        """
         manifest = Manifest.from_file(manifest_path)
         return Dataset(manifest=manifest)
 

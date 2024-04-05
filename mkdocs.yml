@@ -41,10 +41,10 @@ nav:
       - Using the documentation: documentation_guide.md
       - Getting Started:
           - Installation: guides/installation.md
-          - Running your first pipeline: guides/first_pipeline.md
-          - Building your own pipeline: guides/build_a_simple_pipeline.md
+          - Running your first pipeline: guides/first_dataset.md
+          - Building your own pipeline: guides/build_a_simple_dataset.md
           - Implementing custom components: guides/implement_custom_components.md
-      - Pipeline: pipeline.md
+      - Dataset: dataset.md
       - Components:
           - Components: components/components.md
           - Lightweight components: components/lightweight_components.md
@@ -92,9 +92,9 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.details
   - attr_list
-  - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+  #- pymdownx.emoji:
+  #    emoji_index: !!python/name:materialx.emoji.twemoji
+  #    emoji_generator: !!python/name:materialx.emoji.to_svg
   - admonition
   - def_list
   - toc:
