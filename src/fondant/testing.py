@@ -80,45 +80,45 @@ class DockerComponentConfig(ComponentConfigs):
 
 
 @dataclass
-class PipelineConfigs:
+class DatasetConfigs:
     """
-    Represents the configurations for a pipeline.
+    Represents the configurations for a dataset workflow.
 
     Args:
-        pipeline_name: Name of the pipeline.
-        pipeline_description: Description of the pipeline.
+        dataset_name: Name of the dataset.
+        dataset_description: Description of the dataset.
     """
 
-    pipeline_name: str
-    pipeline_version: str
-    pipeline_description: t.Optional[str] = None
+    dataset_name: str
+    dataset_version: str
+    dataset_description: t.Optional[str] = None
 
     @classmethod
     @abstractmethod
-    def from_spec(cls, spec_path: str) -> "PipelineConfigs":
-        """Get pipeline configs from a pipeline specification."""
+    def from_spec(cls, spec_path: str) -> "DatasetConfigs":
+        """Get dataset configs from a dataset workflow specification."""
 
 
 @dataclass
-class DockerComposeConfigs(PipelineConfigs):
+class DockerComposeConfigs(DatasetConfigs):
     """
-    Represents Docker-specific configurations for a pipeline.
+    Represents Docker-specific configurations for a dataset.
 
     Args:
-       component_configs: Dictionary of Docker component configurations for the pipeline.
+       component_configs: Dictionary of Docker component configurations for the dataset.
     """
 
     component_configs: t.Optional[t.Dict[str, DockerComponentConfig]] = None
 
     @classmethod
     def from_spec(cls, spec_path: str) -> "DockerComposeConfigs":
-        """Get pipeline configs from a pipeline specification."""
+        """Get dataset configs from a dataset workflow specification."""
         with open(spec_path) as file_:
             specification = yaml.safe_load(file_)
 
         components_configs_dict = {}
 
-        pipeline_description = None
+        dataset_description = None
         # Iterate through each service
         for component_name, component_configs in specification["services"].items():
             # Get arguments from command
@@ -154,33 +154,33 @@ class DockerComposeConfigs(PipelineConfigs):
                 memory_limit=None,
             )
             components_configs_dict[component_name] = component_config
-            pipeline_description = component_configs.get("labels", {}).get(
-                "pipeline_description",
+            dataset_description = component_configs.get("labels", {}).get(
+                "dataset_description",
                 "No description provided",
             )
 
         return cls(
-            pipeline_name=specification["name"],
-            pipeline_version=specification["version"],
-            pipeline_description=pipeline_description,
+            dataset_name=specification["name"],
+            dataset_version=specification["version"],
+            dataset_description=dataset_description,
             component_configs=components_configs_dict,
         )
 
 
 @dataclass
-class KubeflowPipelineConfigs(PipelineConfigs):
+class KubeflowPipelineConfigs(DatasetConfigs):
     """
-    Represents Kubeflow-specific configurations for a pipeline.
+    Represents Kubeflow-specific configurations for a dataset.
 
     Args:
-        component_configs: Dictionary of Kubeflow component configurations for the pipeline.
+        component_configs: Dictionary of Kubeflow component configurations for the dataset.
     """
 
     component_configs: t.Optional[t.Dict[str, KubeflowComponentConfig]] = None
 
     @classmethod
     def from_spec(cls, spec_path: str) -> "KubeflowPipelineConfigs":
-        """Get pipeline configs from a pipeline specification."""
+        """Get dataset configs from a dataset specification."""
         # Two specs are present and loaded in the yaml file (component spec and k8s specs)
         k8_specification = {}
         specification = {}
@@ -195,7 +195,7 @@ class KubeflowPipelineConfigs(PipelineConfigs):
                     ]["executors"]
 
         if not specification:
-            msg = "No component specification found in the pipeline specification"
+            msg = "No component specification found in the dataset specification"
             raise InvalidDatasetDefinition(msg)
         components_configs_dict = {}
 
@@ -266,9 +266,9 @@ class KubeflowPipelineConfigs(PipelineConfigs):
         pipeline_info = specification["pipelineInfo"]
 
         return cls(
-            pipeline_name=pipeline_info["name"],
-            pipeline_version=specification["sdkVersion"],
-            pipeline_description=pipeline_info.get("description", None),
+            dataset_name=pipeline_info["name"],
+            dataset_version=specification["sdkVersion"],
+            dataset_description=pipeline_info.get("description", None),
             component_configs=components_configs_dict,
         )
 

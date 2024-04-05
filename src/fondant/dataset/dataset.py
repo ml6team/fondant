@@ -1,4 +1,4 @@
-"""This module defines classes to represent a Fondant Pipeline."""
+"""This module defines classes to represent a Fondant Dataset."""
 
 import copy
 import datetime
@@ -70,15 +70,16 @@ class Resources:
 
     """
     Class representing the resources to assign to a Fondant Component operation in a Fondant
-    Pipeline.
+    Dataset.
 
        Arguments:
            number_of_accelerators: The number of accelerators to assign to the operation (GPU, TPU)
            accelerator_name: The name of the accelerator to assign. If you're using a cluster setup
              on GKE, select "GPU" for GPU or "TPU" for TPU. Make sure
              that you select a nodepool with the available hardware. If you're running the
-             pipeline on Vertex, then select one of the machines specified in the list of
-             accelerators here https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec.
+             dataset materilization workflow on Vertex, then select one of the machines specified
+             in the list of accelerators
+             here https://cloud.google.com/vertex-ai/docs/reference/rest/v1/MachineSpec.
            node_pool_label: The label of the node pool to which the operation will be assigned.
            node_pool_name: The name of the node pool to which the operation will be assigned.
            cache: Set to False to disable caching, True by default.
@@ -119,8 +120,8 @@ class Resources:
 
 class ComponentOp:
     """
-    Class representing an operation for a Fondant Component in a Fondant Pipeline. An operation
-    is a representation of a function that will be executed as part of a pipeline.
+    Class representing an operation for a Fondant Component in a Fondant Dataset. An operation
+    is a representation of a function that will be executed as part of the workflow.
 
     Arguments:
         name_or_path: The name of a reusable component, or the path to the directory containing a
@@ -564,7 +565,7 @@ class Dataset:
 
     def sort_graph(self):
         """Sort the graph topologically based on task dependencies."""
-        logger.info("Sorting pipeline component graph topologically.")
+        logger.info("Sorting workflow graph topologically.")
         sorted_graph = []
         visited = set()
 
@@ -587,7 +588,7 @@ class Dataset:
         self._graph = OrderedDict((node, self._graph[node]) for node in sorted_graph)
 
     def validate(self):
-        """Sort and run validation on the pipeline definition.
+        """Sort and run validation on the dataset definition.
 
         Args:
             run_id: run identifier
@@ -609,10 +610,11 @@ class Dataset:
         """
         run_id = self.manifest.run_id
         if len(self._graph.keys()) == 0:
-            logger.info("No components defined in the pipeline. Nothing to validate.")
+            logger.info(
+                "No components defined in the dataset workflow. Nothing to validate.",
+            )
             return
 
-        # TODO: change later if we decide to run 2 fondant pipelines after each other
         load_component = True
         load_component_name = list(self._graph.keys())[0]
 
@@ -669,10 +671,10 @@ class Dataset:
             )
             load_component = False
 
-        logger.info("All pipeline component specifications match.")
+        logger.info("All workflow component specifications match.")
 
     def __repr__(self) -> str:
-        """Return a string representation of the FondantPipeline object."""
+        """Return a string representation of the Fondant dataset object."""
         return f"{self.__class__.__name__}({self._graph!r}"
 
     @property

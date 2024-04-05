@@ -86,7 +86,7 @@ class Compiler(ABC):
 
 
 class DockerCompiler(Compiler):
-    """Compiler that creates a docker-compose spec from a pipeline."""
+    """Compiler that creates a docker-compose spec from a dataset."""
 
     def compile(
         self,
@@ -98,7 +98,7 @@ class DockerCompiler(Compiler):
         build_args: t.Optional[t.List[str]] = None,
         auth_provider: t.Optional[CloudCredentialsMount] = None,
     ) -> None:
-        """Compile a pipeline to docker-compose spec and save it to a specified output path.
+        """Compile a dataset workflow to docker-compose spec and save it to a specified output path.
 
         Args:
             dataset: the dataset to compile
@@ -194,7 +194,7 @@ class DockerCompiler(Compiler):
         build_args: t.List[str],
     ) -> dict:
         """Generate a docker-compose spec as a python dictionary,
-        loops over the pipeline graph to create services and their dependencies.
+        loops over the dataset graph to create services and their dependencies.
         """
         path, volume = self._patch_path(base_path=working_directory)
         run_id = dataset.manifest.run_id
@@ -476,7 +476,7 @@ class KubeflowComponentSpec:
 
 
 class KubeFlowCompiler(Compiler):
-    """Compiler that creates a Kubeflow pipeline spec from a pipeline."""
+    """Compiler that creates a Kubeflow pipeline spec from a dataset."""
 
     def __init__(self):
         self._resolve_imports()
@@ -503,7 +503,8 @@ class KubeFlowCompiler(Compiler):
         working_directory: str,
         output_path: str,
     ) -> None:
-        """Compile a pipeline to Kubeflow pipeline spec and save it to a specified output path.
+        """Compile a dataset workflow to Kubeflow pipeline spec and save it to a specified
+        output path.
 
         Args:
             dataset: the dataset to compile
@@ -874,7 +875,7 @@ class SagemakerCompiler(Compiler):  # pragma: no cover
         *,
         role_arn: t.Optional[str] = None,
     ) -> None:
-        """Compile a fondant pipeline to sagemaker pipeline spec and save it
+        """Compile a fondant dataset workflow to sagemaker pipeline spec and save it
         to a specified output path.
 
         Args:

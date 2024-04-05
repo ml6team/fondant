@@ -42,14 +42,14 @@ class DockerRunner(Runner):
             "--remove-orphans",
         ]
 
-        print("Starting pipeline run...")
+        print("Starting workflow run...")
 
         # copy the current environment with the DOCKER_DEFAULT_PLATFORM argument
         subprocess.call(  # nosec
             cmd,
             env=dict(os.environ, DOCKER_DEFAULT_PLATFORM="linux/amd64"),
         )
-        print("Finished pipeline run.")
+        print("Finished workflow run.")
 
     def run(
         self,
@@ -60,7 +60,7 @@ class DockerRunner(Runner):
         build_args: t.Optional[t.List[str]] = None,
         auth_provider: t.Optional[CloudCredentialsMount] = None,
     ) -> None:
-        """Run a pipeline, either from a compiled docker-compose spec or from a fondant pipeline.
+        """Run a workflow, either from a compiled docker-compose spec or from a fondant dataset.
 
         Args:
             dataset: the dataset to compile or a path to an already compiled docker-compose spec
@@ -78,7 +78,7 @@ class DockerRunner(Runner):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/compose.yaml"
             logging.info(
-                "Found reference to un-compiled pipeline... compiling",
+                "Found reference to un-compiled workflow... compiling",
             )
             compiler = DockerCompiler()
             compiler.compile(
@@ -190,7 +190,7 @@ class KubeflowRunner(Runner):
         *,
         experiment_name: str = "Default",
     ):
-        """Run a pipeline, either from a compiled kubeflow spec or from a fondant pipeline.
+        """Run a workflow, either from a compiled kubeflow spec or from a fondant dataset.
 
         Args:
             dataset: the dataset to compile or a path to an already compiled sagemaker spec
@@ -201,7 +201,7 @@ class KubeflowRunner(Runner):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/kubeflow-pipeline.yaml"
             logging.info(
-                "Found reference to un-compiled pipeline... compiling",
+                "Found reference to un-compiled workflow... compiling",
             )
             compiler = KubeFlowCompiler()
             compiler.compile(
@@ -237,8 +237,8 @@ class KubeflowRunner(Runner):
             pipeline_package_path=input_spec,
         )
 
-        pipeline_url = f"{self.host}/#/runs/details/{runner.run_id}"
-        logger.info(f"Pipeline is running at: {pipeline_url}")
+        workflow_url = f"{self.host}/#/runs/details/{runner.run_id}"
+        logger.info(f"Pipeline is running at: {workflow_url}")
 
     def get_name_from_spec(self, input_spec: str):
         """Get the name of the pipeline from the spec."""
@@ -274,7 +274,7 @@ class VertexRunner(Runner):
         dataset: t.Union[Dataset, str],
         working_directory: str,
     ):
-        """Run a pipeline, either from a compiled vertex spec or from a fondant pipeline.
+        """Run a workflow, either from a compiled vertex spec or from a fondant dataset.
 
         Args:
             dataset: the dataset to compile or a path to an already compiled sagemaker spec
@@ -284,7 +284,7 @@ class VertexRunner(Runner):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/vertex-pipeline.yaml"
             logging.info(
-                "Found reference to un-compiled pipeline... compiling",
+                "Found reference to un-compiled workflow... compiling",
             )
             compiler = VertexCompiler()
             compiler.compile(
@@ -344,7 +344,7 @@ class SagemakerRunner(Runner):
         Args:
             dataset: the dataset to compile or a path to a already compiled sagemaker spec
             working_directory: path of the working directory
-            pipeline_name: the name of the pipeline to create
+            pipeline_name: the name of the workflow to create
             role_arn: the Amazon Resource Name role to use for the processing steps,
             if none provided the `sagemaker.get_execution_role()` role will be used.
         """
@@ -352,7 +352,7 @@ class SagemakerRunner(Runner):
             os.makedirs(".fondant", exist_ok=True)
             output_path = ".fondant/sagemaker-pipeline.yaml"
             logging.info(
-                "Found reference to un-compiled pipeline... compiling",
+                "Found reference to un-compiled workflow... compiling",
             )
             compiler = SagemakerCompiler()
             compiler.compile(

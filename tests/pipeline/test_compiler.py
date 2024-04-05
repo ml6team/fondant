@@ -179,7 +179,7 @@ def test_docker_compiler(setup_pipeline, tmp_path_factory):
             build_args=[],
         )
         pipeline_configs = DockerComposeConfigs.from_spec(output_path)
-        assert pipeline_configs.pipeline_name == dataset.name
+        assert pipeline_configs.dataset_name == dataset.name
         for (
             component_name,
             component_configs,
@@ -488,7 +488,7 @@ def test_kubeflow_compiler(setup_pipeline, tmp_path_factory):
             output_path=output_path,
         )
         pipeline_configs = KubeflowPipelineConfigs.from_spec(output_path)
-        assert pipeline_configs.pipeline_name == dataset.name
+        assert pipeline_configs.dataset_name == dataset.name
         for (
             component_name,
             component_configs,
@@ -596,7 +596,7 @@ def test_vertex_compiler(setup_pipeline, tmp_path_factory):
             output_path=output_path,
         )
         pipeline_configs = VertexPipelineConfigs.from_spec(output_path)
-        assert pipeline_configs.pipeline_name == dataset.name
+        assert pipeline_configs.dataset_name == dataset.name
         for (
             component_name,
             component_configs,

@@ -8,19 +8,9 @@ description: |
 
   ```python
   import pyarrow as pa
-  from fondant.dataset import Pipeline
+  from fondant.dataset import Dataset
 
-  pipeline = Pipeline(name="my_pipeline", base_path="path/to/pipeline")
-
-  dataset = pipeline.read(
-      "load_from_csv",
-      arguments={
-          "dataset_uri": "path/to/dataset.csv",
-      },
-      produces={
-          "text": pa.string(),
-      }
-  )
+  dataset = Dataset.read(...)
 
   dataset.write(
       "index_weaviate",
@@ -42,19 +32,10 @@ description: |
   
   ```python
   import pyarrow as pa
-  from fondant.dataset import Pipeline
+  from fondant.dataset import Dataset
   
-  pipeline = Pipeline(name="my_pipeline",base_path="path/to/pipeline")
   
-  dataset = pipeline.read(
-      "load_from_csv",
-      arguments={
-          "dataset_uri": "path/to/dataset.csv",
-      },
-      produces={
-          "text": pa.string(),
-      }
-  )
+  dataset = Dataset.read(...)
   
   dataset = dataset.apply(
       "embed_text",

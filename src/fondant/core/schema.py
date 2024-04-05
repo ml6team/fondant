@@ -1,5 +1,5 @@
 """This module defines common schemas and datatypes used to define Fondant manifests, components
-and pipelines.
+and datasets.
 """
 
 import os

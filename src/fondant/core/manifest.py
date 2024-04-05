@@ -104,7 +104,7 @@ class Manifest:
 
         Args:
             dataset_name: the name of the dataset
-            run_id: The id of the current pipeline run
+            run_id: The id of the current workflow run
             component_id: The id of the current component being executed
             cache_key: The component cache key
             manifest_location: location of the manifest.json file itself
