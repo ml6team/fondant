@@ -596,3 +596,28 @@ def test_infer_consumes_if_additional_properties_true(load_pipeline):
             },
         },
     }
+
+
+def test_warning_is_logged_when_produces_is_not_defined(caplog):
+    @lightweight_component
+    class CreateData(DaskLoadComponent):
+        def load(self) -> dd.DataFrame:
+            df = pd.DataFrame(
+                {
+                    "x": [1, 2, 3],
+                    "y": [4, 5, 6],
+                    "z": [7, 8, 9],
+                },
+                index=pd.Index(["a", "b", "c"], name="id"),
+            )
+            return dd.from_pandas(df, npartitions=1)
+
+    _ = Dataset.create(
+        ref=CreateData,
+        dataset_name="dummy-dataset",
+    )
+
+    assert (
+        "Can not infer produces. The component will not produce any new columns"
+        in caplog.text
+    )
