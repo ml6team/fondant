@@ -1,11 +1,11 @@
 # Implementing custom components
 
-This guide will teach you how to build custom components and integrate them in your pipeline.
+This guide will teach you how to build custom components and integrate them in your dataset.
 
 ## Overview
 
-In the [previous tutorial](/build_a_simple_pipeline.md), you learned how to create your first
-Fondant pipeline. While the example demonstrates how to build a pipeline from reusable components,
+In the [previous tutorial](/build_a_simple_dataset.md), you learned how to create your first
+Fondant dataset. While the example demonstrates how to build a workflow from reusable components,
 this is only the beginning.
 
 Reusable components consume data in a specific format, defined in a data contract.
@@ -18,33 +18,29 @@ component. We will illustrate this by building a transform component that upperc
 If you want to build a complex custom component or share the component within your organization or even the community, 
 take a look at how to build [reusable components](../components/containerized_components.md).
 
-This pipeline is an extension of the one introduced in
-the [previous tutorial](../guides/build_a_simple_pipeline.md).
+This dataset is an extension of the one introduced in
+the [previous tutorial](../guides/build_a_simple_dataset.md).
 Make sure you have completed the tutorial before diving into this one.
 
-In the last tutorial, we implemented this pipeline:
+In the last tutorial, we implemented this dataset:
 
 ```python
-from fondant.pipeline import Pipeline
+from fondant.dataset import Dataset
 import pyarrow as pa
 
-pipeline = Pipeline(
-    name="creative_commons_pipline",
-    base_path="./data"
-)
-
-dataset = Dataset.read(
+dataset = Dataset.create(
     "load_from_hf_hub",
+    dataset_name="creative_commons_pipline",
     arguments={
         "dataset_name": "fondant-ai/fondant-cc-25m",
         "n_rows_to_load": 100,
     },
     produces={
-        "alt_text": pa.string(),
-        "image_url": pa.string(),
-        "license_location": pa.string(),
-        "license_type": pa.string(),
-        "webpage_url": pa.string(),
+      "alt_text": pa.string(),
+      "image_url": pa.string(),
+      "license_location": pa.string(),
+      "license_type": pa.string(),
+      "webpage_url": pa.string(),
     }
 )
 
@@ -63,11 +59,11 @@ english_images = images.apply(
 )
 ```
 
-We want to extend the pipeline and apply a simple text transformation to the `alt_text`. Let's
+We want to extend the dataset and apply a simple text transformation to the `alt_text`. Let's
 consider that the `alt_text` is so important that the text has to be transformed into uppercase
 letters.
 
-## Implement your  Lightweight component
+## Implement your Lightweight component
 
 Now, it's time to implement the component logic.
 
@@ -82,7 +78,7 @@ of component. The following method should be implemented:
 """A component that transform the alt text of the dataframe into uppercase."""
 import pandas as pd
 from fondant.component import PandasTransformComponent
-from fondant.pipeline import lightweight_component
+from fondant.dataset import lightweight_component
 
 
 @lightweight_component
@@ -97,7 +93,7 @@ class UpperCaseTextComponent(PandasTransformComponent):
 !!! note "IMPORTANT"
 
     Note that we have used a decorator `@lightweight_component`. This decorator is necessary to inform
-    Fondant that this class is a lightweight component and can be used as a component in your pipeline.
+    Fondant that this class is a lightweight component and can be used as a component in your workflow.
 
 We apply the uppercase transformation to the `alt_text` column of the dataframe. Afterward, we
 return the transformed dataframe from the `transform` method, which Fondant will use to
@@ -112,8 +108,9 @@ the [documentation of the lightweight components](../components/lightweight_comp
 
 ### Using the component
 
-Now were we have defined our lightweight component we can start using it in our pipeline.
-For instance we can put this component at the end of our pipeline.
+Now were we have defined our lightweight component we can start using it in our workflow.
+For instance we can apply this component to the end of the workflow to apply the transformation to 
+the `english_images` dataset.
 
 ```python
 
@@ -126,16 +123,16 @@ uppercase_alt_text = english_images.apply(
 Instead of providing the name of the component, as we did with the reusable components,
 we now provide the component implementation.
 
-Now, you can execute the pipeline once more and examine the results. In the final output,
+Now, you can execute the workflow once more to materialize the dataset and examine the results. In the final output,
 the `alt_text` is in uppercase.
 
 Of course, it is debatable whether uppercasing the alt_text is genuinely useful. This is just a
-constructive and simple example to showcase how to use lightweight components as glue code within your
-pipeline, helping you connect reusable components to each other.
+constructive and simple example to showcase how to use lightweight components as glue code you might
+need for the dataset creation, helping you connect reusable components to each other.
 
 ## Next steps
 
-We now have a pipeline that downloads a dataset from the HuggingFace hub, filters the urls by
+We now have a workflow that downloads a dataset from the HuggingFace hub, filters the urls by
 image type, downloads the images, and filters them by alt text language.
 
 If you want to inspect your final dataset without using the data explorer or use the 

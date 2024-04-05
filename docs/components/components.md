@@ -2,7 +2,7 @@ from distributed import Client
 
 # Components
 
-Fondant makes it easy to build data preparation pipelines leveraging reusable components. Fondant
+Fondant makes it easy to build dataset collaborative leveraging reusable components. Fondant
 provides a lot of components out of the box
 ([overview](https://fondant.ai/en/latest/components/hub/)), but you can also define your
 own custom components.
@@ -20,9 +20,9 @@ The logic should be implemented as a class, inheriting from one of the base `Com
 offered by Fondant.
 There are three large types of components:
 
-- **`LoadComponent`**: Load data into your pipeline from an external data source
-- **`TransformComponent`**: Implement a single transformation step in your pipeline
-- **`WriteComponent`**: Write the results of your pipeline to an external data sink
+- **`LoadComponent`**: Load data and initialise a dataset from an external data source
+- **`TransformComponent`**: Implement a single transformation step to transform data in your dataset
+- **`WriteComponent`**: Write your dataset to an external data sink
 
 The easiest way to implement a `TransformComponent` is to subclass the provided
 `PandasTransformComponent`. This component streams your data and offers it in memory-sized
@@ -124,7 +124,7 @@ implements the logic of your component.
 
 ```python
 from fondant.component import PandasTransformComponent
-from fondant.pipeline import  lightweight_component
+from fondant.dataset import  lightweight_component
 import pandas as pd
 import pyarrow as pa
 
@@ -138,10 +138,10 @@ class AddNumber(PandasTransformComponent):
         return dataframe
 ```
 
-You can add a custom component to your pipeline by passing in the reference to the component class containing 
+You can apply a custom component to your dataset by passing in the reference to the component class containing 
 your script. 
 
-```python title="pipeline.py"
+```python title="dataset.py"
 _ = dataset.apply(
     ref=AddNumber,
     produces={"x": pa.int32()},
@@ -167,7 +167,7 @@ A typical file structure for a custom component looks like this:
 |     |- Dockerfile
 |     |- fondant_component.yaml
 |     |- requirements.txt
-|- pipeline.py
+|- dataset.py
 ```
 
 The `Dockerfile` is used to build the code into a docker image, which is then referred to in the 
@@ -179,10 +179,10 @@ description: This is a custom component
 image: custom_component:latest
 ```
 
-You can add a custom component to your pipeline by passing in the path to the directory containing 
+You can apply a custom component to your dataset by passing in the path to the directory containing 
 your `fondant_component.yaml`.
 
-```python title="pipeline.py"
+```python title="dataset.py"
 
 dataset = dataset.apply(
   component_dir="components/custom_component",
@@ -198,7 +198,7 @@ See our [best practices on creating a containerized component](../components/con
 ### Reusable components
 
 Reusable components are out of the box containerized components from the Fondant Hub that you can easily add 
-to your pipeline:
+to your dataset:
 
 ```python
 

@@ -58,7 +58,7 @@ For publishing components to registries check out the [guide](../components/publ
 
 ## Docker installation
 
-To execute pipelines locally, you must
+To execute dataset workflows locally, you must
 have [Docker compose](https://docs.docker.com/compose/install/) and Python >=3.9
 installed on your system. We only support Docker compose V2 and above. If you have an older version of
 Docker compose, please upgrade to the latest version as described in the [Docker compose migration doc](https://docs.docker.com/compose/migrate/).

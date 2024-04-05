@@ -4,6 +4,26 @@ Fondant helps you build datasets by providing a set of operations to load, trans
 and write data. With Fondant, you can use both reusable components and custom components, 
 and chain them to create datasets.
 
+## Load a Fondant dataset 
+
+You can initialise a dataset from a previous run by using the `read` method.
+
+
+
+```python
+from fondant.dataset import Dataset
+
+dataset = Dataset.read("path/to/manfiest.json")
+
+```
+
+??? "View a detailed reference of the `Dataset.read()` method"
+
+    ::: fondant.dataset.dataset.Dataset.read
+        handler: python
+        options:
+            show_source: false
+
 ## Build a dataset
 
 Start by creating a `dataset.py` file and adding the following code.
@@ -28,7 +48,7 @@ This code initializes a `Dataset` instance with a load component. The load compo
 
 ??? "View a detailed reference of the `Dataset.create()` method"
 
-    ::: fondant.dataset.Dataset.read
+    ::: fondant.dataset.dataset.Dataset.create
         handler: python
         options:
             show_source: false
@@ -99,7 +119,7 @@ your dataset.
 
     When using other runners you will need to make sure that your new environment has access to:
 
-    - The base path of your pipeline (as mentioned above)
+    - The working directory of your workflow (as mentioned above)
     - The images used in your pipeline (make sure you have access to the registries where the images are
     stored)
 
@@ -172,6 +192,7 @@ your dataset.
   containing your dataset, or a factory function that will create your dataset.
 
   The working directory can be:
+
   - **A remote cloud location (S3, GCS, Azure Blob storage):**
     For the local runner, make sure that your local credentials or service account have read/write 
     access to the designated working directory and that you provide them to the dataset.

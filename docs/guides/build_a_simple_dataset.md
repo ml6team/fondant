@@ -1,13 +1,13 @@
 [//]: # (TODO: Add named reference links to the hub for stable links on this page)
 
-# Building your own pipeline
+# Building your own dataset
 
-This guide will teach you how to build and run your own pipeline using components available on 
+This guide will teach you how to build and run your own datasets using components available on 
 the Fondant Hub.
 
 ## Overview
 
-In this guide, we will build a pipeline that downloads images from the 
+In this guide, we will build a dataset workflow that downloads images from the 
 [fondant-cc-25m](https://huggingface.co/datasets/fondant-ai/fondant-cc-25m) dataset and filters 
 them.
 
@@ -22,42 +22,18 @@ It consists of three steps:
 
 ## Setting up the environment
 
-We will be using the [local runner](../runners/local.md) to run this pipelines. To set up your local environment, 
+We will be using the [local runner](../runners/local.md) to materialize the dataset. To set up your local environment, 
 please refer to our [installation](installation.md) documentation.
 
-## Building the pipeline
+## Building the dataset
 
-Start by creating a `pipeline.py` file and adding the following code.
-
-```python
-from fondant.pipeline import Pipeline
-
-pipeline = Pipeline(
-    name="creative_commons_pipline",
-    base_path="./data"
-)
-```
-
-!!! note "IMPORTANT"
-
-    Make sure the provided base_path already exists.
-
-??? "View a detailed reference of the options accepted by the `Pipeline` class"
-
-    ::: fondant.dataset.Dataset.__init__
-        handler: python
-        options:
-            show_source: false
-
-## Adding components
-
-Now it's time to incrementally build our pipeline by adding different execution steps or 
-`components`. Components are executable elements of a pipeline that consume and produce data.
+We initialize a dataset using the `Dataset.create()` method. This method creates a new dataset using 
+Fondant components. Components are executable elements of a workflow that consume and produce data.
 
 You can use two types of components with Fondant:
 
 - **Reusable components**: A bunch of reusable components are available on our 
-  [hub](https://fondant.ai/en/latest/components/hub/), which you can easily add to your pipeline.
+  [hub](https://fondant.ai/en/latest/components/hub/), which you can easily add to your dataset.
 - **Custom components**: You can also implement your own custom component.
 
 If you want to learn more about components, you can check out the 
@@ -65,18 +41,21 @@ If you want to learn more about components, you can check out the
 
 ### 1. A reusable load component
 
-As a first step, we want to read data into our pipeline. In this case, we will load a dataset 
+As a first step, we want to read data into our dataset. In this case, we will load a dataset 
 from the HuggingFace Hub. For this, we can use the reusable 
 [load_from_hf_hub](../components/hub.md#load_from_hugging_face_hub#description) component.
 
-We can read data into our pipeline using the `Dataset.read()` method, which returns a (lazy) 
+We can create a dataset by using the `Dataset.create()` method, which returns a (lazy) 
 `Dataset`.
 
-```python
-import pyarrow as pa
+We create a file called `dataset.py` and add the following code:
 
-dataset = Dataset.read(
+```python
+from fondant.dataset import Dataset
+
+dataset = Dataset.create(
     "load_from_hf_hub",
+    dataset_name="creative_commons_pipline",
     arguments={
         "dataset_name": "fondant-ai/fondant-cc-25m",
         "n_rows_to_load": 100,
@@ -91,9 +70,18 @@ dataset = Dataset.read(
 )
 ```
 
-We provide three arguments to the `.read()` method:
+??? "View a detailed reference of the options accepted by the `Dataset` class"
+
+    ::: fondant.dataset.Dataset.__init__
+        handler: python
+        options:
+            show_source: false
+
+
+We provide three arguments to the `.create()` method:
 
 - The name of the reusable component
+- The name of the dataset
 - Some arguments to configure the component. Check the component's 
   [documentation](../components/hub.md#load_from_hugging_face_hub#arguments) for the supported arguments
 - The schema of the data the component will produce. This is necessary for this specific 
@@ -101,21 +89,21 @@ We provide three arguments to the `.read()` method:
   defined in the component [documentation](../components/hub.md#load_from_hugging_face_hub#inputs_outputs) with 
   `additionalProperties: true` under the produces section.
 
-??? "View a detailed reference of the `Dataset.read()` method"
+??? "View a detailed reference of the `Dataset.create()` method"
 
-    ::: fondant.dataset.Dataset.read
+    ::: fondant.dataset.Dataset.create
         handler: python
         options:
             show_source: false
 
-To test the pipeline, you can execute the following command within the pipeline directory:
+To materialize your dataset, you can execute the following command within the directory:
 
 ```bash
-fondant run local pipeline.py
+fondant run local dataset.py --working_direcotry ./data
 ```
 
-The pipeline execution will start, initiating the download of the dataset from HuggingFace.
-After the pipeline has completed, you can explore the pipeline result using the fondant explorer:
+The workflow execution will start, initiating the download of the dataset from HuggingFace.
+After the workflow has completed, you can explore the dataset using the fondant explorer:
 
 ```bash
 fondant explore start --base_path ./data
@@ -125,7 +113,7 @@ You can open your browser at `localhost:8501` to explore the loaded data.
 
 ### 2. A reusable transform component
 
-Our pipeline has successfully loaded the dataset from HuggingFace. One of these columns, 
+Our dataset contains the dataset from HuggingFace. One of these columns, 
 `url`, directs us to the original source of the images. To access and utilise these images 
 directly, we must download each of them.
 
@@ -133,7 +121,7 @@ Downloading images is a common requirement across various use cases, which is wh
 a reusable component specifically for this purpose. This component is appropriately named 
 [download_images](../components/hub.md#download_images#description).
 
-We can add this component to our pipeline as follows:
+We can add this component to our dataset as follows:
 
 ```python
 images = dataset.apply(
@@ -171,14 +159,14 @@ english_images = images.apply(
 
 ??? "View a detailed reference of the `Dataset.apply()` method"
 
-    ::: fondant.dataset.Dataset.apply
+    ::: fondant.dataset.dataset.Dataset.apply
         handler: python
         options:
             show_source: false
 
 ## Inspecting your data
 
-Now, you can proceed to execute your pipeline once more and explore the results. In the explorer, 
+Now, you can proceed to execute your workflow once more and explore the results. In the explorer, 
 you will be able to view the images that have been downloaded.
 
 ![explorer](../art/guides/explorer.png?raw=true)
@@ -197,6 +185,6 @@ english_images.write(ref="write_to_file", arguments={"path": "/data/export"})
 
 You can open the path and use any tools of your choice to inspect the resulting Parquet dataset.
 
-Well done! You have now acquired the skills to construct a simple Fondant pipeline by leveraging 
+Well done! You have now acquired the skills to construct a simple Fondant dataset by leveraging 
 reusable components. In the [next tutorial](implement_custom_components.md), we'll demonstrate how 
-you can customise the pipeline by implementing a custom component.
+you can customise the dataset by implementing a custom component.

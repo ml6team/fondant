@@ -1,18 +1,17 @@
 # Data explorer
 
-The data explorer enables you to explore your pipelines as well as inspecting inputs and outputs
-of the pipeline's components. The explorer can be a helpful tool to debug your pipeline and to get a
+The data explorer enables you to explore your datasets as well as inspecting inputs and outputs
+of the components. The explorer can be a helpful tool to debug your datasets and to get a
 better
-understanding of the data that is being processed. It can also be used to compare different pipeline
-runs
-which can be useful to understand the impact of changes in your pipeline.
+understanding of the data that is being processed. It can also be used to compare different materialized
+datasets which can be useful to understand the impact of changes in your workflow.
 
 The explorer consists of 4 main tabs:
 
 ### General Overview
 
-In the general overview, you can select the pipeline and pipeline run you want to explore. You will
-be able to see the different components that were run in the pipeline run and get an overview of
+In the general overview, you can select the dataset and materialization run you want to explore. You will
+be able to see the different components that were run in the materialization run and get an overview of
 your latest runs.
 
 ![general overview](art/data_explorer/general_overview.png)
@@ -26,7 +25,6 @@ In this you can:
 - Visualize images
 - Search for specific rows using a search query
 - Visualize long documents using a document viewer
-- Compare different pipeline runs (coming soon!)
 
 ![data explorer](art/data_explorer/dataset_explorer.png)
 
@@ -60,15 +58,15 @@ together with the Fondant python package.
     ```python
     from fondant.explore import run_explorer_app
     
-    BASE_PATH = "your_base_path"
+    BASE_PATH = "your_working_directory"
     run_explorer_app(base_path=BASE_PATH)
     ```
 
-Where the base path can be either a local or remote base path. Make sure to pass the proper mount
-credentials arguments when using a remote base path or a local base path
+Where the base path can be either a local or remote working directory. Make sure to pass the proper mount
+credentials arguments when using a remote working directory or a local working directory
 that references remote datasets. You can do that either with `--auth-gcp`, `--auth-aws`
 or `--auth-azure` to
-mount your default local cloud credentials to the pipeline. Or You can also use
+mount your default local cloud credentials to the workflow. Or You can also use
 the `--extra-volumnes` flag to specify credentials or local files you need to mount.
 
 To stop the data explorer service you can use the following commands: 
