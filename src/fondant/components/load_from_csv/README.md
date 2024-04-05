@@ -34,21 +34,19 @@ The component takes the following arguments to alter its behavior:
 | dataset_uri | str | The remote path to the csv file(s) containing the dataset | / |
 | column_separator | str | Define the column separator of the csv file | / |
 | column_name_mapping | dict | Mapping of the consumed dataset | / |
-| n_rows_to_load | int | Optional argument that defines the number of rows to load. Useful for testing pipeline runs on a small scale | / |
+| n_rows_to_load | int | Optional argument that defines the number of rows to load. Useful for testing dataset workflows on a small scale | / |
 | index_column | str | Column to set index to in the load component, if not specified a default globally unique index will be set | / |
 
 <a id="load_from_csv#usage"></a>
 ## Usage 
 
-You can add this component to your pipeline using the following code:
+You can apply this component to your dataset using the following code:
 
 ```python
-from fondant.pipeline import Pipeline
+from fondant.dataset import Dataset
 
 
-pipeline = Pipeline(...)
-
-dataset = pipeline.read(
+dataset = Dataset.create(
     "load_from_csv",
     arguments={
         # Add arguments

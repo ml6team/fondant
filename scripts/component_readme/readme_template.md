@@ -73,18 +73,16 @@ This component takes no arguments.
 <a id="{{ component_id }}#usage"></a>
 ## Usage 
 
-You can add this component to your pipeline using the following code:
+You can apply this component to your dataset using the following code:
 
 ```python
-from fondant.pipeline import Pipeline
+from fondant.dataset import Dataset
 
-
-pipeline = Pipeline(...)
 
 {% if "Data loading" in tags %}
-dataset = pipeline.read(
+dataset = Dataset.create(
 {% else %}
-dataset = pipeline.read(...)
+dataset = Dataset.read(...)
 
 {% if "Data writing" not in tags %}
 dataset = dataset.apply(
