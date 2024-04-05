@@ -51,14 +51,15 @@ def entrypoint():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
             """
-        Fondant is an Open-Source framework for building and running data pipelines.
+        Fondant is an Open-Source framework for collaborative building of datasets.
         You can read more about fondant here: https://github.com/ml6team/fondant
 
 
-        This CLI is used to interact with fondant pipelines like compiling and running your pipelines.
+        This CLI is used to interact with fondant datasets like compiling and running workflows to
+        materialize datasets.
 
         Example:
-        fondant compile my_project.my_pipeline.py
+        fondant run local my_dataset.py
         """,
         ),
         epilog=textwrap.dedent(
@@ -95,9 +96,9 @@ def register_explore(parent_parser):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
             """
-        Explore and visualize the data produced by a fondant pipeline.
+        Explore and visualize the data of a Fondant dataset.
 
-        This will spin up a docker container that hosts a web application that allows you to explore the data produced by a fondant pipeline.
+        This will spin up a docker container that hosts a web application that allows you to explore the dataset.
 
         The default address is http://localhost:8501. You can choose both a local and remote base path to explore. If the data that you want to explore is stored remotely, you
          should use the --extra-volumes flag to specify credentials or local files you  need to mount.
@@ -118,7 +119,7 @@ def register_explore(parent_parser):
         "--base_path",
         "-b",
         type=str,
-        help="""Base path that contains the data produced by a Fondant pipeline (local or remote)
+        help="""Base path that contains the dataset (local or remote)
         .""",
     )
     start_parser.add_argument(
@@ -159,7 +160,7 @@ def register_explore(parent_parser):
     start_parser.add_argument(
         "--extra-volumes",
         help="""Extra volumes to mount in containers. You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
-        - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
+        - to mount data directories to be used by the dataset (note that if your datasets base_path is local it will already be mounted for you).
         - to mount cloud credentials""",
         nargs="+",
     )
@@ -288,17 +289,17 @@ def register_compile(parent_parser):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
             """
-        Compile a fondant pipeline into pipeline specification file file.
+        Compile a fondant dataset into workflow specification file.
 
-        The pipeline argument is a formatstring. The compiler will try to import the pipeline from the module specified in the formatstring.
+        The dataset argument is a formatstring. The compiler will try to import the dataset from the module specified in the formatstring.
         (NOTE: path is patched to include the current working directory so you can do relative imports)
 
         You can use different modes for fondant runners. Current existing modes are local and kubeflow.
 
         Examples of compiling component:
-        fondant compile local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials my_project.my_pipeline.py
+        fondant compile local --extra-volumes $HOME/.aws/credentials:/root/.aws/credentials my_project.my_dataset.py
 
-        fondant compile kubeflow --extra-volumes $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json my_project.my_pipeline.py
+        fondant compile kubeflow --extra-volumes $HOME/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json my_project.my_dataset.py
         """,
         ),
     )
@@ -324,20 +325,20 @@ def register_compile(parent_parser):
     # Local runner parser
     local_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, a path to a to a module containing
-        the pipeline instance that will be compiled (e.g. my-project/pipeline.py)""",
+        help="""Reference to the dataset to materialize, a path to a to a module containing
+        the dataset instance that will be compiled (e.g. my-project/dataset.py)""",
         action="store",
     )
     local_parser.add_argument(
         "--output-path",
         "-o",
-        help="Output path of compiled pipeline",
+        help="Output path of compiled workflow",
         default="docker-compose.yml",
     )
     local_parser.add_argument(
         "--extra-volumes",
         help="""Extra volumes to mount in containers. You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
-        - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
+        - to mount data directories to be used by the workflow (note that if your dataset working directory is local it will already be mounted for you).
         - to mount cloud credentials""",
         nargs="+",
     )
@@ -358,42 +359,42 @@ def register_compile(parent_parser):
     # Kubeflow parser
     kubeflow_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, a path to a to a module containing
-        the pipeline instance that will be compiled (e.g. my-project/pipeline.py)""",
+        help="""Reference to the dataset to materialize, a path to a to a module containing
+        the dataset instance that will be compiled (e.g. my-project/dataset.py)""",
         action="store",
     )
     kubeflow_parser.add_argument(
         "--output-path",
         "-o",
-        help="Output path of compiled pipeline",
+        help="Output path of compiled dataset workflow",
         default="kubeflow-pipeline.yaml",
     )
 
     # vertex parser
     vertex_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, a path to a to a module containing
-        the pipeline instance that will be compiled (e.g. my-project/pipeline.py)""",
+        help="""Reference to the dataset to materialize, a path to a to a module containing
+        the dataset instance that will be compiled (e.g. my-project/dataset.py)""",
         action="store",
     )
     vertex_parser.add_argument(
         "--output-path",
         "-o",
-        help="Output path of compiled pipeline",
+        help="Output path of compiled workflow",
         default="vertex-pipeline.yml",
     )
 
     # sagemaker parser
     sagemaker_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, a path to a to a module containing
-        the pipeline instance that will be compiled (e.g. my-project/pipeline.py)""",
+        help="""Reference to the dataset to materialize, a path to a to a module containing
+        the dataset instance that will be compiled (e.g. my-project/dataset.py)""",
         action="store",
     )
     sagemaker_parser.add_argument(
         "--output-path",
         "-o",
-        help="Output path of compiled pipeline",
+        help="Output path of compiled workflow",
         default=".fondant/sagemaker_pipeline.json",
     )
     sagemaker_parser.add_argument(
@@ -416,10 +417,10 @@ def compile_local(args):
     if args.extra_volumes:
         extra_volumes.extend(args.extra_volumes)
 
-    pipeline = dataset_from_string(args.ref)
+    dataset = dataset_from_string(args.ref)
     compiler = DockerCompiler()
     compiler.compile(
-        pipeline=pipeline,
+        dataset=dataset,
         extra_volumes=extra_volumes,
         output_path=args.output_path,
         build_args=args.build_arg,
@@ -430,26 +431,26 @@ def compile_local(args):
 def compile_kfp(args):
     from fondant.dataset.compiler import KubeFlowCompiler
 
-    pipeline = dataset_from_string(args.ref)
+    dataset = dataset_from_string(args.ref)
     compiler = KubeFlowCompiler()
-    compiler.compile(pipeline=pipeline, output_path=args.output_path)
+    compiler.compile(dataset=dataset, output_path=args.output_path)
 
 
 def compile_vertex(args):
     from fondant.dataset.compiler import VertexCompiler
 
-    pipeline = dataset_from_string(args.ref)
+    dataset = dataset_from_string(args.ref)
     compiler = VertexCompiler()
-    compiler.compile(pipeline=pipeline, output_path=args.output_path)
+    compiler.compile(dataset=dataset, output_path=args.output_path)
 
 
 def compile_sagemaker(args):
     from fondant.dataset.compiler import SagemakerCompiler
 
-    pipeline = dataset_from_string(args.ref)
+    dataset = dataset_from_string(args.ref)
     compiler = SagemakerCompiler()
     compiler.compile(
-        pipeline=pipeline,
+        dataset=dataset,
         output_path=args.output_path,
         role_arn=args.role_arn,
     )
@@ -461,16 +462,16 @@ def register_run(parent_parser):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
             """
-        Run a fondant pipeline locally or on kubeflow. The run command excepts a reference to an already compiled
-        pipeline (see fondant compile --help for more info)
-        OR a path to a spec file in which case it will compile the pipeline first and then run it.
+        Run a fondant dataset workflow locally or remote. The run command excepts a reference to an already compiled
+        workflow (see fondant compile --help for more info)
+        OR a path to a spec file in which case it will compile the dataset first and then run it.
 
         You can use different modes for fondant runners. Current existing modes are `local` and `kubeflow`.
         You can run `fondant <mode> --help` to find out more about the specific arguments for each mode.
 
         Examples of running component:
         fondant run local --auth-gcp
-        fondant run kubeflow ./my_compiled_kubeflow_pipeline.tgz
+        fondant run kubeflow ./my_compiled_kubeflow_dataset.tgz
         """,
         ),
     )
@@ -495,8 +496,8 @@ def register_run(parent_parser):
     # Local runner parser
     local_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+        help="""Reference to the dataset to materialize, can be a path to a spec file or
+            a module containing the dataset instance that will be compiled first (e.g. dataset.py)
             """,
         action="store",
     )
@@ -504,13 +505,13 @@ def register_run(parent_parser):
         "--extra-volumes",
         nargs="+",
         help="""Extra volumes to mount in containers. You can use the --extra-volumes flag to specify extra volumes to mount in the containers this can be used:
-        - to mount data directories to be used by the pipeline (note that if your pipeline's base_path is local it will already be mounted for you).
+        - to mount data directories to be used by the dataset (note that if your datasets working directory is local it will already be mounted for you).
         - to mount cloud credentials""",
     )
 
     local_parser.add_argument(
         "--working-directory",
-        help="""Working directory where the pipeline will be executed.""",
+        help="""Working directory where the dataset workflow will be executed.""",
     )
 
     local_parser.add_argument(
@@ -529,56 +530,56 @@ def register_run(parent_parser):
     # kubeflow runner parser
     kubeflow_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+        help="""Reference to the dataset to materialize, can be a path to a spec file or
+            a module containing the dataset instance that will be compiled first (e.g. dataset.py)
             """,
         action="store",
     )
 
     kubeflow_parser.add_argument(
         "--working-directory",
-        help="""Working directory where the pipeline will be executed.""",
+        help="""Working directory where the dataset workflow will be executed.""",
         required=True,
     )
 
     kubeflow_parser.add_argument(
         "--output-path",
         "-o",
-        help="Output path of compiled pipeline",
+        help="Output path of compiled dataset workflow",
         default="kubeflow-pipeline.yaml",
     )
     kubeflow_parser.add_argument(
         "--host",
-        help="KubeFlow pipeline host url",
+        help="KubeFlow host url",
         required=True,
     )
 
     # Vertex runner parser
     vertex_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+        help="""Reference to the dataset to materialize, can be a path to a spec file or
+            a module containing the dataset instance that will be compiled first (e.g. dataset.py)
             """,
         action="store",
     )
     vertex_parser.add_argument(
         "--working-directory",
-        help="""Working directory where the pipeline will be executed.""",
+        help="""Working directory where the dataset workflow will be executed.""",
         required=True,
     )
     vertex_parser.add_argument(
         "--project-id",
-        help="""The project id of the GCP project used to submit the pipeline""",
+        help="""The project id of the GCP project used to submit the workflow""",
     )
     vertex_parser.add_argument(
         "--region",
-        help="The region where to run the pipeline",
+        help="The region where to run the workflow",
     )
 
     vertex_parser.add_argument(
         "--output-path",
         "-o",
-        help="Output path of compiled pipeline",
+        help="Output path of compiled dataset",
         default="vertex-pipeline.yaml",
     )
 
@@ -598,14 +599,14 @@ def register_run(parent_parser):
     # sagemaker runner parser
     sagemaker_parser.add_argument(
         "ref",
-        help="""Reference to the pipeline to run, can be a path to a spec file or
-            a module containing the pipeline instance that will be compiled first (e.g. pipeline.py)
+        help="""Reference to the dataset to materialize, can be a path to a spec file or
+            a module containing the dataset instance that will be compiled first (e.g. dataset.py)
             """,
         action="store",
     )
     sagemaker_parser.add_argument(
         "--working-directory",
-        help="""Working directory where the pipeline will be executed.""",
+        help="""Working directory where the dataset workflow will be executed.""",
         required=True,
     )
     sagemaker_parser.add_argument(
@@ -699,7 +700,7 @@ def run_sagemaker(args):
 
     runner.run(
         dataset=ref,
-        pipeline_name=args.pipeline_name,
+        pipeline_name=args.dataset_name,
         role_arn=args.role_arn,
         working_directory=args.working_directory,
     )
@@ -711,7 +712,7 @@ def register_execute(parent_parser):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
             """
-        Execute a Fondant component using specified pipeline parameters.
+        Execute a Fondant component using specified dataset parameters.
 
         This command is intended to be included in the entrypoint of a component's Dockerfile. The provided argument
         to this command should indicate the module where the component's implementation resides.
@@ -805,12 +806,12 @@ def dataset_from_string(string_ref: str) -> Dataset:  # noqa: PLR0912
         https://github.com/pallets/flask/blob/d611989/src/flask/cli.py#L112
 
     Args:
-        string_ref: String reference describing the pipeline in the format {module}:{attribute}.
+        string_ref: String reference describing the dataset in the format {module}:{attribute}.
             The attribute can also be a function call, optionally including arguments:
             {module}:{function} or {module}:{function(args)}.
 
     Returns:
-        The pipeline obtained from the provided string
+        The dataset obtained from the provided string
     """
     if ":" not in string_ref:
         return dataset_from_module(string_ref)
@@ -819,7 +820,7 @@ def dataset_from_string(string_ref: str) -> Dataset:  # noqa: PLR0912
 
     module = get_module(module_str)
 
-    # Parse `pipeline_str` as a single expression to determine if it's a valid
+    # Parse `dataset_str` as a single expression to determine if it's a valid
     # attribute name or function call.
     try:
         expr = ast.parse(dataset_str.strip(), mode="eval").body
@@ -869,7 +870,7 @@ def dataset_from_string(string_ref: str) -> Dataset:  # noqa: PLR0912
         ) from e
 
     # If the attribute is a function, call it with any args and kwargs
-    # to get the real pipeline.
+    # to get the real dataset.
     if inspect.isfunction(attr):
         try:
             app = attr(*args, **kwargs)  # type: ignore

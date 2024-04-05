@@ -259,7 +259,7 @@ class Executor(t.Generic[Component]):
         This function compares the run ID of the input manifest
          (representing the previous component) with the run ID of the current component metadata.
         If the run IDs are different, it indicates that the previous component's output belongs to
-        another pipeline run, implying that it is cached. Otherwise, if the run IDs match, it
+        another workflow run, implying that it is cached. Otherwise, if the run IDs match, it
         suggests that the previous component was not cached and had to execute to produce the
          current output.
 
@@ -280,7 +280,7 @@ class Executor(t.Generic[Component]):
 
         logger.info(
             f"Previous component `{previous_component_id}` run was cached. "
-            f"Cached pipeline id: {input_manifest.run_id}",
+            f"Cached workflow id: {input_manifest.run_id}",
         )
         return True
 

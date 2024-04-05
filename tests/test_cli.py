@@ -201,7 +201,7 @@ def test_local_compile(tmp_path_factory):
         compile_local(args)
 
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_DATASET,
+            dataset=TEST_DATASET,
             extra_volumes=[],
             output_path=str(fn / "docker-compose.yml"),
             build_args=[],
@@ -222,7 +222,7 @@ def test_kfp_compile(tmp_path_factory):
         )
         compile_kfp(args)
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_DATASET,
+            dataset=TEST_DATASET,
             output_path=str(fn / "kubeflow_pipeline.yml"),
         )
 
@@ -240,7 +240,7 @@ def test_vertex_compile(tmp_path_factory):
         )
         compile_vertex(args)
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_DATASET,
+            dataset=TEST_DATASET,
             output_path=str(fn / "vertex_pipeline.yml"),
         )
 
@@ -260,7 +260,7 @@ def test_sagemaker_compile(tmp_path_factory):
         )
         compile_sagemaker(args)
         mock_compiler.assert_called_once_with(
-            pipeline=TEST_DATASET,
+            dataset=TEST_DATASET,
             output_path=str(fn / "sagemaker_pipeline.json"),
             role_arn="some_role",
         )
