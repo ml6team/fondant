@@ -162,7 +162,6 @@ def test_component_arguments(metadata):
     assert executor.input_partition_rows == expected_partition_row_arg
     assert executor.cache is True
     assert executor.user_arguments == {
-        "working_directory": "/foo/bar",
         "integer_default_arg": 0,
         "float_default_arg": 3.14,
         "bool_false_default_arg": False,
