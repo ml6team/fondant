@@ -10,19 +10,9 @@ To run the component with text snippets as input, the component needs to be conn
 
 ```python
 import pyarrow as pa
-from fondant.dataset import Pipeline
+from fondant.dataset import Dataset
 
-pipeline = Pipeline(name="my_pipeline", base_path="path/to/pipeline")
-
-dataset = pipeline.read(
-    "load_from_csv",
-    arguments={
-        "dataset_uri": "path/to/dataset.csv",
-    },
-    produces={
-        "text": pa.string(),
-    }
-)
+dataset = Dataset.read(...)
 
 dataset.write(
     "index_weaviate",
@@ -44,19 +34,10 @@ dataset.write(
 
 ```python
 import pyarrow as pa
-from fondant.dataset import Pipeline
+from fondant.dataset import Dataset
 
-pipeline = Pipeline(name="my_pipeline",base_path="path/to/pipeline")
 
-dataset = pipeline.read(
-    "load_from_csv",
-    arguments={
-        "dataset_uri": "path/to/dataset.csv",
-    },
-    produces={
-        "text": pa.string(),
-    }
-)
+dataset = Dataset.read(...)
 
 dataset = dataset.apply(
     "embed_text",
@@ -123,15 +104,13 @@ The component takes the following arguments to alter its behavior:
 <a id="index_weaviate#usage"></a>
 ## Usage 
 
-You can add this component to your pipeline using the following code:
+You can apply this component to your dataset using the following code:
 
 ```python
-from fondant.pipeline import Pipeline
+from fondant.dataset import Dataset
 
 
-pipeline = Pipeline(...)
-
-dataset = pipeline.read(...)
+dataset = Dataset.read(...)
 
 dataset = dataset.apply(...)
 

@@ -49,15 +49,13 @@ The component takes the following arguments to alter its behavior:
 <a id="index_qdrant#usage"></a>
 ## Usage 
 
-You can add this component to your pipeline using the following code:
+You can apply this component to your dataset using the following code:
 
 ```python
-from fondant.pipeline import Pipeline
+from fondant.dataset import Dataset
 
 
-pipeline = Pipeline(...)
-
-dataset = pipeline.read(...)
+dataset = Dataset.read(...)
 
 dataset = dataset.apply(...)
 

@@ -123,8 +123,8 @@ def run_explorer_app(  # type: ignore  # noqa: PLR0913
       tag: The tag/version of the Docker container. Default is "latest".
       extra_volumes: Extra volumes to mount in containers. You can use the --extra-volumes flag
       to specify extra volumes to mount in the containers this can be used:
-        - to mount data directories to be used by the pipeline (note that if your pipeline's
-            base_path is local it will already be mounted for you).
+        - to mount data directories to be used by the workflow (note that if your datasets
+            working directory is local it will already be mounted for you).
         - to mount cloud credentials
       auth_provider: The cloud provider to use for authentication. Default is None.
     """
