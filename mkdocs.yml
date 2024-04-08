@@ -41,8 +41,8 @@ nav:
       - Using the documentation: documentation_guide.md
       - Getting Started:
           - Installation: guides/installation.md
-          - Running your first pipeline: guides/first_dataset.md
-          - Building your own pipeline: guides/build_a_simple_dataset.md
+          - Get your first dataset: guides/first_dataset.md
+          - Building your own dataset: guides/build_a_simple_dataset.md
           - Implementing custom components: guides/implement_custom_components.md
       - Dataset: dataset.md
       - Components:
