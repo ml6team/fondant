@@ -162,6 +162,12 @@ class ComponentOp:
             consumes = self._infer_consumes(component_spec, dataset_fields)
         consumes = self._validate_consumes(consumes, component_spec, dataset_fields)
 
+        if produces is None and component_spec.produces_additional_properties:
+            logger.warning(
+                "Can not infer produces. "
+                "The component will not produce any new columns.",
+            )
+
         self.operation_spec = OperationSpec(
             self.component_spec,
             consumes=consumes,

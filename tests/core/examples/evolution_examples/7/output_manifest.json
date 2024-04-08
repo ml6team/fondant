@@ -1,0 +1,33 @@
+{
+  "metadata": {
+    "dataset_name": "test_dataset",
+    "manifest_location": "gs://bucket/dataset",
+    "run_id": "custom_run_id",
+    "component_id": "example_component_1"
+  },
+  "index": {
+    "location": "gs://bucket/dataset/test_dataset/custom_run_id/example_component_1"
+  },
+  "fields": {
+    "images_width": {
+      "type": "int32",
+      "location": "gs://bucket/dataset/custom_run_id/example_component"
+    },
+    "images_height": {
+      "type": "int32",
+      "location": "gs://bucket/dataset/custom_run_id/example_component"
+    },
+    "images_data": {
+      "location": "gs://bucket/dataset/custom_run_id/example_component",
+      "type": "binary"
+    },
+    "text_string": {
+      "type": "string",
+      "location": "gs://bucket/dataset/test_dataset/custom_run_id/example_component_1"
+    },
+    "captions_data": {
+      "type": "binary",
+      "location": "gs://bucket/dataset/custom_run_id/example_component"
+    }
+  }
+}

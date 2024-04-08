@@ -27,6 +27,11 @@ VALID_EXAMPLE = {
             "text_data": "text_string",
         },
     },
+    "7": {
+        "produces": {
+            "text_string": pa.string(),
+        },
+    },
 }
 
 INVALID_EXAMPLES = {

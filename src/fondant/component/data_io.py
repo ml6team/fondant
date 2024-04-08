@@ -196,11 +196,11 @@ class DaskDataWriter(DataIO):
 
     def _write_dataframe(self, dataframe: dd.DataFrame) -> None:
         """Create dataframe writing task."""
-        location = self.manifest.get_dataset_columns_locations(
-            columns=dataframe.columns,
-        )
+        output_location_path = self.manifest.index.location
 
-        output_location_path = location[0]
+        if not output_location_path:
+            msg = "No output location determined. Can not export the dataset."
+            raise ValueError(msg)
 
         # Create directory the dataframe will be written to, since this is not handled by Pandas
         # `to_parquet` method.
