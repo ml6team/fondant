@@ -117,6 +117,7 @@ class Executor(t.Generic[Component]):
             "cache",
             "consumes",
             "produces",
+            "working_directory",
         ]:
             args_dict.pop(argument, None)
 
