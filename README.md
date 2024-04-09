@@ -35,26 +35,43 @@ Fondant allows you to easily define workflows comprised of both reusable and cus
 
 
 ```pipeline.py
-from fondant.dataset import Dataset
 import pyarrow as pa
 
-dataset = Dataset.create(
+from fondant.dataset import Dataset
+
+raw_data = Dataset.create(
     "load_from_hf_hub",
     arguments={
-        "dataset_name": "lambdalabs/pokemon-blip-captions"
+        "dataset_name": "fondant-ai/fondant-cc-25m",
+        "n_rows_to_load": 100,
     },
     produces={
-        "image": pa.binary(),
+        "alt_text": pa.string(),
+        "image_url": pa.string(),
+        "license_location": pa.string(),
+        "license_type": pa.string(),
+        "webpage_url": pa.string(),
+        "surt_url": pa.string(),
+        "top_level_domain": pa.string(),
     },
 )
 
-dataset = dataset.apply(
+images = raw_data.apply(
+    "download_images",
+    arguments={
+        "input_partition_rows": 100,
+        "resize_mode": "no",
+    },
+)
+
+dataset = images.apply(
     "resize_images",
     arguments={
         "resize_width": 128,
         "resize_height": 128,
     },
 )
+
 ```
 Custom use cases require the creation of custom components. Check out our [**getting started**](https://fondant.ai/en/latest/guides/first_pipeline/) page to learn more about how to build custom pipelines and components.
 
