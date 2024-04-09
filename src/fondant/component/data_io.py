@@ -105,6 +105,12 @@ class DaskDataLoader(DataIO):
 
         for field_name in self.operation_spec.consumes_from_dataset:
             location = self.manifest.get_field_location(field_name)
+
+            if "://" not in location:
+                # If the location is a local path, we need to remove the root path since we only
+                # mount the working dir to the container
+                location = "/" + "/".join(location.split("/")[-4:])
+
             field_mapping[location].append(field_name)
 
         for location, fields in field_mapping.items():
