@@ -20,71 +20,88 @@
     <a href="https://github.com/ml6team/fondant/actions/workflows/pipeline.yaml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/ml6team/fondant/pipeline.yaml?style=flat-square"></a>
     <a href="https://coveralls.io/github/ml6team/fondant?branch=main"><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/ml6team/fondant?style=flat-square"></a>
 </p>
-
----
-
-<table>
-  <thead>
-    <tr>
-      <th width="33%">🚀 Production-ready</th>
-      <th width="33%">👶 Easy</th>
-      <th width="33%">👫 Shareable</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-          Benefit from built-in features such as autoscaling, data lineage, and pipeline caching, and deploy to (managed) platforms such as <i>Vertex AI</i>, <i>Sagemaker</i>, and <i>Kubeflow Pipelines</i>.
-      </td>
-      <td>
-          Implement your custom data processing code using datastructures you know such as <i>Pandas</i> dataframes.
-          Move from local development to remote deployment without any code changes.
-      </td>
-      <td>
-          Fondant components are defined by a clear interface, which makes them reusable and shareable.<br>
-          Compose your own pipeline using components available on <a href="https://fondant.ai/en/latest/components/hub/"><b>our hub</b></a>.
-      </td>
-    </tr>
-  </tbody>
-</table>
 <br>
 
 ## 🪤 Why Fondant?
 
-With the advent of transfer learning and now foundation models, everyone has started sharing and 
-reusing machine learning models. Most of the work now goes into building data processing 
-pipelines, which everyone still does from scratch. 
-This doesn't need to be the case, though, if processing components would be shareable and pipelines 
-composable. Realizing this is the main vision behind Fondant.
+Fondant is a data framework that enables collaborative dataset building. It is designed for developing and crafting datasets together, sharing reusable operations and complete data processing trees. 
 
-Towards that end, Fondant offers:
+Fondant enables you to initialize datasets, apply various operations on them, and load datasets from other users. It assists in executing operations on managed services, sharing operations with others, and keeping track of your dataset versions. Fondant makes this all possible without moving the source data.
 
-- 🔧 Plug ‘n’ play composable data processing pipelines
+
+## 💨 Getting Started
+
+Fondant allows you to easily define workflows comprised of both reusable and custom components. The following example uses the reusable load_from_hf_hub component to load a dataset from the Hugging Face Hub and process it using a custom component that will resize the images resulting in a new dataset.
+
+
+```pipeline.py
+from fondant.dataset import Dataset
+import pyarrow as pa
+
+dataset = Dataset.create(
+    "load_from_hf_hub",
+    arguments={
+        "dataset_name": "lambdalabs/pokemon-blip-captions"
+    },
+    produces={
+        "image": pa.binary(),
+    },
+)
+
+dataset = dataset.apply(
+    "resize_images",
+    arguments={
+        "resize_width": 128,
+        "resize_height": 128,
+    },
+)
+```
+Custom use cases require the creation of custom components. Check out our [**getting started**](https://fondant.ai/en/latest/guides/first_pipeline/) page to learn more about how to build custom pipelines and components.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+### Running your pipeline
+
+Once you have a pipeline you can easily run (and compile) it by using the built-in CLI:
+
+```bash
+fondant run local pipeline.py
+```
+
+To see all available runner and arguments you can check the fondant CLI help pages
+
+```bash
+fondant --help
+```
+
+Or for a subcommand:
+
+```bash
+fondant <subcommand> --help
+```
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+## 🪄 How Fondant works
+
+- **Dataset**: The building blocks, a dataset is a collection of columns. Fondant operates uniquely via datasets. We start with a dataset, we augment it into a new dataset and we end with a dataset. Fondant optimizes the data transfer by storing and loading columns as needed. While also processing based on the available partitions. The aim is to make these datasets sharable and allow users to create their own datasets based on others.
+- **Operation**: A transformation to be applied on a dataset resulting in a new dataset. The operation will load needed columns and produce new/altered columns. A transformation can be anything from loading, filtering, adding a column, writing etc. Fondant also makes operations sharable so you can easily use an operation in your workflow.
+- **Shareable trees**: Datasets are a result of applying operations on other datasets. The full lineage is baked in. This allows for sharing not just the end product but the full history, users can also easily continue based on a dataset or branch off of an existing graph.
+
+![overview](docs/art/fondant_overview.png)
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## 🧩 Key Features
+
+Here's what Fondant brings to the table: 
+- 🔧 Plug ‘n’ play composable data processing workflows
 - 🧩 Library containing off-the-shelf reusable components
 - 🐼 A simple Pandas based interface for creating custom components
 - 📊 Built-in lineage, caching, and data explorer
 - 🚀 Production-ready, scalable deployment
 - ☁️ Integration with runners across different clouds (Vertex, Sagemaker, Kubeflow)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-## 💨 Getting Started
-
-Eager to get started? Follow our [**step by step guide**](https://fondant.ai/en/latest/guides/first_dataset/) to get your first pipeline up and running.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-## 🧩 Reusable components
-
-Fondant comes with a library of reusable components that you can leverage to compose your own 
-pipeline:
-
-- Data ingestion: _S3, GCS, ABS, Hugging Face, local file system, ..._
-- Data Filtering: _Duplicates, language, visual style, topic, format, aesthetics, NSFW, license, 
-  ..._
-- Data Enrichment: _Captions, segmentations, embeddings, ..._
-- Data Transformation: _Image cropping, image resizing, text chunking, ...._
-- Data retrieval: _Common Crawl, LAION, ..._
 
 👉 **Check our [Component Hub](https://fondant.ai/en/latest/components/hub/) for an overview of all 
 available components**
@@ -116,64 +133,8 @@ pip install fondant
 Fondant also includes extra dependencies for specific runners, storage integrations and publishing 
 components to registries. The dependencies for the local runner (docker) is included by default.
 
-For more detailed installation options, check the [**installation page**](https://fondant.ai/en/latest/guides/installation/) on our documentation.
+For more detailed installation options, check the [**installation page**](https://fondant.ai/en/latest/guides/installation/)on our documentation.
 
-
-## 👨‍💻 Usage
-
-#### Pipeline
-
-Fondant allows you to easily define data pipelines comprised of both reusable and custom
-components. The following pipeline for instance uses the reusable `load_from_hf_hub` component
-to load a dataset from the Hugging Face Hub and process it using a custom component:
-
-**_pipeline.py_**
-```python
-
-from fondant.pipeline import Pipeline
-
-pipeline = Pipeline(name="example pipeline", base_path="./data")
-
-dataset = pipeline.read(
-    "load_from_hf_hub",
-    arguments={
-        "dataset_name": "lambdalabs/pokemon-blip-captions"
-    },
-)
-
-dataset = dataset.apply(
-    "resize_images",
-    arguments={
-        "resize_width": 128,
-        "resize_height": 128,
-    },
-)
-```
-
-Custom use cases require the creation of custom components. Check out our [getting started page](https://fondant.ai/en/latest/guides/first_dataset/) to learn
-more about how to build custom pipelines and components.
-
-### Running your pipeline
-
-Once you have a pipeline you can easily run (and compile) it by using the built-in CLI:
-
-```bash
-fondant run local pipeline.py
-```
-
-To see all available runner and arguments you can check the fondant CLI help pages
-
-```bash
-fondant --help
-```
-
-Or for a subcommand:
-
-```bash
-fondant <subcommand> --help
-```
-
-<p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 👭 Contributing
 
@@ -203,3 +164,4 @@ pre-commit install
 ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
+
