@@ -49,7 +49,10 @@ jsonschema = ">= 4.18"
 pyarrow = ">= 11.0.0"
 pyyaml = ">= 5.3.1"
 
-dask = { version = ">= 2024.4.1", extras = ["dataframe", "distributed", "diagnostics"]}
+dask = [
+    { version = ">= 2023.4.1", extras = ["dataframe", "distributed", "diagnostics"], python = "<3.11" },
+    { version = ">= 2024.4.1", extras = ["dataframe", "distributed", "diagnostics"], python = ">=3.11" },
+    ]
 docker = ">= 6.1.3"
 
 # dask-cuda is not yet compatible with Python >3.11.8,
@@ -76,7 +79,7 @@ kfp = ["kfp"]
 vertex = ["kfp", "google-cloud-aiplatform"]
 sagemaker = ["sagemaker", "boto3"]
 
-all = ["dask-cuda", "s3fs", "adlfs", "gcsfs", "kfp", "google-cloud-aiplatform",
+all = ["s3fs", "adlfs", "gcsfs", "kfp", "google-cloud-aiplatform",
     "sagemaker", "boto3"]
 
 [tool.poetry.group.test]
