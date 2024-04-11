@@ -70,7 +70,7 @@ Towards that end, Fondant offers:
 
 ## 💨 Getting Started
 
-Eager to get started? Follow our [**step by step guide**](https://fondant.ai/en/latest/guides/first_pipeline/) to get your first pipeline up and running.
+Eager to get started? Follow our [**step by step guide**](https://fondant.ai/en/latest/guides/first_dataset/) to get your first pipeline up and running.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -116,7 +116,7 @@ pip install fondant
 Fondant also includes extra dependencies for specific runners, storage integrations and publishing 
 components to registries. The dependencies for the local runner (docker) is included by default.
 
-For more detailed installation options, check the [**installation page**](https://fondant.ai/en/latest/guides/installation/)on our documentation.
+For more detailed installation options, check the [**installation page**](https://fondant.ai/en/latest/guides/installation/) on our documentation.
 
 
 ## 👨‍💻 Usage
@@ -150,7 +150,7 @@ dataset = dataset.apply(
 )
 ```
 
-Custom use cases require the creation of custom components. Check out our [getting started page](https://fondant.ai/en/latest/guides/first_pipeline/) to learn
+Custom use cases require the creation of custom components. Check out our [getting started page](https://fondant.ai/en/latest/guides/first_dataset/) to learn
 more about how to build custom pipelines and components.
 
 ### Running your pipeline
