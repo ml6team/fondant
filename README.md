@@ -73,7 +73,7 @@ dataset = images.apply(
 )
 
 ```
-Custom use cases require the creation of custom components. Check out our [**getting started**](https://fondant.ai/en/latest/guides/first_pipeline/) page to learn more about how to build custom pipelines and components.
+Custom use cases require the creation of custom components. Check out our [**step by step guide**](https://fondant.ai/en/latest/guides/first_dataset/) to learn more about how to build custom pipelines and components.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
