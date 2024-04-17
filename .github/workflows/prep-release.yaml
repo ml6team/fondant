@@ -49,6 +49,7 @@ jobs:
           role-to-assume: arn:aws:iam::904708148714:role/fondant-github-actions
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{env.AWS_REGION}}
+          role-duration-seconds: 18000
 
       - name: Login to Amazon ECR Public
         id: login-ecr-public
