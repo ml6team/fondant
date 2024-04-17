@@ -213,7 +213,6 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
     with tmp_path_factory.mktemp("temp") as fn:
         # this is the directory mounted in the container
         _, _, dataset, cache_dict = setup_pipeline
-        work_dir_stem = f"/{fn.stem}"
         working_directory = str(fn)
         compiler = DockerCompiler()
         output_path = str(fn / "docker-compose.yml")
@@ -234,14 +233,14 @@ def test_docker_local_path(setup_pipeline, tmp_path_factory):
             assert component_configs.volumes == [
                 {
                     "source": str(fn),
-                    "target": work_dir_stem,
+                    "target": str(fn),
                     "type": "bind",
                 },
             ]
             cleaned_pipeline_name = dataset.name.replace("_", "")
             # check if commands are patched to use the working dir
             expected_output_manifest_path = (
-                f"{work_dir_stem}/{cleaned_pipeline_name}/{expected_run_id}"
+                f"{str(fn)}/{cleaned_pipeline_name}/{expected_run_id}"
                 f"/{component_name}/manifest.json"
             )
 

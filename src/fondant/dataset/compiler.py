@@ -180,10 +180,10 @@ class DockerCompiler(Compiler):
         volume = DockerVolume(
             type="bind",
             source=str(p_base_path),
-            target=f"/{p_base_path.stem}",
+            target=str(p_base_path),
         )
-        path = f"/{p_base_path.stem}"
-        return path, volume
+
+        return str(p_base_path), volume
 
     def _generate_spec(
         self,
@@ -246,7 +246,7 @@ class DockerCompiler(Compiler):
             command.extend(
                 [
                     "--working_directory",
-                    working_directory,
+                    path,
                 ],
             )
 
