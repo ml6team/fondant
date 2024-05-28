@@ -31,7 +31,7 @@ Fondant enables you to initialize datasets, apply various operations on them, an
 
 ## 💨 Getting Started
 
-Fondant allows you to easily define workflows comprised of both reusable and custom components. The following example uses the reusable load_from_hf_hub component to load a dataset from the Hugging Face Hub and process it using a custom component that will resize the images resulting in a new dataset.
+Fondant allows you to easily define workflows comprised of both reusable and custom components. The following example uses the reusable `load_from_hf_hub component` to load a dataset from the Hugging Face Hub and process it using a custom component that will resize the images resulting in a new dataset.
 
 
 ```pipeline.py
@@ -39,6 +39,7 @@ import pyarrow as pa
 
 from fondant.dataset import Dataset
 
+# initialize a dataset by loading data from the Hugging Face Hub
 raw_data = Dataset.create(
     "load_from_hf_hub",
     arguments={
@@ -55,7 +56,7 @@ raw_data = Dataset.create(
         "top_level_domain": pa.string(),
     },
 )
-
+# add an operation to download the images from the urls
 images = raw_data.apply(
     "download_images",
     arguments={
@@ -63,7 +64,7 @@ images = raw_data.apply(
         "resize_mode": "no",
     },
 )
-
+# add an operation to resize the images
 dataset = images.apply(
     "resize_images",
     arguments={
@@ -85,13 +86,13 @@ Once you have a pipeline you can easily run (and compile) it by using the built-
 fondant run local pipeline.py
 ```
 
-To see all available runner and arguments you can check the fondant CLI help pages
+To see all available runners and arguments you can check the fondant CLI help pages
 
 ```bash
 fondant --help
 ```
 
-Or for a subcommand:
+Or for a specific subcommand:
 
 ```bash
 fondant <subcommand> --help
@@ -115,10 +116,10 @@ fondant <subcommand> --help
 Here's what Fondant brings to the table: 
 - 🔧 Plug ‘n’ play composable data processing workflows
 - 🧩 Library containing off-the-shelf reusable components
-- 🐼 A simple Pandas based interface for creating custom components
+- 🐼 A simple Pandas based dataframe interface for creating custom components
 - 📊 Built-in lineage, caching, and data explorer
 - 🚀 Production-ready, scalable deployment
-- ☁️ Integration with runners across different clouds (Vertex, Sagemaker, Kubeflow)
+- ☁️ Integration with runners across different clouds (Vertex on Google Cloud, Sagemaker on AWS, Kubeflow on any k8s cluster)
 
 👉 **Check our [Component Hub](https://fondant.ai/en/latest/components/hub/) for an overview of all 
 available components**
@@ -141,7 +142,7 @@ An end-to-end Fondant pipeline that starts from our Fondant-CC-25M creative comm
 
 ## ⚒️ Installation
 
-First, run the minimal Fondant installation:
+First, run the basic Fondant installation:
 
 ```
 pip install fondant
