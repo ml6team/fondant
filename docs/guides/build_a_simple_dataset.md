@@ -99,7 +99,7 @@ We provide three arguments to the `.create()` method:
 To materialize your dataset, you can execute the following command within the directory:
 
 ```bash
-fondant run local dataset.py --working_direcotry ./data
+fondant run local dataset.py --working-directory ./data
 ```
 
 The workflow execution will start, initiating the download of the dataset from HuggingFace.

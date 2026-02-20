@@ -49,7 +49,7 @@ AWS with a role that has all the required permissions to launch a SageMaker pipe
     
     ```bash 
     fondant run sagemaker <dataset_ref> \
-     --working-dir $S3_BUCKET \
+     --working-directory $S3_BUCKET \
      --role-arn $SAGEMAKER_ROLE_ARN 
     ```
     
@@ -61,8 +61,8 @@ AWS with a role that has all the required permissions to launch a SageMaker pipe
     
     runner = SageMakerRunner()
     runner.run(
-        input=<path_to_dataset>,
-        working_dir=<s3_bucket>,
+        dataset=<path_to_dataset>,
+        working_directory=<s3_bucket>,
         role_arn=<role_arn>,
         pipeline_name=<sagemaker_pipeline_name>
     )

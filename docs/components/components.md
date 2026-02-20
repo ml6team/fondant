@@ -1,5 +1,3 @@
-from distributed import Client
-
 # Components
 
 Fondant makes it easy to build dataset collaborative leveraging reusable components. Fondant
@@ -70,17 +68,18 @@ schema defined by the `produces` section of the component specification.
 ### Configuring Dask
 
 You can configure the [Dask client](https://docs.dask.org/en/stable/scheduling.html) based on the 
-needs of your component by overriding the `dask_client` method:
+needs of your component by overriding the `setup` method:
 
 ```python
 import os
+import typing as t
 
 from dask.distributed import Client, LocalCluster
 from fondant.component import PandasTransformComponent
 
 class Component(PandasTransformComponent):
   
-    def dask_client(self) -> Client:
+    def setup(self) -> t.Any:
         """Initialize the dask client to use for this component."""
         cluster = LocalCluster(
             processes=True,

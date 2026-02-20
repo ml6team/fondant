@@ -17,7 +17,7 @@ about this in the [installation](../guides/installation.md) guide.
 
 ### Running a dataset with the local runner
 
-Fondant will create a default working directory (for intermediate artifacts) for the dataset in the current working directory called '/.artifacts'. You can override this by passing the `--working-dir` argument to the `run` command. Or by setting the `working_dir` argument in the `run` method of the `DockerRunner` class.
+Fondant will create a default working directory (for intermediate artifacts) for the dataset in the current working directory called '/.artifacts'. You can override this by passing the `--working-directory` argument to the `run` command. Or by setting the `working_directory` argument in the `run` method of the `DockerRunner` class.
 
 === "Console"
 
