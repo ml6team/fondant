@@ -13,7 +13,7 @@ You can initialise a dataset from a previous run by using the `read` method.
 ```python
 from fondant.dataset import Dataset
 
-dataset = Dataset.read("path/to/manfiest.json")
+dataset = Dataset.read("path/to/manifest.json")
 
 ```
 

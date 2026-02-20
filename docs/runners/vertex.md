@@ -56,7 +56,7 @@ info [here](https://codelabs.developers.google.com/vertex-pipelines-intro#2)
         region=project_region,
         service_account=service_account)
     )
-    runner.run(input_spec=<path_to_compiled_spec>, working_dir=<working_dir>)
+    runner.run(dataset=<path_to_compiled_spec>, working_directory=<working_directory>)
     ```
 
 
